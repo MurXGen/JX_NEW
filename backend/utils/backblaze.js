@@ -9,12 +9,21 @@ async function deleteImageFromB2(fileUrl) {
     try {
         await b2.authorize();
 
-        const parts = fileUrl.split("/trades/");
-        if (parts.length < 2) {
-            console.warn("⚠️ Invalid fileUrl format:", fileUrl);
-            return;
+        // Normalize: strip CDN prefix if present
+        const cdnPrefix = "https://cdn.journalx.app/";
+        let fileName = fileUrl;
+
+        if (fileUrl.startsWith(cdnPrefix)) {
+            fileName = fileUrl.replace(cdnPrefix, "");
+        } else {
+            // fallback for B2 direct URLs
+            const parts = fileUrl.split("/trades/");
+            if (parts.length < 2) {
+                console.warn("⚠️ Invalid fileUrl format:", fileUrl);
+                return;
+            }
+            fileName = "trades/" + decodeURIComponent(parts[1]);
         }
-        const fileName = "trades/" + decodeURIComponent(parts[1]);
 
         console.log("📝 Normalized fileName:", fileName);
 
@@ -24,8 +33,6 @@ async function deleteImageFromB2(fileUrl) {
             return;
         }
 
-        // ✅ Must include bucketId
-        // Inside deleteImageFromB2
         console.log("🪵 Deleting from B2 with:", {
             bucketId: process.env.B2_BUCKET_ID,
             fileName,
@@ -38,21 +45,29 @@ async function deleteImageFromB2(fileUrl) {
             fileId,
         });
 
-
         console.log("🗑 Deleted image from B2:", fileName);
     } catch (err) {
-        console.error("❌ Error deleting image from B2:", err.response?.data || err.message);
+        console.error(
+            "❌ Error deleting image from B2:",
+            err.response?.data || err.message
+        );
     }
 }
 
 async function getFileId(fileName) {
-    const res = await b2.listFileNames({
-        bucketId: process.env.B2_BUCKET_ID,
-        prefix: fileName,
-        maxFileCount: 1,
-    });
+    try {
+        const res = await b2.listFileNames({
+            bucketId: process.env.B2_BUCKET_ID,
+            prefix: fileName,
+            maxFileCount: 1,
+        });
 
-    return res.data.files[0]?.fileId;
+        const file = res.data.files.find(f => f.fileName === fileName);
+        return file?.fileId || null;
+    } catch (err) {
+        console.error("❌ Error fetching fileId:", err.response?.data || err.message);
+        return null;
+    }
 }
 
 module.exports = { deleteImageFromB2 };

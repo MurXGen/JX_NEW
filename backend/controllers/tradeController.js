@@ -50,41 +50,7 @@ exports.addTrade = async (req, res) => {
   try {
     const { body, files } = req;
 
-    let openImageUrl = null;
-    let closeImageUrl = null;
-    let openImageSizeKB = null;
-    let closeImageSizeKB = null;
-
-    // Max file size (5MB in bytes)
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-    if (files?.openImage) {
-      const file = files.openImage[0];
-      if (file.size > MAX_FILE_SIZE) {
-        return res.status(400).json({
-          success: false,
-          error: "Open image exceeds 5MB limit. Please upload a smaller file.",
-        });
-      }
-
-      openImageUrl = await uploadToB2(file, "open-images");
-      openImageSizeKB = Math.round(file.size / 1024); // ✅ convert to KB
-    }
-
-    if (files?.closeImage) {
-      const file = files.closeImage[0];
-      if (file.size > MAX_FILE_SIZE) {
-        return res.status(400).json({
-          success: false,
-          error: "Close image exceeds 5MB limit. Please upload a smaller file.",
-        });
-      }
-
-      closeImageUrl = await uploadToB2(file, "close-images");
-      closeImageSizeKB = Math.round(file.size / 1024);
-    }
-
-    // Build trade object
+    // Build trade object (images null initially)
     const tradeData = {
       ...body,
       quantityUSD: Number(body.quantityUSD),
@@ -102,36 +68,62 @@ exports.addTrade = async (req, res) => {
       avgExitPrice: Number(body.avgExitPrice || 0),
       avgTPPrice: Number(body.avgTPPrice || 0),
       avgSLPrice: Number(body.avgSLPrice || 0),
-
       reason: body.reason ? [body.reason] : [],
-      openImageUrl,
-      closeImageUrl,
-      openImageSizeKB,
-      closeImageSizeKB,
+      openImageUrl: null,
+      closeImageUrl: null,
+      openImageSizeKB: null,
+      closeImageSizeKB: null,
       userId: req.cookies.userId,
       accountId: req.cookies.accountId,
     };
 
+    // Save trade immediately
     const newTrade = new Trade(tradeData);
     await newTrade.save();
 
+    // Respond quickly 🚀
     const accounts = await Account.find({ userId: req.cookies.userId });
     const trades = await Trade.find({ userId: req.cookies.userId });
 
     res.status(201).json({
       success: true,
-      message: "Trade added successfully",
+      message: "Trade added successfully (images uploading in background)",
       trade: newTrade,
       accounts,
       trades
+    });
+
+    // --- Async upload images AFTER response ---
+    process.nextTick(async () => {
+      try {
+        const update = {};
+
+        if (files?.openImage) {
+          const file = files.openImage[0];
+          const url = await uploadToB2(file, "open-images");
+          update.openImageUrl = `https://cdn.journalx.app/${url.split(`${process.env.B2_BUCKET}/`)[1]}`;
+          update.openImageSizeKB = Math.round(file.size / 1024);
+        }
+
+        if (files?.closeImage) {
+          const file = files.closeImage[0];
+          const url = await uploadToB2(file, "close-images");
+          update.closeImageUrl = `https://cdn.journalx.app/${url.split(`${process.env.B2_BUCKET}/`)[1]}`;
+          update.closeImageSizeKB = Math.round(file.size / 1024);
+        }
+
+        if (Object.keys(update).length > 0) {
+          await Trade.findByIdAndUpdate(newTrade._id, update, { new: true });
+        }
+      } catch (err) {
+        console.error("❌ [Image Upload Async ERROR]:", err);
+      }
     });
   } catch (err) {
     console.error("❌ [addTrade ERROR]:", err);
     res.status(500).json({ success: false, error: "Failed to add trade" });
   }
 };
-
-
 
 exports.updateTrade = async (req, res) => {
   try {
@@ -248,21 +240,16 @@ exports.deleteTrade = async (req, res) => {
     const accounts = await Account.find({ userId });
     const trades = await Trade.find({ userId });
 
-    // respond immediately
+    // respond immediately (don't block frontend)
     res.json({ success: true, tradeId, accounts, trades });
 
     // async cleanup of images
-    if (openImageUrl) {
-      console.log("🪓 Deleting OPEN image from B2:", openImageUrl);
-      deleteImageFromB2(openImageUrl);
-    }
-    if (closeImageUrl) {
-      console.log("🪓 Deleting CLOSE image from B2:", closeImageUrl);
-      deleteImageFromB2(closeImageUrl);
-    }
+    if (openImageUrl) deleteImageFromB2(openImageUrl);
+    if (closeImageUrl) deleteImageFromB2(closeImageUrl);
 
   } catch (err) {
     console.error("❌ Error deleting trade:", err);
     res.status(500).json({ error: "Failed to delete trade" });
   }
 };
+
