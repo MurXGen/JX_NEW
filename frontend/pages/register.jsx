@@ -73,18 +73,11 @@ const handleRegister = async () => {
 
   return (
     <div className="register">
-      <Navbar />
       <div className="title">
         <span className="desc">#1 Traders Preference</span>
         <span>Welcome to Journaling...</span>
       </div>
-
-      <PopupAlert
-        message={popupMessage}
-        type={popupMessage === 'Registered successfully!' ? 'success' : 'error'}
-        onClose={() => setPopupMessage('')}
-      />
-
+      
       <div className="container">
         {step === 'enter-email' && (
           <motion.div
