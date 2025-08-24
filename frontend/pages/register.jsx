@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import Navbar from '@/components/Navbar';
-import PopupAlert from '@/components/PopupAlert';
 import { containerVariants, childVariants } from '@/animations/motionVariants';
 import { register } from '@/api/auth';
 
