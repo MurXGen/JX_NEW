@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/components/*": [
+        "components/*"
+      ],
+      "@/api/*": [
+        "api/*"
+      ],
+      "@/pages/*": [
+        "pages/*"
+      ],
+      "@/utils/*": [
+        "utils/*"
+      ],
+      "@/styles/*": [
+        "styles/*"
+      ],
+      "@/animations/*": [
+        "animations/*"
+      ],
+      "@/public/*": [
+        "public/*"
+      ]
+    }
+  }
+}
