@@ -21,8 +21,11 @@ const s3 = new S3Client({
 });
 
 // Upload helper
+// Upload helper
 async function uploadToB2(file, folder) {
-  const fileName = `${folder}/${Date.now()}-${file.originalname}`;
+const safeName = file.originalname.replace(/\s+/g, "_");
+const fileName = `${folder}/${Date.now()}-${safeName}`;
+
   const key = `trades/${fileName}`; // must start with trades/
 
   console.log("🔍 [B2 DEBUG] Preparing upload...");
@@ -42,15 +45,17 @@ async function uploadToB2(file, folder) {
 
   await s3.send(command);
 
-  return `${process.env.B2_ENDPOINT}/${process.env.B2_BUCKET}/${key}`;
+  // ✅ Return key only, not S3 raw URL
+  return key;
 }
+
 
 
 exports.addTrade = async (req, res) => {
   try {
     const { body, files } = req;
 
-    // Build trade object (images null initially)
+    // Build base trade object
     const tradeData = {
       ...body,
       quantityUSD: Number(body.quantityUSD),
@@ -69,61 +74,69 @@ exports.addTrade = async (req, res) => {
       avgTPPrice: Number(body.avgTPPrice || 0),
       avgSLPrice: Number(body.avgSLPrice || 0),
       reason: body.reason ? [body.reason] : [],
-      openImageUrl: null,
-      closeImageUrl: null,
-      openImageSizeKB: null,
-      closeImageSizeKB: null,
       userId: req.cookies.userId,
       accountId: req.cookies.accountId,
     };
 
-    // Save trade immediately
+    // --- Upload images BEFORE saving trade ---
+    if (files?.openImage) {
+      const file = files.openImage[0];
+      console.log("📂 [UPLOAD] Open image file received:", {
+        name: file.originalname,
+        sizeKB: Math.round(file.size / 1024),
+        mimetype: file.mimetype,
+      });
+
+      const key = await uploadToB2(file, "open-images"); // only call ONCE
+      console.log("✅ [UPLOAD] Raw B2 key returned:", key);
+
+      const finalUrl = `https://cdn.journalx.app/${key}`;
+      console.log("🌐 [FINAL] Open Image CDN URL:", finalUrl);
+
+      tradeData.openImageUrl = finalUrl;
+      tradeData.openImageSizeKB = Math.round(file.size / 1024);
+    }
+
+    if (files?.closeImage) {
+      const file = files.closeImage[0];
+      console.log("📂 [UPLOAD] Close image file received:", {
+        name: file.originalname,
+        sizeKB: Math.round(file.size / 1024),
+        mimetype: file.mimetype,
+      });
+
+      const key = await uploadToB2(file, "close-images"); // only call ONCE
+      console.log("✅ [UPLOAD] Raw B2 key returned:", key);
+
+      const finalUrl = `https://cdn.journalx.app/${key}`;
+      console.log("🌐 [FINAL] Close Image CDN URL:", finalUrl);
+
+      tradeData.closeImageUrl = finalUrl;
+      tradeData.closeImageSizeKB = Math.round(file.size / 1024);
+    }
+
+    // Save trade (with images included)
     const newTrade = new Trade(tradeData);
     await newTrade.save();
 
-    // Respond quickly 🚀
+    // Fetch fresh accounts + trades
     const accounts = await Account.find({ userId: req.cookies.userId });
     const trades = await Trade.find({ userId: req.cookies.userId });
 
+    // Respond AFTER images + DB done ✅
     res.status(201).json({
       success: true,
-      message: "Trade added successfully (images uploading in background)",
+      message: "Trade added successfully",
       trade: newTrade,
       accounts,
-      trades
-    });
-
-    // --- Async upload images AFTER response ---
-    process.nextTick(async () => {
-      try {
-        const update = {};
-
-        if (files?.openImage) {
-          const file = files.openImage[0];
-          const url = await uploadToB2(file, "open-images");
-          update.openImageUrl = `https://cdn.journalx.app/${url.split(`${process.env.B2_BUCKET}/`)[1]}`;
-          update.openImageSizeKB = Math.round(file.size / 1024);
-        }
-
-        if (files?.closeImage) {
-          const file = files.closeImage[0];
-          const url = await uploadToB2(file, "close-images");
-          update.closeImageUrl = `https://cdn.journalx.app/${url.split(`${process.env.B2_BUCKET}/`)[1]}`;
-          update.closeImageSizeKB = Math.round(file.size / 1024);
-        }
-
-        if (Object.keys(update).length > 0) {
-          await Trade.findByIdAndUpdate(newTrade._id, update, { new: true });
-        }
-      } catch (err) {
-        console.error("❌ [Image Upload Async ERROR]:", err);
-      }
+      trades,
     });
   } catch (err) {
     console.error("❌ [addTrade ERROR]:", err);
     res.status(500).json({ success: false, error: "Failed to add trade" });
   }
 };
+
 
 exports.updateTrade = async (req, res) => {
   try {
