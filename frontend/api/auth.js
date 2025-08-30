@@ -11,10 +11,18 @@ export const register = ({ name, email, password }) =>
   });
 
 // Updated login function to accept { email, password }
-export const login = ({ email, password }) =>
-  axios.post(`${API}/login`, { email, password }, {
-    withCredentials: true, // ✅ Include cookies
-  });
+export const login = async ({ email, password }) => {
+  try {
+    const res = await axios.post(`${API}/login`, { email, password }, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Login error:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
 
 // Account creation remains unchanged
 export const createAccount = (accountName, currency, balance) =>

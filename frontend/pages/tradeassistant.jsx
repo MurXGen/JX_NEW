@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
+import BottomBar from "@/components/Trades/BottomBar";
 
 export default function TradeAssistant() {
     const [input, setInput] = useState("");
@@ -67,6 +68,8 @@ export default function TradeAssistant() {
     return (
         <div className="p-6 max-w-3xl mx-auto">
             <h1 className="text-2xl font-bold mb-4">📊 AI Trade Assistant</h1>
+
+            <BottomBar/>
 
             {/* Quick Prompts */}
             <div className="grid grid-cols-2 gap-2 mb-4">

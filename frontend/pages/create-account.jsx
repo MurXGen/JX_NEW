@@ -8,16 +8,20 @@ import { motion } from 'framer-motion';
 import { containerVariants, childVariants } from '@/animations/motionVariants';
 import axios from 'axios';
 import { saveToIndexedDB } from '@/utils/indexedDB';
+import Navbar from '@/components/Trades/Navbar';
+import ToastMessage from '@/components/ui/ToastMessage';
+import BackgroundBlur from '@/components/ui/BackgroundBlur';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const CreateAccount = () => {
   const [accountName, setAccountName] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [balance, setBalance] = useState('');
-  const [alertMessage, setAlertMessage] = useState('');
-  const [alertType, setAlertType] = useState('success');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [alertType, setAlertType] = useState('');
+  const [alertMessage, setAlertMessage] = useState('')
 
 
   const handleSubmit = async (e) => {
@@ -48,25 +52,35 @@ const CreateAccount = () => {
         { withCredentials: true }
       );
 
-      const { userData } = res.data;
+      const { userData, message } = res.data;
 
-      // Save to IndexedDB in the same structure as login
+      // Save updated user data to IndexedDB
       await saveToIndexedDB("user-data", userData);
 
       console.log("💾 Updated IndexedDB after account creation:", userData);
 
       setAlertType("success");
-      setAlertMessage("Account created successfully!");
+      setAlertMessage(message || "Account created successfully!");
 
-      // Redirect or refresh
-      router.push("/accounts");
+      // Redirect after short delay so user sees the toast
+      setTimeout(() => {
+        router.push("/accounts");
+      }, 1200);
+
     } catch (error) {
       console.error("❌ Account creation failed:", error);
       setAlertType("error");
-      setAlertMessage("Failed to create account");
-    }
 
+      if (error.response?.data?.message) {
+        setAlertMessage(`❌ ${error.response.data.message}`);
+      } else {
+        setAlertMessage("❌ Failed to create account");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const handleBackClick = () => {
     router.push('/accounts');
@@ -74,76 +88,80 @@ const CreateAccount = () => {
 
 
   return (
-    <div className="createAccount">
-      <motion.h1
+    <div className="createAccount flexClm gap_32">
+      <Navbar />
+      <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        style={{ display: 'flex', flexDirection: 'row', gap: '12px', alignItems: 'center' }}
+        className='flexClm gap_4'
       >
-        <ArrowLeft className="backButton" onClick={handleBackClick} />
-        Create Account
-      </motion.h1>
+        <span className='font_20'>Create Account</span>
+        <span className='font_12' style={{ color: '#ffffff80', fontWeight: '500 !important' }}>Multiple accounts helps in managing trades</span>
+      </motion.div>
 
 
       <motion.form
         onSubmit={handleSubmit}
-        className='formContent'
+        className='formContent flexClm gap_24'
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.div className="formGroup" variants={childVariants}>
-          <label>Account Name</label>
-          <input
-            type="text"
-            className='accountName'
-            value={accountName}
-            onChange={(e) => setAccountName(e.target.value.toUpperCase())}
-            required
-          />
-        </motion.div>
+        <input
+          type="text"
+          className='accountName'
+          value={accountName}
+          placeholder='Account Name'
+          onChange={(e) => setAccountName(e.target.value.toUpperCase())}
+          required
+        />
 
-        <motion.div className="formGroup" variants={childVariants}>
-          <label>Currency</label>
-          <div className="currencyOptions" variants={containerVariants}
-            initial="hidden"
-            animate="visible">
-            {['USD', 'INR', 'USDT'].map((cur) => (
-              <div
-                key={cur}
-                className={`currencyBox ${currency === cur ? 'selected' : ''}`}
-                onClick={() => setCurrency(cur)}
-                variants={childVariants}
-              >
-                {cur}
-              </div>
-            ))}
-          </div>
-        </motion.div>
+        <input
+          type="number"
+          value={balance}
+          placeholder="Balance"
+          min="0"
+          onChange={(e) => {
+            const val = Math.max(0, Number(e.target.value));
+            setBalance(val);
+          }}
+          required
+        />
 
-        <motion.div className="formGroup" variants={childVariants}>
-          <label>Balance</label>
-          <input
-            type="number"
-            value={balance}
-            onChange={(e) => setBalance(e.target.value)}
-            required
-          />
-        </motion.div>
 
-        <motion.div className="actions" variants={childVariants}>
-          <button type="submit" onClick={handleSubmit} disabled={loading}>
+
+        <div className="currencyOptions flexRow gap_12" variants={containerVariants}
+          initial="hidden"
+          animate="visible">
+          {['USD', 'INR', 'USDT'].map((cur) => (
+            <span
+              key={cur}
+              className={`currencyText  button_ter font_12 ${currency === cur ? 'selected' : ''}`}
+              onClick={() => setCurrency(cur)}
+              variants={childVariants}
+              style={{ width: '70px', textAlign: 'center' }}
+            >
+              {cur}
+            </span>
+          ))}
+        </div>
+
+        <motion.div className="flexRow flexRow_stretch gap_12" variants={childVariants}>
+          <ArrowLeft onClick={handleBackClick} className="button_sec" size={20} />
+          <button className="button_pri flexRow gap_8" type="submit" onClick={handleSubmit} disabled={loading}>
             {loading ? (
-              <Loader2 className="loadingSpinner" />
+              <Loader2 className="spinner" size={16} />
             ) : (
               <>
-                Create Account <ArrowUpRight className="rightButtonArrow" />
+                Create Account <ArrowUpRight size={16} />
               </>
             )}
           </button>
         </motion.div>
       </motion.form>
+      <ToastMessage type={alertType} message={alertMessage} duration={3000} />
+      <BackgroundBlur/>
     </div >
   );
 };

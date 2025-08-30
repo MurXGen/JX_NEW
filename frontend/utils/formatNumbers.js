@@ -1,23 +1,33 @@
 export const formatNumber = (value, decimalPlaces = 2) => {
   const num = parseFloat(value);
-  if (isNaN(num)) return '0';
-  
+  if (isNaN(num)) return "0";
+
   const absValue = Math.abs(num);
-  
-  if (absValue >= 1000000) {
-    const formatted = (num / 1000000).toFixed(decimalPlaces);
-    return `${formatted.replace(/\.0+$/, '')}M`;
+
+  // Millions
+  if (absValue >= 1_000_000) {
+    const formatted = (num / 1_000_000).toFixed(decimalPlaces);
+    return `${parseFloat(formatted)}M`;
   }
-  
-  if (absValue >= 1000) {
-    const formatted = (num / 1000).toFixed(decimalPlaces);
-    return `${formatted.replace(/\.0+$/, '')}K`;
+
+  // 100k or above → show in K (not commas)
+  if (absValue >= 100_000) {
+    const formatted = (num / 1_000).toFixed(decimalPlaces);
+    return `${parseFloat(formatted)}K`;
   }
-  
-  return num.toFixed(decimalPlaces);
+
+  // < 100k → show commas
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimalPlaces,
+  });
 };
 
-export const formatCurrency = (value, symbol = '$', decimalPlaces = 2) => {
-  const formatted = formatNumber(value, decimalPlaces);
-  return `${value >= 0 ? '' : '-'}${symbol}${formatted.replace('-', '')}`;
+export const formatCurrency = (value, symbol = "$", decimalPlaces = 2) => {
+  const num = parseFloat(value);
+  if (isNaN(num)) return `${symbol}0`;
+
+  const formatted = formatNumber(num, decimalPlaces);
+
+  return `${num < 0 ? "-" : ""}${symbol}${formatted.replace("-", "")}`;
 };

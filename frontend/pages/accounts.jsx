@@ -4,56 +4,78 @@ import { useEffect, useState } from 'react';
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import axios from 'axios';
-import { ArrowDown, Loader2, LucideLassoSelect } from 'lucide-react';
+import { ArrowDown, ArrowRight, Loader2, LucideLassoSelect, Plus } from 'lucide-react';
 import { getFromIndexedDB } from '@/utils/indexedDB';
 import { motion } from 'framer-motion';
 import { containerVariants, childVariants } from '@/animations/motionVariants';
 import { saveToIndexedDB } from '@/utils/indexedDB';
+import Navbar from '@/components/Trades/Navbar';
+import BackgroundBlur from '@/components/ui/BackgroundBlur';
+import { formatCurrency } from '@/utils/formatNumbers';
+import FullPageLoader from '@/components/ui/FullPageLoader';
 
 
 function Accounts() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState([]);
   const [accountSymbols, setAccountSymbols] = useState({});
+  const [currentBalances, setCurrentBalances] = useState({});
+  const [tradesCount, setTradesCount] = useState({});
+
 
   useEffect(() => {
     const verified = Cookies.get("isVerified");
 
     if (verified !== "yes") {
-      // 🚨 User not verified → redirect to login
       router.push("/login");
       return;
     }
 
-    // ✅ Proceed with loading accounts if verified
-    setLoading(true);
-
-    // You can put your IndexedDB fetching logic here
-    // e.g. getFromIndexedDB("user-data").then(...)
-
-    setLoading(false);
-  }, [router]);
-
-  useEffect(() => {
-    const fetchAccounts = async () => {
+    // Only stop loading after fetching is done
+    const fetchAccountsAndTrades = async () => {
       try {
-        // 1️⃣ Check IndexedDB first
-        const cachedUser = await getFromIndexedDB('user-data');
-
-        // 🔍 Log everything that comes from IndexedDB
+        const cachedUser = await getFromIndexedDB("user-data");
         console.log("🗂 Full cachedUser from IndexedDB:", cachedUser);
 
         if (cachedUser?.accounts?.length > 0) {
-          console.log(`📦 Loaded accounts from IndexedDB — Total accounts: ${cachedUser.accounts.length}`);
           setAccounts(cachedUser.accounts);
           buildSymbolMap(cachedUser.accounts);
+
+          if (cachedUser.trades?.length > 0) {
+            const balanceMap = {};
+            const countMap = {};
+
+            cachedUser.accounts.forEach((acc) => {
+              const starting = acc.startingBalance.amount || 0;
+              const tradesForAcc = cachedUser.trades.filter(
+                (t) => t.accountId === acc._id
+              );
+              const pnlSum = tradesForAcc.reduce(
+                (sum, t) => sum + (Number(t.pnl) || 0),
+                0
+              );
+
+              balanceMap[acc.name] = starting + pnlSum;
+              countMap[acc.name] = tradesForAcc.length;
+            });
+
+            setCurrentBalances(balanceMap);
+            setTradesCount(countMap);
+          } else {
+            const emptyCountMap = {};
+            cachedUser.accounts.forEach((acc) => {
+              emptyCountMap[acc.name] = 0;
+            });
+            setTradesCount(emptyCountMap);
+          }
         } else {
           console.warn("⚠ No accounts found in IndexedDB — fetching from API...");
         }
-
       } catch (err) {
-        console.error('❌ Error fetching accounts:', err);
+        console.error("❌ Error fetching accounts/trades:", err);
+      } finally {
+        setLoading(false); // ✅ stop loader here
       }
     };
 
@@ -61,24 +83,24 @@ function Accounts() {
       const symbolMap = {};
       accountsData.forEach((acc) => {
         switch (acc.currency?.toUpperCase()) {
-          case 'USD':
-            symbolMap[acc.name] = '$';
+          case "USD":
+            symbolMap[acc.name] = "$";
             break;
-          case 'INR':
-            symbolMap[acc.name] = '₹';
+          case "INR":
+            symbolMap[acc.name] = "₹";
             break;
-          case 'USDT':
-            symbolMap[acc.name] = '₮';
+          case "USDT":
+            symbolMap[acc.name] = "₮";
             break;
           default:
-            symbolMap[acc.name] = '¤';
+            symbolMap[acc.name] = "¤";
         }
       });
       setAccountSymbols(symbolMap);
     };
 
-    fetchAccounts();
-  }, []);
+    fetchAccountsAndTrades();
+  }, [router]);
 
 
   const handleAccountClick = (accountId) => {
@@ -106,80 +128,97 @@ function Accounts() {
     router.push('/create-account');
   };
 
-  if (loading) return <p>Loading accounts...</p>;
+  if (loading) {
+    return <FullPageLoader />; // 👈 show loader until data is fetched
+  }
+
 
   return (
-    <div className="dashboard">
+    <div className="dashboard flexClm gap_32">
+      <Navbar />
+      <BackgroundBlur />
 
-      <div className="actions">
-        <button onClick={handleClick} disabled={loading} className="btn">
-          {loading ? (
-            <Loader2 className="loadingSpinner" />
-          ) : (
-            '+ Create Account'
-          )}
+      <div className="flexRow flexRow_stretch">
+        <div className="flexClm">
+          <span className='font_20'>Choose your account</span>
+          <span className='font_12' style={{ color: '#ffffff60' }}>Manage the way you want</span>
+        </div>
+        <button className="button_sec flexRow" onClick={handleClick} disabled={loading}>
+          <Plus size={16} />
         </button>
       </div>
 
-      <div className="title">
-        <LucideLassoSelect className="vectorColor" size={20} />
-        <span>Your Accounts</span>
-      </div>
-
       <motion.div
-        className="accountsList"
+        className="accountsList flexClm gap_24"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {accounts.length === 0 ? (
-          <motion.div className="noAccountsMessage" variants={childVariants}>
-            <span>No account found. You can create one.</span>
+          <motion.div className="noAccountsMessage" style={{ textAlign: 'center', marginTop: '50%' }} variants={childVariants}>
+            <span className='font_12'>No account found. You can create one.</span>
           </motion.div>
         ) : (
           accounts.map((acc) => (
             <motion.div
               key={acc._id}
-              className="accountCard"
+              className="accountCard flexClm gap_16"
               variants={childVariants}
               onClick={() => handleAccountClick(acc._id)}
             >
-              <div className="accountName">
-                <span>{acc.name}</span>
-              </div>
-              <div className="accountBalance">
-                <span>
-                  Starting Balance{' '}
-                  <span className='accountAmounts'>
-                    {accountSymbols[acc.name]}
-                    {acc.startingBalance.amount}
-                  </span>
+              <div className="accountName flexRow flexRow_stretch" style={{ borderBottom: "0.5px solid #ffffff33", padding: "0 0 8px 0", margin: "0 0 4px 0" }}>
+                <span className="font_16" style={{ color: "#ffffffcc" }}>
+                  {acc.name}
                 </span>
+                <div className='flexRow gap_12'>
+                  <span className='font_12 button_ter'>Trades: {tradesCount[acc.name] ?? 0}</span>
+                  <ArrowRight size={16} className='vector' />
+                </div>
 
               </div>
-              <div className="accountMetrics">
-                <span>Trades: {acc.totalTrades}</span>
-                <span>{acc.currency}</span>
+
+              <div className="accountBalance flexRow flexRow_stretch">
+                <div className="flexClm gap_4 font_12">
+                  <span className="font_12" style={{ color: "#ffffff80" }}>
+                    Starting Balance
+                  </span>
+                  <span className="accountAmounts font_16" style={{ color: "" }}>
+                    {formatCurrency(acc.startingBalance.amount, accountSymbols[acc.name])}
+                  </span>
+                </div>
+
+                <div className="flexClm gap_4 font_12">
+                  <span style={{ color: "#ffffff80" }}>Current Balance</span>
+                  <span
+                    className="accountAmounts font_16 vector"
+                    style={{ textAlign: "right" }}
+                  >
+                    {formatCurrency(
+                      currentBalances[acc.name] ?? acc.startingBalance.amount,
+                      accountSymbols[acc.name]
+                    )}
+                  </span>
+                </div>
               </div>
+
             </motion.div>
           ))
         )}
       </motion.div>
 
       {accounts.length > 3 && ( // Only show if there are enough accounts to scroll
-        <motion.button
-          className="scrollToBottomButton"
+        <button
+          className="popups_btm button_ter"
           onClick={() => {
             window.scrollTo({
               top: document.body.scrollHeight,
               behavior: 'smooth'
             });
           }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+
         >
           <ArrowDown size={20} />
-        </motion.button>
+        </button>
       )}
     </div>
   );

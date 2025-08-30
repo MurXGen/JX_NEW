@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
+import Cookies from "js-cookie";
 import { saveToIndexedDB } from '@/utils/indexedDB';
 import { getFromIndexedDB } from "@/utils/indexedDB";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
+import { formatNumber } from "@/utils/formatNumbers"; // 
 import Navbar from "@/components/Auth/Navbar";
-import { ArrowLeftCircle } from "lucide-react";
+import { ArrowDownRight, ArrowLeftCircle, ArrowUpRightIcon } from "lucide-react";
+import BackgroundBlur from "@/components/ui/BackgroundBlur";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -12,6 +16,13 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 export default function AddTrade() {
     const router = useRouter();
     const firstExitRef = useRef(null);
+    const [currencySymbol, setCurrencySymbol] = useState("$");
+
+    const statuses = [
+        { value: "running", label: "Running" },
+        { value: "closed", label: "Closed" },
+        { value: "quick", label: "Quick" },
+    ];
 
 
     // format local datetime for <input type="datetime-local" />
@@ -183,7 +194,39 @@ export default function AddTrade() {
         form.direction,
     ]);
 
+    useEffect(() => {
+        const fetchAccounts = async () => {
+            try {
+                const cachedUser = await getFromIndexedDB("user-data");
+                console.log("📂 cachedUser:", cachedUser);
+
+                if (cachedUser?.accounts?.length > 0) {
+                    const accountId = Cookies.get("accountId"); // ✅ active account from cookies
+                    console.log("🍪 Active Account ID from cookies:", accountId);
+
+                    const activeAccount = cachedUser.accounts.find(
+                        (acc) => acc._id === accountId
+                    );
+
+                    if (activeAccount?.currency) {
+                        setCurrencySymbol(getCurrencySymbol(activeAccount.currency));
+                    } else {
+                        console.warn("⚠️ No matching account found or missing currency field.");
+                    }
+                } else {
+                    console.warn("⚠ No accounts found in IndexedDB");
+                }
+            } catch (err) {
+                console.error("❌ Error fetching accounts from IndexedDB:", err);
+            }
+        };
+
+        fetchAccounts();
+    }, []);
+
+
     // --- Helpers ---
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((prev) => {
@@ -590,26 +633,30 @@ export default function AddTrade() {
                 <div className="flexClm gap_24">
                     <div className="tradeGrid">
                         <span className="font_12">Ticker name</span>
-                        <input name="symbol" value={form.symbol} onChange={handleChange} placeholder="Ticker name" />
+                        <div className="inputLabelShift">
+                            <input name="symbol" value={form.symbol} onChange={handleChange} placeholder="Ticker name" />
+                            <label>Ticker name</label>
+                        </div>
+
                     </div>
 
                     <div className="tradeGrid">
-                        <span className="font_12">Ticker name</span>
+                        <span className="font_12">Direction</span>
 
                         <div className="flexRow flexRow_stretch gap_12" style={{ width: '100%' }}>
                             <div
-                                className={`toggleOption button_sec ${form.direction === "long" ? "success" : ""}`}
+                                className={`toggleOption button_sec flexRow flex_center ${form.direction === "long" ? "success" : ""}`}
                                 style={{ width: '100%' }}
                                 onClick={() => setForm({ ...form, direction: "long" })}
                             >
-                                Long <span className="arrow upRight">↗</span>
+                                Long <ArrowUpRightIcon size={20} />
                             </div>
                             <div
-                                className={`toggleOption button_sec ${form.direction === "short" ? "error" : ""}`}
+                                className={`toggleOption button_sec flexRow flex_center ${form.direction === "short" ? "error" : ""}`}
                                 style={{ width: '100%' }}
                                 onClick={() => setForm({ ...form, direction: "short" })}
                             >
-                                Short <span className="arrow downRight">↘</span>
+                                Short <ArrowDownRight size={20} />
                             </div>
                         </div>
                     </div>
@@ -618,236 +665,286 @@ export default function AddTrade() {
                         <div className="font_12">
                             <span>Quantity</span>
                         </div>
-                        <div className="flexRow flexRow_stretch">
-                            <div className="inputLabelShift">
-                                <input
-                                    type="number"
-                                    name="quantityUSD"
-                                    value={form.quantityUSD}
-                                    onChange={handleChange}
-                                    required
-                                />
-                                <label>Margin</label>
+                        <div className="flexClm gap_12">
+                            <div className="flexRow flexRow_stretch gap_12">
+                                <div className="inputLabelShift">
+                                    <input
+                                        type="number"
+                                        name="quantityUSD"
+                                        placeholder="Margin"
+                                        value={form.quantityUSD}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                    <label>Margin</label>
+                                </div>
+
+                                <div className="inputLabelShift">
+                                    <input
+                                        type="number"
+                                        name="leverage"
+                                        value={form.leverage}
+                                        onChange={handleChange}
+                                        placeholder="Leverage"
+                                    />
+                                    <label>Leverage</label>
+                                </div>
                             </div>
 
-                            <div className="inputLabelShift">
-                                <input
-                                    type="number"
-                                    name="leverage"
-                                    value={form.leverage}
-                                    onChange={handleChange}
-                                    placeholder="Leverage"
-                                />
-                                <label>Leverage</label>
-                            </div>
-
-
-
+                            <span className="font_12 valueDisplay flexRow flex_center"> Total value :   {currencySymbol} {form.totalQuantity}</span>
                         </div>
 
                     </div>
 
-
-
-
-                    <p>📊 Total Quantity (TQ): {form.totalQuantity}</p>
-                </div>
-
-                {/* Trade Status */}
-                <div>
-                    <label>Trade Status</label>
-                    <select
-                        name="tradeStatus"
-                        value={form.tradeStatus}
-                        onChange={handleChange}
-                    >
-                        <option value="running">Running</option>
-                        <option value="closed">Closed</option>
-                        <option value="quick">Quick</option>
-                    </select>
-                </div>
-
-                {/* Entries (for Closed or Running setup) */}
-                {(form.tradeStatus === "closed" || form.tradeStatus === "running") && (
-                    <div>
-                        <h3>Entries</h3>
-                        {form.entries.map((entry, idx) => {
-                            const usedAllocation = form.entries.reduce(
-                                (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
-                                0
-                            );
-                            const remaining = Math.max(0, 100 - usedAllocation);
-
-                            return (
-                                <div key={idx}>
-                                    {/* Entry Price Input */}
-
-                                    <input type="number"
-                                        step="any"
-                                        placeholder="Entry Price"
-                                        value={entry.price}
-                                        min="0" // <-- no negative values
-                                        onChange={(e) => {
-                                            let val = Number(e.target.value);
-                                            if (val < 0) val = 0; // enforce positivity
-
-                                            const entries = [...form.entries];
-                                            entries[idx].price = val;
-                                            setForm({ ...form, entries });
-
-                                            // recalc average whenever price changes
-                                            let weightedSum = 0;
-                                            let totalWeight = 0;
-                                            entries.forEach((en) => {
-                                                const price = Number(en.price);
-                                                const alloc = Number(en.allocation);
-                                                if (price > 0 && alloc > 0) {
-                                                    weightedSum += price * (alloc / 100);
-                                                    totalWeight += alloc / 100;
-                                                }
-                                            });
-                                            const avg = totalWeight > 0 ? weightedSum / totalWeight : "";
-                                            const avgPrice = avg !== "" ? formatPrice(avg) : "";
-                                            setForm((prev) => ({
-                                                ...prev,
-                                                avgEntryPrice: avgPrice,
-                                            }));
-
-                                        }}
-                                    />
-
-                                    {/* Allocation Input (disabled until price entered) */}
-                                    <input type="number"
-                                        placeholder="Allocation %"
-                                        value={entry.allocation}
-                                        min="0"
-                                        max={remaining}
-                                        disabled={!entry.price || Number(entry.price) <= 0}
-                                        onChange={(e) => {
-                                            const entries = [...form.entries];
-                                            let val = Number(e.target.value);
-
-                                            // clamp and enforce positivity
-                                            if (val > remaining) val = remaining;
-                                            if (val < 0) val = 0;
-
-                                            entries[idx].allocation = val;
-                                            setForm({ ...form, entries });
-                                        }}
-                                        onBlur={(e) => handleAllocationBlur(idx, e.target.value)}
-                                    />
-
-                                    <p>
-                                        Allocated:{" "}
-                                        {((entry.allocation || 0) / 100) * form.totalQuantity}
-                                    </p>
-                                </div>
-                            );
-                        })}
-
-                        {/* Show weighted average entry price */}
-                        {form.avgEntryPrice
-                            && (
-                                <p>
-                                    <strong>Average Entry Price:</strong> {form.avgEntryPrice
+                    {/* Trade Status */}
+                    <div className="tradeGrid">
+                        <span className="font_12">Trade Status</span>
+                        <div className="flexRow flexRow_stretch gap_12">
+                            {statuses.map((status) => (
+                                <button
+                                    key={status.value}
+                                    type="button"
+                                    className={`button_sec width100 ${form.tradeStatus === status.value ? "selected" : ""
+                                        }`}
+                                    onClick={() =>
+                                        handleChange({
+                                            target: { name: "tradeStatus", value: status.value },
+                                        })
                                     }
-                                </p>
-                            )}
+                                >
+                                    {status.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                )}
 
-                {/* Exits (for Closed setup) */}
-                {form.tradeStatus === "closed" && (
-                    <div>
-                        <h3>Exits</h3>
-                        {form.exits.map((exit, idx) => {
-                            const exitMode = exit.mode || "price";
-                            const exitPrice =
-                                exitMode === "percent"
-                                    ? calcPriceFromPercent(Number(form.avgEntryPrice) || 0, Number(exit.percent) || 0, form.direction)
-                                    : exit.price;
+                    <BackgroundBlur />
 
-                            const usedOther = form.exits.reduce(
-                                (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
-                                0
-                            );
-                            const remaining = Math.max(0, 100 - usedOther);
 
-                            return (
-                                <div key={idx}>
-                                    <button type="button" onClick={() => updateExit(idx, "mode", "price")}>
-                                        Price
-                                    </button>
-                                    <button type="button" onClick={() => updateExit(idx, "mode", "percent")}>
-                                        %
-                                    </button>
+                    {/* Entries (for Closed or Running setup) */}
+                    {(form.tradeStatus === "closed" || form.tradeStatus === "running") && (
+                        <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
+                            <div className="font_12">
+                                <span>Entries</span>
+                            </div>
 
-                                    {exitMode === "price" ? (
+                            <div className="flexClm gap_32">
+                                {form.entries.map((entry, idx) => {
+                                    const usedAllocation = form.entries.reduce(
+                                        (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
+                                        0
+                                    );
+                                    const remaining = Math.max(0, 100 - usedAllocation);
+                                    const allocatedValue = ((entry.allocation || 0) / 100) * form.totalQuantity;
+
+                                    return (
+                                        <div key={idx} className="flexRow flexRow_stretch gap_12">
+                                            {/* Entry Price Input */}
+                                            <div className="flexClm" style={{ flex: '1' }}>
+                                                <div className="inputLabelShift">
+                                                    <input
+                                                        type="number"
+                                                        step="any"
+                                                        name={`entryPrice_${idx}`}
+                                                        value={entry.price}
+                                                        min="0"
+                                                        onChange={(e) => {
+                                                            let val = Number(e.target.value);
+                                                            if (val < 0) val = 0;
+
+                                                            const entries = [...form.entries];
+                                                            entries[idx].price = val;
+                                                            setForm({ ...form, entries });
+
+                                                            // recalc weighted average price
+                                                            let weightedSum = 0;
+                                                            let totalWeight = 0;
+                                                            entries.forEach((en) => {
+                                                                const price = Number(en.price);
+                                                                const alloc = Number(en.allocation);
+                                                                if (price > 0 && alloc > 0) {
+                                                                    weightedSum += price * (alloc / 100);
+                                                                    totalWeight += alloc / 100;
+                                                                }
+                                                            });
+                                                            const avg = totalWeight > 0 ? weightedSum / totalWeight : "";
+                                                            const avgPrice = avg !== "" ? formatPrice(avg) : "";
+                                                            setForm((prev) => ({
+                                                                ...prev,
+                                                                avgEntryPrice: avgPrice,
+                                                            }));
+                                                        }}
+                                                    />
+                                                    <label>Entry Price</label>
+                                                </div>
+                                                <div className="font_12" style={{ position: 'relative' }}>
+                                                    {form.avgEntryPrice && (
+                                                        <span style={{ position: 'absolute', bottom: '-20px', right: '1px' }}>
+                                                            Avg. Entry:           {formatNumber(form.avgEntryPrice, 2)}
+
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                            </div>
+
+
+                                            {/* Allocation Input */}
+                                            <div className="flexClm" style={{ flex: '1' }}>
+                                                <div className="inputLabelShift">
+                                                    <input
+                                                        type="number"
+                                                        name={`allocation_${idx}`}
+                                                        placeholder="Allocation %"
+                                                        value={entry.allocation}
+                                                        min="0"
+                                                        max={remaining}
+                                                        disabled={!entry.price || Number(entry.price) <= 0}
+                                                        onChange={(e) => {
+                                                            const entries = [...form.entries];
+                                                            let val = Number(e.target.value);
+
+                                                            // clamp between 0 and remaining
+                                                            if (val > remaining) val = remaining;
+                                                            if (val < 0) val = 0;
+
+                                                            entries[idx].allocation = val;
+                                                            setForm({ ...form, entries });
+                                                        }}
+                                                        onBlur={(e) => handleAllocationBlur(idx, e.target.value)}
+                                                    />
+                                                    <label>Allocation %</label>
+                                                </div>
+
+                                                {/* Allocation Info */}
+                                                <div className="font_12" style={{ position: "relative" }}>
+                                                    <span style={{ position: "absolute", bottom: "-20px", right: "1px" }}>
+                                                        Allocated:{" "}
+                                                        {currencySymbol}
+                                                        {formatNumber(allocatedValue, 2)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Exits (for Closed setup) */}
+                    {form.tradeStatus === "closed" && (
+                        <div className="tradeGrid" style={{ margin: "24px 0" }}>
+                            <span>Exits</span>
+                            {form.exits.map((exit, idx) => {
+                                const exitMode = exit.mode || "price";
+                                const exitPrice =
+                                    exitMode === "percent"
+                                        ? calcPriceFromPercent(Number(form.avgEntryPrice) || 0, Number(exit.percent) || 0, form.direction)
+                                        : exit.price;
+
+                                const usedOther = form.exits.reduce(
+                                    (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
+                                    0
+                                );
+                                const remaining = Math.max(0, 100 - usedOther);
+
+                                return (
+                                    <div key={idx} className="flexClm gap_24">
+                                        <div className="flexRow flexRow_stretch gap_12">
+                                            <div className="inputLabelShift">
+                                                {exitMode === "price" ? (
+                                                    <div className="inputLabelShift">
+                                                        <input
+                                                            ref={idx === 0 ? firstExitRef : null}
+                                                            type="number"
+                                                            step="any"
+                                                            min="0"
+                                                            placeholder="Exit Price"
+                                                            value={exit.price ?? ""}
+                                                            onChange={(e) => {
+                                                                let val = Number(e.target.value);
+                                                                if (val < 0) val = 0;
+                                                                updateExit(idx, "price", val);
+                                                            }}
+                                                        />
+                                                        <label>Exit price</label>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <div className="inputLabelShift" style={{ position: 'relative' }}>
+                                                            <input
+                                                                ref={idx === 0 ? firstExitRef : null}
+                                                                type="number"
+                                                                step="any"
+                                                                value={exit.percent ?? ""}
+                                                                onChange={(e) => {
+                                                                    let val = Number(e.target.value);
+                                                                    if (form.direction === "long" && val < -100) val = -100;
+                                                                    if (form.direction === "short" && val > 100) val = 100;
+                                                                    updateExit(idx, "percent", val);
+                                                                }}
+
+                                                            />
+                                                            <label>Enter % away from entry </label>
+                                                        </div>
+
+                                                        <span className="font_12" style={{ position: 'absolute', bottom: '-20px', right: '1px' }}>Exit Price: {exitPrice ? formatPrice(Number(exitPrice)) : ""}</span>
+                                                    </div>
+
+                                                )}
+                                            </div>
+                                            <div className="flexRow gap_4">
+                                                <button type="button" className="button_sec" onClick={() => updateExit(idx, "mode", "price")}>
+                                                    {currencySymbol}
+                                                </button>
+                                                <button type="button" className="button_sec" onClick={() => updateExit(idx, "mode", "percent")}>
+                                                    %
+                                                </button>
+                                            </div>
+
+                                        </div>
+
                                         <input
-                                            ref={idx === 0 ? firstExitRef : null}
                                             type="number"
-                                            step="any"
                                             min="0"
-                                            placeholder="Exit Price"
-                                            value={exit.price ?? ""}
+                                            max={remaining}
+                                            placeholder="Allocation %"
+                                            value={exit.allocation ?? 0}
+                                            disabled={
+                                                (!exit.price || Number(exit.price) <= 0) &&
+                                                (!exit.percent || exit.percent === "")
+                                            }
                                             onChange={(e) => {
                                                 let val = Number(e.target.value);
                                                 if (val < 0) val = 0;
-                                                updateExit(idx, "price", val);
+                                                if (val > remaining) val = remaining;
+                                                updateExit(idx, "allocation", val);
                                             }}
+                                            onBlur={(e) => handleExitAllocationBlur(idx, e.target.value)}
                                         />
-                                    ) : (
-                                        <input
-                                            ref={idx === 0 ? firstExitRef : null}
-                                            type="number"
-                                            step="any"
-                                            placeholder="Exit %"
-                                            value={exit.percent ?? ""}
-                                            onChange={(e) => {
-                                                let val = Number(e.target.value);
-                                                if (form.direction === "long" && val < -100) val = -100;
-                                                if (form.direction === "short" && val > 100) val = 100;
-                                                updateExit(idx, "percent", val);
-                                            }}
-                                        />
-                                    )}
 
-                                    <p>Exit Price: {exitPrice ? formatPrice(Number(exitPrice)) : ""}</p>
+                                        <p>
+                                            Allocated: {(((exit.allocation || 0) / 100) * (form.totalQuantity || 0)).toFixed(2)}
+                                        </p>
+                                    </div>
+                                );
+                            })}
 
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max={remaining}
-                                        placeholder="Allocation %"
-                                        value={exit.allocation ?? 0}
-                                        disabled={
-                                            (!exit.price || Number(exit.price) <= 0) &&
-                                            (!exit.percent || exit.percent === "")
-                                        }
-                                        onChange={(e) => {
-                                            let val = Number(e.target.value);
-                                            if (val < 0) val = 0;
-                                            if (val > remaining) val = remaining;
-                                            updateExit(idx, "allocation", val);
-                                        }}
-                                        onBlur={(e) => handleExitAllocationBlur(idx, e.target.value)}
-                                    />
+                            {/* Show weighted average exit price */}
+                            {form.avgExitPrice && (
+                                <p>
+                                    <strong>Average Exit Price:</strong> {form.avgExitPrice}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
 
-                                    <p>
-                                        Allocated: {(((exit.allocation || 0) / 100) * (form.totalQuantity || 0)).toFixed(2)}
-                                    </p>
-                                </div>
-                            );
-                        })}
 
-                        {/* Show weighted average exit price */}
-                        {form.avgExitPrice && (
-                            <p>
-                                <strong>Average Exit Price:</strong> {form.avgExitPrice}
-                            </p>
-                        )}
-                    </div>
-                )}
+
+
 
                 {/* SL & TP (for Running setup) */}
                 {form.tradeStatus === "running" && (

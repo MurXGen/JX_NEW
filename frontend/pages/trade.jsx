@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import TradesHistory from "@/components/Trades/TradeHistory";
 import TradeCalendar from "@/components/Trades/TradeCalendar";
+import BottomBar from "@/components/Trades/BottomBar";
 
 const TradePage = () => {
   const [trades, setTrades] = useState([]);
@@ -47,6 +48,7 @@ const TradePage = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Trades Dashboard</h1>
+      <BottomBar/>
 
       {/* Toggle Buttons */}
       <div style={{ marginBottom: "20px" }}>

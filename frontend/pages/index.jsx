@@ -4,26 +4,31 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { getFromIndexedDB } from "@/utils/indexedDB";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import Overview from "@/components/Tabs/Overview";
+import LongShorts from "@/components/Tabs/Long_short";
+import TickerAnalysis from "@/components/Tabs/Ticketoverview";
+import MarketNews from "@/components/Tabs/MarketNews";
+import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import Navbar from "@/components/Trades/Navbar";
+import BottomBar from "@/components/Trades/BottomBar";
 
 export default function Home() {
   const router = useRouter();
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     const loadTrades = async () => {
       const accountId = Cookies.get("accountId");
 
       if (!accountId) {
-        console.warn("⚠ No account selected, redirecting to accounts page...");
         router.push("/accounts");
         return;
       }
 
-      console.log("✅ Using accountId from cookies:", accountId);
-
-      // Fetch user data from IndexedDB
       const userData = await getFromIndexedDB("user-data");
 
       if (userData) {
@@ -31,14 +36,11 @@ export default function Home() {
           (trade) => trade.accountId === accountId
         );
 
-        console.log("📊 Found trades:", accountTrades);
         setTrades(accountTrades);
 
         if (accountTrades.length > 0) {
           calculateStats(accountTrades);
         }
-      } else {
-        console.warn("⚠ No user data found in IndexedDB");
       }
 
       setLoading(false);
@@ -55,12 +57,14 @@ export default function Home() {
     const maxLoss = Math.min(...pnlValues.filter((p) => p < 0), 0);
     const totalTrades = accountTrades.length;
 
-    // last 10 trades streak
+    // streak
     const last10 = accountTrades.slice(-10);
     let streakType = null;
     let streakCount = 0;
     for (let i = last10.length - 1; i >= 0; i--) {
-      const result = last10[i].pnl > 0 ? "win" : last10[i].pnl < 0 ? "loss" : "break-even";
+      const result =
+        last10[i].pnl > 0 ? "win" : last10[i].pnl < 0 ? "loss" : "break-even";
+
       if (!streakType) {
         streakType = result;
         streakCount = 1;
@@ -71,8 +75,36 @@ export default function Home() {
       }
     }
 
-    // unique symbols
     const uniqueSymbols = new Set(accountTrades.map((t) => t.symbol)).size;
+    const winTrades = accountTrades.filter((t) => t.pnl > 0).length;
+    const loseTrades = accountTrades.filter((t) => t.pnl < 0).length;
+
+    // 👉 group trades by date
+    const dailyPnL = {};
+    accountTrades.forEach((trade) => {
+      const date = new Date(trade.closeTime || trade.openTime).toLocaleDateString(
+        "en-GB",
+        { day: "2-digit", month: "short", year: "numeric" }
+      );
+      dailyPnL[date] = (dailyPnL[date] || 0) + (trade.pnl || 0);
+    });
+
+    const dailyData = Object.entries(dailyPnL)
+      .map(([date, pnl]) => ({ date, pnl }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // 👉 Greed & Fear index (last 10 trades)
+    let gfIndex = 50;
+    last10.forEach((trade) => {
+      if (trade.pnl > 0) gfIndex += 5;
+      else if (trade.pnl < 0) gfIndex -= 5;
+    });
+
+    gfIndex = Math.max(0, Math.min(100, gfIndex));
+
+    let gfLabel = "Neutral";
+    if (gfIndex < 50) gfLabel = "Fear";
+    else if (gfIndex > 50) gfLabel = "Greed";
 
     setStats({
       maxPnL,
@@ -81,46 +113,61 @@ export default function Home() {
       totalTrades,
       streak: `${streakCount} ${streakType || ""}`,
       totalSymbols: uniqueSymbols,
+      winTrades,
+      loseTrades,
+      dailyData,
+      last10,
+      greedFear: {
+        value: gfIndex,
+        label: gfLabel,
+      },
     });
   };
 
-  if (loading) return <p>Loading trades...</p>;
+
+
+  if (loading) {
+    return <FullPageLoader />;
+  }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Trades</h1>
+    <div className="flexClm gap_32">
+      <Navbar />
+      {/* Tabs */}
+      <div className="flexRow gap_12 removeScrollBar" style={{ overflowX: 'scroll' }}>
+        {[
+          { key: "overview", label: "Overview" },
+          { key: "longshorts", label: "Long/Shorts" },
+          { key: "ticker", label: "Ticker Analysis" },
+          { key: "news", label: "Market News" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flexRow button_ter font_12 ${activeTab === tab.key ? "active_tab" : ""}`}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minWidth: '120px'
+            }}
+          >
+            {tab.label}
 
-      {stats && (
-        <div style={{ marginBottom: "20px" }}>
-          <h2>Statistics</h2>
-          <p><strong>Total Trades:</strong> {stats.totalTrades}</p>
-          <p><strong>Max PnL:</strong> {stats.maxPnL}</p>
-          <p><strong>Max Profit:</strong> {stats.maxProfit}</p>
-          <p><strong>Max Loss:</strong> {stats.maxLoss}</p>
-          <p><strong>Streak (last 10):</strong> {stats.streak}</p>
-          <p><strong>Total Symbols Traded:</strong> {stats.totalSymbols}</p>
-        </div>
-      )}
+          </button>
 
-      {trades.length > 0 ? (
-        <ul>
-          {trades.map((trade) => (
-            <li key={trade._id} style={{ marginBottom: "10px" }}>
-              <span>{trade.symbol || "N/A"} - </span>
-              <span
-                style={{
-                  color:
-                    trade.pnl > 0 ? "green" : trade.pnl < 0 ? "red" : "gray",
-                }}
-              >
-                {trade.pnl ?? 0}
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No trades found for this account.</p>
-      )}
-    </div>
+        ))}
+        <BottomBar />
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === "overview" && <Overview stats={stats} trades={trades} />}
+      {activeTab === "longshorts" && <LongShorts trades={trades} />}
+      {activeTab === "ticker" && <TickerAnalysis trades={trades} />}
+      {activeTab === "news" && <MarketNews />}
+
+
+      <BackgroundBlur />
+    </div >
   );
 }

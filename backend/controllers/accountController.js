@@ -13,7 +13,15 @@ const createAccount = async (req, res) => {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    // 1️⃣ Create new account
+    if (!accountName || !currency || balance === undefined) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (isNaN(balance)) {
+      return res.status(400).json({ message: "Balance must be a valid number" });
+    }
+
+    // ✅ Create new account
     const account = new Account({
       userId,
       name: accountName,
@@ -26,32 +34,26 @@ const createAccount = async (req, res) => {
 
     await account.save();
 
-    // 2️⃣ Set cookie for current account
+    // ✅ Set cookie
     res.cookie("accountId", account._id.toString(), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // 3️⃣ Fetch updated accounts + trades for this user
+    // ✅ Fetch updated data
     const accounts = await Account.find({ userId }).lean();
     const trades = await Trade.find({ userId }).lean();
 
-    // 4️⃣ Respond in the same format used by login
     res.status(201).json({
-      message: "Account created successfully!",
-      userData: {
-        userId,
-        accounts,
-        trades,
-      },
+      message: "🎉 Account created successfully!",
+      userData: { userId, accounts, trades },
     });
   } catch (error) {
     console.error("❌ Error creating account:", error);
-    res.status(500).json({ message: "Error creating account" });
+    res.status(500).json({ message: "Server error: could not create account" });
   }
 };
+
 
 
 // // Fetch all accounts for a user

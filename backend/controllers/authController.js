@@ -49,27 +49,13 @@ const registerUser = async (req, res) => {
     });
     await user.save();
 
-    // Step 2: Create default account for the user
-    const account = new Account({
-      userId: user._id,
-      name: "Default Account",
-      currency: "USD",
-      startingBalance: {
-        amount: 0
-      }
-    });
-    await account.save();
 
-    console.log(`✅ User ${user._id} and default account ${account._id} created`);
-
-    // Step 3: Set cookie
     setUserIdCookie(res, user._id);
 
     // Step 4: Send success response
     res.status(201).json({
       message: 'Registration successful.',
       userId: user._id,
-      accountId: account._id
     });
 
   } catch (err) {
@@ -99,21 +85,29 @@ const loginUser = async (req, res) => {
     const accounts = await Account.find({ userId: user._id }).lean();
     const trades = await Trade.find({ userId: user._id }).lean();
 
-    // 3️⃣ Send back unified userData + isVerified status
+    // ✅ Always set isVerified to "yes" once login is successful
+    const verifiedStatus = "yes";
+
+    console.log("📩 Sending response with isVerified:", verifiedStatus);
+
     res.status(200).json({
       message: "Login successful",
-      isVerified: user.isVerified ? "yes" : "no", // 🔑 Add this field
+      isVerified: verifiedStatus,
       userData: {
         userId: user._id,
+        name: user.name,  // ✅ Include user name
         accounts,
         trades,
       },
     });
+
   } catch (err) {
     console.error("🚨 Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 
 // const getFullUserData = async (req, res) => {
