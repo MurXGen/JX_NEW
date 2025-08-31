@@ -7,8 +7,9 @@ import { getFromIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { formatNumber } from "@/utils/formatNumbers"; // 
 import Navbar from "@/components/Auth/Navbar";
-import { ArrowDownRight, ArrowLeftCircle, ArrowUpRightIcon } from "lucide-react";
+import { ArrowDownRight, ArrowLeftCircle, ArrowUpRightIcon, Check, Upload, X } from "lucide-react";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import DateTimePicker from "@/components/ui/DateTimePicker";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -632,17 +633,11 @@ export default function AddTrade() {
                 {/* Basic Info */}
                 <div className="flexClm gap_24">
                     <div className="tradeGrid">
-                        <span className="font_12">Ticker name</span>
+                        <span className="label">Ticker name</span>
                         <div className="inputLabelShift">
                             <input name="symbol" value={form.symbol} onChange={handleChange} placeholder="Ticker name" />
                             <label>Ticker name</label>
                         </div>
-
-                    </div>
-
-                    <div className="tradeGrid">
-                        <span className="font_12">Direction</span>
-
                         <div className="flexRow flexRow_stretch gap_12" style={{ width: '100%' }}>
                             <div
                                 className={`toggleOption button_sec flexRow flex_center ${form.direction === "long" ? "success" : ""}`}
@@ -659,12 +654,13 @@ export default function AddTrade() {
                                 Short <ArrowDownRight size={20} />
                             </div>
                         </div>
+
                     </div>
 
+
+
                     <div className="tradeGrid">
-                        <div className="font_12">
-                            <span>Quantity</span>
-                        </div>
+                        <span className="label">Quantity</span>
                         <div className="flexClm gap_12">
                             <div className="flexRow flexRow_stretch gap_12">
                                 <div className="inputLabelShift">
@@ -691,14 +687,14 @@ export default function AddTrade() {
                                 </div>
                             </div>
 
-                            <span className="font_12 valueDisplay flexRow flex_center"> Total value :   {currencySymbol} {form.totalQuantity}</span>
+                            <span className="valueDisplay flexRow flex_center"> Total value :   {currencySymbol} {form.totalQuantity}</span>
                         </div>
 
                     </div>
 
                     {/* Trade Status */}
                     <div className="tradeGrid">
-                        <span className="font_12">Trade Status</span>
+                        <span className="label">Trade Status</span>
                         <div className="flexRow flexRow_stretch gap_12">
                             {statuses.map((status) => (
                                 <button
@@ -718,13 +714,10 @@ export default function AddTrade() {
                         </div>
                     </div>
 
-                    <BackgroundBlur />
-
-
                     {/* Entries (for Closed or Running setup) */}
                     {(form.tradeStatus === "closed" || form.tradeStatus === "running") && (
                         <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
-                            <div className="font_12">
+                            <div className="label">
                                 <span>Entries</span>
                             </div>
 
@@ -747,6 +740,7 @@ export default function AddTrade() {
                                                         step="any"
                                                         name={`entryPrice_${idx}`}
                                                         value={entry.price}
+                                                        placeholder="Entry Price"
                                                         min="0"
                                                         onChange={(e) => {
                                                             let val = Number(e.target.value);
@@ -835,529 +829,580 @@ export default function AddTrade() {
 
                     {/* Exits (for Closed setup) */}
                     {form.tradeStatus === "closed" && (
-                        <div className="tradeGrid" style={{ margin: "24px 0" }}>
-                            <span>Exits</span>
-                            {form.exits.map((exit, idx) => {
-                                const exitMode = exit.mode || "price";
-                                const exitPrice =
-                                    exitMode === "percent"
-                                        ? calcPriceFromPercent(Number(form.avgEntryPrice) || 0, Number(exit.percent) || 0, form.direction)
-                                        : exit.price;
+                        <div className="tradeGrid" style={{ padding: "0 0 12px 0" }}>
+                            <span className="label">Exits</span>
+                            <div className="flexClm gap_32">
 
-                                const usedOther = form.exits.reduce(
-                                    (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
-                                    0
-                                );
-                                const remaining = Math.max(0, 100 - usedOther);
 
-                                return (
-                                    <div key={idx} className="flexClm gap_24">
-                                        <div className="flexRow flexRow_stretch gap_12">
-                                            <div className="inputLabelShift">
-                                                {exitMode === "price" ? (
+                                <div className="flexClm gap_32">
+                                    {form.exits.map((exit, idx) => {
+                                        const exitMode = exit.mode || "price";
+                                        const exitPrice =
+                                            exitMode === "percent"
+                                                ? calcPriceFromPercent(Number(form.avgEntryPrice) || 0, Number(exit.percent) || 0, form.direction)
+                                                : exit.price;
+
+                                        const usedOther = form.exits.reduce(
+                                            (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
+                                            0
+                                        );
+                                        const remaining = Math.max(0, 100 - usedOther);
+
+                                        return (
+                                            <div key={idx} className="flexClm gap_32">
+                                                <div className="flexRow flexRow_stretch gap_4">
                                                     <div className="inputLabelShift">
-                                                        <input
-                                                            ref={idx === 0 ? firstExitRef : null}
-                                                            type="number"
-                                                            step="any"
-                                                            min="0"
-                                                            placeholder="Exit Price"
-                                                            value={exit.price ?? ""}
-                                                            onChange={(e) => {
-                                                                let val = Number(e.target.value);
-                                                                if (val < 0) val = 0;
-                                                                updateExit(idx, "price", val);
-                                                            }}
-                                                        />
-                                                        <label>Exit price</label>
+                                                        {exitMode === "price" ? (
+                                                            <div className="inputLabelShift">
+                                                                <input
+                                                                    ref={idx === 0 ? firstExitRef : null}
+                                                                    type="number"
+                                                                    step="any"
+                                                                    min="0"
+                                                                    placeholder="Exit Price"
+                                                                    value={exit.price ?? ""}
+                                                                    onChange={(e) => {
+                                                                        let val = Number(e.target.value);
+                                                                        if (val < 0) val = 0;
+                                                                        updateExit(idx, "price", val);
+                                                                    }}
+                                                                />
+                                                                <label>Exit price</label>
+                                                            </div>
+                                                        ) : (
+                                                            <div>
+                                                                <div className="inputLabelShift" style={{ position: 'relative' }}>
+                                                                    <input
+                                                                        ref={idx === 0 ? firstExitRef : null}
+                                                                        type="number"
+                                                                        step="any"
+                                                                        placeholder="Enter % away from entry"
+                                                                        value={exit.percent ?? ""}
+                                                                        onChange={(e) => {
+                                                                            let val = Number(e.target.value);
+                                                                            if (form.direction === "long" && val < -100) val = -100;
+                                                                            if (form.direction === "short" && val > 100) val = 100;
+                                                                            updateExit(idx, "percent", val);
+                                                                        }}
+
+                                                                    />
+                                                                    <label>Enter % away from entry </label>
+                                                                </div>
+
+                                                                <span className="font_12" style={{ position: 'absolute', bottom: '-20px', right: '1px' }}>Exit Price: {exitPrice ? formatPrice(Number(exitPrice)) : '0'}</span>
+                                                            </div>
+
+                                                        )}
                                                     </div>
-                                                ) : (
-                                                    <div>
-                                                        <div className="inputLabelShift" style={{ position: 'relative' }}>
+                                                    <div className="flexRow gap_4">
+                                                        <button
+                                                            type="button"
+                                                            className={`button_sec icon-wrapper ${exit.mode === "price" ? "active" : ""}`}
+                                                            onClick={() => updateExit(idx, "mode", "price")}
+                                                        >
+                                                            {currencySymbol}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className={`button_sec icon-wrapper ${exit.mode === "percent" ? "active" : ""}`}
+                                                            onClick={() => updateExit(idx, "mode", "percent")}
+                                                        >
+                                                            %
+                                                        </button>
+                                                    </div>
+
+
+                                                </div>
+
+                                                <div className="inputLabelShift">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max={remaining}
+                                                        placeholder="Allocation %"
+                                                        value={exit.allocation ?? 0}
+                                                        disabled={
+                                                            (!exit.price || Number(exit.price) <= 0) &&
+                                                            (!exit.percent || exit.percent === "")
+                                                        }
+                                                        onChange={(e) => {
+                                                            let val = Number(e.target.value);
+                                                            if (val < 0) val = 0;
+                                                            if (val > remaining) val = remaining;
+                                                            updateExit(idx, "allocation", val);
+                                                        }}
+                                                        onBlur={(e) => handleExitAllocationBlur(idx, e.target.value)}
+                                                    />
+                                                    <label>Allocation in &</label>
+                                                    <div className="font_12" style={{ position: "relative" }}>
+                                                        <span style={{ position: "absolute", bottom: "-20px", right: "1px" }}>
+                                                            Allocated:{" "}
+                                                            {currencySymbol}
+                                                            {formatNumber(((exit.allocation || 0) / 100) * (form.totalQuantity || 0).toFixed(2))}
+
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+
+
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Show weighted average exit price */}
+                                {form.avgExitPrice && (
+                                    <span className="valueDisplay flexRow flex_center">
+                                        Average Exit Price: {form.avgExitPrice}
+                                    </span>
+                                )}
+
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Quick Section */}
+                    {form.tradeStatus === "quick" && (
+                        <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
+                            <span className="label">Net Profit or Loss</span>
+                            <input
+                                type="number"
+                                name="pnl"
+                                value={form.pnl || ""}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    )}
+
+                    {/* SL Section (Running Trades) */}
+                    {form.tradeStatus === "running" && (
+                        <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
+                            <span className="label">Stop Loss</span>
+                            <div className="flexClm gap_32">
+                                {form.sls.map((sl, idx) => {
+                                    const entryPrice = form.avgEntryPrice || form.entries[0]?.price;
+
+                                    const slPrice =
+                                        sl.mode === "percent"
+                                            ? calcPriceFromPercent(entryPrice, sl.percent, form.direction)
+                                            : sl.price;
+
+                                    const usedOther = form.sls.reduce(
+                                        (sum, s, i) => (i !== idx ? sum + Number(s.allocation || 0) : sum),
+                                        0
+                                    );
+                                    const remaining = Math.max(0, 100 - usedOther);
+
+                                    return (
+                                        <div key={idx} className="flexClm gap_32">
+                                            <div className="flexRow flexRow_stretch gap_4">
+                                                <div className="inputLabelShift">
+                                                    {sl.mode === "price" ? (
+                                                        <div className="inputLabelShift">
                                                             <input
-                                                                ref={idx === 0 ? firstExitRef : null}
                                                                 type="number"
                                                                 step="any"
-                                                                value={exit.percent ?? ""}
+                                                                min="0"
+                                                                placeholder="SL Price"
+                                                                value={sl.price ?? ""}
+                                                                onChange={(e) => {
+                                                                    let val = Math.abs(Number(e.target.value));
+                                                                    if (isNaN(val)) val = "";
+                                                                    const sls = [...form.sls];
+                                                                    sls[idx].price = val;
+                                                                    setForm({ ...form, sls });
+                                                                }}
+                                                            />
+                                                            <label>SL Price</label>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="inputLabelShift">
+                                                            <input
+                                                                type="number"
+                                                                step="any"
+                                                                placeholder="SL %"
+                                                                value={sl.percent ?? ""}
                                                                 onChange={(e) => {
                                                                     let val = Number(e.target.value);
                                                                     if (form.direction === "long" && val < -100) val = -100;
                                                                     if (form.direction === "short" && val > 100) val = 100;
-                                                                    updateExit(idx, "percent", val);
+                                                                    const sls = [...form.sls];
+                                                                    sls[idx].percent = isNaN(val) ? "" : val;
+                                                                    setForm({ ...form, sls });
                                                                 }}
-
                                                             />
-                                                            <label>Enter % away from entry </label>
+                                                            <label>SL %</label>
+                                                            <div className="font_12" style={{ position: "relative" }}>
+                                                                <span style={{ position: "absolute", bottom: "-20px", right: "1px" }}>
+                                                                    SL Price: {slPrice ? formatPrice(Number(slPrice)) : "0"}
+                                                                </span>
+                                                            </div>
                                                         </div>
+                                                    )}
+                                                </div>
 
-                                                        <span className="font_12" style={{ position: 'absolute', bottom: '-20px', right: '1px' }}>Exit Price: {exitPrice ? formatPrice(Number(exitPrice)) : ""}</span>
-                                                    </div>
-
-                                                )}
+                                                <div className="flexRow gap_4">
+                                                    <button
+                                                        type="button"
+                                                        className={`button_sec icon-wrapper ${sl.mode === "price" ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            const sls = [...form.sls];
+                                                            sls[idx].mode = "price";
+                                                            setForm({ ...form, sls });
+                                                        }}
+                                                    >
+                                                        {currencySymbol}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`button_sec icon-wrapper ${sl.mode === "percent" ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            const sls = [...form.sls];
+                                                            sls[idx].mode = "percent";
+                                                            setForm({ ...form, sls });
+                                                        }}
+                                                    >
+                                                        %
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="flexRow gap_4">
-                                                <button type="button" className="button_sec" onClick={() => updateExit(idx, "mode", "price")}>
-                                                    {currencySymbol}
-                                                </button>
-                                                <button type="button" className="button_sec" onClick={() => updateExit(idx, "mode", "percent")}>
-                                                    %
-                                                </button>
+
+                                            <div className="inputLabelShift">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max={remaining}
+                                                    placeholder="Allocation %"
+                                                    value={sl.allocation ?? 0}
+                                                    onChange={(e) => {
+                                                        let val = Number(e.target.value);
+                                                        if (val < 0) val = 0;
+                                                        if (val > remaining) val = remaining;
+                                                        const sls = [...form.sls];
+                                                        sls[idx].allocation = val;
+                                                        setForm({ ...form, sls });
+                                                    }}
+                                                    onBlur={(e) => handleSLAllocationBlur(idx, e.target.value)}
+                                                />
+                                                <label>Allocation %</label>
+
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {form.avgSLPrice && (
+                                    <span className="valueDisplay flexRow flex_center">
+                                        Average SL Price: {form.avgSLPrice}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+
+                    {/* TP Section (Running Trades) */}
+                    {form.tradeStatus === "running" && (
+                        <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
+                            <span className="label">Take Profits</span>
+                            <div className="flexClm gap_32">
+                                {form.tps.map((tp, idx) => {
+                                    const entryPrice = form.avgEntryPrice || form.entries[0]?.price;
+
+                                    const slPrices = form.sls.map((sl) =>
+                                        sl.mode === "percent"
+                                            ? calcPriceFromPercent(entryPrice, sl.percent, form.direction)
+                                            : sl.price
+                                    ).filter((p) => !!p && !isNaN(p));
+
+                                    const minSLPrice = slPrices.length ? Math.min(...slPrices) : null;
+
+                                    let tpPrice =
+                                        tp.mode === "percent"
+                                            ? calcPriceFromPercent(entryPrice, tp.percent, form.direction)
+                                            : tp.price;
+
+                                    if (minSLPrice !== null) {
+                                        if (form.direction === "long" && tpPrice <= minSLPrice) tpPrice = minSLPrice + 0.01;
+                                        if (form.direction === "short" && tpPrice >= minSLPrice) tpPrice = minSLPrice - 0.01;
+                                    }
+
+                                    const usedOther = form.tps.reduce(
+                                        (sum, t, i) => (i !== idx ? sum + Number(t.allocation || 0) : sum),
+                                        0
+                                    );
+                                    const remaining = Math.max(0, 100 - usedOther);
+
+                                    return (
+                                        <div key={idx} className="flexClm gap_32">
+                                            <div className="flexRow flexRow_stretch gap_4">
+                                                <div className="inputLabelShift">
+                                                    {tp.mode === "price" ? (
+                                                        <div className="inputLabelShift">
+                                                            <input
+                                                                type="number"
+                                                                step="any"
+                                                                min="0"
+                                                                placeholder="TP Price"
+                                                                value={tp.price ?? ""}
+                                                                onChange={(e) => {
+                                                                    let val = Math.abs(Number(e.target.value));
+                                                                    if (isNaN(val)) val = "";
+                                                                    const tps = [...form.tps];
+                                                                    tps[idx].price = val;
+                                                                    setForm({ ...form, tps });
+                                                                }}
+                                                            />
+                                                            <label>TP Price</label>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="inputLabelShift">
+                                                            <input
+                                                                type="number"
+                                                                step="any"
+                                                                placeholder="TP %"
+                                                                value={tp.percent ?? ""}
+                                                                onChange={(e) => {
+                                                                    let val = Number(e.target.value);
+                                                                    const tps = [...form.tps];
+                                                                    tps[idx].percent = isNaN(val) ? "" : val;
+                                                                    setForm({ ...form, tps });
+                                                                }}
+                                                            />
+                                                            <label>TP %</label>
+                                                            <div className="font_12" style={{ position: "relative" }}>
+                                                                <span style={{ position: "absolute", bottom: "-20px", right: "1px" }}>
+                                                                    TP Price: {tpPrice ? formatPrice(Number(tpPrice)) : "0"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="flexRow gap_4">
+                                                    <button
+                                                        type="button"
+                                                        className={`button_sec icon-wrapper ${tp.mode === "price" ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            const tps = [...form.tps];
+                                                            tps[idx].mode = "price";
+                                                            setForm({ ...form, tps });
+                                                        }}
+                                                    >
+                                                        {currencySymbol}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`button_sec icon-wrapper ${tp.mode === "percent" ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            const tps = [...form.tps];
+                                                            tps[idx].mode = "percent";
+                                                            setForm({ ...form, tps });
+                                                        }}
+                                                    >
+                                                        %
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="inputLabelShift">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max={remaining}
+                                                    placeholder="Allocation %"
+                                                    value={tp.allocation ?? 0}
+                                                    onChange={(e) => {
+                                                        let val = Number(e.target.value);
+                                                        if (val < 0) val = 0;
+                                                        if (val > remaining) val = remaining;
+                                                        const tps = [...form.tps];
+                                                        tps[idx].allocation = val;
+                                                        setForm({ ...form, tps });
+                                                    }}
+                                                    onBlur={(e) => handleTPAllocationBlur(idx, e.target.value)}
+                                                />
+                                                <label>Allocation %</label>
+
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {form.avgTPPrice && (
+                                    <span className="valueDisplay flexRow flex_center">
+                                        Average TP Price: {form.avgTPPrice}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+
+                    {/* Open Time + Image */}
+                    <div className="tradeGrid">
+                        <span className="label">Open Time</span>
+                        <div className="flexClm gap_12">
+                            <DateTimePicker
+                                label=""
+                                value={form.openTime}
+                                onChange={(date) =>
+                                    setForm((prev) => ({ ...prev, openTime: date }))
+                                }
+                            />
+                            <div className="imagePicker">
+                                {form.openImagePreview ? (
+                                    <div className="preview">
+                                        <img src={form.openImagePreview} alt="Open Preview" />
+                                        <button
+                                            type="button"
+                                            className="removeBtn flexRow flex_center button_ter"
+                                            onClick={() =>
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    openImage: null,
+                                                    openImagePreview: "",
+                                                }))
+                                            }
+                                            aria-label="Remove image"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="uploadBox flexRow flex_center">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            hidden
+                                            onChange={(e) => handleImageChange(e, "openImage", setForm)}
+                                        />
+                                        <div className="placeholder flexRow flex_center gap_24">
+                                            <div className="iconCircle">
+                                                <Upload size={20} />
+                                            </div>
+                                            <div className="gap_8 flexClm flex_center">
+                                                <span className="title font_14">Upload Open Chart</span>
+                                                <span className="subtitle font_12">PNG, JPG up to 5MB</span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+
+                    {/* Close Time + Image */}
+                    <div className="tradeGrid">
+                        <span className="label">Close Time</span>
+                        <div className="flexClm gap_12">
+                            <DateTimePicker
+                                label=""
+                                value={form.closeTime}
+                                onChange={(date) =>
+                                    setForm((prev) => ({ ...prev, closeTime: date }))
+                                }
+                            />
+                            <div className="imagePicker">
+                                {form.closeImagePreview ? (
+                                    <div className="preview">
+                                        <img src={form.closeImagePreview} alt="Close Preview" />
+                                        <button
+                                            type="button"
+                                            className="removeBtn flexRow flex_center button_ter"
+                                            onClick={() =>
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    closeImage: null,
+                                                    closeImagePreview: "",
+                                                }))
+                                            }
+                                            aria-label="Remove image"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="uploadBox flexRow flex_center">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            hidden
+                                            onChange={(e) => handleImageChange(e, "closeImage", setForm)}
+                                        />
+                                        <div className="placeholder flexRow flex_center gap_24">
+                                            <div className="iconCircle">
+                                                <Upload size={20} />
+                                            </div>
+                                            <div className="gap_8 flexClm flex_center">
+                                                <span className="title font_14">Upload Close Chart</span>
+                                                <span className="subtitle font_12">PNG, JPG up to 5MB</span>
                                             </div>
 
                                         </div>
-
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max={remaining}
-                                            placeholder="Allocation %"
-                                            value={exit.allocation ?? 0}
-                                            disabled={
-                                                (!exit.price || Number(exit.price) <= 0) &&
-                                                (!exit.percent || exit.percent === "")
-                                            }
-                                            onChange={(e) => {
-                                                let val = Number(e.target.value);
-                                                if (val < 0) val = 0;
-                                                if (val > remaining) val = remaining;
-                                                updateExit(idx, "allocation", val);
-                                            }}
-                                            onBlur={(e) => handleExitAllocationBlur(idx, e.target.value)}
-                                        />
-
-                                        <p>
-                                            Allocated: {(((exit.allocation || 0) / 100) * (form.totalQuantity || 0)).toFixed(2)}
-                                        </p>
-                                    </div>
-                                );
-                            })}
-
-                            {/* Show weighted average exit price */}
-                            {form.avgExitPrice && (
-                                <p>
-                                    <strong>Average Exit Price:</strong> {form.avgExitPrice}
-                                </p>
-                            )}
+                                    </label>
+                                )}
+                            </div>
                         </div>
-                    )}
-                </div>
-
-
-
-
-
-                {/* SL & TP (for Running setup) */}
-                {form.tradeStatus === "running" && (
-                    <div>
-                        {/* Stop Loss Section */}
-                        <h3>Stop Loss</h3>
-                        {form.sls.map((sl, idx) => {
-                            const entryPrice = form.avgEntryPrice
-                                || form.entries[0]?.price;
-
-                            const slPrice =
-                                sl.mode === "percent"
-                                    ? calcPriceFromPercent(entryPrice, sl.percent, form.direction) // ✅ use raw percent
-                                    : sl.price;
-
-                            return (
-                                <div key={idx} className="sl-block">
-                                    {/* Mode Switch */}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const sls = [...form.sls];
-                                            sls[idx].mode = "price";
-                                            setForm({ ...form, sls });
-                                        }}
-                                    >
-                                        Price
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const sls = [...form.sls];
-                                            sls[idx].mode = "percent";
-                                            setForm({ ...form, sls });
-                                        }}
-                                    >
-                                        %
-                                    </button>
-
-                                    {/* Input for Price or Percent */}
-                                    {sl.mode === "price" ? (
-                                        <input
-                                            type="number"
-                                            placeholder="SL Price"
-                                            value={sl.price}
-                                            onChange={(e) => {
-                                                const sls = [...form.sls];
-                                                let val = Math.abs(Number(e.target.value)); // ✅ force positive
-                                                sls[idx].price = isNaN(val) ? "" : val;
-                                                setForm({ ...form, sls });
-                                            }}
-                                        />
-                                    ) : (
-                                        <input
-                                            type="number"
-                                            placeholder="SL %"
-                                            value={sl.percent}
-                                            onChange={(e) => {
-                                                const sls = [...form.sls];
-                                                let val = Number(e.target.value);
-
-                                                // ✅ clamp depending on trade direction
-                                                if (form.direction === "long" && val < -100) {
-                                                    val = -100;
-                                                }
-                                                if (form.direction === "short" && val > 100) {
-                                                    val = 100;
-                                                }
-
-                                                sls[idx].percent = isNaN(val) ? "" : val;
-                                                setForm({ ...form, sls });
-                                            }}
-                                        />
-                                    )}
-
-
-                                    <p>SL Price: {slPrice}</p>
-
-                                    {/* Allocation % */}
-                                    <input
-                                        type="number"
-                                        placeholder="Allocation %"
-                                        value={sl.allocation}
-                                        max={
-                                            100 -
-                                            form.sls.reduce(
-                                                (sum, s, i) => (i !== idx ? sum + Number(s.allocation || 0) : sum),
-                                                0
-                                            )
-                                        }
-                                        onChange={(e) => {
-                                            const sls = [...form.sls];
-                                            let val = Number(e.target.value);
-
-                                            // ✅ clamp to remaining
-                                            const usedOther = form.sls.reduce(
-                                                (sum, s, i) => (i !== idx ? sum + Number(s.allocation || 0) : sum),
-                                                0
-                                            );
-                                            const remaining = Math.max(0, 100 - usedOther);
-                                            if (val > remaining) val = remaining;
-                                            if (val < 0) val = 0;
-
-                                            sls[idx].allocation = val;
-                                            setForm({ ...form, sls });
-                                        }}
-                                        onBlur={(e) => handleSLAllocationBlur(idx, e.target.value)}
-                                    />
-
-                                    <p>
-                                        Allocated: {((sl.allocation || 0) / 100) * form.totalQuantity}
-                                    </p>
-                                </div>
-                            );
-                        })}
-                        {form.avgSLPrice && (
-                            <p>
-                                <strong>Average SL Price:</strong> {form.avgSLPrice}
-                            </p>
-                        )}
-
-                        {/* Take Profit Section */}
-                        <h4>Take Profits</h4>
-                        {form.tps.map((tp, idx) => {
-                            const entryPrice = form.avgEntryPrice
-                                || form.entries[0]?.price;
-
-                            // ✅ Find lowest SL price if exists
-                            const slPrices = form.sls.map((sl) =>
-                                sl.mode === "percent"
-                                    ? calcPriceFromPercent(entryPrice, sl.percent, form.direction)
-                                    : sl.price
-                            ).filter((p) => !!p && !isNaN(p));
-
-                            const minSLPrice = slPrices.length ? Math.min(...slPrices) : null;
-
-                            // ✅ Calculate TP price
-                            let tpPrice =
-                                tp.mode === "percent"
-                                    ? calcPriceFromPercent(entryPrice, tp.percent, form.direction)
-                                    : tp.price;
-
-                            // ✅ Enforce TP > SL rule
-                            // ✅ Enforce TP vs SL rule depending on direction
-                            if (minSLPrice !== null) {
-                                if (form.direction === "long" && tpPrice <= minSLPrice) {
-                                    tpPrice = minSLPrice + 0.01; // for long, TP must be above SL
-                                }
-                                if (form.direction === "short" && tpPrice >= minSLPrice) {
-                                    tpPrice = minSLPrice - 0.01; // for short, TP must be below SL
-                                }
-                            }
-
-
-                            return (
-                                <div key={idx} className="tp-block">
-                                    {/* Mode Switch */}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const tps = [...form.tps];
-                                            tps[idx].mode = "price";
-                                            setForm({ ...form, tps });
-                                        }}
-                                    >
-                                        Price
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const tps = [...form.tps];
-                                            tps[idx].mode = "percent";
-                                            setForm({ ...form, tps });
-                                        }}
-                                    >
-                                        %
-                                    </button>
-
-                                    {/* Input for Price or Percent */}
-                                    {tp.mode === "price" ? (
-                                        <input
-                                            type="number"
-                                            placeholder="TP Price"
-                                            value={tp.price}
-                                            onChange={(e) => {
-                                                const tps = [...form.tps];
-                                                let val = Math.abs(Number(e.target.value)); // ✅ allow typing freely
-                                                tps[idx].price = isNaN(val) ? "" : val;
-                                                setForm({ ...form, tps });
-                                            }}
-                                            onBlur={(e) => {
-                                                const tps = [...form.tps];
-                                                let val = Number(e.target.value);
-
-                                                if (minSLPrice !== null) {
-                                                    if (form.direction === "long" && val <= minSLPrice) {
-                                                        val = minSLPrice + 0.01;
-                                                    }
-                                                    if (form.direction === "short" && val >= minSLPrice) {
-                                                        val = minSLPrice - 0.01;
-                                                    }
-                                                }
-
-                                                tps[idx].price = isNaN(val) ? "" : val;
-                                                setForm({ ...form, tps });
-                                            }}
-
-                                        />
-                                    ) : (
-                                        <input
-                                            type="number"
-                                            placeholder="TP %"
-                                            value={tp.percent}
-                                            onChange={(e) => {
-                                                const tps = [...form.tps];
-                                                let val = Number(e.target.value); // ✅ let user type freely
-                                                tps[idx].percent = isNaN(val) ? "" : val;
-                                                setForm({ ...form, tps });
-                                            }}
-                                            onBlur={(e) => {
-                                                const tps = [...form.tps];
-                                                let val = Number(e.target.value);
-
-                                                let calcTP = calcPriceFromPercent(entryPrice, val, form.direction);
-
-                                                if (minSLPrice !== null) {
-                                                    if (form.direction === "long" && calcTP <= minSLPrice) {
-                                                        val = ""; // invalid for long
-                                                    }
-                                                    if (form.direction === "short" && calcTP >= minSLPrice) {
-                                                        val = ""; // invalid for short
-                                                    }
-                                                }
-
-                                                tps[idx].percent = isNaN(val) ? "" : val;
-                                                setForm({ ...form, tps });
-                                            }}
-
-                                        />
-                                    )}
-
-
-                                    <p>TP Price: {tpPrice}</p>
-
-                                    {/* Allocation % */}
-                                    <input
-                                        type="number"
-                                        placeholder="Allocation %"
-                                        value={tp.allocation}
-                                        max={
-                                            100 -
-                                            form.tps.reduce(
-                                                (sum, t, i) => (i !== idx ? sum + Number(t.allocation || 0) : sum),
-                                                0
-                                            )
-                                        }
-                                        onChange={(e) => {
-                                            const tps = [...form.tps];
-                                            let val = Number(e.target.value);
-
-                                            // ✅ clamp to remaining
-                                            const usedOther = form.tps.reduce(
-                                                (sum, t, i) => (i !== idx ? sum + Number(t.allocation || 0) : sum),
-                                                0
-                                            );
-                                            const remaining = Math.max(0, 100 - usedOther);
-                                            if (val > remaining) val = remaining;
-                                            if (val < 0) val = 0;
-
-                                            tps[idx].allocation = val;
-                                            setForm({ ...form, tps });
-                                        }}
-                                        onBlur={(e) => handleTPAllocationBlur(idx, e.target.value)}
-                                    />
-
-                                    <p>
-                                        <strong>Average TP Price:</strong> {form.avgTPPrice}
-                                    </p>
-                                </div>
-                            );
-                        })}
-
-                    </div>
-                )}
-
-                {/* Open / Close Images & Time Section */}
-                <div className="time-image-section">
-                    <h3>Trade Timing & Images</h3>
-
-                    {/* Open Image */}
-                    <div className="field">
-                        <label>Open Image:</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleImageChange(e, "openImage", setForm)}
-                        />
-                        {form.openImagePreview && (
-                            <div className="preview">
-                                <img src={form.openImagePreview} alt="Open" width={120} />
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            openImage: null,
-                                            openImagePreview: "",
-                                        }))
-                                    }
-                                >
-                                    Remove
-                                </button>
-                            </div>
-                        )}
                     </div>
 
-                    {/* Close Image */}
-                    <div className="field">
-                        <label>Close Image:</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleImageChange(e, "closeImage", setForm)}
-                        />
-                        {form.closeImagePreview && (
-                            <div className="preview">
-                                <img src={form.closeImagePreview} alt="Close" width={120} />
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            closeImage: null,
-                                            closeImagePreview: "",
-                                        }))
-                                    }
-                                >
-                                    Remove
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Open Time */}
-                    <div className="field">
-                        <label>Open Time:</label>
-                        <input
-                            type="datetime-local"
-                            value={form.openTime || getLocalDateTime()}
-                            onChange={(e) =>
-                                setForm((prev) => ({ ...prev, openTime: e.target.value }))
-                            }
-                        />
-                    </div>
-
-                    {/* Close Time */}
-                    <div className="field">
-                        <label>Close Time:</label>
-                        <input
-                            type="datetime-local"
-                            value={form.closeTime || getLocalDateTime()}
-                            onChange={(e) =>
-                                setForm((prev) => ({ ...prev, closeTime: e.target.value }))
-                            }
-                        />
-                    </div>
-                </div>
-
-                {/* Quick Section */}
-                {form.tradeStatus === "quick" && (
-                    <div>
-                        <h3>Quick Trade</h3>
-                        <label>PNL ($)</label>
-                        <input
-                            type="number"
-                            name="pnl"
-                            value={form.pnl || ""}
-                            onChange={handleChange}
-                        />
-                    </div>
-                )}
-
-                {/* Journal Section */}
-                <div>
-                    <label>
-                        <input
-                            type="checkbox"
-                            name="rulesFollowed"
-                            checked={form.rulesFollowed}
-                            onChange={() =>
+                    {/* Rules Toggle */}
+                    <div className="tradeGrid">
+                        <span className="label">Rules Followed</span>
+                        <div
+                            className={`toggleSwitch ${form.rulesFollowed ? "on" : "off"}`}
+                            onClick={() =>
                                 setForm((prev) => ({
                                     ...prev,
                                     rulesFollowed: !prev.rulesFollowed,
                                 }))
                             }
+                            role="switch"
+                            aria-checked={form.rulesFollowed}
+                        >
+                            <div className="toggleCircle flexRow flex_center">
+                                {form.rulesFollowed ? <Check color="green" size={14} /> : <X color="black" size={14} />}
+                            </div>
+                            <span className="toggleLabel">
+                                {form.rulesFollowed ? "Yes" : "No"}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Reason */}
+                    <div className="tradeGrid">
+                        <label className="label">Reason</label>
+                        <textarea
+                            className="textarea"
+                            name="reason"
+                            value={form.reason}
+                            onChange={handleChange}
+                            placeholder="Write your reason here..."
                         />
-                        Rules Followed
-                    </label>
+                    </div>
 
-                    <label>Reason</label>
-                    <textarea
-                        name="reason"
-                        value={form.reason}
-                        onChange={handleChange}
-                    />
+                    {/* Learnings */}
+                    <div className="tradeGrid">
+                        <label className="label">Learnings</label>
+                        <textarea
+                            className="textarea"
+                            name="learnings"
+                            value={form.learnings}
+                            onChange={handleChange}
+                            placeholder="What did you learn from this trade?"
+                        />
+                    </div>
 
-                    <label>Learnings</label>
-                    <textarea
-                        name="learnings"
-                        value={form.learnings}
-                        onChange={handleChange}
-                    />
+
+
                 </div>
+
+
+
+                <BackgroundBlur />
+
 
             </form>
 
