@@ -634,24 +634,27 @@ export default function AddTrade() {
                 <div className="flexClm gap_24">
                     <div className="tradeGrid">
                         <span className="label">Ticker name</span>
-                        <div className="inputLabelShift">
-                            <input name="symbol" value={form.symbol} onChange={handleChange} placeholder="Ticker name" />
-                            <label>Ticker name</label>
-                        </div>
-                        <div className="flexRow flexRow_stretch gap_12" style={{ width: '100%' }}>
-                            <div
-                                className={`toggleOption button_sec flexRow flex_center ${form.direction === "long" ? "success" : ""}`}
-                                style={{ width: '100%' }}
-                                onClick={() => setForm({ ...form, direction: "long" })}
-                            >
-                                Long <ArrowUpRightIcon size={20} />
+                        <div className="flexClm gap_12">
+                            <div className="inputLabelShift">
+                                <input name="symbol" value={form.symbol} onChange={handleChange} placeholder="Ticker name" />
+                                <label>Ticker name</label>
                             </div>
-                            <div
-                                className={`toggleOption button_sec flexRow flex_center ${form.direction === "short" ? "error" : ""}`}
-                                style={{ width: '100%' }}
-                                onClick={() => setForm({ ...form, direction: "short" })}
-                            >
-                                Short <ArrowDownRight size={20} />
+
+                            <div className="flexRow flexRow_stretch gap_12" style={{ width: '100%' }}>
+                                <div
+                                    className={`toggleOption button_sec flexRow flex_center ${form.direction === "long" ? "success" : ""}`}
+                                    style={{ width: '100%' }}
+                                    onClick={() => setForm({ ...form, direction: "long" })}
+                                >
+                                    Long <ArrowUpRightIcon size={20} />
+                                </div>
+                                <div
+                                    className={`toggleOption button_sec flexRow flex_center ${form.direction === "short" ? "error" : ""}`}
+                                    style={{ width: '100%' }}
+                                    onClick={() => setForm({ ...form, direction: "short" })}
+                                >
+                                    Short <ArrowDownRight size={20} />
+                                </div>
                             </div>
                         </div>
 
@@ -661,6 +664,7 @@ export default function AddTrade() {
 
                     <div className="tradeGrid">
                         <span className="label">Quantity</span>
+
                         <div className="flexClm gap_12">
                             <div className="flexRow flexRow_stretch gap_12">
                                 <div className="inputLabelShift">
@@ -686,8 +690,8 @@ export default function AddTrade() {
                                     <label>Leverage</label>
                                 </div>
                             </div>
+                            <span className="flexRow flex_center font_12 avgValue"> Total value :   {currencySymbol} {form.totalQuantity}</span>
 
-                            <span className="valueDisplay flexRow flex_center"> Total value :   {currencySymbol} {form.totalQuantity}</span>
                         </div>
 
                     </div>
@@ -717,9 +721,7 @@ export default function AddTrade() {
                     {/* Entries (for Closed or Running setup) */}
                     {(form.tradeStatus === "closed" || form.tradeStatus === "running") && (
                         <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
-                            <div className="label">
-                                <span>Entries</span>
-                            </div>
+                            <span className="label">Entries</span>
 
                             <div className="flexClm gap_32">
                                 {form.entries.map((entry, idx) => {
@@ -771,15 +773,6 @@ export default function AddTrade() {
                                                     />
                                                     <label>Entry Price</label>
                                                 </div>
-                                                <div className="font_12" style={{ position: 'relative' }}>
-                                                    {form.avgEntryPrice && (
-                                                        <span style={{ position: 'absolute', bottom: '-20px', right: '1px' }}>
-                                                            Avg. Entry:           {formatNumber(form.avgEntryPrice, 2)}
-
-                                                        </span>
-                                                    )}
-                                                </div>
-
                                             </div>
 
 
@@ -823,6 +816,13 @@ export default function AddTrade() {
                                         </div>
                                     );
                                 })}
+
+                                {form.avgEntryPrice && (
+                                    <span className="font_12 avgValue">
+                                        Avg entry:           {formatNumber(form.avgEntryPrice, 2)}
+
+                                    </span>
+                                )}
                             </div>
                         </div>
                     )}
@@ -949,14 +949,15 @@ export default function AddTrade() {
                                             </div>
                                         );
                                     })}
+                                    {/* Show weighted average exit price */}
+                                    {form.avgExitPrice && (
+                                        <span className="valueDisplay flexRow flex_center">
+                                            Avg Exit Price: {form.avgExitPrice}
+                                        </span>
+                                    )}
                                 </div>
 
-                                {/* Show weighted average exit price */}
-                                {form.avgExitPrice && (
-                                    <span className="valueDisplay flexRow flex_center">
-                                        Average Exit Price: {form.avgExitPrice}
-                                    </span>
-                                )}
+
 
                             </div>
                         </div>
@@ -979,6 +980,7 @@ export default function AddTrade() {
                     {form.tradeStatus === "running" && (
                         <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
                             <span className="label">Stop Loss</span>
+
                             <div className="flexClm gap_32">
                                 {form.sls.map((sl, idx) => {
                                     const entryPrice = form.avgEntryPrice || form.entries[0]?.price;
@@ -1093,8 +1095,8 @@ export default function AddTrade() {
                                 })}
 
                                 {form.avgSLPrice && (
-                                    <span className="valueDisplay flexRow flex_center">
-                                        Average SL Price: {form.avgSLPrice}
+                                    <span className="font_12 avgValue">
+                                        Avg sl: {form.avgSLPrice}
                                     </span>
                                 )}
                             </div>
@@ -1106,6 +1108,7 @@ export default function AddTrade() {
                     {form.tradeStatus === "running" && (
                         <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
                             <span className="label">Take Profits</span>
+
                             <div className="flexClm gap_32">
                                 {form.tps.map((tp, idx) => {
                                     const entryPrice = form.avgEntryPrice || form.entries[0]?.price;
@@ -1231,8 +1234,8 @@ export default function AddTrade() {
                                 })}
 
                                 {form.avgTPPrice && (
-                                    <span className="valueDisplay flexRow flex_center">
-                                        Average TP Price: {form.avgTPPrice}
+                                    <span className="font_12 avgValue">
+                                        Avg tp: {form.avgTPPrice}
                                     </span>
                                 )}
                             </div>

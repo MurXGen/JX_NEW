@@ -425,6 +425,14 @@ button:hover {
     /* Chrome, Safari, Opera */
 }
 
+.avgValue{
+    background: var(--base-box-bg);
+    border-radius: var(--px-12);
+    padding: 12px;
+    border: 1px dashed var(--white-10);
+    text-align: center;
+}
+
 /* _______________ */
 
 
@@ -592,13 +600,15 @@ button:hover {
 
 .tradeGrid {
     padding-bottom: var(--px-24);
-    border-bottom: .5px solid var(--white-10);
+    border-bottom: .5px solid var(--white-20);
     display: grid;
-    gap: 12px;
+    grid-template-columns: 20% 80%;
 }
 
-.tradeGrid>.label {
-    font-size: 14px;
+.tradeGrid .label {
+    font-size: 12px;
+    margin-top: 16px;
+
 }
 
 .toggleOption.success {
@@ -621,293 +631,231 @@ button:hover {
     transition: 0.3s;
 }
 
+/* For date anmd time */
 
-.dtpLabel {
-    display: block;
-    margin-bottom: var(--px-8);
-    font-weight: var(--weight-600);
+/* Global font */
+body {
+  font-family: var(--ff-Pop), sans-serif;
+  background: var(--base-bg);
+  color: var(--base-text);
 }
 
-.dtpInput {
-    cursor: pointer;
-}
-
-/* overlay + modal */
+/* Overlay */
 .dtpOverlay {
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(180deg, #00000080, #00000066);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    z-index: 999;
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(to bottom, var(--base-bg), var(--secondary));
+  opacity: 0.9;
+  z-index: 10;
 }
 
+/* Modal */
 .dtpModal {
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%) scale(1);
-    width: 92vw;
-    max-width: 520px;
-    background: radial-gradient(120% 120% at 0% 0%, var(--white-4), transparent),
-        linear-gradient(135deg, var(--base-bg) 20%, var(--base-bg) 100%);
-    border: 1px solid var(--white-10);
-    border-radius: var(--px-12);
-    padding: 32px 16px;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    transition: transform .18s ease, opacity .18s ease;
-    opacity: 1;
-    font-size: 0.92rem;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  max-width: 380px;
+  max-height: 90vh;
+  transform: translate(-50%, -50%);
+  background: var(--base-box-bg);
+  border-radius: var(--px-16);
+  padding: var(--px-16);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--px-16);
+  box-shadow: 0 8px 32px var(--white-20);
+  border: 1px solid var(--white-10);
 }
 
-/* close */
+/* Close button */
 .closeBtn {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    cursor: pointer;
-    color: var(--white-80);
+  position: absolute;
+  top: var(--px-12);
+  right: var(--px-12);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--white-80);
+  transition: color 0.2s;
 }
-
 .closeBtn:hover {
-    color: var(--primary-light);
+  color: var(--primary-light);
 }
 
-/* header */
-.dtpHeader {
-    display: grid;
-    grid-template-columns: 40px 1fr 40px;
-    align-items: center;
-    margin-bottom: 10px;
+/* Section */
+.dtpSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--px-8);
 }
 
-.dtpHeaderCenter {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
+.dtpSection h4 {
+  margin: 0;
+  font-size: var(--px-14);
+  font-weight: var(--weight-600);
+  color: var(--white-80);
+  letter-spacing: 0.5px;
 }
 
-.iconBtn,
-.linkBtn {
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    color: var(--primary-light);
-    font-weight: var(--weight-600);
-}
-
-.iconBtn {
-    font-size: 20px;
-}
-
-.linkBtn {
-    font-size: 14px;
-}
-
-/* week row + grid */
-.dtpWeekRow {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-    margin: 8px 2px 6px;
-}
-
-.dtpWeekday {
-    text-align: center;
-    font-size: 12px;
-    color: var(--white-50);
-    font-weight: var(--weight-600);
-}
-
-.dtpGrid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-    margin-bottom: 14px;
-}
-
-.dtpCell,
-.dtpCellEmpty {
-    height: 40px;
-    border-radius: 12px;
-    border: 1px solid var(--white-10);
-    background: var(--white-4);
-    color: var(--base-text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dtpCell {
-    cursor: pointer;
-    transition: background .15s, border-color .15s, transform .05s;
-}
-
-.dtpCell:hover {
-    background: var(--primary-20);
-    border-color: var(--primary-50);
-}
-
-.dtpCell.isToday {
-    outline: 2px solid var(--primary-50);
-}
-
-.dtpCell.isSelected {
-    background: var(--primary);
-    color: var(--base-bg);
-    border-color: var(--primary);
-}
-
-.dtpCell.isDisabled {
-    opacity: .35;
-    cursor: not-allowed;
-}
-
-/* time wheels */
+/* Wheels container */
 .dtpWheels {
-    display: grid;
-    grid-template-columns: 1fr 1fr .8fr;
-    gap: 10px;
-    margin-top: 6px;
-    align-items: start;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--px-12);
 }
 
+/* Each wheel column */
 .wheelColumn {
-    max-height: 160px;
-    overflow-y: auto;
-    padding: 6px;
-    border: 1px solid var(--white-10);
-    border-radius: 12px;
-    background: var(--white-4);
-    scroll-snap-type: y mandatory;
+  flex: 1;
+  max-height: 150px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: relative;
+  scroll-snap-type: y mandatory;
+  text-align: center;
+}
+.wheelColumn::-webkit-scrollbar {
+  display: none;
 }
 
+/* Wheel item */
 .wheelItem {
-    width: 100%;
-    padding: 10px 8px;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    border-radius: 8px;
-    scroll-snap-align: center;
-    font-size: 14px;
-    color: var(--base-text);
-}
-
-.wheelItem:hover {
-    background: var(--primary-20);
+  display: block;
+  width: 100%;
+  padding: var(--px-8);
+  font-size: var(--px-16);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--white-50);
+  scroll-snap-align: center;
+  transition: color 0.2s, font-weight 0.2s, transform 0.2s;
 }
 
 .wheelItem.isActive {
-    background: var(--primary);
-    color: var(--base-bg);
-    font-weight: var(--weight-600);
+  font-size: var(--px-20);
+  font-weight: var(--weight-700);
+  color: var(--primary-light);
+  transform: scale(1.1);
 }
 
-/* month/year pickers */
-.pickerGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin: 8px 0 14px;
+/* Fade overlay */
+.wheelColumn::before,
+.wheelColumn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40%;
+  pointer-events: none;
+}
+.wheelColumn::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--base-box-bg), transparent);
+}
+.wheelColumn::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--base-box-bg), transparent);
 }
 
-.pickerCell {
-    padding: 14px 8px;
-    border-radius: 12px;
-    border: 1px solid var(--white-10);
-    background: var(--white-4);
-    cursor: pointer;
-    transition: background .15s, border-color .15s;
-}
-
-.pickerCell:hover {
-    background: var(--primary-20);
-    border-color: var(--primary-50);
-}
-
-.pickerCell.isSelected {
-    background: var(--primary);
-    color: var(--base-bg);
-    border-color: var(--primary);
-}
-
-/* footer actions */
+/* Actions */
 .dtpActions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    margin-top: 8px;
-}
-
-.primaryBtn,
-.ghostBtn {
-    border-radius: 12px;
-    padding: 10px 14px;
-    border: 1px solid var(--white-20);
-    font-weight: var(--weight-600);
-    cursor: pointer;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--px-12);
+  margin-top: var(--px-12);
 }
 
 .ghostBtn {
-    background: var(--white-4);
-    color: var(--base-text);
+  padding: var(--px-8) var(--px-16);
+  background: var(--white-10);
+  border: 1px solid var(--white-20);
+  border-radius: var(--px-8);
+  cursor: pointer;
+  font-size: var(--px-14);
+  font-weight: var(--weight-500);
+  color: var(--white-80);
+  transition: background 0.2s, color 0.2s;
 }
-
 .ghostBtn:hover {
-    background: var(--primary-20);
-    border-color: var(--primary-50);
+  background: var(--white-20);
+  color: var(--primary-light);
 }
 
 .primaryBtn {
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    color: var(--base-bg);
-    border-color: var(--primary);
+  padding: var(--px-8) var(--px-16);
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border: none;
+  border-radius: var(--px-8);
+  cursor: pointer;
+  font-size: var(--px-14);
+  font-weight: var(--weight-600);
+  color: var(--base-bg);
+  box-shadow: 0 0 8px var(--primary-50);
+  transition: transform 0.2s;
 }
-
 .primaryBtn:hover {
-    filter: brightness(1.05);
+  transform: scale(1.05);
 }
 
-/* ===== MOBILE (bottom sheet) ===== */
+/* Input */
+.dtpInput {
+  width: 100%;
+  padding: var(--px-12);
+  border: 1px solid var(--white-20);
+  border-radius: var(--px-8);
+  cursor: pointer;
+  background: var(--base-box-bg);
+  color: var(--base-text);
+  font-size: var(--px-14);
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.dtpInput:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 8px var(--primary-20);
+}
+
+.dtpLabel {
+  display: block;
+  font-size: var(--px-12);
+  margin-bottom: var(--px-4);
+  color: var(--white-50);
+  font-weight: var(--weight-500);
+}
+
+/* Responsive */
 @media (max-width: 480px) {
-    .dtpModal {
-        left: 50%;
-        top: auto;
-        bottom: 12px;
-        transform: translateX(-50%);
-        width: calc(100vw - 24px);
-        max-width: 560px;
-        border-radius: 18px;
-        padding: 18px 14px 12px;
-        font-size: 1rem;
-        /* slightly larger for readability */
-    }
+  .dtpModal {
+    width: 95%;
+    padding: var(--px-12);
+    border-radius: var(--px-12);
+  }
 
-    .dtpGrid .dtpCell,
-    .dtpCellEmpty {
-        height: 44px;
-    }
+  .wheelItem {
+    font-size: var(--px-14);
+  }
 
-    .dtpWheels {
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 8px;
-    }
+  .wheelItem.isActive {
+    font-size: var(--px-18);
+  }
 
-    .wheelItem {
-        padding: 12px 10px;
-    }
-
-    .dtpActions {
-        gap: 10px;
-    }
+  .primaryBtn,
+  .ghostBtn {
+    font-size: var(--px-12);
+    padding: var(--px-8) var(--px-12);
+  }
 }
 
+
+/* End */
 
 .uploadBox {
-    max-width: 320px;
+    max-width: 500px;
     padding: 24px 12px;
     border: 2px dashed var(--white-10);
     border-radius: var(--px-12);
