@@ -882,8 +882,8 @@ footer {
 
 /* Modal */
 .modal {
-  background: var(--base-box-bg);
-  padding: 50px 24px 12px 24px;
+  background: var(--white-4);
+  padding: 50px 24px 32px 24px;
   border-radius: 12px;
   max-width: 600px;
   width: 90%;

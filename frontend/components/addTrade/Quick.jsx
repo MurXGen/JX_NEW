@@ -5,7 +5,7 @@ const QuickSection = ({ form, handleChange }) => {
 
   return (
     <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
-      <span className="label">Net Profit or Loss</span>
+      <span className="label">Net P/L</span>
       <input
         type="number"
         name="pnl"

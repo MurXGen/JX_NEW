@@ -10,6 +10,40 @@ const TakeProfitSection = ({
 }) => {
   if (form.tradeStatus !== "running") return null;
 
+  const roundToTwoDecimals = (val) =>
+    isNaN(val) ? "" : parseFloat(Number(val).toFixed(2));
+
+  const enforceSLRule = (val, mode, entryPrice, minSLPrice, direction) => {
+    let finalVal = val;
+
+    if (mode === "price") {
+      if (minSLPrice !== null) {
+        if (direction === "long" && finalVal <= minSLPrice) {
+          finalVal = minSLPrice + 0.01;
+        }
+        if (direction === "short" && finalVal >= minSLPrice) {
+          finalVal = minSLPrice - 0.01;
+        }
+      }
+    }
+
+    if (mode === "percent") {
+      let tpPriceFromPercent = calcPriceFromPercent(entryPrice, finalVal, direction);
+      if (minSLPrice !== null) {
+        if (direction === "long" && tpPriceFromPercent <= minSLPrice) {
+          finalVal =
+            ((minSLPrice + 0.01 - entryPrice) / entryPrice) * 100;
+        }
+        if (direction === "short" && tpPriceFromPercent >= minSLPrice) {
+          finalVal =
+            ((minSLPrice - 0.01 - entryPrice) / entryPrice) * 100;
+        }
+      }
+    }
+
+    return roundToTwoDecimals(finalVal);
+  };
+
   return (
     <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
       <span className="label">Take Profits</span>
@@ -28,23 +62,16 @@ const TakeProfitSection = ({
 
           const minSLPrice = slPrices.length ? Math.min(...slPrices) : null;
 
-          let tpPrice =
-            tp.mode === "percent"
-              ? calcPriceFromPercent(entryPrice, tp.percent, form.direction)
-              : tp.price;
-
-          if (minSLPrice !== null) {
-            if (form.direction === "long" && tpPrice <= minSLPrice)
-              tpPrice = minSLPrice + 0.01;
-            if (form.direction === "short" && tpPrice >= minSLPrice)
-              tpPrice = minSLPrice - 0.01;
-          }
-
           const usedOther = form.tps.reduce(
             (sum, t, i) => (i !== idx ? sum + Number(t.allocation || 0) : sum),
             0
           );
           const remaining = Math.max(0, 100 - usedOther);
+
+          let tpPrice =
+            tp.mode === "percent"
+              ? calcPriceFromPercent(entryPrice, tp.percent, form.direction)
+              : tp.price;
 
           return (
             <div key={idx} className="flexClm gap_32">
@@ -61,8 +88,20 @@ const TakeProfitSection = ({
                         value={tp.price ?? ""}
                         onChange={(e) => {
                           let val = Math.abs(Number(e.target.value));
-                          if (isNaN(val)) val = "";
                           const tps = [...form.tps];
+                          tps[idx].price = isNaN(val) ? "" : val;
+                          setForm({ ...form, tps });
+                        }}
+                        onBlur={(e) => {
+                          let val = Math.abs(Number(e.target.value));
+                          const tps = [...form.tps];
+                          val = enforceSLRule(
+                            val,
+                            "price",
+                            entryPrice,
+                            minSLPrice,
+                            form.direction
+                          );
                           tps[idx].price = val;
                           setForm({ ...form, tps });
                         }}
@@ -80,6 +119,19 @@ const TakeProfitSection = ({
                           let val = Number(e.target.value);
                           const tps = [...form.tps];
                           tps[idx].percent = isNaN(val) ? "" : val;
+                          setForm({ ...form, tps });
+                        }}
+                        onBlur={(e) => {
+                          let val = Number(e.target.value);
+                          const tps = [...form.tps];
+                          val = enforceSLRule(
+                            val,
+                            "percent",
+                            entryPrice,
+                            minSLPrice,
+                            form.direction
+                          );
+                          tps[idx].percent = val;
                           setForm({ ...form, tps });
                         }}
                       />
@@ -164,3 +216,4 @@ const TakeProfitSection = ({
 };
 
 export default TakeProfitSection;
+

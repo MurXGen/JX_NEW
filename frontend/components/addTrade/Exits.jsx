@@ -13,7 +13,7 @@ const ExitsSection = ({
   if (form.tradeStatus !== "closed") return null;
 
   return (
-    <div className="tradeGrid" style={{ padding: "0 0 12px 0" }}>
+    <div className="tradeGrid"  style={{ padding: "0 0 32px 0" }}>
       <span className="label">Exits</span>
       <div className="flexClm gap_32">
         {form.exits.map((exit, idx) => {

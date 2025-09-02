@@ -28,6 +28,7 @@ import TakeProfitSection from "@/components/addTrade/TP";
 import DateTimeImageSection from "@/components/addTrade/OpenTime";
 import TextAreaField from "@/components/addTrade/Learnings";
 import ToggleSwitch from "@/components/addTrade/Rules";
+import ExitsSection from "@/components/addTrade/Exits";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -410,10 +411,10 @@ export default function AddTrade() {
         let exitPrice =
           e.mode === "percent"
             ? calcPriceFromPercent(
-                form.avgEntryPrice,
-                e.percent,
-                prev.direction
-              )
+              form.avgEntryPrice,
+              e.percent,
+              prev.direction
+            )
             : e.price;
 
         const priceNum = Number(exitPrice);
@@ -531,10 +532,10 @@ export default function AddTrade() {
         let tpPrice =
           t.mode === "percent"
             ? calcPriceFromPercent(
-                form.avgEntryPrice,
-                t.percent,
-                prev.direction
-              )
+              form.avgEntryPrice,
+              t.percent,
+              prev.direction
+            )
             : t.price;
 
         const priceNum = Number(tpPrice);
@@ -710,7 +711,7 @@ export default function AddTrade() {
     {
       key: "exits",
       content: (
-        <EntriesSection
+        <ExitsSection
           form={form}
           setForm={setForm}
           firstExitRef={firstExitRef}
@@ -805,7 +806,7 @@ export default function AddTrade() {
       key: "rules",
       content: (
         <ToggleSwitch
-          label="Rules Followed"
+          label="Rules"
           value={form.rulesFollowed}
           onToggle={() =>
             setForm((prev) => ({ ...prev, rulesFollowed: !prev.rulesFollowed }))
@@ -844,13 +845,30 @@ export default function AddTrade() {
       <Navbar />
       <form onSubmit={handleSubmit}>
         {/* Basic Info */}
+
         <div className="flexClm gap_24">
-          {grids.map(({ key, content }) => (
-            <div key={key} onClick={() => setActiveGrid(key)}>
-              {content}
-            </div>
-          ))}
+          {grids.map(({ key, content }) => {
+            // decide if this grid should render at all
+            const isVisible =
+              key === "quick"
+                ? form.tradeStatus === "quick"
+                : key === "entries"
+                  ? form.tradeStatus === "closed" || form.tradeStatus === "running"
+                  : key === "exits"
+                    ? form.tradeStatus === "closed"
+                    : key === "sl" || key === "tp"
+                      ? form.tradeStatus === "running"
+                      : true; // all others always visible
+
+            return isVisible ? (
+              <div key={key} onClick={() => setActiveGrid(key)}>
+                {content}
+              </div>
+            ) : null;
+          })}
         </div>
+
+
         {activeGrid && (
           <div className="overlay">
             <div className="modal">
