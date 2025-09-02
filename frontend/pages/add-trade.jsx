@@ -648,7 +648,7 @@ export default function AddTrade() {
 
   return (
     <div className="flexClm gap_32">
-      <h2>Add Trade</h2>
+      <Navbar />
       <form onSubmit={handleSubmit}>
         {/* Basic Info */}
         <div className="flexClm gap_24">

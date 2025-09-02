@@ -1,0 +1,166 @@
+import React from "react";
+
+const TakeProfitSection = ({
+  form,
+  setForm,
+  calcPriceFromPercent,
+  formatPrice,
+  currencySymbol,
+  handleTPAllocationBlur,
+}) => {
+  if (form.tradeStatus !== "running") return null;
+
+  return (
+    <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
+      <span className="label">Take Profits</span>
+
+      <div className="flexClm gap_32">
+        {form.tps.map((tp, idx) => {
+          const entryPrice = form.avgEntryPrice || form.entries[0]?.price;
+
+          const slPrices = form.sls
+            .map((sl) =>
+              sl.mode === "percent"
+                ? calcPriceFromPercent(entryPrice, sl.percent, form.direction)
+                : sl.price
+            )
+            .filter((p) => !!p && !isNaN(p));
+
+          const minSLPrice = slPrices.length ? Math.min(...slPrices) : null;
+
+          let tpPrice =
+            tp.mode === "percent"
+              ? calcPriceFromPercent(entryPrice, tp.percent, form.direction)
+              : tp.price;
+
+          if (minSLPrice !== null) {
+            if (form.direction === "long" && tpPrice <= minSLPrice)
+              tpPrice = minSLPrice + 0.01;
+            if (form.direction === "short" && tpPrice >= minSLPrice)
+              tpPrice = minSLPrice - 0.01;
+          }
+
+          const usedOther = form.tps.reduce(
+            (sum, t, i) => (i !== idx ? sum + Number(t.allocation || 0) : sum),
+            0
+          );
+          const remaining = Math.max(0, 100 - usedOther);
+
+          return (
+            <div key={idx} className="flexClm gap_32">
+              {/* Price / Percent Input */}
+              <div className="flexRow flexRow_stretch gap_4">
+                <div className="inputLabelShift">
+                  {tp.mode === "price" ? (
+                    <div className="inputLabelShift">
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        placeholder="TP Price"
+                        value={tp.price ?? ""}
+                        onChange={(e) => {
+                          let val = Math.abs(Number(e.target.value));
+                          if (isNaN(val)) val = "";
+                          const tps = [...form.tps];
+                          tps[idx].price = val;
+                          setForm({ ...form, tps });
+                        }}
+                      />
+                      <label>TP Price</label>
+                    </div>
+                  ) : (
+                    <div className="inputLabelShift">
+                      <input
+                        type="number"
+                        step="any"
+                        placeholder="TP %"
+                        value={tp.percent ?? ""}
+                        onChange={(e) => {
+                          let val = Number(e.target.value);
+                          const tps = [...form.tps];
+                          tps[idx].percent = isNaN(val) ? "" : val;
+                          setForm({ ...form, tps });
+                        }}
+                      />
+                      <label>TP %</label>
+                      <div className="font_12" style={{ position: "relative" }}>
+                        <span
+                          style={{
+                            position: "absolute",
+                            bottom: "-20px",
+                            right: "1px",
+                          }}
+                        >
+                          TP Price:{" "}
+                          {tpPrice ? formatPrice(Number(tpPrice)) : "0"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mode Toggle */}
+                <div className="flexRow gap_4">
+                  <button
+                    type="button"
+                    className={`button_sec icon-wrapper ${
+                      tp.mode === "price" ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      const tps = [...form.tps];
+                      tps[idx].mode = "price";
+                      setForm({ ...form, tps });
+                    }}
+                  >
+                    {currencySymbol}
+                  </button>
+                  <button
+                    type="button"
+                    className={`button_sec icon-wrapper ${
+                      tp.mode === "percent" ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      const tps = [...form.tps];
+                      tps[idx].mode = "percent";
+                      setForm({ ...form, tps });
+                    }}
+                  >
+                    %
+                  </button>
+                </div>
+              </div>
+
+              {/* Allocation Input */}
+              <div className="inputLabelShift">
+                <input
+                  type="number"
+                  min="0"
+                  max={remaining}
+                  placeholder="Allocation %"
+                  value={tp.allocation ?? 0}
+                  onChange={(e) => {
+                    let val = Number(e.target.value);
+                    if (val < 0) val = 0;
+                    if (val > remaining) val = remaining;
+                    const tps = [...form.tps];
+                    tps[idx].allocation = val;
+                    setForm({ ...form, tps });
+                  }}
+                  onBlur={(e) => handleTPAllocationBlur(idx, e.target.value)}
+                />
+                <label>Allocation %</label>
+              </div>
+            </div>
+          );
+        })}
+
+        {form.avgTPPrice && (
+          <span className="font_12 avgValue">Avg TP: {form.avgTPPrice}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default TakeProfitSection;
