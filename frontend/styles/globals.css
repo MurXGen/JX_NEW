@@ -627,6 +627,7 @@ button:hover {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
 
 .dtpModal {
@@ -883,20 +884,22 @@ footer {
 /* Modal */
 .modal {
   background: var(--white-4);
-  padding: 50px 24px 32px 24px;
+  backdrop-filter: blur(50px);
+  padding: 72px 24px 32px 24px;
   border-radius: 12px;
   max-width: 600px;
   width: 90%;
   position: relative;
-  max-height: 80vh;
+  max-height: 50vh;
   overflow-y: auto;
+  border: 1px solid var(--primary-20);
 }
 
 /* Close Button */
 .closeBtn {
   position: absolute;
-  top: 8px;
-  right: 12px;
+  top: 14px;
+  right: 24px;
   background: none;
   border: none;
   font-size: 24px;

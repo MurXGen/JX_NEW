@@ -10,6 +10,7 @@ import Navbar from "@/components/Auth/Navbar";
 import {
   ArrowDownRight,
   ArrowLeftCircle,
+  ArrowRight,
   ArrowUpRightIcon,
   Check,
   Upload,
@@ -29,6 +30,9 @@ import DateTimeImageSection from "@/components/addTrade/OpenTime";
 import TextAreaField from "@/components/addTrade/Learnings";
 import ToggleSwitch from "@/components/addTrade/Rules";
 import ExitsSection from "@/components/addTrade/Exits";
+import { motion, AnimatePresence } from "framer-motion";
+import { containerVariants } from "@/animations/motionVariants"; // adjust path if needed
+
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -668,6 +672,8 @@ export default function AddTrade() {
     }
   }, [activeGrid]);
 
+  const inlineEditableKeys = ["status", "opentime", "clostime", "rules"]; // these won't open modal
+
   const grids = [
     {
       key: "ticker",
@@ -848,7 +854,6 @@ export default function AddTrade() {
 
         <div className="flexClm gap_24">
           {grids.map(({ key, content }) => {
-            // decide if this grid should render at all
             const isVisible =
               key === "quick"
                 ? form.tradeStatus === "quick"
@@ -858,27 +863,49 @@ export default function AddTrade() {
                     ? form.tradeStatus === "closed"
                     : key === "sl" || key === "tp"
                       ? form.tradeStatus === "running"
-                      : true; // all others always visible
+                      : true;
 
             return isVisible ? (
-              <div key={key} onClick={() => setActiveGrid(key)}>
+              <div
+                key={key}
+                onClick={() => {
+                  if (!inlineEditableKeys.includes(key)) {
+                    setActiveGrid(key);
+                  }
+                }}
+                style={{ cursor: inlineEditableKeys.includes(key) ? "default" : "pointer" }}
+              >
                 {content}
               </div>
             ) : null;
           })}
         </div>
 
+        <AnimatePresence>
+          {activeGrid && !inlineEditableKeys.includes(activeGrid) && (
+            <motion.div
+              className="overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="modal"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+              >
+                <button className="closeBtn" onClick={() => setActiveGrid(null)}>
+                  <ArrowRight size={20} />
+                </button>
+                {grids.find((g) => g.key === activeGrid)?.content}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {activeGrid && (
-          <div className="overlay">
-            <div className="modal">
-              <button className="closeBtn" onClick={() => setActiveGrid(null)}>
-                <X size={20} />
-              </button>
-              {grids.find((g) => g.key === activeGrid)?.content}
-            </div>
-          </div>
-        )}
 
         <BackgroundBlur />
       </form>
