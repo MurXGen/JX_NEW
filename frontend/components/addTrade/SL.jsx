@@ -142,7 +142,9 @@ const StopLossSection = ({
         })}
 
         {form.avgSLPrice && (
-          <span className="font_12 avgValue">Avg SL: {form.avgSLPrice}</span>
+          <span className="font_12 avgValue">
+            Average stop loss price: {form.avgSLPrice}
+          </span>
         )}
       </div>
     </div>

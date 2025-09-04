@@ -28,15 +28,17 @@ const TakeProfitSection = ({
     }
 
     if (mode === "percent") {
-      let tpPriceFromPercent = calcPriceFromPercent(entryPrice, finalVal, direction);
+      let tpPriceFromPercent = calcPriceFromPercent(
+        entryPrice,
+        finalVal,
+        direction
+      );
       if (minSLPrice !== null) {
         if (direction === "long" && tpPriceFromPercent <= minSLPrice) {
-          finalVal =
-            ((minSLPrice + 0.01 - entryPrice) / entryPrice) * 100;
+          finalVal = ((minSLPrice + 0.01 - entryPrice) / entryPrice) * 100;
         }
         if (direction === "short" && tpPriceFromPercent >= minSLPrice) {
-          finalVal =
-            ((minSLPrice - 0.01 - entryPrice) / entryPrice) * 100;
+          finalVal = ((minSLPrice - 0.01 - entryPrice) / entryPrice) * 100;
         }
       }
     }
@@ -208,7 +210,9 @@ const TakeProfitSection = ({
         })}
 
         {form.avgTPPrice && (
-          <span className="font_12 avgValue">Avg TP: {form.avgTPPrice}</span>
+          <span className="font_12 avgValue">
+            Average take profit price : {form.avgTPPrice}
+          </span>
         )}
       </div>
     </div>
@@ -216,4 +220,3 @@ const TakeProfitSection = ({
 };
 
 export default TakeProfitSection;
-

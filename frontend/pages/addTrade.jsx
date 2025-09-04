@@ -32,7 +32,8 @@ import ToggleSwitch from "@/components/addTrade/Rules";
 import ExitsSection from "@/components/addTrade/Exits";
 import { motion, AnimatePresence } from "framer-motion";
 import { containerVariants } from "@/animations/motionVariants"; // adjust path if needed
-
+import ToastMessage from "@/components/ui/ToastMessage";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -41,6 +42,8 @@ export default function AddTrade() {
   const router = useRouter();
   const firstExitRef = useRef(null);
   const [currencySymbol, setCurrencySymbol] = useState("$");
+  const [toast, setToast] = useState({ type: "", message: "" });
+  const [loading, setLoading] = useState(false);
 
   const [activeGrid, setActiveGrid] = useState(null);
 
@@ -96,10 +99,49 @@ export default function AddTrade() {
     // Derived values
     duration: 0,
     rr: "",
-    pnl: 0,
+    pnl: "",
     expectedProfit: 0,
     expectedLoss: 0,
   });
+
+  const validateForm = (form) => {
+    if (!form.symbol.trim()) return "Symbol name is required";
+    if (!form.quantityUSD || Number(form.quantityUSD) <= 0)
+      return "Margin is required";
+
+    if (form.tradeStatus === "quick") {
+      if (form.pnl === "" || form.pnl === null)
+        return "Net Profit or Loss (PnL) is required";
+    } else {
+      // Entries required (only for running/closed)
+      if (!form.entries || form.entries.length === 0 || !form.entries[0].price)
+        return "At least one entry is required";
+
+      if (form.tradeStatus === "closed") {
+        // Exits required for closed trades
+        if (!form.exits || form.exits.length === 0 || !form.exits[0].price)
+          return "At least one exit is required";
+      }
+
+      if (form.tradeStatus === "running") {
+        // TP + SL required for running trades
+        if (!form.tps || form.tps.length === 0 || !form.tps[0].price)
+          return "At least one Take Profit (TP) is required";
+
+        if (!form.sls || form.sls.length === 0 || !form.sls[0].price)
+          return "At least one Stop Loss (SL) is required";
+      }
+    }
+
+    // Duration must be positive
+    if (form.duration < 0) return "Duration should be positive";
+
+    // CloseTime can’t be before OpenTime
+    if (new Date(form.closeTime) < new Date(form.openTime))
+      return "Close date cannot be earlier than Open time";
+
+    return null; // ✅ No errors
+  };
 
   // 🔍 detect edit mode
   const isEdit = router.query.mode === "edit" || router.query.mode === "close";
@@ -415,10 +457,10 @@ export default function AddTrade() {
         let exitPrice =
           e.mode === "percent"
             ? calcPriceFromPercent(
-              form.avgEntryPrice,
-              e.percent,
-              prev.direction
-            )
+                form.avgEntryPrice,
+                e.percent,
+                prev.direction
+              )
             : e.price;
 
         const priceNum = Number(exitPrice);
@@ -536,10 +578,10 @@ export default function AddTrade() {
         let tpPrice =
           t.mode === "percent"
             ? calcPriceFromPercent(
-              form.avgEntryPrice,
-              t.percent,
-              prev.direction
-            )
+                form.avgEntryPrice,
+                t.percent,
+                prev.direction
+              )
             : t.price;
 
         const priceNum = Number(tpPrice);
@@ -596,6 +638,18 @@ export default function AddTrade() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Run validation BEFORE sending request
+    const validationError = validateForm(form);
+    if (validationError) {
+      setToast(null); // clear first
+      setTimeout(() => {
+        setToast({ type: "error", message: validationError });
+      }, 0);
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const formData = new FormData();
 
@@ -615,12 +669,8 @@ export default function AddTrade() {
         }
       });
 
-      if (form.openImage) {
-        formData.append("openImage", form.openImage);
-      }
-      if (form.closeImage) {
-        formData.append("closeImage", form.closeImage);
-      }
+      if (form.openImage) formData.append("openImage", form.openImage);
+      if (form.closeImage) formData.append("closeImage", form.closeImage);
 
       let res;
       if (isEdit) {
@@ -643,24 +693,33 @@ export default function AddTrade() {
       if (res.data.success) {
         const { accounts, trades } = res.data;
 
-        console.log("💾 Syncing updated data into IndexedDB:", {
-          accountsCount: accounts?.length || 0,
-          tradesCount: trades?.length || 0,
-        });
-
         await saveToIndexedDB("user-data", {
           userId: localStorage.getItem("userId"),
           accounts,
           trades,
         });
 
-        alert(
-          isEdit ? "Trade updated successfully!" : "Trade added successfully!"
-        );
+        setToast({
+          type: "success",
+          message: isEdit
+            ? "Trade updated successfully!"
+            : "Trade added successfully!",
+        });
+
+        setTimeout(() => {
+          router.push("/trade");
+        }, 2000);
       }
     } catch (err) {
       console.error(err);
-      alert(isEdit ? "Error updating trade" : "Error adding trade");
+      setToast({
+        type: "error",
+        message:
+          err.response?.data?.message ||
+          (isEdit ? "Error updating trade" : "Error adding trade"),
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -672,7 +731,7 @@ export default function AddTrade() {
     }
   }, [activeGrid]);
 
-  const inlineEditableKeys = ["status", "opentime", "clostime", "rules"]; // these won't open modal
+  const inlineEditableKeys = ["status", "opentime", "closetime", "rules"]; // these won't open modal
 
   const grids = [
     {
@@ -736,6 +795,7 @@ export default function AddTrade() {
         <QuickSection
           form={form}
           setForm={setForm}
+          currency={currencySymbol}
           handleChange={handleChange}
         />
       ),
@@ -858,12 +918,13 @@ export default function AddTrade() {
               key === "quick"
                 ? form.tradeStatus === "quick"
                 : key === "entries"
-                  ? form.tradeStatus === "closed" || form.tradeStatus === "running"
-                  : key === "exits"
-                    ? form.tradeStatus === "closed"
-                    : key === "sl" || key === "tp"
-                      ? form.tradeStatus === "running"
-                      : true;
+                ? form.tradeStatus === "closed" ||
+                  form.tradeStatus === "running"
+                : key === "exits"
+                ? form.tradeStatus === "closed"
+                : key === "sl" || key === "tp"
+                ? form.tradeStatus === "running"
+                : true;
 
             return isVisible ? (
               <div
@@ -873,7 +934,11 @@ export default function AddTrade() {
                     setActiveGrid(key);
                   }
                 }}
-                style={{ cursor: inlineEditableKeys.includes(key) ? "default" : "pointer" }}
+                style={{
+                  cursor: inlineEditableKeys.includes(key)
+                    ? "default"
+                    : "pointer",
+                }}
               >
                 {content}
               </div>
@@ -897,7 +962,11 @@ export default function AddTrade() {
                 animate="visible"
                 exit="hidden"
               >
-                <button className="closeBtn" onClick={() => setActiveGrid(null)}>
+                <button
+                  type="button"
+                  className="closeBtn"
+                  onClick={() => setActiveGrid(null)}
+                >
                   <ArrowRight size={20} />
                 </button>
                 {grids.find((g) => g.key === activeGrid)?.content}
@@ -906,9 +975,11 @@ export default function AddTrade() {
           )}
         </AnimatePresence>
 
-
         <BackgroundBlur />
       </form>
+
+      <ToastMessage type={toast.type} message={toast.message} duration={3000} />
+      {loading && <FullPageLoader />}
 
       <div
         className="popups_btm flexRow flexRow_stretch gap_4"
@@ -918,8 +989,12 @@ export default function AddTrade() {
           padding: "8px 8px",
         }}
       >
-        <button className="button_sec" onClick={() => router.push("/trade")}>
-          <ArrowLeftCircle size={20} />
+        <button
+          className="button_sec"
+          style={{ width: "100%" }}
+          onClick={() => router.push("/trade")}
+        >
+          Cancel
         </button>
         <button
           className="button_pri"

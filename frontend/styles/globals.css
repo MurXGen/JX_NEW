@@ -340,15 +340,22 @@ button:hover {
   opacity: 0;
   pointer-events: cursor;
   animation: popupFade 0.4s ease forwards;
+  z-index: 1000;
+}
+
+.popups_btm {
+  box-shadow: 1px 1px 20px var(--base-bg);
 }
 
 .popups_top.success {
   background-color: var(--success);
+  color: white;
   /* green */
 }
 
 .popups_top.error {
   background-color: var(--error);
+  color: white;
   /* red */
 }
 
@@ -627,7 +634,7 @@ button:hover {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 10000;
 }
 
 .dtpModal {
@@ -642,7 +649,7 @@ button:hover {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 1000;
+  z-index: 10000;
   border: 1px solid var(--white-20);
   padding: 24px;
   gap: 24px;
@@ -845,7 +852,7 @@ footer {
 }
 
 /* Textareas */
-.textarea {
+textarea {
   resize: vertical;
   background: var(--base-box-bg);
   border: 1px solid var(--primary-20);
@@ -857,13 +864,16 @@ footer {
   color: var(--base-text);
 }
 
-.textarea:hover {
+textarea:hover {
   border: 1px solid var(--primary-50);
 }
-
-.textarea:focus {
+textarea:focus {
   outline: none;
   border-color: var(--primary-50);
+}
+
+textarea::placeholder {
+  opacity: 0.4;
 }
 
 /* Overlay */
@@ -883,14 +893,11 @@ footer {
 
 /* Modal */
 .modal {
-<<<<<<< Updated upstream
   background: var(--white-4);
   backdrop-filter: blur(50px);
   padding: 72px 24px 32px 24px;
-=======
   background: var(--base-box-bg);
-  padding: 50px 24px 12px 24px;
->>>>>>> Stashed changes
+  padding: 50px 12px 12px 12px;
   border-radius: 12px;
   max-width: 600px;
   width: 90%;
@@ -903,8 +910,8 @@ footer {
 /* Close Button */
 .closeBtn {
   position: absolute;
-  top: 14px;
-  right: 24px;
+  top: 8px;
+  right: 12px;
   background: none;
   border: none;
   font-size: 24px;

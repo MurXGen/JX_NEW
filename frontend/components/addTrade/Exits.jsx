@@ -13,7 +13,7 @@ const ExitsSection = ({
   if (form.tradeStatus !== "closed") return null;
 
   return (
-    <div className="tradeGrid"  style={{ padding: "0 0 32px 0" }}>
+    <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
       <span className="label">Exits</span>
       <div className="flexClm gap_32">
         {form.exits.map((exit, idx) => {
@@ -35,7 +35,7 @@ const ExitsSection = ({
 
           return (
             <div key={idx} className="flexClm gap_32">
-              <div className="flexRow flexRow_stretch gap_4">
+              <div className="flexRow flexRow_stretch gap_4 ">
                 {/* Exit Price / Percent Input */}
                 <div className="inputLabelShift">
                   {exitMode === "price" ? (
@@ -156,11 +156,10 @@ const ExitsSection = ({
             </div>
           );
         })}
-
         {/* Weighted Average Exit Price */}
         {form.avgExitPrice && (
-          <span className="valueDisplay flexRow flex_center">
-            Avg Exit Price: {form.avgExitPrice}
+          <span className="font_12 avgValue">
+            Average Exit Price : {form.avgExitPrice}
           </span>
         )}
       </div>

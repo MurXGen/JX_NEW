@@ -1,7 +1,7 @@
-const Account = require('../models/Account');
-const Trade = require('../models/Trade');
-const User = require('../models/User');
-const cloudinary = require('cloudinary').v2;
+const Account = require("../models/Account");
+const Trade = require("../models/Trade");
+const User = require("../models/User");
+const cloudinary = require("cloudinary").v2;
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { deleteImageFromB2 } = require("../utils/backblaze");
 
@@ -23,8 +23,8 @@ const s3 = new S3Client({
 // Upload helper
 // Upload helper
 async function uploadToB2(file, folder) {
-const safeName = file.originalname.replace(/\s+/g, "_");
-const fileName = `${folder}/${Date.now()}-${safeName}`;
+  const safeName = file.originalname.replace(/\s+/g, "_");
+  const fileName = `${folder}/${Date.now()}-${safeName}`;
 
   const key = `trades/${fileName}`; // must start with trades/
 
@@ -48,8 +48,6 @@ const fileName = `${folder}/${Date.now()}-${safeName}`;
   // ✅ Return key only, not S3 raw URL
   return key;
 }
-
-
 
 exports.addTrade = async (req, res) => {
   try {
@@ -132,11 +130,14 @@ exports.addTrade = async (req, res) => {
       trades,
     });
   } catch (err) {
-    console.error("❌ [addTrade ERROR]:", err);
-    res.status(500).json({ success: false, error: "Failed to add trade" });
+    console.error("[addTrade ERROR]:", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message || "Failed to add trade",
+    });
   }
 };
-
 
 exports.updateTrade = async (req, res) => {
   try {
@@ -160,17 +161,27 @@ exports.updateTrade = async (req, res) => {
       avgExitPrice: Number(body.avgExitPrice || 0),
       avgTPPrice: Number(body.avgTPPrice || 0),
       avgSLPrice: Number(body.avgSLPrice || 0),
-      reason: body.reason ? (Array.isArray(body.reason) ? body.reason : [body.reason]) : [],
+      reason: body.reason
+        ? Array.isArray(body.reason)
+          ? body.reason
+          : [body.reason]
+        : [],
       userId: req.cookies.userId,
       accountId: req.cookies.accountId,
     };
 
     // Handle optional new images
     if (files?.openImage) {
-      tradeData.openImageUrl = await uploadToB2(files.openImage[0], "open-images");
+      tradeData.openImageUrl = await uploadToB2(
+        files.openImage[0],
+        "open-images"
+      );
     }
     if (files?.closeImage) {
-      tradeData.closeImageUrl = await uploadToB2(files.closeImage[0], "close-images");
+      tradeData.closeImageUrl = await uploadToB2(
+        files.closeImage[0],
+        "close-images"
+      );
     }
 
     const trade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
@@ -178,7 +189,9 @@ exports.updateTrade = async (req, res) => {
     });
 
     if (!trade) {
-      return res.status(404).json({ success: false, message: "Trade not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Trade not found" });
     }
 
     const accounts = await Account.find({ userId: req.cookies.userId });
@@ -186,8 +199,12 @@ exports.updateTrade = async (req, res) => {
 
     res.json({ success: true, trade, trades, accounts });
   } catch (err) {
-    console.error("❌ [updateTrade ERROR]:", err);
-    res.status(500).json({ success: false, message: "Error updating trade" });
+    console.error("[updateTrade ERROR]:", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message || "Error updating trade",
+    });
   }
 };
 
@@ -259,10 +276,8 @@ exports.deleteTrade = async (req, res) => {
     // async cleanup of images
     if (openImageUrl) deleteImageFromB2(openImageUrl);
     if (closeImageUrl) deleteImageFromB2(closeImageUrl);
-
   } catch (err) {
     console.error("❌ Error deleting trade:", err);
     res.status(500).json({ error: "Failed to delete trade" });
   }
 };
-
