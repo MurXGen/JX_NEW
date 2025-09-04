@@ -267,7 +267,7 @@ input:focus {
   border-radius: var(--px-12);
   padding: var(--padding-16x16);
   color: var(--base-text);
-  border: none;
+  border: 1px solid var(--white-20);
   cursor: pointer;
   font-family: var(--ff-Pop);
   font-size: var(--px-12);
@@ -278,7 +278,7 @@ input:focus {
   background: var(--base-box-bg);
   border-radius: var(--px-8);
   padding: var(--padding-8x8);
-  border: 0.5px solid var(--primary-10);
+  border: 0.5px solid var(--primary-20);
   color: var(--base-text);
   cursor: pointer;
   font-family: var(--ff-Pop);
@@ -883,9 +883,14 @@ footer {
 
 /* Modal */
 .modal {
+<<<<<<< Updated upstream
   background: var(--white-4);
   backdrop-filter: blur(50px);
   padding: 72px 24px 32px 24px;
+=======
+  background: var(--base-box-bg);
+  padding: 50px 24px 12px 24px;
+>>>>>>> Stashed changes
   border-radius: 12px;
   max-width: 600px;
   width: 90%;
