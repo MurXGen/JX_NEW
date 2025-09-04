@@ -1,6 +1,6 @@
-const TextAreaField = ({ label, name, value, onChange, placeholder }) => {
+const Learnings = ({ label, name, value, onChange, placeholder }) => {
   return (
-    <div className="tradeGrid">
+    <div className="tradeGrid" style={{borderBottom:'none'}}>
       <label className="label">{label}</label>
       <textarea
         className="textarea"
@@ -13,4 +13,4 @@ const TextAreaField = ({ label, name, value, onChange, placeholder }) => {
   );
 };
 
-export default TextAreaField;
+export default Learnings;

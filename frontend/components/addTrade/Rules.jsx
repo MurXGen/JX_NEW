@@ -3,7 +3,7 @@ import { Check, X } from "lucide-react";
 const ToggleSwitch = ({ label, value, onToggle }) => {
   return (
     <div className="tradeGrid">
-      <span className="label flexRow">{label}</span>
+      <label className="label" style={{marginTop:'6px'}}>{label}</label>
       <div
         className={`toggleSwitch ${value ? "on" : "off"}`}
         onClick={onToggle}

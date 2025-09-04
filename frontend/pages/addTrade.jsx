@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { containerVariants } from "@/animations/motionVariants"; // adjust path if needed
 import ToastMessage from "@/components/ui/ToastMessage";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import Learnings from "@/components/addTrade/Learnings";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -896,7 +897,7 @@ export default function AddTrade() {
     {
       key: "learnings",
       content: (
-        <TextAreaField
+        <Learnings
           label="Learnings"
           name="learnings"
           value={form.learnings}
@@ -915,35 +916,41 @@ export default function AddTrade() {
 
         <div className="flexClm gap_24">
           {grids.map(({ key, content }) => {
+            const isInline = inlineEditableKeys.includes(key);
             const isVisible =
               key === "quick"
                 ? form.tradeStatus === "quick"
                 : key === "entries"
-                  ? form.tradeStatus === "closed" ||
-                  form.tradeStatus === "running"
+                  ? form.tradeStatus === "closed" || form.tradeStatus === "running"
                   : key === "exits"
                     ? form.tradeStatus === "closed"
                     : key === "sl" || key === "tp"
                       ? form.tradeStatus === "running"
                       : true;
 
-            return isVisible ? (
+            if (!isVisible) return null;
+
+            return (
               <div
                 key={key}
+                className={`grid-item ${isInline ? "" : "non-functional"}`}
                 onClick={() => {
-                  if (!inlineEditableKeys.includes(key)) {
-                    setActiveGrid(key);
-                  }
+                  if (!isInline) setActiveGrid(key);
                 }}
                 style={{
-                  cursor: inlineEditableKeys.includes(key)
-                    ? "default"
-                    : "pointer",
+                  cursor: isInline ? "default" : "pointer",
+                  position: "relative",
                 }}
               >
-                {content}
+                {isInline ? (
+                  content
+                ) : (
+                  <div className="preview-wrapper">
+                    <div className="preview-content">{content}</div>
+                  </div>
+                )}
               </div>
-            ) : null;
+            );
           })}
         </div>
 

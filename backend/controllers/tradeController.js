@@ -207,33 +207,65 @@ exports.updateTrade = async (req, res) => {
     });
   }
 };
-
 exports.tradeChat = async (req, res) => {
   try {
     const { query, trades } = req.body;
 
-    if (!query || !trades) {
+    if (!query) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing query or trades" });
+        .json({ success: false, message: "Missing query" });
+    }
+
+    // If user asks unrelated question → friendly fallback
+    const tradeKeywords = ["trade", "pnl", "entry", "exit", "sl", "tp", "reason", "learning", "ticker", "symbol", "profit", "loss"];
+    const isTradeRelated = tradeKeywords.some((kw) =>
+      query.toLowerCase().includes(kw)
+    );
+
+    if (!isTradeRelated) {
+      return res.json({
+        success: true,
+        reply: "How are you doing? Hope you are making profits 🚀",
+      });
+    }
+
+    if (!trades || trades.length === 0) {
+      return res.json({
+        success: true,
+        reply: "📭 You don’t have any trades yet.",
+      });
     }
 
     const messages = [
       {
         role: "system",
-        content:
-          "You are a professional trading coach. Analyse the user's trade history JSON and answer clearly with concise, structured insights. Always format the response with headings, bullet points, or numbered lists so it’s easy to read.",
+        content: `
+You are a professional trading coach.  
+You will ONLY use the provided trade JSON to answer.  
+
+### Rules:
+- Never mention userId, accountId, tradeId.  
+- Show only useful trade details: symbol, direction, quantity, tradeStatus, PnL, duration.  
+- For **running trades**: show entries, SLs, TPs.  
+- For **closed trades**: show entries & exits.  
+- For **quick trades**: show only net PnL.  
+- If "reason" or "learnings" exist, suggest improvements in a constructive tone.  
+- Always return response in clear structure with headings/bullets.  
+- Keep it concise and actionable.
+- Show my profitability achievement and what could be done in future to do better and maintain with journalx platform where i can log trades , get analysis , use ai and have multiple accounts to log with diff markets
+        `,
       },
       {
         role: "user",
-        content: `Here is my trades data in JSON: ${JSON.stringify(trades)}.
-        The user asked: ${query}. 
-        Please provide a short, structured, and well-formatted response.`,
+        content: `Here is my trades data in JSON: ${JSON.stringify(trades)}.  
+The user asked: "${query}".  
+Please provide a short, structured, and well-formatted response.`,
       },
     ];
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // or gpt-4.1 if enabled
+      model: "gpt-4o-mini", // upgrade if you want GPT-4.1
       messages,
     });
 
@@ -247,6 +279,7 @@ exports.tradeChat = async (req, res) => {
       .json({ success: false, message: "Error processing trade insights" });
   }
 };
+
 
 exports.deleteTrade = async (req, res) => {
   try {
