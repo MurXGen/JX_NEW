@@ -15,7 +15,7 @@ const QuickSection = ({ currency, form, handleChange }) => {
             value={form.pnl || ""}
             onChange={handleChange}
             placeholder="Enter PnL"
-            style={{ paddingLeft: "40px", width: "100%" }}
+            style={{  width: "100%" }}
           />
 
           <label>
