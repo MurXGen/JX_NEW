@@ -457,10 +457,10 @@ export default function AddTrade() {
         let exitPrice =
           e.mode === "percent"
             ? calcPriceFromPercent(
-                form.avgEntryPrice,
-                e.percent,
-                prev.direction
-              )
+              form.avgEntryPrice,
+              e.percent,
+              prev.direction
+            )
             : e.price;
 
         const priceNum = Number(exitPrice);
@@ -578,10 +578,10 @@ export default function AddTrade() {
         let tpPrice =
           t.mode === "percent"
             ? calcPriceFromPercent(
-                form.avgEntryPrice,
-                t.percent,
-                prev.direction
-              )
+              form.avgEntryPrice,
+              t.percent,
+              prev.direction
+            )
             : t.price;
 
         const priceNum = Number(tpPrice);
@@ -641,10 +641,11 @@ export default function AddTrade() {
     // Run validation BEFORE sending request
     const validationError = validateForm(form);
     if (validationError) {
-      setToast(null); // clear first
+      setToast({ type: "", message: "" }); // clear first
       setTimeout(() => {
         setToast({ type: "error", message: validationError });
       }, 0);
+
       return;
     }
 
@@ -918,13 +919,13 @@ export default function AddTrade() {
               key === "quick"
                 ? form.tradeStatus === "quick"
                 : key === "entries"
-                ? form.tradeStatus === "closed" ||
+                  ? form.tradeStatus === "closed" ||
                   form.tradeStatus === "running"
-                : key === "exits"
-                ? form.tradeStatus === "closed"
-                : key === "sl" || key === "tp"
-                ? form.tradeStatus === "running"
-                : true;
+                  : key === "exits"
+                    ? form.tradeStatus === "closed"
+                    : key === "sl" || key === "tp"
+                      ? form.tradeStatus === "running"
+                      : true;
 
             return isVisible ? (
               <div

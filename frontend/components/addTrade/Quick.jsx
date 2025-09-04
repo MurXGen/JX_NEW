@@ -6,20 +6,8 @@ const QuickSection = ({ currency, form, handleChange }) => {
   return (
     <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
       <span className="label">Net P/L</span>
-      <div style={{ position: "relative" }}>
-        <span
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "12px",
-            transform: "translateY(-50%)",
-            color: "#666",
-            fontSize: "14px",
-            pointerEvents: "none",
-          }}
-        >
-          {currency}
-        </span>
+      <div style={{ position: "relative", width: "100%" }}>
+
         <div className="inputLabelShift">
           <input
             type="number"
@@ -27,8 +15,14 @@ const QuickSection = ({ currency, form, handleChange }) => {
             value={form.pnl || ""}
             onChange={handleChange}
             placeholder="Enter PnL"
-            style={{ paddingLeft: "40px" }}
+            style={{ paddingLeft: "40px", width: "100%" }}
           />
+
+          <label>
+            <span style={{ marginRight: '4px' }}>
+              {currency}
+            </span>
+            Net P/L</label>
         </div>
       </div>
     </div>
