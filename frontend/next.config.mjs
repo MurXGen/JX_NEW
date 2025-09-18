@@ -5,9 +5,9 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "cdn.journalx.app",
+        pathname: "/**", // allow all paths under this domain
       },
     ],
   },
@@ -15,7 +15,7 @@ const nextConfig = {
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
-      type: 'asset/resource',
+      type: "asset/resource",
     });
     return config;
   },

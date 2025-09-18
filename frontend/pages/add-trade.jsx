@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { containerVariants } from "@/animations/motionVariants"; // adjust path if needed
 import ToastMessage from "@/components/ui/ToastMessage";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import ReasonSelector from "@/components/addTrade/Reasons";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -44,7 +45,6 @@ export default function AddTrade() {
   const [currencySymbol, setCurrencySymbol] = useState("$");
   const [toast, setToast] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
-
   const [activeGrid, setActiveGrid] = useState(null);
 
   const statuses = [
@@ -81,14 +81,14 @@ export default function AddTrade() {
     tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
     sls: [{ mode: "price", price: "", percent: "", allocation: "" }],
     rulesFollowed: false,
-    reason: "",
+    reason: [],
     learnings: "",
     avgEntryPrice: "",
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
     openTime: getLocalDateTime(), // current local datetime
-    closeTime: getLocalDateTime(), // current local datetime
+    closeTime: null, // current local datetime
 
     // Images
     openImage: null,
@@ -112,6 +112,9 @@ export default function AddTrade() {
     if (form.tradeStatus === "quick") {
       if (form.pnl === "" || form.pnl === null)
         return "Net Profit or Loss (PnL) is required";
+
+      // ✅ CloseTime required for quick trades
+      if (!form.closeTime) return "Close time is required for quick trades";
     } else {
       // Entries required (only for running/closed)
       if (!form.entries || form.entries.length === 0 || !form.entries[0].price)
@@ -121,24 +124,43 @@ export default function AddTrade() {
         // Exits required for closed trades
         if (!form.exits || form.exits.length === 0 || !form.exits[0].price)
           return "At least one exit is required";
+
+        // ✅ CloseTime required for closed trades
+        if (!form.closeTime) return "Close time is required for closed trades";
       }
 
       if (form.tradeStatus === "running") {
-        // TP + SL required for running trades
-        if (!form.tps || form.tps.length === 0 || !form.tps[0].price)
-          return "At least one Take Profit (TP) is required";
+        // TP required: at least one with price OR percent
+        if (
+          !form.tps ||
+          form.tps.length === 0 ||
+          ((form.tps[0].price === "" || form.tps[0].price === null) &&
+            (form.tps[0].percent === "" || form.tps[0].percent === null))
+        ) {
+          return "At least one Take Profit (TP) is required (price or percent)";
+        }
 
-        if (!form.sls || form.sls.length === 0 || !form.sls[0].price)
-          return "At least one Stop Loss (SL) is required";
+        // SL required: at least one with price OR percent
+        if (
+          !form.sls ||
+          form.sls.length === 0 ||
+          ((form.sls[0].price === "" || form.sls[0].price === null) &&
+            (form.sls[0].percent === "" || form.sls[0].percent === null))
+        ) {
+          return "At least one Stop Loss (SL) is required (price or percent)";
+        }
       }
     }
 
     // Duration must be positive
     if (form.duration < 0) return "Duration should be positive";
 
-    // CloseTime can’t be before OpenTime
-    if (new Date(form.closeTime) < new Date(form.openTime))
-      return "Close date cannot be earlier than Open time";
+    // ✅ CloseTime can’t be before OpenTime (only if both exist)
+    if (form.closeTime && form.openTime) {
+      if (new Date(form.closeTime) < new Date(form.openTime)) {
+        return "Close date cannot be earlier than Open time";
+      }
+    }
 
     return null; // ✅ No errors
   };
@@ -157,18 +179,35 @@ export default function AddTrade() {
       const tradeData = userData?.trades?.find((t) => t._id === tradeId);
 
       if (tradeData) {
+        let parsedReason = [];
+
+        if (Array.isArray(tradeData.reason)) {
+          // If first item is a stringified JSON, parse it
+          if (
+            tradeData.reason.length === 1 &&
+            typeof tradeData.reason[0] === "string"
+          ) {
+            try {
+              parsedReason = JSON.parse(tradeData.reason[0]);
+            } catch {
+              parsedReason = tradeData.reason; // fallback
+            }
+          } else {
+            parsedReason = tradeData.reason;
+          }
+        }
+
         setForm({
           ...form,
           ...tradeData,
-          // Convert ISO dates → datetime-local format
+          reason: parsedReason, // ✅ fix here
           openTime: tradeData.openTime
             ? getLocalDateTime(new Date(tradeData.openTime))
             : getLocalDateTime(),
           closeTime: tradeData.closeTime
             ? getLocalDateTime(new Date(tradeData.closeTime))
             : getLocalDateTime(),
-          // Images
-          openImage: null, // will only set new if user uploads
+          openImage: null,
           openImagePreview: tradeData.openImageUrl || "",
           closeImage: null,
           closeImagePreview: tradeData.closeImageUrl || "",
@@ -457,10 +496,10 @@ export default function AddTrade() {
         let exitPrice =
           e.mode === "percent"
             ? calcPriceFromPercent(
-              form.avgEntryPrice,
-              e.percent,
-              prev.direction
-            )
+                form.avgEntryPrice,
+                e.percent,
+                prev.direction
+              )
             : e.price;
 
         const priceNum = Number(exitPrice);
@@ -578,10 +617,10 @@ export default function AddTrade() {
         let tpPrice =
           t.mode === "percent"
             ? calcPriceFromPercent(
-              form.avgEntryPrice,
-              t.percent,
-              prev.direction
-            )
+                form.avgEntryPrice,
+                t.percent,
+                prev.direction
+              )
             : t.price;
 
         const priceNum = Number(tpPrice);
@@ -613,8 +652,18 @@ export default function AddTrade() {
     }
     return formatPrice(price);
   };
+  // AddTrade - part of component
 
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
+  // helper: read file as dataURL
+  const fileToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
   function handleImageChange(e, field, setForm) {
     const file = e.target.files[0];
@@ -628,97 +677,68 @@ export default function AddTrade() {
 
     const previewUrl = URL.createObjectURL(file);
 
+    // set preview & file in local state (form)
     setForm((prev) => ({
       ...prev,
-      [field]: file, // e.g. openImage / closeImage
-      [`${field}Preview`]: previewUrl, // e.g. openImagePreview / closeImagePreview
+      [field]: file, // keep file in memory for immediate submit if user doesn't redirect
+      [`${field}Preview`]: previewUrl,
     }));
+
+    // convert to base64 and save into localStorage along with name & type
+    fileToDataUrl(file).then((dataUrl) => {
+      try {
+        const payload = JSON.stringify({
+          dataUrl,
+          name: file.name,
+          type: file.type,
+          ts: Date.now(),
+        });
+        // store per-field to avoid collisions
+        localStorage.setItem(`newTradeImage_${field}`, payload);
+      } catch (err) {
+        console.error("Failed to save image to localStorage", err);
+      }
+    });
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Run validation BEFORE sending request
     const validationError = validateForm(form);
     if (validationError) {
-      setToast({ type: "", message: "" }); // clear first
+      setToast(null); // reset first
       setTimeout(() => {
         setToast({ type: "error", message: validationError });
       }, 0);
-
       return;
     }
 
     setLoading(true);
 
     try {
-      const formData = new FormData();
+      // Save serializable form data in session/local storage
+      // keep openImage/closeImage fields as null so form JSON is serializable
+      const serializable = {
+        ...form,
+        openImage: null,
+        closeImage: null,
+      };
 
-      Object.entries(form).forEach(([key, value]) => {
-        if (
-          key === "openImage" ||
-          key === "closeImage" ||
-          key === "openImagePreview" ||
-          key === "closeImagePreview"
-        )
-          return;
+      if (!serializable.closeTime) {
+        delete serializable.closeTime;
+      }
 
-        if (Array.isArray(value) || typeof value === "object") {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, value);
-        }
+      sessionStorage.setItem("newTradeData", JSON.stringify(serializable));
+      sessionStorage.setItem("isEditTrade", isEdit ? "true" : "false");
+
+      // redirect to /trade to let TradesHistory pick up and submit
+      router.push({
+        pathname: "/trade",
+        query: { isNewTrade: "true" },
       });
-
-      if (form.openImage) formData.append("openImage", form.openImage);
-      if (form.closeImage) formData.append("closeImage", form.closeImage);
-
-      let res;
-      if (isEdit) {
-        const tradeId = localStorage.getItem(TRADE_KEY);
-        res = await axios.put(
-          `${API_BASE}/api/trades/update/${tradeId}`,
-          formData,
-          {
-            withCredentials: true,
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
-      } else {
-        res = await axios.post(`${API_BASE}/api/trades/addd`, formData, {
-          withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      }
-
-      if (res.data.success) {
-        const { accounts, trades } = res.data;
-
-        await saveToIndexedDB("user-data", {
-          userId: localStorage.getItem("userId"),
-          accounts,
-          trades,
-        });
-
-        setToast({
-          type: "success",
-          message: isEdit
-            ? "Trade updated successfully!"
-            : "Trade added successfully!",
-        });
-
-        setTimeout(() => {
-          router.push("/trade");
-        }, 2000);
-      }
     } catch (err) {
       console.error(err);
-      setToast({
-        type: "error",
-        message:
-          err.response?.data?.message ||
-          (isEdit ? "Error updating trade" : "Error adding trade"),
-      });
+      setToast({ type: "error", message: "Something went wrong." });
     } finally {
       setLoading(false);
     }
@@ -743,7 +763,6 @@ export default function AddTrade() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [activeGrid]);
-
 
   const inlineEditableKeys = ["status", "opentime", "closetime", "rules"]; // these won't open modal
 
@@ -897,12 +916,11 @@ export default function AddTrade() {
     {
       key: "reasons",
       content: (
-        <TextAreaField
+        <ReasonSelector
           label="Reason"
           name="reason"
           value={form.reason}
           onChange={handleChange}
-          placeholder="Write your reason here..."
         />
       ),
     },
@@ -928,45 +946,47 @@ export default function AddTrade() {
 
         <div className="flexClm gap_24">
           {grids.map(({ key, content }) => {
-            const isInline = inlineEditableKeys.includes(key);
-            const isVisible =
-              key === "quick"
-                ? form.tradeStatus === "quick"
-                : key === "entries"
-                  ? form.tradeStatus === "closed" || form.tradeStatus === "running"
+            {
+              const isInline = inlineEditableKeys.includes(key);
+              const isVisible =
+                key === "quick"
+                  ? form.tradeStatus === "quick"
+                  : key === "entries"
+                  ? form.tradeStatus === "closed" ||
+                    form.tradeStatus === "running"
                   : key === "exits"
-                    ? form.tradeStatus === "closed"
-                    : key === "sl" || key === "tp"
-                      ? form.tradeStatus === "running"
-                      : true;
+                  ? form.tradeStatus === "closed"
+                  : key === "sl" || key === "tp"
+                  ? form.tradeStatus === "running"
+                  : true;
 
-            if (!isVisible) return null;
-
+              if (!isVisible) return null;
+            }
             return (
               <div
                 key={key}
-                className={`grid-item ${isInline ? "" : "non-functional"}`}
-                onClick={() => {
-                  if (!isInline) setActiveGrid(key);
-                }}
-                style={{
-                  cursor: isInline ? "default" : "pointer",
-                  position: "relative",
-                }}
+                // className={`grid-item ${isInline ? "" : "non-functional"}`}
+                // onClick={() => {
+                //   if (!isInline) setActiveGrid(key);
+                // }}
+                // style={{
+                //   cursor: isInline ? "default" : "pointer",
+                //   position: "relative",
+                // }}
               >
-                {isInline ? (
+                {/* {isInline ? (
                   content
-                ) : (
-                  <div className="preview-wrapper">
-                    <div className="preview-content">{content}</div>
-                  </div>
-                )}
+                ) : ( */}
+                <div className="preview-wrapper">
+                  <div className="preview-content">{content}</div>
+                </div>
+                {/* )} */}
               </div>
             );
           })}
         </div>
 
-        <AnimatePresence>
+        {/* <AnimatePresence>
           {activeGrid && !inlineEditableKeys.includes(activeGrid) && (
             <motion.div
               className="overlay"
@@ -995,13 +1015,19 @@ export default function AddTrade() {
               </motion.div>
             </motion.div>
           )}
-        </AnimatePresence>
-
+        </AnimatePresence> */}
 
         <BackgroundBlur />
       </form>
 
-      <ToastMessage type={toast.type} message={toast.message} duration={3000} />
+      {toast && (
+        <ToastMessage
+          type={toast.type}
+          message={toast.message}
+          duration={3000}
+        />
+      )}
+
       {loading && <FullPageLoader />}
 
       <div
@@ -1023,22 +1049,40 @@ export default function AddTrade() {
           className="button_pri"
           style={{ width: "100%" }}
           onClick={handleSubmit}
+          disabled={loading} // 🔒 disabled while loading/redirecting
         >
-          {isEdit ? "✏️ Update Trade" : "Submit Trade"}
+          {loading
+            ? "⏳ Please wait..."
+            : isEdit
+            ? "Update Trade"
+            : "Submit Trade"}
         </button>
       </div>
+
+      <pre
+        style={{
+          background: "black",
+          color: "white",
+          padding: "1rem",
+          borderRadius: "8px",
+        }}
+      >
+        {JSON.stringify(
+          {
+            ...form,
+            avgEntryPrice: form.avgEntryPrice,
+          },
+          null,
+          2
+        )}
+      </pre>
 
       {/* Summary Section */}
       {/* <div style={{ marginTop: "2rem" }}>
                 <h3>Trade Setup Summary</h3>
 
                
-                <pre style={{ background: "#f4f4f4", padding: "1rem", borderRadius: "8px" }}>
-                    {JSON.stringify({
-                        ...form,
-                        avgEntryPrice: form.avgEntryPrice,
-                    }, null, 2)}
-                </pre>
+
 
                
                 <div

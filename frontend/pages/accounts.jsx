@@ -1,19 +1,24 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
-import axios from 'axios';
-import { ArrowDown, ArrowRight, Loader2, LucideLassoSelect, Plus } from 'lucide-react';
-import { getFromIndexedDB } from '@/utils/indexedDB';
-import { motion } from 'framer-motion';
-import { containerVariants, childVariants } from '@/animations/motionVariants';
-import { saveToIndexedDB } from '@/utils/indexedDB';
-import Navbar from '@/components/Trades/Navbar';
-import BackgroundBlur from '@/components/ui/BackgroundBlur';
-import { formatCurrency } from '@/utils/formatNumbers';
-import FullPageLoader from '@/components/ui/FullPageLoader';
-
+import axios from "axios";
+import {
+  ArrowDown,
+  ArrowRight,
+  Loader2,
+  LucideLassoSelect,
+  Plus,
+} from "lucide-react";
+import { getFromIndexedDB } from "@/utils/indexedDB";
+import { motion } from "framer-motion";
+import { containerVariants, childVariants } from "@/animations/motionVariants";
+import { saveToIndexedDB } from "@/utils/indexedDB";
+import Navbar from "@/components/Trades/Navbar";
+import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import { formatCurrency } from "@/utils/formatNumbers";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 function Accounts() {
   const router = useRouter();
@@ -22,7 +27,6 @@ function Accounts() {
   const [accountSymbols, setAccountSymbols] = useState({});
   const [currentBalances, setCurrentBalances] = useState({});
   const [tradesCount, setTradesCount] = useState({});
-
 
   useEffect(() => {
     const verified = Cookies.get("isVerified");
@@ -70,7 +74,9 @@ function Accounts() {
             setTradesCount(emptyCountMap);
           }
         } else {
-          console.warn("⚠ No accounts found in IndexedDB — fetching from API...");
+          console.warn(
+            "⚠ No accounts found in IndexedDB — fetching from API..."
+          );
         }
       } catch (err) {
         console.error("❌ Error fetching accounts/trades:", err);
@@ -102,14 +108,13 @@ function Accounts() {
     fetchAccountsAndTrades();
   }, [router]);
 
-
   const handleAccountClick = (accountId) => {
     try {
       // 1️⃣ Save account ID in cookies with long expiry (~10 years)
       Cookies.set("accountId", accountId, {
         path: "/",
         sameSite: "Strict",
-        expires: 3650 // ~10 years
+        expires: 3650, // ~10 years
       });
 
       console.log("✅ Account ID saved to cookies:", accountId);
@@ -121,17 +126,14 @@ function Accounts() {
     }
   };
 
-
-
   const handleClick = async () => {
     setLoading(true);
-    router.push('/create-account');
+    router.push("/create-account");
   };
 
   if (loading) {
     return <FullPageLoader />; // 👈 show loader until data is fetched
   }
-
 
   return (
     <div className="dashboard flexClm gap_32">
@@ -140,10 +142,16 @@ function Accounts() {
 
       <div className="flexRow flexRow_stretch">
         <div className="flexClm">
-          <span className='font_20'>Choose your account</span>
-          <span className='font_12' style={{ color: '#ffffff60' }}>Manage the way you want</span>
+          <span className="font_20">Choose your account</span>
+          <span className="font_12" style={{ color: "#ffffff60" }}>
+            Manage the way you want
+          </span>
         </div>
-        <button className="button_sec flexRow" onClick={handleClick} disabled={loading}>
+        <button
+          className="button_sec flexRow"
+          onClick={handleClick}
+          disabled={loading}
+        >
           <Plus size={16} />
         </button>
       </div>
@@ -155,8 +163,14 @@ function Accounts() {
         animate="visible"
       >
         {accounts.length === 0 ? (
-          <motion.div className="noAccountsMessage" style={{ textAlign: 'center', marginTop: '50%' }} variants={childVariants}>
-            <span className='font_12'>No account found. You can create one.</span>
+          <motion.div
+            className="noAccountsMessage"
+            style={{ textAlign: "center", marginTop: "50%" }}
+            variants={childVariants}
+          >
+            <span className="font_12">
+              No account found. You can create one.
+            </span>
           </motion.div>
         ) : (
           accounts.map((acc) => (
@@ -166,15 +180,23 @@ function Accounts() {
               variants={childVariants}
               onClick={() => handleAccountClick(acc._id)}
             >
-              <div className="accountName flexRow flexRow_stretch" style={{ borderBottom: "0.5px solid #ffffff33", padding: "0 0 8px 0", margin: "0 0 4px 0" }}>
+              <div
+                className="accountName flexRow flexRow_stretch"
+                style={{
+                  borderBottom: "0.5px solid #ffffff33",
+                  padding: "0 0 8px 0",
+                  margin: "0 0 4px 0",
+                }}
+              >
                 <span className="font_16" style={{ color: "#ffffffcc" }}>
                   {acc.name}
                 </span>
-                <div className='flexRow gap_12'>
-                  <span className='font_12 button_ter'>Trades: {tradesCount[acc.name] ?? 0}</span>
-                  <ArrowRight size={16} className='vector' />
+                <div className="flexRow gap_12">
+                  <span className="font_12 button_ter">
+                    Trades: {tradesCount[acc.name] ?? 0}
+                  </span>
+                  <ArrowRight size={16} className="vector" />
                 </div>
-
               </div>
 
               <div className="accountBalance flexRow flexRow_stretch">
@@ -182,8 +204,14 @@ function Accounts() {
                   <span className="font_12" style={{ color: "#ffffff80" }}>
                     Starting Balance
                   </span>
-                  <span className="accountAmounts font_16" style={{ color: "" }}>
-                    {formatCurrency(acc.startingBalance.amount, accountSymbols[acc.name])}
+                  <span
+                    className="accountAmounts font_16"
+                    style={{ color: "" }}
+                  >
+                    {formatCurrency(
+                      acc.startingBalance.amount,
+                      accountSymbols[acc.name]
+                    )}
                   </span>
                 </div>
 
@@ -200,7 +228,6 @@ function Accounts() {
                   </span>
                 </div>
               </div>
-
             </motion.div>
           ))
         )}
@@ -212,17 +239,15 @@ function Accounts() {
           onClick={() => {
             window.scrollTo({
               top: document.body.scrollHeight,
-              behavior: 'smooth'
+              behavior: "smooth",
             });
           }}
-
         >
           <ArrowDown size={20} />
         </button>
       )}
     </div>
   );
-
 }
 
 export default Accounts;

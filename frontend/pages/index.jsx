@@ -82,10 +82,13 @@ export default function Home() {
     // 👉 group trades by date
     const dailyPnL = {};
     accountTrades.forEach((trade) => {
-      const date = new Date(trade.closeTime || trade.openTime).toLocaleDateString(
-        "en-GB",
-        { day: "2-digit", month: "short", year: "numeric" }
-      );
+      const date = new Date(
+        trade.closeTime || trade.openTime
+      ).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
       dailyPnL[date] = (dailyPnL[date] || 0) + (trade.pnl || 0);
     });
 
@@ -124,8 +127,6 @@ export default function Home() {
     });
   };
 
-
-
   if (loading) {
     return <FullPageLoader />;
   }
@@ -134,7 +135,10 @@ export default function Home() {
     <div className="flexClm gap_32">
       <Navbar />
       {/* Tabs */}
-      <div className="flexRow gap_12 removeScrollBar" style={{ overflowX: 'scroll' }}>
+      <div
+        className="flexRow gap_12 removeScrollBar"
+        style={{ overflowX: "scroll" }}
+      >
         {[
           { key: "overview", label: "Overview" },
           { key: "longshorts", label: "Long/Shorts" },
@@ -144,18 +148,18 @@ export default function Home() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flexRow button_ter font_12 ${activeTab === tab.key ? "active_tab" : ""}`}
+            className={`flexRow button_ter font_12 ${
+              activeTab === tab.key ? "active_tab" : ""
+            }`}
             style={{
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              minWidth: '120px'
+              minWidth: "120px",
             }}
           >
             {tab.label}
-
           </button>
-
         ))}
         <BottomBar />
       </div>
@@ -166,8 +170,7 @@ export default function Home() {
       {activeTab === "ticker" && <TickerAnalysis trades={trades} />}
       {activeTab === "news" && <MarketNews />}
 
-
       <BackgroundBlur />
-    </div >
+    </div>
   );
 }

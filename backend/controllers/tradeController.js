@@ -20,8 +20,6 @@ const s3 = new S3Client({
   },
 });
 
-// Upload helper
-// Upload helper
 async function uploadToB2(file, folder) {
   const safeName = file.originalname.replace(/\s+/g, "_");
   const fileName = `${folder}/${Date.now()}-${safeName}`;
@@ -144,6 +142,14 @@ exports.updateTrade = async (req, res) => {
     const tradeId = req.params.id;
     const { body = {}, files = {} } = req;
 
+    // 🔍 Get old trade first (to compare old image URLs later)
+    const oldTrade = await Trade.findById(tradeId);
+    if (!oldTrade) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Trade not found" });
+    }
+
     const tradeData = {
       ...body,
       quantityUSD: Number(body.quantityUSD || 0),
@@ -170,34 +176,64 @@ exports.updateTrade = async (req, res) => {
       accountId: req.cookies.accountId,
     };
 
-    // Handle optional new images
+    // --- Handle optional new images ---
     if (files?.openImage) {
-      tradeData.openImageUrl = await uploadToB2(
-        files.openImage[0],
-        "open-images"
-      );
-    }
-    if (files?.closeImage) {
-      tradeData.closeImageUrl = await uploadToB2(
-        files.closeImage[0],
-        "close-images"
-      );
+      const file = files.openImage[0];
+      const key = await uploadToB2(file, "open-images");
+      tradeData.openImageUrl = `https://cdn.journalx.app/${key}`;
+      tradeData.openImageSizeKB = Math.round(file.size / 1024);
     }
 
+    if (files?.closeImage) {
+      const file = files.closeImage[0];
+      const key = await uploadToB2(file, "close-images");
+      tradeData.closeImageUrl = `https://cdn.journalx.app/${key}`;
+      tradeData.closeImageSizeKB = Math.round(file.size / 1024);
+    }
+
+    // ✅ Update trade
     const trade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
       new: true,
     });
 
-    if (!trade) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Trade not found" });
-    }
-
     const accounts = await Account.find({ userId: req.cookies.userId });
     const trades = await Trade.find({ userId: req.cookies.userId });
 
+    // Respond immediately for fast UI
     res.json({ success: true, trade, trades, accounts });
+
+    // --- Background cleanup: delete old images if replaced ---
+    process.nextTick(async () => {
+      try {
+        if (
+          oldTrade.openImageUrl &&
+          trade.openImageUrl &&
+          oldTrade.openImageUrl !== trade.openImageUrl
+        ) {
+          const oldKey = oldTrade.openImageUrl.replace(
+            "https://cdn.journalx.app/",
+            ""
+          );
+          await deleteImageFromB2(oldKey);
+          console.log("🗑️ Deleted old openImage:", oldKey);
+        }
+
+        if (
+          oldTrade.closeImageUrl &&
+          trade.closeImageUrl &&
+          oldTrade.closeImageUrl !== trade.closeImageUrl
+        ) {
+          const oldKey = oldTrade.closeImageUrl.replace(
+            "https://cdn.journalx.app/",
+            ""
+          );
+          await deleteImageFromB2(oldKey);
+          console.log("🗑️ Deleted old closeImage:", oldKey);
+        }
+      } catch (cleanupErr) {
+        console.error("⚠️ Error deleting old images:", cleanupErr);
+      }
+    });
   } catch (err) {
     console.error("[updateTrade ERROR]:", err);
 
@@ -207,66 +243,77 @@ exports.updateTrade = async (req, res) => {
     });
   }
 };
+
 exports.tradeChat = async (req, res) => {
   try {
     const { query, trades } = req.body;
 
     if (!query) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing query" });
-    }
-
-    // If user asks unrelated question → friendly fallback
-    const tradeKeywords = ["trade", "pnl", "entry", "exit", "sl", "tp", "reason", "learning", "ticker", "symbol", "profit", "loss"];
-    const isTradeRelated = tradeKeywords.some((kw) =>
-      query.toLowerCase().includes(kw)
-    );
-
-    if (!isTradeRelated) {
-      return res.json({
-        success: true,
-        reply: "How are you doing? Hope you are making profits 🚀",
-      });
+      return res.status(400).json({ success: false, message: "Missing query" });
     }
 
     if (!trades || trades.length === 0) {
       return res.json({
         success: true,
-        reply: "📭 You don’t have any trades yet.",
+        reply:
+          "📭 You don’t have any trades yet. Start journaling to see your progress!",
       });
     }
 
-    const messages = [
-      {
-        role: "system",
-        content: `
-You are a professional trading coach.  
-You will ONLY use the provided trade JSON to answer.  
+    // ✅ Trim trades to reduce token usage (only last 5 trades for analysis)
+    const limitedTrades = trades.slice(-5);
 
-### Rules:
-- Never mention userId, accountId, tradeId.  
-- Show only useful trade details: symbol, direction, quantity, tradeStatus, PnL, duration.  
-- For **running trades**: show entries, SLs, TPs.  
-- For **closed trades**: show entries & exits.  
-- For **quick trades**: show only net PnL.  
-- If "reason" or "learnings" exist, suggest improvements in a constructive tone.  
-- Always return response in clear structure with headings/bullets.  
-- Keep it concise and actionable.
-- Show my profitability achievement and what could be done in future to do better and maintain with journalx platform where i can log trades , get analysis , use ai and have multiple accounts to log with diff markets
-        `,
-      },
+    // ✅ Master system prompt
+    const systemPrompt = `
+
+    first analyse that the queryis related to trading context or not if yes then proceed below otherwise not.
+
+You are a professional trade analysis assistant for a trading journal platform. 
+Your job is to help the trader analyze their trades and improve performance. 
+
+Each trade contains:
+- Trade ID(dont show this id or header), Status (Closed | Running | Quick Trade Log(means they are just logging their past trade but only pnl so dont emphasis more on this)), Direction (Long | Short),
+- Quantity, Margin, Entry Price, Exit Price, TPSL (analyse and show only if available),
+- Net P&L, Open/Close Time (show in 21st aug,2025 format), Reason, Learning.(analyse and show only if available)
+
+### Your Tasks:
+- If the user asks about a specific trade, show that trade in a **table**.
+- If the user asks for analysis (e.g., "why do I lose trades?", "how to improve"):
+  1. Show relevant trades in a **table** (latest, losing trades, etc.).
+  2. Provide analysis with:
+     - **Summary**
+     - **Patterns** (direction bias, overtrading, timing issues, repeated mistakes)
+     - **Strengths**
+     - **Weaknesses**
+     - **Actionable Suggestions**
+  3. If open/close times suggest poor timing, highlight it.(only if status is running or closed)
+  4. If direction bias is noticed, point it out based on the current market sentiment.
+  5. if he asks something which is confusing and other than trading then tell it doesnt not align with context
+  6. Give some tips or strategies based on their patterns
+
+### Response Format:
+- Use **Markdown**.
+- Include **tables** for trades.
+- Use clear **headings** (Summary, Strengths, Weaknesses, Suggestions).
+- No raw JSON in response — only human-readable insights.
+    `;
+
+    // ✅ Shortened user query message
+    const messages = [
+      { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: `Here is my trades data in JSON: ${JSON.stringify(trades)}.  
-The user asked: "${query}".  
-Please provide a short, structured, and well-formatted response.`,
+        content: `User question: "${query}". Analyze based on these trades: ${JSON.stringify(
+          limitedTrades
+        )}`,
       },
     ];
 
+    // ✅ Call GPT
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // upgrade if you want GPT-4.1
+      model: "gpt-4o-mini", // efficient model
       messages,
+      max_tokens: 800, // enough for tables + analysis
     });
 
     const reply = completion.choices[0]?.message?.content || "⚠️ No response";
@@ -279,7 +326,6 @@ Please provide a short, structured, and well-formatted response.`,
       .json({ success: false, message: "Error processing trade insights" });
   }
 };
-
 
 exports.deleteTrade = async (req, res) => {
   try {

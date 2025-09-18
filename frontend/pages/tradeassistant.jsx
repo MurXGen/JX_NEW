@@ -2,239 +2,246 @@
 
 import { useState, useRef, useEffect } from "react";
 import { getFromIndexedDB } from "@/utils/indexedDB";
-import { Send, Bot } from "lucide-react";
+import { Send, Bot, ArrowLeft, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ChatResponse from "@/components/Trades/ChatResponse";
+import { useRouter } from "next/navigation";
+import BackgroundBlur from "@/components/ui/BackgroundBlur";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function TradeAssistant() {
-    const [input, setInput] = useState("");
-    const [messages, setMessages] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const messagesEndRef = useRef(null);
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+  const router = useRouter();
 
-    // predefined quick prompts
-    const quickPrompts = [
-        "Analyse my last trade",
-        "Summarise my trading performance",
-        "What's my win rate?",
-        "Identify my most traded symbol",
-        "Show my average R:R ratio",
-        "Highlight my biggest win and loss",
-        "List common reasons I lose trades",
-        "Suggest improvements to my strategy",
-        "Analyse risk management consistency",
-        "Give me psychological insights from notes",
-    ];
+  // predefined quick prompts
+  const quickPrompts = [
+    "Analyse my last trade",
+    "Summarise my trading performance",
+    "What's my win rate?",
+    "Identify my most traded symbol",
+  ];
 
-    // Scroll to bottom of messages
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+  // Scroll to bottom of messages
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-    const handleSubmit = async (prompt) => {
-        setLoading(true);
+  const handleSubmit = async (prompt) => {
+    setLoading(true);
 
-        // if user typed something, use that; else use the button text
-        const finalPrompt = prompt || input;
-        if (!finalPrompt) return;
+    const finalPrompt = prompt || input;
+    if (!finalPrompt.trim()) {
+      setLoading(false);
+      return;
+    }
 
-        try {
-            const userData = await getFromIndexedDB("user-data");
-            const trades = userData?.trades || [];
+    try {
+      const userData = await getFromIndexedDB("user-data");
+      const trades = userData?.trades || [];
 
-            // send to your backend route that calls GPT
-            const res = await fetch(`${API_BASE}/api/trades/trade-chat`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    query: finalPrompt,
-                    trades,
-                }),
-            });
+      const res = await fetch(`${API_BASE}/api/trades/trade-chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: finalPrompt,
+          trades,
+        }),
+      });
 
-            const data = await res.json();
+      const data = await res.json();
 
-            setMessages((prev) => [
-                ...prev,
-                { role: "user", content: finalPrompt },
-                { role: "assistant", content: data.reply },
-            ]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: finalPrompt },
+        { role: "assistant", content: data.reply },
+      ]);
 
-            setInput("");
-        } catch (err) {
-            console.error("❌ Chat error:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+      setInput("");
+    } catch (err) {
+      console.error("❌ Chat error:", err);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "⚠️ Something went wrong. Try again." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleKeyPress = (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSubmit();
-        }
-    };
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
 
-    return (
-        <div className="flexClm" style={{ height: "100vh", background: "var(--base-bg)", color: "var(--base-text)" }}>
-            {/* Header */}
-            <div className="flexRow flexRow_stretch" style={{ padding: "var(--px-16)", borderBottom: "1px solid var(--white-10)" }}>
-                <h1 className="font_20" style={{ margin: 0 }}>AI Trade Assistant</h1>
-            </div>
+  const handleBackClick = () => {
+    router.push("/");
+  };
 
-            {/* Main Content */}
-            <div className="flexClm" style={{ flex: 1, overflow: "hidden" }}>
-                {/* Messages Container */}
-                <div
-                    className="flexClm removeScrollBar"
-                    style={{
-                        flex: 1,
-                        padding: "var(--px-16)",
-                        gap: "var(--px-16)"
-                    }}
-                >
-                    <AnimatePresence>
-                        {messages.length === 0 && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flexClm flex_center"
-                                style={{marginTop:'24px',textAlign: "center", gap: "var(--px-16)", color: "var(--white-50)" }}
-                            >
-                                <Bot size={48} color="var(--primary)" />
-                                <p className="font_16">Ask AI about your trades</p>
+  return (
+    <div className="tradeAssistantContainer">
+      {/* Header with Back Navigation */}
+      <motion.div
+        className="assistantHeader"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <button className="button_sec flexRow" onClick={handleBackClick}>
+          <ArrowLeft size={20} />
+          <span></span>
+        </button>
 
-                                {/* Quick Prompts Grid */}
-                                <div
-                                    className="gridContainer"
-                                    style={{
-                                        display: "grid",
-                                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                                        gap: "var(--px-8)",
-                                        maxWidth: "600px",
-                                        width: "100%",
-                                        marginTop: "var(--px-16)"
-                                    }}
-                                >
-                                    {quickPrompts.map((q, i) => (
-                                        <motion.button
-                                            key={i}
-                                            whileHover={{ scale: 0.98 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="quickPromptButton"
-                                            onClick={() => handleSubmit(q)}
-                                            style={{
-                                                padding: "var(--px-12) var(--px-16)",
-                                                borderRadius: "var(--px-12)",
-                                                background: "var(--white-4)",
-                                                border: "1px solid var(--white-10)",
-                                                color: "var(--base-text)",
-                                                fontSize: "var(--px-12)",
-                                                textAlign: "left",
-                                                cursor: "pointer",
-                                                transition: "all 0.2s ease",
-                                                fontFamily: "var(--ff-Pop)"
-                                            }}
-                                        >
-                                            {q}
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {messages.map((m, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className={`message ${m.role === "user" ? "userMessage" : "assistantMessage"}`}
-                                style={{
-                                    alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                                    maxWidth: "80%",
-                                    padding: "var(--px-12) var(--px-16)",
-                                    borderRadius: "var(--px-12)",
-                                    background: m.role === "user" ? "var(--primary)" : "var(--base-box-bg)",
-                                    border: m.role === "assistant" ? "1px solid var(--white-10)" : "none"
-                                }}
-                            >
-                                <p style={{ margin: 0, fontSize: "var(--px-14)", lineHeight: "1.4" }}>{m.content}</p>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-
-                    {loading && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flexRow gap_8"
-                            style={{ alignSelf: "flex-start", padding: "var(--px-12) var(--px-16)", background: "var(--base-box-bg)", borderRadius: "var(--px-12)" }}
-                        >
-                            <div className="thinkingDots">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
-                            <span className="font_14">Thinking...</span>
-                        </motion.div>
-                    )}
-
-                    <div ref={messagesEndRef} />
-                </div>
-            </div>
-
-            {/* Input Container - Fixed at Bottom */}
-            <div
-                className="popups_btm" style={{width:'90%'}}
-            >
-                <div
-                    className="chatBox flexRow gap_12 flex_center" style={{padding:'16px 24px'}}
-                >
-                    <Bot size={20} color="var(--primary)" />
-
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Ask AI about your trades"
-                        style={{
-                            flex: 1,
-                            border: "none",
-                            background: "transparent",
-                            outline: "none",
-                            color: "var(--base-text)",
-                            fontSize: "var(--px-14)",
-                            padding: "var(--px-8) 0"
-                        }}
-                    />
-
-                    <button
-                        onClick={() => handleSubmit()}
-                        disabled={loading || !input.trim()}
-                        className="sendButton"
-                        style={{
-                            background: "var(--primary)",
-                            borderRadius: "var(--px-8)",
-                            padding: "var(--px-8)",
-                            border: "none",
-                            color: "var(--base-text)",
-                            cursor: input.trim() ? "pointer" : "not-allowed",
-                            opacity: input.trim() ? 1 : 0.5,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                        }}
-                    >
-                        <Send size={16} />
-                    </button>
-                </div>
-            </div>
+        <div className="headerContent">
+          <div className="aiBadge">
+            <Sparkles size={16} />
+            <span>JournalX AI Assistant</span>
+          </div>
+          <h1 className="headerTitle">Trade Intelligence</h1>
+          <p className="headerSubtitle">
+            Get insights and analysis from your trading data
+          </p>
         </div>
-    );
+      </motion.div>
+
+      {/* Main Content */}
+      <div className="assistantContent">
+        {/* Messages Container */}
+        <div className="messagesContainer">
+          <AnimatePresence>
+            {messages.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="welcomeSection"
+              >
+                {/* <div className="welcomeIllustration">
+                  <div className="botIconWrapper">
+                    <Bot size={48} />
+                    <div className="pulseEffect"></div>
+                  </div>
+                </div>
+
+                <div className="welcomeText">
+                  <h2>How can I help with your trades today?</h2>
+                  <p>
+                    Ask me anything about your trading performance, patterns, or
+                    get suggestions for improvement.
+                  </p>
+                </div> */}
+
+                <BackgroundBlur />
+                {/* Quick Prompts Grid */}
+                <div className="quickPromptsGrid">
+                  {quickPrompts.map((q, i) => (
+                    <motion.button
+                      key={i}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="quickPromptCard"
+                      onClick={() => handleSubmit(q)}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: i * 0.1 }}
+                    >
+                      <span>{q}</span>
+                      <div className="promptHoverEffect"></div>
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Messages */}
+            <div className="messagesList">
+              {messages.map((m, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className={`messageBubble ${
+                    m.role === "user" ? "userMessage" : "assistantMessage"
+                  }`}
+                >
+                  {m.role === "assistant" ? (
+                    <ChatResponse text={m.content} />
+                  ) : (
+                    <div className="userMessageContent">
+                      <p>{m.content}</p>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+
+            {loading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="thinkingIndicator"
+              >
+                <div className="thinkingAnimation">
+                  <div className="thinkingDot"></div>
+                  <div className="thinkingDot"></div>
+                  <div className="thinkingDot"></div>
+                </div>
+                <span>Analyzing your trades...</span>
+              </motion.div>
+            )}
+
+            <div ref={messagesEndRef} className="scrollAnchor" />
+          </AnimatePresence>
+        </div>
+
+        {/* Input Container */}
+        <motion.div
+          className="inputContainer"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <div className="inputWrapper">
+            <div className="inputIcon">
+              <Bot size={20} />
+            </div>
+
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask anything about your trades..."
+              className="chatInput"
+              disabled={loading}
+            />
+
+            <motion.button
+              onClick={() => handleSubmit()}
+              disabled={loading || !input.trim()}
+              className="sendButton"
+              whileHover={{ scale: input.trim() ? 1.05 : 1 }}
+              whileTap={{ scale: input.trim() ? 0.95 : 1 }}
+            >
+              <Send size={18} />
+            </motion.button>
+          </div>
+
+          <div className="inputHint">
+            Press Enter to send • Shift+Enter for new line
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
 }

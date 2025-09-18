@@ -1,6 +1,11 @@
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
-const Ticker = ({ form, setForm, handleChange }) => {
+const Ticker = ({ form, setForm }) => {
+  const handleSymbolChange = (e) => {
+    const upperValue = e.target.value.toUpperCase(); // ✅ force uppercase
+    setForm({ ...form, symbol: upperValue });
+  };
+
   return (
     <div className="tradeGrid">
       <span className="label">Ticker name</span>
@@ -9,7 +14,7 @@ const Ticker = ({ form, setForm, handleChange }) => {
           <input
             name="symbol"
             value={form.symbol}
-            onChange={handleChange}
+            onChange={handleSymbolChange} // ✅ overridden to capitalize
             placeholder="Ticker name"
           />
           <label>Ticker name</label>
