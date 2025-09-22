@@ -17,7 +17,6 @@ const StepWizard = ({ grids, onFinish }) => {
     if (step > 0) setStep(step - 1);
   };
 
-  // Center the active step each time step changes
   useEffect(() => {
     if (stepperRef.current) {
       const activeEl = stepperRef.current.querySelector(
@@ -25,21 +24,38 @@ const StepWizard = ({ grids, onFinish }) => {
       );
       if (activeEl) {
         const containerWidth = stepperRef.current.offsetWidth;
+        const containerScroll = stepperRef.current.scrollLeft;
         const activeRect = activeEl.getBoundingClientRect();
         const containerRect = stepperRef.current.getBoundingClientRect();
 
-        const offset =
-          activeRect.left -
-          containerRect.left -
+        // Compute the absolute scroll position
+        const scrollLeft =
+          containerScroll +
+          (activeRect.left - containerRect.left) -
           containerWidth / 2 +
           activeRect.width / 2;
 
-        stepperRef.current.scrollBy({
-          left: offset,
+        stepperRef.current.scrollTo({
+          left: scrollLeft,
           behavior: "smooth",
         });
       }
     }
+  }, [step]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowRight") {
+        nextStep();
+      } else if (e.key === "ArrowLeft") {
+        prevStep();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [step]);
 
   return (

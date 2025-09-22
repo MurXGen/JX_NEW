@@ -19,12 +19,15 @@ const ToastMessage = ({ type = "success", message = "", duration = 3000 }) => {
 
   if (!visible) return null;
 
+  // Set color based on type
+  const iconColor = type === "success" ? "#22C55E" : "#EF4444";
+
   return (
     <div className={`popups_top ${type} flexRow gap_12`}>
       {type === "success" ? (
-        <CheckCircle className="icon" size={20} />
+        <CheckCircle className="icon" size={20} style={{ color: iconColor }} />
       ) : (
-        <XCircle className="icon" size={20} />
+        <XCircle className="icon" size={20} style={{ color: iconColor }} />
       )}
       <span className="text">{message}</span>
     </div>

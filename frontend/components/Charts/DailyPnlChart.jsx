@@ -14,10 +14,9 @@ import { formatCurrency } from "@/utils/formatNumbers";
 
 const formatXAxisDate = (dateString) => {
   const d = new Date(dateString);
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-  }); // e.g. "29/08"
+  const day = d.getDate(); // 1-31
+  const month = d.toLocaleString("en-GB", { month: "short" }); // "Sep"
+  return `${day}'${month}`; // 9'Sep
 };
 
 const formatTooltipDate = (dateString) => {
@@ -114,7 +113,11 @@ const DailyPnlChart = ({ data }) => {
             axisLine={false}
             tickLine={false}
             textAnchor="middle"
-            interval="preserveStartEnd" // 👈 keeps start, thins out the rest dynamically
+            ticks={data
+              .map((d, i) =>
+                i % Math.ceil(data.length / 5) === 0 ? d.date : null
+              )
+              .filter(Boolean)}
             height={30}
           />
 

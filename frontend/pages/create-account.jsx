@@ -29,11 +29,18 @@ const CreateAccount = () => {
 
     setToastKey((prev) => prev + 1);
 
-    if (!accountName.trim() || !currency) {
+    if (!accountName.trim() || !currency || !balance) {
       setAlertType("error");
       setAlertMessage("Please fill in all details");
       return;
     }
+
+    if (isNaN(parseFloat(balance))) {
+      setAlertType("error");
+      setAlertMessage("Please enter a valid balance amount");
+      return;
+    }
+
     setLoading(true);
 
     try {

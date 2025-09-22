@@ -7,7 +7,11 @@ export const processPnLCandles = (trades) => {
 
   trades.forEach((trade) => {
     // Extract date part only (ignore time)
-    const date = new Date(trade.openTime).toISOString().split("T")[0];
+    // New: use browser local date
+    const d = new Date(trade.openTime);
+    const date = `${d.getFullYear()}-${(d.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
 
     if (!tradesByDate[date]) {
       tradesByDate[date] = [];

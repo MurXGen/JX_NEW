@@ -703,7 +703,7 @@ export default function AddTrade() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
 
     const validationError = validateForm(form);
     if (validationError) {
