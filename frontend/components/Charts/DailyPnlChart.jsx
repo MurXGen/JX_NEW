@@ -110,17 +110,17 @@ const DailyPnlChart = ({ data }) => {
           <XAxis
             dataKey="date"
             tickFormatter={formatXAxisDate}
-            tick={{ fontSize: 11, fill: "#d1d5db" }}
-            angle={-30}
-            textAnchor="end"
-            interval="preserveEnd"
-            height={40}
+            tick={{ fontSize: 12, fill: "#ccc" }}
+            axisLine={false}
+            tickLine={false}
+            textAnchor="middle"
+            interval="preserveStartEnd" // 👈 keeps start, thins out the rest dynamically
+            height={30}
           />
 
           <YAxis
-            tick={{ fontSize: 11, fill: "#d1d5db" }}
+            tick={{ fontSize: 12, fill: "#ccc" }}
             tickFormatter={(value) => formatCurrency(value)}
-            width={60}
           />
 
           <Tooltip

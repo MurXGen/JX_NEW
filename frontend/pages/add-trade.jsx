@@ -35,6 +35,7 @@ import { containerVariants } from "@/animations/motionVariants"; // adjust path 
 import ToastMessage from "@/components/ui/ToastMessage";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import ReasonSelector from "@/components/addTrade/Reasons";
+import StepWizard from "@/components/ui/StepWizard";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -749,11 +750,7 @@ export default function AddTrade() {
   }, [activeGrid]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Enter" || e.key === "Escape") {
-        setActiveGrid(null);
-      }
-    };
+    const handleKeyDown = (e) => {};
 
     if (activeGrid) {
       document.addEventListener("keydown", handleKeyDown);
@@ -938,86 +935,71 @@ export default function AddTrade() {
     },
   ];
 
+  // helper to filter grids dynamically
+  const getFilteredGrids = (status) => {
+    switch (status) {
+      case "quick":
+        return grids.filter((g) =>
+          [
+            "ticker",
+            "quantity",
+            "status",
+            "quick",
+            "opentime",
+            "closetime",
+            "reasons",
+            "learnings",
+          ].includes(g.key)
+        );
+
+      case "closed":
+        return grids.filter((g) =>
+          [
+            "ticker",
+            "quantity",
+            "status",
+            "entries",
+            "exits",
+            "opentime",
+            "closetime",
+            "reasons",
+            "learnings",
+          ].includes(g.key)
+        );
+
+      case "running":
+        return grids.filter((g) =>
+          [
+            "ticker",
+            "quantity",
+            "status",
+            "entries",
+            "sl",
+            "tp",
+            "opentime",
+            "reasons",
+            "learnings",
+          ].includes(g.key)
+        );
+
+      default:
+        return grids;
+    }
+  };
+
   return (
     <div className="flexClm gap_32">
-      <Navbar />
-      <form onSubmit={handleSubmit}>
-        {/* Basic Info */}
-
-        <div className="flexClm gap_24">
-          {grids.map(({ key, content }) => {
-            {
-              const isInline = inlineEditableKeys.includes(key);
-              const isVisible =
-                key === "quick"
-                  ? form.tradeStatus === "quick"
-                  : key === "entries"
-                  ? form.tradeStatus === "closed" ||
-                    form.tradeStatus === "running"
-                  : key === "exits"
-                  ? form.tradeStatus === "closed"
-                  : key === "sl" || key === "tp"
-                  ? form.tradeStatus === "running"
-                  : true;
-
-              if (!isVisible) return null;
-            }
-            return (
-              <div
-                key={key}
-                // className={`grid-item ${isInline ? "" : "non-functional"}`}
-                // onClick={() => {
-                //   if (!isInline) setActiveGrid(key);
-                // }}
-                // style={{
-                //   cursor: isInline ? "default" : "pointer",
-                //   position: "relative",
-                // }}
-              >
-                {/* {isInline ? (
-                  content
-                ) : ( */}
-                <div className="preview-wrapper">
-                  <div className="preview-content">{content}</div>
-                </div>
-                {/* )} */}
-              </div>
-            );
-          })}
+      <div>
+        <div className="flexClm">
+          <span className="font_20">Add trade</span>
+          <span className="font_12">Log trade in seconds</span>
         </div>
-
-        {/* <AnimatePresence>
-          {activeGrid && !inlineEditableKeys.includes(activeGrid) && (
-            <motion.div
-              className="overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={() => setActiveGrid(null)} // close when clicking outside
-            >
-              <motion.div
-                className="modal"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                onClick={(e) => e.stopPropagation()} // prevent overlay click from closing when clicking inside modal
-              >
-                <button
-                  type="button"
-                  className="closeBtn"
-                  onClick={() => setActiveGrid(null)}
-                >
-                  <ArrowRight size={20} />
-                </button>
-                {grids.find((g) => g.key === activeGrid)?.content}
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence> */}
-
-        <BackgroundBlur />
+      </div>
+      <form onSubmit={handleSubmit}>
+        <StepWizard
+          grids={getFilteredGrids(form.tradeStatus)} // pass only required steps
+          onFinish={handleSubmit}
+        />
       </form>
 
       {toast && (
@@ -1059,7 +1041,7 @@ export default function AddTrade() {
         </button>
       </div>
 
-      <pre
+      {/* <pre
         style={{
           background: "black",
           color: "white",
@@ -1075,7 +1057,7 @@ export default function AddTrade() {
           null,
           2
         )}
-      </pre>
+      </pre> */}
 
       {/* Summary Section */}
       {/* <div style={{ marginTop: "2rem" }}>

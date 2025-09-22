@@ -1,44 +1,39 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { createAccount } from '@/api/auth';
-import { ArrowLeft, ArrowUpRight, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { containerVariants, childVariants } from '@/animations/motionVariants';
-import axios from 'axios';
-import { saveToIndexedDB } from '@/utils/indexedDB';
-import Navbar from '@/components/Trades/Navbar';
-import ToastMessage from '@/components/ui/ToastMessage';
-import BackgroundBlur from '@/components/ui/BackgroundBlur';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createAccount } from "@/api/auth";
+import { ArrowLeft, ArrowUpRight, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { containerVariants, childVariants } from "@/animations/motionVariants";
+import axios from "axios";
+import { saveToIndexedDB } from "@/utils/indexedDB";
+import Navbar from "@/components/Trades/Navbar";
+import ToastMessage from "@/components/ui/ToastMessage";
+import BackgroundBlur from "@/components/ui/BackgroundBlur";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const CreateAccount = () => {
-  const [accountName, setAccountName] = useState('');
-  const [currency, setCurrency] = useState('USD');
-  const [balance, setBalance] = useState('');
+  const [accountName, setAccountName] = useState("");
+  const [currency, setCurrency] = useState("USD");
+  const [balance, setBalance] = useState("");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [alertType, setAlertType] = useState('');
-  const [alertMessage, setAlertMessage] = useState('')
-
+  const [alertType, setAlertType] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!accountName.trim() || !currency || !balance) {
+    setToastKey((prev) => prev + 1);
+
+    if (!accountName.trim() || !currency) {
       setAlertType("error");
       setAlertMessage("Please fill in all details");
       return;
     }
-
-    if (isNaN(parseFloat(balance))) {
-      setAlertType("error");
-      setAlertMessage("Please enter a valid balance amount");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -66,7 +61,6 @@ const CreateAccount = () => {
       setTimeout(() => {
         router.push("/accounts");
       }, 1200);
-
     } catch (error) {
       console.error("❌ Account creation failed:", error);
       setAlertType("error");
@@ -81,11 +75,9 @@ const CreateAccount = () => {
     }
   };
 
-
   const handleBackClick = () => {
-    router.push('/accounts');
+    router.push("/accounts");
   };
-
 
   return (
     <div className="createAccount flexClm gap_32">
@@ -94,25 +86,29 @@ const CreateAccount = () => {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className='flexClm gap_4'
+        className="flexClm gap_4"
       >
-        <span className='font_20'>Create Account</span>
-        <span className='font_12' style={{ color: '#ffffff80', fontWeight: '500 !important' }}>Multiple accounts helps in managing trades</span>
+        <span className="font_20">Create Account</span>
+        <span
+          className="font_12"
+          style={{ color: "#ffffff80", fontWeight: "500 !important" }}
+        >
+          Multiple accounts helps in managing trades
+        </span>
       </motion.div>
-
 
       <motion.form
         onSubmit={handleSubmit}
-        className='formContent flexClm gap_24'
+        className="formContent flexClm gap_24"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         <input
           type="text"
-          className='accountName'
+          className="accountName"
           value={accountName}
-          placeholder='Account Name'
+          placeholder="Account Name"
           onChange={(e) => setAccountName(e.target.value.toUpperCase())}
           required
         />
@@ -129,27 +125,42 @@ const CreateAccount = () => {
           required
         />
 
-
-
-        <div className="currencyOptions flexRow gap_12" variants={containerVariants}
+        <div
+          className="currencyOptions flexRow gap_12"
+          variants={containerVariants}
           initial="hidden"
-          animate="visible">
-          {['USD', 'INR', 'USDT'].map((cur) => (
+          animate="visible"
+        >
+          {["USD", "INR", "USDT"].map((cur) => (
             <span
               key={cur}
-              className={`currencyText  button_ter font_12 ${currency === cur ? 'selected' : ''}`}
+              className={`currencyText  button_ter font_12 ${
+                currency === cur ? "selected" : ""
+              }`}
               onClick={() => setCurrency(cur)}
               variants={childVariants}
-              style={{ width: '70px', textAlign: 'center' }}
+              style={{ width: "70px", textAlign: "center" }}
             >
               {cur}
             </span>
           ))}
         </div>
 
-        <motion.div className="flexRow flexRow_stretch gap_12" variants={childVariants}>
-          <ArrowLeft onClick={handleBackClick} className="button_sec" size={20} />
-          <button className="button_pri flexRow gap_8" type="submit" onClick={handleSubmit} disabled={loading}>
+        <motion.div
+          className="flexRow flexRow_stretch gap_12"
+          variants={childVariants}
+        >
+          <ArrowLeft
+            onClick={handleBackClick}
+            className="button_sec"
+            size={20}
+          />
+          <button
+            className="button_pri flexRow gap_8"
+            type="submit"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
             {loading ? (
               <Loader2 className="spinner" size={16} />
             ) : (
@@ -160,9 +171,14 @@ const CreateAccount = () => {
           </button>
         </motion.div>
       </motion.form>
-      <ToastMessage type={alertType} message={alertMessage} duration={3000} />
-      <BackgroundBlur/>
-    </div >
+      <ToastMessage
+        key={toastKey}
+        type={alertType}
+        message={alertMessage}
+        duration={3000}
+      />
+      <BackgroundBlur />
+    </div>
   );
 };
 

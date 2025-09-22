@@ -18,7 +18,7 @@ const Navbar = () => {
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
       const newMode = !prev;
-      document.body.setAttribute("data-theme", newMode ? "dark" : "light");
+      document.body.setAttribute("data-theme", newMode ? "light" : "dark");
       return newMode;
     });
   };
@@ -26,12 +26,15 @@ const Navbar = () => {
   return (
     <div className="navbarTrades flexRow flexRow_stretch">
       <div className="flexRow gap_8">
-        <User size={20} className="button_sec"/>
+        <User size={20} className="button_sec" />
         <div className="flexClm">
-          <span className="font_12" style={{color:"#ffffff80"}}>Hey hi,</span>
-          <span className="font_16" style={{fontWeight:'500'}}>{userName || "User"}</span>
+          <span className="font_12" style={{ color: "#ffffff80" }}>
+            Hey hi,
+          </span>
+          <span className="font_16" style={{ fontWeight: "500" }}>
+            {userName || "User"}
+          </span>
         </div>
-
       </div>
 
       <button onClick={toggleDarkMode} className="button_ter flexRow ">

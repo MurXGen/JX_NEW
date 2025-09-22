@@ -112,22 +112,23 @@ export default function PNLChart({ dailyData }) {
     setWeekOffset(0);
   };
 
-  // 🎨 Custom Tooltip
+  // 🎨 Custom Tooltip (styled like your OHLC tooltip)
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload?.length) {
       const { pnl, day, date } = payload[0].payload;
 
-      let pnlClass = "pnl-neutral";
-      if (pnl > 0) pnlClass = "pnl-positive";
-      else if (pnl < 0) pnlClass = "pnl-negative";
+      let pnlClass = "neutral";
+      if (pnl > 0) pnlClass = "positive";
+      else if (pnl < 0) pnlClass = "negative";
 
       return (
-        <div className="pnl-tooltip">
+        <div className="boxBg font_12 flexClm gap_12">
           <div className="pnl-tooltip-header">
             {day} {date && `(${date})`}
           </div>
+
           <div className={`pnl-tooltip-value ${pnlClass}`}>
-            {formatNumber(pnl)} PnL
+            {formatNumber(pnl)} Net PnL
           </div>
         </div>
       );
@@ -177,8 +178,8 @@ export default function PNLChart({ dailyData }) {
               <stop offset="100%" stopColor="#22C55E80" stopOpacity={0.5} />
             </linearGradient>
             <linearGradient id="pnlNegative" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#EF444480" stopOpacity={0.9} />
-              <stop offset="100%" stopColor="#EF4444" stopOpacity={0.5} />
+              <stop offset="0%" stopColor="#EF4444" stopOpacity={0.9} />
+              <stop offset="100%" stopColor="#EF444480" stopOpacity={0.5} />
             </linearGradient>
           </defs>
 
@@ -201,7 +202,7 @@ export default function PNLChart({ dailyData }) {
 
           <Tooltip content={<CustomTooltip />} cursor={{ fill: "#ffffff10" }} />
 
-          <Bar dataKey="pnl" radius={[20, 20, 20, 20]}>
+          <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
             {weekData.map((entry, i) => (
               <Cell
                 key={`cell-${i}`}
