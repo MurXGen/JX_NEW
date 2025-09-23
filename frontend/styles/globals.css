@@ -199,6 +199,7 @@ body {
 .boxBg {
   background: var(--base-bg);
   border-radius: var(--px-12);
+  border: 1px solid var(--white-4);
   padding: var(--px-16) var(--px-16);
 }
 
@@ -447,15 +448,15 @@ button:hover {
   background: var(--primary);
   transition: 0.3s;
 }
-
 .success {
   color: var(--success);
+  text-shadow: 0 0 46px var(--success);
 }
 
 .error {
   color: var(--error);
+  text-shadow: 0 0 46px var(--error);
 }
-
 .removeScrollBar {
   scrollbar-width: none;
   /* Firefox */
@@ -2560,6 +2561,8 @@ footer {
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
+    width: 85%;
+    flex-direction: row; /* default horizontal */
   }
 
   .nav-item {
@@ -2609,6 +2612,25 @@ footer {
     z-index: -1;
   }
 }
+
+/* 🔥 New: Make it vertical when screen >= 760px */
+@media (min-width: 1024px) {
+  .bottom-bar {
+    flex-direction: column;
+    top: 50%;
+    left: var(--px-16);
+    bottom: auto;
+    transform: translateY(-50%);
+    width: auto;
+    height: 50%;
+  }
+
+  .nav-item {
+    justify-content: flex-start;
+    margin: var(--px-8) 0;
+  }
+}
+
 /* components/Charts/DailyPnlChart.css */
 .daily-pnl-chart-container {
   width: 100%;
@@ -2697,3 +2719,5 @@ footer {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+/* For clock */

@@ -1,3 +1,5 @@
+import { getCurrencySymbol } from "./currencySymbol";
+
 export const formatNumber = (value, decimalPlaces = 2) => {
   const num = parseFloat(value);
   if (isNaN(num)) return "0";
@@ -23,11 +25,16 @@ export const formatNumber = (value, decimalPlaces = 2) => {
   });
 };
 
-export const formatCurrency = (value, symbol = "$", decimalPlaces = 2) => {
+export const formatCurrency = (value, decimalPlaces = 2) => {
   const num = parseFloat(value);
-  if (isNaN(num)) return `${symbol}0`;
+  if (isNaN(num)) return "0";
+
+  // 🔑 Get currencyCode from localStorage
+  const currencyCode = localStorage.getItem("currencyCode") || "usd";
+  const symbol = getCurrencySymbol(currencyCode);
 
   const formatted = formatNumber(num, decimalPlaces);
 
-  return `${num < 0 ? "-" : ""}${symbol}${formatted.replace("-", "")}`;
+  // 👉 Add spacing (acts like padding-right for the symbol)
+  return `${num < 0 ? "-" : ""}${symbol}\u00A0${formatted.replace("-", "")}`;
 };

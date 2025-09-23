@@ -32,6 +32,15 @@ export default function Home() {
       const userData = await getFromIndexedDB("user-data");
 
       if (userData) {
+        const account = (userData.accounts || []).find(
+          (acc) => acc._id === accountId
+        );
+
+        if (account?.currency) {
+          // ✅ Save currency in localStorage
+          localStorage.setItem("currencyCode", account.currency);
+        }
+
         const accountTrades = (userData.trades || []).filter(
           (trade) => trade.accountId === accountId
         );
@@ -39,7 +48,9 @@ export default function Home() {
         setTrades(accountTrades);
 
         if (accountTrades.length > 0) {
-          calculateStats(accountTrades);
+          // ✅ Pass currency from localStorage instead of directly
+          const currencyFromLS = localStorage.getItem("currencyCode");
+          calculateStats(accountTrades, currencyFromLS);
         }
       }
 
@@ -52,7 +63,9 @@ export default function Home() {
   const calculateStats = (accountTrades) => {
     const pnlValues = accountTrades.map((t) => t.pnl || 0);
 
-    const maxPnL = Math.max(...pnlValues);
+    // 🔹 Net PnL (sum of all trades)
+    const netPnL = pnlValues.reduce((sum, p) => sum + p, 0);
+
     const maxProfit = Math.max(...pnlValues.filter((p) => p > 0), 0);
     const maxLoss = Math.min(...pnlValues.filter((p) => p < 0), 0);
     const totalTrades = accountTrades.length;
@@ -79,7 +92,44 @@ export default function Home() {
     const winTrades = accountTrades.filter((t) => t.pnl > 0).length;
     const loseTrades = accountTrades.filter((t) => t.pnl < 0).length;
 
-    // 👉 group trades by date
+    // best/worst time ranges
+    const timeRanges = [
+      { label: "Night", start: 0, end: 6 },
+      { label: "Morning", start: 6, end: 12 },
+      { label: "Afternoon", start: 12, end: 18 },
+      { label: "Evening", start: 18, end: 24 },
+    ];
+
+    const pnlByTimeRange = {
+      Night: 0,
+      Morning: 0,
+      Afternoon: 0,
+      Evening: 0,
+    };
+
+    accountTrades.forEach((trade) => {
+      const date = new Date(trade.closeTime);
+      const hour = date.getHours();
+      const range = timeRanges.find((r) => hour >= r.start && hour < r.end);
+      if (range) pnlByTimeRange[range.label] += trade.pnl || 0;
+    });
+
+    const winRatio = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
+    const averagePnL = totalTrades > 0 ? netPnL / totalTrades : 0;
+
+    const bestTimeLabel = Object.entries(pnlByTimeRange).reduce((a, b) =>
+      b[1] > a[1] ? b : a
+    )[0];
+    const worstTimeLabel = Object.entries(pnlByTimeRange).reduce((a, b) =>
+      b[1] < a[1] ? b : a
+    )[0];
+
+    const totalVolume = accountTrades.reduce(
+      (sum, trade) => sum + (trade.totalQuantity || 0),
+      0
+    );
+
+    // daily data
     const dailyPnL = {};
     accountTrades.forEach((trade) => {
       const date = new Date(
@@ -96,21 +146,17 @@ export default function Home() {
       .map(([date, pnl]) => ({ date, pnl }))
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // 👉 Greed & Fear index (last 10 trades)
+    // Greed & Fear
     let gfIndex = 50;
     last10.forEach((trade) => {
       if (trade.pnl > 0) gfIndex += 5;
       else if (trade.pnl < 0) gfIndex -= 5;
     });
-
     gfIndex = Math.max(0, Math.min(100, gfIndex));
-
-    let gfLabel = "Neutral";
-    if (gfIndex < 50) gfLabel = "Fear";
-    else if (gfIndex > 50) gfLabel = "Greed";
+    const gfLabel = gfIndex < 50 ? "Fear" : gfIndex > 50 ? "Greed" : "Neutral";
 
     setStats({
-      maxPnL,
+      netPnL, // 🔹 sum of all trades
       maxProfit,
       maxLoss,
       totalTrades,
@@ -120,10 +166,12 @@ export default function Home() {
       loseTrades,
       dailyData,
       last10,
-      greedFear: {
-        value: gfIndex,
-        label: gfLabel,
-      },
+      greedFear: { value: gfIndex, label: gfLabel },
+      bestTime: bestTimeLabel,
+      worstTime: worstTimeLabel,
+      winRatio: winRatio.toFixed(2),
+      averagePnL: averagePnL.toFixed(2),
+      totalVolume,
     });
   };
 

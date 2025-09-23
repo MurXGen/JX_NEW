@@ -18,10 +18,7 @@ export default function BottomBar() {
   ];
 
   return (
-    <nav
-      className="bottom-bar"
-      style={{ width: "85%", backdropFilter: "blur(30px)" }}
-    >
+    <nav className="bottom-bar" style={{ backdropFilter: "blur(30px)" }}>
       {navItems.map((item) => (
         <Link href={item.href} key={item.href} className="nav-item">
           <motion.div

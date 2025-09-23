@@ -26,13 +26,13 @@ export default function TradeAssistant() {
   ];
 
   // Scroll to bottom of messages
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // const scrollToBottom = () => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   const handleSubmit = async (prompt) => {
     setLoading(true);
@@ -89,6 +89,7 @@ export default function TradeAssistant() {
 
   return (
     <div className="tradeAssistantContainer">
+      <BackgroundBlur />
       {/* Header with Back Navigation */}
       <motion.div
         className="assistantHeader"
@@ -140,7 +141,6 @@ export default function TradeAssistant() {
                   </p>
                 </div> */}
 
-                <BackgroundBlur />
                 {/* Quick Prompts Grid */}
                 <div className="quickPromptsGrid">
                   {quickPrompts.map((q, i) => (
@@ -237,9 +237,7 @@ export default function TradeAssistant() {
             </motion.button>
           </div>
 
-          <div className="inputHint">
-            Press Enter to send • Shift+Enter for new line
-          </div>
+          <div className="inputHint">Press Enter to send</div>
         </motion.div>
       </div>
     </div>
