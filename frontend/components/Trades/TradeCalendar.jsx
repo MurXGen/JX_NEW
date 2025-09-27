@@ -186,23 +186,24 @@ const TradeCalendar = ({
   return (
     <div className=" flexClm gap_24">
       {/* View Toggle */}
-      <div className="viewToggle flexRow gap_8">
+      <div className="view-toggle flexRow gap_8">
         <button
-          className={`button_ter width100 flexRow gap_8 flex_center ${
-            view === "month" ? "selected" : ""
+          className={`toggle-btn width100 flexRow gap_8 flex_center ${
+            view === "month" ? "active" : ""
           }`}
           onClick={() => setView("month")}
         >
-          <CalendarIcon size={16} />
+          <CalendarIcon size={18} />
           Monthly Overview
         </button>
+
         <button
-          className={`button_ter width100 flexRow gap_8 flex_center ${
-            view === "year" ? "selected" : ""
+          className={`toggle-btn width100 flexRow gap_8 flex_center ${
+            view === "year" ? "active" : ""
           }`}
           onClick={() => setView("year")}
         >
-          <BarChart3 size={16} />
+          <BarChart3 size={18} />
           Yearly Overview
         </button>
       </div>

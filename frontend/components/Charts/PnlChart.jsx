@@ -170,7 +170,7 @@ export default function PNLChart({ dailyData }) {
         <BarChart
           data={weekData}
           barCategoryGap="30%"
-          margin={{ top: 40, bottom: 20 }}
+          margin={{ top: 20, bottom: 20 }}
         >
           <defs>
             <linearGradient id="pnlGradient" x1="0" y1="0" x2="0" y2="1">
@@ -202,7 +202,7 @@ export default function PNLChart({ dailyData }) {
 
           <Tooltip content={<CustomTooltip />} cursor={{ fill: "#ffffff10" }} />
 
-          <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="pnl" radius={[12, 12, 0, 0]}>
             {weekData.map((entry, i) => (
               <Cell
                 key={`cell-${i}`}

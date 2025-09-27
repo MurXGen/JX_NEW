@@ -1,0 +1,482 @@
+// components/Analysis/TagAnalysis.js
+"use client";
+
+import React, { useState } from "react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from "recharts";
+import { formatCurrency, formatNumber } from "@/utils/formatNumbers";
+import { BarChart3, ListIcon } from "lucide-react";
+
+const TagAnalysis = ({ tagAnalysis }) => {
+  const [viewMode, setViewMode] = useState("chart"); // "chart" or "list"
+  const [sortBy, setSortBy] = useState("pnl"); // "pnl", "trades", "winRate"
+
+  if (!tagAnalysis || tagAnalysis.length === 0) {
+    return (
+      <div className="tag-analysis-empty">
+        <div className="empty-icon">🏷️</div>
+        <div className="empty-title">No Tag Analysis Available</div>
+        <div className="empty-description">
+          Add reasons/tags to your trades to see performance insights
+        </div>
+      </div>
+    );
+  }
+
+  // Format tag names - remove brackets and capitalize first letter
+  const formatTagName = (tagName) => {
+    const capitalize = (str) =>
+      str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+    if (Array.isArray(tagName)) {
+      return tagName
+        .map((name) => capitalize(name.replace(/[\[\]"]/g, "")))
+        .join(", ");
+    }
+
+    return capitalize(String(tagName).replace(/[\[\]"]/g, ""));
+  };
+
+  // Prepare data for charts with formatted names
+  const chartData = tagAnalysis.map((tag, index) => ({
+    name: formatTagName(tag.tag),
+    originalName: tag.tag,
+    value: tag.totalPnL,
+    trades: tag.totalTrades,
+    winRate: tag.winRate,
+    pnl: tag.totalPnL,
+    colorIndex: index,
+  }));
+
+  // Sort data based on current sort option
+  const sortedData = [...tagAnalysis]
+    .map((tag) => ({
+      ...tag,
+      formattedTag: formatTagName(tag.tag),
+    }))
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "trades":
+          return b.totalTrades - a.totalTrades;
+        case "winRate":
+          return b.winRate - a.winRate;
+        case "pnl":
+        default:
+          return b.totalPnL - a.totalPnL;
+      }
+    });
+
+  // Colors for charts - same as pie chart
+  const COLORS = [
+    "#22c55e",
+    "#ef4444",
+    "#f59e0b",
+    "#8b5cf6",
+    "#06b6d4",
+    "#f97316",
+    "#84cc16",
+    "#ec4899",
+    "#14b8a6",
+    "#f43f5e",
+    "#a855f7",
+    "#3b82f6",
+  ];
+
+  // Custom tooltip for bar chart with badges
+  const BarTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const color = COLORS[data.colorIndex % COLORS.length];
+
+      return (
+        <div className="tooltip-container boxBg font_12 flexClm gap_8">
+          <div className="tooltip-header flexRow gap_8">
+            <div className="color-badge" style={{ backgroundColor: color }} />
+            <strong>{data.name}</strong>
+          </div>
+          <div className="tooltip-stats flexClm gap_4">
+            <span className="flexRow flexRow_stretch">
+              <span>Total PnL:</span>
+              <span className={data.value >= 0 ? "success" : "error"}>
+                {formatCurrency(data.value)}
+              </span>
+            </span>
+            <span className="flexRow flexRow_stretch">
+              <span>Avg PnL:</span>
+              <span>{formatCurrency(data.pnl / data.trades)}</span>
+            </span>
+            <span className="flexRow flexRow_stretch">
+              <span>Trades:</span>
+              <span>{data.trades}</span>
+            </span>
+            <span className="flexRow flexRow_stretch">
+              <span>Win Rate:</span>
+              <span>{data.winRate.toFixed(1)}%</span>
+            </span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Custom XAxis with properly aligned dots
+
+  //   const CustomXAxis = ({ x, y, payload, index }) => {
+  //     const color = COLORS[index % COLORS.length];
+  //     const barWidth = 30; // Match barSize
+  //     const dotOffset = barWidth / 2; // Center dot under bar
+
+  //     return (
+  //       <g transform={`translate(${x + dotOffset},${y})`}>
+  //         <circle
+  //           cx={0}
+  //           cy={20}
+  //           r={4}
+  //           fill={color}
+  //           stroke="#374151"
+  //           strokeWidth={1}
+  //         />
+  //         <text
+  //           x={0}
+  //           y={40}
+  //           textAnchor="middle"
+  //           fill="#ccc"
+  //           fontSize={10}
+  //           className="font_10"
+  //         >
+  //           {payload.value.length > 8
+  //             ? payload.value.substring(0, 8) + "..."
+  //             : payload.value}
+  //         </text>
+  //       </g>
+  //     );
+  //   };
+
+  // Color legend component with badge design
+
+  const ColorLegend = () => (
+    <div className="color-legend">
+      <div className="legend-title font_12">Tags</div>
+      <div className="legend-items flexRow flexWrap gap_8">
+        {chartData.map((tag, index) => {
+          const color = COLORS[index % COLORS.length];
+          return (
+            <div key={index} className="flexRow gap_4">
+              <div
+                className="legend-badge font_12 flexRow gap_4"
+                style={{
+                  backgroundColor: color + "20",
+                  border: `1px solid ${color}`,
+                  borderRadius: "12px",
+                  padding: "2px 8px",
+                }}
+              >
+                <div
+                  className="legend-color-dot"
+                  style={{
+                    backgroundColor: color,
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                  }}
+                />
+                <span className="legend-label font_10" style={{ color: color }}>
+                  {tag.name}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="tag-analysis-container chart_boxBg">
+      {/* Header */}
+      <div className="tag-analysis-header flexRow flexRow_stretch">
+        <div className="tag-analysis-title flexClm">
+          <span className="font_16">Tag Performance Analysis</span>
+        </div>
+
+        <div className="tag-analysis-controls flexRow gap_12">
+          <div className="view-toggle flexRow">
+            <button
+              className={`toggle-btn ${viewMode === "chart" ? "active" : ""}`}
+              onClick={() => setViewMode("chart")}
+            >
+              <BarChart3 size={16} />
+            </button>
+            <button
+              className={`toggle-btn ${viewMode === "list" ? "active" : ""}`}
+              onClick={() => setViewMode("list")}
+            >
+              <ListIcon size={16} />
+            </button>
+          </div>
+
+          {/* <select
+            className="sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="pnl">Sort by PnL</option>
+            <option value="trades">Sort by Trades</option>
+            <option value="winRate">Sort by Win Rate</option>
+          </select> */}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="tag-analysis-content">
+        {viewMode === "chart" ? (
+          <div className="tag-charts-container">
+            {/* PnL Distribution Pie Chart with Legend below */}
+            <div className="chart-section">
+              <div className="chart-title font_12">PnL Distribution by Tag</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<BarTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Color Legend below Pie Chart */}
+              <ColorLegend />
+            </div>
+
+            {/* Performance Bar Chart with PNL-style design */}
+            <div className="chart-section">
+              <div className="chart-title font_12">Performance by Tag</div>
+              <ResponsiveContainer width="100%" height={330}>
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 20, right: 10, left: 10, bottom: 40 }}
+                  barCategoryGap="30%"
+                >
+                  <defs>
+                    {/* ✅ Same gradients as PNLChart */}
+                    <linearGradient
+                      id="tagPositive"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#22C55E" stopOpacity={0.9} />
+                      <stop
+                        offset="100%"
+                        stopColor="#22C55E80"
+                        stopOpacity={0.5}
+                      />
+                    </linearGradient>
+                    <linearGradient
+                      id="tagNegative"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#EF4444" stopOpacity={0.9} />
+                      <stop
+                        offset="100%"
+                        stopColor="#EF444480"
+                        stopOpacity={0.5}
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    interval={0}
+                    height={10}
+                    tick={({ x, y, payload, index }) => {
+                      const color = COLORS[index % COLORS.length];
+
+                      return (
+                        <g transform={`translate(${x},${y})`}>
+                          {/* Dot exactly centered under bar */}
+                          <circle
+                            cx={0}
+                            cy={10}
+                            r={4}
+                            fill={color}
+                            stroke="#374151"
+                            strokeWidth={1}
+                          />
+                          {/* Tag label below the dot */}
+                          {/* <text
+                            x={0}
+                            y={28}
+                            textAnchor="middle"
+                            fill="#ccc"
+                            fontSize={10}
+                          >
+                            {payload.value.length > 8
+                              ? payload.value.substring(0, 8) + "..."
+                              : payload.value}
+                          </text> */}
+                        </g>
+                      );
+                    }}
+                  />
+
+                  <YAxis
+                    tickFormatter={formatCurrency}
+                    tick={{ fontSize: 12, fill: "#ccc" }}
+                    width={60}
+                  />
+
+                  <Tooltip
+                    content={<BarTooltip />}
+                    cursor={{ fill: "#ffffff10" }}
+                  />
+
+                  <ReferenceLine y={0} stroke="#aaa" strokeDasharray="3 3" />
+
+                  {/* Bars with green/red gradient fill */}
+                  <Bar dataKey="value" radius={[12, 12, 0, 0]} barSize={30}>
+                    {chartData.map((entry, i) => (
+                      <Cell
+                        key={`bar-cell-${i}`}
+                        fill={
+                          entry.value >= 0
+                            ? "url(#tagPositive)"
+                            : "url(#tagNegative)"
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        ) : (
+          <div className="tag-list-container">
+            <div className="tag-list-header flexRow font_12">
+              <span style={{ flex: 2 }}>Tag</span>
+              <span style={{ flex: 1, textAlign: "center" }}>Trades</span>
+              <span style={{ flex: 1, textAlign: "center" }}>Win Rate</span>
+              <span style={{ flex: 1, textAlign: "right" }}>Total PnL</span>
+            </div>
+
+            <div className="tag-list">
+              {sortedData.map((tag, index) => {
+                const color = COLORS[index % COLORS.length];
+                return (
+                  <div key={tag.tag} className="tag-item flexRow">
+                    <div className="tag-info" style={{ flex: 2 }}>
+                      <div className="tag-name-container flexRow gap_8">
+                        <div
+                          className="tag-color-indicator"
+                          style={{ backgroundColor: color }}
+                        />
+                        <div className="tag-name font_14">
+                          {tag.formattedTag}
+                        </div>
+                      </div>
+                      <div
+                        className="tag-stats font_12"
+                        style={{ color: "var(--white-50)" }}
+                      >
+                        {tag.winTrades}W / {tag.loseTrades}L
+                      </div>
+                    </div>
+
+                    <div
+                      className="tag-trades font_14"
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
+                      {tag.totalTrades}
+                    </div>
+
+                    <div
+                      className="tag-winrate"
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
+                      <div className="winrate-value font_14">
+                        {tag.winRate.toFixed(1)}%
+                      </div>
+                      <div className="winrate-bar">
+                        <div
+                          className="winrate-fill"
+                          style={{
+                            width: `${tag.winRate}%`,
+                            backgroundColor: color,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div
+                      className={`tag-pnl font_14 ${
+                        tag.totalPnL >= 0 ? "success" : "error"
+                      }`}
+                      style={{ flex: 1, textAlign: "right" }}
+                    >
+                      {formatCurrency(tag.totalPnL)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Summary Stats */}
+      <div className="tag-summary flexRow flexRow_stretch">
+        <div className="summary-item">
+          <div className="summary-value font_16">{tagAnalysis.length}</div>
+          <div className="summary-label font_12">Total Tags</div>
+        </div>
+
+        <div className="summary-item">
+          <div className="summary-value font_16 success">
+            {tagAnalysis.filter((tag) => tag.totalPnL > 0).length}
+          </div>
+          <div className="summary-label font_12">Profitable Tags</div>
+        </div>
+
+        <div className="summary-item">
+          <div className="summary-value font_16">
+            {formatCurrency(
+              tagAnalysis.reduce((sum, tag) => sum + tag.totalPnL, 0)
+            )}
+          </div>
+          <div className="summary-label font_12">Total PnL</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TagAnalysis;

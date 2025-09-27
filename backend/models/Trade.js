@@ -74,6 +74,16 @@ const tradeSchema = new mongoose.Schema(
       },
     ],
 
+    // Fee fields
+    feeType: {
+      type: String,
+      enum: ["percent", "currency", ""],
+      default: "",
+    },
+    feeValue: { type: Number, default: 0 },
+    feeAmount: { type: Number, default: 0 },
+    pnlAfterFee: { type: Number, default: 0 },
+
     // Open/close info
     openTime: { type: Date, default: Date.now, index: true },
     closeTime: Date,

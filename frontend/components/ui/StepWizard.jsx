@@ -45,9 +45,9 @@ const StepWizard = ({ grids, onFinish }) => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "ArrowRight") {
+      if (e.shiftKey && e.key === "ArrowRight") {
         nextStep();
-      } else if (e.key === "ArrowLeft") {
+      } else if (e.shiftKey && e.key === "ArrowLeft") {
         prevStep();
       }
     };
@@ -58,14 +58,66 @@ const StepWizard = ({ grids, onFinish }) => {
     };
   }, [step]);
 
+  const progressRef = useRef(null);
+  const sliderDotRef = useRef(null);
+
+  const startDrag = (e) => {
+    const progress = progressRef.current;
+
+    const onMove = (moveEvent) => {
+      const rect = progress.getBoundingClientRect();
+      let pos = moveEvent.clientX - rect.left;
+      pos = Math.max(0, Math.min(rect.width, pos));
+      const newStep = Math.round((pos / rect.width) * (grids.length - 1));
+      setStep(newStep);
+    };
+
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
+
   return (
     <div className="flexClm gap_24 stepWizard">
       {/* Progress bar */}
-      <div className="stepperProgress">
+      {/* <div className="stepperProgress">
         <div
           className="stepperProgressBar"
           style={{ width: `${((step + 1) / grids.length) * 100}%` }}
         />
+      </div> */}
+      <div className="stepperSliderWrapper stepWizard">
+        {/* Progress bar with draggable circle */}
+        <div
+          className="stepperProgress"
+          onMouseDown={(e) => startDrag(e)}
+          ref={progressRef}
+        >
+          <div
+            className="stepperProgressBar"
+            style={{
+              width:
+                grids.length > 1
+                  ? `${(step / (grids.length - 1)) * 100}%`
+                  : "100%",
+            }}
+          />
+
+          <div
+            className="stepperSliderDot"
+            style={{
+              left:
+                grids.length > 1
+                  ? `${(step / (grids.length - 1)) * 100}%`
+                  : "0%",
+            }}
+            ref={sliderDotRef}
+          />
+        </div>
       </div>
 
       {/* Stepper scrollable & center active */}
@@ -86,7 +138,7 @@ const StepWizard = ({ grids, onFinish }) => {
       </div>
 
       {/* Navigation */}
-      <div className="step-navigation flexRow flexRow_stretch gap_12">
+      {/* <div className="stepNavigation flexRow flexRow_stretch gap_12">
         {step > 0 && (
           <button
             className="button_ter width100"
@@ -106,7 +158,7 @@ const StepWizard = ({ grids, onFinish }) => {
             <ArrowRight size={18} />
           </button>
         )}
-      </div>
+      </div> */}
 
       {/* Step Content */}
       <div className="stepContainer">

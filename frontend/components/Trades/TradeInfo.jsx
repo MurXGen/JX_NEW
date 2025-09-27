@@ -25,6 +25,7 @@ import {
   CircleDot,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatNumbers";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -264,23 +265,38 @@ const TradeInfo = ({ onClose }) => {
               </div>
             )}
 
-            {/* Trade Details Grid */}
-            {trade.tradeStatus === "running" && (
-              <div className="quantityGrid">
-                <div className="boxBg flexClm gap_12">
-                  <span className="font_12 shade_50">Quantity</span>
-                  <span className="font_14">{trade.quantityUSD} USD</span>
-                </div>
-                <div className="boxBg flexClm gap_12">
-                  <span className="font_12 shade_50">Leverage</span>
-                  <span className="font_14">{trade.leverage}x</span>
-                </div>
-                <div className="boxBg flexClm gap_12">
-                  <span className="font_12 shade_50">Total Quantity</span>
-                  <span className="font_14">{trade.totalQuantity}</span>
-                </div>
+            {/* Fees */}
+            {trade.feeAmount > 0 && (
+              <div className="boxBg flexClm gap_12">
+                <span className="font_12 shade_50">
+                  {trade.tradeStatus === "running"
+                    ? "Trade Open Fees"
+                    : "Trade Open + Close Fees"}
+                </span>
+                <span className="font_14">
+                  {getCurrencySymbol(localStorage.getItem("currencyCode"))}{" "}
+                  {trade.feeAmount.toFixed(2)}
+                </span>
               </div>
             )}
+
+            {/* Trade Details Grid */}
+            {/* {trade.tradeStatus === "running" && ( */}
+            <div className="quantityGrid">
+              <div className="boxBg flexClm gap_12">
+                <span className="font_12 shade_50">Quantity</span>
+                <span className="font_14">{trade.quantityUSD} USD</span>
+              </div>
+              <div className="boxBg flexClm gap_12">
+                <span className="font_12 shade_50">Leverage</span>
+                <span className="font_14">{trade.leverage}x</span>
+              </div>
+              <div className="boxBg flexClm gap_12">
+                <span className="font_12 shade_50">Total Quantity</span>
+                <span className="font_14">{trade.totalQuantity}</span>
+              </div>
+            </div>
+            {/* )} */}
 
             {trade.tradeStatus === "closed" && (
               <div className="detailsGrid">

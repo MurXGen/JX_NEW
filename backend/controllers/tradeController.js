@@ -175,6 +175,10 @@ exports.updateTrade = async (req, res) => {
       userId: req.cookies.userId,
       accountId: req.cookies.accountId,
     };
+    if (!body.closeTime) {
+      tradeData.closeTime = null; // <-- explicitly clear it in DB
+      console.log("📝 Cleared closeTime in tradeData");
+    }
 
     // --- Handle optional new images ---
     if (files?.openImage) {

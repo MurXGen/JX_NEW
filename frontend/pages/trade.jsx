@@ -79,7 +79,28 @@ const TradePage = () => {
   return (
     <div className="flexClm gap_32">
       <BottomBar />
-      <Navbar />
+      <div className="flexRow flexRow_stretch">
+        <div className="flexClm">
+          <span className="font_20">Trades History</span>
+          <span className="font_12">Log trade in seconds</span>
+        </div>
+        {/* Toggle Buttons */}
+        <div className="view-toggle flexRow gap_12">
+          <button
+            onClick={() => setView("history")}
+            className={`toggle-btn ${view === "history" ? "active" : ""}`}
+          >
+            <History size={18} />
+          </button>
+
+          <button
+            onClick={() => setView("calendar")}
+            className={`toggle-btn ${view === "calendar" ? "active" : ""}`}
+          >
+            <Calendar size={18} />
+          </button>
+        </div>
+      </div>
 
       <div className="flexRow flexRow_stretch">
         {/* Global Month/Year Selectors */}
@@ -114,26 +135,6 @@ const TradePage = () => {
               ...years.map((year) => ({ value: year, label: year })),
             ]}
           />
-        </div>
-        {/* Toggle Buttons */}
-        <div className="flexRow gap_12">
-          <button
-            onClick={() => setView("history")}
-            className={`button_ter flexRow gap_12 ${
-              view === "history" ? "selected" : ""
-            }`}
-          >
-            <History size={18} />
-          </button>
-
-          <button
-            onClick={() => setView("calendar")}
-            className={`button_ter flexRow gap_12 ${
-              view === "calendar" ? "selected" : ""
-            }`}
-          >
-            <Calendar size={18} />
-          </button>
         </div>
       </div>
 

@@ -89,7 +89,6 @@ export default function TradeAssistant() {
 
   return (
     <div className="tradeAssistantContainer">
-      <BackgroundBlur />
       {/* Header with Back Navigation */}
       <motion.div
         className="assistantHeader"

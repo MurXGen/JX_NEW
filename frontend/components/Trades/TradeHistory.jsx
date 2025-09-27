@@ -231,7 +231,10 @@ const TradesHistory = ({
 
   const groupTradesByDate = (tradesArray) => {
     return tradesArray.reduce((acc, trade) => {
-      const dateObj = new Date(trade.openTime);
+      // Use closeTime if exists, else openTime
+      const dateObj = trade.closeTime
+        ? new Date(trade.closeTime)
+        : new Date(trade.openTime);
       const dateKey = dateObj.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -251,10 +254,10 @@ const TradesHistory = ({
     setShowTradeModal(true); // open modal
   };
 
-  const handleFilterClick = (type) => {
-    setFilter((prev) => (prev === type ? "" : type));
-    setShowFilterMenu(false);
-  };
+  // const handleFilterClick = (type) => {
+  //   setFilter((prev) => (prev === type ? "" : type));
+  //   setShowFilterMenu(false);
+  // };
 
   const toggleDateExpansion = (dateKey) => {
     setExpandedDates((prev) => ({
@@ -263,10 +266,27 @@ const TradesHistory = ({
     }));
   };
 
+  // Expand to show all trades
   const loadMoreTrades = (dateKey, tradesForDay) => {
     setVisibleTradesCount((prev) => ({
       ...prev,
-      [dateKey]: prev[dateKey] + 3,
+      [dateKey]: tradesForDay.length, // show all
+    }));
+    setExpandedDates((prev) => ({
+      ...prev,
+      [dateKey]: true,
+    }));
+  };
+
+  // Collapse back to 3 trades
+  const collapseTrades = (dateKey) => {
+    setVisibleTradesCount((prev) => ({
+      ...prev,
+      [dateKey]: 3,
+    }));
+    setExpandedDates((prev) => ({
+      ...prev,
+      [dateKey]: false,
     }));
   };
 
@@ -289,11 +309,11 @@ const TradesHistory = ({
   };
 
   // Get position shadow color
-  const getPositionShadow = (direction) => {
-    return direction?.toLowerCase() === "long"
-      ? "0 0px 10px var(--success-20)"
-      : "0 0px 10px var(--error-20)";
-  };
+  // const getPositionShadow = (direction) => {
+  //   return direction?.toLowerCase() === "long"
+  //     ? "0 0px 10px var(--success-20)"
+  //     : "0 0px 10px var(--error-20)";
+  // };
 
   const applyFilters = (
     month = selectedMonth,
@@ -302,11 +322,10 @@ const TradesHistory = ({
   ) => {
     let filtered = Array.isArray(trades) ? [...trades] : [];
 
-    // normalize month/year to numbers or null
     const monthNum = month === "" || month === null ? null : Number(month);
     const yearNum = year === "" || year === null ? null : Number(year);
 
-    // Month/year filter
+    // Only filter if month/year selected
     if (monthNum || yearNum) {
       filtered = filtered.filter((trade) => {
         const date = new Date(trade.openTime);
@@ -316,17 +335,20 @@ const TradesHistory = ({
       });
     }
 
-    // PnL filter + sensible sorting
+    // Apply PnL filter
     if (pnlFilter === "profit") {
       filtered = filtered
         .filter((t) => Number(t.pnl) > 0)
-        .sort((a, b) => Number(b.pnl) - Number(a.pnl)); // biggest profit first
+        .sort((a, b) => Number(b.pnl) - Number(a.pnl));
     } else if (pnlFilter === "loss") {
       filtered = filtered
         .filter((t) => Number(t.pnl) < 0)
-        .sort((a, b) => Number(a.pnl) - Number(b.pnl)); // biggest loss first (more negative first)
+        .sort((a, b) => Number(a.pnl) - Number(b.pnl));
     } else if (pnlFilter === "breakeven") {
       filtered = filtered.filter((t) => Number(t.pnl) === 0);
+    } else {
+      // Default sort by openTime (newest → oldest, so future comes first)
+      filtered.sort((a, b) => new Date(b.openTime) - new Date(a.openTime));
     }
 
     setDisplayedTrades(filtered.slice(0, visibleCount));
@@ -343,61 +365,6 @@ const TradesHistory = ({
         }
       }
     >
-      {/* Filter Section */}
-      <div
-        className="filterSection flexRow gap_8"
-        style={{ marginBottom: "var(--px-16)" }}
-      >
-        <div className="flexRow gap_8" style={{ position: "relative" }}>
-          <button
-            className={`flexRow width100 gap_12 button_ter ${
-              showFilterMenu ? "active" : ""
-            }`}
-            onClick={() => setShowFilterMenu(!showFilterMenu)}
-          >
-            <Filter size={16} />
-            {filter ? `Filter: ${filter}` : "Filter"}
-          </button>
-
-          {filter && (
-            <button
-              className="button_ter flexRow"
-              onClick={() => handleFilterClick("")}
-              style={{ padding: "var(--px-8)" }}
-            >
-              <X size={16} />
-            </button>
-          )}
-
-          {showFilterMenu && (
-            <div className="filterMenu">
-              <button
-                className={`filterOption ${
-                  filter === "profit" ? "active" : ""
-                }`}
-                onClick={() => handleFilterClick("profit")}
-              >
-                Profit
-              </button>
-              <button
-                className={`filterOption ${filter === "loss" ? "active" : ""}`}
-                onClick={() => handleFilterClick("loss")}
-              >
-                Loss
-              </button>
-              <button
-                className={`filterOption ${
-                  filter === "breakeven" ? "active" : ""
-                }`}
-                onClick={() => handleFilterClick("breakeven")}
-              >
-                Breakeven
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Trades List */}
       <div className="tradesList">
         {/* Skeleton placeholder for new trade */}
@@ -412,7 +379,9 @@ const TradesHistory = ({
                 : tradesForDay.slice(0, visibleTradesCount[dateKey] || 3);
 
               const hasMoreTrades = tradesForDay.length > visibleTrades.length;
-              const firstTradeDate = new Date(tradesForDay[0].openTime);
+
+              // Use dateKey as the header date
+              const headerDate = new Date(dateKey);
 
               return (
                 <div
@@ -432,32 +401,18 @@ const TradesHistory = ({
                   >
                     <div className="flexRow gap_12">
                       <span className="dayPart">
-                        {firstTradeDate.toLocaleDateString("en-US", {
+                        {headerDate.toLocaleDateString("en-US", {
                           weekday: "short",
                         })}
                       </span>
                       <span className="datePart">
-                        {firstTradeDate.toLocaleDateString("en-US", {
+                        {headerDate.toLocaleDateString("en-US", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })}
                       </span>
                     </div>
-
-                    <button
-                      className="button_ter"
-                      onClick={() => toggleDateExpansion(dateKey)}
-                      aria-label={
-                        expandedDates[dateKey] ? "Collapse" : "Expand"
-                      }
-                    >
-                      {expandedDates[dateKey] ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </button>
                   </motion.div>
 
                   {/* Trades List */}
@@ -494,9 +449,23 @@ const TradesHistory = ({
                                 {trade.symbol || "N/A"}
                               </span>
 
-                              {/* Close Time */}
-                              <span className="font_12 shade_50">
-                                {formatTime(trade.closeTime)}
+                              {/* Open & Close Time */}
+                              <span className="font_12 shade_50 gap_8">
+                                {formatTime(trade.openTime)} {" → "}
+                                {trade.closeTime ? (
+                                  <>
+                                    {formatTime(trade.closeTime)}
+                                    {trade.duration > 0 && (
+                                      <span style={{ paddingLeft: "4px" }}>
+                                        | {trade.duration}hr
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="flex">
+                                    <span className="pulseDot"></span> Active
+                                  </span>
+                                )}
                               </span>
                             </div>
                           </div>
@@ -512,18 +481,31 @@ const TradesHistory = ({
                       </motion.div>
                     ))}
                   </AnimatePresence>
-
-                  {/* Load More Button */}
-                  {hasMoreTrades && !expandedDates[dateKey] && (
+                  {/* Load More / Show Less Button */}
+                  {tradesForDay.length > 3 && (
                     <motion.button
-                      className="loadMoreButton"
-                      onClick={() => loadMoreTrades(dateKey, tradesForDay)}
+                      className="button_ter flexRow flex_center gap_4"
+                      onClick={
+                        () =>
+                          expandedDates[dateKey]
+                            ? collapseTrades(dateKey) // Collapse back to 3
+                            : loadMoreTrades(dateKey, tradesForDay) // Show all
+                      }
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      Load more ({tradesForDay.length - visibleTrades.length}{" "}
-                      remaining)
+                      {expandedDates[dateKey] ? (
+                        <>
+                          Show less <ArrowUp size={16} />
+                        </>
+                      ) : (
+                        <>
+                          <ArrowDown size={16} /> Show all (
+                          {tradesForDay.length - visibleTrades.length}{" "}
+                          remaining)
+                        </>
+                      )}
                     </motion.button>
                   )}
                 </div>

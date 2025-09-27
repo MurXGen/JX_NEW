@@ -63,8 +63,11 @@ export default function Home() {
   const calculateStats = (accountTrades) => {
     const pnlValues = accountTrades.map((t) => t.pnl || 0);
 
-    // 🔹 Net PnL (sum of all trades)
     const netPnL = pnlValues.reduce((sum, p) => sum + p, 0);
+    const totalFees = accountTrades.reduce(
+      (sum, trade) => sum + (trade.feeAmount || 0),
+      0
+    );
 
     const maxProfit = Math.max(...pnlValues.filter((p) => p > 0), 0);
     const maxLoss = Math.min(...pnlValues.filter((p) => p < 0), 0);
@@ -92,7 +95,7 @@ export default function Home() {
     const winTrades = accountTrades.filter((t) => t.pnl > 0).length;
     const loseTrades = accountTrades.filter((t) => t.pnl < 0).length;
 
-    // best/worst time ranges
+    // 🔹 Best / Worst Time calculation
     const timeRanges = [
       { label: "Night", start: 0, end: 6 },
       { label: "Morning", start: 6, end: 12 },
@@ -100,37 +103,46 @@ export default function Home() {
       { label: "Evening", start: 18, end: 24 },
     ];
 
-    const pnlByTimeRange = {
-      Night: 0,
-      Morning: 0,
-      Afternoon: 0,
-      Evening: 0,
-    };
+    const pnlByTimeRange = { Night: 0, Morning: 0, Afternoon: 0, Evening: 0 };
 
     accountTrades.forEach((trade) => {
-      const date = new Date(trade.closeTime);
-      const hour = date.getHours();
+      const hour = new Date(trade.closeTime || trade.openTime).getHours();
       const range = timeRanges.find((r) => hour >= r.start && hour < r.end);
-      if (range) pnlByTimeRange[range.label] += trade.pnl || 0;
+
+      if (range) {
+        pnlByTimeRange[range.label] += trade.pnl || 0;
+      }
     });
+
+    // Determine best and worst times
+    const bestEntry = Object.entries(pnlByTimeRange).reduce(
+      (a, b) => (b[1] > a[1] ? b : a),
+      ["Not available", 0]
+    );
+
+    const worstEntry = Object.entries(pnlByTimeRange).reduce(
+      (a, b) => (b[1] < a[1] ? b : a),
+      ["Not available", 0]
+    );
+
+    let bestTime = "Not available";
+    let worstTime = "Not available";
+
+    if (bestEntry[1] > 0) bestTime = bestEntry[0];
+    if (worstEntry[1] < 0) worstTime = worstEntry[0];
 
     const winRatio = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
     const averagePnL = totalTrades > 0 ? netPnL / totalTrades : 0;
-
-    const bestTimeLabel = Object.entries(pnlByTimeRange).reduce((a, b) =>
-      b[1] > a[1] ? b : a
-    )[0];
-    const worstTimeLabel = Object.entries(pnlByTimeRange).reduce((a, b) =>
-      b[1] < a[1] ? b : a
-    )[0];
 
     const totalVolume = accountTrades.reduce(
       (sum, trade) => sum + (trade.totalQuantity || 0),
       0
     );
 
-    // daily data
+    // daily aggregations
     const dailyPnL = {};
+    const dailyVolume = {};
+
     accountTrades.forEach((trade) => {
       const date = new Date(
         trade.closeTime || trade.openTime
@@ -139,14 +151,33 @@ export default function Home() {
         month: "short",
         year: "numeric",
       });
+
       dailyPnL[date] = (dailyPnL[date] || 0) + (trade.pnl || 0);
+
+      const qty = trade.totalQuantity || 0;
+      if (!dailyVolume[date]) {
+        dailyVolume[date] = { longVolume: 0, shortVolume: 0 };
+      }
+
+      if (trade.direction?.toLowerCase() === "long") {
+        dailyVolume[date].longVolume += qty;
+      } else if (trade.direction?.toLowerCase() === "short") {
+        dailyVolume[date].shortVolume += qty;
+      }
     });
 
     const dailyData = Object.entries(dailyPnL)
       .map(([date, pnl]) => ({ date, pnl }))
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Greed & Fear
+    const dailyVolumeData = Object.entries(dailyVolume)
+      .map(([date, { longVolume, shortVolume }]) => ({
+        date,
+        longVolume,
+        shortVolume,
+      }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
     let gfIndex = 50;
     last10.forEach((trade) => {
       if (trade.pnl > 0) gfIndex += 5;
@@ -155,8 +186,52 @@ export default function Home() {
     gfIndex = Math.max(0, Math.min(100, gfIndex));
     const gfLabel = gfIndex < 50 ? "Fear" : gfIndex > 50 ? "Greed" : "Neutral";
 
+    // For reasons
+
+    // 🔹 Tag/Reason Analysis
+    const tagAnalysis = {};
+
+    accountTrades.forEach((trade) => {
+      const reasons = trade.reason || [];
+      const pnl = trade.pnl || 0;
+      const isWin = pnl > 0;
+      const isLoss = pnl < 0;
+
+      reasons.forEach((reason) => {
+        if (!tagAnalysis[reason]) {
+          tagAnalysis[reason] = {
+            tag: reason,
+            totalTrades: 0,
+            winTrades: 0,
+            loseTrades: 0,
+            totalPnL: 0,
+            avgPnL: 0,
+            winRate: 0,
+          };
+        }
+
+        tagAnalysis[reason].totalTrades++;
+        tagAnalysis[reason].totalPnL += pnl;
+
+        if (isWin) tagAnalysis[reason].winTrades++;
+        if (isLoss) tagAnalysis[reason].loseTrades++;
+      });
+    });
+
+    // Calculate derived metrics for each tag
+    Object.values(tagAnalysis).forEach((tag) => {
+      tag.avgPnL = tag.totalTrades > 0 ? tag.totalPnL / tag.totalTrades : 0;
+      tag.winRate =
+        tag.totalTrades > 0 ? (tag.winTrades / tag.totalTrades) * 100 : 0;
+    });
+
+    // Sort tags by total PnL (most profitable first)
+    const sortedTagAnalysis = Object.values(tagAnalysis).sort(
+      (a, b) => b.totalPnL - a.totalPnL
+    );
+
     setStats({
-      netPnL, // 🔹 sum of all trades
+      netPnL,
       maxProfit,
       maxLoss,
       totalTrades,
@@ -165,13 +240,16 @@ export default function Home() {
       winTrades,
       loseTrades,
       dailyData,
+      dailyVolumeData,
       last10,
       greedFear: { value: gfIndex, label: gfLabel },
-      bestTime: bestTimeLabel,
-      worstTime: worstTimeLabel,
+      bestTime,
+      worstTime,
       winRatio: winRatio.toFixed(2),
       averagePnL: averagePnL.toFixed(2),
       totalVolume,
+      totalFees,
+      tagAnalysis: sortedTagAnalysis,
     });
   };
 
@@ -214,7 +292,14 @@ export default function Home() {
 
       {/* Tab Content */}
       {activeTab === "overview" && <Overview stats={stats} trades={trades} />}
-      {activeTab === "longshorts" && <LongShorts trades={trades} />}
+      {activeTab === "longshorts" && (
+        <LongShorts
+          stats={stats}
+          longTrades={trades.filter((t) => t.direction === "long")}
+          shortTrades={trades.filter((t) => t.direction === "short")}
+        />
+      )}
+
       {activeTab === "ticker" && <TickerAnalysis trades={trades} />}
       {activeTab === "news" && <MarketNews />}
 

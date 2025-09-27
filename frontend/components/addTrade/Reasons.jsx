@@ -43,11 +43,11 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
     <div className="tradeGrid flexClm">
       <label className="label">{label}</label>
 
-      <div className="flexClm gap_12">
+      <div className="flexClm gap_32">
         {/* Reasons Row */}
         <div
           className="flexRow removeScrollBar gap_8"
-          style={{ overflowX: "auto" }}
+          style={{ flexWrap: "wrap" }}
         >
           {allReasons.map((reason) => {
             const isSelected = value.includes(reason);
@@ -55,7 +55,7 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
               <button
                 key={reason}
                 type="button"
-                className={`button_sec flexRow flex_center gap_8 ${
+                className={`button_ter flexRow flex_center gap_8 ${
                   isSelected ? "selected" : ""
                 }`}
                 onClick={() =>
@@ -71,7 +71,7 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
           {/* Add / Toggle Input button */}
           <button
             type="button"
-            className="button_sec flexRow flex_center gap_8"
+            className="button_ter flexRow flex_center gap_8"
             onClick={() => setShowCustomInput((prev) => !prev)}
           >
             {showCustomInput ? <Minus size={16} /> : <Plus size={16} />} Add
@@ -80,7 +80,7 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
 
         {/* Custom input (only when Add is clicked) */}
         {showCustomInput && (
-          <div className="flexRow gap_4" style={{ width: "60%" }}>
+          <div className="flexRow gap_8">
             <input
               ref={inputRef}
               type="text"

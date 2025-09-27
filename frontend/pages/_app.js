@@ -1,14 +1,30 @@
 // pages/_app.jsx
 import "@/styles/globals.css";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 export default function MyApp({ Component, pageProps }) {
+  // Prevent desktop keyboard zoom (Ctrl + / Ctrl - / Ctrl =)
+  useEffect(() => {
+    const preventZoom = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === "+" || e.key === "-" || e.key === "=") {
+          e.preventDefault();
+        }
+      }
+    };
+    window.addEventListener("keydown", preventZoom);
+    return () => window.removeEventListener("keydown", preventZoom);
+  }, []);
+
   return (
     <>
       <Head>
         <title>TradeWings</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
         <link rel="icon" href="/images/trade.svg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link

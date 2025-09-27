@@ -88,8 +88,14 @@ export default function AddTrade() {
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
-    openTime: getLocalDateTime(), // current local datetime
-    closeTime: null, // current local datetime
+    openTime: getLocalDateTime(),
+    closeTime: null,
+
+    // Fee Fields
+    feeType: "percent", // "percent" or "currency"
+    feeValue: "",
+    feeAmount: 0,
+    pnlAfterFee: 0,
 
     // Images
     openImage: null,
@@ -122,11 +128,17 @@ export default function AddTrade() {
         return "At least one entry is required";
 
       if (form.tradeStatus === "closed") {
-        // Exits required for closed trades
-        if (!form.exits || form.exits.length === 0 || !form.exits[0].price)
-          return "At least one exit is required";
+        // Check if at least one exit has a valid price or percent
+        const hasValidExit =
+          form.exits &&
+          form.exits.some(
+            (exit) =>
+              (exit.price !== "" && exit.price !== null) ||
+              (exit.percent !== "" && exit.percent !== null)
+          );
 
-        // ✅ CloseTime required for closed trades
+        if (!hasValidExit) return "At least one exit is required";
+
         if (!form.closeTime) return "Close time is required for closed trades";
       }
 
@@ -154,7 +166,7 @@ export default function AddTrade() {
     }
 
     // Duration must be positive
-    if (form.duration < 0) return "Duration should be positive";
+    // if (form.duration < 0) return "Duration should be positive";
 
     // ✅ CloseTime can’t be before OpenTime (only if both exist)
     if (form.closeTime && form.openTime) {
@@ -198,9 +210,29 @@ export default function AddTrade() {
           }
         }
 
+        // Calculate fee values if they don't exist in the trade data
+        // (for backward compatibility with existing trades)
+        let feeAmount = tradeData.feeAmount || 0;
+        let pnlAfterFee = tradeData.pnlAfterFee || 0;
+
+        // If fee data exists but pnlAfterFee doesn't, calculate it
+        if (tradeData.feeType && tradeData.feeValue && !tradeData.pnlAfterFee) {
+          feeAmount =
+            tradeData.feeType === "percent"
+              ? (tradeData.totalQuantity || 0) * (tradeData.feeValue / 100)
+              : tradeData.feeValue;
+          pnlAfterFee = (tradeData.pnl || 0) - feeAmount;
+        }
+
         setForm({
           ...form,
           ...tradeData,
+          // Fee fields with fallback values
+          feeType: tradeData.feeType || "",
+          feeValue: tradeData.feeValue || "",
+          feeAmount: feeAmount,
+          pnlAfterFee: pnlAfterFee,
+
           reason: parsedReason, // ✅ fix here
           openTime: tradeData.openTime
             ? getLocalDateTime(new Date(tradeData.openTime))
@@ -339,12 +371,42 @@ export default function AddTrade() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setForm((prev) => {
-      const updated = { ...prev, [name]: value };
+      let updated = { ...prev, [name]: value };
+
+      // ✅ Update totalQuantity when quantityUSD or leverage changes
       if (name === "quantityUSD" || name === "leverage") {
         updated.totalQuantity =
           (Number(updated.quantityUSD) || 0) * (Number(updated.leverage) || 0);
       }
+
+      // ✅ Clear certain fields when tradeStatus changes
+      if (name === "tradeStatus") {
+        const shouldClearFields = true; // replace with your actual condition if needed
+
+        if (shouldClearFields) {
+          updated = {
+            ...updated,
+            entries: [{ price: "", allocation: "100" }],
+            exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
+            tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
+            sls: [{ mode: "price", price: "", percent: "", allocation: "" }],
+            rulesFollowed: false,
+            avgEntryPrice: "",
+            avgExitPrice: "",
+            avgSLPrice: "",
+            avgTPPrice: "",
+            duration: 0,
+            rr: "",
+            pnl: "",
+            expectedProfit: 0,
+            expectedLoss: 0,
+            closeTime: null,
+          };
+        }
+      }
+
       return updated;
     });
   };
@@ -705,9 +767,46 @@ export default function AddTrade() {
   const handleSubmit = async (e) => {
     if (e?.preventDefault) e.preventDefault();
 
-    const validationError = validateForm(form);
+    const totalQuantity = parseFloat(form.totalQuantity) || 0;
+    const pnl = parseFloat(form.pnl) || 0;
+
+    let entryFee = 0;
+    let exitFee = 0;
+    let feeAmount = 0;
+    let pnlAfterFee = pnl;
+
+    if (form.feeType && form.feeValue) {
+      if (form.feeType === "percent") {
+        // Entry fee is always calculated on total quantity
+        entryFee = totalQuantity * (form.feeValue / 100);
+
+        // Exit fee calculated only if pnl is available
+        if (pnl) {
+          exitFee = (totalQuantity + pnl) * (form.feeValue / 100);
+        }
+      } else if (form.feeType === "currency") {
+        entryFee = parseFloat(form.feeValue);
+        // Only charge exit fee if pnl exists
+        if (pnl) exitFee = parseFloat(form.feeValue);
+      }
+
+      feeAmount = entryFee + exitFee;
+
+      // PnL after fees
+      pnlAfterFee = pnl
+        ? totalQuantity + pnl - feeAmount
+        : totalQuantity - feeAmount;
+    }
+
+    const updatedForm = {
+      ...form,
+      feeAmount,
+      pnlAfterFee,
+    };
+
+    const validationError = validateForm(updatedForm);
     if (validationError) {
-      setToast(null); // reset first
+      setToast(null);
       setTimeout(() => {
         setToast({ type: "error", message: validationError });
       }, 0);
@@ -718,9 +817,8 @@ export default function AddTrade() {
 
     try {
       // Save serializable form data in session/local storage
-      // keep openImage/closeImage fields as null so form JSON is serializable
       const serializable = {
-        ...form,
+        ...updatedForm,
         openImage: null,
         closeImage: null,
       };
@@ -732,7 +830,6 @@ export default function AddTrade() {
       sessionStorage.setItem("newTradeData", JSON.stringify(serializable));
       sessionStorage.setItem("isEditTrade", isEdit ? "true" : "false");
 
-      // redirect to /trade to let TradesHistory pick up and submit
       router.push({
         pathname: "/trade",
         query: { isNewTrade: "true" },
@@ -1013,7 +1110,7 @@ export default function AddTrade() {
       {loading && <FullPageLoader />}
 
       <div
-        className="popups_btm flexRow flexRow_stretch gap_4"
+        className="popups_btm flexRow flexRow_stretch gap_8"
         style={{
           width: "90%",
           backdropFilter: "blur(20px)",

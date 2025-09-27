@@ -8,7 +8,7 @@ export const processPnLCandles = (trades) => {
   trades.forEach((trade) => {
     // Extract date part only (ignore time)
     // New: use browser local date
-    const d = new Date(trade.openTime);
+    const d = new Date(trade.closeTime);
     const date = `${d.getFullYear()}-${(d.getMonth() + 1)
       .toString()
       .padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
