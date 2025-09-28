@@ -2023,6 +2023,238 @@ footer {
   }
 }
 
+/* For Reason analysis */
+
+@media (min-width: 0px) {
+  .tag-analysis-container {
+    padding: var(--px-20);
+    margin: var(--px-16) 0;
+  }
+
+  .tag-analysis-header {
+    margin-bottom: var(--px-20);
+  }
+
+  .tag-analysis-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--px-12);
+  }
+
+  .view-toggle {
+    background: var(--white-10);
+    border-radius: var(--px-8);
+    padding: var(--px-4);
+  }
+
+  .toggle-btn {
+    background: transparent;
+    border: none;
+    padding: var(--px-8) var(--px-12);
+    border-radius: var(--px-6);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    color: white;
+  }
+
+  .toggle-btn.active {
+    background: var(--primary);
+  }
+
+  .sort-select {
+    background: var(--white-10);
+    border: 1px solid var(--white-20);
+    border-radius: var(--px-8);
+    padding: var(--px-8) var(--px-12);
+    color: var(--base-text);
+    font-size: var(--px-12);
+    outline: none;
+  }
+
+  .tag-charts-container {
+    display: flex;
+    flex-direction: row;
+    gap: var(--px-20);
+    flex-wrap: wrap; /* ✅ allows wrapping instead of overflow */
+    width: 100%; /* ✅ make sure container itself stays inside */
+    box-sizing: border-box;
+  }
+
+  .chart-section {
+    background: var(--base-box-bg);
+    border-radius: var(--px-12);
+    padding: var(--px-16);
+    position: relative;
+    flex: 1; /* ✅ let it shrink/grow inside container */
+    min-width: 280px; /* ✅ prevent chart from shrinking too small */
+    box-sizing: border-box;
+  }
+
+  .chart-title {
+    text-align: center;
+    margin-bottom: var(--px-12);
+    color: var(--white-80);
+    font-weight: var(--weight-600);
+  }
+
+  /* Color Legend */
+  .color-legend {
+    margin-top: var(--px-16);
+    padding-top: var(--px-12);
+    border-top: 1px solid var(--white-10);
+  }
+
+  .legend-title {
+    text-align: center;
+    margin-bottom: var(--px-8);
+    color: var(--white-50);
+    font-weight: var(--weight-600);
+  }
+
+  .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--px-12);
+    justify-content: center;
+  }
+
+  .legend-item {
+    align-items: center;
+  }
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--white-10);
+  }
+
+  .legend-label {
+    color: var(--white-80);
+    font-size: var(--px-10);
+  }
+
+  /* Tooltip Styles */
+  .tooltip-container {
+    padding: var(--px-12);
+    min-width: 160px;
+  }
+
+  .tooltip-header {
+    align-items: center;
+    margin-bottom: var(--px-8);
+  }
+
+  .color-badge {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--white-20);
+  }
+
+  .tooltip-stats span {
+    font-size: var(--px-11);
+  }
+
+  /* List View Styles */
+  .tag-list-header {
+    background: var(--white-10);
+    padding: var(--px-12) var(--px-16);
+    border-radius: var(--px-8);
+    margin-bottom: var(--px-8);
+    font-weight: var(--weight-600);
+  }
+
+  .tag-item {
+    background: var(--base-box-bg);
+    padding: var(--px-16);
+    border-radius: var(--px-8);
+    margin-bottom: var(--px-8);
+    border: 1px solid var(--white-10);
+    transition: all 0.3s ease;
+  }
+
+  .tag-item:hover {
+    border-color: var(--primary-50);
+    transform: translateY(-1px);
+  }
+
+  .tag-name-container {
+    align-items: center;
+  }
+
+  .tag-color-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .tag-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-4);
+  }
+
+  .winrate-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--white-10);
+    border-radius: 2px;
+    margin-top: var(--px-4);
+  }
+
+  .winrate-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  /* Summary Stats */
+  .tag-summary {
+    background: var(--white-10);
+    padding: var(--px-16);
+    border-radius: var(--px-12);
+    margin-top: var(--px-20);
+  }
+
+  .summary-item {
+    text-align: center;
+  }
+
+  .summary-value {
+    font-weight: var(--weight-700);
+    margin-bottom: var(--px-4);
+  }
+
+  .summary-label {
+    color: var(--white-50);
+  }
+
+  /* Empty State */
+  .tag-analysis-empty {
+    text-align: center;
+    padding: var(--px-40) var(--px-20);
+    color: var(--white-50);
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: var(--px-16);
+  }
+
+  .empty-title {
+    font-size: var(--px-16);
+    font-weight: var(--weight-600);
+    margin-bottom: var(--px-8);
+  }
+
+  .empty-description {
+    font-size: var(--px-12);
+  }
+}
+
 /* fortrade assist */
 
 @media (min-width: 0px) {
@@ -2417,6 +2649,16 @@ footer {
   .imagesGrid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
+
+  .tag-charts-container {
+    flex-direction: column;
+    gap: var(--px-16);
+  }
+
+  .chart-section {
+    width: 100%; /* ✅ take full width in column layout */
+    min-width: auto; /* ✅ remove fixed min size */
+  }
 }
 
 @media (max-width: 480px) {
@@ -2643,321 +2885,99 @@ footer {
   border: none !important;
 }
 
-.stepWizard {
-  position: relative;
-}
-/* 
+/* For stepper */
+
+@media (min-width: 0px) {
+  .stepWizard {
+    position: relative;
+  }
+  /* 
 .stepNavigation {
   position: absolute;
   top: 20px;
 } */
 
-.stepperProgress {
-  width: 100%;
-  height: 6px;
-  background: var(--white-10);
-  border-radius: var(--px-12);
-  position: relative;
-}
+  .stepperProgress {
+    width: 100%;
+    height: 6px;
+    background: var(--white-10);
+    border-radius: var(--px-12);
+    position: relative;
+  }
 
-.stepperProgressBar {
-  height: 100%;
-  background: var(--primary);
-  border-radius: var(--px-12);
-  transition: width 0.3s ease;
-}
+  .stepperProgressBar {
+    height: 100%;
+    background: var(--primary);
+    border-radius: var(--px-12);
+    transition: width 0.3s ease;
+  }
 
-.stepperSliderDot {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--primary);
-  cursor: pointer;
-  transition: left 0.2s ease;
-  z-index: 2;
-}
+  .stepperSliderDot {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    transition: left 0.2s ease;
+    z-index: 2;
+  }
 
-.stepper-scroll-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
-  position: relative;
-  border-bottom: 1px dashed var(--white-10);
-}
+  .stepper-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    position: relative;
+    border-bottom: 1px dashed var(--white-10);
+  }
 
-.stepperContainer {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: var(--px-24);
-  padding: 16px 8px;
-}
+  .stepperContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--px-24);
+    padding: 16px 8px;
+  }
 
-.stepperItem {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
+  .stepperItem {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
 
-.stepperDot {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--white-10);
-  color: var(--base-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--weight-600);
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
+  .stepperDot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--white-10);
+    color: var(--base-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--weight-600);
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
 
-.stepperItem.active .stepperDot {
-  background: var(--primary);
-  color: var(--base-bg);
-  transform: scale(1.3); /* bigger active */
-}
+  .stepperItem.active .stepperDot {
+    background: var(--primary);
+    color: var(--base-bg);
+    transform: scale(1.3); /* bigger active */
+  }
 
-.stepperLabel {
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--white-50);
-  text-align: center;
-  max-width: 70px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
-/* For Reason analysis */
-
-/* Tag Analysis Styles */
-.tag-analysis-container {
-  padding: var(--px-20);
-  margin: var(--px-16) 0;
-}
-
-.tag-analysis-header {
-  margin-bottom: var(--px-20);
-}
-
-.tag-analysis-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--px-12);
-}
-
-.view-toggle {
-  background: var(--white-10);
-  border-radius: var(--px-8);
-  padding: var(--px-4);
-}
-
-.toggle-btn {
-  background: transparent;
-  border: none;
-  padding: var(--px-8) var(--px-12);
-  border-radius: var(--px-6);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  color: white;
-}
-
-.toggle-btn.active {
-  background: var(--primary);
-}
-
-.sort-select {
-  background: var(--white-10);
-  border: 1px solid var(--white-20);
-  border-radius: var(--px-8);
-  padding: var(--px-8) var(--px-12);
-  color: var(--base-text);
-  font-size: var(--px-12);
-  outline: none;
-}
-
-.tag-charts-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--px-20);
-  margin-bottom: var(--px-20);
-}
-
-.chart-section {
-  background: var(--base-box-bg);
-  border-radius: var(--px-12);
-  padding: var(--px-16);
-  position: relative;
-}
-
-.chart-title {
-  text-align: center;
-  margin-bottom: var(--px-12);
-  color: var(--white-80);
-  font-weight: var(--weight-600);
-}
-
-/* Color Legend */
-.color-legend {
-  margin-top: var(--px-16);
-  padding-top: var(--px-12);
-  border-top: 1px solid var(--white-10);
-}
-
-.legend-title {
-  text-align: center;
-  margin-bottom: var(--px-8);
-  color: var(--white-50);
-  font-weight: var(--weight-600);
-}
-
-.legend-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--px-12);
-  justify-content: center;
-}
-
-.legend-item {
-  align-items: center;
-}
-
-.legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--white-10);
-}
-
-.legend-label {
-  color: var(--white-80);
-  font-size: var(--px-10);
-}
-
-/* Tooltip Styles */
-.tooltip-container {
-  padding: var(--px-12);
-  min-width: 160px;
-}
-
-.tooltip-header {
-  align-items: center;
-  margin-bottom: var(--px-8);
-}
-
-.color-badge {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--white-20);
-}
-
-.tooltip-stats span {
-  font-size: var(--px-11);
-}
-
-/* List View Styles */
-.tag-list-header {
-  background: var(--white-10);
-  padding: var(--px-12) var(--px-16);
-  border-radius: var(--px-8);
-  margin-bottom: var(--px-8);
-  font-weight: var(--weight-600);
-}
-
-.tag-item {
-  background: var(--base-box-bg);
-  padding: var(--px-16);
-  border-radius: var(--px-8);
-  margin-bottom: var(--px-8);
-  border: 1px solid var(--white-10);
-  transition: all 0.3s ease;
-}
-
-.tag-item:hover {
-  border-color: var(--primary-50);
-  transform: translateY(-1px);
-}
-
-.tag-name-container {
-  align-items: center;
-}
-
-.tag-color-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.tag-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--px-4);
-}
-
-.winrate-bar {
-  width: 100%;
-  height: 4px;
-  background: var(--white-10);
-  border-radius: 2px;
-  margin-top: var(--px-4);
-}
-
-.winrate-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-/* Summary Stats */
-.tag-summary {
-  background: var(--white-10);
-  padding: var(--px-16);
-  border-radius: var(--px-12);
-  margin-top: var(--px-20);
-}
-
-.summary-item {
-  text-align: center;
-}
-
-.summary-value {
-  font-weight: var(--weight-700);
-  margin-bottom: var(--px-4);
-}
-
-.summary-label {
-  color: var(--white-50);
-}
-
-/* Empty State */
-.tag-analysis-empty {
-  text-align: center;
-  padding: var(--px-40) var(--px-20);
-  color: var(--white-50);
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: var(--px-16);
-}
-
-.empty-title {
-  font-size: var(--px-16);
-  font-weight: var(--weight-600);
-  margin-bottom: var(--px-8);
-}
-
-.empty-description {
-  font-size: var(--px-12);
+  .stepperLabel {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--white-50);
+    text-align: center;
+    max-width: 70px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
 }

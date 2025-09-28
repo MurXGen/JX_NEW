@@ -37,9 +37,14 @@ const Navbar = () => {
         </div>
       </div>
 
-      <button onClick={toggleDarkMode} className="button_ter flexRow ">
-        {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-      </button>
+      <div className="view-toggle flexRow gap_8">
+        <button
+          onClick={toggleDarkMode}
+          className="toggle-btn flexRow flex_center"
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
     </div>
   );
 };

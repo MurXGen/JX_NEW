@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { formatCurrency, formatNumber } from "@/utils/formatNumbers";
 import { BarChart3, ListIcon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const TagAnalysis = ({ tagAnalysis }) => {
   const [viewMode, setViewMode] = useState("chart"); // "chart" or "list"
@@ -177,9 +178,8 @@ const TagAnalysis = ({ tagAnalysis }) => {
                 className="legend-badge font_12 flexRow gap_4"
                 style={{
                   backgroundColor: color + "20",
-                  border: `1px solid ${color}`,
                   borderRadius: "12px",
-                  padding: "2px 8px",
+                  padding: "8px 8px",
                 }}
               >
                 <div
@@ -192,7 +192,9 @@ const TagAnalysis = ({ tagAnalysis }) => {
                   }}
                 />
                 <span className="legend-label font_10" style={{ color: color }}>
-                  {tag.name}
+                  {Array.isArray(tag.originalName)
+                    ? tag.originalName.join(" | ")
+                    : tag.name}
                 </span>
               </div>
             </div>
@@ -239,101 +241,119 @@ const TagAnalysis = ({ tagAnalysis }) => {
       </div>
 
       {/* Content */}
-      <div className="tag-analysis-content">
-        {viewMode === "chart" ? (
-          <div className="tag-charts-container">
-            {/* PnL Distribution Pie Chart with Legend below */}
-            <div className="chart-section">
-              <div className="chart-title font_12">PnL Distribution by Tag</div>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
+      <AnimatePresence mode="wait">
+        <div className="tag-analysis-content">
+          {viewMode === "chart" ? (
+            <motion.div
+              key="chart"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="tag-charts-container"
+            >
+              {/* PnL Distribution Pie Chart with Legend below */}
+              <div className="chart-section">
+                <div className="chart-title font_12">
+                  PnL Distribution by Tag
+                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<BarTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Color Legend below Pie Chart */}
+                <ColorLegend />
+              </div>
+
+              {/* Performance Bar Chart with PNL-style design */}
+              <div className="chart-section">
+                <div className="chart-title font_12">Performance by Tag</div>
+                <ResponsiveContainer width="100%" height={330}>
+                  <BarChart
                     data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
+                    margin={{ top: 20, right: 10, left: 10, bottom: 40 }}
+                    barCategoryGap="30%"
                   >
-                    {chartData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<BarTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
+                    <defs>
+                      {/* ✅ Same gradients as PNLChart */}
+                      <linearGradient
+                        id="tagPositive"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#22C55E"
+                          stopOpacity={0.9}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#22C55E80"
+                          stopOpacity={0.5}
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="tagNegative"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#EF4444"
+                          stopOpacity={0.9}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#EF444480"
+                          stopOpacity={0.5}
+                        />
+                      </linearGradient>
+                    </defs>
 
-              {/* Color Legend below Pie Chart */}
-              <ColorLegend />
-            </div>
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      interval={0}
+                      height={10}
+                      tick={({ x, y, payload, index }) => {
+                        const color = COLORS[index % COLORS.length];
 
-            {/* Performance Bar Chart with PNL-style design */}
-            <div className="chart-section">
-              <div className="chart-title font_12">Performance by Tag</div>
-              <ResponsiveContainer width="100%" height={330}>
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 20, right: 10, left: 10, bottom: 40 }}
-                  barCategoryGap="30%"
-                >
-                  <defs>
-                    {/* ✅ Same gradients as PNLChart */}
-                    <linearGradient
-                      id="tagPositive"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#22C55E" stopOpacity={0.9} />
-                      <stop
-                        offset="100%"
-                        stopColor="#22C55E80"
-                        stopOpacity={0.5}
-                      />
-                    </linearGradient>
-                    <linearGradient
-                      id="tagNegative"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#EF4444" stopOpacity={0.9} />
-                      <stop
-                        offset="100%"
-                        stopColor="#EF444480"
-                        stopOpacity={0.5}
-                      />
-                    </linearGradient>
-                  </defs>
-
-                  <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                    height={10}
-                    tick={({ x, y, payload, index }) => {
-                      const color = COLORS[index % COLORS.length];
-
-                      return (
-                        <g transform={`translate(${x},${y})`}>
-                          {/* Dot exactly centered under bar */}
-                          <circle
-                            cx={0}
-                            cy={10}
-                            r={4}
-                            fill={color}
-                            stroke="#374151"
-                            strokeWidth={1}
-                          />
-                          {/* Tag label below the dot */}
-                          {/* <text
+                        return (
+                          <g transform={`translate(${x},${y})`}>
+                            {/* Dot exactly centered under bar */}
+                            <circle
+                              cx={0}
+                              cy={10}
+                              r={6}
+                              fill={color}
+                              stroke="#374151"
+                              strokeWidth={1}
+                            />
+                            {/* Tag label below the dot */}
+                            {/* <text
                             x={0}
                             y={28}
                             textAnchor="middle"
@@ -344,113 +364,121 @@ const TagAnalysis = ({ tagAnalysis }) => {
                               ? payload.value.substring(0, 8) + "..."
                               : payload.value}
                           </text> */}
-                        </g>
-                      );
-                    }}
-                  />
+                          </g>
+                        );
+                      }}
+                    />
 
-                  <YAxis
-                    tickFormatter={formatCurrency}
-                    tick={{ fontSize: 12, fill: "#ccc" }}
-                    width={60}
-                  />
+                    <YAxis
+                      tickFormatter={formatCurrency}
+                      tick={{ fontSize: 12, fill: "#ccc" }}
+                      width={60}
+                    />
 
-                  <Tooltip
-                    content={<BarTooltip />}
-                    cursor={{ fill: "#ffffff10" }}
-                  />
+                    <Tooltip
+                      content={<BarTooltip />}
+                      cursor={{ fill: "#ffffff10" }}
+                    />
 
-                  <ReferenceLine y={0} stroke="#aaa" strokeDasharray="3 3" />
+                    <ReferenceLine y={0} stroke="#aaa" strokeDasharray="3 3" />
 
-                  {/* Bars with green/red gradient fill */}
-                  <Bar dataKey="value" radius={[12, 12, 0, 0]} barSize={30}>
-                    {chartData.map((entry, i) => (
-                      <Cell
-                        key={`bar-cell-${i}`}
-                        fill={
-                          entry.value >= 0
-                            ? "url(#tagPositive)"
-                            : "url(#tagNegative)"
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        ) : (
-          <div className="tag-list-container">
-            <div className="tag-list-header flexRow font_12">
-              <span style={{ flex: 2 }}>Tag</span>
-              <span style={{ flex: 1, textAlign: "center" }}>Trades</span>
-              <span style={{ flex: 1, textAlign: "center" }}>Win Rate</span>
-              <span style={{ flex: 1, textAlign: "right" }}>Total PnL</span>
-            </div>
-
-            <div className="tag-list">
-              {sortedData.map((tag, index) => {
-                const color = COLORS[index % COLORS.length];
-                return (
-                  <div key={tag.tag} className="tag-item flexRow">
-                    <div className="tag-info" style={{ flex: 2 }}>
-                      <div className="tag-name-container flexRow gap_8">
-                        <div
-                          className="tag-color-indicator"
-                          style={{ backgroundColor: color }}
+                    {/* Bars with green/red gradient fill */}
+                    <Bar dataKey="value" radius={[12, 12, 0, 0]} barSize={30}>
+                      {chartData.map((entry, i) => (
+                        <Cell
+                          key={`bar-cell-${i}`}
+                          fill={
+                            entry.value >= 0
+                              ? "url(#tagPositive)"
+                              : "url(#tagNegative)"
+                          }
                         />
-                        <div className="tag-name font_14">
-                          {tag.formattedTag}
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="tag-list-container"
+            >
+              <div className="tag-list-header flexRow font_12">
+                <span style={{ flex: 2 }}>Tag</span>
+                <span style={{ flex: 1, textAlign: "center" }}>Trades</span>
+                <span style={{ flex: 1, textAlign: "center" }}>Win Rate</span>
+                <span style={{ flex: 1, textAlign: "right" }}>Total PnL</span>
+              </div>
+
+              <div className="tag-list">
+                {sortedData.map((tag, index) => {
+                  const color = COLORS[index % COLORS.length];
+                  return (
+                    <div key={tag.tag} className="tag-item flexRow">
+                      <div className="tag-info" style={{ flex: 2 }}>
+                        <div className="tag-name-container flexRow gap_8">
+                          <div
+                            className="tag-color-indicator"
+                            style={{ backgroundColor: color }}
+                          />
+                          <div className="tag-name font_14">
+                            {tag.formattedTag}
+                          </div>
+                        </div>
+                        <div
+                          className="tag-stats font_12"
+                          style={{ color: "var(--white-50)" }}
+                        >
+                          {tag.winTrades}W / {tag.loseTrades}L
                         </div>
                       </div>
+
                       <div
-                        className="tag-stats font_12"
-                        style={{ color: "var(--white-50)" }}
+                        className="tag-trades font_14"
+                        style={{ flex: 1, textAlign: "center" }}
                       >
-                        {tag.winTrades}W / {tag.loseTrades}L
+                        {tag.totalTrades}
+                      </div>
+
+                      <div
+                        className="tag-winrate"
+                        style={{ flex: 1, textAlign: "center" }}
+                      >
+                        <div className="winrate-value font_14">
+                          {tag.winRate.toFixed(1)}%
+                        </div>
+                        <div className="winrate-bar">
+                          <div
+                            className="winrate-fill"
+                            style={{
+                              width: `${tag.winRate}%`,
+                              backgroundColor: color,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div
+                        className={`tag-pnl font_14 ${
+                          tag.totalPnL >= 0 ? "success" : "error"
+                        }`}
+                        style={{ flex: 1, textAlign: "right" }}
+                      >
+                        {formatCurrency(tag.totalPnL)}
                       </div>
                     </div>
-
-                    <div
-                      className="tag-trades font_14"
-                      style={{ flex: 1, textAlign: "center" }}
-                    >
-                      {tag.totalTrades}
-                    </div>
-
-                    <div
-                      className="tag-winrate"
-                      style={{ flex: 1, textAlign: "center" }}
-                    >
-                      <div className="winrate-value font_14">
-                        {tag.winRate.toFixed(1)}%
-                      </div>
-                      <div className="winrate-bar">
-                        <div
-                          className="winrate-fill"
-                          style={{
-                            width: `${tag.winRate}%`,
-                            backgroundColor: color,
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div
-                      className={`tag-pnl font_14 ${
-                        tag.totalPnL >= 0 ? "success" : "error"
-                      }`}
-                      style={{ flex: 1, textAlign: "right" }}
-                    >
-                      {formatCurrency(tag.totalPnL)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </AnimatePresence>
 
       {/* Summary Stats */}
       <div className="tag-summary flexRow flexRow_stretch">
