@@ -38,63 +38,6 @@ export default function Overview({ stats, trades }) {
   const isShade = (val) =>
     val === 0 || val === undefined || val === "Not available";
 
-  // For clock
-
-  // const timePeriods = [
-  //   {
-  //     name: "Night",
-  //     range: "12 am - 6 am",
-  //     color: "#6366f1",
-  //     startAngle: 0,
-  //     endAngle: 90,
-  //   },
-  //   {
-  //     name: "Morning",
-  //     range: "6 am - 12 pm",
-  //     color: "#f59e0b",
-  //     startAngle: 90,
-  //     endAngle: 180,
-  //   },
-  //   {
-  //     name: "Afternoon",
-  //     range: "12 pm - 6 pm",
-  //     color: "#10b981",
-  //     startAngle: 180,
-  //     endAngle: 270,
-  //   },
-  //   {
-  //     name: "Evening",
-  //     range: "6 pm - 12 am",
-  //     color: "#ef4444",
-  //     startAngle: 270,
-  //     endAngle: 360,
-  //   },
-  // ];
-
-  // const getTimePeriodAngles = (periodName) => {
-  //   const period = timePeriods.find((p) => p.name === periodName);
-  //   return period
-  //     ? { start: period.startAngle, end: period.endAngle }
-  //     : { start: 0, end: 0 };
-  // };
-
-  // const bestTimeAngles = getTimePeriodAngles(stats.bestTime);
-  // const worstTimeAngles = getTimePeriodAngles(stats.worstTime);
-
-  // const calculateArc = (startAngle, endAngle) => {
-  //   const startRad = (startAngle * Math.PI) / 180;
-  //   const endRad = (endAngle * Math.PI) / 180;
-
-  //   const x1 = 60 + 50 * Math.cos(startRad);
-  //   const y1 = 60 + 50 * Math.sin(startRad);
-  //   const x2 = 60 + 50 * Math.cos(endRad);
-  //   const y2 = 60 + 50 * Math.sin(endRad);
-
-  //   const largeArcFlag = endAngle - startAngle <= 180 ? 0 : 1;
-
-  //   return `M ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2}`;
-  // };
-
   return (
     <div className="overview flexClm gap_32">
       <div className="otherStats flexClm gap_24">

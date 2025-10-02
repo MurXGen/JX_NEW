@@ -230,6 +230,20 @@ function Accounts() {
           ))
         )}
       </motion.div>
+
+      {accounts.length > 3 && ( // Only show if there are enough accounts to scroll
+        <button
+          className="popups_btm button_ter"
+          onClick={() => {
+            window.scrollTo({
+              top: document.body.scrollHeight,
+              behavior: "smooth",
+            });
+          }}
+        >
+          <ArrowDown size={20} />
+        </button>
+      )}
     </div>
   );
 }

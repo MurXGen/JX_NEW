@@ -162,9 +162,12 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
             <div className="flexClm gap_12">
               <span className="font_12">Total Long Volume</span>
               <span className="flexRow gap_8">
-                {stats.dailyVolumeData
-                  ?.reduce((sum, day) => sum + (day.longVolume || 0), 0)
-                  .toLocaleString("en-US")}
+                {(
+                  stats?.dailyVolumeData?.reduce(
+                    (sum, day) => sum + (day.longVolume || 0),
+                    0
+                  ) || 0
+                ).toLocaleString("en-US")}
                 <ArrowUpRightIcon className="success" size={20} />
               </span>
             </div>
@@ -178,16 +181,21 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
             <div className="flexClm gap_12">
               <span className="font_12">Total Short Volume</span>
               <span className="flexRow gap_8">
-                {stats.dailyVolumeData
-                  ?.reduce((sum, day) => sum + (day.shortVolume || 0), 0)
-                  .toLocaleString("en-US")}
+                {(
+                  stats?.dailyVolumeData?.reduce(
+                    (sum, day) => sum + (day.shortVolume || 0),
+                    0
+                  ) || 0
+                ).toLocaleString("en-US")}
                 <ArrowDownRightIcon className="error" size={20} />
               </span>
             </div>
           </div>
         </div>
 
-        <VolumeChart dailyData={stats.dailyVolumeData} />
+        {stats && stats.dailyVolumeData && (
+          <VolumeChart dailyData={stats.dailyVolumeData} />
+        )}
       </div>
     </div>
   );

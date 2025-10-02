@@ -11,6 +11,8 @@ import Navbar from "@/components/Auth/Navbar";
 import ToastMessage from "@/components/ui/ToastMessage";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 function Register() {
   const [step, setStep] = useState("enter-email");
   const [name, setName] = useState("");
@@ -256,6 +258,17 @@ function Register() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="flexClm">
+        <button
+          onClick={() => {
+            window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+          }}
+          className="button_sec flexRow gap_8"
+        >
+          Sign up with Google
+        </button>
       </div>
 
       <ToastMessage type={popup.type} message={popup.message} />

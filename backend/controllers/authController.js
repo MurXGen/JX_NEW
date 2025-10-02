@@ -1,25 +1,25 @@
-const bcrypt = require('bcrypt');
-const User = require('../models/User');
-const Account = require('../models/Account');
-const Trade = require('../models/Trade'); // new separate model
-const SALT_ROUNDS = 10;
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
+const Account = require("../models/Account");
+const Trade = require("../models/Trade"); // new separate model
 
-const isProduction = process.env.NODE_ENV === 'production';
+const SALT_ROUNDS = 10;
+const isProduction = process.env.NODE_ENV === "production";
 
 const cookieOptions = {
   httpOnly: true,
   secure: isProduction,
-  sameSite: 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+  sameSite: "lax",
+  maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
 };
 
 const setUserIdCookie = (res, userId) => {
-  res.cookie('userId', userId.toString(), cookieOptions);
+  res.cookie("userId", userId.toString(), cookieOptions);
 };
 
 const validateEmailCredentials = (email, password, res) => {
   if (!email || !password) {
-    res.status(400).json({ message: 'All fields required' });
+    res.status(400).json({ message: "All fields required" });
     return false;
   }
   return true;
@@ -27,54 +27,72 @@ const validateEmailCredentials = (email, password, res) => {
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, googleId } = req.body;
 
-    console.log('🔁 Register endpoint triggered');
+    console.log("🔁 Register endpoint triggered");
 
-    if (!validateEmailCredentials(email, password, res)) return;
+    // Email/password signup validation
+    if (!googleId && (!email || !password)) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log('❌ User already exists:', existingUser._id);
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    let hashedPassword = undefined;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    }
 
-    // Step 1: Create new user
     const user = new User({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword, // can be undefined if Google signup
+      googleId: googleId || undefined,
     });
-    await user.save();
 
+    await user.save();
 
     setUserIdCookie(res, user._id);
 
-    // Step 4: Send success response
     res.status(201).json({
-      message: 'Registration successful.',
+      message: "Registration successful.",
       userId: user._id,
     });
-
   } catch (err) {
-    console.error('🚨 Registration error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error("🚨 Registration error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     if (!validateEmailCredentials(email, password, res)) return;
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Invalid email or password" });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
 
+    // 🔑 Handle Google-registered users (no password stored)
+    if (!user.password) {
+      return res.status(400).json({
+        message:
+          "This account was created with Google. Please sign in using Google.",
+      });
+    }
+
+    // ✅ Standard password check
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
 
     console.log("✅ Login successful:", user._id);
 
@@ -95,20 +113,16 @@ const loginUser = async (req, res) => {
       isVerified: verifiedStatus,
       userData: {
         userId: user._id,
-        name: user.name,  // ✅ Include user name
+        name: user.name,
         accounts,
         trades,
       },
     });
-
   } catch (err) {
     console.error("🚨 Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
-
 
 // const getFullUserData = async (req, res) => {
 //   try {
@@ -159,15 +173,14 @@ const loginUser = async (req, res) => {
 //   }
 // };
 
-
 const checkAuthStatus = (req, res) => {
   const userId = req.cookies.userId;
 
   if (!userId) {
-    return res.status(401).json({ message: 'Not authenticated' });
+    return res.status(401).json({ message: "Not authenticated" });
   }
 
-  return res.status(200).json({ message: 'Authenticated', userId });
+  return res.status(200).json({ message: "Authenticated", userId });
 };
 
 // const verifyUserFromCookie = async (req, res) => {
@@ -258,7 +271,6 @@ const checkAuthStatus = (req, res) => {
 
 //   res.status(200).json({ message: 'Password reset successful' });
 // };
-
 
 module.exports = {
   registerUser,

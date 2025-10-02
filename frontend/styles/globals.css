@@ -78,6 +78,16 @@ body {
   align-items: center;
 }
 
+.flexRow_cntr_mobile {
+  justify-content: center;
+}
+
+.flexRow_mobile {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
 .flexRow_stretch {
   justify-content: space-between;
 }
@@ -354,7 +364,7 @@ button:hover {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 16px 32px;
+  padding: 24px 32px;
   border-radius: var(--px-12);
   font-family: var(--ff-Pop);
   font-size: var(--px-12);
@@ -393,13 +403,13 @@ button:hover {
 }
 
 .popups_top.success {
-  background-color: var(--white-4);
+  backdrop-filter: blur(10px);
   color: white;
   border: 1px solid var(--success);
 }
 
 .popups_top.error {
-  background-color: var(--white-4);
+  backdrop-filter: blur(10px);
   color: white;
   border: 1px solid var(--error);
 }
@@ -2082,9 +2092,6 @@ footer {
   }
 
   .chart-section {
-    background: var(--base-box-bg);
-    border-radius: var(--px-12);
-    padding: var(--px-16);
     position: relative;
     flex: 1; /* ✅ let it shrink/grow inside container */
     min-width: 280px; /* ✅ prevent chart from shrinking too small */
@@ -2732,6 +2739,14 @@ footer {
     width: 200%;
   }
 
+  .flexRow_mobile {
+    flex-direction: column;
+  }
+
+  .flexRow_cntr_mobile {
+    justify-content: flex-start;
+  }
+
   /* For trade assist  */
   /* END  */
 }
@@ -2888,14 +2903,21 @@ footer {
 /* For stepper */
 
 @media (min-width: 0px) {
+  .stepper-scroll-wrapper {
+    display: grid;
+    grid-template-columns: 80% 17%;
+    gap: 3%;
+  }
+
   .stepWizard {
     position: relative;
   }
-  /* 
-.stepNavigation {
-  position: absolute;
-  top: 20px;
-} */
+
+  /* .stepNavigation {
+    position: absolute;
+    top: 72px;
+    right: 1px;
+  } */
 
   .stepperProgress {
     width: 100%;
@@ -2905,40 +2927,15 @@ footer {
     position: relative;
   }
 
-  .stepperProgressBar {
-    height: 100%;
-    background: var(--primary);
-    border-radius: var(--px-12);
-    transition: width 0.3s ease;
-  }
-
-  .stepperSliderDot {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--primary);
-    cursor: pointer;
-    transition: left 0.2s ease;
-    z-index: 2;
-  }
-
-  .stepper-scroll-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-    position: relative;
-    border-bottom: 1px dashed var(--white-10);
-  }
-
   .stepperContainer {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     gap: var(--px-24);
-    padding: 16px 8px;
+    padding: 16px 16px;
+    overflow-x: scroll;
+    box-shadow: inset -5px 0 10px -5px rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
   }
 
   .stepperItem {
@@ -2980,4 +2977,83 @@ footer {
     text-overflow: ellipsis;
     overflow: hidden;
   }
+}
+
+/* For confirmation modal */
+
+@media (min-width: 0px) {
+  .cm-backdrop {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    backdrop-filter: blur(10px);
+  }
+
+  .cm-modal {
+    padding: 24px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    color: #ffffffcc;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .cm-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .cm-cancel {
+    background-color: transparent;
+    border: 1px solid #ffffff33;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: #ffffffcc;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cm-cancel:hover {
+    background-color: #ffffff10;
+  }
+
+  .cm-confirm {
+    background-color: #ff4d4f;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cm-confirm:hover {
+    background-color: #ff6b6b;
+  }
+}
+
+/* For Welcome modal */
+
+/* Smooth fade-in for modal background */
+.modal-fade-enter {
+  opacity: 0;
+}
+.modal-fade-enter-active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+.modal-fade-exit {
+  opacity: 1;
+}
+.modal-fade-exit-active {
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }

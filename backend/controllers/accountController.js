@@ -18,7 +18,9 @@ const createAccount = async (req, res) => {
     }
 
     if (isNaN(balance)) {
-      return res.status(400).json({ message: "Balance must be a valid number" });
+      return res
+        .status(400)
+        .json({ message: "Balance must be a valid number" });
     }
 
     // ✅ Create new account
@@ -54,7 +56,98 @@ const createAccount = async (req, res) => {
   }
 };
 
+const updateAccount = async (req, res) => {
+  try {
+    const { accountId, accountName, currency, balance } = req.body;
+    const userId = req.cookies.userId;
 
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    if (!accountId) {
+      return res
+        .status(400)
+        .json({ message: "Account ID is required for update" });
+    }
+
+    if (!accountName || !currency || balance === undefined) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const account = await Account.findOne({ _id: accountId, userId });
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+
+    account.name = accountName;
+    account.currency = currency;
+    account.startingBalance.amount = balance;
+
+    await account.save();
+
+    // ✅ Set cookie again if needed
+    res.cookie("accountId", account._id.toString(), {
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    const accounts = await Account.find({ userId }).lean();
+    const trades = await Trade.find({ userId }).lean();
+
+    res.status(200).json({
+      message: "🎉 Account updated successfully!",
+      userData: { userId, accounts, trades },
+    });
+  } catch (error) {
+    console.error("❌ Error updating account:", error);
+    res.status(500).json({ message: "Server error: could not update account" });
+  }
+};
+
+const deactivateAccount = async (req, res) => {
+  try {
+    const { accountId } = req.body;
+    const userId = req.cookies.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    if (!accountId) {
+      return res.status(400).json({ message: "Account ID is required" });
+    }
+
+    // 🔹 Find account
+    const account = await Account.findOne({ _id: accountId, userId });
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+
+    // 🔹 Delete account
+    await Account.deleteOne({ _id: accountId, userId });
+
+    // 🔹 Remove cookie if that account was active
+    const activeAccountId = req.cookies.accountId;
+    if (activeAccountId === accountId) {
+      res.clearCookie("accountId");
+    }
+
+    // 🔹 Fetch updated data
+    const accounts = await Account.find({ userId }).lean();
+    const trades = await Trade.find({ userId }).lean();
+
+    res.status(200).json({
+      message: "🗑️ Account deactivated successfully!",
+      userData: { userId, accounts, trades },
+    });
+  } catch (error) {
+    console.error("❌ Error deactivating account:", error);
+    res
+      .status(500)
+      .json({ message: "Server error: could not deactivate account" });
+  }
+};
 
 // // Fetch all accounts for a user
 // const getUserAccounts = async (req, res) => {
@@ -97,7 +190,6 @@ const createAccount = async (req, res) => {
 //   }
 // };
 
-
 // const submitFeedback = async (req, res) => {
 //   const userId = req.cookies.userId;
 //   const { feedback } = req.body;
@@ -139,12 +231,10 @@ const createAccount = async (req, res) => {
 //   }
 // };
 
-
 // const logout = (req, res) => {
 //   res.clearCookie('userId');
 //   res.clearCookie('accountId');
 //   res.status(200).json({ message: 'Logged out successfully' });
 // };
 
-
-module.exports = { createAccount };
+module.exports = { createAccount, updateAccount, deactivateAccount };

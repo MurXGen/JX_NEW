@@ -54,6 +54,8 @@ export default function AddTrade() {
     { value: "quick", label: "Quick" },
   ];
 
+  const [isFormValid, setIsFormValid] = useState(false);
+
   // format local datetime for <input type="datetime-local" />
   const getLocalDateTime = (date = new Date()) => {
     const pad = (n) => (n < 10 ? "0" + n : n);
@@ -177,6 +179,11 @@ export default function AddTrade() {
 
     return null; // ✅ No errors
   };
+
+  useEffect(() => {
+    const error = validateForm(form);
+    setIsFormValid(!error); // true if no error, false otherwise
+  }, [form]);
 
   // 🔍 detect edit mode
   const isEdit = router.query.mode === "edit" || router.query.mode === "close";
@@ -858,11 +865,9 @@ export default function AddTrade() {
     };
   }, [activeGrid]);
 
-  const inlineEditableKeys = ["status", "opentime", "closetime", "rules"]; // these won't open modal
-
   const grids = [
     {
-      key: "ticker",
+      key: "Ticker",
       content: (
         <Ticker form={form} setForm={setForm} handleChange={handleChange} />
       ),
@@ -1038,7 +1043,7 @@ export default function AddTrade() {
       case "quick":
         return grids.filter((g) =>
           [
-            "ticker",
+            "Ticker",
             "quantity",
             "status",
             "quick",
@@ -1052,7 +1057,7 @@ export default function AddTrade() {
       case "closed":
         return grids.filter((g) =>
           [
-            "ticker",
+            "Ticker",
             "quantity",
             "status",
             "entries",
@@ -1067,7 +1072,7 @@ export default function AddTrade() {
       case "running":
         return grids.filter((g) =>
           [
-            "ticker",
+            "Ticker",
             "quantity",
             "status",
             "entries",
@@ -1124,11 +1129,12 @@ export default function AddTrade() {
         >
           Cancel
         </button>
+
         <button
           className="button_pri"
           style={{ width: "100%" }}
           onClick={handleSubmit}
-          disabled={loading} // 🔒 disabled while loading/redirecting
+          disabled={loading || !isFormValid} // 🔒 disabled while loading or form invalid
         >
           {loading
             ? "⏳ Please wait..."
@@ -1137,6 +1143,8 @@ export default function AddTrade() {
             : "Submit Trade"}
         </button>
       </div>
+
+      <BackgroundBlur />
 
       {/* <pre
         style={{

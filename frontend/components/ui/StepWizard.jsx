@@ -90,8 +90,7 @@ const StepWizard = ({ grids, onFinish }) => {
           style={{ width: `${((step + 1) / grids.length) * 100}%` }}
         />
       </div> */}
-      <div className="stepperSliderWrapper stepWizard">
-        {/* Progress bar with draggable circle */}
+      {/* <div className="stepperSliderWrapper stepWizard">
         <div
           className="stepperProgress"
           onMouseDown={(e) => startDrag(e)}
@@ -118,7 +117,7 @@ const StepWizard = ({ grids, onFinish }) => {
             ref={sliderDotRef}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Stepper scrollable & center active */}
       <div className="stepper-scroll-wrapper removeScollbar" ref={stepperRef}>
@@ -131,34 +130,35 @@ const StepWizard = ({ grids, onFinish }) => {
               onClick={() => setStep(index)}
             >
               <div className="stepperDot">{index + 1}</div>
-              <span className="stepperLabel">{g.key}</span>
+              <span className="stepperLabel">
+                {g.key.charAt(0).toUpperCase() + g.key.slice(1)}
+              </span>
             </div>
           ))}
         </div>
+        {/* Navigation */}
+        <div className="stepNavigation flexClm flexRow_stretch flex_center gap_12">
+          {step > 0 && (
+            <button
+              className="button_ter width100"
+              type="button"
+              onClick={prevStep}
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
+
+          {step < grids.length - 1 && (
+            <button
+              className="button_ter width100"
+              type="button"
+              onClick={nextStep}
+            >
+              <ArrowRight size={18} />
+            </button>
+          )}
+        </div>
       </div>
-
-      {/* Navigation */}
-      {/* <div className="stepNavigation flexRow flexRow_stretch gap_12">
-        {step > 0 && (
-          <button
-            className="button_ter width100"
-            type="button"
-            onClick={prevStep}
-          >
-            <ArrowLeft size={18} />
-          </button>
-        )}
-
-        {step < grids.length - 1 && (
-          <button
-            className="button_ter width100"
-            type="button"
-            onClick={nextStep}
-          >
-            <ArrowRight size={18} />
-          </button>
-        )}
-      </div> */}
 
       {/* Step Content */}
       <div className="stepContainer">

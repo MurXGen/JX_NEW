@@ -328,7 +328,7 @@ const TradesHistory = ({
     // Only filter if month/year selected
     if (monthNum || yearNum) {
       filtered = filtered.filter((trade) => {
-        const date = new Date(trade.openTime);
+        const date = new Date(trade.closeTime);
         const monthMatches = monthNum ? date.getMonth() + 1 === monthNum : true;
         const yearMatches = yearNum ? date.getFullYear() === yearNum : true;
         return monthMatches && yearMatches;
@@ -348,7 +348,7 @@ const TradesHistory = ({
       filtered = filtered.filter((t) => Number(t.pnl) === 0);
     } else {
       // Default sort by openTime (newest → oldest, so future comes first)
-      filtered.sort((a, b) => new Date(b.openTime) - new Date(a.openTime));
+      filtered.sort((a, b) => new Date(b.closeTime) - new Date(a.closeTime));
     }
 
     setDisplayedTrades(filtered.slice(0, visibleCount));

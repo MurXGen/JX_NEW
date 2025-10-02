@@ -11,11 +11,15 @@ import Cookies from "js-cookie";
 import Navbar from "@/components/Auth/Navbar";
 import ToastMessage from "@/components/ui/ToastMessage";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import WelcomeModal from "@/components/ui/WelcomeModal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function Login() {
   const router = useRouter();
+
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [username, setUsername] = useState("");
 
   const [email, setEmail] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -43,17 +47,15 @@ function Login() {
         { withCredentials: true }
       );
 
-      const { userData, isVerified, message } = res.data;
+      const { userData, isVerified } = res.data;
 
-      // ✅ Save to IndexedDB
       await saveToIndexedDB("user-data", userData);
 
-      // ✅ Save user name in localStorage for quick access
       if (userData?.name) {
         localStorage.setItem("userName", userData.name);
+        setUsername(userData.name); // ✅ capture name for modal
       }
 
-      // ✅ Manage cookie
       if (isVerified === "yes") {
         Cookies.set("isVerified", "yes", {
           path: "/",
@@ -64,16 +66,10 @@ function Login() {
         Cookies.remove("isVerified");
       }
 
-      // ✅ Success popup
-      setPopup({ message: message || "Login successful!", type: "success" });
-
-      setTimeout(() => {
-        setPopup({ message: "", type: "" });
-        router.push("/accounts");
-      }, 1200);
+      // ✅ Instead of redirect immediately, show modal
+      setShowWelcome(true);
     } catch (err) {
       console.error("❌ Login failed:", err);
-
       setPopup({
         message: err.response?.data?.message || "Login failed",
         type: "error",
@@ -157,17 +153,22 @@ function Login() {
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-        </div>
 
-        <div className="flexClm gap_8 flex_center">
           <button
-            onClick={handleLogin}
+            type="submit"
             disabled={isLoading}
             className="button_pri flexRow gap_12 flexRow_center flexRow_stretch"
+            onClick={(e) => {
+              e.preventDefault(); // prevent form submission reload
+              handleLogin(); // call your login function
+            }}
           >
             {isLoading ? <Loader2 size={20} className="spinner" /> : "Login"}
             {!isLoading && <ArrowRight size={16} />}
           </button>
+        </div>
+
+        <div className="flexClm gap_8 flex_center">
           <span
             className="direct_tertiary"
             onClick={() => router.push("/register")}
@@ -176,12 +177,32 @@ function Login() {
           </span>
         </div>
 
+        <div className="flexClm mt-4">
+          {/* Google Sign-In */}
+          <button
+            onClick={() => {
+              // Redirect to your backend Google OAuth endpoint
+              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+            }}
+            className="button_sec flexRow gap_8 items-center justify-center px-4 py-2 border rounded shadow hover:bg-gray-100 transition"
+          >
+            <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+            Sign in with Google
+          </button>
+        </div>
+
         {popup.message && (
           <ToastMessage message={popup.message} type={popup.type} />
         )}
 
         <BackgroundBlur />
       </div>
+      {showWelcome && (
+        <WelcomeModal
+          username={username}
+          onClose={() => setShowWelcome(false)}
+        />
+      )}
     </div>
   );
 }

@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
+const passport = require("passport");
+require("./utils/passport"); // Passport Google strategy
 const path = require("path");
 
 // Routes
@@ -22,24 +24,14 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// ⚡ Initialize Passport (no session required)
+app.use(passport.initialize());
+
 // 🌐 Connect to main (user) DB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB (User DB) Connected"))
   .catch((err) => console.error("❌ MongoDB User DB Connection Error:", err));
-
-// 🛠 Connect to admin DB (separate connection)
-// const adminDbUri = process.env.ADMIN_DB_URI || 'mongodb://localhost:27017/TradeWings_admin';
-// const adminDb = mongoose.createConnection(adminDbUri);
-
-// adminDb.once('open', () => {
-//   console.log('✅ MongoDB (Admin DB) Connected');
-// });
-// adminDb.on('error', (err) => {
-//   console.error('❌ MongoDB Admin DB Connection Error:', err);
-// });
-
-// app.set('adminDb', adminDb); // 📌 Make available in routes/controllers
 
 // 🔗 API Routes
 app.use("/api/auth", authRoutes);

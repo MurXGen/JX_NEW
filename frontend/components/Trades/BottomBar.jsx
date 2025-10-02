@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ArrowUpDown, Plus, Bot, User } from "lucide-react";
+import { Home, ArrowUpDown, Plus, Bot, User, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function BottomBar() {
@@ -14,7 +14,7 @@ export default function BottomBar() {
     { href: "/trade", icon: <ArrowUpDown size={22} /> },
     { href: "/add-trade", icon: <Plus size={24} />, special: true },
     { href: "/tradeassistant", icon: <Bot size={22} /> },
-    { href: "/profile", icon: <User size={22} /> },
+    { href: "/accountSetting", icon: <Settings size={22} /> },
   ];
 
   return (

@@ -34,37 +34,71 @@ const TagAnalysis = ({ tagAnalysis }) => {
     );
   }
 
-  // Format tag names - remove brackets and capitalize first letter
+  // Format tag names - remove brackets, capitalize first letter, and filter blank strings
   const formatTagName = (tagName) => {
     const capitalize = (str) =>
       str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
     if (Array.isArray(tagName)) {
       return tagName
-        .map((name) => capitalize(name.replace(/[\[\]"]/g, "")))
+        .map((name) => {
+          const cleanedName = name.replace(/[\[\]"]/g, "").trim();
+          return cleanedName ? capitalize(cleanedName) : null;
+        })
+        .filter(Boolean) // Remove null/empty values
         .join(", ");
     }
 
-    return capitalize(String(tagName).replace(/[\[\]"]/g, ""));
+    const cleanedName = String(tagName)
+      .replace(/[\[\]"]/g, "")
+      .trim();
+    return cleanedName ? capitalize(cleanedName) : "Untagged";
   };
 
-  // Prepare data for charts with formatted names
-  const chartData = tagAnalysis.map((tag, index) => ({
-    name: formatTagName(tag.tag),
-    originalName: tag.tag,
-    value: tag.totalPnL,
-    trades: tag.totalTrades,
-    winRate: tag.winRate,
-    pnl: tag.totalPnL,
-    colorIndex: index,
-  }));
+  // Prepare data for charts with formatted names and filter out blank tags
+  const chartData = tagAnalysis
+    .map((tag, index) => {
+      const formattedName = formatTagName(tag.tag);
+      // Skip tags that result in empty names after cleaning
+      if (!formattedName || formattedName === "Untagged") return null;
 
-  // Sort data based on current sort option
+      return {
+        name: formattedName,
+        originalName: tag.tag,
+        value: Math.abs(tag.totalPnL),
+        trades: tag.totalTrades,
+        winRate: tag.winRate,
+        pnl: tag.totalPnL,
+        colorIndex: index,
+      };
+    })
+    .filter(Boolean); // Remove null entries
+
+  // For Bar chart (signed values so negatives render below axis)
+  const barChartData = tagAnalysis
+    .map((tag, index) => {
+      const formattedName = formatTagName(tag.tag);
+      // Skip tags that result in empty names after cleaning
+      if (!formattedName || formattedName === "Untagged") return null;
+
+      return {
+        name: formattedName,
+        value: tag.totalPnL,
+        trades: tag.totalTrades,
+        winRate: tag.winRate,
+        pnl: tag.totalPnL,
+        colorIndex: index,
+      };
+    })
+    .filter(Boolean); // Remove null entries
+
+  // Sort data based on current sort option and filter out blank tags
   const sortedData = [...tagAnalysis]
     .map((tag) => ({
       ...tag,
       formattedTag: formatTagName(tag.tag),
     }))
+    .filter((tag) => tag.formattedTag && tag.formattedTag !== "Untagged") // Filter out blank tags
     .sort((a, b) => {
       switch (sortBy) {
         case "trades":
@@ -93,7 +127,6 @@ const TagAnalysis = ({ tagAnalysis }) => {
     "#3b82f6",
   ];
 
-  // Custom tooltip for bar chart with badges
   const BarTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -108,8 +141,8 @@ const TagAnalysis = ({ tagAnalysis }) => {
           <div className="tooltip-stats flexClm gap_4">
             <span className="flexRow flexRow_stretch">
               <span>Total PnL:</span>
-              <span className={data.value >= 0 ? "success" : "error"}>
-                {formatCurrency(data.value)}
+              <span className={data.pnl >= 0 ? "success" : "error"}>
+                {formatCurrency(data.pnl)}
               </span>
             </span>
             <span className="flexRow flexRow_stretch">
@@ -166,6 +199,7 @@ const TagAnalysis = ({ tagAnalysis }) => {
 
   // Color legend component with badge design
 
+  // Color legend component with badge design - use chartData instead of tagAnalysis
   const ColorLegend = () => (
     <div className="color-legend">
       <div className="legend-title font_12">Tags</div>
@@ -192,9 +226,7 @@ const TagAnalysis = ({ tagAnalysis }) => {
                   }}
                 />
                 <span className="legend-label font_10" style={{ color: color }}>
-                  {Array.isArray(tag.originalName)
-                    ? tag.originalName.join(" | ")
-                    : tag.name}
+                  {tag.name}
                 </span>
               </div>
             </div>
@@ -272,9 +304,12 @@ const TagAnalysis = ({ tagAnalysis }) => {
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
+                          stroke={entry.pnl < 0 ? "#EF4444" : "#22C55E"} // ✅ red/green border
+                          strokeWidth={entry.pnl < 0 ? 2 : 1}
                         />
                       ))}
                     </Pie>
+
                     <Tooltip content={<BarTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -288,7 +323,7 @@ const TagAnalysis = ({ tagAnalysis }) => {
                 <div className="chart-title font_12">Performance by Tag</div>
                 <ResponsiveContainer width="100%" height={330}>
                   <BarChart
-                    data={chartData}
+                    data={barChartData} // ✅ signed data
                     margin={{ top: 20, right: 10, left: 10, bottom: 40 }}
                     barCategoryGap="30%"
                   >
@@ -384,7 +419,7 @@ const TagAnalysis = ({ tagAnalysis }) => {
 
                     {/* Bars with green/red gradient fill */}
                     <Bar dataKey="value" radius={[12, 12, 0, 0]} barSize={30}>
-                      {chartData.map((entry, i) => (
+                      {barChartData.map((entry, i) => (
                         <Cell
                           key={`bar-cell-${i}`}
                           fill={

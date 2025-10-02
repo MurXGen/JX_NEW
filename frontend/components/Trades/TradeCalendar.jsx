@@ -59,7 +59,7 @@ const TradeCalendar = ({
   const monthlyTrades = useMemo(() => {
     if (!selectedMonth || !selectedYear) return [];
     return trades.filter((trade) => {
-      const d = new Date(trade.openTime);
+      const d = new Date(trade.closeTime);
       return (
         d.getMonth() + 1 === selectedMonth && d.getFullYear() === selectedYear
       );
@@ -70,7 +70,7 @@ const TradeCalendar = ({
   const yearlyTrades = useMemo(() => {
     if (!selectedYear) return [];
     return trades.filter(
-      (trade) => new Date(trade.openTime).getFullYear() === selectedYear
+      (trade) => new Date(trade.closeTime).getFullYear() === selectedYear
     );
   }, [trades, selectedYear]);
 
@@ -78,7 +78,7 @@ const TradeCalendar = ({
   const tradesByDate = useMemo(() => {
     const grouped = {};
     trades.forEach((t) => {
-      const d = new Date(t.openTime);
+      const d = new Date(t.closeTime);
       if (!selectedYear || d.getFullYear() === selectedYear) {
         const dateStr = d.toLocaleDateString("en-CA"); // YYYY-MM-DD
         if (!grouped[dateStr]) grouped[dateStr] = [];
@@ -419,7 +419,7 @@ const TradeCalendar = ({
 
                     const days = buildCalendar(idx);
                     const monthTrades = trades.filter((t) => {
-                      const d = new Date(t.openTime);
+                      const d = new Date(t.closeTime);
                       return (
                         d.getMonth() === idx && d.getFullYear() === selectedYear
                       );
