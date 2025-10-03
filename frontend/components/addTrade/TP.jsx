@@ -1,4 +1,6 @@
 import React from "react";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 
 const TakeProfitSection = ({
   form,
@@ -46,9 +48,61 @@ const TakeProfitSection = ({
     return roundToTwoDecimals(finalVal);
   };
 
+  const AllocationSlider = ({ value, onChange, max }) => {
+    const snapPoints = [25, 50, 75, 100];
+    const snapDistance = 3;
+
+    const snapValue = (val) => {
+      for (let point of snapPoints) {
+        if (Math.abs(val - point) <= snapDistance) return point;
+      }
+      return val;
+    };
+
+    return (
+      <div style={{ padding: "24px", overflow: "hidden" }}>
+        <Slider
+          min={0}
+          max={max || 100}
+          value={value ?? 0}
+          onChange={(val) => onChange(snapValue(val))}
+          marks={{ 25: "25%", 50: "50%", 75: "75%", 100: "100%" }}
+          step={1}
+          trackStyle={{ backgroundColor: "var(--primary)", height: "6px" }}
+          handleStyle={{
+            borderColor: "var(--white-80)",
+            height: 24,
+            width: 24,
+            marginTop: -9, // center handle
+          }}
+          dotStyle={{
+            width: "16px",
+            height: "16px",
+            borderRadius: "50%",
+            backgroundColor: "var(--white-80)",
+            border: "2px solid var(--white-80)",
+            top: "-6px", // center dots
+          }}
+          activeDotStyle={{
+            width: "20px",
+            height: "20px",
+            borderRadius: "50%",
+            backgroundColor: "var(--primary)",
+            border: "2px solid var(--white-80)",
+            top: "-7px", // center active dot
+          }}
+          markStyle={{
+            fontSize: "12px",
+            marginTop: "12px", // distance from line
+          }}
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
-      <span className="label">Take Profits</span>
+      {/* <span className="label">Take Profits</span> */}
 
       <div className="flexClm gap_32">
         {form.tps.map((tp, idx) => {
@@ -205,6 +259,11 @@ const TakeProfitSection = ({
                 />
                 <label>Allocation %</label>
               </div>
+              <AllocationSlider
+                value={tp.allocation ?? 0}
+                max={remaining}
+                onChange={(val) => handleTPAllocationBlur(idx, val)}
+              />
             </div>
           );
         })}

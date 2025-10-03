@@ -11,6 +11,7 @@ import {
   LucideLassoSelect,
   Plus,
 } from "lucide-react";
+import { FiDatabase } from "react-icons/fi";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import { motion } from "framer-motion";
 import { containerVariants, childVariants } from "@/animations/motionVariants";
@@ -142,9 +143,9 @@ function Accounts() {
 
       <div className="flexRow flexRow_stretch">
         <div className="flexClm">
-          <span className="font_20">Choose your account</span>
+          <span className="font_20">Accounts</span>
           <span className="font_12" style={{ color: "#ffffff60" }}>
-            Manage the way you want
+            Select account to proceed with
           </span>
         </div>
         <button
@@ -165,69 +166,102 @@ function Accounts() {
         {accounts.length === 0 ? (
           <motion.div
             className="noAccountsMessage"
-            style={{ textAlign: "center", marginTop: "50%" }}
+            style={{
+              textAlign: "center",
+              marginTop: "20%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "10px",
+            }}
             variants={childVariants}
           >
+            <FiDatabase size={48} color="#888" /> {/* Icon */}
             <span className="font_12">
               No account found. You can create one.
             </span>
           </motion.div>
         ) : (
-          accounts.map((acc) => (
-            <motion.div
-              key={acc._id}
-              className="accountCard flexClm gap_16"
-              variants={childVariants}
-              onClick={() => handleAccountClick(acc._id)}
-            >
-              <div
-                className="accountName flexRow flexRow_stretch"
-                style={{
-                  borderBottom: "0.5px solid #ffffff33",
-                  padding: "0 0 8px 0",
-                  margin: "0 0 4px 0",
-                }}
+          accounts.map((acc) => {
+            const lastTradedAccountId = Cookies.get("accountId");
+            const isLastTraded = acc._id === lastTradedAccountId;
+
+            return (
+              <motion.div
+                key={acc._id}
+                className="accountCard flexClm gap_16"
+                variants={childVariants}
+                onClick={() => handleAccountClick(acc._id)}
               >
-                <span className="font_16" style={{ color: "#ffffffcc" }}>
-                  {acc.name}
-                </span>
-                <div className="flexRow gap_12">
-                  <span className="font_12 button_ter">
-                    Trades: {tradesCount[acc.name] ?? 0}
-                  </span>
-                  <ArrowRight size={16} className="vector" />
-                </div>
-              </div>
-
-              <div className="accountBalance flexRow flexRow_stretch">
-                <div className="flexClm gap_4 font_12">
-                  <span className="font_12" style={{ color: "#ffffff80" }}>
-                    Starting Balance
-                  </span>
-                  <span className="accountAmounts font_16">
-                    {formatCurrency(
-                      acc.startingBalance.amount,
-                      accountSymbols[acc.name]
-                    )}
-                  </span>
-                </div>
-
-                <div className="flexClm gap_4 font_12">
-                  <span style={{ color: "#ffffff80" }}>Current Balance</span>
-
+                <div
+                  className="accountName flexRow flexRow_stretch"
+                  style={{
+                    borderBottom: "0.5px solid #ffffff33",
+                    padding: "0 0 8px 0",
+                    margin: "0 0 4px 0",
+                  }}
+                >
                   <span
-                    className="accountAmounts font_16 vector"
-                    style={{ textAlign: "right" }}
+                    className="font_16 flexRow flex_center gap_12"
+                    style={{ color: "#ffffffcc" }}
                   >
-                    {formatCurrency(
-                      currentBalances[acc.name] ?? acc.startingBalance.amount,
-                      accountSymbols[acc.name]
+                    {acc.name}
+                    {isLastTraded && (
+                      <span
+                        className="font_8"
+                        style={{
+                          borderLeft: "1px solid grey",
+                          paddingLeft: "8px",
+                        }}
+                      >
+                        Last traded
+                      </span>
                     )}
                   </span>
+                  <div className="flexRow gap_12">
+                    <span className="font_12">
+                      Trades: {tradesCount[acc.name] ?? 0}{" "}
+                    </span>
+                    <ArrowRight size={16} className="vector" />
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))
+
+                <div className="accountBalance flexRow flexRow_stretch">
+                  <div className="flexClm gap_4 font_12">
+                    <span className="font_12" style={{ color: "#ffffff80" }}>
+                      Starting Balance
+                    </span>
+                    <span className="accountAmounts font_16">
+                      {formatCurrency(
+                        acc.startingBalance.amount,
+                        accountSymbols[acc.name]
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flexClm gap_4 font_12">
+                    <span style={{ color: "#ffffff80" }}>Current Balance</span>
+
+                    <span
+                      className={`accountAmounts font_16 vector ${
+                        (currentBalances[acc.name] ??
+                          acc.startingBalance.amount) >=
+                        acc.startingBalance.amount
+                          ? "success"
+                          : "error"
+                      }`}
+                      style={{ textAlign: "right" }}
+                    >
+                      {formatCurrency(
+                        currentBalances[acc.name] ?? acc.startingBalance.amount,
+                        accountSymbols[acc.name]
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })
         )}
       </motion.div>
     </div>

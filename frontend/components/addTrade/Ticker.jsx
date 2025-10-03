@@ -8,7 +8,7 @@ const Ticker = ({ form, setForm }) => {
 
   return (
     <div className="tradeGrid">
-      <span className="label">Ticker name</span>
+      {/* <span className="label">Ticker name</span> */}
       <div className="flexClm gap_12">
         <div className="inputLabelShift">
           <input

@@ -24,11 +24,16 @@ const TagAnalysis = ({ tagAnalysis }) => {
 
   if (!tagAnalysis || tagAnalysis.length === 0) {
     return (
-      <div className="tag-analysis-empty">
-        <div className="empty-icon">🏷️</div>
-        <div className="empty-title">No Tag Analysis Available</div>
-        <div className="empty-description">
-          Add reasons/tags to your trades to see performance insights
+      <div
+        className="flexClm chart_boxBg flex_center gap_12"
+        style={{ padding: "16px" }}
+      >
+        <span className="">🏷️</span>
+        <div className="flexClm flex_center gap_4">
+          <span className="font_16">No Tag Analysis Available</span>
+          <span className="font_12" style={{ textAlign: "center" }}>
+            Add reasons/tags to your trades to see performance insights
+          </span>
         </div>
       </div>
     );
@@ -235,6 +240,10 @@ const TagAnalysis = ({ tagAnalysis }) => {
       </div>
     </div>
   );
+
+  // Instead of using tagAnalysis directly in summary,
+  // use chartData (already filtered + formatted).
+  const validTags = chartData;
 
   return (
     <div className="tag-analysis-container chart_boxBg">
@@ -518,22 +527,20 @@ const TagAnalysis = ({ tagAnalysis }) => {
       {/* Summary Stats */}
       <div className="tag-summary flexRow flexRow_stretch">
         <div className="summary-item">
-          <div className="summary-value font_16">{tagAnalysis.length}</div>
+          <div className="summary-value font_16">{validTags.length}</div>
           <div className="summary-label font_12">Total Tags</div>
         </div>
 
         <div className="summary-item">
           <div className="summary-value font_16 success">
-            {tagAnalysis.filter((tag) => tag.totalPnL > 0).length}
+            {validTags.filter((tag) => tag.pnl > 0).length}
           </div>
           <div className="summary-label font_12">Profitable Tags</div>
         </div>
 
         <div className="summary-item">
           <div className="summary-value font_16">
-            {formatCurrency(
-              tagAnalysis.reduce((sum, tag) => sum + tag.totalPnL, 0)
-            )}
+            {formatCurrency(validTags.reduce((sum, tag) => sum + tag.pnl, 0))}
           </div>
           <div className="summary-label font_12">Total PnL</div>
         </div>

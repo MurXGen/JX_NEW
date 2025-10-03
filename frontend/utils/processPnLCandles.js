@@ -2,12 +2,15 @@
 export const processPnLCandles = (trades) => {
   if (!trades || trades.length === 0) return [];
 
+  // Filter out trades without closeTime
+  const filteredTrades = trades.filter((trade) => trade.closeTime);
+
+  if (filteredTrades.length === 0) return [];
+
   // Group trades by date
   const tradesByDate = {};
 
-  trades.forEach((trade) => {
-    // Extract date part only (ignore time)
-    // New: use browser local date
+  filteredTrades.forEach((trade) => {
     const d = new Date(trade.closeTime);
     const date = `${d.getFullYear()}-${(d.getMonth() + 1)
       .toString()
@@ -33,29 +36,15 @@ export const processPnLCandles = (trades) => {
     let maxProfit = 0;
     let maxLoss = 0;
 
-    // Calculate cumulative PnL for the day and track extremes
     dateTrades.forEach((trade) => {
       dayPnl += trade.pnl;
-
-      // Track the highest positive value reached during the day
-      if (dayPnl > maxProfit) {
-        maxProfit = dayPnl;
-      }
-
-      // Track the lowest negative value reached during the day
-      if (dayPnl < maxLoss) {
-        maxLoss = dayPnl;
-      }
+      if (dayPnl > maxProfit) maxProfit = dayPnl;
+      if (dayPnl < maxLoss) maxLoss = dayPnl;
     });
 
-    // Determine open, high, low, close values
     const open = previousClose;
     const close = previousClose + dayPnl;
-
-    // High is the maximum of (open, close, or any peak during the day)
     const high = Math.max(open, close, previousClose + maxProfit);
-
-    // Low is the minimum of (open, close, or any trough during the day)
     const low = Math.min(open, close, previousClose + maxLoss);
 
     candleData.push({
@@ -67,7 +56,6 @@ export const processPnLCandles = (trades) => {
       trades: dateTrades.length,
     });
 
-    // Set previous close for next day
     previousClose = close;
   });
 

@@ -80,9 +80,60 @@ const tradeSchema = new mongoose.Schema(
       enum: ["percent", "currency", ""],
       default: "",
     },
-    feeValue: { type: Number, default: 0 },
-    feeAmount: { type: Number, default: 0 },
-    pnlAfterFee: { type: Number, default: 0 },
+
+    // User-entered values
+    openFeeValue: {
+      type: Number,
+      default: 0,
+      set: (v) => {
+        if (v === "null" || v === null || v === "") return 0;
+        return Number(v);
+      },
+    },
+    closeFeeValue: {
+      type: Number,
+      default: 0,
+      set: (v) => {
+        if (v === "null" || v === null || v === "") return 0;
+        return Number(v);
+      },
+    },
+
+    // Calculated amounts
+    openFeeAmount: {
+      type: Number,
+      default: 0,
+      set: (v) => {
+        if (v === "null" || v === null || v === "") return 0;
+        return Number(v);
+      },
+    },
+    closeFeeAmount: {
+      type: Number,
+      default: 0,
+      set: (v) => {
+        if (v === "null" || v === null || v === "") return 0;
+        return Number(v);
+      },
+    },
+    feeAmount: {
+      type: Number,
+      default: 0,
+      set: (v) => {
+        if (v === "null" || v === null || v === "") return 0;
+        return Number(v);
+      },
+    },
+
+    // After-fee performance
+    pnlAfterFee: {
+      type: Number,
+      default: 0,
+      set: (v) => {
+        if (v === "null" || v === null || v === "") return 0;
+        return Number(v);
+      },
+    },
 
     // Open/close info
     openTime: { type: Date, default: Date.now, index: true },

@@ -122,20 +122,14 @@ const CreateAccount = () => {
 
   return (
     <div className="createAccount flexClm gap_32">
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="flexClm gap_4"
-      >
-        <span className="font_16">Create Account</span>
-        <span
-          className="font_12"
-          style={{ color: "#ffffff80", fontWeight: "500 !important" }}
-        >
-          Multiple accounts helps in managing trades
-        </span>
-      </motion.div>
+      <div>
+        <div className="flexClm">
+          <span className="font_20">Create account</span>
+          <span className="font_12">
+            Accounts helps in managing different markets
+          </span>
+        </div>
+      </div>
 
       <motion.form
         onSubmit={handleSubmit}

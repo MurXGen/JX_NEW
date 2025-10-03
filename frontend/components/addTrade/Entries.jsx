@@ -13,7 +13,7 @@ const EntriesSection = ({
 
   return (
     <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
-      <span className="label">Entries</span>
+      {/* <span className="label">Entries</span> */}
 
       <div className="flexClm gap_32">
         {form.entries.map((entry, idx) => {

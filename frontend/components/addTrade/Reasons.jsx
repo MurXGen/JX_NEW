@@ -41,7 +41,7 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
 
   return (
     <div className="tradeGrid flexClm">
-      <label className="label">{label}</label>
+      {/* <label className="label">{label}</label> */}
 
       <div className="flexClm gap_32">
         {/* Reasons Row */}

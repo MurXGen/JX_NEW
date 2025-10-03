@@ -6,6 +6,7 @@ import { ArrowRight, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { containerVariants, childVariants } from "@/animations/motionVariants";
+import { FcGoogle } from "react-icons/fc";
 import { register } from "@/api/auth";
 import Navbar from "@/components/Auth/Navbar";
 import ToastMessage from "@/components/ui/ToastMessage";
@@ -17,6 +18,9 @@ function Register() {
   const [step, setStep] = useState("enter-email");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [userId, setUserId] = useState(""); // store the registered user's ID
+
   const [suggestions, setSuggestions] = useState([]);
   const domains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"];
   const [password, setPassword] = useState("");
@@ -29,31 +33,63 @@ function Register() {
 
   const [popup, setPopup] = useState({ message: "", type: "" });
 
+  const [timer, setTimer] = useState(0);
+
+  const [resendLimitReached, setResendLimitReached] = useState(false);
+
+  // countdown effect
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  useEffect(() => {
+    if (step === "verify-otp") {
+      setTimer(60); // start 60s countdown immediately
+    }
+  }, [step]);
+
   const handleRegister = async () => {
     // Validation
     if (!name || !email || !password || !confirmPassword) {
-      setPopup({ message: "All fields are required", type: "error" });
+      setPopup({
+        message: "All fields are required",
+        type: "error",
+        id: Date.now(),
+      });
       return;
     }
 
-    // Email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setPopup({ message: "Enter a valid email address", type: "error" });
+      setPopup({
+        message: "Enter a valid email address",
+        type: "error",
+        id: Date.now(),
+      });
       return;
     }
 
-    // Password validation (8–15 chars, letters, number, special char)
     if (!/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(password)) {
       setPopup({
         message:
           "Password must be 8–15 chars, include letters, numbers & a special character",
         type: "error",
+        id: Date.now(),
       });
       return;
     }
 
     if (password !== confirmPassword) {
-      setPopup({ message: "Passwords do not match", type: "error" });
+      setPopup({
+        message: "Passwords do not match",
+        type: "error",
+        id: Date.now(),
+      });
       return;
     }
 
@@ -61,20 +97,113 @@ function Register() {
     try {
       const res = await register({ name, email, password });
 
-      setPopup({ message: "Registered successfully!", type: "success" });
+      // If user exists but not verified → go to OTP step
+      if (res.data.isVerified === false) {
+        setPopup({
+          message: "User exists. Please verify OTP.",
+          type: "info",
+          id: Date.now(),
+        });
+        setUserId(res.data.userId);
+        setStep("verify-otp");
+        return;
+      }
 
+      setPopup({
+        message: "Check your email for OTP",
+        type: "success",
+        id: Date.now(),
+      });
+      setUserId(res.data.userId);
+      setStep("verify-otp");
       setName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-
-      setTimeout(() => {
-        router.push("/");
-      }, 1500);
     } catch (err) {
       console.error("Error during registration:", err);
+
+      // Handle user already exists and verified → push to login
+      if (
+        err.response?.status === 409 ||
+        err.response?.data?.message === "User already exists. Please login."
+      ) {
+        setPopup({
+          message: "User already exists. Redirecting to login...",
+          type: "info",
+          id: Date.now(),
+        });
+        router.push("/login"); // redirect to login page
+        return;
+      }
+
       setPopup({
         message: err.response?.data?.message || "Registration failed",
+        type: "error",
+        id: Date.now(),
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setIsLoading(true);
+    try {
+      await axios.post(`${API_BASE}/api/auth/verify-otp`, {
+        userId,
+        otp,
+      });
+
+      setPopup({
+        message: "Email verified! You can now log in.",
+        type: "success",
+      });
+
+      setTimeout(() => router.push("/login"), 1500);
+    } catch (err) {
+      setPopup({
+        message: err.response?.data?.message || "OTP verification failed",
+        type: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.post(`${API_BASE}/api/auth/resend-otp`, {
+        userId,
+      });
+
+      // Check if remaining attempts are 0
+      if (res.data.remaining === 0) {
+        setResendLimitReached(true);
+      }
+
+      setPopup({
+        message: `${res.data.message}${
+          res.data.remaining !== undefined
+            ? ` (${res.data.remaining} attempts left)`
+            : ""
+        }`,
+        type: "success",
+      });
+
+      setTimer(60); // start/reset countdown
+    } catch (err) {
+      // If backend returns limit reached error
+      if (
+        err.response?.status === 429 &&
+        err.response?.data?.message === "Resend limit reached"
+      ) {
+        setResendLimitReached(true);
+      }
+
+      setPopup({
+        message: err.response?.data?.message || "Failed to resend OTP",
         type: "error",
       });
     } finally {
@@ -118,7 +247,7 @@ function Register() {
 
       <div className="container">
         {step === "enter-email" && (
-          <div className="flexClm gap_32">
+          <div className="flexClm gap_24">
             <div key="email-step" className="flexClm gap_24">
               <input
                 value={name}
@@ -165,18 +294,12 @@ function Register() {
               >
                 Next <ArrowRight size={16} />
               </button>
-              <span
-                className="direct_tertiary"
-                onClick={() => router.push("/login")}
-              >
-                Already have an account? Sign-in
-              </span>
             </div>
           </div>
         )}
 
         {step === "set-password" && (
-          <div className="flexClm gap_32">
+          <div className="flexClm gap_24">
             <div key="password-step" className="flexClm gap_24">
               {/* Password */}
               <div className="passwordWrap flexClm">
@@ -258,16 +381,81 @@ function Register() {
             </div>
           </div>
         )}
+
+        {step === "verify-otp" && (
+          <div className="flexClm gap_24">
+            <div className="flexClm gap_24">
+              <span className="font_16">
+                Enter the 6-digit OTP sent to your email
+              </span>
+              <input
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="Enter OTP"
+                type="text"
+                maxLength={6}
+              />
+            </div>
+
+            <div className="flexRow gap_8">
+              <button
+                className="button_sec flexRow width100 flex_center flexRow_stretch"
+                onClick={handleResendOtp}
+                disabled={isLoading || timer > 0 || resendLimitReached}
+              >
+                {resendLimitReached
+                  ? "Resend limit reached"
+                  : timer > 0
+                  ? `Resend OTP in ${timer}s`
+                  : "Resend OTP"}
+              </button>
+
+              <button
+                className="button_pri flexRow width100 flex_center flexRow_stretch"
+                onClick={handleVerifyOtp}
+                disabled={otp.length !== 6 || isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 size={18} className="spinner" />
+                ) : (
+                  "Verify OTP"
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="flexClm">
+      <div className="flexRow flex_center">
+        <span className="direct_tertiary" onClick={() => router.push("/login")}>
+          Already have an account? Sign-in
+        </span>
+      </div>
+
+      <div className="flexClm gap_24">
+        <div className="flexRow flex_center" style={{ position: "relative" }}>
+          <hr width="15%"></hr>
+          <span
+            className="font_12"
+            style={{
+              position: "absolute",
+              top: "-12px",
+              background: "#1d1d1d",
+              padding: "12px",
+              cursor: "default",
+            }}
+          >
+            or
+          </span>
+        </div>
+
         <button
           onClick={() => {
             window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
           }}
-          className="button_sec flexRow gap_8"
+          className="button_sec flexRow flex_center gap_8"
         >
-          Sign up with Google
+          <FcGoogle size={20} /> Sign up with Google
         </button>
       </div>
 

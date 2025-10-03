@@ -1,7 +1,7 @@
 const TradeStatusGrid = ({ form, handleChange, statuses }) => {
   return (
     <div className="tradeGrid">
-      <span className="label">Trade Status</span>
+      {/* <span className="label">Trade Status</span> */}
       <div className="flexRow flexRow_stretch gap_12">
         {statuses.map((status) => (
           <button

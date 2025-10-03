@@ -226,39 +226,48 @@ export default function Overview({ stats, trades }) {
               className={`${
                 !stats?.streak || stats?.streak === "0"
                   ? "shade_50"
-                  : stats?.streak?.includes("win")
+                  : stats?.streak.toLowerCase().includes("win")
                   ? "success"
+                  : stats?.streak.toLowerCase().includes("breakeven") ||
+                    stats?.streak.toLowerCase().includes("break-even")
+                  ? "shade_50"
                   : "error"
               }`}
             >
               {stats?.streak || "0"}
             </span>
           </div>
-
           <div className="streakTrades">
             <div className="flexRow flexRow_scroll removeScrollBar gap_12">
               {stats?.last10 && stats?.last10.length > 0 ? (
-                stats?.last10
-                  ?.slice()
+                stats.last10
+                  .slice()
                   .reverse()
                   .map((trade, idx) => {
                     const isWin = trade.pnl > 0;
                     const isLoss = trade.pnl < 0;
+                    const isBreakEven = trade.pnl === 0;
                     const isLong = trade.direction === "long";
 
                     return (
                       <div
                         key={idx}
-                        className={`tradeItem font_12 flexRow gap_12 ${
-                          isWin ? "tradeWin" : isLoss ? "tradeLoss" : "shade_50"
+                        className={`tradeItem flexRow flex_center font_12 gap_4 ${
+                          isWin ? "tradeWin" : isLoss ? "tradeLoss" : "tradeBrk"
                         }`}
                       >
                         {isLong ? (
-                          <ArrowUpRightFromCircle size={16} />
+                          <ArrowUpRightIcon size={16} />
                         ) : (
-                          <ArrowDownRightFromCircle size={16} />
+                          <ArrowDownRightIcon size={16} />
                         )}
-                        <span>{formatNumber(trade.pnl)}</span>
+                        <span>
+                          {isWin
+                            ? `+${formatNumber(trade.pnl)}`
+                            : isLoss
+                            ? `-${formatNumber(Math.abs(trade.pnl))}`
+                            : formatNumber(trade.pnl)}
+                        </span>
                       </div>
                     );
                   })

@@ -1,21 +1,28 @@
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const User = require("../models/User");
 const Account = require("../models/Account");
 const Trade = require("../models/Trade"); // new separate model
+const EmailVerification = require("../models/EmailVerify");
+const { sendOtpEmail } = require("../mail/sendOtpEmail");
 
 const SALT_ROUNDS = 10;
 const isProduction = process.env.NODE_ENV === "production";
 
 const cookieOptions = {
   httpOnly: true,
-  secure: isProduction,
+  secure: isProduction, // secure only in production
   sameSite: "lax",
-  maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
+  maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years in ms
 };
 
 const setUserIdCookie = (res, userId) => {
   res.cookie("userId", userId.toString(), cookieOptions);
 };
+
+async function generateOTP() {
+  return String(Math.floor(100000 + Math.random() * 900000)); // 6-digit numeric
+}
 
 const validateEmailCredentials = (email, password, res) => {
   if (!email || !password) {
@@ -29,42 +36,66 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password, googleId } = req.body;
 
-    console.log("🔁 Register endpoint triggered");
-
-    // Email/password signup validation
-    if (!googleId && (!email || !password)) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
+    if (!googleId && (!email || !password))
+      return res.status(400).json({ message: "Email and password required" });
 
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      if (!existingUser.isVerified) {
+        // User exists but not verified → return info to frontend
+        return res.status(200).json({
+          message: "User exists but not verified. Please verify OTP.",
+          userId: existingUser._id,
+          isVerified: false,
+        });
+      } else {
+        // User exists and verified → redirect to login
+        return res.status(409).json({
+          message: "User already exists. Please login.",
+          isVerified: true,
+        });
+      }
     }
 
-    let hashedPassword = undefined;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    }
+    const hashedPassword = password
+      ? await bcrypt.hash(password, SALT_ROUNDS)
+      : undefined;
 
     const user = new User({
       name,
       email,
-      password: hashedPassword, // can be undefined if Google signup
+      password: hashedPassword,
       googleId: googleId || undefined,
+      isVerified: false,
     });
-
     await user.save();
 
-    setUserIdCookie(res, user._id);
+    // Generate OTP
+    const otp = await generateOTP();
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
 
-    res.status(201).json({
-      message: "Registration successful.",
+    // OTP expires after 5 minutes
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    // User can only resend after 60s
+    const nextResendAllowedAt = new Date(Date.now() + 60 * 1000);
+
+    await EmailVerification.create({
       userId: user._id,
+      otpHash,
+      expiresAt,
+      nextResendAllowedAt,
     });
+
+    // Send OTP email
+    await sendOtpEmail({ to: user.email, otp, name: user.name });
+
+    return res
+      .status(201)
+      .json({ message: "Registered. Check email for OTP.", userId: user._id });
   } catch (err) {
-    console.error("🚨 Registration error:", err);
+    console.error("Registration error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -72,56 +103,114 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     if (!validateEmailCredentials(email, password, res)) return;
 
     const user = await User.findOne({ email });
-    if (!user) {
+    if (!user)
       return res.status(401).json({ message: "Invalid email or password" });
-    }
 
-    // 🔑 Handle Google-registered users (no password stored)
-    if (!user.password) {
-      return res.status(400).json({
-        message:
-          "This account was created with Google. Please sign in using Google.",
+    if (!user.password)
+      return res.status(400).json({ message: "Google account login only." });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid email or password" });
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Please verify your account via OTP before logging in.",
+        userId: user._id,
       });
     }
 
-    // ✅ Standard password check
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    console.log("✅ Login successful:", user._id);
-
-    // 1️⃣ Set cookie with userId
+    // ✅ Set cookie before sending response
     setUserIdCookie(res, user._id);
 
-    // 2️⃣ Fetch all accounts + trades for the user
     const accounts = await Account.find({ userId: user._id }).lean();
     const trades = await Trade.find({ userId: user._id }).lean();
 
-    // ✅ Always set isVerified to "yes" once login is successful
-    const verifiedStatus = "yes";
-
-    console.log("📩 Sending response with isVerified:", verifiedStatus);
-
     res.status(200).json({
       message: "Login successful",
-      isVerified: verifiedStatus,
-      userData: {
-        userId: user._id,
-        name: user.name,
-        accounts,
-        trades,
-      },
+      isVerified: "yes",
+      userData: { userId: user._id, name: user.name, accounts, trades },
     });
   } catch (err) {
-    console.error("🚨 Login error:", err);
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
+};
+
+const verifyOtp = async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+    const rec = await EmailVerification.findOne({ userId });
+
+    if (!rec)
+      return res.status(400).json({ message: "No verification request found" });
+    if (rec.expiresAt < new Date()) {
+      await EmailVerification.deleteOne({ _id: rec._id });
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    if (otpHash !== rec.otpHash) {
+      rec.attempts = (rec.attempts || 0) + 1;
+      await rec.save();
+      if (rec.attempts >= 5) {
+        await EmailVerification.deleteOne({ _id: rec._id });
+        return res.status(429).json({ message: "Too many attempts" });
+      }
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // Mark verified
+    await User.findByIdAndUpdate(userId, {
+      isVerified: true,
+      verifiedAt: new Date(),
+    });
+    await EmailVerification.deleteOne({ _id: rec._id });
+
+    // Optionally set cookie to log in immediately
+    setUserIdCookie(res, userId);
+
+    return res.json({ message: "Email verified" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const resendOtp = async (req, res) => {
+  const { userId } = req.body;
+  const rec = await EmailVerification.findOne({ userId });
+  if (!rec)
+    return res.status(400).json({ message: "No verification in progress" });
+
+  // Check resend attempts
+  if (rec.resendCount >= 3) {
+    return res.status(429).json({ message: "Resend limit reached" });
+  }
+
+  // Check cooldown
+  if (rec.nextResendAllowedAt && rec.nextResendAllowedAt > new Date()) {
+    return res.status(429).json({ message: "Please wait before resending" });
+  }
+
+  // Generate new OTP
+  const otp = await generateOTP();
+  rec.otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+  rec.expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
+  rec.nextResendAllowedAt = new Date(Date.now() + 60 * 1000); // 60s cooldown
+  rec.resendCount = (rec.resendCount || 0) + 1; // increment count
+  await rec.save();
+
+  const user = await User.findById(userId);
+  await sendOtpEmail({ to: user.email, otp, name: user.name });
+
+  return res.json({
+    message: "OTP resent",
+    remaining: 3 - rec.resendCount, // send remaining attempts info
+  });
 };
 
 // const getFullUserData = async (req, res) => {
@@ -276,6 +365,8 @@ module.exports = {
   registerUser,
   loginUser,
   checkAuthStatus,
+  resendOtp,
+  verifyOtp,
   // verifyUserFromCookie,
   // getFullUserData
   // resetPassword,

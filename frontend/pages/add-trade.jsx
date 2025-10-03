@@ -94,9 +94,12 @@ export default function AddTrade() {
     closeTime: null,
 
     // Fee Fields
-    feeType: "percent", // "percent" or "currency"
-    feeValue: "",
-    feeAmount: 0,
+    feeType: "percent", // one type for both open/close
+    openFeeValue: "", // user inputs open fee
+    closeFeeValue: "", // auto filled from open fee, editable
+    openFeeAmount: 0, // calculated
+    closeFeeAmount: 0, // calculated
+    feeAmount: 0, // total fees = open + close
     pnlAfterFee: 0,
 
     // Images
@@ -526,47 +529,37 @@ export default function AddTrade() {
       let exits = [...prev.exits];
       let currentVal = Number(value);
 
-      if (isNaN(currentVal) || currentVal <= 0) {
-        return prev;
-      }
+      if (isNaN(currentVal) || currentVal <= 0) return prev;
 
-      // calculate remaining allocation
       const usedOther = exits.reduce(
         (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
         0
       );
       const remaining = Math.max(0, 100 - usedOther);
 
-      // clamp allocation to remaining
       if (currentVal > remaining) currentVal = remaining;
       exits[idx].allocation = currentVal;
 
-      // calculate total allocated
       const totalAllocated = exits.reduce(
         (sum, e) => sum + Number(e.allocation || 0),
         0
       );
 
-      // if < 100 and this is last exit → add new slot
       if (totalAllocated < 100 && idx === exits.length - 1) {
-        exits.push({
-          mode: "price",
-          price: "",
-          percent: "",
-          allocation: "",
-        });
+        exits.push({ mode: "price", price: "", percent: "", allocation: "" });
       } else if (totalAllocated >= 100) {
         exits = exits.slice(0, idx + 1);
       }
 
-      // --- Calculate weighted average exit price ---
+      // --- Weighted average exit price ---
       let weightedSum = 0;
       let totalWeight = 0;
+
       exits.forEach((e) => {
         let exitPrice =
           e.mode === "percent"
             ? calcPriceFromPercent(
-                form.avgEntryPrice,
+                prev.avgEntryPrice,
                 e.percent,
                 prev.direction
               )
@@ -657,9 +650,7 @@ export default function AddTrade() {
       let tps = [...prev.tps];
       let currentVal = Number(value);
 
-      if (isNaN(currentVal) || currentVal <= 0) {
-        return prev;
-      }
+      if (isNaN(currentVal) || currentVal <= 0) return prev;
 
       const usedOther = tps.reduce(
         (sum, tp, i) => (i !== idx ? sum + Number(tp.allocation || 0) : sum),
@@ -674,6 +665,7 @@ export default function AddTrade() {
         (sum, tp) => sum + Number(tp.allocation || 0),
         0
       );
+
       if (totalAllocated < 100 && idx === tps.length - 1) {
         tps.push({ mode: "price", price: "", percent: "", allocation: "" });
       } else if (totalAllocated >= 100) {
@@ -683,15 +675,28 @@ export default function AddTrade() {
       // --- Weighted Average TP Price ---
       let weightedSum = 0;
       let totalWeight = 0;
+
+      const avgSLPriceNum = Number(prev.avgSLPrice); // Ensure it's a number
+
       tps.forEach((t) => {
         let tpPrice =
           t.mode === "percent"
             ? calcPriceFromPercent(
-                form.avgEntryPrice,
+                prev.avgEntryPrice,
                 t.percent,
                 prev.direction
               )
             : t.price;
+
+        // ✅ Enforce TP >= avgSLPrice
+        if (!isNaN(tpPrice) && avgSLPriceNum) {
+          if (prev.direction === "long" && tpPrice <= avgSLPriceNum) {
+            tpPrice = avgSLPriceNum + 0.01;
+          }
+          if (prev.direction === "short" && tpPrice >= avgSLPriceNum) {
+            tpPrice = avgSLPriceNum - 0.01;
+          }
+        }
 
         const priceNum = Number(tpPrice);
         const alloc = Number(t.allocation);
@@ -699,6 +704,15 @@ export default function AddTrade() {
         if (priceNum > 0 && alloc > 0) {
           weightedSum += priceNum * (alloc / 100);
           totalWeight += alloc / 100;
+        }
+
+        // Save back the enforced TP price
+        if (t.mode === "price") t.price = roundToTwoDecimals(tpPrice);
+        if (t.mode === "percent") {
+          // Convert back to percent
+          const percentVal =
+            ((tpPrice - prev.avgEntryPrice) / prev.avgEntryPrice) * 100;
+          t.percent = roundToTwoDecimals(percentVal);
         }
       });
 
@@ -708,6 +722,10 @@ export default function AddTrade() {
       return { ...prev, tps, avgTPPrice };
     });
   };
+
+  // Helper function for rounding
+  const roundToTwoDecimals = (val) =>
+    isNaN(val) ? "" : parseFloat(Number(val).toFixed(2));
 
   const calcPriceFromPercent = (avgEntryPrice, percent, direction = "long") => {
     const base = Number(avgEntryPrice);
@@ -777,36 +795,42 @@ export default function AddTrade() {
     const totalQuantity = parseFloat(form.totalQuantity) || 0;
     const pnl = parseFloat(form.pnl) || 0;
 
-    let entryFee = 0;
-    let exitFee = 0;
+    let openFeeAmount = 0;
+    let closeFeeAmount = 0;
     let feeAmount = 0;
     let pnlAfterFee = pnl;
 
-    if (form.feeType && form.feeValue) {
+    if (form.feeType) {
       if (form.feeType === "percent") {
-        // Entry fee is always calculated on total quantity
-        entryFee = totalQuantity * (form.feeValue / 100);
+        // Always calculate open fee on total quantity
+        if (form.openFeeValue) {
+          openFeeAmount = totalQuantity * (parseFloat(form.openFeeValue) / 100);
+        }
 
-        // Exit fee calculated only if pnl is available
-        if (pnl) {
-          exitFee = (totalQuantity + pnl) * (form.feeValue / 100);
+        // Close fee uses (totalQuantity + pnl)
+        if (form.closeFeeValue) {
+          closeFeeAmount =
+            (totalQuantity + pnl) * (parseFloat(form.closeFeeValue) / 100);
         }
       } else if (form.feeType === "currency") {
-        entryFee = parseFloat(form.feeValue);
-        // Only charge exit fee if pnl exists
-        if (pnl) exitFee = parseFloat(form.feeValue);
+        if (form.openFeeValue) {
+          openFeeAmount = parseFloat(form.openFeeValue);
+        }
+        if (form.closeFeeValue) {
+          closeFeeAmount = parseFloat(form.closeFeeValue);
+        }
       }
 
-      feeAmount = entryFee + exitFee;
+      feeAmount = openFeeAmount + closeFeeAmount;
 
       // PnL after fees
-      pnlAfterFee = pnl
-        ? totalQuantity + pnl - feeAmount
-        : totalQuantity - feeAmount;
+      pnlAfterFee = pnl ? pnl - feeAmount : -feeAmount;
     }
 
     const updatedForm = {
       ...form,
+      openFeeAmount,
+      closeFeeAmount,
       feeAmount,
       pnlAfterFee,
     };
@@ -867,7 +891,7 @@ export default function AddTrade() {
 
   const grids = [
     {
-      key: "Ticker",
+      key: "ticker",
       content: (
         <Ticker form={form} setForm={setForm} handleChange={handleChange} />
       ),
@@ -1043,7 +1067,7 @@ export default function AddTrade() {
       case "quick":
         return grids.filter((g) =>
           [
-            "Ticker",
+            "ticker",
             "quantity",
             "status",
             "quick",
@@ -1057,7 +1081,7 @@ export default function AddTrade() {
       case "closed":
         return grids.filter((g) =>
           [
-            "Ticker",
+            "ticker",
             "quantity",
             "status",
             "entries",
@@ -1072,7 +1096,7 @@ export default function AddTrade() {
       case "running":
         return grids.filter((g) =>
           [
-            "Ticker",
+            "ticker",
             "quantity",
             "status",
             "entries",

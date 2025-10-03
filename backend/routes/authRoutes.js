@@ -1,6 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { registerUser, loginUser } = require("../controllers/authController");
+const {
+  registerUser,
+  loginUser,
+  verifyOtp,
+  resendOtp,
+} = require("../controllers/authController");
 require("../utils/passport");
 const passport = require("passport");
 
@@ -9,6 +14,10 @@ router.post("/register", registerUser);
 
 // 📌 Email/Password Login
 router.post("/login", loginUser);
+
+router.post("/verify-otp", verifyOtp);
+
+router.post("/resend-otp", resendOtp);
 
 // 📌 Trigger Google OAuth flow
 router.get(

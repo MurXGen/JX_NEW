@@ -221,7 +221,7 @@ const TradesHistory = ({
       Object.entries(groupTradesByDate(displayedTrades)).forEach(
         ([dateKey, tradesForDay]) => {
           if (!counts[dateKey]) {
-            counts[dateKey] = 3; // Show 3 trades initially
+            counts[dateKey] = 3; // show 3 trades initially
           }
         }
       );
@@ -231,20 +231,24 @@ const TradesHistory = ({
 
   const groupTradesByDate = (tradesArray) => {
     return tradesArray.reduce((acc, trade) => {
-      // Use closeTime if exists, else openTime
-      const dateObj = trade.closeTime
-        ? new Date(trade.closeTime)
-        : new Date(trade.openTime);
+      // Skip trades without openTime (we need at least openTime)
+      if (!trade.openTime) return acc;
+
+      // Use openTime always for grouping (even if closeTime exists)
+      const dateObj = new Date(trade.openTime);
+
+      // Skip invalid dates
+      if (!dateObj || isNaN(dateObj.getTime())) return acc;
+
       const dateKey = dateObj.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
 
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
+      if (!acc[dateKey]) acc[dateKey] = [];
       acc[dateKey].push(trade);
+
       return acc;
     }, {});
   };
@@ -325,17 +329,17 @@ const TradesHistory = ({
     const monthNum = month === "" || month === null ? null : Number(month);
     const yearNum = year === "" || year === null ? null : Number(year);
 
-    // Only filter if month/year selected
     if (monthNum || yearNum) {
       filtered = filtered.filter((trade) => {
-        const date = new Date(trade.closeTime);
+        if (!trade.openTime) return false;
+        const date = new Date(trade.openTime);
         const monthMatches = monthNum ? date.getMonth() + 1 === monthNum : true;
         const yearMatches = yearNum ? date.getFullYear() === yearNum : true;
         return monthMatches && yearMatches;
       });
     }
 
-    // Apply PnL filter
+    // Apply PnL filters
     if (pnlFilter === "profit") {
       filtered = filtered
         .filter((t) => Number(t.pnl) > 0)
@@ -347,8 +351,8 @@ const TradesHistory = ({
     } else if (pnlFilter === "breakeven") {
       filtered = filtered.filter((t) => Number(t.pnl) === 0);
     } else {
-      // Default sort by openTime (newest → oldest, so future comes first)
-      filtered.sort((a, b) => new Date(b.closeTime) - new Date(a.closeTime));
+      // Default: sort by openTime (newest first)
+      filtered.sort((a, b) => new Date(b.openTime) - new Date(a.openTime));
     }
 
     setDisplayedTrades(filtered.slice(0, visibleCount));
@@ -451,9 +455,14 @@ const TradesHistory = ({
 
                               {/* Open & Close Time */}
                               <span className="font_12 shade_50 gap_8">
-                                {formatTime(trade.openTime)} {" → "}
-                                {trade.closeTime ? (
+                                {trade.openTime &&
+                                !isNaN(new Date(trade.openTime).getTime())
+                                  ? formatTime(trade.openTime)
+                                  : "N/A"}{" "}
+                                {trade.closeTime &&
+                                !isNaN(new Date(trade.closeTime).getTime()) ? (
                                   <>
+                                    {" → "}
                                     {formatTime(trade.closeTime)}
                                     {trade.duration > 0 && (
                                       <span style={{ paddingLeft: "4px" }}>
@@ -462,9 +471,14 @@ const TradesHistory = ({
                                     )}
                                   </>
                                 ) : (
-                                  <span className="flex">
-                                    <span className="pulseDot"></span> Active
-                                  </span>
+                                  trade.openTime &&
+                                  !isNaN(
+                                    new Date(trade.openTime).getTime()
+                                  ) && (
+                                    <span className="flex">
+                                      <span className="pulseDot"></span> Active
+                                    </span>
+                                  )
                                 )}
                               </span>
                             </div>
@@ -481,6 +495,7 @@ const TradesHistory = ({
                       </motion.div>
                     ))}
                   </AnimatePresence>
+
                   {/* Load More / Show Less Button */}
                   {tradesForDay.length > 3 && (
                     <motion.button

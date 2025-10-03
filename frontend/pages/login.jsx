@@ -12,6 +12,7 @@ import Navbar from "@/components/Auth/Navbar";
 import ToastMessage from "@/components/ui/ToastMessage";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import WelcomeModal from "@/components/ui/WelcomeModal";
+import { FcGoogle } from "react-icons/fc";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -44,16 +45,26 @@ function Login() {
       const res = await axios.post(
         `${API_BASE}/api/auth/login`,
         { email, password },
-        { withCredentials: true }
+        { withCredentials: true } // ✅ important to receive HttpOnly cookie
       );
 
-      const { userData, isVerified } = res.data;
+      // Not verified → redirect to registration/OTP
+      if (res.status === 403) {
+        setPopup({
+          message: res.data.message || "Please verify OTP first.",
+          type: "info",
+        });
+        setUserId(res.data.userId);
+        setStep("verify-otp");
+        return;
+      }
 
+      const { userData, isVerified } = res.data;
       await saveToIndexedDB("user-data", userData);
 
       if (userData?.name) {
         localStorage.setItem("userName", userData.name);
-        setUsername(userData.name); // ✅ capture name for modal
+        setUsername(userData.name);
       }
 
       if (isVerified === "yes") {
@@ -66,10 +77,8 @@ function Login() {
         Cookies.remove("isVerified");
       }
 
-      // ✅ Instead of redirect immediately, show modal
       setShowWelcome(true);
     } catch (err) {
-      console.error("❌ Login failed:", err);
       setPopup({
         message: err.response?.data?.message || "Login failed",
         type: "error",
@@ -177,17 +186,31 @@ function Login() {
           </span>
         </div>
 
-        <div className="flexClm mt-4">
-          {/* Google Sign-In */}
+        <div className="flexClm gap_24">
+          <div className="flexRow flex_center" style={{ position: "relative" }}>
+            <hr width="15%"></hr>
+            <span
+              className="font_12"
+              style={{
+                position: "absolute",
+                top: "-12px",
+                background: "#1d1d1d",
+                padding: "12px",
+                cursor: "default",
+              }}
+            >
+              or
+            </span>
+          </div>
+
           <button
             onClick={() => {
               // Redirect to your backend Google OAuth endpoint
               window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
             }}
-            className="button_sec flexRow gap_8 items-center justify-center px-4 py-2 border rounded shadow hover:bg-gray-100 transition"
+            className="button_sec flexRow flex_center gap_8 items-center justify-center px-4 py-2 border rounded shadow hover:bg-gray-100 transition"
           >
-            <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
-            Sign in with Google
+            <FcGoogle size={20} /> Sign in with Google
           </button>
         </div>
 

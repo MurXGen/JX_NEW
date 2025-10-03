@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: function () {
-        // Required only if googleId is NOT present and password is undefined
+        // Required only if googleId is NOT present
         return !this.googleId;
       },
     },
@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema(
         date: { type: Date, default: Date.now },
       },
     ],
+
+    // --- Email verification fields ---
+    isVerified: { type: Boolean, default: false }, // true after OTP verification
+    verifiedAt: { type: Date }, // timestamp when verified
   },
   { timestamps: true }
 );

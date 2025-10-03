@@ -1,3 +1,4 @@
+/* Dark theme defaults */
 :root {
   --base-bg: #1d1d1d;
   --base-text: #ffffff;
@@ -42,20 +43,47 @@
   --px-32: 32px;
   --px-46: 46px;
 
+  --weight-400: 400;
+  --weight-500: 500;
   --weight-600: 600;
   --weight-700: 700;
   --weight-800: 800;
   --weight-900: 900;
-  --weight-500: 500;
-  --weight-400: 400;
-  --weight-500: 500;
 
   --border-stroke: var(--primary);
 }
 
+/* Light theme overrides */
 [data-theme="light"] {
-  --base-bg: #ffffff;
+  --base-bg: #f8f8f8;
   --base-text: #1d1d1d;
+
+  --base-box-bg: #ffffff;
+
+  --primary: #a77d02; /* same as dark for brand consistency */
+  --primary-10: #a77d021a;
+  --primary-20: #a77d0233;
+  --primary-50: #a77d0280;
+  --primary-light: #fdda70;
+
+  --secondary: #e0e0e0;
+
+  --white-4: #0000000a;
+  --white-10: #0000001a;
+  --white-20: #00000033;
+  --white-50: #00000080;
+  --white-80: #000000cc;
+
+  --error: #ef4444;
+  --success: #22c55e;
+
+  --success-10: #22c55e1a;
+  --error-10: #ef44441a;
+
+  --success-20: #22c55e33;
+  --error-20: #ef444433;
+
+  --border-stroke: var(--primary);
 }
 
 * {
@@ -497,6 +525,7 @@ textarea {
   font-size: var(--px-14);
   transition: border 0.2s ease, box-shadow 0.2s ease;
   color: var(--base-text);
+  height: 200px;
 }
 
 textarea:hover {
@@ -612,7 +641,8 @@ textarea::placeholder {
 
 .tradeItem {
   border-radius: var(--px-12);
-  padding: var(--padding-16x16);
+  padding: 8px 8px;
+  width: 70px;
 }
 
 .tradeWin {
@@ -631,6 +661,11 @@ textarea::placeholder {
     rgba(239, 68, 68, 0.9) 0%,
     /* #EF4444 with 90% */ rgba(239, 68, 68, 0.5) 100% /* #EF4444 with 50% */
   );
+  color: #fff;
+}
+
+.tradeBrk {
+  background: var(--white-10);
   color: #fff;
 }
 
@@ -698,8 +733,9 @@ textarea::placeholder {
 }
 
 .tradeGrid {
-  display: grid;
-  grid-template-columns: 20% 80%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .tradeGrid .label {
@@ -2237,28 +2273,6 @@ footer {
 
   .summary-label {
     color: var(--white-50);
-  }
-
-  /* Empty State */
-  .tag-analysis-empty {
-    text-align: center;
-    padding: var(--px-40) var(--px-20);
-    color: var(--white-50);
-  }
-
-  .empty-icon {
-    font-size: 48px;
-    margin-bottom: var(--px-16);
-  }
-
-  .empty-title {
-    font-size: var(--px-16);
-    font-weight: var(--weight-600);
-    margin-bottom: var(--px-8);
-  }
-
-  .empty-description {
-    font-size: var(--px-12);
   }
 }
 

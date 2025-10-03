@@ -23,9 +23,13 @@ import {
   CheckCircle,
   Zap,
   CircleDot,
+  Trash,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatNumbers";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
+import ConfirmationModal from "../ui/ConfirmationModal";
+import FullPageLoader from "../ui/FullPageLoader";
+import ToastMessage from "../ui/ToastMessage";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -35,6 +39,10 @@ const TradeInfo = ({ onClose }) => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState({ type: "", message: "" });
 
   useEffect(() => {
     const fetchTrade = async () => {
@@ -60,23 +68,15 @@ const TradeInfo = ({ onClose }) => {
   };
 
   const handleDeleteTrade = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this trade? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
+    setIsConfirmOpen(false); // close modal
+    setIsDeleting(true); // show loader
 
-    setDeleting(true);
     try {
       const tradeId = localStorage.getItem("__t_rd_iD");
 
       const res = await axios.delete(`${API_BASE}/api/trades/delete`, {
         withCredentials: true,
-        headers: {
-          "x-trade-id": tradeId,
-        },
+        headers: { "x-trade-id": tradeId },
       });
 
       if (res.data.success) {
@@ -93,19 +93,21 @@ const TradeInfo = ({ onClose }) => {
           trades,
         });
 
-        // Show success message
-        alert("Trade deleted successfully!");
-        onClose();
-        // 🔄 Refresh the page
-        window.location.reload();
+        setToast({ type: "success", message: "Trade deleted successfully!" });
+
+        // Optionally refresh page after a short delay
+        setTimeout(() => window.location.reload(), 1000);
       } else {
-        alert("❌ Failed to delete trade!");
+        setToast({ type: "error", message: "Failed to delete trade!" });
       }
     } catch (err) {
       console.error("❌ Error deleting trade:", err);
-      alert("Something went wrong while deleting trade.");
+      setToast({
+        type: "error",
+        message: "Something went wrong while deleting trade.",
+      });
     } finally {
-      setDeleting(false);
+      setIsDeleting(false);
     }
   };
 
@@ -527,13 +529,34 @@ const TradeInfo = ({ onClose }) => {
 
           {/* Action Buttons */}
           <div className="modalActions flexRow gap_12">
+            {/* Delete Button */}
             <button
-              onClick={handleDeleteTrade}
-              className="button_sec flexRow gap_4"
-              disabled={deleting}
+              onClick={() => setIsConfirmOpen(true)}
+              className="button_sec error"
             >
-              <Trash2 size={18} />
+              <Trash2 size={16} />
             </button>
+
+            {/* Confirmation Modal */}
+            <ConfirmationModal
+              isOpen={isConfirmOpen}
+              title="Delete Trade"
+              message="Are you sure you want to delete this trade? This action cannot be undone."
+              onConfirm={handleDeleteTrade}
+              onCancel={() => setIsConfirmOpen(false)}
+            />
+
+            {/* Full Page Loader */}
+            {isDeleting && <FullPageLoader />}
+
+            {/* Toast Message */}
+            {toast.message && (
+              <ToastMessage
+                type={toast.type}
+                message={toast.message}
+                duration={3000}
+              />
+            )}
 
             {trade.tradeStatus === "running" && (
               <button

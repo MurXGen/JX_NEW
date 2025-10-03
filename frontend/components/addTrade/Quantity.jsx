@@ -44,7 +44,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
 
   return (
     <div className="tradeGrid">
-      <span className="label">Quantity</span>
+      {/* <span className="label">Quantity</span> */}
 
       <div className="flexClm gap_12">
         <div className="flexRow flexRow_stretch gap_12">
@@ -80,20 +80,51 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
 
         {/* Fee Section */}
         <div className="flexRow flexRow_stretch gap_12">
+          {/* Open Fee */}
           <div className="inputLabelShift">
             <input
               type="number"
-              name="feeValue"
-              placeholder="Fee Value"
-              value={form.feeValue || ""}
+              name="openFeeValue"
+              placeholder="Open Fee"
+              value={form.openFeeValue || ""}
+              onChange={(e) => {
+                handleNonNegativeChange(e);
+
+                // auto-set close fee if empty
+                if (!form.closeFeeValue) {
+                  handleChange({
+                    target: { name: "closeFeeValue", value: e.target.value },
+                  });
+                }
+              }}
+              min="0"
+              step={form.feeType === "percent" ? "0.01" : "0.000001"}
+            />
+            <label>
+              {form.feeType === "percent"
+                ? "Open Fee %"
+                : `Open Fee (${currencySymbol})`}
+            </label>
+          </div>
+
+          {/* Close Fee */}
+          <div className="inputLabelShift">
+            <input
+              type="number"
+              name="closeFeeValue"
+              placeholder="Close Fee"
+              value={form.closeFeeValue || ""}
               onChange={handleNonNegativeChange}
               min="0"
               step={form.feeType === "percent" ? "0.01" : "0.000001"}
             />
             <label>
-              {form.feeType === "percent" ? "Fee %" : `Fee (${currencySymbol})`}
+              {form.feeType === "percent"
+                ? "Close Fee %"
+                : `Close Fee (${currencySymbol})`}
             </label>
           </div>
+
           <div className="inputLabelShift">
             <Dropdown
               value={form.feeType} // always has a value ("percent" by default)
@@ -101,8 +132,8 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
                 handleFeeTypeChange({ target: { value: val } })
               }
               options={[
-                { value: "percent", label: "Percent (%)" },
-                { value: "currency", label: `Value (${currencySymbol})` },
+                { value: "percent", label: "%" },
+                { value: "currency", label: `${currencySymbol}` },
               ]}
             />
             {/* <label>Fee Type</label> */}
