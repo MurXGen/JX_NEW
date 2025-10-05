@@ -241,14 +241,6 @@ const AccountSetting = () => {
           Edit Account
         </button>
 
-        <button
-          className="button_sec width100 flexRow_cntr_mobile flexRow gap_8 error"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Trash2 size={16} />
-          Deactivate Account
-        </button>
-
         <ConfirmationModal
           isOpen={isModalOpen}
           title="Deactivate Account"
@@ -263,6 +255,13 @@ const AccountSetting = () => {
         >
           <Repeat size={16} />
           Switch Account
+        </button>
+
+        <button
+          className="button_sec  flexRow_cntr_mobile flexRow gap_8 error"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <Trash2 size={16} />
         </button>
       </div>
 

@@ -4,18 +4,14 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema(
   {
     name: { type: String },
-
     email: { type: String, required: true, unique: true, index: true },
-
     password: {
       type: String,
       required: function () {
-        // Required only if googleId is NOT present
         return !this.googleId;
       },
     },
-
-    googleId: { type: String }, // store Google account ID if OAuth signup
+    googleId: { type: String },
 
     feedback: [
       {
@@ -24,9 +20,27 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-    // --- Email verification fields ---
-    isVerified: { type: Boolean, default: false }, // true after OTP verification
-    verifiedAt: { type: Date }, // timestamp when verified
+    isVerified: { type: Boolean, default: false },
+    verifiedAt: { type: Date },
+
+    // 🔹 Subscription reference
+    subscription: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subscription",
+    },
+
+    // 🔹 Quick access fields
+    subscriptionStatus: {
+      type: String,
+      enum: ["active", "expired", "canceled", "trial", "none"],
+      default: "none",
+    },
+    subscriptionPlan: {
+      type: String,
+      enum: ["free", "pro", "elite", "master"],
+      default: "free",
+    },
+    subscriptionExpiresAt: { type: Date },
   },
   { timestamps: true }
 );

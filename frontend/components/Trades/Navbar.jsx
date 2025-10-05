@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Sun, Moon, User, Repeat } from "lucide-react";
+import { Sun, Moon, User, Repeat, ChevronDown, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import Cookies from "js-cookie";
@@ -58,16 +58,28 @@ const Navbar = () => {
     });
   };
 
+  const handleClick = () => {
+    router.push("/profile");
+  };
+
   return (
     <div className="navbarTrades flexRow flexRow_stretch">
-      <div className="flexRow gap_8">
-        <User size={20} className="button_sec" />
+      <div
+        className="flexRow gap_8 navbar_profile"
+        onClick={handleClick}
+        style={{ userSelect: "none", cursor: "pointer" }}
+        // optional: prevent text selection
+      >
+        <Menu size={20} className="button_sec" />
         <div className="flexClm">
           <span className="font_12" style={{ color: "#ffffff80" }}>
             Hey hi,
           </span>
-          <span className="font_16" style={{ fontWeight: "500" }}>
-            {userName || "User"}
+          <span
+            className="font_16 flexRow gap_4 flex_center"
+            style={{ fontWeight: 500 }}
+          >
+            {userName || "User"} <ChevronDown size={20} className="ml-2" />
           </span>
         </div>
       </div>
@@ -77,7 +89,6 @@ const Navbar = () => {
         {selectedAccount && !hideAccountBox && (
           <div
             className="button_sec flexRow gap_8"
-            style={{ padding: "12px" }}
             onClick={() => router.push(`/accounts`)}
           >
             <span>{selectedAccount.name}</span>
@@ -85,12 +96,9 @@ const Navbar = () => {
           </div>
         )}
 
-        <div className="view-toggle flexRow gap_8">
-          <button
-            onClick={toggleDarkMode}
-            className="toggle-btn flexRow flex_center"
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        <div className="flexRow flex_center gap_8">
+          <button onClick={toggleDarkMode} className="button_sec">
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </div>
       </div>

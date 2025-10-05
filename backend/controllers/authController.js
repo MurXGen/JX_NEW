@@ -132,7 +132,16 @@ const loginUser = async (req, res) => {
     res.status(200).json({
       message: "Login successful",
       isVerified: "yes",
-      userData: { userId: user._id, name: user.name, accounts, trades },
+      userData: {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+        subscriptionPlan: user.subscriptionPlan,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionExpiresAt: user.subscriptionExpiresAt,
+        accounts,
+        trades,
+      },
     });
   } catch (err) {
     console.error(err);

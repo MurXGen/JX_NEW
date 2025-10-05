@@ -87,10 +87,64 @@ const DailyPnlChart = ({ data }) => {
     return null;
   };
 
+  if (!data || data.length === 0) {
+    return (
+      <div className="daily-pnl-chart-placeholder">
+        <p>No trade data available</p>
+      </div>
+    );
+  }
+
+  // Helper to add empty candle days
+  const addPaddingDays = (data, before = 3, after = 3) => {
+    if (data.length > 8) return [...data]; // 👈 skip padding for >8 days
+
+    const padded = [...data];
+    const firstDate = new Date(data[0].date);
+    const lastDate = new Date(data[data.length - 1].date);
+
+    // Add days before
+    for (let i = before; i > 0; i--) {
+      const d = new Date(firstDate);
+      d.setDate(d.getDate() - i);
+      padded.unshift({
+        date: d.toISOString(),
+        open: null,
+        high: null,
+        low: null,
+        close: null,
+        trades: null,
+        isPadding: true,
+      });
+    }
+
+    // Add days after
+    for (let i = 1; i <= after; i++) {
+      const d = new Date(lastDate);
+      d.setDate(d.getDate() + i);
+      padded.push({
+        date: d.toISOString(),
+        open: null,
+        high: null,
+        low: null,
+        close: null,
+        trades: null,
+        isPadding: true,
+      });
+    }
+
+    return padded;
+  };
+
+  const chartData = addPaddingDays(data);
+
   return (
     <div className="daily-pnl-chart-container">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+        <BarChart
+          data={chartData}
+          margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+        >
           <defs>
             {/* Positive (green) */}
             <linearGradient id="candlePositive" x1="0" y1="0" x2="0" y2="1">
@@ -132,14 +186,20 @@ const DailyPnlChart = ({ data }) => {
             dataKey={(entry) => [entry.low, entry.high]}
             fill="#8884d8"
             shape={(props) => {
-              const { open, close, high, low } = props.payload;
+              const { open, close, high, low, isPadding } = props.payload;
+
+              if (isPadding) {
+                // 👇 Don't render anything for padding dates
+                return null;
+              }
+
               const isPositive = close >= open;
               const fill = isPositive
                 ? "url(#candlePositive)"
                 : "url(#candleNegative)";
               const stroke = isPositive ? "#16A34A" : "#B91C1C";
 
-              // Calculate body
+              // Calculate candle body
               const yHigh = Math.min(high, Math.max(open, close));
               const yLow = Math.max(low, Math.min(open, close));
               const barHeight = Math.abs(close - open);
@@ -156,7 +216,7 @@ const DailyPnlChart = ({ data }) => {
                     strokeWidth={1}
                   />
 
-                  {/* Candle body with gradient + border */}
+                  {/* Candle body */}
                   <rect
                     x={props.x + props.width * 0.15}
                     y={

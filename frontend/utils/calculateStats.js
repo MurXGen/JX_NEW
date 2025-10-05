@@ -1,6 +1,8 @@
 export const calculateStats = (accountTrades = []) => {
-  // Handle empty/null array
-  if (!Array.isArray(accountTrades) || accountTrades.length === 0) {
+  // Only include trades that are closed
+  const closedTrades = accountTrades.filter((t) => t.closeTime);
+
+  if (!Array.isArray(closedTrades) || closedTrades.length === 0) {
     return {
       netPnL: 0,
       maxProfit: 0,
@@ -24,18 +26,19 @@ export const calculateStats = (accountTrades = []) => {
     };
   }
 
-  const pnlValues = accountTrades.map((t) => t.pnl || 0);
+  // PnL calculations
+  const pnlValues = closedTrades.map((t) => t.pnl || 0);
   const netPnL = pnlValues.reduce((sum, p) => sum + p, 0);
-  const totalFees = accountTrades.reduce(
+  const totalFees = closedTrades.reduce(
     (sum, t) => sum + (t.feeAmount || 0),
     0
   );
   const maxProfit = Math.max(...pnlValues.filter((p) => p > 0), 0);
   const maxLoss = Math.min(...pnlValues.filter((p) => p < 0), 0);
-  const totalTrades = accountTrades.length;
+  const totalTrades = closedTrades.length;
 
   // Streak calculation
-  const last10 = accountTrades.slice(-10);
+  const last10 = closedTrades.slice(-10);
   let streakType = null;
   let streakCount = 0;
   for (let i = last10.length - 1; i >= 0; i--) {
@@ -51,9 +54,11 @@ export const calculateStats = (accountTrades = []) => {
     }
   }
 
-  const uniqueSymbols = new Set(accountTrades.map((t) => t.symbol)).size;
-  const winTrades = accountTrades.filter((t) => t.pnl > 0).length;
-  const loseTrades = accountTrades.filter((t) => t.pnl < 0).length;
+  const uniqueSymbols = new Set(closedTrades.map((t) => t.symbol)).size;
+  const winTrades = closedTrades.filter((t) => t.pnl > 0).length;
+  const loseTrades = closedTrades.filter((t) => t.pnl < 0).length;
+  const winRatio = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
+  const averagePnL = totalTrades > 0 ? netPnL / totalTrades : 0;
 
   // Best/Worst Time calculation
   const timeRanges = [
@@ -64,61 +69,38 @@ export const calculateStats = (accountTrades = []) => {
   ];
 
   const pnlByTimeRange = { Night: 0, Morning: 0, Afternoon: 0, Evening: 0 };
-
-  accountTrades.forEach((trade, idx) => {
-    const hour = new Date(trade.closeTime || trade.openTime).getHours();
+  closedTrades.forEach((trade) => {
+    const hour = new Date(trade.closeTime).getHours();
     const range = timeRanges.find((r) => hour >= r.start && hour < r.end);
-    if (range) {
-      pnlByTimeRange[range.label] += trade.pnl || 0;
-    }
-    console.log(
-      `Trade #${idx + 1} | Hour: ${hour} | Range: ${
-        range?.label || "N/A"
-      } | PnL: ${trade.pnl}`
-    );
+    if (range) pnlByTimeRange[range.label] += trade.pnl || 0;
   });
-
-  console.log("📊 PnL by Time Range:", pnlByTimeRange);
 
   const bestEntry = Object.entries(pnlByTimeRange).reduce(
     (a, b) => (b[1] > a[1] ? b : a),
     ["Not available", 0]
   );
-
   const worstEntry = Object.entries(pnlByTimeRange).reduce(
     (a, b) => (b[1] < a[1] ? b : a),
     ["Not available", 0]
   );
 
-  console.log("🏆 Best Entry:", bestEntry);
-  console.log("💔 Worst Entry:", worstEntry);
-
   const bestTime = bestEntry[1] > 0 ? bestEntry[0] : "Not available";
   const worstTime = worstEntry[1] < 0 ? worstEntry[0] : "Not available";
 
-  console.log("✅ Final Best Time:", bestTime);
-  console.log("❌ Final Worst Time:", worstTime);
-
-  const winRatio = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
-  const averagePnL = totalTrades > 0 ? netPnL / totalTrades : 0;
-
   // Total volume & daily aggregations
-  const totalVolume = accountTrades.reduce(
+  const totalVolume = closedTrades.reduce(
     (sum, t) => sum + (t.totalQuantity || 0),
     0
   );
 
   const dailyPnL = {};
   const dailyVolume = {};
-  accountTrades.forEach((trade) => {
-    const date = new Date(trade.closeTime || trade.openTime).toLocaleDateString(
-      "en-GB",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }
-    );
+  closedTrades.forEach((trade) => {
+    const date = new Date(trade.closeTime).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
 
     dailyPnL[date] = (dailyPnL[date] || 0) + (trade.pnl || 0);
 
@@ -155,7 +137,7 @@ export const calculateStats = (accountTrades = []) => {
 
   // Tag/Reason analysis
   const tagAnalysis = {};
-  accountTrades.forEach((trade) => {
+  closedTrades.forEach((trade) => {
     const reasons = trade.reason || [];
     const pnl = trade.pnl || 0;
     const isWin = pnl > 0;

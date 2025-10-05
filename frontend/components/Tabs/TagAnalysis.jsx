@@ -118,7 +118,6 @@ const TagAnalysis = ({ tagAnalysis }) => {
 
   // Colors for charts - same as pie chart
   const COLORS = [
-    "#22c55e",
     "#ef4444",
     "#f59e0b",
     "#8b5cf6",

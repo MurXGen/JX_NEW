@@ -18,24 +18,24 @@ export default function WelcomeModal({ username, onClose }) {
     // Animate circle stroke from 0 to full over 10s
     controls.start({
       strokeDashoffset: 0,
-      transition: { duration: 3, ease: "linear" },
+      transition: { duration: 2, ease: "linear" },
     });
 
     // Trigger confetti after 10s
     const confettiTimer = setTimeout(() => {
       setShowConfetti(true);
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 200,
+        spread: 100,
         origin: { y: 0.5 },
       });
-    }, 3000);
+    }, 2000);
 
     // Auto redirect after 11s
     const redirectTimer = setTimeout(() => {
       if (onClose) onClose();
       router.push("/");
-    }, 4000);
+    }, 3000);
 
     return () => {
       clearTimeout(confettiTimer);
@@ -61,6 +61,7 @@ export default function WelcomeModal({ username, onClose }) {
         zIndex: 9999,
       }}
     >
+      {showConfetti && <div id="confetti"></div>}
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
@@ -87,7 +88,7 @@ export default function WelcomeModal({ username, onClose }) {
               r={radius}
               stroke="#555"
               strokeWidth={6}
-              fill="none"
+              fill="var(--success)"
             />
             <motion.circle
               cx={60}
@@ -105,24 +106,22 @@ export default function WelcomeModal({ username, onClose }) {
           <div
             style={{
               position: "absolute",
-              top: "50%",
+              top: "53%",
               left: "50%",
               transform: "translate(-50%, -50%)",
             }}
           >
-            <Check size={60} color="var(--success)" />
+            <Check size={60} color="var(--white-80)" />
           </div>
         </div>
 
-        {showConfetti && <div id="confetti"></div>}
-
-        <div style={{ textAlign: "center" }}>
-          <span className="font_16">Hey, welcome back!</span>
+        <div className="flexClm gap_4" style={{ textAlign: "center" }}>
+          <span className="font_16">Hey hi, welcome back!</span>
           <div className="font_24">{username}</div>
         </div>
 
-        <button onClick={handleProceed} className="button_sec width100">
-          Yes, thanks, proceed
+        <button onClick={handleProceed} className="button_pri width100">
+          Go to accounts
         </button>
       </motion.div>
     </div>

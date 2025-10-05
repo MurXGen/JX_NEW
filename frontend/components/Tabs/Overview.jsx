@@ -403,7 +403,7 @@ export default function Overview({ stats, trades }) {
         </div>
         <div className="greedAndFear flexRow flexRow_stretch chart_boxBg">
           <div className="gfHeader flexClm gap_12">
-            <span className=" font_12 ">Greed & Fear Index</span>
+            <span className="font_12">Greed & Fear Index</span>
             <span>{gfValue}</span>
           </div>
 
@@ -449,20 +449,42 @@ export default function Overview({ stats, trades }) {
               {/* Circle pivot */}
               <circle cx="100" cy="100" r="5" fill="white" />
 
-              {/* Text inside semicircle */}
+              {/* Needle tip circle with value */}
+              {(() => {
+                // Needle tip calculation
+                const length = 75; // length of the needle
+                const rad = (angle * Math.PI) / 180; // convert angle to radians
+                const tipX = 100 + length * Math.cos(rad - Math.PI / 2); // adjust because SVG y-axis
+                const tipY = 100 + length * Math.sin(rad - Math.PI / 2);
+
+                return (
+                  <>
+                    <circle
+                      cx={tipX}
+                      cy={tipY}
+                      r={20}
+                      fill="white"
+                      stroke="#000"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={tipX}
+                      y={tipY + 5} // +5 to vertically center the number
+                      textAnchor="middle"
+                      fontSize="16"
+                      fontWeight="bold"
+                      fill="#000"
+                    >
+                      {gfValue}
+                    </text>
+                  </>
+                );
+              })()}
+
+              {/* Label below semicircle */}
               <text
                 x="100"
-                y="75"
-                textAnchor="middle"
-                fontSize="20"
-                fontWeight="bold"
-                fill="white"
-              >
-                {gfValue}
-              </text>
-              <text
-                x="100"
-                y="95"
+                y="115"
                 textAnchor="middle"
                 fontSize="14"
                 fill={
