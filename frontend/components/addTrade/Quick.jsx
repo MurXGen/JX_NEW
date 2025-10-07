@@ -5,7 +5,7 @@ const QuickSection = ({ currency, form, handleChange }) => {
 
   return (
     <div className="tradeGrid">
-      <span className="label">Net P/L</span>
+      {/* <span className="label">Net P/L</span> */}
       <div style={{ position: "relative", width: "100%" }}>
         <div className="inputLabelShift">
           <input

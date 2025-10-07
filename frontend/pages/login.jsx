@@ -45,10 +45,9 @@ function Login() {
       const res = await axios.post(
         `${API_BASE}/api/auth/login`,
         { email, password },
-        { withCredentials: true } // ✅ important to receive HttpOnly cookie
+        { withCredentials: true }
       );
 
-      // Not verified → redirect to registration/OTP
       if (res.status === 403) {
         setPopup({
           message: res.data.message || "Please verify OTP first.",
@@ -60,7 +59,14 @@ function Login() {
       }
 
       const { userData, isVerified } = res.data;
+
+      // Save user data
       await saveToIndexedDB("user-data", userData);
+
+      // Save plans separately for easy access
+      if (userData?.plans) {
+        await saveToIndexedDB("plans", userData.plans);
+      }
 
       if (userData?.name) {
         localStorage.setItem("userName", userData.name);

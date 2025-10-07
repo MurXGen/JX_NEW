@@ -24,6 +24,7 @@ import {
   Zap,
   CircleDot,
   Trash,
+  Loader2,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatNumbers";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -203,43 +204,92 @@ const TradeInfo = ({ onClose }) => {
                   {trade.openImageUrl && (
                     <div className="imageContainer">
                       <span className="font_12 shade_50">Open Image</span>
-                      <Image
-                        src={trade.openImageUrl}
-                        alt="Open trade"
-                        width={400}
-                        height={300}
-                        priority
-                        placeholder="blur"
-                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAA..."
-                        onLoadingComplete={(img) =>
-                          img.setAttribute("data-loaded", "true")
-                        }
-                        className="tradeImage fadeInImage"
-                        onClick={() =>
-                          window.open(trade.openImageUrl, "_blank")
-                        }
-                      />
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "inline-block",
+                        }}
+                      >
+                        {!trade.openImageLoaded && (
+                          <Loader2
+                            size={24}
+                            className="spinner"
+                            style={{
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
+                            }}
+                          />
+                        )}
+                        <Image
+                          src={trade.openImageUrl}
+                          alt="Open trade"
+                          width={400}
+                          height={300}
+                          priority
+                          placeholder="blur"
+                          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAA..."
+                          className="tradeImage fadeInImage"
+                          data-loaded={trade.openImageLoaded ? "true" : "false"}
+                          onLoadingComplete={() =>
+                            setTrade((prev) => ({
+                              ...prev,
+                              openImageLoaded: true,
+                            }))
+                          }
+                          onClick={() =>
+                            window.open(trade.openImageUrl, "_blank")
+                          }
+                        />
+                      </div>
                     </div>
                   )}
+
                   {trade.closeImageUrl && (
                     <div className="imageContainer">
                       <span className="font_12 shade_50">Close Image</span>
-                      <Image
-                        src={trade.closeImageUrl}
-                        alt="Close trade"
-                        width={400}
-                        height={300}
-                        priority
-                        placeholder="blur"
-                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAA..."
-                        className="tradeImage fadeInImage"
-                        onLoadingComplete={(img) =>
-                          img.setAttribute("data-loaded", "true")
-                        }
-                        onClick={() =>
-                          window.open(trade.closeImageUrl, "_blank")
-                        }
-                      />
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "inline-block",
+                        }}
+                      >
+                        {!trade.closeImageLoaded && (
+                          <Loader2
+                            size={24}
+                            className="spinner"
+                            style={{
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
+                            }}
+                          />
+                        )}
+                        <Image
+                          src={trade.closeImageUrl}
+                          alt="Close trade"
+                          width={400}
+                          height={300}
+                          priority
+                          placeholder="blur"
+                          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAA..."
+                          className="tradeImage fadeInImage"
+                          data-loaded={
+                            trade.closeImageLoaded ? "true" : "false"
+                          }
+                          onLoadingComplete={() =>
+                            setTrade((prev) => ({
+                              ...prev,
+                              closeImageLoaded: true,
+                            }))
+                          }
+                          onClick={() =>
+                            window.open(trade.closeImageUrl, "_blank")
+                          }
+                        />
+                      </div>
                     </div>
                   )}
                 </div>

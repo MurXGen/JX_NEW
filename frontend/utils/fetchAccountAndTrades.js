@@ -62,3 +62,20 @@ export const fetchAccountsAndTrades = async () => {
     };
   }
 };
+
+export const fetchPlansFromIndexedDB = async () => {
+  try {
+    const plans = await getFromIndexedDB("plans");
+    if (!plans || !Array.isArray(plans)) return [];
+
+    return plans.map((plan) => ({
+      planId: plan.planId,
+      name: plan.name,
+      monthly: plan.monthly,
+      yearly: plan.yearly,
+    }));
+  } catch (err) {
+    console.error("❌ Error fetching plans:", err);
+    return [];
+  }
+};

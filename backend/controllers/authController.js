@@ -5,6 +5,7 @@ const Account = require("../models/Account");
 const Trade = require("../models/Trade"); // new separate model
 const EmailVerification = require("../models/EmailVerify");
 const { sendOtpEmail } = require("../mail/sendOtpEmail");
+const Plan = require("../models/Plan");
 
 const SALT_ROUNDS = 10;
 const isProduction = process.env.NODE_ENV === "production";
@@ -129,6 +130,9 @@ const loginUser = async (req, res) => {
     const accounts = await Account.find({ userId: user._id }).lean();
     const trades = await Trade.find({ userId: user._id }).lean();
 
+    // ✅ Fetch all plans from DB
+    const plans = await Plan.find({}).lean(); // lean() to get plain objects
+
     res.status(200).json({
       message: "Login successful",
       isVerified: "yes",
@@ -141,6 +145,7 @@ const loginUser = async (req, res) => {
         subscriptionExpiresAt: user.subscriptionExpiresAt,
         accounts,
         trades,
+        plans, // <-- include all plans here
       },
     });
   } catch (err) {

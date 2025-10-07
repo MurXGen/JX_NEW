@@ -83,7 +83,7 @@ const Profile = () => {
         </div>
       </div>
 
-      <div className="boxBg flexClm gap_16" style={{ padding: "16px" }}>
+      <div className="chart_boxBg flexClm gap_16" style={{ padding: "16px" }}>
         {/* Dummy User Info */}
         <div className="flexClm gap_32">
           <div className="flexRow boxBg flexRow_stretch gap_8">

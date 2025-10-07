@@ -343,7 +343,6 @@ input:focus {
 
 .button_sec:hover {
   border: none;
-  background: var(--white-4);
   transform: translateY(-2px); /* small lift effect */
 }
 
@@ -389,6 +388,8 @@ button:hover {
   cursor: pointer;
   max-width: fit-content;
   font-weight: var(--weight-500);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .popups_top {
@@ -469,6 +470,14 @@ button:hover {
   background-color: rgba(0, 0, 0, 0.4);
   /* semi-transparent black */
   backdrop-filter: blur(6px);
+}
+
+.tradeImage.hidden {
+  display: none;
+}
+
+.tradeImage.visible {
+  display: block;
 }
 
 .spinner {
@@ -3086,7 +3095,84 @@ footer {
 }
 
 @media (min-width: 0) {
-  .glowing_icon {
-    box-shadow: 0px 0px 10px var(--primary);
+  .pricing-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 32px;
+  }
+
+  .tab-row {
+    display: flex;
+    gap: 16px;
+  }
+
+  .tab-row button {
+    padding: 8px 16px;
+    border: none;
+    background: var(--base-box-bg);
+    color: var(--base-text);
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .tab-row button.active-tab {
+    background: var(--primary);
+    color: var(--base-bg);
+  }
+
+  .plans-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+  }
+
+  .pricing-box {
+    padding: 24px;
+    border-radius: var(--px-12);
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .price-display {
+    font-size: 32px;
+    font-weight: bold;
+  }
+
+  .features-list {
+    list-style-type: disc;
+    padding-left: 20px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+  }
+
+  .payment-options {
+    display: flex;
+    gap: 16px;
+  }
+
+  .payment-options button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: var(--primary);
+    color: var(--base-bg);
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .payment-options button:hover {
+    background: var(--primary-light);
+  }
+  .plan_card {
+    transition: background 0.3s;
+  }
+
+  .plan_card:hover {
+    background: var(--base-box-bg);
   }
 }
