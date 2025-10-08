@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
@@ -40,7 +39,15 @@ const userSchema = new mongoose.Schema(
       enum: ["free", "pro", "elite", "master"],
       default: "free",
     },
-    subscriptionExpiresAt: { type: Date },
+    subscriptionType: {
+      type: String,
+      enum: ["one-time", "recurring", "none"],
+      default: "none",
+    },
+
+    subscriptionStartAt: { type: Date }, // when the subscription started
+    subscriptionExpiresAt: { type: Date }, // when it will expire
+    subscriptionCreatedAt: { type: Date }, // optional, first subscription created
   },
   { timestamps: true }
 );

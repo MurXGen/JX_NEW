@@ -41,6 +41,12 @@ export default function CheckoutOnline() {
     })();
   }, [planName]);
 
+  useEffect(() => {
+    if (period === "yearly" || method === "crypto") {
+      setPaymentType("one-time");
+    }
+  }, [period, method]);
+
   if (!planDetails)
     return (
       <div className="flex_center" style={{ height: "80vh" }}>
@@ -52,24 +58,27 @@ export default function CheckoutOnline() {
     method === "crypto" ? `${amountParam} USDT` : `₹${amountParam}`;
 
   const handleConfirmPay = async () => {
-    // method = 'upi' or 'crypto'
     if (method === "crypto") {
-      // go to cryptobilling page
       router.push(
         `/cryptobilling?planName=${planDetails.name}&period=${period}&amount=${amountParam}`
       );
       return;
     }
 
-    // INR / Razorpay flow
     const payload = {
-      planId: planDetails.planId, // ensure planId present in planDetails saved from IDB
-      period, // 'monthly' or 'yearly'
-      userName: planDetails.name, // or real user data
+      planId: planDetails.planId,
+      period,
+      userName: planDetails.name,
       userEmail: planDetails.email || "",
     };
 
     try {
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        alert("Razorpay SDK failed to load");
+        return;
+      }
+
       if (paymentType === "one-time") {
         const createRes = await axios.post(
           `${API_BASE}/api/payments/create-order`,
@@ -77,48 +86,42 @@ export default function CheckoutOnline() {
           { withCredentials: true }
         );
         const { order, key } = createRes.data;
-        // load script
-        const loaded = await loadRazorpayScript();
-        if (!loaded) {
-          alert("Razorpay SDK failed to load");
-          return;
-        }
 
         const options = {
           key,
           amount: order.amount,
           currency: "INR",
           name: "JournalX",
-          description: `${planDetails.name} (${period})`,
+          description: "Order description",
           order_id: order.id,
           handler: async function (response) {
-            // response has razorpay_payment_id, razorpay_order_id, razorpay_signature
+            // successful payment
             await axios.post(
               `${API_BASE}/api/payments/verify-payment`,
-              response,
-              { withCredentials: true }
+              response
             );
-            // show success UI / redirect
-            router.push("/subscription-success"); // or show modal
+
+            router.push("/subscription-success");
           },
-          prefill: { name: planDetails.name, email: planDetails.email || "" },
+          modal: {
+            ondismiss: function () {
+              // triggered when user closes the Razorpay modal
+              alert("Payment cancelled");
+              router.push("/subscription-failed");
+            },
+          },
+          //   prefill: { name: userName, email: userEmail },
         };
 
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else if (paymentType === "monthly" || paymentType === "recurring") {
-        // create subscription
         const createRes = await axios.post(
           `${API_BASE}/api/payments/create-subscription`,
           payload,
           { withCredentials: true }
         );
         const { subscription, key } = createRes.data;
-        const loaded = await loadRazorpayScript();
-        if (!loaded) {
-          alert("Razorpay SDK failed to load");
-          return;
-        }
 
         const options = {
           key,
@@ -126,15 +129,30 @@ export default function CheckoutOnline() {
           description: `${planDetails.name} subscription`,
           subscription_id: subscription.id,
           handler: async function (response) {
-            // response has razorpay_payment_id, razorpay_subscription_id, razorpay_signature
-            await axios.post(
-              `${API_BASE}/api/payments/verify-subscription`,
-              response,
-              { withCredentials: true }
-            );
-            router.push("/subscription-success");
+            // Instead of redirecting immediately
+            try {
+              const verifyRes = await axios.post(
+                `${API_BASE}/api/payments/verify-subscription`,
+                response,
+                { withCredentials: true }
+              );
+              if (verifyRes.data.success) {
+                router.push("/subscription-success");
+              } else {
+                router.push("/subscription-failed");
+              }
+            } catch (err) {
+              console.error("Subscription verification failed", err);
+              router.push("/subscription-failed");
+            }
           },
-          prefill: { name: planDetails.name, email: planDetails.email || "" },
+          modal: {
+            ondismiss: function () {
+              // Show cancelled page
+              router.push("/subscription-failed");
+            },
+          },
+          //   prefill: { name: userName, email: userEmail },
         };
 
         const rzp = new window.Razorpay(options);
@@ -177,31 +195,34 @@ export default function CheckoutOnline() {
         </div>
 
         {/* ✅ New Payment Type selector */}
-        <div className="flexClm gap_8 mt-8">
-          <span className="font_14">Payment Type:</span>
-          <div className="flexRow gap_8">
-            <button
-              className={
-                paymentType === "one-time"
-                  ? "button_sec selected width100"
-                  : "button_sec width100"
-              }
-              onClick={() => setPaymentType("one-time")}
-            >
-              One-time
-            </button>
-            <button
-              className={
-                paymentType === "monthly"
-                  ? "button_sec selected width100"
-                  : "button_sec width100"
-              }
-              onClick={() => setPaymentType("monthly")}
-            >
-              Monthly
-            </button>
+        {period === "monthly" && method !== "crypto" && (
+          <div className="flexClm gap_8 mt-8">
+            <span className="font_14">Payment Type:</span>
+            <div className="flexRow gap_8">
+              <button
+                className={
+                  paymentType === "one-time"
+                    ? "button_sec selected width100"
+                    : "button_sec width100"
+                }
+                onClick={() => setPaymentType("one-time")}
+              >
+                One-time
+              </button>
+
+              <button
+                className={
+                  paymentType === "recurring"
+                    ? "button_sec selected width100"
+                    : "button_sec width100"
+                }
+                onClick={() => setPaymentType("recurring")}
+              >
+                Recurring
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flexRow space_between mt-12">
           <span>Total Amount:</span>

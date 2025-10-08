@@ -3095,84 +3095,280 @@ footer {
 }
 
 @media (min-width: 0) {
-  .pricing-container {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    padding: 32px;
+  /* Plans Grid */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--px-24);
+    margin-bottom: var(--px-32);
   }
 
-  .tab-row {
-    display: flex;
-    gap: 16px;
-  }
-
-  .tab-row button {
-    padding: 8px 16px;
-    border: none;
+  .plan-card {
     background: var(--base-box-bg);
+    border: 2px solid var(--white-10);
+    border-radius: var(--px-20);
+    padding: var(--px-16);
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .plan-card.active {
+    border-color: var(--primary);
+    background: linear-gradient(
+      135deg,
+      var(--base-box-bg) 0%,
+      var(--primary-10) 100%
+    );
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px rgba(167, 125, 2, 0.2);
+  }
+
+  .plan-card:hover {
+    border-color: var(--primary-50);
+  }
+
+  /* Popular Badge */
+  .popular-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
     color: var(--base-text);
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-
-  .tab-row button.active-tab {
-    background: var(--primary);
-    color: var(--base-bg);
-  }
-
-  .plans-row {
+    padding: var(--px-8) var(--px-16);
+    border-radius: var(--px-20);
+    font-size: var(--px-10);
+    font-weight: var(--weight-700);
     display: flex;
-    gap: 24px;
+    align-items: center;
+    gap: var(--px-4);
+    white-space: nowrap;
+  }
+
+  /* Plan Header */
+  .plan-header {
+    text-align: center;
+    margin-bottom: var(--px-20);
+  }
+
+  .plan-icon-container {
+    margin-bottom: var(--px-12);
+  }
+
+  .plan-icon {
+    opacity: 0.9;
+  }
+
+  .plan-icon.pro {
+    color: #38bdf8;
+  }
+
+  .plan-icon.elite {
+    color: #f59e0b;
+  }
+
+  .plan-icon.master {
+    color: #8b5cf6;
+  }
+
+  .plan-name {
+    margin-bottom: var(--px-8);
+  }
+
+  .plan-description {
+    color: var(--white-50);
+  }
+
+  /* Price Section */
+  .plan-price {
+    text-align: center;
+    margin-bottom: var(--px-24);
+  }
+
+  .price-amount {
+    display: flex;
+    align-items: baseline;
     justify-content: center;
+    gap: var(--px-4);
+    margin-bottom: var(--px-8);
   }
 
-  .pricing-box {
-    padding: 24px;
-    border-radius: var(--px-12);
-    width: 280px;
+  .currency {
+    font-size: var(--px-16);
+    color: var(--white-80);
+  }
+
+  .amount {
+    color: var(--base-text);
+  }
+
+  .period {
+    color: var(--white-50);
+  }
+
+  .savings-tag {
+    background: var(--success-20);
+    padding: var(--px-4) var(--px-8);
+    border-radius: var(--px-8);
+    display: inline-block;
+  }
+
+  .feature-item {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    align-items: center;
+    gap: var(--px-8);
+    margin-bottom: var(--px-8);
   }
 
-  .price-display {
-    font-size: 32px;
-    font-weight: bold;
+  .feature-icon {
+    flex-shrink: 0;
   }
 
-  .features-list {
-    list-style-type: disc;
-    padding-left: 20px;
+  .feature-text {
+    color: var(--white-80);
   }
 
-  input[type="range"] {
+  /* CTA Button */
+  .plan-cta {
     width: 100%;
-  }
-
-  .payment-options {
-    display: flex;
-    gap: 16px;
-  }
-
-  .payment-options button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    background: var(--primary);
-    color: var(--base-bg);
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-
-  .payment-options button:hover {
-    background: var(--primary-light);
-  }
-  .plan_card {
-    transition: background 0.3s;
-  }
-
-  .plan_card:hover {
     background: var(--base-box-bg);
+    border: 0.2px solid var(--white-20);
+    color: var(--base-text);
+    padding: var(--px-16);
+    border-radius: var(--px-12);
+    font-size: var(--px-14);
+    font-weight: var(--weight-600);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--px-8);
+  }
+
+  .plan-cta.active {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .plan-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(167, 125, 2, 0.3);
+  }
+
+  /* Trust Section */
+  .trust-section {
+    border-top: 1px solid var(--white-10);
+    padding-top: var(--px-24);
+  }
+
+  .trust-items {
+    display: flex;
+    justify-content: center;
+    gap: var(--px-32);
+    flex-wrap: wrap;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: var(--px-8);
+    color: var(--white-50);
+  }
+
+  /* Payment Modal */
+  .payment-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--px-16);
+  }
+
+  .payment-modal {
+    background: var(--base-box-bg);
+    border-radius: var(--px-20);
+    padding: var(--px-24);
+    max-width: 400px;
+    width: 100%;
+    position: relative;
+  }
+
+  .modal-header {
+    margin-bottom: var(--px-24);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: var(--px-16);
+    right: var(--px-16);
+  }
+  .payment-method {
+    background: var(--base-bg);
+    border: 1px solid var(--white-10);
+    border-left: 4px solid;
+    border-radius: var(--px-12);
+    padding: var(--px-16);
+    display: flex;
+    align-items: center;
+    gap: var(--px-12);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .payment-method.selected {
+    border-color: var(--primary);
+    background: var(--primary-10);
+  }
+
+  .payment-method.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .payment-method:not(.disabled):hover {
+    border-color: var(--primary-50);
+    transform: translateX(4px);
+  }
+
+  .method-icon {
+    opacity: 0.8;
+  }
+
+  .method-info {
+    flex: 1;
+    text-align: left;
+  }
+
+  .method-name {
+    display: block;
+    margin-bottom: var(--px-4);
+  }
+
+  .method-description {
+    color: var(--white-50);
+  }
+
+  .selected-indicator {
+    color: var(--success);
+  }
+
+  .security-footer {
+    border-top: 1px solid var(--white-10);
+    padding-top: var(--px-16);
+    text-align: center;
+  }
+
+  .security-badge {
+    justify-content: center;
+    color: var(--white-50);
   }
 }

@@ -21,6 +21,7 @@ const OrderSchema = new mongoose.Schema(
       enum: ["created", "paid", "failed", "captured"],
       default: "created",
     },
+    period: { type: String, enum: ["monthly", "yearly"] },
 
     meta: { type: Object, default: {} }, // any extra info
   },

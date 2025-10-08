@@ -1,7 +1,7 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const Plan = require("../models/Plan");
-const Order = require("../models/Order");
+const Order = require("../models/Orders");
 const Subscription = require("../models/Subscription");
 const User = require("../models/User");
 
@@ -16,33 +16,42 @@ const toPaise = (inr) => Math.round(Number(inr) * 100);
 // --- Create one-time order ---
 exports.createOrder = async (req, res) => {
   try {
-    const { planId, period /* monthly/yearly */, userName, userEmail } =
-      req.body;
-    // validate
-    if (!planId) return res.status(400).json({ message: "planId required" });
+    console.log("🟢 CREATE ORDER HIT");
+    const { planId, period, userName, userEmail } = req.body;
 
-    // fetch plan from DB and ensure amount matches server-side
+    console.log("📩 Payload received:", {
+      planId,
+      period,
+      userName,
+      userEmail,
+    });
+
+    if (!planId) return res.status(400).json({ message: "planId required" });
+    if (!period) return res.status(400).json({ message: "period required" });
+
     const plan = await Plan.findOne({ planId });
     if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-    // choose amount based on period
     const priceINR = period === "yearly" ? plan.yearly.inr : plan.monthly.inr;
     if (!priceINR)
       return res.status(400).json({ message: "Plan pricing not configured" });
 
     const amountPaise = toPaise(priceINR);
+    console.log(
+      `💰 Calculated amount for ${period}: ₹${priceINR} (${amountPaise} paise)`
+    );
 
-    // Create razorpay order
+    // 🔹 Create Razorpay order
     const order = await razorpay.orders.create({
       amount: amountPaise,
       currency: "INR",
       receipt: `receipt_${planId}_${Date.now()}`,
-      notes: {
-        planId,
-      },
+      notes: { planId, period, userEmail },
     });
 
-    // Save local order
+    console.log("🧾 Razorpay order created:", order.id);
+
+    // 🔹 Save order in DB
     const dbOrder = new Order({
       userId: req.cookies.userId || null,
       planId,
@@ -50,29 +59,36 @@ exports.createOrder = async (req, res) => {
       currency: "INR",
       method: "upi",
       razorpayOrderId: order.id,
-      status: "created",
+      status: "created", // do NOT mark paid yet
+      period, // ✅ store period
       meta: { planName: plan.name },
     });
     await dbOrder.save();
 
+    console.log("✅ Order saved in DB:", dbOrder._id);
+
     res.json({
       success: true,
-      order: { id: order.id, amount: order.amount, currency: order.currency },
+      order: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+      },
       key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (err) {
-    console.error("createOrder error", err);
+    console.error("🔥 createOrder Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// --- Verify one-time payment from client (handler) ---
 exports.verifyPayment = async (req, res) => {
   try {
+    console.log("🟢 VERIFY PAYMENT HIT");
+    console.log("Body:", req.body);
+
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
       req.body;
-    if (!razorpay_signature)
-      return res.status(400).json({ message: "Missing signature" });
 
     const generated_signature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -80,63 +96,102 @@ exports.verifyPayment = async (req, res) => {
       .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
+      console.log("❌ Invalid signature");
       return res.status(400).json({ message: "Invalid signature" });
     }
 
-    // find order
     const dbOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
-    if (!dbOrder) return res.status(404).json({ message: "Order not found" });
+    if (!dbOrder) {
+      console.log("❌ Order not found:", razorpay_order_id);
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    console.log("✅ Order found:", dbOrder);
+    console.log("🧾 Plan period:", dbOrder.period);
 
     dbOrder.razorpayPaymentId = razorpay_payment_id;
     dbOrder.razorpaySignature = razorpay_signature;
     dbOrder.status = "paid";
     await dbOrder.save();
 
-    // Optionally: capture payment via API if not auto-captured (Razorpay auto-captures by default in checkout)
-    // await razorpay.payments.capture(razorpay_payment_id, dbOrder.amount, 'INR');
+    const user = await User.findById(dbOrder.userId);
+    if (!user) {
+      console.log("❌ User not found:", dbOrder.userId);
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    return res.json({
+    const plan = await Plan.findOne({ planId: dbOrder.planId });
+    console.log("📦 Plan found:", plan?.planId);
+
+    const startDate = new Date();
+    const expiryDate = new Date(startDate);
+
+    // DEBUG: show before setting expiry
+    console.log("📅 Before expiry set:", { startDate, expiryDate });
+
+    if (dbOrder.period === "yearly") {
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      console.log("🗓️ Setting expiry +1 year");
+    } else {
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
+      console.log("🗓️ Setting expiry +1 month");
+    }
+
+    // DEBUG: show after expiry calculation
+    console.log("📅 Final expiry:", expiryDate);
+
+    user.subscriptionStatus = "active";
+    user.subscriptionPlan = plan.planId;
+    user.subscriptionType = "one-time";
+    user.subscriptionStartAt = startDate;
+    user.subscriptionExpiresAt = expiryDate;
+    if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
+
+    await user.save();
+    console.log("✅ User updated:", user._id);
+
+    res.json({
       success: true,
-      message: "Payment verified",
+      message: "Payment verified and subscription updated",
       orderId: dbOrder._id,
     });
   } catch (err) {
-    console.error("verifyPayment", err);
+    console.error("🔥 verifyPayment Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// --- Create subscription (recurring) ---
 exports.createSubscription = async (req, res) => {
   try {
+    console.log("🟢 CREATE SUBSCRIPTION HIT");
     const { planId, period, userName, userEmail, userContact } = req.body;
-    console.log("✅ Request body:", req.body);
+
+    console.log("📩 Payload received:", {
+      planId,
+      period,
+      userName,
+      userEmail,
+      userContact,
+    });
 
     if (!planId) return res.status(400).json({ message: "planId required" });
+    if (!period) return res.status(400).json({ message: "period required" });
 
     const plan = await Plan.findOne({ planId });
-    console.log("✅ Fetched plan from DB:", plan);
-
     if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-    // Decide Razorpay period string
-    const razorPeriod = period === "yearly" ? "yearly" : "monthly";
-
-    console.log("✅ Razorpay period:", razorPeriod);
-
     const amountINR = period === "yearly" ? plan.yearly.inr : plan.monthly.inr;
-    console.log("✅ Amount INR for plan:", amountINR);
-
     if (!amountINR)
       return res.status(400).json({ message: "Plan pricing not configured" });
 
-    // If plan has razorpayPlanId, reuse it
+    const razorPeriod = period === "yearly" ? "yearly" : "monthly";
+    console.log(`💰 Calculated amount for ${period}: ₹${amountINR}`);
+
+    // 🔹 Create or reuse Razorpay plan
     let razorpayPlanId = plan.razorpayPlanId;
     if (!razorpayPlanId) {
-      console.log("ℹ️ Creating new Razorpay plan...");
-
-      const razorPeriod = period === "yearly" ? "yearly" : "monthly";
-      const planPayload = {
+      console.log("📦 Creating new Razorpay plan...");
+      const createdPlan = await razorpay.plans.create({
         period: razorPeriod,
         interval: 1,
         item: {
@@ -144,81 +199,64 @@ exports.createSubscription = async (req, res) => {
           amount: toPaise(amountINR),
           currency: "INR",
         },
-      };
-
-      console.log(
-        "➡️ Razorpay plan payload:",
-        JSON.stringify(planPayload, null, 2)
-      );
-
-      try {
-        const createdPlan = await razorpay.plans.create(planPayload);
-        console.log("✅ Razorpay plan created successfully:", createdPlan);
-
-        razorpayPlanId = createdPlan.id;
-        plan.razorpayPlanId = razorpayPlanId;
-        await plan.save();
-      } catch (err) {
-        console.error("❌ Razorpay plan creation failed:", err);
-        throw err;
-      }
+      });
+      razorpayPlanId = createdPlan.id;
+      plan.razorpayPlanId = razorpayPlanId;
+      await plan.save();
+      console.log("✅ New Razorpay plan created:", razorpayPlanId);
     } else {
-      console.log("ℹ️ Using existing Razorpay plan ID:", razorpayPlanId);
+      console.log("🔁 Reusing existing Razorpay plan:", razorpayPlanId);
     }
 
-    // Create Razorpay customer
+    // 🔹 Create or reuse customer
     let customerId;
-
     try {
-      // Try to create customer
       const customer = await razorpay.customers.create({
         name: userName || "JournalX user",
         email: userEmail || undefined,
         contact: userContact || undefined,
       });
       customerId = customer.id;
-      console.log("✅ Razorpay customer created:", customer);
+      console.log("👤 New customer created:", customerId);
     } catch (err) {
-      // If customer already exists, search by email
       if (
         err.error?.code === "BAD_REQUEST_ERROR" &&
         err.error.description.includes("Customer already exists")
       ) {
-        const existingCustomers = await razorpay.customers.all({
-          email: userEmail,
-        });
-        if (existingCustomers.items.length > 0) {
-          customerId = existingCustomers.items[0].id;
-          console.log("ℹ️ Reusing existing Razorpay customer:", customerId);
-        } else {
-          throw err; // If we cannot find it, throw
-        }
+        console.log("⚠️ Customer already exists, fetching existing...");
+        const existing = await razorpay.customers.all({ email: userEmail });
+        customerId = existing.items[0]?.id;
+        console.log("👤 Existing customer ID:", customerId);
       } else {
-        throw err; // other errors
+        throw err;
       }
     }
 
-    // Proceed to create subscription
+    // 🔹 Create subscription
     const subscription = await razorpay.subscriptions.create({
       plan_id: razorpayPlanId,
       customer_id: customerId,
       customer_notify: 1,
-      total_count: 12, // number of cycles for recurring
+      total_count: 12,
+      notes: { planId, period },
     });
 
-    console.log("✅ Subscription created:", subscription);
+    console.log("🧾 Razorpay subscription created:", subscription.id);
 
-    // Save in DB
+    // 🔹 Save subscription in DB
     const dbSub = new Subscription({
       userId: req.cookies.userId || null,
       planId,
+      period, // ✅ store period explicitly
       razorpayPlanId,
       razorpaySubscriptionId: subscription.id,
-      status: subscription.status || "created",
+      status: "created", // not active until verified
       paymentMethod: "upi",
       meta: { subscription },
     });
     await dbSub.save();
+
+    console.log("✅ Subscription saved in DB:", dbSub._id);
 
     res.json({
       success: true,
@@ -226,50 +264,84 @@ exports.createSubscription = async (req, res) => {
       key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (err) {
-    console.error("❌ createSubscription error:", err);
-
-    // If Razorpay returns an error response
-    if (err?.error) {
-      console.error("❌ Razorpay error details:", err.error);
-      return res
-        .status(400)
-        .json({ message: err.error.description, details: err.error });
-    }
-
+    console.error("🔥 createSubscription Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// --- Verify subscription payment after client checkout ---
 exports.verifySubscription = async (req, res) => {
   try {
+    console.log("🟢 VERIFY SUBSCRIPTION HIT");
+    console.log("Body:", req.body);
+
     const {
       razorpay_payment_id,
       razorpay_subscription_id,
       razorpay_signature,
     } = req.body;
+
     const hmac = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
       .digest("hex");
 
     if (hmac !== razorpay_signature) {
+      console.log("❌ Invalid subscription signature");
       return res.status(400).json({ message: "Invalid signature" });
     }
 
-    // mark subscription record active
     const dbSub = await Subscription.findOne({
       razorpaySubscriptionId: razorpay_subscription_id,
     });
-    if (!dbSub)
+    if (!dbSub) {
+      console.log("❌ Subscription not found:", razorpay_subscription_id);
       return res.status(404).json({ message: "Subscription not found" });
+    }
+
+    console.log("✅ Subscription found:", dbSub);
+    console.log("🧾 Plan period:", dbSub.meta?.subscription?.period);
 
     dbSub.status = "active";
     await dbSub.save();
 
-    return res.json({ success: true });
+    const user = await User.findById(dbSub.userId);
+    if (!user) {
+      console.log("❌ User not found:", dbSub.userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const plan = await Plan.findOne({ planId: dbSub.planId });
+    console.log("📦 Plan found:", plan?.planId);
+
+    const startDate = new Date();
+    const expiryDate = new Date(startDate);
+
+    const period = dbSub.meta?.subscription?.period;
+    console.log("📆 Period received:", period);
+
+    if (period === "yearly") {
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      console.log("🗓️ Setting expiry +1 year");
+    } else {
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
+      console.log("🗓️ Setting expiry +1 month");
+    }
+
+    console.log("📅 Final expiry:", expiryDate);
+
+    user.subscriptionStatus = "active";
+    user.subscriptionPlan = plan.planId;
+    user.subscriptionType = "recurring";
+    user.subscriptionStartAt = startDate;
+    user.subscriptionExpiresAt = expiryDate;
+    if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
+
+    await user.save();
+    console.log("✅ User updated:", user._id);
+
+    res.json({ success: true, message: "Subscription verified" });
   } catch (err) {
-    console.error("verifySubscription", err);
+    console.error("🔥 verifySubscription Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -1,9 +1,9 @@
+// components/Pricing/PaymentSelector.js
 "use client";
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, CreditCard, Coins, Shield, Zap, Check } from "lucide-react";
 import { fetchPlansFromIndexedDB } from "@/utils/fetchAccountAndTrades";
 
 export default function PaymentSelector({
@@ -17,7 +17,6 @@ export default function PaymentSelector({
   const [planDetails, setPlanDetails] = useState(null);
   const router = useRouter();
 
-  // Fetch plan details from IndexedDB
   useEffect(() => {
     (async () => {
       if (!planName) return;
@@ -28,6 +27,25 @@ export default function PaymentSelector({
       setPlanDetails(match || null);
     })();
   }, [planName]);
+
+  const paymentMethods = [
+    {
+      id: "upi",
+      name: "UPI Payment",
+      icon: CreditCard,
+      description: "Instant payment for Indian users",
+      available: userCountry === "IN",
+      color: "#22c55e",
+    },
+    {
+      id: "crypto",
+      name: "Crypto Payment",
+      icon: Coins,
+      description: "Pay with USDT networks",
+      available: true,
+      color: "#f59e0b",
+    },
+  ];
 
   const handlePayment = (method) => {
     setSelectedMethod(method);
@@ -40,9 +58,8 @@ export default function PaymentSelector({
     let finalPrice = amount;
 
     if (method === "upi" && userCountry === "IN") {
-      finalPrice = amount; // normal INR
+      finalPrice = amount;
     } else if (method === "crypto") {
-      // Use inrUsdt from planDetails if India, else usdt
       if (userCountry === "IN") {
         finalPrice = planDetails[billingPeriod]?.inrUsdt;
         if (!finalPrice || finalPrice <= 0) {
@@ -52,9 +69,6 @@ export default function PaymentSelector({
       } else {
         finalPrice = planDetails[billingPeriod]?.usdt;
       }
-    } else {
-      alert("Crypto payments are only available for international users.");
-      return;
     }
 
     const query = new URLSearchParams({
@@ -68,40 +82,85 @@ export default function PaymentSelector({
   };
 
   return (
-    <div className="cm-backdrop">
+    <motion.div
+      className="cm-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
       <motion.div
-        className="chart_boxBg flexClm gap_24"
-        style={{ padding: "24px", position: "relative" }}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
+        className="chart_boxBg flexClm gap_32"
+        style={{
+          padding: "24px",
+          minWidth: "300px",
+          maxWidth: "400px",
+          margin: "0 20px",
+          width: "100%",
+        }}
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.8, y: 20 }}
+        transition={{ type: "spring", damping: 25 }}
       >
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute",
-            top: "-44px",
-            left: "50%",
-            transform: "translateX(-50%)",
-          }}
-          className="button_ter flexRow flexRow_center"
-        >
-          <X size={20} />
-        </button>
-
-        <span className="font_16">Select your payment method:</span>
-        <div className="flexClm gap_12">
-          <button className="button_ter" onClick={() => handlePayment("upi")}>
-            Pay with UPI
-          </button>
-          <button
-            className="button_ter"
-            onClick={() => handlePayment("crypto")}
-          >
-            Pay with Crypto
+        {/* Header */}
+        <div className="flexRow flexRow_stretch">
+          <div className="flexClm gap_4">
+            <span className="font_18 font_weight_600">
+              Select payment method
+            </span>
+            <span className="font_12" style={{ color: "var(--white-50)" }}>
+              {planName} Plan •{" "}
+              {billingPeriod === "monthly" ? "Monthly" : "Yearly"}
+            </span>
+          </div>
+          <button className="close-btn button_ter" onClick={onClose}>
+            <X size={20} />
           </button>
         </div>
+
+        {/* Payment Methods */}
+        <div className="payment-methods flexClm gap_12">
+          {paymentMethods.map((method) => (
+            <motion.button
+              key={method.id}
+              className={`payment-method flexRow flexRow_stretch ${
+                selectedMethod === method.id ? "selected" : ""
+              } ${!method.available ? "disabled" : ""}`}
+              onClick={() => method.available && handlePayment(method.id)}
+              disabled={!method.available}
+              whileHover={method.available ? { scale: 1.02 } : {}}
+              whileTap={method.available ? { scale: 0.98 } : {}}
+              style={{ borderLeftColor: method.color }}
+            >
+              <div
+                className="flexClm gap_12"
+                style={{ textAlign: "left", color: "white" }}
+              >
+                <span className="font_14 font_weight_600">{method.name}</span>
+                <span className="font_12 shade_50">{method.description}</span>
+                {selectedMethod === method.id && (
+                  <div className="selected-indicator">
+                    <Check size={16} />
+                  </div>
+                )}
+              </div>
+              <div className="method-icon">
+                <method.icon size={24} color="white" />
+              </div>
+            </motion.button>
+          ))}
+        </div>
+
+        {/* Security Footer */}
+        <div className="">
+          <div className="flexRow gap_8">
+            <Shield size={16} className="vector" />
+            <span className="font_12 shade_50">
+              256-bit SSL Encryption • Secure Payment
+            </span>
+          </div>
+        </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
