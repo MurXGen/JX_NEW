@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 import { fetchPlansFromIndexedDB } from "@/utils/fetchAccountAndTrades";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
+import axios from "axios";
+import { loadRazorpayScript } from "@/utils/loadRazorpay";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CheckoutOnline() {
   const searchParams = useSearchParams();
@@ -46,6 +50,101 @@ export default function CheckoutOnline() {
 
   const formattedPrice =
     method === "crypto" ? `${amountParam} USDT` : `₹${amountParam}`;
+
+  const handleConfirmPay = async () => {
+    // method = 'upi' or 'crypto'
+    if (method === "crypto") {
+      // go to cryptobilling page
+      router.push(
+        `/cryptobilling?planName=${planDetails.name}&period=${period}&amount=${amountParam}`
+      );
+      return;
+    }
+
+    // INR / Razorpay flow
+    const payload = {
+      planId: planDetails.planId, // ensure planId present in planDetails saved from IDB
+      period, // 'monthly' or 'yearly'
+      userName: planDetails.name, // or real user data
+      userEmail: planDetails.email || "",
+    };
+
+    try {
+      if (paymentType === "one-time") {
+        const createRes = await axios.post(
+          `${API_BASE}/api/payments/create-order`,
+          payload,
+          { withCredentials: true }
+        );
+        const { order, key } = createRes.data;
+        // load script
+        const loaded = await loadRazorpayScript();
+        if (!loaded) {
+          alert("Razorpay SDK failed to load");
+          return;
+        }
+
+        const options = {
+          key,
+          amount: order.amount,
+          currency: "INR",
+          name: "JournalX",
+          description: `${planDetails.name} (${period})`,
+          order_id: order.id,
+          handler: async function (response) {
+            // response has razorpay_payment_id, razorpay_order_id, razorpay_signature
+            await axios.post(
+              `${API_BASE}/api/payments/verify-payment`,
+              response,
+              { withCredentials: true }
+            );
+            // show success UI / redirect
+            router.push("/subscription-success"); // or show modal
+          },
+          prefill: { name: planDetails.name, email: planDetails.email || "" },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else if (paymentType === "monthly" || paymentType === "recurring") {
+        // create subscription
+        const createRes = await axios.post(
+          `${API_BASE}/api/payments/create-subscription`,
+          payload,
+          { withCredentials: true }
+        );
+        const { subscription, key } = createRes.data;
+        const loaded = await loadRazorpayScript();
+        if (!loaded) {
+          alert("Razorpay SDK failed to load");
+          return;
+        }
+
+        const options = {
+          key,
+          name: "JournalX",
+          description: `${planDetails.name} subscription`,
+          subscription_id: subscription.id,
+          handler: async function (response) {
+            // response has razorpay_payment_id, razorpay_subscription_id, razorpay_signature
+            await axios.post(
+              `${API_BASE}/api/payments/verify-subscription`,
+              response,
+              { withCredentials: true }
+            );
+            router.push("/subscription-success");
+          },
+          prefill: { name: planDetails.name, email: planDetails.email || "" },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      }
+    } catch (err) {
+      console.error("payment error", err);
+      alert(err.response?.data?.message || "Payment failed");
+    }
+  };
 
   return (
     <motion.div
@@ -115,11 +214,7 @@ export default function CheckoutOnline() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        onClick={() =>
-          alert(
-            `Proceeding with ${paymentType} ${method.toUpperCase()} payment...`
-          )
-        }
+        onClick={handleConfirmPay}
       >
         Confirm & Pay
       </motion.button>

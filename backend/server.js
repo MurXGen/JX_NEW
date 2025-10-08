@@ -11,6 +11,7 @@ const path = require("path");
 const tradeRoutes = require("./routes/trade");
 const authRoutes = require("./routes/authRoutes");
 const accountRoutes = require("./routes/account");
+const paymentsRoutes = require("./routes/payments");
 
 const app = express();
 
@@ -37,6 +38,13 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/trades", tradeRoutes);
+
+app.use(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  paymentsRoutes
+);
+app.use("/api/payments", express.json(), paymentsRoutes);
 
 // 🤖 Telegram Bot Init
 require("./telegram");
