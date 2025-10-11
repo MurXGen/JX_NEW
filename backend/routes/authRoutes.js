@@ -32,7 +32,7 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "/login",
+    failureRedirect: `${process.env.CLIENT_URL}/login`,
   }),
   (req, res) => {
     // ✅ Set userId cookie
