@@ -18,21 +18,24 @@ import {
   Percent,
   ChevronDown,
   X,
+  ArrowLeft,
+  ChevronUp,
 } from "lucide-react";
 import PaymentSelector from "@/components/Trades/PaymentSelector";
 import { fetchPlansFromIndexedDB } from "@/utils/fetchAccountAndTrades";
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
+import { getFromIndexedDB } from "@/utils/indexedDB";
 
 function Pricing() {
   const router = useRouter();
-  const [billingPeriod, setBillingPeriod] = useState("yearly");
+  const [billingPeriod, setBillingPeriod] = useState("monthly");
   const [userCountry, setUserCountry] = useState("OTHER");
   const [plans, setPlans] = useState([]);
   const [activePlan, setActivePlan] = useState(null);
   const [showPaymentSelector, setShowPaymentSelector] = useState(false);
   const [isHovered, setIsHovered] = useState(null);
-
+  const [currentPlanId, setCurrentPlanId] = useState(null);
   const [expandedPlan, setExpandedPlan] = useState(null);
 
   const toggleDetails = (planId) => {
@@ -68,17 +71,37 @@ function Pricing() {
     } else setUserCountry("OTHER");
   }, []);
 
-  // Fetch plans from IndexedDB
   useEffect(() => {
     (async () => {
       const data = await fetchPlansFromIndexedDB();
       setPlans(data);
-      // Auto-select the middle plan (usually Pro)
-      if (data.length >= 2) {
-        setActivePlan(data[1].planId);
+
+      const userData = await getFromIndexedDB("user-data");
+      const currentPlanId = userData?.subscription?.planId || null;
+
+      if (currentPlanId) {
+        setActivePlan(currentPlanId); // set current plan as active
+      } else if (data.length >= 2) {
+        setActivePlan(data[1].planId); // fallback: middle plan
       }
     })();
   }, []);
+
+  // Fetch plans from IndexedDB
+  useEffect(() => {
+    // Load user data and set current plan
+    (async () => {
+      const userData = await getFromIndexedDB("user-data");
+      if (userData?.subscription?.planId) {
+        setCurrentPlanId(userData.subscription.planId);
+        // Optional: auto-select current plan in UI
+        setActivePlan(userData.subscription.planId);
+      } else if (plans.length >= 2) {
+        // fallback: select middle plan (usually Pro)
+        setActivePlan(plans[1].planId);
+      }
+    })();
+  }, [plans]);
 
   // Icon mapping with premium styling
   const getPlanIcon = (planId) => {
@@ -295,12 +318,22 @@ function Pricing() {
     setShowPaymentSelector(true);
   };
 
+  const handleBackClick = () => {
+    router.push("/profile");
+  };
+
   return (
     <div className="pricing-page flexClm gap_24">
       {/* Header Section */}
-      <div className="flexClm">
-        <span className="font_20">Choose plan</span>
-        <span className="font_12">Pay with what suits you</span>
+
+      <div className="flexRow gap_12">
+        <button className="button_sec flexRow" onClick={handleBackClick}>
+          <ArrowLeft size={20} />
+        </button>
+        <div className="flexClm">
+          <span className="font_20">Choose plan</span>
+          <span className="font_12">Pay with what suits you</span>
+        </div>
       </div>
 
       {/* Billing Toggle */}
@@ -352,6 +385,7 @@ function Pricing() {
           {plans.map((plan, index) => {
             const priceInfo = getPriceDisplay(plan, billingPeriod);
             const isActive = activePlan === plan.planId;
+            const isCurrent = currentPlanId === plan.planId;
             const features = getPlanFeatures(plan.planId);
             const isExpanded = expandedPlan === plan.planId;
 
@@ -401,8 +435,9 @@ function Pricing() {
                     </div>
                   </div>
                 </div>
+
+                {/* Show Details */}
                 <div className="flexRow flexRow_stretch">
-                  {/* Show Details Button */}
                   <a
                     className="direct_tertiary flexRow gap_8 font_12"
                     onClick={(e) => {
@@ -411,7 +446,11 @@ function Pricing() {
                     }}
                   >
                     {isExpanded ? "Hide Plan Details" : "Show Plan Details"}
-                    <ChevronDown size={16} />
+                    {isExpanded ? (
+                      <ChevronUp size={16} />
+                    ) : (
+                      <ChevronDown size={16} />
+                    )}
                   </a>
                   {priceInfo.savings > 0 && (
                     <div className="success font_12">
@@ -423,14 +462,15 @@ function Pricing() {
                 {/* CTA Button */}
                 <motion.button
                   className={`plan-cta ${isActive ? "active" : ""}`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleContinue}
+                  whileHover={{ scale: isCurrent ? 1 : 1.02 }}
+                  whileTap={{ scale: isCurrent ? 1 : 0.98 }}
+                  disabled={isCurrent}
+                  onClick={() => handleContinue(plan.planId)}
                 >
-                  Get Started
-                  <Zap size={16} />
+                  {isCurrent ? "Current Plan" : "Get Started"} <Zap size={16} />
                 </motion.button>
 
+                {/* Plan Features */}
                 <AnimatePresence>
                   {isExpanded && (
                     <motion.div
@@ -444,9 +484,9 @@ function Pricing() {
                       {[
                         ...features.filter(
                           (f) => !["✅", "❌"].includes(f.value)
-                        ), // neutral
-                        ...features.filter((f) => f.value === "✅"), // check
-                        ...features.filter((f) => f.value === "❌"), // cross
+                        ),
+                        ...features.filter((f) => f.value === "✅"),
+                        ...features.filter((f) => f.value === "❌"),
                       ].map((feature, idx) => (
                         <motion.div
                           key={idx}

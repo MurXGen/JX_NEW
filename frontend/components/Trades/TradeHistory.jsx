@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // for Next.js 13+ app directory
 import TradeInfo from "./TradeInfo";
 import Skeleton from "@/components/ui/Skeleton";
 import axios from "axios";
@@ -28,6 +29,8 @@ const TradesHistory = ({
   selectedMonth,
   selectedYear,
 }) => {
+  const router = useRouter();
+
   const [displayedTrades, setDisplayedTrades] = useState(trades.slice(0, 5));
   const [loadingNewTrade, setLoadingNewTrade] = useState(false);
   const [newTradeId, setNewTradeId] = useState(null);
@@ -71,7 +74,6 @@ const TradesHistory = ({
   }, []);
 
   const submitNewTrade = async (formData, isEdit = false) => {
-    // formData is the serializable object from sessionStorage (no file objects)
     try {
       const apiFormData = new FormData();
 
@@ -90,7 +92,7 @@ const TradesHistory = ({
         }
       });
 
-      // Retrieve images from localStorage (we stored dataUrls in AddTrade)
+      // --- Handle images from localStorage ---
       const openImagePayload = localStorage.getItem("newTradeImage_openImage");
       const closeImagePayload = localStorage.getItem(
         "newTradeImage_closeImage"
@@ -116,7 +118,22 @@ const TradesHistory = ({
         }
       }
 
-      // Now do the request (new trade or edit)
+      // --- Send removal flags to backend ---
+      const removeOpenImageFlag = formData.openImageRemoved ? "true" : "false";
+      const removeCloseImageFlag = formData.closeImageRemoved
+        ? "true"
+        : "false";
+
+      apiFormData.append("removeOpenImage", removeOpenImageFlag);
+      apiFormData.append("removeCloseImage", removeCloseImageFlag);
+
+      // ✅ Debug logs to verify what’s sent
+      console.log("🔥 FormData being sent:");
+      for (let pair of apiFormData.entries()) {
+        console.log(pair[0], ":", pair[1]);
+      }
+
+      // --- Submit request ---
       let res;
       if (isEdit) {
         const tradeId = localStorage.getItem(TRADE_KEY);
@@ -129,7 +146,6 @@ const TradesHistory = ({
           }
         );
       } else {
-        // temporary placeholder UI
         const tempId = `temp-${Date.now()}`;
         setDisplayedTrades((prev) => [
           {
@@ -149,61 +165,49 @@ const TradesHistory = ({
       }
 
       if (res.data?.success) {
-        const { accounts, trades } = res.data;
+        const { userData, message } = res.data;
 
-        // ✅ Save to IndexedDB
-        await saveToIndexedDB("user-data", {
-          userId: localStorage.getItem("userId"),
-          accounts,
-          trades,
-        });
+        await saveToIndexedDB("user-data", userData);
 
-        // ✅ Reload from IndexedDB immediately (replace skeletons with real data)
-        const userData = await getFromIndexedDB("user-data");
+        const updatedData = await getFromIndexedDB("user-data");
         const accountId = Cookies.get("accountId");
-        const accountTrades = (userData.trades || []).filter(
-          (trade) => trade.accountId === accountId
+        const accountTrades = (updatedData.trades || []).filter(
+          (t) => t.accountId === accountId
         );
 
-        const sorted = accountTrades.sort(
+        const sortedTrades = accountTrades.sort(
           (a, b) => new Date(b.openTime) - new Date(a.openTime)
         );
 
-        setDisplayedTrades(sorted); // 🔥 Replace skeletons with real trades
-
-        // ✅ Clear stored images
-        localStorage.removeItem("newTradeImage_openImage");
-        localStorage.removeItem("newTradeImage_closeImage");
+        setDisplayedTrades(sortedTrades);
 
         setToast({
           type: "success",
-          message: isEdit
-            ? "Trade updated successfully!"
-            : "Trade added successfully!",
+          message:
+            message ||
+            (isEdit
+              ? "Trade updated successfully!"
+              : "Trade added successfully!"),
         });
 
-        // ✅ Instead of reloading page, notify parent if needed
-        if (typeof onTradesUpdated === "function") {
-          onTradesUpdated();
-        }
+        // Cleanup
+        localStorage.removeItem("newTradeImage_openImage");
+        localStorage.removeItem("newTradeImage_closeImage");
+        sessionStorage.removeItem("newTradeData");
+        sessionStorage.removeItem("isEditTrade");
 
-        // 🔄 Force full page reload after 2 seconds
         setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+          router.push("/trade");
+        }, 1200);
       } else {
         throw new Error("Upload failed");
       }
     } catch (err) {
       console.error("Trade submission failed:", err);
-
-      // ❌ Remove skeletons on error
       setDisplayedTrades((prev) => prev.filter((trade) => !trade.loading));
-
       setToast({ type: "error", message: err.message || "Upload failed" });
     } finally {
       setLoadingNewTrade(false);
-      // ensure flags cleaned
       sessionStorage.removeItem("newTradeData");
       sessionStorage.removeItem("isEditTrade");
       window.history.replaceState(null, "", "/trade");

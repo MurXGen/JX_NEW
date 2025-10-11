@@ -583,6 +583,7 @@ const TradeInfo = ({ onClose }) => {
             <button
               onClick={() => setIsConfirmOpen(true)}
               className="button_sec error"
+              style={{ background: "var(--base-bg)" }}
             >
               <Trash2 size={16} />
             </button>

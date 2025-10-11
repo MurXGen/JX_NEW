@@ -4,6 +4,7 @@ const User = require("../models/User");
 const cloudinary = require("cloudinary").v2;
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { deleteImageFromB2 } = require("../utils/backblaze");
+const getUserData = require("../utils/getUserData");
 
 const OpenAI = require("openai");
 
@@ -19,6 +20,15 @@ const s3 = new S3Client({
     secretAccessKey: process.env.B2_APP_KEY,
   },
 });
+
+// --- Upload images ---
+const handleUpload = async (file, folder) => {
+  const key = await uploadToB2(file, folder);
+  return {
+    url: `https://cdn.journalx.app/${key}`,
+    sizeKB: Math.round(file.size / 1024),
+  };
+};
 
 async function uploadToB2(file, folder) {
   const safeName = file.originalname.replace(/\s+/g, "_");
@@ -50,8 +60,14 @@ async function uploadToB2(file, folder) {
 exports.addTrade = async (req, res) => {
   try {
     const { body, files } = req;
+    const userId = req.cookies.userId;
+    const accountId = req.cookies.accountId;
 
-    // Build base trade object
+    if (!userId || !accountId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    // Build trade object
     const tradeData = {
       ...body,
       quantityUSD: Number(body.quantityUSD),
@@ -70,70 +86,46 @@ exports.addTrade = async (req, res) => {
       avgTPPrice: Number(body.avgTPPrice || 0),
       avgSLPrice: Number(body.avgSLPrice || 0),
       reason: body.reason ? [body.reason] : [],
-      userId: req.cookies.userId,
-      accountId: req.cookies.accountId,
+      userId,
+      accountId,
     };
 
-    // --- Upload images BEFORE saving trade ---
-    if (files?.openImage) {
-      const file = files.openImage[0];
-      console.log("📂 [UPLOAD] Open image file received:", {
-        name: file.originalname,
-        sizeKB: Math.round(file.size / 1024),
-        mimetype: file.mimetype,
-      });
-
-      const key = await uploadToB2(file, "open-images"); // only call ONCE
-      console.log("✅ [UPLOAD] Raw B2 key returned:", key);
-
-      const finalUrl = `https://cdn.journalx.app/${key}`;
-      console.log("🌐 [FINAL] Open Image CDN URL:", finalUrl);
-
-      tradeData.openImageUrl = finalUrl;
-      tradeData.openImageSizeKB = Math.round(file.size / 1024);
+    if (files?.openImage?.[0]) {
+      const { url, sizeKB } = await handleUpload(
+        files.openImage[0],
+        "open-images"
+      );
+      tradeData.openImageUrl = url;
+      tradeData.openImageSizeKB = sizeKB;
     }
 
-    if (files?.closeImage) {
-      const file = files.closeImage[0];
-      console.log("📂 [UPLOAD] Close image file received:", {
-        name: file.originalname,
-        sizeKB: Math.round(file.size / 1024),
-        mimetype: file.mimetype,
-      });
-
-      const key = await uploadToB2(file, "close-images"); // only call ONCE
-      console.log("✅ [UPLOAD] Raw B2 key returned:", key);
-
-      const finalUrl = `https://cdn.journalx.app/${key}`;
-      console.log("🌐 [FINAL] Close Image CDN URL:", finalUrl);
-
-      tradeData.closeImageUrl = finalUrl;
-      tradeData.closeImageSizeKB = Math.round(file.size / 1024);
+    if (files?.closeImage?.[0]) {
+      const { url, sizeKB } = await handleUpload(
+        files.closeImage[0],
+        "close-images"
+      );
+      tradeData.closeImageUrl = url;
+      tradeData.closeImageSizeKB = sizeKB;
     }
 
-    // Save trade (with images included)
+    // Save trade
     const newTrade = new Trade(tradeData);
     await newTrade.save();
 
-    // Fetch fresh accounts + trades
-    const accounts = await Account.find({ userId: req.cookies.userId });
-    const trades = await Trade.find({ userId: req.cookies.userId });
+    // Fetch user
+    const user = await User.findById(userId);
+    const userData = await getUserData(user);
 
-    // Respond AFTER images + DB done ✅
     res.status(201).json({
       success: true,
       message: "Trade added successfully",
-      trade: newTrade,
-      accounts,
-      trades,
+      userData,
     });
   } catch (err) {
     console.error("[addTrade ERROR]:", err);
-
-    res.status(500).json({
-      success: false,
-      message: err.message || "Failed to add trade",
-    });
+    res
+      .status(500)
+      .json({ success: false, message: err.message || "Failed to add trade" });
   }
 };
 
@@ -141,14 +133,14 @@ exports.updateTrade = async (req, res) => {
   try {
     const tradeId = req.params.id;
     const { body = {}, files = {} } = req;
+    const userId = req.cookies.userId;
+    const accountId = req.cookies.accountId;
 
-    // 🔍 Get old trade first (to compare old image URLs later)
     const oldTrade = await Trade.findById(tradeId);
-    if (!oldTrade) {
+    if (!oldTrade)
       return res
         .status(404)
         .json({ success: false, message: "Trade not found" });
-    }
 
     const tradeData = {
       ...body,
@@ -172,67 +164,73 @@ exports.updateTrade = async (req, res) => {
           ? body.reason
           : [body.reason]
         : [],
-      userId: req.cookies.userId,
-      accountId: req.cookies.accountId,
+      userId,
+      accountId,
+      closeTime: body.closeTime || null,
     };
-    if (!body.closeTime) {
-      tradeData.closeTime = null; // <-- explicitly clear it in DB
-      console.log("📝 Cleared closeTime in tradeData");
+
+    const removeOpenImage = body.removeOpenImage === "true";
+    const removeCloseImage = body.removeCloseImage === "true";
+
+    // --- Handle new uploads or removals ---
+    if (files?.openImage?.[0]) {
+      const { url, sizeKB } = await handleUpload(
+        files.openImage[0],
+        "open-images"
+      );
+      tradeData.openImageUrl = url;
+      tradeData.openImageSizeKB = sizeKB;
+    } else if (removeOpenImage) {
+      tradeData.openImageUrl = null;
+      tradeData.openImageSizeKB = 0;
     }
 
-    // --- Handle optional new images ---
-    if (files?.openImage) {
-      const file = files.openImage[0];
-      const key = await uploadToB2(file, "open-images");
-      tradeData.openImageUrl = `https://cdn.journalx.app/${key}`;
-      tradeData.openImageSizeKB = Math.round(file.size / 1024);
+    if (files?.closeImage?.[0]) {
+      const { url, sizeKB } = await handleUpload(
+        files.closeImage[0],
+        "close-images"
+      );
+      tradeData.closeImageUrl = url;
+      tradeData.closeImageSizeKB = sizeKB;
+    } else if (removeCloseImage) {
+      tradeData.closeImageUrl = null;
+      tradeData.closeImageSizeKB = 0;
     }
 
-    if (files?.closeImage) {
-      const file = files.closeImage[0];
-      const key = await uploadToB2(file, "close-images");
-      tradeData.closeImageUrl = `https://cdn.journalx.app/${key}`;
-      tradeData.closeImageSizeKB = Math.round(file.size / 1024);
-    }
-
-    // ✅ Update trade
+    // ✅ Update trade in DB
     const trade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
       new: true,
     });
 
-    const accounts = await Account.find({ userId: req.cookies.userId });
-    const trades = await Trade.find({ userId: req.cookies.userId });
+    // Fetch user data
+    const user = await User.findById(userId);
+    const userData = await getUserData(user);
 
-    // Respond immediately for fast UI
-    res.json({ success: true, trade, trades, accounts });
+    res.json({
+      success: true,
+      message: "Trade updated successfully",
+      userData,
+    });
 
-    // --- Background cleanup: delete old images if replaced ---
+    // --- Background cleanup: delete old images if replaced or removed ---
     process.nextTick(async () => {
       try {
+        // Open image
         if (
           oldTrade.openImageUrl &&
-          trade.openImageUrl &&
           oldTrade.openImageUrl !== trade.openImageUrl
         ) {
-          const oldKey = oldTrade.openImageUrl.replace(
-            "https://cdn.journalx.app/",
-            ""
-          );
-          await deleteImageFromB2(oldKey);
-          console.log("🗑️ Deleted old openImage:", oldKey);
+          await deleteImageFromB2(oldTrade.openImageUrl);
+          console.log("🗑 Deleted old openImage:", oldTrade.openImageUrl);
         }
 
+        // Close image
         if (
           oldTrade.closeImageUrl &&
-          trade.closeImageUrl &&
           oldTrade.closeImageUrl !== trade.closeImageUrl
         ) {
-          const oldKey = oldTrade.closeImageUrl.replace(
-            "https://cdn.journalx.app/",
-            ""
-          );
-          await deleteImageFromB2(oldKey);
-          console.log("🗑️ Deleted old closeImage:", oldKey);
+          await deleteImageFromB2(oldTrade.closeImageUrl);
+          console.log("🗑 Deleted old closeImage:", oldTrade.closeImageUrl);
         }
       } catch (cleanupErr) {
         console.error("⚠️ Error deleting old images:", cleanupErr);
@@ -240,7 +238,6 @@ exports.updateTrade = async (req, res) => {
     });
   } catch (err) {
     console.error("[updateTrade ERROR]:", err);
-
     res.status(500).json({
       success: false,
       message: err.message || "Error updating trade",

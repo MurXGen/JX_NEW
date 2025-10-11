@@ -6,6 +6,7 @@ const Trade = require("../models/Trade"); // new separate model
 const EmailVerification = require("../models/EmailVerify");
 const { sendOtpEmail } = require("../mail/sendOtpEmail");
 const Plan = require("../models/Plan");
+const getUserData = require("../utils/getUserData");
 
 const SALT_ROUNDS = 10;
 const isProduction = process.env.NODE_ENV === "production";
@@ -44,17 +45,15 @@ const registerUser = async (req, res) => {
 
     if (existingUser) {
       if (!existingUser.isVerified) {
-        // User exists but not verified → return info to frontend
         return res.status(200).json({
           message: "User exists but not verified. Please verify OTP.",
           userId: existingUser._id,
           isVerified: false,
         });
       } else {
-        // User exists and verified → redirect to login
         return res.status(409).json({
           message: "User already exists. Please login.",
-          isVerified: true,
+          // isVerified: true,
         });
       }
     }
@@ -63,38 +62,50 @@ const registerUser = async (req, res) => {
       ? await bcrypt.hash(password, SALT_ROUNDS)
       : undefined;
 
+    const now = new Date();
+    const expiry = new Date(now);
+    expiry.setDate(expiry.getDate() + 7); // Free plan lasts 7 days
+
+    // Create user
     const user = new User({
       name,
       email,
       password: hashedPassword,
       googleId: googleId || undefined,
       isVerified: false,
+      subscriptionPlan: "pro",
+      subscriptionStatus: "active",
+      subscriptionType: "one-time",
+      subscriptionStartAt: now,
+      subscriptionExpiresAt: expiry,
+      subscriptionCreatedAt: now,
     });
     await user.save();
 
-    // Generate OTP
-    const otp = await generateOTP();
-    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    // Generate OTP if email/password registration
+    if (!googleId) {
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+      const nextResendAllowedAt = new Date(Date.now() + 60 * 1000);
 
-    // OTP expires after 5 minutes
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      await EmailVerification.create({
+        userId: user._id,
+        otpHash,
+        expiresAt,
+        nextResendAllowedAt,
+      });
 
-    // User can only resend after 60s
-    const nextResendAllowedAt = new Date(Date.now() + 60 * 1000);
+      await sendOtpEmail({ to: user.email, otp, name: user.name });
+    }
 
-    await EmailVerification.create({
+    return res.status(201).json({
+      message: googleId
+        ? "Registered via Google. Free plan activated."
+        : "Registered. Check email for OTP.",
       userId: user._id,
-      otpHash,
-      expiresAt,
-      nextResendAllowedAt,
+      isVerified: false,
     });
-
-    // Send OTP email
-    await sendOtpEmail({ to: user.email, otp, name: user.name });
-
-    return res
-      .status(201)
-      .json({ message: "Registered. Check email for OTP.", userId: user._id });
   } catch (err) {
     console.error("Registration error:", err);
     res.status(500).json({ message: "Server error" });
@@ -127,26 +138,12 @@ const loginUser = async (req, res) => {
     // ✅ Set cookie before sending response
     setUserIdCookie(res, user._id);
 
-    const accounts = await Account.find({ userId: user._id }).lean();
-    const trades = await Trade.find({ userId: user._id }).lean();
-
-    // ✅ Fetch all plans from DB
-    const plans = await Plan.find({}).lean(); // lean() to get plain objects
+    const userData = await getUserData(user);
 
     res.status(200).json({
       message: "Login successful",
       isVerified: "yes",
-      userData: {
-        userId: user._id,
-        name: user.name,
-        email: user.email,
-        subscriptionPlan: user.subscriptionPlan,
-        subscriptionStatus: user.subscriptionStatus,
-        subscriptionExpiresAt: user.subscriptionExpiresAt,
-        accounts,
-        trades,
-        plans, // <-- include all plans here
-      },
+      userData,
     });
   } catch (err) {
     console.error(err);
@@ -225,6 +222,60 @@ const resendOtp = async (req, res) => {
     message: "OTP resent",
     remaining: 3 - rec.resendCount, // send remaining attempts info
   });
+};
+
+const userFetchGoogleAuth = async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const user = await User.findById(userId).lean();
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const userData = await getUserData(user);
+
+    res.json({
+      message: "User info fetched",
+      userData,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const updateSubscription = async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { subscriptionType, subscriptionPlan, subscriptionStatus } = req.body;
+    if (!subscriptionType || !subscriptionPlan || !subscriptionStatus) {
+      return res.status(400).json({ message: "Missing subscription fields" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        subscriptionType,
+        subscriptionPlan,
+        subscriptionStatus,
+        subscriptionStartAt: null,
+        subscriptionExpiresAt: null,
+      },
+      { new: true }
+    ).lean();
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "Subscription updated", user });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 // const getFullUserData = async (req, res) => {
@@ -381,6 +432,8 @@ module.exports = {
   checkAuthStatus,
   resendOtp,
   verifyOtp,
+  userFetchGoogleAuth,
+  updateSubscription,
   // verifyUserFromCookie,
   // getFullUserData
   // resetPassword,

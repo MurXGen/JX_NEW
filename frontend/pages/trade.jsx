@@ -11,6 +11,7 @@ import Navbar from "@/components/Trades/Navbar";
 import { Calendar, History } from "lucide-react";
 import Dropdown from "@/components/ui/Dropdown";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 const TradePage = () => {
   const [trades, setTrades] = useState([]);
@@ -30,11 +31,6 @@ const TradePage = () => {
   useEffect(() => {
     const loadTrades = async () => {
       const accountId = Cookies.get("accountId");
-
-      if (!accountId) {
-        console.warn("⚠ No account selected, redirecting to accounts page...");
-        return;
-      }
 
       const userData = await getFromIndexedDB("user-data");
       if (userData) {
@@ -56,25 +52,7 @@ const TradePage = () => {
     loadTrades();
   }, []);
 
-  const handleTradesUpdated = async () => {
-    const accountId = Cookies.get("accountId");
-    if (!accountId) return;
-
-    const userData = await getFromIndexedDB("user-data");
-    if (userData) {
-      const accountTrades = (userData.trades || []).filter(
-        (trade) => trade.accountId === accountId
-      );
-
-      const sorted = accountTrades.sort(
-        (a, b) => new Date(b.openTime) - new Date(a.openTime)
-      );
-
-      setTrades(sorted); // ✅ parent owns the truth
-    }
-  };
-
-  if (loading) return <p>Loading trades...</p>;
+  if (loading) return <FullPageLoader />;
 
   return (
     <div className="flexClm gap_32">
@@ -148,7 +126,7 @@ const TradePage = () => {
           years={years}
           setSelectedMonth={setSelectedMonth}
           setSelectedYear={setSelectedYear}
-          onTradesUpdated={handleTradesUpdated} // ✅ here
+          // onTradesUpdated={handleTradesUpdated} // ✅ here
         />
       )}
 

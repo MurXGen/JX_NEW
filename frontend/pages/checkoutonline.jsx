@@ -3,10 +3,23 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchPlansFromIndexedDB } from "@/utils/fetchAccountAndTrades";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Check,
+  Shield,
+  Zap,
+  Calendar,
+  Clock,
+  ArrowLeft,
+  BadgeCheck,
+  Sparkles,
+  Crown,
+} from "lucide-react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { loadRazorpayScript } from "@/utils/loadRazorpay";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,7 +33,25 @@ export default function CheckoutOnline() {
   const amountParam = searchParams.get("amount");
 
   const [planDetails, setPlanDetails] = useState(null);
-  const [paymentType, setPaymentType] = useState("one-time"); // ✅ new state
+  const [paymentType, setPaymentType] = useState("one-time");
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Calculate dates
+  const startDate = new Date();
+  const expiryDate = new Date();
+  if (period === "monthly") {
+    expiryDate.setMonth(expiryDate.getMonth() + 1);
+  } else {
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+  }
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   // Redirect unverified users
   useEffect(() => {
@@ -47,17 +78,36 @@ export default function CheckoutOnline() {
     }
   }, [period, method]);
 
-  if (!planDetails)
-    return (
-      <div className="flex_center" style={{ height: "80vh" }}>
-        Loading plan details...
-      </div>
-    );
-
   const formattedPrice =
     method === "crypto" ? `${amountParam} USDT` : `₹${amountParam}`;
 
+  const getPaymentMethodIcon = () => {
+    switch (method) {
+      case "crypto":
+        return <Zap size={20} className="vector" />;
+      case "upi":
+        return <Shield size={20} className="success" />;
+      default:
+        return <BadgeCheck size={20} className="vector" />;
+    }
+  };
+
+  const getPlanIcon = () => {
+    switch (planDetails?.planId) {
+      case "pro":
+        return <Crown size={24} className="vector" />;
+      case "elite":
+        return <Sparkles size={24} className="vector" />;
+      case "master":
+        return <Zap size={24} className="vector" />;
+      default:
+        return <BadgeCheck size={24} className="vector" />;
+    }
+  };
+
   const handleConfirmPay = async () => {
+    setIsProcessing(true);
+
     if (method === "crypto") {
       router.push(
         `/cryptobilling?planName=${planDetails.name}&period=${period}&amount=${amountParam}`
@@ -76,8 +126,40 @@ export default function CheckoutOnline() {
       const loaded = await loadRazorpayScript();
       if (!loaded) {
         alert("Razorpay SDK failed to load");
+        setIsProcessing(false);
         return;
       }
+
+      const handleSuccess = async () => {
+        // ✅ Fetch the latest user-data from IndexedDB
+        const userData = await getFromIndexedDB("user-data");
+
+        // ✅ Construct subscription object
+        const now = new Date();
+        const expiry = new Date(now);
+        if (period === "yearly") expiry.setFullYear(expiry.getFullYear() + 1);
+        else expiry.setMonth(expiry.getMonth() + 1);
+
+        const newSubscription = {
+          planId: planDetails.planId,
+          status: "active",
+          type: paymentType === "recurring" ? "recurring" : "one-time",
+          startAt: now.toISOString(),
+          expiresAt: expiry.toISOString(),
+          createdAt: now.toISOString(),
+        };
+
+        // ✅ Store subscription inside subscription array/object
+        const updatedUser = {
+          ...userData,
+          subscription: newSubscription, // overwrite existing subscription
+        };
+
+        await saveToIndexedDB("user-data", updatedUser);
+
+        // ✅ Redirect to success page
+        router.push("/subscription-success");
+      };
 
       if (paymentType === "one-time") {
         const createRes = await axios.post(
@@ -95,27 +177,23 @@ export default function CheckoutOnline() {
           description: "Order description",
           order_id: order.id,
           handler: async function (response) {
-            // successful payment
             await axios.post(
               `${API_BASE}/api/payments/verify-payment`,
               response
             );
-
-            router.push("/subscription-success");
+            await handleSuccess();
           },
           modal: {
             ondismiss: function () {
-              // triggered when user closes the Razorpay modal
-              alert("Payment cancelled");
+              setIsProcessing(false);
               router.push("/subscription-failed");
             },
           },
-          //   prefill: { name: userName, email: userEmail },
         };
 
         const rzp = new window.Razorpay(options);
         rzp.open();
-      } else if (paymentType === "monthly" || paymentType === "recurring") {
+      } else if (paymentType === "recurring") {
         const createRes = await axios.post(
           `${API_BASE}/api/payments/create-subscription`,
           payload,
@@ -129,7 +207,6 @@ export default function CheckoutOnline() {
           description: `${planDetails.name} subscription`,
           subscription_id: subscription.id,
           handler: async function (response) {
-            // Instead of redirecting immediately
             try {
               const verifyRes = await axios.post(
                 `${API_BASE}/api/payments/verify-subscription`,
@@ -137,116 +214,266 @@ export default function CheckoutOnline() {
                 { withCredentials: true }
               );
               if (verifyRes.data.success) {
-                router.push("/subscription-success");
+                await handleSuccess();
               } else {
                 router.push("/subscription-failed");
               }
             } catch (err) {
-              console.error("Subscription verification failed", err);
               router.push("/subscription-failed");
             }
           },
           modal: {
             ondismiss: function () {
-              // Show cancelled page
+              setIsProcessing(false);
               router.push("/subscription-failed");
             },
           },
-          //   prefill: { name: userName, email: userEmail },
         };
 
         const rzp = new window.Razorpay(options);
         rzp.open();
       }
     } catch (err) {
-      console.error("payment error", err);
       alert(err.response?.data?.message || "Payment failed");
+      setIsProcessing(false);
     }
   };
 
+  if (!planDetails) return <FullPageLoader />;
+
   return (
-    <motion.div
-      className="chart_boxBg flexClm gap_24"
-      style={{
-        padding: "32px",
-        maxWidth: "500px",
-        margin: "0 auto",
-      }}
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <span className="font_20">Checkout Summary</span>
+    <div className="checkout-container flexClm gap_12">
+      {/* Header */}
+      <motion.div
+        className="checkout-header text-center flexClm"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <span className="font_20">Complete Your Purchase</span>
+        <span className="font_12">
+          You're one step away from premium trading features
+        </span>
+      </motion.div>
 
-      <div className="flexClm gap_12">
-        <div className="flexRow space_between">
-          <span>Plan Selected:</span>
-          <strong>{planDetails.name}</strong>
-        </div>
-
-        <div className="flexRow space_between">
-          <span>Billing Period:</span>
-          <strong>{period.charAt(0).toUpperCase() + period.slice(1)}</strong>
-        </div>
-
-        <div className="flexRow space_between">
-          <span>Payment Method:</span>
-          <strong>{method.toUpperCase()}</strong>
-        </div>
-
-        {/* ✅ New Payment Type selector */}
-        {period === "monthly" && method !== "crypto" && (
-          <div className="flexClm gap_8 mt-8">
-            <span className="font_14">Payment Type:</span>
-            <div className="flexRow gap_8">
-              <button
-                className={
-                  paymentType === "one-time"
-                    ? "button_sec selected width100"
-                    : "button_sec width100"
-                }
-                onClick={() => setPaymentType("one-time")}
-              >
-                One-time
-              </button>
-
-              <button
-                className={
-                  paymentType === "recurring"
-                    ? "button_sec selected width100"
-                    : "button_sec width100"
-                }
-                onClick={() => setPaymentType("recurring")}
-              >
-                Recurring
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="flexRow space_between mt-12">
-          <span>Total Amount:</span>
-          <strong>{formattedPrice}</strong>
-        </div>
+      <div>
+        <div className="flexClm"></div>
       </div>
 
-      <motion.button
-        className="button_pri mt-12"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        onClick={handleConfirmPay}
-      >
-        Confirm & Pay
-      </motion.button>
+      <div className="checkout-content">
+        {/* Order Summary Card */}
+        <motion.div
+          className="order-summary chart_boxBg"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="summary-header">
+            <div className="plan-badge flexRow gap_8">
+              {getPlanIcon()}
+              <span className="font_16 font_weight_600">Order Summary</span>
+            </div>
+          </div>
 
-      <button
-        className="button_ter"
-        style={{ marginTop: "8px" }}
-        onClick={() => router.back()}
-      >
-        Go Back
-      </button>
-    </motion.div>
+          <div className="plan-details">
+            <div className="plan-main flexRow flexRow_stretch">
+              <div className="flexClm">
+                <span className="font_18 font_weight_600">
+                  {planDetails.name}
+                </span>
+                <span className="font_12" style={{ color: "var(--white-50)" }}>
+                  {period === "monthly" ? "Monthly Plan" : "Annual Plan"}
+                </span>
+              </div>
+              <div className="price-tag">
+                <span className="font_20 font_weight_700">
+                  {formattedPrice}
+                </span>
+              </div>
+            </div>
+
+            {/* Subscription Timeline */}
+            <div className="timeline-section flexRow flexRow_stretch">
+              <div className="timeline-item">
+                <Calendar size={16} className="vector" />
+                <div className="timeline-content">
+                  <span className="font_12">Starts</span>
+                  <span className="font_14 font_weight_600">
+                    {formatDate(startDate)}
+                  </span>
+                </div>
+              </div>
+              <div
+                className="timeline-item"
+                style={{
+                  textAlign: "right",
+                  justifyContent: "end",
+                  flexDirection: "row-reverse",
+                }}
+              >
+                <Clock size={16} className="vector" />
+                <div className="timeline-content">
+                  <span className="font_12">Expires</span>
+                  <span className="font_14 font_weight_600">
+                    {formatDate(expiryDate)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Method Selection */}
+          <div className="payment-section">
+            <div className="section-title font_14 font_weight_600">
+              Payment Method
+            </div>
+            <div className="payment-method-display flexRow gap_12">
+              {getPaymentMethodIcon()}
+              <div className="flexClm">
+                <span className="font_14 font_weight_600">
+                  {method === "crypto" ? "Crypto Payment" : "UPI Payment"}
+                </span>
+                <span className="font_12" style={{ color: "var(--white-50)" }}>
+                  {method === "crypto"
+                    ? "Pay with USDT, BTC, ETH"
+                    : "Instant UPI payment"}
+                </span>
+              </div>
+            </div>
+
+            {/* Payment Type Toggle */}
+            <AnimatePresence>
+              {period === "monthly" && method !== "crypto" && (
+                <motion.div
+                  className="payment-type-toggle"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="toggle-header font_12">Payment Type</div>
+                  <div className="toggle-buttons">
+                    <button
+                      className={`toggle-option ${
+                        paymentType === "one-time" ? "active" : ""
+                      }`}
+                      onClick={() => setPaymentType("one-time")}
+                    >
+                      <div
+                        className="flexClm gap_4"
+                        style={{ textAlign: "left" }}
+                      >
+                        <span className="font_14 font_weight_600">
+                          One-time
+                        </span>
+                        <span className="font_12">Pay once</span>
+                      </div>
+                      {paymentType === "one-time" && (
+                        <Check size={16} className="success" />
+                      )}
+                    </button>
+                    <button
+                      className={`toggle-option ${
+                        paymentType === "recurring" ? "active" : ""
+                      }`}
+                      onClick={() => setPaymentType("recurring")}
+                    >
+                      <div
+                        className="flexClm gap_4"
+                        style={{ textAlign: "left" }}
+                      >
+                        <span className="font_14 font_weight_600">
+                          Auto-renew
+                        </span>
+                        <span className="font_12">Never miss access</span>
+                      </div>
+                      {paymentType === "recurring" && (
+                        <Check size={16} className="success" />
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Total Amount */}
+          <div className="total-section">
+            <div className="total-line flexRow flexRow_stretch">
+              <span className="font_16">Total Amount</span>
+              <span className="font_20 font_weight_700">{formattedPrice}</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Action Buttons */}
+        <motion.div
+          className="action-buttons"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <motion.button
+            className="confirm-button"
+            onClick={handleConfirmPay}
+            disabled={isProcessing}
+            whileHover={{ scale: isProcessing ? 1 : 1.02 }}
+            whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+          >
+            <AnimatePresence mode="wait">
+              {isProcessing ? (
+                <motion.div
+                  key="processing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="processing-state"
+                >
+                  <div className="spinner"></div>
+                  Processing...
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="confirm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="confirm-state font_14 font_weight_600"
+                >
+                  <Zap size={18} />
+                  Confirm & Pay
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+
+          <button
+            className="back-button"
+            onClick={() => router.back()}
+            disabled={isProcessing}
+          >
+            <ArrowLeft size={16} />
+            Go Back
+          </button>
+        </motion.div>
+
+        {/* Trust Indicators */}
+        <motion.div
+          className="trust-indicators"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <div className="trust-item">
+            <Shield size={16} className="vector" />
+            <span className="font_12">256-bit SSL Secure Payment</span>
+          </div>
+          <div className="trust-item">
+            <Check size={16} className="success" />
+            <span className="font_12">Cancel Anytime • 30-day Guarantee</span>
+          </div>
+        </motion.div>
+      </div>
+    </div>
   );
 }

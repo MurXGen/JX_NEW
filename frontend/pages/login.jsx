@@ -68,10 +68,15 @@ function Login() {
         await saveToIndexedDB("plans", userData.plans);
       }
 
-      if (userData?.name) {
-        localStorage.setItem("userName", userData.name);
-        setUsername(userData.name);
-      }
+      // if (userData?.name) {
+      //   localStorage.setItem("userName", userData.name);
+      //   setUsername(userData.name);
+      // }
+
+      // if (userData?.name) {
+      //   localStorage.setItem("userName", userData.name);
+      //   setUsername(userData.name);
+      // }
 
       if (isVerified === "yes") {
         Cookies.set("isVerified", "yes", {

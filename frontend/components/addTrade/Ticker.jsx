@@ -25,7 +25,7 @@ const Ticker = ({ form, setForm }) => {
           style={{ width: "100%" }}
         >
           <div
-            className={`toggleOption button_sec flexRow flex_center ${
+            className={`button_sec flexRow flex_center ${
               form.direction === "long" ? "success" : ""
             }`}
             style={{ width: "100%" }}
@@ -34,7 +34,7 @@ const Ticker = ({ form, setForm }) => {
             Long <ArrowUpRight size={20} />
           </div>
           <div
-            className={`toggleOption button_sec flexRow flex_center ${
+            className={`button_sec flexRow flex_center ${
               form.direction === "short" ? "error" : ""
             }`}
             style={{ width: "100%" }}

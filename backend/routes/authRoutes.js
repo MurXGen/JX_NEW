@@ -5,6 +5,8 @@ const {
   loginUser,
   verifyOtp,
   resendOtp,
+  userFetchGoogleAuth,
+  updateSubscription,
 } = require("../controllers/authController");
 require("../utils/passport");
 const passport = require("passport");
@@ -55,6 +57,10 @@ router.get(
     );
   }
 );
+
+router.get("/user-info", userFetchGoogleAuth);
+
+router.put("/update-subscription", updateSubscription);
 
 // router.get('/full', getFullUserData);
 

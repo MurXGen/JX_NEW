@@ -15,12 +15,23 @@ passport.use(
         let user = await User.findOne({ email: profile.emails[0].value });
 
         if (!user) {
-          // Create new user WITHOUT password (undefined, not null)
+          const now = new Date();
+          const expiry = new Date(now);
+          expiry.setDate(expiry.getDate() + 7); // 7-day free plan
+
+          // Create new Google user with subscription info
           user = await User.create({
             name: profile.displayName,
             email: profile.emails[0].value,
-            password: undefined, // 👈 this is critical
+            password: undefined, // Google signup
             googleId: profile.id,
+            subscriptionPlan: "free",
+            subscriptionStatus: "active",
+            subscriptionType: "one-time",
+            subscriptionStartAt: now,
+            subscriptionExpiresAt: expiry,
+            subscriptionCreatedAt: now,
+            isVerified: true, // you can mark Google users as verified immediately
           });
         }
 
@@ -37,8 +48,12 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
-  const user = await User.findById(id);
-  done(null, user);
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
 });
 
 module.exports = passport;

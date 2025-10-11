@@ -1,41 +1,24 @@
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/router";
-import axios from "axios";
-import Cookies from "js-cookie";
-import { saveToIndexedDB } from "@/utils/indexedDB";
-import { getFromIndexedDB } from "@/utils/indexedDB";
+import EntriesSection from "@/components/addTrade/Entries";
+import ExitsSection from "@/components/addTrade/Exits";
+import TextAreaField from "@/components/addTrade/Learnings";
+import DateTimeImageSection from "@/components/addTrade/OpenTime";
+import QuantityGrid from "@/components/addTrade/Quantity";
+import QuickSection from "@/components/addTrade/Quick";
+import ReasonSelector from "@/components/addTrade/Reasons";
+import ToggleSwitch from "@/components/addTrade/Rules";
+import StopLossSection from "@/components/addTrade/SL";
+import TradeStatusGrid from "@/components/addTrade/Status";
+import TakeProfitSection from "@/components/addTrade/TP";
+import Ticker from "@/components/addTrade/Ticker";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import StepWizard from "@/components/ui/StepWizard";
+import ToastMessage from "@/components/ui/ToastMessage";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { formatNumber } from "@/utils/formatNumbers"; //
-import Navbar from "@/components/Auth/Navbar";
-import {
-  ArrowDownRight,
-  ArrowLeftCircle,
-  ArrowRight,
-  ArrowUpRightIcon,
-  Check,
-  Upload,
-  X,
-  XCircle,
-} from "lucide-react";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import DateTimePicker from "@/components/ui/DateTimePicker";
-import Ticker from "@/components/addTrade/Ticker";
-import QuantityGrid from "@/components/addTrade/Quantity";
-import TradeStatusGrid from "@/components/addTrade/Status";
-import EntriesSection from "@/components/addTrade/Entries";
-import QuickSection from "@/components/addTrade/Quick";
-import StopLossSection from "@/components/addTrade/SL";
-import TakeProfitSection from "@/components/addTrade/TP";
-import DateTimeImageSection from "@/components/addTrade/OpenTime";
-import TextAreaField from "@/components/addTrade/Learnings";
-import ToggleSwitch from "@/components/addTrade/Rules";
-import ExitsSection from "@/components/addTrade/Exits";
-import { motion, AnimatePresence } from "framer-motion";
-import { containerVariants } from "@/animations/motionVariants"; // adjust path if needed
-import ToastMessage from "@/components/ui/ToastMessage";
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import ReasonSelector from "@/components/addTrade/Reasons";
-import StepWizard from "@/components/ui/StepWizard";
+import { getFromIndexedDB } from "@/utils/indexedDB";
+import Cookies from "js-cookie";
+import { useRouter } from "next/router";
+import { useEffect, useRef, useState } from "react";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;

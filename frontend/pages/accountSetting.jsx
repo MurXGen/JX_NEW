@@ -262,6 +262,7 @@ const AccountSetting = () => {
           onClick={() => setIsModalOpen(true)}
         >
           <Trash2 size={16} />
+          <span className="IsVisible">Delete Account</span>
         </button>
       </div>
 

@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 const Account = require("../models/Account");
 const User = require("../models/User");
-const Trade = require("../models/Trade"); // 👈 make sure you have this model
+const Trade = require("../models/Trade");
+const Plan = require("../models/Plan");
+const getUserData = require("../utils/getUserData");
 
-// Create account
 const createAccount = async (req, res) => {
   try {
     const { accountName, currency, balance } = req.body;
@@ -39,19 +40,17 @@ const createAccount = async (req, res) => {
     // ✅ Set cookie
     res.cookie("accountId", account._id.toString(), {
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day in milliseconds
     });
 
-    // ✅ Fetch updated data
-    const accounts = await Account.find({ userId }).lean();
-    const trades = await Trade.find({ userId }).lean();
+    const user = await User.findById(userId);
+    const userData = await getUserData(user);
 
     res.status(201).json({
-      message: "🎉 Account created successfully!",
-      userData: { userId, accounts, trades },
+      message: "Account created successfully!",
+      userData,
     });
   } catch (error) {
-    console.error("❌ Error creating account:", error);
     res.status(500).json({ message: "Server error: could not create account" });
   }
 };
@@ -92,12 +91,12 @@ const updateAccount = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    const accounts = await Account.find({ userId }).lean();
-    const trades = await Trade.find({ userId }).lean();
+    const user = await User.findById(userId);
+    const userData = await getUserData(user);
 
     res.status(200).json({
-      message: "🎉 Account updated successfully!",
-      userData: { userId, accounts, trades },
+      message: "Account updated successfully!",
+      userData,
     });
   } catch (error) {
     console.error("❌ Error updating account:", error);
@@ -133,13 +132,12 @@ const deactivateAccount = async (req, res) => {
       res.clearCookie("accountId");
     }
 
-    // 🔹 Fetch updated data
-    const accounts = await Account.find({ userId }).lean();
-    const trades = await Trade.find({ userId }).lean();
+    const user = await User.findById(userId);
+    const userData = await getUserData(user);
 
     res.status(200).json({
       message: "🗑️ Account deactivated successfully!",
-      userData: { userId, accounts, trades },
+      userData,
     });
   } catch (error) {
     console.error("❌ Error deactivating account:", error);
