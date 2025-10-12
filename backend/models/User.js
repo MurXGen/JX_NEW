@@ -32,17 +32,17 @@ const userSchema = new mongoose.Schema(
     subscriptionStatus: {
       type: String,
       enum: ["active", "expired", "canceled", "trial", "none"],
-      default: "none",
+      default: "active",
     },
     subscriptionPlan: {
       type: String,
       enum: ["free", "pro", "elite", "master"],
-      default: "free",
+      default: "pro",
     },
     subscriptionType: {
       type: String,
       enum: ["one-time", "recurring", "none"],
-      default: "none",
+      default: "one-time",
     },
 
     subscriptionStartAt: { type: Date }, // when the subscription started
