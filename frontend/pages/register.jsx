@@ -16,7 +16,7 @@ import { Turnstile } from "@marsidev/react-turnstile";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function Register() {
-  const [turnstileToken, setTurnstileToken] = useState(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [step, setStep] = useState("enter-email");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
