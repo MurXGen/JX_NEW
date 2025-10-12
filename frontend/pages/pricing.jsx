@@ -26,11 +26,12 @@ import { fetchPlansFromIndexedDB } from "@/utils/fetchAccountAndTrades";
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import { getFromIndexedDB } from "@/utils/indexedDB";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 function Pricing() {
   const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState("monthly");
-  const [userCountry, setUserCountry] = useState("OTHER");
+  const [userCountry, setUserCountry] = useState("null");
   const [plans, setPlans] = useState([]);
   const [activePlan, setActivePlan] = useState(null);
   const [showPaymentSelector, setShowPaymentSelector] = useState(false);
@@ -50,7 +51,6 @@ function Pricing() {
   //     }
   //   });
 
-  // Detect user location
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -60,17 +60,23 @@ function Pricing() {
               `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`
             );
             const data = await res.json();
-            setUserCountry(data.countryCode === "IN" ? "IN" : "OTHER");
-            localStorage.setItem("userCountry", data.countryCode);
+            const country = data.countryCode === "IN" ? "IN" : "OTHER";
+            setUserCountry(country);
+            localStorage.setItem("userCountry", country);
           } catch {
             setUserCountry("OTHER");
           }
         },
         () => setUserCountry("OTHER")
       );
-    } else setUserCountry("OTHER");
+    } else {
+      setUserCountry("OTHER");
+    }
   }, []);
 
+  if (userCountry === null) {
+    return <FullPageLoader />; // show loader until country is detected
+  }
   useEffect(() => {
     (async () => {
       const data = await fetchPlansFromIndexedDB();
@@ -256,6 +262,7 @@ function Pricing() {
   };
 
   // Format price display with savings calculation
+  // Format price display with savings calculation
   const getPriceDisplay = (plan, period) => {
     if (userCountry === "IN") {
       const monthlyPrice = plan.monthly?.inr;
@@ -283,7 +290,7 @@ function Pricing() {
       return {
         price: period === "monthly" ? monthlyPrice : yearlyPrice,
         savings: period === "yearly" ? yearlySavings : 0,
-        currency: "USDT",
+        currency: "$", // <-- changed from "USDT" to "$"
       };
     }
   };
@@ -425,7 +432,7 @@ function Pricing() {
                     <div className="flexClm" style={{ alignItems: "end" }}>
                       <div>
                         <span>{priceInfo.currency}</span>
-                        <span className="font_32 font_weight_700">
+                        <span className="font_32 font_weight_600">
                           {priceInfo.price}
                         </span>
                       </div>

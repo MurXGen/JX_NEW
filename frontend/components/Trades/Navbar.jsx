@@ -96,11 +96,11 @@ const Navbar = () => {
           </div>
         )}
 
-        <div className="flexRow flex_center gap_8">
+        {/* <div className="flexRow flex_center gap_8">
           <button onClick={toggleDarkMode} className="button_sec">
             {darkMode ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

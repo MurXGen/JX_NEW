@@ -2716,6 +2716,10 @@ footer {
     font-size: var(--px-12);
     font-weight: var(--weight-600);
   }
+
+  .button_sec {
+    padding: 12px 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -3940,5 +3944,289 @@ footer {
   .legal-button.error:hover {
     border-color: var(--error);
     color: var(--error);
+  }
+}
+
+@media (min-width: 0) {
+  /* Success Page Specific Styles */
+  .celebration-background {
+    position: fixed;
+    top: 0;
+    left: 50%; /* center horizontally */
+    transform: translateX(-50%); /* truly center the container */
+    width: 0; /* so confetti positions are relative to center */
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999; /* above content */
+  }
+
+  .confetti {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 1px;
+    top: -10px;
+  }
+
+  .success-icon,
+  .failed-icon {
+    margin-bottom: var(--px-16);
+  }
+
+  /* Order Summary Card */
+  .order-summary-card {
+    padding: var(--px-24);
+    border-radius: var(--px-20);
+  }
+
+  .summary-header {
+    margin-bottom: var(--px-20);
+    padding-bottom: var(--px-16);
+    border-bottom: 1px solid var(--white-10);
+  }
+
+  .order-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-16);
+  }
+
+  .detail-row {
+    padding: var(--px-12) 0;
+    border-bottom: 1px solid var(--white-4);
+  }
+
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .timeline-section {
+    background: var(--white-4);
+    border-radius: var(--px-12);
+    padding: var(--px-16);
+    display: flex;
+    gap: var(--px-20);
+    margin-top: var(--px-8);
+  }
+
+  .timeline-item {
+    display: flex;
+    align-items: center;
+    gap: var(--px-12);
+    flex: 1;
+  }
+
+  .timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-4);
+  }
+
+  /* Benefits Card */
+  .benefits-card {
+    padding: var(--px-24);
+    border-radius: var(--px-20);
+  }
+
+  .benefits-header {
+    margin-bottom: var(--px-16);
+    text-align: center;
+  }
+
+  .benefits-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-12);
+  }
+
+  .benefit-item {
+    align-items: flex-start;
+  }
+
+  .benefit-icon {
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Next Steps */
+  .next-steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-20);
+    align-items: center;
+  }
+
+  .trust-badges {
+    flex-wrap: wrap;
+  }
+
+  .trust-item {
+    color: var(--white-50);
+  }
+
+  .dashboard-button {
+    background: var(--primary);
+    color: var(--base-text);
+    border: none;
+    border-radius: var(--px-16);
+    padding: var(--px-18) var(--px-32);
+    font-size: var(--px-16);
+    font-weight: var(--weight-600);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: var(--px-8);
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+
+  .dashboard-button:hover {
+    background: var(--primary-light);
+    box-shadow: 0 8px 25px rgba(167, 125, 2, 0.3);
+  }
+
+  .support-link {
+    background: transparent;
+    border: none;
+    color: var(--white-50);
+    font-size: var(--px-12);
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .support-link:hover {
+    color: var(--primary);
+  }
+
+  /* Failed Page Specific Styles */
+  .error-details-card,
+  .solutions-card {
+    padding: var(--px-24);
+    border-radius: var(--px-20);
+  }
+
+  .error-message {
+    display: flex;
+    gap: var(--px-12);
+    align-items: flex-start;
+    margin-bottom: var(--px-20);
+  }
+
+  .common-issues {
+    background: var(--error-10);
+    border: 1px solid var(--error-20);
+    border-radius: var(--px-12);
+    padding: var(--px-16);
+  }
+
+  .issues-list {
+    margin-top: var(--px-8);
+    padding-left: var(--px-16);
+  }
+
+  .issues-list li {
+    margin-bottom: var(--px-4);
+  }
+
+  .solutions-header {
+    margin-bottom: var(--px-16);
+    text-align: center;
+  }
+
+  .solution-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-16);
+  }
+
+  .solution-item {
+    display: flex;
+    gap: var(--px-12);
+    align-items: flex-start;
+  }
+
+  .solution-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-4);
+  }
+
+  /* Action Buttons for Failed Page */
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-12);
+  }
+
+  .retry-button {
+    background: var(--primary);
+    color: var(--base-text);
+    border: none;
+    border-radius: var(--px-12);
+    padding: var(--px-16);
+    font-size: var(--px-14);
+    font-weight: var(--weight-600);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--px-8);
+  }
+
+  .retry-button:hover {
+    background: var(--primary-light);
+  }
+
+  .back-button {
+    background: var(--white-10);
+    border: 1px solid var(--white-20);
+    color: var(--base-text);
+    border-radius: var(--px-12);
+    padding: var(--px-16);
+    font-size: var(--px-14);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--px-8);
+  }
+
+  .back-button:hover {
+    border-color: var(--primary-50);
+  }
+
+  .support-button {
+    background: transparent;
+    border: 1px solid var(--white-10);
+    color: var(--white-50);
+    border-radius: var(--px-12);
+    padding: var(--px-12);
+    font-size: var(--px-12);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--px-8);
+  }
+
+  .support-button:hover {
+    color: var(--primary);
+    border-color: var(--primary-50);
+  }
+
+  .security-assurance {
+    text-align: center;
+    padding-top: var(--px-16);
+    border-top: 1px solid var(--white-10);
+  }
+
+  .security-badge {
+    color: var(--white-50);
   }
 }

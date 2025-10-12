@@ -158,7 +158,11 @@ export default function CheckoutOnline() {
         await saveToIndexedDB("user-data", updatedUser);
 
         // ✅ Redirect to success page
-        router.push("/subscription-success");
+        router.push(
+          `/subscription-success?planName=${encodeURIComponent(
+            planDetails.name
+          )}&period=${period}&amount=${amountParam}&method=${paymentType}&start=${startDate}&expiry=${expiryDate.toISOString()}`
+        );
       };
 
       if (paymentType === "one-time") {
@@ -186,7 +190,11 @@ export default function CheckoutOnline() {
           modal: {
             ondismiss: function () {
               setIsProcessing(false);
-              router.push("/subscription-failed");
+              router.push(
+                `/subscription-failed?planName=${encodeURIComponent(
+                  planDetails.name
+                )}&period=${period}&amount=${amountParam}&method=${paymentType}`
+              );
             },
           },
         };
@@ -216,16 +224,28 @@ export default function CheckoutOnline() {
               if (verifyRes.data.success) {
                 await handleSuccess();
               } else {
-                router.push("/subscription-failed");
+                router.push(
+                  `/subscription-failed?planName=${encodeURIComponent(
+                    planDetails.name
+                  )}&period=${period}&amount=${amountParam}&method=${paymentType}`
+                );
               }
             } catch (err) {
-              router.push("/subscription-failed");
+              router.push(
+                `/subscription-failed?planName=${encodeURIComponent(
+                  planDetails.name
+                )}&period=${period}&amount=${amountParam}&method=${paymentType}`
+              );
             }
           },
           modal: {
             ondismiss: function () {
               setIsProcessing(false);
-              router.push("/subscription-failed");
+              router.push(
+                `/subscription-failed?planName=${encodeURIComponent(
+                  planDetails.name
+                )}&period=${period}&amount=${amountParam}&method=${paymentType}`
+              );
             },
           },
         };
