@@ -39,6 +39,17 @@ function Register() {
 
   const [resendLimitReached, setResendLimitReached] = useState(false);
 
+  const searchParams = useSearchParams();
+  const stepParam = searchParams.get("step");
+  const userIdParam = searchParams.get("userId");
+
+  useEffect(() => {
+    if (stepParam === "verify-otp") {
+      setStep("verify-otp");
+      setUserId(userIdParam);
+    }
+  }, [stepParam, userIdParam]);
+
   // countdown effect
   useEffect(() => {
     let interval;

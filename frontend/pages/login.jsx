@@ -65,7 +65,7 @@ function Login() {
       );
 
       if (res.status === 403) {
-        setPopup(null); // reset popup
+        setPopup(null);
         setTimeout(() => {
           setPopup({
             message: res.data.message || "Please verify OTP first.",
@@ -75,7 +75,9 @@ function Login() {
         }, 0);
 
         setUserId(res.data.userId);
-        setStep("verify-otp");
+
+        // Redirect to register page with query for OTP step
+        router.push(`/register?step=verify-otp&userId=${res.data.userId}`);
         return;
       }
 
