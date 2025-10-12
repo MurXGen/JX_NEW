@@ -38,7 +38,6 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/trades", tradeRoutes);
-
 app.use(
   "/api/payments/webhook",
   express.raw({ type: "application/json" }),

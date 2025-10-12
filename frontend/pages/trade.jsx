@@ -29,8 +29,15 @@ const TradePage = () => {
   const years = Array.from({ length: 15 }, (_, i) => today.getFullYear() - i);
 
   useEffect(() => {
+    setLoading(true);
     const loadTrades = async () => {
       const accountId = Cookies.get("accountId");
+
+      // 🚨 If no account selected, redirect to accounts page
+      if (!accountId) {
+        router.push("/accounts");
+        return;
+      }
 
       const userData = await getFromIndexedDB("user-data");
       if (userData) {
@@ -38,7 +45,7 @@ const TradePage = () => {
           (trade) => trade.accountId === accountId
         );
 
-        // sort by openTime (newest first)
+        // Sort by openTime (newest first)
         const sorted = accountTrades.sort(
           (a, b) => new Date(b.openTime) - new Date(a.openTime)
         );
@@ -50,7 +57,7 @@ const TradePage = () => {
     };
 
     loadTrades();
-  }, []);
+  }, [router]);
 
   if (loading) return <FullPageLoader />;
 

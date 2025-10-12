@@ -168,6 +168,17 @@ export default function AddTrade() {
   };
 
   useEffect(() => {
+    setLoading(true);
+    const accountId = Cookies.get("accountId");
+
+    if (!accountId) {
+      router.push("/accounts");
+    }
+    setLoading(false);
+    // else do nothing, user can continue
+  }, [router]);
+
+  useEffect(() => {
     const error = validateForm(form);
     setIsFormValid(!error); // true if no error, false otherwise
   }, [form]);
@@ -773,6 +784,26 @@ export default function AddTrade() {
     });
   }
 
+  function handleImageRemove(field, setForm) {
+    // Remove from form state
+    setForm((prev) => ({
+      ...prev,
+      [field]: null,
+      [`${field}Preview`]: "",
+      [`${field}Removed`]: true,
+    }));
+
+    // Remove from localStorage
+    try {
+      localStorage.removeItem(`newTradeImage_${field}`);
+    } catch (err) {
+      console.error(
+        `Failed to remove image from localStorage for ${field}`,
+        err
+      );
+    }
+  }
+
   const handleSubmit = async (e) => {
     if (e?.preventDefault) e.preventDefault();
 
@@ -977,14 +1008,7 @@ export default function AddTrade() {
           }
           imagePreview={form.openImagePreview}
           onImageChange={(e) => handleImageChange(e, "openImage", setForm)}
-          onRemove={() =>
-            setForm((prev) => ({
-              ...prev,
-              openImage: null,
-              openImagePreview: "",
-              openImageRemoved: true,
-            }))
-          }
+          onRemove={() => handleImageRemove("openImage", setForm)}
         />
       ),
     },
@@ -999,14 +1023,7 @@ export default function AddTrade() {
           }
           imagePreview={form.closeImagePreview}
           onImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
-          onRemove={() =>
-            setForm((prev) => ({
-              ...prev,
-              closeImage: null,
-              closeImagePreview: "",
-              closeImageRemoved: true,
-            }))
-          }
+          onRemove={() => handleImageRemove("closeImage", setForm)}
         />
       ),
     },

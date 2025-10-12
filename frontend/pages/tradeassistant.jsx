@@ -17,6 +17,15 @@ export default function TradeAssistant() {
   const messagesEndRef = useRef(null);
   const router = useRouter();
 
+  useEffect(() => {
+    const accountId = Cookies.get("accountId");
+
+    if (!accountId) {
+      router.push("/accounts");
+    }
+    // else do nothing, user can continue
+  }, [router]);
+
   // predefined quick prompts
   const quickPrompts = [
     "Analyse my last trade",
