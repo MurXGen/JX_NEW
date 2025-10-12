@@ -41,65 +41,64 @@ function Login() {
     }
   }, [router]);
 
-  const handleLogin = async () => {
-    setIsLoading(true);
-    try {
-      const res = await axios.post(
-        `${API_BASE}/api/auth/login`,
-        { email, password, turnstileToken },
-        { withCredentials: true }
-      );
+const handleLogin = async () => {
+  setIsLoading(true);
 
-      if (res.status === 403) {
+  try {
+    const res = await axios.post(
+      `${API_BASE}/api/auth/login`,
+      { email, password, turnstileToken },
+      { withCredentials: true }
+    );
+
+    if (res.status === 403) {
+      setPopup(null); // reset first
+      setTimeout(() => {
         setPopup({
           message: res.data.message || "Please verify OTP first.",
           type: "info",
         });
-        setUserId(res.data.userId);
-        setStep("verify-otp");
-        return;
-      }
+      }, 0);
 
-      const { userData, isVerified } = res.data;
+      setUserId(res.data.userId);
+      setStep("verify-otp");
+      return;
+    }
 
-      // Save user data
-      await saveToIndexedDB("user-data", userData);
+    const { userData, isVerified } = res.data;
 
-      // Save plans separately for easy access
-      if (userData?.plans) {
-        await saveToIndexedDB("plans", userData.plans);
-      }
+    // Save user data
+    await saveToIndexedDB("user-data", userData);
 
-      // if (userData?.name) {
-      //   localStorage.setItem("userName", userData.name);
-      //   setUsername(userData.name);
-      // }
+    if (userData?.plans) {
+      await saveToIndexedDB("plans", userData.plans);
+    }
 
-      // if (userData?.name) {
-      //   localStorage.setItem("userName", userData.name);
-      //   setUsername(userData.name);
-      // }
+    // ✅ Handle isVerified cookie
+    if (isVerified === "yes") {
+      Cookies.set("isVerified", "yes", {
+        path: "/",
+        sameSite: "Strict",
+        expires: 3650,
+      });
+    } else {
+      Cookies.remove("isVerified");
+    }
 
-      if (isVerified === "yes") {
-        Cookies.set("isVerified", "yes", {
-          path: "/",
-          sameSite: "Strict",
-          expires: 3650,
-        });
-      } else {
-        Cookies.remove("isVerified");
-      }
-
-      setShowWelcome(true);
-    } catch (err) {
+    setShowWelcome(true);
+  } catch (err) {
+    setPopup(null); // 🔥 Clear existing popup first
+    setTimeout(() => {
       setPopup({
         message: err.response?.data?.message || "Login failed",
         type: "error",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    }, 0);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {

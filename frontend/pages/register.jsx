@@ -59,39 +59,51 @@ function Register() {
   const handleRegister = async () => {
     // Validation
     if (!name || !email || !password || !confirmPassword) {
-      setPopup({
-        message: "All fields are required",
-        type: "error",
-        id: Date.now(),
-      });
+      setPopup(null);
+      setTimeout(() => {
+        setPopup({
+          message: "All fields are required",
+          type: "error",
+          id: Date.now(),
+        });
+      }, 0);
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setPopup({
-        message: "Enter a valid email address",
-        type: "error",
-        id: Date.now(),
-      });
+      setPopup(null);
+      setTimeout(() => {
+        setPopup({
+          message: "Enter a valid email address",
+          type: "error",
+          id: Date.now(),
+        });
+      }, 0);
       return;
     }
 
     if (!/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(password)) {
-      setPopup({
-        message:
-          "Password must be 8–15 chars, include letters, numbers & a special character",
-        type: "error",
-        id: Date.now(),
-      });
+      setPopup(null);
+      setTimeout(() => {
+        setPopup({
+          message:
+            "Password must be 8–15 chars, include letters, numbers & a special character",
+          type: "error",
+          id: Date.now(),
+        });
+      }, 0);
       return;
     }
 
     if (password !== confirmPassword) {
-      setPopup({
-        message: "Passwords do not match",
-        type: "error",
-        id: Date.now(),
-      });
+      setPopup(null);
+      setTimeout(() => {
+        setPopup({
+          message: "Passwords do not match",
+          type: "error",
+          id: Date.now(),
+        });
+      }, 0);
       return;
     }
 
@@ -99,23 +111,29 @@ function Register() {
     try {
       const res = await register({ name, email, password, turnstileToken });
 
-      // If user exists but not verified → go to OTP step
       if (res.data.isVerified === false) {
-        setPopup({
-          message: "User exists. Please verify OTP.",
-          type: "info",
-          id: Date.now(),
-        });
+        setPopup(null);
+        setTimeout(() => {
+          setPopup({
+            message: "User exists. Please verify OTP.",
+            type: "info",
+            id: Date.now(),
+          });
+        }, 0);
         setUserId(res.data.userId);
         setStep("verify-otp");
         return;
       }
 
-      setPopup({
-        message: "Check your email for OTP",
-        type: "success",
-        id: Date.now(),
-      });
+      setPopup(null);
+      setTimeout(() => {
+        setPopup({
+          message: "Check your email for OTP",
+          type: "success",
+          id: Date.now(),
+        });
+      }, 0);
+
       setUserId(res.data.userId);
       setStep("verify-otp");
       setName("");
@@ -125,25 +143,31 @@ function Register() {
     } catch (err) {
       console.error("Error during registration:", err);
 
-      // Handle user already exists and verified → push to login
+      // Handle user already exists and verified → redirect to login
       if (
         err.response?.status === 409 ||
         err.response?.data?.message === "User already exists. Please login."
       ) {
-        setPopup({
-          message: "User already exists. Redirecting to login...",
-          type: "info",
-          id: Date.now(),
-        });
-        router.push("/login"); // redirect to login page
+        setPopup(null);
+        setTimeout(() => {
+          setPopup({
+            message: "User already exists. Redirecting to login...",
+            type: "info",
+            id: Date.now(),
+          });
+        }, 0);
+        router.push("/login");
         return;
       }
 
-      setPopup({
-        message: err.response?.data?.message || "Registration failed",
-        type: "error",
-        id: Date.now(),
-      });
+      setPopup(null);
+      setTimeout(() => {
+        setPopup({
+          message: err.response?.data?.message || "Registration failed",
+          type: "error",
+          id: Date.now(),
+        });
+      }, 0);
     } finally {
       setIsLoading(false);
     }
