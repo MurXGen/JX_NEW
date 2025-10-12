@@ -39,7 +39,7 @@ router.get(
     res.cookie("userId", req.user._id.toString(), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
     });
 
@@ -47,7 +47,7 @@ router.get(
     res.cookie("isVerified", "yes", {
       httpOnly: false, // frontend should read it
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
     });
 
