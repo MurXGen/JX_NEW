@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema(
     },
     subscriptionType: {
       type: String,
-      enum: ["one-time", "recurring", "none"],
+      enum: ["one-time", "recurring", "none", "free-trial"],
       default: "one-time",
     },
 

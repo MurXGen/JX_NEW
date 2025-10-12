@@ -105,7 +105,7 @@ function Accounts() {
           }
         }
 
-        const canFetch = refreshInfo.count < 3;
+        const canFetch = refreshInfo.count < 10;
 
         // Fetch fresh data if within limit
         if (canFetch) {
