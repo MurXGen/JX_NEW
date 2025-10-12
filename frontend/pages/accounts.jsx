@@ -32,6 +32,22 @@ function Accounts() {
   const [tradesCount, setTradesCount] = useState({});
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isVerified = params.get("isVerified");
+
+    if (isVerified === "yes") {
+      Cookies.set("isVerified", "yes", {
+        path: "/",
+        sameSite: "Strict",
+        expires: 3650,
+      });
+    }
+
+    // Optionally clean the URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }, []);
+
+  useEffect(() => {
     const loadUser = async () => {
       setLoading(true);
 

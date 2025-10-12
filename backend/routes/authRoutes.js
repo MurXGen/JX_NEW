@@ -43,18 +43,14 @@ router.get(
       maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
     });
 
-    // ✅ Set isVerified cookie (same as email login flow)
-    res.cookie("isVerified", "yes", {
-      httpOnly: false, // frontend should read it
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
-    });
+    const isVerified = "yes";
 
-    // ✅ Redirect to frontend with optional query
-    res.redirect(
-      `${process.env.CLIENT_URL || "http://localhost:3000"}/accounts`
-    );
+    // ✅ Redirect with query params
+    const redirectUrl = `${
+      process.env.CLIENT_URL || "http://localhost:3000"
+    }/accounts?isVerified=${isVerified}`;
+
+    res.redirect(redirectUrl);
   }
 );
 
