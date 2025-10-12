@@ -41,64 +41,78 @@ function Login() {
     }
   }, [router]);
 
-const handleLogin = async () => {
-  setIsLoading(true);
-
-  try {
-    const res = await axios.post(
-      `${API_BASE}/api/auth/login`,
-      { email, password, turnstileToken },
-      { withCredentials: true }
-    );
-
-    if (res.status === 403) {
-      setPopup(null); // reset first
+  const handleLogin = async () => {
+    // ✅ Ensure CAPTCHA token exists
+    if (!turnstileToken) {
+      setPopup(null);
       setTimeout(() => {
         setPopup({
-          message: res.data.message || "Please verify OTP first.",
-          type: "info",
+          message: "Please complete the CAPTCHA before logging in.",
+          type: "error",
+          id: Date.now(),
         });
       }, 0);
-
-      setUserId(res.data.userId);
-      setStep("verify-otp");
       return;
     }
 
-    const { userData, isVerified } = res.data;
+    setIsLoading(true);
 
-    // Save user data
-    await saveToIndexedDB("user-data", userData);
+    try {
+      const res = await axios.post(
+        `${API_BASE}/api/auth/login`,
+        { email, password, turnstileToken },
+        { withCredentials: true }
+      );
 
-    if (userData?.plans) {
-      await saveToIndexedDB("plans", userData.plans);
+      if (res.status === 403) {
+        setPopup(null); // reset popup
+        setTimeout(() => {
+          setPopup({
+            message: res.data.message || "Please verify OTP first.",
+            type: "info",
+            id: Date.now(),
+          });
+        }, 0);
+
+        setUserId(res.data.userId);
+        setStep("verify-otp");
+        return;
+      }
+
+      const { userData, isVerified } = res.data;
+
+      // Save user data
+      await saveToIndexedDB("user-data", userData);
+
+      if (userData?.plans) {
+        await saveToIndexedDB("plans", userData.plans);
+      }
+
+      // ✅ Handle isVerified cookie
+      if (isVerified === "yes") {
+        Cookies.set("isVerified", "yes", {
+          path: "/",
+          sameSite: "Strict",
+          expires: 3650,
+        });
+      } else {
+        Cookies.remove("isVerified");
+      }
+
+      setShowWelcome(true);
+    } catch (err) {
+      setPopup(null); // clear previous popup
+      setTimeout(() => {
+        setPopup({
+          message: err.response?.data?.message || "Login failed",
+          type: "error",
+          id: Date.now(),
+        });
+      }, 0);
+    } finally {
+      setIsLoading(false);
     }
-
-    // ✅ Handle isVerified cookie
-    if (isVerified === "yes") {
-      Cookies.set("isVerified", "yes", {
-        path: "/",
-        sameSite: "Strict",
-        expires: 3650,
-      });
-    } else {
-      Cookies.remove("isVerified");
-    }
-
-    setShowWelcome(true);
-  } catch (err) {
-    setPopup(null); // 🔥 Clear existing popup first
-    setTimeout(() => {
-      setPopup({
-        message: err.response?.data?.message || "Login failed",
-        type: "error",
-      });
-    }, 0);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -182,11 +196,11 @@ const handleLogin = async () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
             className="button_pri flexRow gap_12 flexRow_center flexRow_stretch"
             onClick={(e) => {
-              e.preventDefault(); // prevent form submission reload
-              handleLogin(); // call your login function
+              e.preventDefault(); // prevent form reload
+              handleLogin(); // call login function
             }}
           >
             {isLoading ? <Loader2 size={20} className="spinner" /> : "Login"}

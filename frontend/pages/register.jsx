@@ -57,6 +57,19 @@ function Register() {
   }, [step]);
 
   const handleRegister = async () => {
+    // ✅ Ensure Turnstile is passed
+    if (!turnstileToken) {
+      setPopup(null);
+      setTimeout(() => {
+        setPopup({
+          message: "Please complete the CAPTCHA before registering.",
+          type: "error",
+          id: Date.now(),
+        });
+      }, 0);
+      return;
+    }
+
     // Validation
     if (!name || !email || !password || !confirmPassword) {
       setPopup(null);
@@ -143,7 +156,6 @@ function Register() {
     } catch (err) {
       console.error("Error during registration:", err);
 
-      // Handle user already exists and verified → redirect to login
       if (
         err.response?.status === 409 ||
         err.response?.data?.message === "User already exists. Please login."
@@ -398,7 +410,7 @@ function Register() {
                 <button
                   className="button_pri flexRow flexRow_stretch"
                   onClick={handleRegister}
-                  disabled={isLoading}
+                  disabled={isLoading || !turnstileToken} // ✅ disable until captcha success
                 >
                   {isLoading ? (
                     <Loader2 size={18} className="spinner" />
