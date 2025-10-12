@@ -35,20 +35,22 @@ router.get(
     failureRedirect: `${process.env.CLIENT_URL}/login`,
   }),
   (req, res) => {
-    // ✅ Set userId cookie
+    // userId cookie (httpOnly)
     res.cookie("userId", req.user._id.toString(), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
+      httpOnly: true, // secure from JS access
+      secure: true, // must be HTTPS
+      sameSite: "None", // crucial for cross-domain
+      maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
+      domain: ".journalx.app", // allows cookie on subdomain
     });
 
-    // ✅ Set isVerified cookie (same as email login flow)
+    // isVerified cookie (frontend readable)
     res.cookie("isVerified", "yes", {
-      httpOnly: false, // frontend should read it
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      httpOnly: false, // frontend can read
+      secure: true,
+      sameSite: "None",
       maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
+      domain: ".journalx.app",
     });
 
     // ✅ Redirect to frontend with optional query

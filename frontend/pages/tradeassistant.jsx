@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import ChatResponse from "@/components/Trades/ChatResponse";
 import { useRouter } from "next/navigation";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import Cookies from "js-cookie";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,6 +16,7 @@ export default function TradeAssistant() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [checkingAccount, setCheckingAccount] = useState(true); // ✅ new
   const messagesEndRef = useRef(null);
   const router = useRouter();
 
@@ -22,8 +25,9 @@ export default function TradeAssistant() {
 
     if (!accountId) {
       router.push("/accounts");
+    } else {
+      setCheckingAccount(false); // ✅ account exists, stop loader
     }
-    // else do nothing, user can continue
   }, [router]);
 
   // predefined quick prompts
@@ -95,6 +99,8 @@ export default function TradeAssistant() {
   const handleBackClick = () => {
     router.push("/");
   };
+
+  if (checkingAccount) return <FullPageLoader />; // ✅ show loader while checking
 
   return (
     <div className="tradeAssistantContainer">

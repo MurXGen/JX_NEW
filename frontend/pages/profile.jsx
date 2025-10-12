@@ -18,11 +18,23 @@ import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
 import SubscriptionStatus from "@/components/Profile/SubscriptionStatus";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import { motion } from "framer-motion";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 const Profile = () => {
   const router = useRouter();
   const [simpleMode, setSimpleMode] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const isVerified = Cookies.get("isVerified");
+
+    if (isVerified !== "yes") {
+      router.push("/login"); // redirect if not verified
+    } else {
+      setLoading(false); // verified → stop loader
+    }
+  }, [router]);
 
   useEffect(() => {
     loadUserData();
@@ -47,6 +59,8 @@ const Profile = () => {
   const handleBackClick = () => {
     router.push("/accounts");
   };
+
+  if (loading) return <FullPageLoader />;
 
   return (
     <div className="flexClm gap_32">

@@ -27,7 +27,8 @@ export default function Home() {
 
       if (!accountId) {
         router.push("/accounts");
-        return;
+      } else {
+        setLoading(false); // ✅ account exists, stop loader
       }
 
       const userData = await getFromIndexedDB("user-data");
