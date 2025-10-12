@@ -13,11 +13,13 @@ import ToastMessage from "@/components/ui/ToastMessage";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import WelcomeModal from "@/components/ui/WelcomeModal";
 import { FcGoogle } from "react-icons/fc";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function Login() {
   const router = useRouter();
+  const [turnstileToken, setTurnstileToken] = useState(null);
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [username, setUsername] = useState("");
@@ -44,7 +46,7 @@ function Login() {
     try {
       const res = await axios.post(
         `${API_BASE}/api/auth/login`,
-        { email, password },
+        { email, password, turnstileToken },
         { withCredentials: true }
       );
 
@@ -173,6 +175,11 @@ function Login() {
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
+
+          <Turnstile
+            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            onSuccess={(token) => setTurnstileToken(token)}
+          />
 
           <button
             type="submit"

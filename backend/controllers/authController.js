@@ -7,9 +7,31 @@ const EmailVerification = require("../models/EmailVerify");
 const { sendOtpEmail } = require("../mail/sendOtpEmail");
 const Plan = require("../models/Plan");
 const getUserData = require("../utils/getUserData");
+const axios = require("axios");
 
 const SALT_ROUNDS = 10;
 const isProduction = process.env.NODE_ENV === "production";
+
+async function verifyTurnstileToken(token, ip) {
+  if (!token) return false;
+
+  try {
+    const response = await axios.post(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      new URLSearchParams({
+        secret: process.env.TURNSTILE_SECRET_KEY,
+        response: token,
+        remoteip: ip || "",
+      }).toString(),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    return response.data.success === true;
+  } catch (err) {
+    console.error("Turnstile verification error:", err);
+    return false;
+  }
+}
 
 const cookieOptions = {
   httpOnly: true,
@@ -36,7 +58,13 @@ const validateEmailCredentials = (email, password, res) => {
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, googleId } = req.body;
+    const { name, email, password, googleId, turnstileToken } = req.body;
+
+    // Verify Cloudflare Turnstile
+    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!isHuman) {
+      return res.status(403).json({ message: "Captcha verification failed" });
+    }
 
     if (!googleId && (!email || !password))
       return res.status(400).json({ message: "Email and password required" });
@@ -114,7 +142,12 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, turnstileToken } = req.body;
+
+    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!isHuman) {
+      return res.status(403).json({ message: "Captcha verification failed" });
+    }
     if (!validateEmailCredentials(email, password, res)) return;
 
     const user = await User.findOne({ email });

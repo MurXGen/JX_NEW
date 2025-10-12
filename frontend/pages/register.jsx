@@ -11,10 +11,12 @@ import { register } from "@/api/auth";
 import Navbar from "@/components/Auth/Navbar";
 import ToastMessage from "@/components/ui/ToastMessage";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function Register() {
+  const [turnstileToken, setTurnstileToken] = useState(null);
   const [step, setStep] = useState("enter-email");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -95,7 +97,7 @@ function Register() {
 
     setIsLoading(true);
     try {
-      const res = await register({ name, email, password });
+      const res = await register({ name, email, password, turnstileToken });
 
       // If user exists but not verified → go to OTP step
       if (res.data.isVerified === false) {
@@ -353,6 +355,11 @@ function Register() {
                 )}
               </div>
             </div>
+
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setTurnstileToken(token)}
+            />
 
             <div className="flexClm gap_8">
               <div className="flexRow flexRow_stretch gap_12">
