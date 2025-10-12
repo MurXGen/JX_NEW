@@ -27,16 +27,6 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const isVerified = Cookies.get("isVerified");
-
-    if (isVerified !== "yes") {
-      router.push("/login"); // redirect if not verified
-    } else {
-      setLoading(false); // verified → stop loader
-    }
-  }, [router]);
-
-  useEffect(() => {
     loadUserData();
   }, []);
 
