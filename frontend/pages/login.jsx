@@ -42,7 +42,6 @@ function Login() {
   }, [router]);
 
   const handleLogin = async () => {
-    // ✅ Ensure CAPTCHA token exists
     if (!turnstileToken) {
       setPopup(null);
       setTimeout(() => {
@@ -64,35 +63,10 @@ function Login() {
         { withCredentials: true }
       );
 
-      if (res.status === 403) {
-        setPopup(null);
-        setTimeout(() => {
-          setPopup({
-            message: res.data.message || "Please verify OTP first.",
-            type: "info",
-            id: Date.now(),
-          });
-        }, 0);
-
-        setUserId(res.data.userId);
-
-        localStorage.setItem("otpUserId", res.data.userId);
-
-        // Wait a short moment to show popup, then redirect
-        setTimeout(() => {
-          router.push({
-            pathname: "/register",
-            query: { step: "verify-otp", userId: res.data.userId },
-          });
-        }, 1200);
-        return;
-      }
-
       const { userData, isVerified } = res.data;
 
       // Save user data
       await saveToIndexedDB("user-data", userData);
-
       if (userData?.plans) {
         await saveToIndexedDB("plans", userData.plans);
       }
@@ -110,7 +84,34 @@ function Login() {
 
       setShowWelcome(true);
     } catch (err) {
-      setPopup(null); // clear previous popup
+      // 🔥 Handle 403 verification redirect here
+      if (err.response?.status === 403) {
+        const { message, userId } = err.response.data;
+
+        setPopup(null);
+        setTimeout(() => {
+          setPopup({
+            message: message || "Please verify OTP first.",
+            type: "info",
+            id: Date.now(),
+          });
+        }, 0);
+
+        localStorage.setItem("otpUserId", userId);
+
+        // Redirect to register page with step=verify-otp
+        setTimeout(() => {
+          router.push({
+            pathname: "/register",
+            query: { step: "verify-otp", userId },
+          });
+        }, 1200);
+
+        return;
+      }
+
+      // Other errors
+      setPopup(null);
       setTimeout(() => {
         setPopup({
           message: err.response?.data?.message || "Login failed",
