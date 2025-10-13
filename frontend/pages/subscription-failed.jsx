@@ -66,16 +66,12 @@ export default function SubscriptionFailed() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <div className="flexRow flex_center gap_12">
+          <div className="flexRow gap_12">
             <HelpCircle size={20} className="error" />
-            <div className="message-content">
-              <span className="font_14 font_weight_600">What happened?</span>
-              <p
-                className="font_12"
-                style={{ color: "var(--white-50)", marginTop: "4px" }}
-              >
-                {errorMessage}
-              </p>
+            <div className="">
+              <span className="font_14 font_weight_600">
+                Possible Reasons for failure
+              </span>
             </div>
           </div>
 
@@ -95,52 +91,6 @@ export default function SubscriptionFailed() {
               <li>Incorrect card details entered</li>
               <li>Network connectivity issues</li>
             </ul>
-          </div>
-        </motion.div>
-
-        {/* Solutions & Support */}
-        <motion.div
-          className="solutions-card chart_boxBg"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <div className="solutions-header">
-            <span className="font_16 font_weight_600">Let's fix this</span>
-          </div>
-
-          <div className="flexRow_mobile flex_stretch gap_12">
-            <div className="boxBg ">
-              <RefreshCw size={20} className="vector" />
-              <div className="solution-content">
-                <span className="font_14 font_weight_600">Try Again</span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Retry the payment with same details
-                </span>
-              </div>
-            </div>
-
-            <div className="box_bg">
-              <Shield size={20} className="vector" />
-              <div className="solution-content">
-                <span className="font_14 font_weight_600">
-                  Use Different Method
-                </span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Try UPI, Crypto, or another card
-                </span>
-              </div>
-            </div>
-
-            <div className="box_bg ">
-              <Mail size={20} className="vector" />
-              <div className="solution-content">
-                <span className="font_14 font_weight_600">Contact Support</span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Get help from our team
-                </span>
-              </div>
-            </div>
           </div>
         </motion.div>
 
@@ -176,6 +126,53 @@ export default function SubscriptionFailed() {
           >
             Need help? Contact Support
           </button>
+        </motion.div>
+
+        {/* Solutions & Support */}
+        <motion.div
+          className="chart_boxBg"
+          style={{ padding: "20px 16px" }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          {/* <div className="solutions-header">
+            <span className="font_16 font_weight_600">Let's fix this</span>
+          </div> */}
+
+          <div className="flexRow_mobile flexRow_stretch gap_32">
+            <div className="flexRow gap_8">
+              <RefreshCw size={20} className="vector" />
+              <div className="solution-content">
+                <span className="font_14 font_weight_600">Try Again</span>
+                <span className="font_12" style={{ color: "var(--white-50)" }}>
+                  Retry the payment with same details
+                </span>
+              </div>
+            </div>
+
+            <div className="flexRow gap_8">
+              <Shield size={20} className="vector" />
+              <div className="solution-content">
+                <span className="font_14 font_weight_600">
+                  Use Different Method
+                </span>
+                <span className="font_12" style={{ color: "var(--white-50)" }}>
+                  Try UPI, Crypto, or another card
+                </span>
+              </div>
+            </div>
+
+            <div className="flexRow gap_8">
+              <Mail size={20} className="vector" />
+              <div className="solution-content">
+                <span className="font_14 font_weight_600">Contact Support</span>
+                <span className="font_12" style={{ color: "var(--white-50)" }}>
+                  Get help from our team
+                </span>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Security Assurance */}

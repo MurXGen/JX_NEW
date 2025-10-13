@@ -91,8 +91,8 @@ function Login() {
         setPopup(null);
         setTimeout(() => {
           setPopup({
-            message: message || "Please verify OTP first.",
-            type: "info",
+            message: "Redirecting... Please verify OTP first.",
+            type: "success",
             id: Date.now(),
           });
         }, 0);

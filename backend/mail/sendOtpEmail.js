@@ -36,7 +36,7 @@ It will expire in 5 minutes.
     const response = await resend.emails.send({
       from,
       to,
-      subject: "🚀 Start your trading journey with JournalX!",
+      subject: "Code arrived from JournalX!",
       text,
       html,
     });

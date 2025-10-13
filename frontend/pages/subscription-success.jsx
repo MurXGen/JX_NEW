@@ -65,6 +65,7 @@ export default function SubscriptionSuccess() {
     const amount = searchParams.get("amount") || "2999";
     const startDate = new Date(searchParams.get("start") || Date.now());
     const expiryDate = new Date(searchParams.get("expiry") || Date.now());
+    const orderId = searchParams.get("orderId") || "N/A";
 
     setOrderDetails({
       planName,
@@ -72,7 +73,7 @@ export default function SubscriptionSuccess() {
       amount,
       startDate,
       expiryDate,
-      orderId: `ORD${Date.now().toString().slice(-8)}`,
+      orderId,
       paymentMethod: searchParams.get("method") || "UPI",
     });
   }, [searchParams]);
@@ -95,13 +96,13 @@ export default function SubscriptionSuccess() {
     return <Users size={24} className="vector" />;
   };
 
-  const getWelcomeBenefits = () => [
-    "Full access to premium features",
-    "Advanced analytics & insights",
-    "Priority customer support",
-    "Mobile app synchronization",
-    "Regular feature updates",
-  ];
+  // const getWelcomeBenefits = () => [
+  //   "Full access to premium features",
+  //   "Advanced analytics & insights",
+  //   "Priority customer support",
+  //   "Mobile app synchronization",
+  //   "Regular feature updates",
+  // ];
 
   return (
     <div className="subscription-success">

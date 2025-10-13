@@ -262,13 +262,15 @@ function Accounts() {
             Select account to proceed with
           </span>
         </div>
-        <button
-          className="button_sec flexRow"
-          onClick={handleClick}
-          disabled={loading}
-        >
-          <Plus size={16} />
-        </button>
+        {accounts.length > 0 && (
+          <button
+            className="button_sec flexRow"
+            onClick={handleClick}
+            disabled={loading}
+          >
+            <Plus size={16} />
+          </button>
+        )}
       </div>
 
       <motion.div
@@ -278,22 +280,19 @@ function Accounts() {
         animate="visible"
       >
         {accounts.length === 0 ? (
-          <motion.div
-            className="noAccountsMessage"
-            style={{
-              textAlign: "center",
-              marginTop: "20%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "10px",
-            }}
-            variants={childVariants}
-          >
-            <FiDatabase size={48} color="#888" /> {/* Icon */}
+          <motion.div className="notFound" variants={childVariants}>
+            <FiDatabase size={48} className="vector" /> {/* Icon */}
             <span className="font_12">
               No account found. You can create one.
             </span>
+            <button
+              className="button_sec flexRow"
+              onClick={handleClick}
+              disabled={loading}
+            >
+              <span>Create account</span>
+              <Plus size={16} />
+            </button>
           </motion.div>
         ) : (
           accounts.map((acc) => {

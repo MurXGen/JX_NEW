@@ -15,8 +15,11 @@ import {
   ChevronUp,
   Filter,
   X,
+  TrendingUp,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatNumbers";
+import { childVariants } from "@/animations/motionVariants";
+import { FiDatabase } from "react-icons/fi";
 
 const TRADE_KEY = "__t_rd_iD";
 
@@ -532,9 +535,19 @@ const TradesHistory = ({
             })}
           </div>
         ) : (
-          <div className="emptyState flexClm flex_center">
-            <p className="font_16 shade_50">No trades found</p>
-          </div>
+          <motion.div className="notFound" variants={childVariants}>
+            <TrendingUp size={48} className="vector" />
+            {/* Market/Trading icon */}
+            <span className="font_12">
+              No account found. You can create one.
+            </span>
+            <button
+              className="button_sec flexRow"
+              onClick={() => router.push("/add-trade")}
+            >
+              <span>Add trade</span>
+            </button>
+          </motion.div>
         )}
       </div>
 
