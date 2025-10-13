@@ -62,6 +62,11 @@ function Register() {
   }, [timer]);
 
   useEffect(() => {
+    const storedId = localStorage.getItem("otpUserId");
+    if (storedId && !userId) setUserId(storedId);
+  }, []);
+
+  useEffect(() => {
     if (step === "verify-otp") {
       setTimer(60); // start 60s countdown immediately
     }

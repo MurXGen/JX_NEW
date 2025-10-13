@@ -76,8 +76,15 @@ function Login() {
 
         setUserId(res.data.userId);
 
-        // Redirect to register page with query for OTP step
-        router.push(`/register?step=verify-otp&userId=${res.data.userId}`);
+        localStorage.setItem("otpUserId", res.data.userId);
+
+        // Wait a short moment to show popup, then redirect
+        setTimeout(() => {
+          router.push({
+            pathname: "/register",
+            query: { step: "verify-otp", userId: res.data.userId },
+          });
+        }, 1200);
         return;
       }
 
