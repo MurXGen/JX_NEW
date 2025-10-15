@@ -10,7 +10,6 @@ const getUserData = require("../utils/getUserData");
 const axios = require("axios");
 
 const SALT_ROUNDS = 10;
-const isProduction = process.env.NODE_ENV === "production";
 
 async function verifyTurnstileToken(token, ip) {
   if (!token) return false;
@@ -33,11 +32,13 @@ async function verifyTurnstileToken(token, ip) {
   }
 }
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const cookieOptions = {
   httpOnly: true,
-  secure: isProduction, // must be true in production
-  sameSite: isProduction ? "None" : "Lax", // cross-site in prod
-  maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
+  secure: isProduction, // only true in production
+  sameSite: isProduction ? "none" : "lax", // ✅ allow cross-site cookies in production
+  maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
 };
 
 const setUserIdCookie = (res, userId) => {

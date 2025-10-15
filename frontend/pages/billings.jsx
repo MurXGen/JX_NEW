@@ -120,10 +120,12 @@ export default function BillingPage() {
   };
 
   const formatAmount = (order) => {
+    if (!order || !order.amount) return "0"; // ✅ Prevent undefined
+
     if (order.currency === "INR") {
       return `₹${(order.amount / 100).toLocaleString()}`;
     } else {
-      return `${order.amount} ${order.currency}`;
+      return `${order.amount} ${order.currency || ""}`;
     }
   };
 
@@ -196,7 +198,7 @@ export default function BillingPage() {
               {formatAmount(
                 orders.reduce(
                   (max, order) => (order.amount > max.amount ? order : max),
-                  orders[0] || { amount: 0 }
+                  orders[0] || { amount: 0, currency: "INR" } // ✅ default object
                 )
               )}
             </div>
@@ -282,7 +284,7 @@ export default function BillingPage() {
               transition={{ duration: 0.6 }}
             >
               <AlertCircle size={48} className="vector" />
-              <div>
+              <div className="flexClm gap_12">
                 <span className="font_16 font_weight_600">No orders yet</span>
                 <span className="font_12 shade_50">
                   Your order history will appear here

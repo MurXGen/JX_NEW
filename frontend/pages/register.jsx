@@ -70,7 +70,7 @@ function Register() {
   useEffect(() => {
     const storedId = localStorage.getItem("otpUserId");
     if (storedId && !userId) setUserId(storedId);
-    setTimer(30);
+    setTimer(60);
   }, []);
 
   const handleRegister = async () => {

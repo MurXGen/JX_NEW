@@ -59,6 +59,8 @@ async function uploadToB2(file, folder) {
 
 exports.addTrade = async (req, res) => {
   try {
+    console.log("🔍 Cookies received:", req.cookies);
+
     const { body, files } = req;
     const userId = req.cookies.userId;
     const accountId = req.cookies.accountId;
