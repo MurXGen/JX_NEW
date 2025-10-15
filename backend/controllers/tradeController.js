@@ -349,21 +349,11 @@ exports.deleteTrade = async (req, res) => {
     console.log("✅ Trade deleted from DB:", tradeId);
 
     // refresh accounts + trades
-    // const accounts = await Account.find({ userId });
-    // const trades = await Trade.find({ userId });
+    const accounts = await Account.find({ userId });
+    const trades = await Trade.find({ userId });
 
     // respond immediately (don't block frontend)
-    // res.json({ success: true, tradeId, accounts, trades });
-
-    const user = await User.findById(userId);
-    const userData = await getUserData(user);
-
-    res.status(201).json({
-      success: true,
-      tradeId,
-      message: "Trade deleted successfully",
-      userData,
-    });
+    res.json({ success: true, tradeId, accounts, trades });
 
     // async cleanup of images
     if (openImageUrl) deleteImageFromB2(openImageUrl);

@@ -69,8 +69,8 @@ const TradeInfo = ({ onClose }) => {
   };
 
   const handleDeleteTrade = async () => {
-    setIsConfirmOpen(false);
-    setIsDeleting(true);
+    setIsConfirmOpen(false); // close modal
+    setIsDeleting(true); // show loader
 
     try {
       const tradeId = localStorage.getItem("__t_rd_iD");
@@ -81,16 +81,22 @@ const TradeInfo = ({ onClose }) => {
       });
 
       if (res.data.success) {
-        const { userData } = res.data;
+        const { accounts, trades } = res.data;
 
         console.log("💾 Syncing updated data into IndexedDB:", {
-          accountsCount: userData?.accounts?.length || 0,
-          tradesCount: userData?.trades?.length || 0,
+          accountsCount: accounts?.length || 0,
+          tradesCount: trades?.length || 0,
         });
 
-        await saveToIndexedDB("user-data", userData);
+        await saveToIndexedDB("user-data", {
+          userId: localStorage.getItem("userId"),
+          accounts,
+          trades,
+        });
 
         setToast({ type: "success", message: "Trade deleted successfully!" });
+
+        // Optionally refresh page after a short delay
         setTimeout(() => window.location.reload(), 1000);
       } else {
         setToast({ type: "error", message: "Failed to delete trade!" });
@@ -107,7 +113,14 @@ const TradeInfo = ({ onClose }) => {
   };
 
   if (loading) {
-    return <FullPageLoader />;
+    return (
+      <div className="modalOverlay flex_center">
+        <div className="modalContent loadingModal">
+          <div className="loadingSpinner"></div>
+          <p className="font_16 shade_50">Loading trade details...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!trade) return null;
