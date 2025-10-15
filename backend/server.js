@@ -22,7 +22,11 @@ app.use(
     origin: [process.env.CLIENT_URL, "http://localhost:3000"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-trade-id", // ✅ allow your custom header
+    ],
   })
 );
 
