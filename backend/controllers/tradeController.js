@@ -361,7 +361,7 @@ exports.deleteTrade = async (req, res) => {
     res.status(201).json({
       success: true,
       tradeId,
-      message: "Trade added successfully",
+      message: "Trade deleted successfully",
       userData,
     });
 

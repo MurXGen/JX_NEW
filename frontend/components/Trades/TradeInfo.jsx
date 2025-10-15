@@ -69,8 +69,8 @@ const TradeInfo = ({ onClose }) => {
   };
 
   const handleDeleteTrade = async () => {
-    setIsConfirmOpen(false); // close modal
-    setIsDeleting(true); // show loader
+    setIsConfirmOpen(false);
+    setIsDeleting(true);
 
     try {
       const tradeId = localStorage.getItem("__t_rd_iD");
@@ -81,21 +81,16 @@ const TradeInfo = ({ onClose }) => {
       });
 
       if (res.data.success) {
-        const { userData, message } = res.data;
+        const { userData } = res.data;
 
         console.log("💾 Syncing updated data into IndexedDB:", {
-          accountsCount: accounts?.length || 0,
-          tradesCount: trades?.length || 0,
+          accountsCount: userData?.accounts?.length || 0,
+          tradesCount: userData?.trades?.length || 0,
         });
 
         await saveToIndexedDB("user-data", userData);
 
-        setToast({
-          type: "success",
-          message: "Trade deleted successfully!",
-        });
-
-        // Optionally refresh page after a short delay
+        setToast({ type: "success", message: "Trade deleted successfully!" });
         setTimeout(() => window.location.reload(), 1000);
       } else {
         setToast({ type: "error", message: "Failed to delete trade!" });
