@@ -394,3 +394,71 @@ exports.webhookHandler = async (req, res) => {
     res.status(500).send("server error");
   }
 };
+
+// controllers/paymentsController.js - Add these functions
+
+exports.createCryptoOrder = async (req, res) => {
+  try {
+    console.log("🟢 CREATE CRYPTO ORDER HIT");
+    const { planName, period, amount, network, currency } = req.body;
+
+    if (!planName || !period || !amount || !network) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const NETWORK_ADDRESSES = {
+      erc20: "0x742d35Cc6634C0532925a3b8Dc9B6e7f6C5A8E1F",
+      trc20: "TXYZ1234567890abcdefghijklmnopqrstuvw",
+      bep20: "0x8Ba1f109551bD432803012645Ac136ddd64DBA72",
+      avaxc: "0x9Ab3FD5c9d5e6B6d6C9B9E8D8F7A6D5C4B3A2E1F",
+      sol: "7Z5XWY6ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789",
+      ton: "EQABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz",
+    };
+
+    if (!NETWORK_ADDRESSES[network]) {
+      return res.status(400).json({ message: "Unsupported network" });
+    }
+
+    const plan = await Plan.findOne({ name: new RegExp(planName, "i") });
+    if (!plan) return res.status(404).json({ message: "Plan not found" });
+
+    const cryptoPaymentId = `crypto_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
+    const cryptoOrder = new Order({
+      userId: req.cookies.userId || null,
+      planId: plan.planId,
+      amount: parseInt(amount) * 100,
+      currency: currency || "USDT",
+      method: "crypto",
+      cryptoPaymentId,
+      status: "pending",
+      period,
+      meta: {
+        planName: plan.name,
+        network,
+        cryptoAddress: NETWORK_ADDRESSES[network],
+      },
+    });
+
+    await cryptoOrder.save();
+
+    // ✅ Store cryptoPaymentId in HTTP cookie
+    res.cookie("cryptoPaymentId", cryptoPaymentId, {
+      httpOnly: true,
+      maxAge: 10 * 60 * 1000, // 10 minutes
+      sameSite: "Strict",
+    });
+
+    console.log("✅ Crypto order saved:", cryptoOrder._id);
+
+    res.json({
+      success: true,
+      message: "Crypto order created successfully",
+    });
+  } catch (err) {
+    console.error("🔥 createCryptoOrder Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

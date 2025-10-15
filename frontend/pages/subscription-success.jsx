@@ -17,13 +17,24 @@ import {
   Shield,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatNumbers";
+import Cookies from "js-cookie";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 export default function SubscriptionSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orderDetails, setOrderDetails] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [checking, setChecking] = useState(true);
 
+  useEffect(() => {
+    const isVerified = Cookies.get("isVerified");
+    if (!isVerified || isVerified !== "yes") {
+      router.replace("/login");
+    } else {
+      setChecking(false);
+    }
+  }, [router]);
   useEffect(() => {
     // Trigger confetti immediately on mount
     setShowConfetti(true);
@@ -61,7 +72,7 @@ export default function SubscriptionSuccess() {
 
   useEffect(() => {
     const planName = searchParams.get("planName") || "Pro Plan";
-    const period = searchParams.get("period") || "monthly";
+    const period = searchParams.get("period") || "Monthly";
     const amount = searchParams.get("amount") || "2999";
     const startDate = new Date(searchParams.get("start") || Date.now());
     const expiryDate = new Date(searchParams.get("expiry") || Date.now());
@@ -96,14 +107,7 @@ export default function SubscriptionSuccess() {
     return <Users size={24} className="vector" />;
   };
 
-  // const getWelcomeBenefits = () => [
-  //   "Full access to premium features",
-  //   "Advanced analytics & insights",
-  //   "Priority customer support",
-  //   "Mobile app synchronization",
-  //   "Regular feature updates",
-  // ];
-
+  if (checking) return <FullPageLoader />;
   return (
     <div className="subscription-success">
       {/* Background Celebration Effect */}
@@ -129,7 +133,7 @@ export default function SubscriptionSuccess() {
           >
             <CheckCircle size={80} className="success" />
           </motion.div>
-          <span className="font_24 font_weight_600">Happy Jorunaling !!!</span>
+          <span className="font_24 font_weight_600">--Happy Journaling--</span>
           <span
             className="font_12"
             style={{
@@ -172,7 +176,7 @@ export default function SubscriptionSuccess() {
 
             <div className="detail-row flexRow flexRow_stretch">
               <span className="font_14">Billing Period</span>
-              <span className="font_14 font_weight_600 capitalize">
+              <span className="font_14 font_weight_600">
                 {orderDetails?.period}
               </span>
             </div>
@@ -194,8 +198,11 @@ export default function SubscriptionSuccess() {
             </div>
 
             {/* Subscription Timeline */}
-            <div className="timeline-section">
-              <div className="timeline-item">
+            <div
+              className="flexRow flexRow_stretch gap_24"
+              style={{ paddingTop: "16px" }}
+            >
+              <div className="flexRow gap_12">
                 <Calendar size={18} className="vector" />
                 <div className="timeline-content">
                   <span className="font_12">Activated On</span>
@@ -206,7 +213,14 @@ export default function SubscriptionSuccess() {
                   </span>
                 </div>
               </div>
-              <div className="timeline-item">
+              <div
+                className="flexRow gap_12"
+                style={{
+                  textAlign: "right",
+                  justifyContent: "end",
+                  flexDirection: "row-reverse",
+                }}
+              >
                 <Clock size={18} className="vector" />
                 <div className="timeline-content">
                   <span className="font_12">Renews On</span>

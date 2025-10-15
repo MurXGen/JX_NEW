@@ -1,11 +1,17 @@
 const Account = require("../models/Account");
 const Trade = require("../models/Trade");
 const Plan = require("../models/Plan");
+const Order = require("../models/Orders"); // ✅ Import Order model
 
 async function getUserData(user) {
   // Fetch accounts & trades for the user
   const accounts = await Account.find({ userId: user._id }).lean();
   const trades = await Trade.find({ userId: user._id }).lean();
+
+  // Fetch user orders
+  const orders = await Order.find({ userId: user._id })
+    .sort({ createdAt: -1 })
+    .lean();
 
   // Fetch all plans (or active plans if needed)
   const plans = await Plan.find({}).lean();
@@ -25,6 +31,7 @@ async function getUserData(user) {
     },
     accounts,
     trades,
+    orders, // ✅ Include orders here
     plans,
   };
 }

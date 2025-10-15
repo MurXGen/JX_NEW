@@ -256,7 +256,7 @@ const SubscriptionStatus = () => {
 
             {currentPlan?.startAt && currentPlan?.expiresAt && (
               <div className="flexRow flexRow_stretch">
-                <div className="detail-item">
+                <div className="flexRow gap_12">
                   <Calendar size={16} className="vector" />
                   <div className="detail-content">
                     <span className="font_12">Started</span>
@@ -266,7 +266,7 @@ const SubscriptionStatus = () => {
                   </div>
                 </div>
                 <div
-                  className="detail-item"
+                  className="flexRow gap_12"
                   style={{
                     textAlign: "right",
                     justifyContent: "end",
@@ -292,7 +292,7 @@ const SubscriptionStatus = () => {
                 <>
                   <button
                     className="button_sec flex_center"
-                    onClick={() => router.push("/subscription")}
+                    onClick={() => router.push("/billings")}
                   >
                     Manage
                   </button>

@@ -130,7 +130,7 @@ export default function CheckoutOnline() {
         return;
       }
 
-      const handleSuccess = async () => {
+      const handleSuccess = async (orderId) => {
         // ✅ Fetch the latest user-data from IndexedDB
         const userData = await getFromIndexedDB("user-data");
 
@@ -434,7 +434,7 @@ export default function CheckoutOnline() {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           <motion.button
-            className="confirm-button"
+            className="button_pri"
             onClick={handleConfirmPay}
             disabled={isProcessing}
             whileHover={{ scale: isProcessing ? 1 : 1.02 }}
@@ -447,7 +447,7 @@ export default function CheckoutOnline() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="processing-state"
+                  className="flexRow gap_4 flex_center"
                 >
                   <div className="spinner"></div>
                   Processing...
@@ -458,7 +458,7 @@ export default function CheckoutOnline() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="confirm-state font_14 font_weight_600"
+                  className="flexRow gap_4 flex_center"
                 >
                   <Zap size={18} />
                   Confirm & Pay
@@ -468,7 +468,7 @@ export default function CheckoutOnline() {
           </motion.button>
 
           <button
-            className="back-button"
+            className="button_ter flexRow gap_4 flex_center"
             onClick={() => router.back()}
             disabled={isProcessing}
           >

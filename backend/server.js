@@ -12,6 +12,7 @@ const tradeRoutes = require("./routes/trade");
 const authRoutes = require("./routes/authRoutes");
 const accountRoutes = require("./routes/account");
 const paymentsRoutes = require("./routes/payments");
+const cryptoPaymentsRoutes = require("./routes/cryptoPayments");
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use(
   paymentsRoutes
 );
 app.use("/api/payments", express.json(), paymentsRoutes);
+app.use("/api/crypto-payments", cryptoPaymentsRoutes);
 
 // 🤖 Telegram Bot Init
 require("./telegram");

@@ -539,7 +539,7 @@ const TradesHistory = ({
             <TrendingUp size={48} className="vector" />
             {/* Market/Trading icon */}
             <span className="font_12">
-              No account found. You can create one.
+              No trades found. You can start logging trades
             </span>
             <button
               className="button_sec flexRow"

@@ -18,7 +18,7 @@ const OrderSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["created", "paid", "failed", "captured"],
+      enum: ["created", "paid", "failed", "captured", "pending"],
       default: "created",
     },
     period: { type: String, enum: ["monthly", "yearly"] },

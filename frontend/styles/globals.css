@@ -4666,7 +4666,6 @@ footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--px-12);
     padding-bottom: var(--px-8);
     border-bottom: 1px solid var(--white-10);
   }
@@ -4747,4 +4746,9 @@ footer {
   .success-icon {
     margin-bottom: var(--px-16);
   }
+}
+
+/* Billing page  */
+
+@media (min-width: 0px) {
 }

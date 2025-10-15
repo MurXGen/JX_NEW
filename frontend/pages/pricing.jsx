@@ -262,7 +262,6 @@ function Pricing() {
   };
 
   // Format price display with savings calculation
-  // Format price display with savings calculation
   const getPriceDisplay = (plan, period) => {
     if (userCountry === "IN") {
       const monthlyPrice = plan.monthly?.inr;
@@ -296,13 +295,13 @@ function Pricing() {
   };
 
   // Continue button handler
-  const handleContinue = () => {
-    if (!activePlan) return;
+  const handleContinue = (selectedPlanId) => {
+    if (!selectedPlanId) return;
 
-    const selectedPlan = plans.find((p) => p.planId === activePlan);
+    const selectedPlan = plans.find((p) => p.planId === selectedPlanId);
     if (!selectedPlan) return;
 
-    // Determine amount
+    // Determine amount based on country
     const amount =
       userCountry === "IN"
         ? selectedPlan[billingPeriod]?.inr
@@ -323,6 +322,9 @@ function Pricing() {
 
     // Otherwise show payment selector
     setShowPaymentSelector(true);
+
+    // Optionally, store the selected plan in state for later use
+    setActivePlan(selectedPlanId);
   };
 
   const handleBackClick = () => {
@@ -469,10 +471,11 @@ function Pricing() {
                 {/* CTA Button */}
                 <motion.button
                   className={`plan-cta ${isActive ? "active" : ""}`}
-                  whileHover={{ scale: isCurrent ? 1 : 1.02 }}
-                  whileTap={{ scale: isCurrent ? 1 : 0.98 }}
                   disabled={isCurrent}
-                  onClick={() => handleContinue(plan.planId)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent card click from firing
+                    handleContinue(plan.planId); // ✅ pass planId directly
+                  }}
                 >
                   {isCurrent ? "Current Plan" : "Get Started"} <Zap size={16} />
                 </motion.button>

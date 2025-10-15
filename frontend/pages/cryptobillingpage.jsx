@@ -10,10 +10,10 @@ import {
   Clock,
   Shield,
   Zap,
-  ExternalLink,
   AlertCircle,
+  ExternalLink,
   RefreshCw,
-  ArrowLeft,
+  Mail,
 } from "lucide-react";
 import axios from "axios";
 
@@ -21,502 +21,525 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const NETWORKS = [
   {
-    id: "ethereum",
+    id: "erc20",
     name: "Ethereum (ERC20)",
     symbol: "ETH",
-    address: "0x742d35Cc6634C0532925a3b8D4B99986b2b2a1b2",
-    explorer: "https://etherscan.io/address/",
-    fee: "Moderate",
-    speed: "2-5 mins",
+    fee: "Network fee: $5-15",
   },
   {
-    id: "tron",
+    id: "trc20",
     name: "Tron (TRC20)",
     symbol: "TRX",
-    address: "TQrQFddwvj8CJd8V8VpVbVbV8V8V8V8V8V8",
-    explorer: "https://tronscan.org/#/address/",
-    fee: "Low",
-    speed: "1-3 mins",
+    fee: "Network fee: $1-2",
   },
   {
-    id: "bsc",
+    id: "bep20",
     name: "BSC (BEP20)",
     symbol: "BNB",
-    address: "0x742d35Cc6634C0532925a3b8D4B99986b2b2a1b2",
-    explorer: "https://bscscan.com/address/",
-    fee: "Low",
-    speed: "1-3 mins",
+    fee: "Network fee: $0.5-1",
   },
   {
-    id: "avax",
-    name: "Avalanche (AVAX C-Chain)",
+    id: "avaxc",
+    name: "Avalanche C-Chain",
     symbol: "AVAX",
-    address: "0x742d35Cc6634C0532925a3b8D4B99986b2b2a1b2",
-    explorer: "https://snowtrace.io/address/",
-    fee: "Low",
-    speed: "2-5 mins",
+    fee: "Network fee: $0.5-1",
   },
-  {
-    id: "solana",
-    name: "Solana",
-    symbol: "SOL",
-    address: "7Q4af7R7f7z7f7z7f7z7f7z7f7z7f7z7f7z7f7z7f7",
-    explorer: "https://explorer.solana.com/address/",
-    fee: "Very Low",
-    speed: "< 1 min",
-  },
-  {
-    id: "ton",
-    name: "TON",
-    symbol: "TON",
-    address: "EQD__________________________________________bo",
-    explorer: "https://tonscan.org/address/",
-    fee: "Low",
-    speed: "1-3 mins",
-  },
+  { id: "sol", name: "Solana", symbol: "SOL", fee: "Network fee: $0.01-0.1" },
+  { id: "ton", name: "Toncoin", symbol: "TON", fee: "Network fee: $0.1-0.5" },
 ];
+
+const NETWORK_ADDRESSES = {
+  erc20: "0x742d35Cc6634C0532925a3b8Dc9B6e7f6C5A8E1F",
+  trc20: "TXYZ1234567890abcdefghijklmnopqrstuvw",
+  bep20: "0x8Ba1f109551bD432803012645Ac136ddd64DBA72",
+  avaxc: "0x9Ab3FD5c9d5e6B6d6C9B9E8D8F7A6D5C4B3A2E1F",
+  sol: "7Z5XWY6ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789",
+  ton: "EQABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz",
+};
 
 export default function CryptoBillingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [selectedNetwork, setSelectedNetwork] = useState("");
+  const [copiedAddress, setCopiedAddress] = useState(false);
+  const [confirmTimer, setConfirmTimer] = useState(30);
+  const [paymentStatus, setPaymentStatus] = useState("selecting"); // selecting, waiting, confirming, processing, success, failed
+  const [processingTime, setProcessingTime] = useState(0);
+  const [cryptoOrderId, setCryptoOrderId] = useState("");
+  const [verificationAttempts, setVerificationAttempts] = useState(0);
 
   const planName = searchParams.get("planName");
   const period = searchParams.get("period");
   const amount = searchParams.get("amount");
 
-  const [selectedNetwork, setSelectedNetwork] = useState(null);
-  const [copiedAddress, setCopiedAddress] = useState(false);
-  const [step, setStep] = useState(1); // 1: Select network, 2: Payment, 3: Confirmation
-  const [paymentTimer, setPaymentTimer] = useState(30);
-  const [confirmationTimer, setConfirmationTimer] = useState(300); // 5 minutes
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [orderCreated, setOrderCreated] = useState(false);
-  const [orderId, setOrderId] = useState(null);
-
-  // Payment timer
+  // 30-second confirmation timer
   useEffect(() => {
-    if (step === 2 && paymentTimer > 0) {
-      const timer = setTimeout(() => setPaymentTimer(paymentTimer - 1), 1000);
+    if (paymentStatus === "waiting" && confirmTimer > 0) {
+      const timer = setTimeout(() => {
+        setConfirmTimer(confirmTimer - 1);
+      }, 1000);
       return () => clearTimeout(timer);
-    } else if (step === 2 && paymentTimer === 0) {
-      // Auto-advance to payment confirmation
-      handleIPaidClick();
+    } else if (paymentStatus === "waiting" && confirmTimer === 0) {
+      setPaymentStatus("confirming");
     }
-  }, [step, paymentTimer]);
+  }, [paymentStatus, confirmTimer]);
 
-  // Confirmation timer
+  // 5-minute processing timer and verification
   useEffect(() => {
-    if (step === 3 && confirmationTimer > 0) {
-      const timer = setTimeout(
-        () => setConfirmationTimer(confirmationTimer - 1),
-        1000
-      );
-      return () => clearTimeout(timer);
+    if (paymentStatus === "processing") {
+      const startTime = Date.now();
+      localStorage.setItem("cryptoPaymentInitiated", startTime.toString());
+
+      const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        setProcessingTime(elapsed);
+
+        // Check every 60 seconds
+        if (elapsed % 60 === 0 && elapsed > 0) {
+          verifyPaymentStatus();
+        }
+
+        // Redirect after 5 minutes (300 seconds)
+        if (elapsed >= 300) {
+          clearInterval(interval);
+          handlePaymentTimeout();
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
     }
-  }, [step, confirmationTimer]);
+  }, [paymentStatus]);
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    setCopiedAddress(true);
-    setTimeout(() => setCopiedAddress(false), 2000);
-  };
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const handleNetworkSelect = (network) => {
-    setSelectedNetwork(network);
-    setStep(2);
-  };
-
-  const handleIPaidClick = async () => {
-    setIsProcessing(true);
-
+  const copyToClipboard = async (text) => {
     try {
-      // Create crypto order in database
+      await navigator.clipboard.writeText(text);
+      setCopiedAddress(true);
+      setTimeout(() => setCopiedAddress(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const createCryptoOrder = async () => {
+    try {
+      console.log("🚀 Creating crypto order...");
       const response = await axios.post(
-        `${API_BASE}/api/payments/create-crypto-order`,
+        `${API_BASE}/api/crypto-payments/create-order`,
         {
           planName,
           period,
           amount,
-          network: selectedNetwork.id,
-          walletAddress: selectedNetwork.address,
+          network: selectedNetwork,
+          currency: "USDT",
         },
-        { withCredentials: true }
+        { withCredentials: true } // ✅ Required to set cookie
       );
 
-      if (response.data.success) {
-        setOrderId(response.data.orderId);
-        setOrderCreated(true);
-        setStep(3);
-      }
+      console.log("✅ Crypto order created successfully:", response.data);
+      return response.data.orderId; // ✅ Now orderId is returned
     } catch (error) {
-      console.error("Failed to create order:", error);
-      alert("Failed to process your payment. Please try again.");
-    } finally {
-      setIsProcessing(false);
+      console.error("🔥 Failed to create crypto order:", error);
+      throw new Error("Failed to create payment order");
     }
   };
 
-  const handleRecheckPayment = async () => {
-    // In a real app, this would check blockchain for transaction
-    alert(
-      "Payment status checked. If you've sent the payment, it should be confirmed shortly."
-    );
+  const handlePaymentTimeout = () => {
+    console.warn("⏰ Payment timeout reached — marking as failed");
+    setPaymentStatus("failed");
+    localStorage.removeItem("cryptoPaymentInitiated");
+    localStorage.removeItem("cryptoOrderId");
   };
 
-  const handleBackClick = () => {
-    router.push("/profile");
+  const handleConfirmPayment = async () => {
+    try {
+      setPaymentStatus("processing");
+
+      const { orderId } = await createCryptoOrder(); // updated to return orderId
+      setCryptoOrderId(orderId);
+      localStorage.setItem("cryptoOrderId", orderId);
+      localStorage.setItem("cryptoPaymentInitiated", "true");
+
+      // ✅ Poll every 10 seconds
+      const interval = setInterval(async () => {
+        try {
+          const res = await axios.post(
+            `${API_BASE}/api/crypto-payments/verify-payment`,
+            { orderId },
+            { withCredentials: true }
+          );
+
+          if (res.data.success) {
+            clearInterval(interval);
+            setPaymentStatus("success");
+
+            router.push(
+              `/subscription-success?planName=${encodeURIComponent(
+                planName
+              )}&period=${period}&amount=${amount}&method=crypto&orderId=${orderId}`
+            );
+          }
+        } catch (err) {
+          console.error("🔥 Crypto verification failed:", err);
+        }
+      }, 10000);
+
+      // ❌ Stop after 10 minutes
+      setTimeout(() => {
+        clearInterval(interval);
+        if (paymentStatus !== "success") handlePaymentTimeout();
+      }, 10 * 60 * 1000);
+    } catch (err) {
+      console.error("❌ handleConfirmPayment failed:", err);
+      setPaymentStatus("failed");
+    }
   };
+
+  const selectedNetworkData = NETWORKS.find(
+    (net) => net.id === selectedNetwork
+  );
 
   return (
     <div className="crypto-billing-page">
-      <div className="flexClm gap_32">
+      <div className="crypto-container">
         {/* Header */}
-        <div className="flexRow gap_12">
-          <button className="button_sec flexRow" onClick={handleBackClick}>
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flexClm">
-            <span className="font_20">Choose network</span>
-            <span className="font_12">Pay with what suits you</span>
-          </div>
-        </div>
-
-        {/* Progress Steps */}
         <motion.div
-          className="progress-steps"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          className="crypto-header text-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <div className="steps-container">
-            <div className={`step ${step >= 1 ? "active" : ""}`}>
-              <div className="step-number">1</div>
-              <span className="step-label font_12">Select Network</span>
+          <h1 className="font_24 font_weight_700">Crypto Payment</h1>
+          <p className="font_14" style={{ color: "var(--white-50)" }}>
+            Complete your payment using cryptocurrency
+          </p>
+        </motion.div>
+
+        {/* Order Summary */}
+        <motion.div
+          className="order-summary-card chart_boxBg"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="summary-header">
+            <span className="font_16 font_weight_600">Order Details</span>
+          </div>
+          <div className="order-details">
+            <div className="detail-item flexRow flexRow_stretch">
+              <span>Plan</span>
+              <span className="font_weight_600">{planName}</span>
             </div>
-            <div className={`step ${step >= 2 ? "active" : ""}`}>
-              <div className="step-number">2</div>
-              <span className="step-label font_12">Make Payment</span>
+            <div className="detail-item flexRow flexRow_stretch">
+              <span>Period</span>
+              <span className="font_weight_600 capitalize">{period}</span>
             </div>
-            <div className={`step ${step >= 3 ? "active" : ""}`}>
-              <div className="step-number">3</div>
-              <span className="step-label font_12">Confirmation</span>
+            <div className="detail-item flexRow flexRow_stretch">
+              <span>Amount</span>
+              <span className="font_weight_600 success">{amount} USDT</span>
             </div>
           </div>
         </motion.div>
 
-        {/* Step 1: Network Selection */}
-        <AnimatePresence mode="wait">
-          {step === 1 && (
+        {/* Network Selection */}
+        <AnimatePresence>
+          {paymentStatus === "selecting" && (
             <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="step-content"
+              className="network-section chart_boxBg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="flexClm gap_8">
-                <span className="font_18 font_weight_600">Select Network</span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
+              <div className="section-header">
+                <span className="font_16 font_weight_600">Select Network</span>
+                <p className="font_12" style={{ color: "var(--white-50)" }}>
                   Choose your preferred blockchain network
-                </span>
+                </p>
               </div>
 
-              <div className="flexClm gap_12">
+              <div className="network-options">
                 {NETWORKS.map((network) => (
-                  <motion.button
+                  <button
                     key={network.id}
-                    className={`button_sec ${
-                      selectedNetwork?.id === network.id ? "selected" : ""
+                    className={`network-option ${
+                      selectedNetwork === network.id ? "selected" : ""
                     }`}
-                    onClick={() => handleNetworkSelect(network)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedNetwork(network.id)}
                   >
-                    <div className="">
-                      <div className="network-icon">
-                        <Zap size={20} />
-                      </div>
-                      <div className="network-info">
-                        <span className="network-name font_14 font_weight_600">
-                          {network.name}
-                        </span>
-                        <span className="network-symbol font_12">
-                          {network.symbol}
-                        </span>
-                      </div>
+                    <div className="network-info">
+                      <span className="network-name font_14 font_weight_600">
+                        {network.name}
+                      </span>
+                      <span
+                        className="network-fee font_12"
+                        style={{ color: "var(--white-50)" }}
+                      >
+                        {network.fee}
+                      </span>
                     </div>
-
-                    <div className="network-details">
-                      <div className="detail-item">
-                        <span className="font_10">Fee:</span>
-                        <span className="font_10 font_weight_600">
-                          {network.fee}
-                        </span>
-                      </div>
-                      <div className="detail-item">
-                        <span className="font_10">Speed:</span>
-                        <span className="font_10 font_weight_600">
-                          {network.speed}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.button>
+                    <div className="network-symbol">{network.symbol}</div>
+                  </button>
                 ))}
               </div>
 
-              <div className="security-notice">
-                <Shield size={16} className="vector" />
-                <span className="font_12">
-                  All transactions are secure and encrypted
+              {selectedNetwork && (
+                <motion.div
+                  className="address-section"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="address-header">
+                    <span className="font_14 font_weight_600">
+                      Deposit Address
+                    </span>
+                    <span
+                      className="font_12"
+                      style={{ color: "var(--white-50)" }}
+                    >
+                      Send exactly {amount} USDT to this address
+                    </span>
+                  </div>
+
+                  <div className="address-display">
+                    <code className="address-value">
+                      {NETWORK_ADDRESSES[selectedNetwork]}
+                    </code>
+                    <button
+                      className="copy-button"
+                      onClick={() =>
+                        copyToClipboard(NETWORK_ADDRESSES[selectedNetwork])
+                      }
+                    >
+                      {copiedAddress ? (
+                        <Check size={16} className="success" />
+                      ) : (
+                        <Copy size={16} />
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="network-warning">
+                    <AlertCircle size={16} className="error" />
+                    <span className="font_12">
+                      Only send USDT on {selectedNetworkData?.name}. Sending
+                      other tokens may result in permanent loss.
+                    </span>
+                  </div>
+
+                  <motion.button
+                    className="confirm-button"
+                    onClick={() => setPaymentStatus("waiting")}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Zap size={18} />
+                    I've Sent the Payment
+                  </motion.button>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Waiting for Confirmation */}
+        <AnimatePresence>
+          {paymentStatus === "waiting" && (
+            <motion.div
+              className="confirmation-section chart_boxBg"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="confirmation-header text-center">
+                <Clock size={48} className="vector" />
+                <h3 className="font_18 font_weight_600">
+                  Waiting for Confirmation
+                </h3>
+                <p className="font_14" style={{ color: "var(--white-50)" }}>
+                  Please confirm that you've sent the payment
+                </p>
+              </div>
+
+              <div className="timer-display">
+                <div className="timer-circle">
+                  <span className="timer-value font_20 font_weight_700">
+                    {confirmTimer}s
+                  </span>
+                </div>
+                <span className="timer-label font_12">
+                  Confirm within {confirmTimer} seconds
+                </span>
+              </div>
+
+              <div className="address-reminder">
+                <span className="font_12" style={{ color: "var(--white-50)" }}>
+                  Sent to: {NETWORK_ADDRESSES[selectedNetwork]}
                 </span>
               </div>
             </motion.div>
           )}
+        </AnimatePresence>
 
-          {/* Step 2: Payment Details */}
-          {step === 2 && selectedNetwork && (
+        {/* Ready to Confirm */}
+        <AnimatePresence>
+          {paymentStatus === "confirming" && (
             <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="step-content"
+              className="ready-section chart_boxBg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
             >
-              <div className="step-header">
-                <h2 className="font_18 font_weight_600">Send Payment</h2>
-                <p className="font_12" style={{ color: "var(--white-50)" }}>
-                  Send exact amount to the address below
+              <div className="ready-header text-center">
+                <Zap size={48} className="vector" />
+                <h3 className="font_18 font_weight_600">Ready to Confirm</h3>
+                <p className="font_14" style={{ color: "var(--white-50)" }}>
+                  Click confirm to start payment verification
                 </p>
               </div>
 
-              {/* Timer */}
-              <div className="payment-timer">
-                <Clock size={20} className="vector" />
-                <div className="timer-content">
-                  <span className="font_14 font_weight_600">
-                    {formatTime(paymentTimer)}
-                  </span>
-                  <span
-                    className="font_12"
-                    style={{ color: "var(--white-50)" }}
-                  >
-                    Address expires in
-                  </span>
-                </div>
-              </div>
-
-              {/* Amount Card */}
-              <div className="amount-card chart_boxBg">
-                <div className="amount-header">
-                  <span className="font_14">Amount to Send</span>
-                  <span className="font_16 font_weight_700 success">
-                    {amount} USDT
-                  </span>
-                </div>
-                <div className="network-info">
-                  <span className="font_12">Network:</span>
-                  <span className="font_12 font_weight_600">
-                    {selectedNetwork.name}
-                  </span>
-                </div>
-              </div>
-
-              {/* Wallet Address */}
-              <div className="address-card chart_boxBg">
-                <div className="address-header">
-                  <span className="font_14 font_weight_600">
-                    Wallet Address
-                  </span>
-                  <button
-                    className="copy-button"
-                    onClick={() => copyToClipboard(selectedNetwork.address)}
-                  >
-                    {copiedAddress ? (
-                      <Check size={16} className="success" />
-                    ) : (
-                      <Copy size={16} />
-                    )}
-                  </button>
-                </div>
-
-                <div className="address-display">
-                  <code className="address-text font_12">
-                    {selectedNetwork.address}
-                  </code>
-                </div>
-
-                <a
-                  href={`${selectedNetwork.explorer}${selectedNetwork.address}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="explorer-link flexRow gap_8"
-                >
-                  <ExternalLink size={14} />
-                  <span className="font_12">View on Explorer</span>
-                </a>
-              </div>
-
-              {/* Important Notes */}
-              <div className="notes-card">
-                <AlertCircle size={16} className="vector" />
-                <div className="notes-content">
-                  <span className="font_12 font_weight_600">Important:</span>
-                  <ul
-                    className="notes-list font_12"
-                    style={{ color: "var(--white-50)" }}
-                  >
-                    <li>Send exact amount of {amount} USDT</li>
-                    <li>Use only {selectedNetwork.name} network</li>
-                    <li>Do not send other cryptocurrencies</li>
-                    <li>Transaction may take 2-5 minutes to confirm</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Action Button */}
               <motion.button
                 className="confirm-payment-button"
-                onClick={handleIPaidClick}
-                disabled={isProcessing}
-                whileHover={{ scale: isProcessing ? 1 : 1.02 }}
-                whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+                onClick={handleConfirmPayment}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {isProcessing ? (
-                  <>
-                    <div className="spinner"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Check size={18} />I Have Paid
-                  </>
-                )}
+                <Shield size={18} />
+                Confirm Payment
               </motion.button>
             </motion.div>
           )}
+        </AnimatePresence>
 
-          {/* Step 3: Payment Confirmation */}
-          {step === 3 && (
+        {/* Processing Payment */}
+        <AnimatePresence>
+          {paymentStatus === "processing" && (
             <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="step-content"
+              className="processing-section chart_boxBg"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4 }}
             >
-              <div className="step-header text-center">
+              <div className="processing-header text-center">
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200 }}
-                  className="success-icon"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 >
-                  <Check size={48} className="success" />
+                  <RefreshCw size={48} className="vector" />
                 </motion.div>
-                <h2 className="font_18 font_weight_600">Payment Received!</h2>
-                <p className="font_12" style={{ color: "var(--white-50)" }}>
-                  We're confirming your transaction on the blockchain
+                <h3 className="font_18 font_weight_600">Processing Payment</h3>
+                <p className="font_14" style={{ color: "var(--white-50)" }}>
+                  Verifying your transaction on the blockchain
                 </p>
               </div>
 
-              {/* Order Details */}
-              <div className="order-details-card chart_boxBg">
-                <div className="order-header">
-                  <span className="font_14 font_weight_600">Order Details</span>
-                  {orderId && (
-                    <span
-                      className="font_10"
-                      style={{ color: "var(--white-50)" }}
-                    >
-                      ID: {orderId}
-                    </span>
-                  )}
-                </div>
-
-                <div className="order-info">
-                  <div className="info-row">
-                    <span>Plan:</span>
-                    <span className="font_weight_600">{planName}</span>
-                  </div>
-                  <div className="info-row">
-                    <span>Amount:</span>
-                    <span className="font_weight_600 success">
-                      {amount} USDT
-                    </span>
-                  </div>
-                  <div className="info-row">
-                    <span>Network:</span>
-                    <span className="font_weight_600">
-                      {selectedNetwork?.name}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Confirmation Timer */}
-              <div className="confirmation-timer">
-                <Clock size={20} className="vector" />
-                <div className="timer-content">
-                  <span className="font_14 font_weight_600">
-                    {formatTime(confirmationTimer)}
+              <div className="processing-details">
+                <div className="time-elapsed">
+                  <span className="font_14">Time Elapsed:</span>
+                  <span className="font_16 font_weight_600">
+                    {Math.floor(processingTime / 60)}m {processingTime % 60}s
                   </span>
-                  <span
-                    className="font_12"
-                    style={{ color: "var(--white-50)" }}
-                  >
-                    Confirmation pending
+                </div>
+                <div className="verification-attempts">
+                  <span className="font_14">Verification Checks:</span>
+                  <span className="font_16 font_weight_600">
+                    {verificationAttempts}
                   </span>
                 </div>
               </div>
 
-              {/* Status Message */}
-              <div className="status-message">
-                <RefreshCw size={16} className="vector" />
-                <div className="message-content">
-                  <span className="font_12 font_weight_600">
-                    Processing Transaction
-                  </span>
-                  <span
-                    className="font_10"
-                    style={{ color: "var(--white-50)" }}
-                  >
-                    This may take up to 5 minutes. You'll be redirected
-                    automatically.
-                  </span>
-                </div>
+              <div className="processing-note">
+                <Clock size={16} className="vector" />
+                <span className="font_12">
+                  This may take up to 5 minutes. Please don't close this page.
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Payment Failed */}
+        <AnimatePresence>
+          {paymentStatus === "failed" && (
+            <motion.div
+              className="failed-section chart_boxBg"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="failed-header text-center">
+                <AlertCircle size={48} className="error" />
+                <h3 className="font_18 font_weight_600">
+                  Payment Not Detected
+                </h3>
+                <p className="font_14" style={{ color: "var(--white-50)" }}>
+                  We couldn't verify your payment within the expected time.
+                </p>
               </div>
 
-              {/* Action Buttons */}
-              <div className="confirmation-actions">
-                <motion.button
-                  className="recheck-button"
-                  onClick={handleRecheckPayment}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+              <div className="failed-actions">
+                <button
+                  className="retry-button"
+                  onClick={() => window.location.reload()}
                 >
                   <RefreshCw size={16} />
-                  Recheck Payment Status
-                </motion.button>
-
+                  Try Again
+                </button>
                 <button
                   className="support-button"
                   onClick={() => router.push("/support")}
                 >
-                  Need Help? Contact Support
+                  <Mail size={16} />
+                  Contact Support
                 </button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Payment Success */}
+        <AnimatePresence>
+          {paymentStatus === "success" && (
+            <motion.div
+              className="success-section chart_boxBg"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="success-header text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  <Check size={48} className="success" />
+                </motion.div>
+                <h3 className="font_18 font_weight_600">Payment Confirmed!</h3>
+                <p className="font_14" style={{ color: "var(--white-50)" }}>
+                  Your subscription is now active. Redirecting...
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Security Footer */}
+        <motion.div
+          className="security-footer"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
+          <div className="security-badge flexRow gap_8 flex_center">
+            <Shield size={16} className="vector" />
+            <span className="font_12">
+              Secure Crypto Payment • Blockchain Verified
+            </span>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
