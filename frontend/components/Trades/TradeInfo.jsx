@@ -81,20 +81,19 @@ const TradeInfo = ({ onClose }) => {
       });
 
       if (res.data.success) {
-        const { accounts, trades } = res.data;
+        const { userData, message } = res.data;
 
         console.log("💾 Syncing updated data into IndexedDB:", {
           accountsCount: accounts?.length || 0,
           tradesCount: trades?.length || 0,
         });
 
-        await saveToIndexedDB("user-data", {
-          userId: localStorage.getItem("userId"),
-          accounts,
-          trades,
-        });
+        await saveToIndexedDB("user-data", userData);
 
-        setToast({ type: "success", message: "Trade deleted successfully!" });
+        setToast({
+          type: "success",
+          message: "Trade deleted successfully!",
+        });
 
         // Optionally refresh page after a short delay
         setTimeout(() => window.location.reload(), 1000);
@@ -113,14 +112,7 @@ const TradeInfo = ({ onClose }) => {
   };
 
   if (loading) {
-    return (
-      <div className="modalOverlay flex_center">
-        <div className="modalContent loadingModal">
-          <div className="loadingSpinner"></div>
-          <p className="font_16 shade_50">Loading trade details...</p>
-        </div>
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   if (!trade) return null;
