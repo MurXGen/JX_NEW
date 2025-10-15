@@ -35,9 +35,9 @@ async function verifyTurnstileToken(token, ip) {
 
 const cookieOptions = {
   httpOnly: true,
-  secure: isProduction, // secure only in production
-  sameSite: "lax",
-  maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years in ms
+  secure: isProduction, // must be true in production
+  sameSite: isProduction ? "None" : "Lax", // cross-site in prod
+  maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
 };
 
 const setUserIdCookie = (res, userId) => {

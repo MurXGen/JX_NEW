@@ -1,5 +1,6 @@
 const Order = require("../models/Orders");
 const Plan = require("../models/Plan");
+const User = require("../models/User");
 
 exports.createCryptoOrder = async (req, res) => {
   try {
@@ -28,7 +29,7 @@ exports.createCryptoOrder = async (req, res) => {
     const cryptoOrder = new Order({
       userId: req.cookies.userId || null,
       planId: plan.planId,
-      amount: parseInt(amount) * 100, // smallest unit
+      amount: amount,
       currency: currency || "USDT",
       method: "crypto",
       cryptoPaymentId,
@@ -63,25 +64,64 @@ exports.createCryptoOrder = async (req, res) => {
 
 exports.verifyCryptoPayment = async (req, res) => {
   try {
+    console.log("🟢 VERIFY CRYPTO PAYMENT HIT");
     const { orderId } = req.body;
 
-    const dbOrder = await Order.findById(orderId);
-    if (!dbOrder) return res.status(404).json({ message: "Order not found" });
-
-    if (dbOrder.status !== "paid") {
-      return res.json({ success: false, status: dbOrder.status });
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "orderId required" });
     }
 
-    // Update user subscription
-    const User = require("../models/User");
-    const user = await User.findById(dbOrder.userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    // 🔹 Find order
+    const dbOrder = await Order.findById(orderId);
+    if (!dbOrder) {
+      console.log("❌ Order not found:", orderId);
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
 
+    console.log(`🔍 Current order status: ${dbOrder.status}`);
+
+    // 🔹 Still pending or failed → polling continues
+    if (dbOrder.status !== "paid") {
+      return res.json({
+        success: false,
+        status: dbOrder.status,
+        message: "Payment not confirmed yet",
+      });
+    }
+
+    // 🔹 If already verified earlier, prevent duplicate subscription updates
+    const user = await User.findById(dbOrder.userId);
+    if (!user) {
+      console.log("❌ User not found:", dbOrder.userId);
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // If subscription already active for this order → short-circuit success
+    if (
+      user.subscriptionPlan === dbOrder.planId &&
+      user.subscriptionStatus === "active"
+    ) {
+      return res.json({
+        success: true,
+        message: "Payment already verified and subscription active",
+        orderId: dbOrder._id,
+      });
+    }
+
+    // 🔹 Update subscription
     const startDate = new Date();
     const expiryDate = new Date(startDate);
-    if (dbOrder.period === "yearly")
+    if (dbOrder.period === "yearly") {
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-    else expiryDate.setMonth(expiryDate.getMonth() + 1);
+    } else {
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
+    }
 
     user.subscriptionStatus = "active";
     user.subscriptionPlan = dbOrder.planId;
@@ -91,14 +131,20 @@ exports.verifyCryptoPayment = async (req, res) => {
     if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
 
     await user.save();
+    console.log("✅ User subscription updated:", user._id);
+
+    // 🔹 Update order to mark it verified
+    dbOrder.status = "paid";
+    dbOrder.updatedAt = new Date();
+    await dbOrder.save();
 
     res.json({
       success: true,
-      message: "Payment verified and subscription updated",
+      message: "Payment verified and subscription activated",
       orderId: dbOrder._id,
     });
   } catch (err) {
     console.error("🔥 verifyCryptoPayment Error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

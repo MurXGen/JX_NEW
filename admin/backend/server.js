@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 dotenv.config(); // <-- load .env variables
 
 const planRoutes = require("./routes/planRoutes");
+const adminUsersRoutes = require("./routes/adminUsersRoutes");
 
 const app = express();
 app.use(cors({ origin: "http://localhost:3001" }));
@@ -30,6 +31,7 @@ mongoose.connection.on("disconnected", () =>
 
 // Routes
 app.use("/api/plans", planRoutes);
+app.use("/api/admin", adminUsersRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

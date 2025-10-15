@@ -84,28 +84,52 @@ export default function CryptoBillingPage() {
     }
   }, [paymentStatus, confirmTimer]);
 
-  // 5-minute processing timer and verification
+  // 5-minute processing timer + periodic verification
   useEffect(() => {
     if (paymentStatus === "processing") {
       const startTime = Date.now();
       localStorage.setItem("cryptoPaymentInitiated", startTime.toString());
 
-      const interval = setInterval(() => {
+      // Run every 10 seconds for verification + UI timer every second
+      const interval = setInterval(async () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         setProcessingTime(elapsed);
 
-        // Check every 60 seconds
-        if (elapsed % 60 === 0 && elapsed > 0) {
-          verifyPaymentStatus();
+        // ⏱️ Verify every 10 seconds
+        if (elapsed % 10 === 0) {
+          try {
+            const storedOrderId = localStorage.getItem("cryptoOrderId");
+            if (!storedOrderId) return;
+
+            const res = await axios.post(
+              `${API_BASE}/api/crypto-payments/verify-payment`,
+              { orderId: storedOrderId },
+              { withCredentials: true }
+            );
+
+            if (res.data.success) {
+              clearInterval(interval);
+              setPaymentStatus("success");
+
+              router.push(
+                `/subscription-success?planName=${encodeURIComponent(
+                  planName
+                )}&period=${period}&amount=${amount}&method=crypto&orderId=${storedOrderId}`
+              );
+            }
+          } catch (err) {
+            console.warn("⚠️ Verification error:", err.message);
+          }
         }
 
-        // Redirect after 5 minutes (300 seconds)
+        // 🕐 Timeout after 5 minutes (300s)
         if (elapsed >= 300) {
           clearInterval(interval);
           handlePaymentTimeout();
         }
       }, 1000);
 
+      // Cleanup when status changes or component unmounts
       return () => clearInterval(interval);
     }
   }, [paymentStatus]);
@@ -154,10 +178,14 @@ export default function CryptoBillingPage() {
     try {
       setPaymentStatus("processing");
 
-      const { orderId } = await createCryptoOrder(); // updated to return orderId
+      const orderId = await createCryptoOrder(); // ✅ fixed destructuring bug
+      if (!orderId) throw new Error("Order ID not received from server");
+
       setCryptoOrderId(orderId);
       localStorage.setItem("cryptoOrderId", orderId);
       localStorage.setItem("cryptoPaymentInitiated", "true");
+
+      console.log("✅ Polling started for order:", orderId);
 
       // ✅ Poll every 10 seconds
       const interval = setInterval(async () => {
@@ -167,6 +195,8 @@ export default function CryptoBillingPage() {
             { orderId },
             { withCredentials: true }
           );
+
+          console.log("🔍 Poll result:", res.data);
 
           if (res.data.success) {
             clearInterval(interval);
@@ -183,10 +213,10 @@ export default function CryptoBillingPage() {
         }
       }, 10000);
 
-      // ❌ Stop after 10 minutes
+      // ❌ Stop polling after 10 minutes
       setTimeout(() => {
         clearInterval(interval);
-        if (paymentStatus !== "success") handlePaymentTimeout();
+        handlePaymentTimeout();
       }, 10 * 60 * 1000);
     } catch (err) {
       console.error("❌ handleConfirmPayment failed:", err);
