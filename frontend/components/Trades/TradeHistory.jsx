@@ -145,7 +145,6 @@ const TradesHistory = ({
           apiFormData,
           {
             withCredentials: true,
-            headers: { "Content-Type": "multipart/form-data" },
           }
         );
       } else {
@@ -163,7 +162,6 @@ const TradesHistory = ({
 
         res = await axios.post(`${API_BASE}/api/trades/addd`, apiFormData, {
           withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
