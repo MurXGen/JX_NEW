@@ -78,6 +78,8 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
           Total value : {currencySymbol} {form.totalQuantity}
         </span>
 
+        <hr width={100} color="grey" />
+
         {/* Fee Section */}
         <div className="flexRow flexRow_stretch gap_12">
           {/* Open Fee */}

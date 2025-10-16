@@ -61,7 +61,8 @@ exports.addTrade = async (req, res) => {
   try {
     console.log("🔍 Cookies received:", req.cookies);
 
-    const { body, files, accountId } = req;
+    const { body, files } = req;
+    const accountId = req.body.accountId;
     const userId = req.cookies.userId;
 
     if (!userId || !accountId) {
@@ -133,7 +134,9 @@ exports.addTrade = async (req, res) => {
 exports.updateTrade = async (req, res) => {
   try {
     const tradeId = req.params.id;
-    const { body = {}, files = {}, accountId } = req;
+    const { body = {}, files = {} } = req;
+    const accountId = req.body.accountId;
+
     const userId = req.cookies.userId;
 
     const oldTrade = await Trade.findById(tradeId);
