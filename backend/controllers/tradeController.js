@@ -61,9 +61,8 @@ exports.addTrade = async (req, res) => {
   try {
     console.log("🔍 Cookies received:", req.cookies);
 
-    const { body, files } = req;
+    const { body, files, accountId } = req;
     const userId = req.cookies.userId;
-    const accountId = req.cookies.accountId;
 
     if (!userId || !accountId) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -134,9 +133,8 @@ exports.addTrade = async (req, res) => {
 exports.updateTrade = async (req, res) => {
   try {
     const tradeId = req.params.id;
-    const { body = {}, files = {} } = req;
+    const { body = {}, files = {}, accountId } = req;
     const userId = req.cookies.userId;
-    const accountId = req.cookies.accountId;
 
     const oldTrade = await Trade.findById(tradeId);
     if (!oldTrade)
@@ -344,18 +342,21 @@ exports.deleteTrade = async (req, res) => {
 
     const { openImageUrl, closeImageUrl, userId } = trade;
 
-    // delete trade first
+    // ✅ Delete trade
     await Trade.findByIdAndDelete(tradeId);
     console.log("✅ Trade deleted from DB:", tradeId);
 
-    // refresh accounts + trades
-    const accounts = await Account.find({ userId });
-    const trades = await Trade.find({ userId });
+    const user = await User.findById(userId);
+    const userData = await getUserData(user);
 
-    // respond immediately (don't block frontend)
-    res.json({ success: true, tradeId, accounts, trades });
+    res.json({
+      success: true,
+      tradeId,
+      message: "Trade deleted successfully!",
+      userData,
+    });
 
-    // async cleanup of images
+    // ✅ Cleanup images asynchronously
     if (openImageUrl) deleteImageFromB2(openImageUrl);
     if (closeImageUrl) deleteImageFromB2(closeImageUrl);
   } catch (err) {

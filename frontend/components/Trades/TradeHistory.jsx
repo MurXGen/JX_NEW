@@ -80,6 +80,12 @@ const TradesHistory = ({
     try {
       const apiFormData = new FormData();
 
+      // ✅ Get accountId from cookies
+      const accountId = Cookies.get("accountId");
+      if (accountId) {
+        apiFormData.append("accountId", accountId);
+      }
+
       // Append all serializable fields (skip previews and _id)
       Object.entries(formData).forEach(([key, value]) => {
         if (
@@ -122,13 +128,14 @@ const TradesHistory = ({
       }
 
       // --- Send removal flags to backend ---
-      const removeOpenImageFlag = formData.openImageRemoved ? "true" : "false";
-      const removeCloseImageFlag = formData.closeImageRemoved
-        ? "true"
-        : "false";
-
-      apiFormData.append("removeOpenImage", removeOpenImageFlag);
-      apiFormData.append("removeCloseImage", removeCloseImageFlag);
+      apiFormData.append(
+        "removeOpenImage",
+        formData.openImageRemoved ? "true" : "false"
+      );
+      apiFormData.append(
+        "removeCloseImage",
+        formData.closeImageRemoved ? "true" : "false"
+      );
 
       // ✅ Debug logs to verify what’s sent
       console.log("🔥 FormData being sent:");
@@ -143,9 +150,7 @@ const TradesHistory = ({
         res = await axios.put(
           `${API_BASE}/api/trades/update/${tradeId}`,
           apiFormData,
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
       } else {
         const tempId = `temp-${Date.now()}`;
@@ -171,7 +176,6 @@ const TradesHistory = ({
         await saveToIndexedDB("user-data", userData);
 
         const updatedData = await getFromIndexedDB("user-data");
-        const accountId = Cookies.get("accountId");
         const accountTrades = (updatedData.trades || []).filter(
           (t) => t.accountId === accountId
         );

@@ -81,22 +81,22 @@ const TradeInfo = ({ onClose }) => {
       });
 
       if (res.data.success) {
-        const { accounts, trades } = res.data;
+        const { userData, message } = res.data;
 
-        console.log("💾 Syncing updated data into IndexedDB:", {
-          accountsCount: accounts?.length || 0,
-          tradesCount: trades?.length || 0,
+        console.log("💾 Syncing updated userData into IndexedDB:", {
+          accountsCount: userData?.accounts?.length || 0,
+          tradesCount: userData?.trades?.length || 0,
         });
 
-        await saveToIndexedDB("user-data", {
-          userId: localStorage.getItem("userId"),
-          accounts,
-          trades,
+        // ✅ Save full userData to IndexedDB (same as add/update)
+        await saveToIndexedDB("user-data", userData);
+
+        setToast({
+          type: "success",
+          message: message || "Trade deleted successfully!",
         });
 
-        setToast({ type: "success", message: "Trade deleted successfully!" });
-
-        // Optionally refresh page after a short delay
+        // Optional: Refresh UI after short delay
         setTimeout(() => window.location.reload(), 1000);
       } else {
         setToast({ type: "error", message: "Failed to delete trade!" });
