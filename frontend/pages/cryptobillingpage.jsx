@@ -64,23 +64,18 @@ export default function CryptoBillingPage() {
   const searchParams = useSearchParams();
   const [selectedNetwork, setSelectedNetwork] = useState("");
   const [copiedAddress, setCopiedAddress] = useState(false);
-  const [confirmTimer, setConfirmTimer] = useState(30);
+  const [confirmTimer, setConfirmTimer] = useState(60); // Changed from 30 to 60 seconds
   const [paymentStatus, setPaymentStatus] = useState("selecting"); // selecting, waiting, confirming, processing, success, failed
   const [processingTime, setProcessingTime] = useState(0);
   const [cryptoOrderId, setCryptoOrderId] = useState("");
   const [verificationAttempts, setVerificationAttempts] = useState(0);
+  const [showModal, setShowModal] = useState(false); // New state for modal
 
-  const planNameRaw = searchParams.get("planName");
-  const periodRaw = searchParams.get("period");
-
-  const capitalize = (str) =>
-    str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
-
-  const planName = capitalize(planNameRaw);
-  const period = capitalize(periodRaw);
+  const planName = searchParams.get("planName");
+  const period = searchParams.get("period");
   const amount = searchParams.get("amount");
 
-  // 30-second confirmation timer
+  // 60-second confirmation timer (changed from 30)
   useEffect(() => {
     if (paymentStatus === "waiting" && confirmTimer > 0) {
       const timer = setTimeout(() => {
@@ -92,19 +87,19 @@ export default function CryptoBillingPage() {
     }
   }, [paymentStatus, confirmTimer]);
 
-  // 5-minute processing timer + periodic verification
+  // 5-minute processing timer + periodic verification (changed from 10s to 60s)
   useEffect(() => {
     if (paymentStatus === "processing") {
       const startTime = Date.now();
       localStorage.setItem("cryptoPaymentInitiated", startTime.toString());
 
-      // Run every 10 seconds for verification + UI timer every second
+      // Run every second for UI timer + verification every 60 seconds
       const interval = setInterval(async () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         setProcessingTime(elapsed);
 
-        // ⏱️ Verify every 10 seconds
-        if (elapsed % 10 === 0) {
+        // ⏱️ Verify every 60 seconds (changed from 10s)
+        if (elapsed % 60 === 0) {
           try {
             const storedOrderId = localStorage.getItem("cryptoOrderId");
             if (!storedOrderId) return;
@@ -182,11 +177,17 @@ export default function CryptoBillingPage() {
     localStorage.removeItem("cryptoOrderId");
   };
 
-  const handleConfirmPayment = async () => {
+  const handleProceedToPay = () => {
+    setShowModal(true);
+    setPaymentStatus("waiting");
+    setConfirmTimer(60); // Reset to 60 seconds
+  };
+
+  const handleVerifyPayment = async () => {
     try {
       setPaymentStatus("processing");
 
-      const orderId = await createCryptoOrder(); // ✅ fixed destructuring bug
+      const orderId = await createCryptoOrder();
       if (!orderId) throw new Error("Order ID not received from server");
 
       setCryptoOrderId(orderId);
@@ -195,7 +196,7 @@ export default function CryptoBillingPage() {
 
       console.log("✅ Polling started for order:", orderId);
 
-      // ✅ Poll every 10 seconds
+      // ✅ Poll every 60 seconds (changed from 10s)
       const interval = setInterval(async () => {
         try {
           const res = await axios.post(
@@ -219,7 +220,7 @@ export default function CryptoBillingPage() {
         } catch (err) {
           console.error("🔥 Crypto verification failed:", err);
         }
-      }, 10000);
+      }, 60000); // Changed from 10000 to 60000 (60 seconds)
 
       // ❌ Stop polling after 10 minutes
       setTimeout(() => {
@@ -227,7 +228,7 @@ export default function CryptoBillingPage() {
         handlePaymentTimeout();
       }, 10 * 60 * 1000);
     } catch (err) {
-      console.error("❌ handleConfirmPayment failed:", err);
+      console.error("❌ handleVerifyPayment failed:", err);
       setPaymentStatus("failed");
     }
   };
@@ -267,9 +268,6 @@ export default function CryptoBillingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          {/* <div className="order-header">
-            <span className="font_16 font_weight_600">Order Details</span>
-          </div> */}
           <div className="flexRow flexRow_stretch">
             <div className="flexClm gap_4">
               <span className="font_weight_600">{planName} Plan</span>
@@ -392,12 +390,12 @@ export default function CryptoBillingPage() {
 
                   <motion.button
                     className="button_pri flexRow gap_8 flex_center"
-                    onClick={() => setPaymentStatus("waiting")}
+                    onClick={handleProceedToPay} // Changed to show modal
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <Zap size={18} />
-                    I've Sent the Payment
+                    Proceed to pay
                   </motion.button>
                 </motion.div>
               )}
@@ -405,121 +403,190 @@ export default function CryptoBillingPage() {
           )}
         </AnimatePresence>
 
-        {/* Waiting for Confirmation */}
+        {/* Modal for Waiting Confirmation */}
         <AnimatePresence>
-          {paymentStatus === "waiting" && (
+          {showModal && (
             <motion.div
-              className="confirmation-section chart_boxBg"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
+              className="modal-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1000,
+                padding: "20px",
+              }}
             >
-              <div className="confirmation-header text-center">
-                <Clock size={48} className="vector" />
-                <h3 className="font_18 font_weight_600">
-                  Waiting for Confirmation
-                </h3>
-                <p className="font_14" style={{ color: "var(--white-50)" }}>
-                  Please confirm that you've sent the payment
-                </p>
-              </div>
-
-              <div className="timer-display">
-                <div className="timer-circle">
-                  <span className="timer-value font_20 font_weight_700">
-                    {confirmTimer}s
-                  </span>
-                </div>
-                <span className="timer-label font_12">
-                  Confirm within {confirmTimer} seconds
-                </span>
-              </div>
-
-              <div className="address-reminder">
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Sent to: {NETWORK_ADDRESSES[selectedNetwork]}
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Ready to Confirm */}
-        <AnimatePresence>
-          {paymentStatus === "confirming" && (
-            <motion.div
-              className="ready-section chart_boxBg"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="ready-header text-center">
-                <Zap size={48} className="vector" />
-                <h3 className="font_18 font_weight_600">Ready to Confirm</h3>
-                <p className="font_14" style={{ color: "var(--white-50)" }}>
-                  Click confirm to start payment verification
-                </p>
-              </div>
-
-              <motion.button
-                className="confirm-payment-button"
-                onClick={handleConfirmPayment}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <motion.div
+                className="modal-content chart_boxBg"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                style={{
+                  maxWidth: "500px",
+                  width: "100%",
+                  padding: "24px",
+                  borderRadius: "12px",
+                }}
               >
-                <Shield size={18} />
-                Confirm Payment
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {paymentStatus === "waiting" && (
+                  <div className="confirmation-section">
+                    <div className="confirmation-header text-center">
+                      <Clock size={48} className="vector" />
+                      <h3 className="font_18 font_weight_600">
+                        Waiting for Confirmation
+                      </h3>
+                      <p
+                        className="font_14"
+                        style={{ color: "var(--white-50)" }}
+                      >
+                        Please confirm that you've sent the payment
+                      </p>
+                    </div>
 
-        {/* Processing Payment */}
-        <AnimatePresence>
-          {paymentStatus === "processing" && (
-            <motion.div
-              className="processing-section chart_boxBg"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="processing-header text-center">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
-                  <RefreshCw size={48} className="vector" />
-                </motion.div>
-                <h3 className="font_18 font_weight_600">Processing Payment</h3>
-                <p className="font_14" style={{ color: "var(--white-50)" }}>
-                  Verifying your transaction on the blockchain
-                </p>
-              </div>
+                    <div
+                      className="timer-display"
+                      style={{ textAlign: "center", margin: "24px 0" }}
+                    >
+                      <div
+                        className="timer-circle"
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          borderRadius: "50%",
+                          border: "2px solid var(--primary)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          margin: "0 auto 12px",
+                        }}
+                      >
+                        <span className="timer-value font_20 font_weight_700">
+                          {confirmTimer}s
+                        </span>
+                      </div>
+                      <span className="timer-label font_12">
+                        Confirm within {confirmTimer} seconds
+                      </span>
+                    </div>
 
-              <div className="processing-details">
-                <div className="time-elapsed">
-                  <span className="font_14">Time Elapsed:</span>
-                  <span className="font_16 font_weight_600">
-                    {Math.floor(processingTime / 60)}m {processingTime % 60}s
-                  </span>
-                </div>
-                <div className="verification-attempts">
-                  <span className="font_14">Verification Checks:</span>
-                  <span className="font_16 font_weight_600">
-                    {verificationAttempts}
-                  </span>
-                </div>
-              </div>
+                    <div className="address-reminder text-center">
+                      <span
+                        className="font_12"
+                        style={{ color: "var(--white-50)" }}
+                      >
+                        Send to: {NETWORK_ADDRESSES[selectedNetwork]}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
-              <div className="processing-note">
-                <Clock size={16} className="vector" />
-                <span className="font_12">
-                  This may take up to 5 minutes. Please don't close this page.
-                </span>
-              </div>
+                {paymentStatus === "confirming" && (
+                  <div className="verify-section">
+                    <div className="verify-header text-center">
+                      <Shield size={48} className="vector" />
+                      <h3 className="font_18 font_weight_600">
+                        Verify Payment
+                      </h3>
+                      <p
+                        className="font_14"
+                        style={{ color: "var(--white-50)" }}
+                      >
+                        Click verify to start payment verification process
+                      </p>
+                    </div>
+
+                    <motion.button
+                      className="button_pri flexRow gap_8 flex_center"
+                      style={{ width: "100%", marginTop: "24px" }}
+                      onClick={handleVerifyPayment}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Shield size={18} />
+                      Verify Payment
+                    </motion.button>
+                  </div>
+                )}
+
+                {paymentStatus === "processing" && (
+                  <div className="verifying-section">
+                    <div className="verifying-header text-center">
+                      <motion.div className="spinner">
+                        {/* < size={48} className="vector" /> */}
+                      </motion.div>
+                      <h3 className="font_18 font_weight_600">
+                        Verifying Payment
+                      </h3>
+                      <p
+                        className="font_14"
+                        style={{ color: "var(--white-50)" }}
+                      >
+                        Checking your transaction on the blockchain
+                      </p>
+                    </div>
+
+                    <div
+                      className="processing-details"
+                      style={{ textAlign: "center", margin: "20px 0" }}
+                    >
+                      <div
+                        className="time-elapsed"
+                        style={{ marginBottom: "12px" }}
+                      >
+                        <span className="font_14">Time Elapsed:</span>
+                        <span
+                          className="font_16 font_weight_600"
+                          style={{ marginLeft: "8px" }}
+                        >
+                          {Math.floor(processingTime / 60)}m{" "}
+                          {processingTime % 60}s
+                        </span>
+                      </div>
+                      <div className="verification-attempts">
+                        <span className="font_14">Verification Checks:</span>
+                        <span
+                          className="font_16 font_weight_600"
+                          style={{ marginLeft: "8px" }}
+                        >
+                          {verificationAttempts}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="processing-note flexRow gap_8 flex_center">
+                      <Clock size={16} className="vector" />
+                      <span className="font_12">
+                        This may take up to 5 minutes. Please don't close this
+                        page.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Close button for modal */}
+                {(paymentStatus === "waiting" ||
+                  paymentStatus === "confirming") && (
+                  <button
+                    className="button_sec"
+                    style={{ width: "100%", marginTop: "12px" }}
+                    onClick={() => {
+                      setShowModal(false);
+                      setPaymentStatus("selecting");
+                    }}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>

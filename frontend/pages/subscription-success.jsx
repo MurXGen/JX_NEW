@@ -198,7 +198,7 @@ export default function SubscriptionSuccess() {
             </div>
 
             {/* Subscription Timeline */}
-            <div
+            {/* <div
               className="flexRow flexRow_stretch gap_24"
               style={{ paddingTop: "16px" }}
             >
@@ -231,7 +231,7 @@ export default function SubscriptionSuccess() {
                   </span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </motion.div>
 

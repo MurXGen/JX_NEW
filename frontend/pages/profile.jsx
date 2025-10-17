@@ -13,6 +13,7 @@ import {
   Bell,
   CreditCard,
   ArrowLeft,
+  Phone,
 } from "lucide-react";
 import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
 import SubscriptionStatus from "@/components/Profile/SubscriptionStatus";
@@ -61,7 +62,7 @@ const Profile = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="flexRow gap_12">
+        <div className="flexRow gap_8">
           <button className="button_sec flexRow" onClick={handleBackClick}>
             <ArrowLeft size={20} />
           </button>
@@ -75,7 +76,7 @@ const Profile = () => {
 
         {/* Simple Mode Toggle */}
         {/* <div className="simple-mode-toggle boxBg">
-          <div className="flexRow gap_12 width100">
+          <div className="flexRow gap_8 width100">
             <span className="font_12">Simple Mode</span>
             <div
               className="toggle_switch"
@@ -99,7 +100,7 @@ const Profile = () => {
       >
         {/* User Info Card */}
         <div className="user-info-card chart_boxBg">
-          <div className="user-header flexRow gap_12">
+          <div className="user-header flexRow gap_8">
             <div className="user-avatar">
               <User size={24} />
             </div>
@@ -157,21 +158,35 @@ const Profile = () => {
         {/* Legal & Support Section */}
         <div className="legal-section">
           <button
-            className="button_sec flexRow gap_4 flexRow_center"
-            onClick={() => router.push("/terms")}
+            className="button_sec flexRow gap_8 flexRow_center"
+            onClick={() => router.push("/terms-services")}
           >
             <FileText size={16} />
             Terms of Service
           </button>
           <button
-            className="button_sec flexRow gap_4 flexRow_center"
-            onClick={() => router.push("/privacy")}
+            className="button_sec flexRow gap_8 flexRow_center"
+            onClick={() => router.push("/privacy-policy")}
           >
             <Shield size={16} />
             Privacy Policy
+          </button>{" "}
+          <button
+            className="button_sec flexRow gap_8 flexRow_center"
+            onClick={() => router.push("/refund-policy")}
+          >
+            <Phone size={16} />
+            Refund policy
           </button>
           <button
-            className="button_sec flexRow gap_4 flexRow_center"
+            className="button_sec flexRow gap_8 flexRow_center"
+            onClick={() => router.push("/contact")}
+          >
+            <Phone size={16} />
+            Contact for support
+          </button>
+          <button
+            className="button_sec flexRow gap_8 flexRow_center"
             onClick={handleLogout}
           >
             <LogOut size={16} />
