@@ -23,6 +23,7 @@ import {
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import { formatCurrency } from "@/utils/formatNumbers";
 import { useRouter } from "next/navigation";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 export default function BillingPage() {
   const router = useRouter();
@@ -146,12 +147,7 @@ export default function BillingPage() {
   };
 
   if (loading) {
-    return (
-      <div className="billing-loading">
-        <div className="loading-spinner"></div>
-        <span className="font_14">Loading billing history...</span>
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   const handleBackClick = () => {

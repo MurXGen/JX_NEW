@@ -14,8 +14,10 @@ import {
   ExternalLink,
   RefreshCw,
   Mail,
+  ArrowLeft,
 } from "lucide-react";
 import axios from "axios";
+import Dropdown from "@/components/ui/Dropdown";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -68,8 +70,14 @@ export default function CryptoBillingPage() {
   const [cryptoOrderId, setCryptoOrderId] = useState("");
   const [verificationAttempts, setVerificationAttempts] = useState(0);
 
-  const planName = searchParams.get("planName");
-  const period = searchParams.get("period");
+  const planNameRaw = searchParams.get("planName");
+  const periodRaw = searchParams.get("period");
+
+  const capitalize = (str) =>
+    str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
+
+  const planName = capitalize(planNameRaw);
+  const period = capitalize(periodRaw);
   const amount = searchParams.get("amount");
 
   // 30-second confirmation timer
@@ -228,43 +236,48 @@ export default function CryptoBillingPage() {
     (net) => net.id === selectedNetwork
   );
 
+  const handleBackClick = () => {
+    router.push("/pricing");
+  };
+
+  const networkOptions = NETWORKS.map((network) => ({
+    value: network.id,
+    label: `${network.name} (${network.symbol}) - ${network.fee}`,
+  }));
+
   return (
-    <div className="crypto-billing-page">
-      <div className="crypto-container">
+    <div className="">
+      <div className="flexClm gap_32">
         {/* Header */}
-        <motion.div
-          className="crypto-header text-center"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="font_24 font_weight_700">Crypto Payment</h1>
-          <p className="font_14" style={{ color: "var(--white-50)" }}>
-            Complete your payment using cryptocurrency
-          </p>
-        </motion.div>
+        <div className="flexRow gap_12">
+          <button className="button_sec flexRow" onClick={handleBackClick}>
+            <ArrowLeft size={20} />
+          </button>
+          <div className="flexClm">
+            <span className="font_20">Pay Crypto</span>
+            <span className="font_12">Deposit to confirm your payment</span>
+          </div>
+        </div>
 
         {/* Order Summary */}
         <motion.div
-          className="order-summary-card chart_boxBg"
+          className="chart_boxBg flexClm gap_12"
+          style={{ padding: "16px" }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <div className="summary-header">
+          {/* <div className="order-header">
             <span className="font_16 font_weight_600">Order Details</span>
-          </div>
-          <div className="order-details">
-            <div className="detail-item flexRow flexRow_stretch">
-              <span>Plan</span>
-              <span className="font_weight_600">{planName}</span>
+          </div> */}
+          <div className="flexRow flexRow_stretch">
+            <div className="flexClm gap_4">
+              <span className="font_weight_600">{planName} Plan</span>
+              <span className="font_12">{period}</span>
             </div>
-            <div className="detail-item flexRow flexRow_stretch">
-              <span>Period</span>
-              <span className="font_weight_600 capitalize">{period}</span>
-            </div>
-            <div className="detail-item flexRow flexRow_stretch">
-              <span>Amount</span>
+            <div className="detail-item flexRow flexRow_stretch"></div>
+            <div className="flexClm gap_4" style={{ textAlign: "right" }}>
+              <span className="font_12">Amount</span>
               <span className="font_weight_600 success">{amount} USDT</span>
             </div>
           </div>
@@ -274,69 +287,73 @@ export default function CryptoBillingPage() {
         <AnimatePresence>
           {paymentStatus === "selecting" && (
             <motion.div
-              className="network-section chart_boxBg"
+              className="chart_boxBg flexClm gap_24"
+              style={{ padding: "16px" }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="section-header">
+              <div className="flexClm">
                 <span className="font_16 font_weight_600">Select Network</span>
-                <p className="font_12" style={{ color: "var(--white-50)" }}>
+                <span className="font_12" style={{ color: "var(--white-50)" }}>
                   Choose your preferred blockchain network
-                </p>
+                </span>
               </div>
 
-              <div className="network-options">
-                {NETWORKS.map((network) => (
-                  <button
-                    key={network.id}
-                    className={`network-option ${
-                      selectedNetwork === network.id ? "selected" : ""
-                    }`}
-                    onClick={() => setSelectedNetwork(network.id)}
-                  >
-                    <div className="network-info">
-                      <span className="network-name font_14 font_weight_600">
-                        {network.name}
-                      </span>
-                      <span
-                        className="network-fee font_12"
-                        style={{ color: "var(--white-50)" }}
-                      >
-                        {network.fee}
-                      </span>
-                    </div>
-                    <div className="network-symbol">{network.symbol}</div>
-                  </button>
-                ))}
+              <div className="flexClm gap_12">
+                <Dropdown
+                  options={networkOptions}
+                  value={selectedNetwork}
+                  onChange={(val) => setSelectedNetwork(val)}
+                  placeholder="Select a network"
+                />
               </div>
 
               {selectedNetwork && (
                 <motion.div
-                  className="address-section"
+                  className="chart_boxBg flexClm gap_24"
+                  style={{ padding: "16px" }}
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   transition={{ duration: 0.4 }}
                 >
-                  <div className="address-header">
-                    <span className="font_14 font_weight_600">
-                      Deposit Address
-                    </span>
-                    <span
-                      className="font_12"
-                      style={{ color: "var(--white-50)" }}
+                  <div
+                    className="flexRow flexRow_stretch gap_24 boxBg"
+                    style={{
+                      wordBreak: "break-all",
+                      overflowWrap: "anywhere",
+                      padding: "12px",
+                    }}
+                  >
+                    <code
+                      className="flexClm"
+                      style={{
+                        wordBreak: "break-all",
+                        whiteSpace: "normal",
+                        background: "var(--black-10)",
+                        borderRadius: "8px",
+                        padding: "8px",
+                      }}
                     >
-                      Send exactly {amount} USDT to this address
-                    </span>
-                  </div>
-
-                  <div className="address-display">
-                    <code className="address-value">
+                      <span
+                        className="font_12"
+                        style={{ marginBottom: "12px" }}
+                      >
+                        Deposit Address
+                      </span>
                       {NETWORK_ADDRESSES[selectedNetwork]}
                     </code>
+
                     <button
-                      className="copy-button"
+                      className="button_ter"
+                      style={{
+                        alignSelf: "center",
+                        marginTop: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
                       onClick={() =>
                         copyToClipboard(NETWORK_ADDRESSES[selectedNetwork])
                       }
@@ -349,7 +366,23 @@ export default function CryptoBillingPage() {
                     </button>
                   </div>
 
-                  <div className="network-warning">
+                  <div className="flexRow gap_12 flexRow_stretch">
+                    <span className="font_12">Network selected:</span>
+                    <span className="font_12 font_weight_600">
+                      {NETWORKS.find((n) => n.id === selectedNetwork)?.name} (
+                      {NETWORKS.find((n) => n.id === selectedNetwork)?.symbol})
+                    </span>
+                  </div>
+                  <div className="flexRow gap_8">
+                    <AlertCircle size={16} className="error" />
+                    <span className="font_12">
+                      Send exactly{" "}
+                      <u className="font_weight_600">{amount} USDT</u> excluding
+                      fees
+                    </span>
+                  </div>
+
+                  <div className="flexRow gap_8">
                     <AlertCircle size={16} className="error" />
                     <span className="font_12">
                       Only send USDT on {selectedNetworkData?.name}. Sending
@@ -358,7 +391,7 @@ export default function CryptoBillingPage() {
                   </div>
 
                   <motion.button
-                    className="confirm-button"
+                    className="button_pri flexRow gap_8 flex_center"
                     onClick={() => setPaymentStatus("waiting")}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
