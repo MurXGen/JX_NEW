@@ -438,24 +438,104 @@ export default function CryptoBillingPage() {
                 }}
               >
                 {paymentStatus === "waiting" && (
-                  <div className="confirmation-section">
-                    <div className="confirmation-header text-center">
-                      <Clock size={48} className="vector" />
-                      <h3 className="font_18 font_weight_600">
-                        Waiting for Confirmation
-                      </h3>
-                      <p
-                        className="font_14"
-                        style={{ color: "var(--white-50)" }}
-                      >
-                        Please confirm that you've sent the payment
-                      </p>
-                    </div>
-
-                    <div
-                      className="timer-display"
-                      style={{ textAlign: "center", margin: "24px 0" }}
+                  <div className="flexClm gap_12">
+                    <motion.div
+                      className="chart_boxBg flexClm gap_24"
+                      style={{ padding: "16px" }}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      transition={{ duration: 0.4 }}
                     >
+                      <div
+                        className="flexRow flexRow_stretch gap_24 boxBg"
+                        style={{
+                          wordBreak: "break-all",
+                          overflowWrap: "anywhere",
+                          padding: "12px",
+                        }}
+                      >
+                        <code
+                          className="flexClm"
+                          style={{
+                            wordBreak: "break-all",
+                            whiteSpace: "normal",
+                            background: "var(--black-10)",
+                            borderRadius: "8px",
+                            padding: "8px",
+                          }}
+                        >
+                          <span
+                            className="font_12"
+                            style={{ marginBottom: "12px" }}
+                          >
+                            Deposit Address
+                          </span>
+                          {NETWORK_ADDRESSES[selectedNetwork]}
+                        </code>
+
+                        <button
+                          className="button_ter"
+                          style={{
+                            alignSelf: "center",
+                            marginTop: "8px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                          onClick={() =>
+                            copyToClipboard(NETWORK_ADDRESSES[selectedNetwork])
+                          }
+                        >
+                          {copiedAddress ? (
+                            <Check size={16} className="success" />
+                          ) : (
+                            <Copy size={16} />
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="flexRow gap_12 flexRow_stretch">
+                        <span className="font_12">Network selected:</span>
+                        <span className="font_12 font_weight_600">
+                          {NETWORKS.find((n) => n.id === selectedNetwork)?.name}{" "}
+                          (
+                          {
+                            NETWORKS.find((n) => n.id === selectedNetwork)
+                              ?.symbol
+                          }
+                          )
+                        </span>
+                      </div>
+                      <div className="flexRow gap_8">
+                        <AlertCircle size={16} className="error" />
+                        <span className="font_12">
+                          Send exactly{" "}
+                          <u className="font_weight_600">{amount} USDT</u>{" "}
+                          excluding fees
+                        </span>
+                      </div>
+
+                      <div className="flexRow gap_8">
+                        <AlertCircle size={16} className="error" />
+                        <span className="font_12">
+                          Only send USDT on {selectedNetworkData?.name}. Sending
+                          other tokens may result in permanent loss.
+                        </span>
+                      </div>
+                    </motion.div>
+
+                    <div className="flexRow flexRow_stretch boxBg">
+                      <div className="flexClm gap_4">
+                        <span className="font_16 font_weight_600">
+                          Waiting for Confirmation
+                        </span>
+                        <span
+                          className="font_12"
+                          style={{ color: "var(--white-50)" }}
+                        >
+                          Kindly make the payment to the above address
+                        </span>
+                      </div>
                       <div
                         className="timer-circle"
                         style={{
@@ -466,25 +546,12 @@ export default function CryptoBillingPage() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          margin: "0 auto 12px",
                         }}
                       >
                         <span className="timer-value font_20 font_weight_700">
                           {confirmTimer}s
                         </span>
                       </div>
-                      <span className="timer-label font_12">
-                        Confirm within {confirmTimer} seconds
-                      </span>
-                    </div>
-
-                    <div className="address-reminder text-center">
-                      <span
-                        className="font_12"
-                        style={{ color: "var(--white-50)" }}
-                      >
-                        Send to: {NETWORK_ADDRESSES[selectedNetwork]}
-                      </span>
                     </div>
                   </div>
                 )}

@@ -748,6 +748,12 @@ export default function AddTrade() {
       reader.readAsDataURL(file);
     });
 
+  function sanitizeFileName(fileName) {
+    return fileName
+      .replace(/[^a-zA-Z0-9.\-_]/g, "_") // replace unsafe characters with underscore
+      .replace(/_+/g, "_"); // collapse multiple underscores
+  }
+
   function handleImageChange(e, field, setForm) {
     const file = e.target.files[0];
     if (!file) return;
@@ -759,11 +765,12 @@ export default function AddTrade() {
     }
 
     const previewUrl = URL.createObjectURL(file);
+    const sanitizedFileName = sanitizeFileName(file.name);
 
     // set preview & file in local state (form)
     setForm((prev) => ({
       ...prev,
-      [field]: file, // keep file in memory for immediate submit if user doesn't redirect
+      [field]: new File([file], sanitizedFileName, { type: file.type }), // sanitized file
       [`${field}Preview`]: previewUrl,
     }));
 
@@ -772,7 +779,7 @@ export default function AddTrade() {
       try {
         const payload = JSON.stringify({
           dataUrl,
-          name: file.name,
+          name: sanitizedFileName,
           type: file.type,
           ts: Date.now(),
         });
@@ -906,6 +913,16 @@ export default function AddTrade() {
 
   const grids = [
     {
+      key: "status",
+      content: (
+        <TradeStatusGrid
+          form={form}
+          handleChange={handleChange}
+          statuses={statuses}
+        />
+      ),
+    },
+    {
       key: "ticker",
       content: (
         <Ticker form={form} setForm={setForm} handleChange={handleChange} />
@@ -918,16 +935,6 @@ export default function AddTrade() {
           form={form}
           handleChange={handleChange}
           currencySymbol={currencySymbol}
-        />
-      ),
-    },
-    {
-      key: "status",
-      content: (
-        <TradeStatusGrid
-          form={form}
-          handleChange={handleChange}
-          statuses={statuses}
         />
       ),
     },
@@ -961,7 +968,7 @@ export default function AddTrade() {
       ),
     },
     {
-      key: "quick",
+      key: "net pnl",
       content: (
         <QuickSection
           form={form}
@@ -1074,7 +1081,7 @@ export default function AddTrade() {
             "ticker",
             "quantity",
             "status",
-            "quick",
+            "net pnl",
             "opentime",
             "closetime",
             "reasons",
@@ -1160,9 +1167,11 @@ export default function AddTrade() {
 
         <button
           className="button_pri"
-          style={{ width: "100%" }}
+          style={{
+            width: "100%",
+            opacity: loading || !isFormValid ? 0.5 : 1,
+          }}
           onClick={handleSubmit}
-          disabled={loading || !isFormValid} // 🔒 disabled while loading or form invalid
         >
           {loading
             ? "⏳ Please wait..."

@@ -1,4 +1,3 @@
-// pages/_app.jsx
 import "@/styles/globals.css";
 import Head from "next/head";
 import { useEffect } from "react";
@@ -20,12 +19,31 @@ export default function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>JournalX</title>
+        {/* Primary Meta */}
+        <title>JournalX | Smart Trading Journal & AI Performance Tracker</title>
+        <meta
+          name="description"
+          content="JournalX is a digital trading journal that helps traders log, analyze, and improve their trades with AI insights. Track your performance, spot patterns, and grow consistently."
+        />
+        <meta
+          name="keywords"
+          content="trading journal, trade analytics, AI trading journal, performance tracker, stock trading log, crypto trading journal, forex journal, trade analysis, trading performance app, journalx, trading tracker, best trading journal app, trading notebook, trader diary"
+        />
+        <meta name="author" content="Murthy Poothapandi Thevar" />
+        <meta name="robots" content="index, follow" />
+        <meta name="theme-color" content="#0d1117" />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
         />
-        <link rel="icon" href="/images/trade.svg" />
+
+        {/* Favicon */}
+        <link
+          rel="icon"
+          href="https://cdn.journalx.app/trades/close-images/1760761272162-Untitled_design-3.png"
+        />
+
+        {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -33,13 +51,43 @@ export default function MyApp({ Component, pageProps }) {
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Poppins:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&family=Comfortaa:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap"
-          rel="stylesheet"
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://journalx.app" />
+        <meta
+          property="og:title"
+          content="JournalX – AI Powered Trading Journal"
         />
+        <meta
+          property="og:description"
+          content="Analyze your trades like a pro. JournalX helps you discover patterns, track performance, and grow smarter with AI insights."
+        />
+        <meta
+          property="og:image"
+          content="https://cdn.journalx.app/trades/open-images/1760762109674-Best_journal_for_traders.png"
+        />
+
+        {/* Twitter Meta */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://journalx.app" />
+        <meta
+          name="twitter:title"
+          content="JournalX | Smart Trading Journal & AI Tracker"
+        />
+        <meta
+          name="twitter:description"
+          content="Track, analyze, and improve your trades using AI-powered insights. JournalX – your intelligent trading companion."
+        />
+        <meta
+          name="twitter:image"
+          content="https://cdn.journalx.app/trades/open-images/1760762109674-Best_journal_for_traders.png"
+        />
+
+        {/* Theme initialization */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function () {

@@ -80,10 +80,17 @@ const TradesHistory = ({
     try {
       const apiFormData = new FormData();
 
-      // ✅ Get accountId from cookies
       const accountId = Cookies.get("accountId");
+
+      // Ensure only a single string is sent
       if (accountId) {
-        apiFormData.append("accountId", accountId);
+        const parsed = Array.isArray(accountId)
+          ? accountId[0]
+          : typeof accountId === "string" && accountId.includes("[")
+          ? JSON.parse(accountId)[0]
+          : accountId;
+
+        apiFormData.append("accountId", parsed);
       }
 
       // Append all serializable fields (skip previews and _id)

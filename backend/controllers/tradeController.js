@@ -135,7 +135,9 @@ exports.updateTrade = async (req, res) => {
   try {
     const tradeId = req.params.id;
     const { body = {}, files = {} } = req;
-    const accountId = req.body.accountId;
+    const accountId = Array.isArray(req.body.accountId)
+      ? req.body.accountId[0]
+      : req.body.accountId;
 
     const userId = req.cookies.userId;
 
