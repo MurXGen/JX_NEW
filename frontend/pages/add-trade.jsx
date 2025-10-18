@@ -1,3 +1,6 @@
+"use client";
+
+import Head from "next/head";
 import EntriesSection from "@/components/addTrade/Entries";
 import ExitsSection from "@/components/addTrade/Exits";
 import TextAreaField from "@/components/addTrade/Learnings";
@@ -1125,65 +1128,94 @@ export default function AddTrade() {
   };
 
   return (
-    <div className="flexClm gap_32">
-      <div>
-        <div className="flexClm">
-          <span className="font_20">Add trade</span>
-          <span className="font_12">Log trade in seconds</span>
+    <>
+      <Head>
+        <title>JournalX | Log Trade</title>
+        <meta
+          name="description"
+          content="Easily log and analyze your trades with JournalX. Record entries, exits, and emotions to gain data-driven insights that help you improve consistency and performance as a trader."
+        />
+        <meta
+          name="keywords"
+          content="JournalX, log trade, trading journal, record trades, trading insights, trade analytics, trader performance tracker, trading log app"
+        />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:title" content="JournalX | Log Trade" />
+        <meta
+          property="og:description"
+          content="Track every trade and uncover insights that make you a better trader. Use JournalX to log trades, review performance, and grow consistently."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://journalx.app/add-trade" />
+        <meta property="og:image" content="/assets/Journalx_Banner.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="JournalX | Log Trade" />
+        <meta
+          name="twitter:description"
+          content="Log trades, analyze performance, and master your trading psychology with JournalX."
+        />
+        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
+      </Head>
+
+      <div className="flexClm gap_32">
+        <div>
+          <div className="flexClm">
+            <span className="font_20">Add trade</span>
+            <span className="font_12">Log trade in seconds</span>
+          </div>
         </div>
-      </div>
-      <form onSubmit={handleSubmit}>
-        <StepWizard
-          grids={getFilteredGrids(form.tradeStatus)} // pass only required steps
-          onFinish={handleSubmit}
-        />
-      </form>
+        <form onSubmit={handleSubmit}>
+          <StepWizard
+            grids={getFilteredGrids(form.tradeStatus)} // pass only required steps
+            onFinish={handleSubmit}
+          />
+        </form>
 
-      {toast && (
-        <ToastMessage
-          type={toast.type}
-          message={toast.message}
-          duration={3000}
-        />
-      )}
+        {toast && (
+          <ToastMessage
+            type={toast.type}
+            message={toast.message}
+            duration={3000}
+          />
+        )}
 
-      {loading && <FullPageLoader />}
+        {loading && <FullPageLoader />}
 
-      <div
-        className="popups_btm flexRow flexRow_stretch gap_8"
-        style={{
-          width: "90%",
-          backdropFilter: "blur(20px)",
-          padding: "8px 8px",
-        }}
-      >
-        <button
-          className="button_sec"
-          style={{ width: "100%" }}
-          onClick={() => router.push("/trade")}
-        >
-          Cancel
-        </button>
-
-        <button
-          className="button_pri"
+        <div
+          className="popups_btm flexRow flexRow_stretch gap_8"
           style={{
-            width: "100%",
-            opacity: loading || !isFormValid ? 0.5 : 1,
+            width: "90%",
+            backdropFilter: "blur(20px)",
+            padding: "8px 8px",
           }}
-          onClick={handleSubmit}
         >
-          {loading
-            ? "⏳ Please wait..."
-            : isEdit
-            ? "Update Trade"
-            : "Submit Trade"}
-        </button>
-      </div>
+          <button
+            className="button_sec"
+            style={{ width: "100%" }}
+            onClick={() => router.push("/trade")}
+          >
+            Cancel
+          </button>
 
-      <BackgroundBlur />
+          <button
+            className="button_pri"
+            style={{
+              width: "100%",
+              opacity: loading || !isFormValid ? 0.5 : 1,
+            }}
+            onClick={handleSubmit}
+          >
+            {loading
+              ? "⏳ Please wait..."
+              : isEdit
+              ? "Update Trade"
+              : "Submit Trade"}
+          </button>
+        </div>
 
-      {/* <pre
+        <BackgroundBlur />
+
+        {/* <pre
         style={{
           background: "black",
           color: "white",
@@ -1201,8 +1233,8 @@ export default function AddTrade() {
         )}
       </pre> */}
 
-      {/* Summary Section */}
-      {/* <div style={{ marginTop: "2rem" }}>
+        {/* Summary Section */}
+        {/* <div style={{ marginTop: "2rem" }}>
                 <h3>Trade Setup Summary</h3>
 
                
@@ -1284,6 +1316,7 @@ export default function AddTrade() {
                     <p><strong>Learnings:</strong> {form.learnings}</p>
                 </div>
             </div> */}
-    </div>
+      </div>
+    </>
   );
 }

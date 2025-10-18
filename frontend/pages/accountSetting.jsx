@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
+import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/utils/formatNumbers";
 import { Pencil, Trash2, Repeat } from "lucide-react";
@@ -183,98 +184,135 @@ const AccountSetting = () => {
   }
 
   return (
-    <div className="accountSetting flexClm gap_24">
-      <div className="flexClm">
-        <span className="font_20">Account setting</span>
-        <span className="font_12">Manage account detail</span>
-      </div>
+    <>
+      <Head>
+        <title>JournalX | Account Settings</title>
+        <meta
+          name="description"
+          content="Manage your JournalX account securely. Update your profile, manage preferences, and control your data settings for a personalized trading experience."
+        />
+        <meta
+          name="keywords"
+          content="JournalX account settings, trader profile, manage account, trading journal preferences, data security, update profile, JournalX account"
+        />
+        <meta name="robots" content="index, follow" />
 
-      {/* Account Overview */}
-      <div className="chart_boxBg flexClm gap_32" style={{ padding: "16px" }}>
-        <div className="flexClm gap_8">
-          <span className="font_12">Account name</span>
-          <span className="font_16 font_600">{accountData.name}</span>
+        {/* Open Graph / Social Media Meta Tags */}
+        <meta property="og:title" content="JournalX | Account Settings" />
+        <meta
+          property="og:description"
+          content="Keep your JournalX account secure and tailored to your needs. Manage personal info, preferences, and trading journal settings effortlessly."
+        />
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:url"
+          content="https://journalx.app/accountSettings"
+        />
+        <meta property="og:image" content="/assets/Journalx_Banner.png" />
+
+        {/* Twitter Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="JournalX | Account Settings" />
+        <meta
+          name="twitter:description"
+          content="Manage your JournalX account and preferences securely for the best trading journal experience."
+        />
+        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
+      </Head>
+
+      <div className="accountSetting flexClm gap_24">
+        <div className="flexClm">
+          <span className="font_20">Account setting</span>
+          <span className="font_12">Manage account detail</span>
         </div>
 
-        <div className="flexRow gap_16 flexRow_stretch">
+        {/* Account Overview */}
+        <div className="chart_boxBg flexClm gap_32" style={{ padding: "16px" }}>
           <div className="flexClm gap_8">
-            <span className="font_12 text-gray-400">Current Balance</span>
-            <span className="font_14 font_bold">
-              {formatCurrency(accountOverview.currentBalance)}
-            </span>
+            <span className="font_12">Account name</span>
+            <span className="font_16 font_600">{accountData.name}</span>
           </div>
-          <div className="flexClm gap_8" style={{ textAlign: "center" }}>
-            <span className="font_12 text-gray-400">Initial Capital</span>
-            <span className="font_14 font_bold">
-              {formatCurrency(accountOverview.initialBalance)}
-            </span>
-          </div>
-          <div className="flexClm gap_8" style={{ textAlign: "right" }}>
-            <span className="font_12 text-gray-400">
-              ROI{" "}
+
+          <div className="flexRow gap_16 flexRow_stretch">
+            <div className="flexClm gap_8">
+              <span className="font_12 text-gray-400">Current Balance</span>
+              <span className="font_14 font_bold">
+                {formatCurrency(accountOverview.currentBalance)}
+              </span>
+            </div>
+            <div className="flexClm gap_8" style={{ textAlign: "center" }}>
+              <span className="font_12 text-gray-400">Initial Capital</span>
+              <span className="font_14 font_bold">
+                {formatCurrency(accountOverview.initialBalance)}
+              </span>
+            </div>
+            <div className="flexClm gap_8" style={{ textAlign: "right" }}>
+              <span className="font_12 text-gray-400">
+                ROI{" "}
+                <span
+                  className={`font_12 ${
+                    accountOverview.roiAmount >= 0 ? "success" : "error"
+                  }`}
+                >
+                  ({accountOverview.roiPercentage.toFixed(2)}%)
+                </span>
+              </span>
               <span
-                className={`font_12 ${
+                className={`font_14 font_bold ${
                   accountOverview.roiAmount >= 0 ? "success" : "error"
                 }`}
               >
-                ({accountOverview.roiPercentage.toFixed(2)}%)
+                {formatCurrency(accountOverview.roiAmount)}
               </span>
-            </span>
-            <span
-              className={`font_14 font_bold ${
-                accountOverview.roiAmount >= 0 ? "success" : "error"
-              }`}
-            >
-              {formatCurrency(accountOverview.roiAmount)}
-            </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="flexRow_mobile gap_12">
-        <button
-          className="button_sec width100 flexRow_cntr_mobile flexRow gap_8"
-          onClick={handleEdit}
-        >
-          <Pencil size={16} />
-          Edit Account
-        </button>
+        {/* Action Buttons */}
+        <div className="flexRow_mobile gap_12">
+          <button
+            className="button_sec width100 flexRow_cntr_mobile flexRow gap_8"
+            onClick={handleEdit}
+          >
+            <Pencil size={16} />
+            Edit Account
+          </button>
 
-        <ConfirmationModal
-          isOpen={isModalOpen}
-          title="Deactivate Account"
-          message="Are you sure you want to deactivate this account? This action cannot be undone."
-          onCancel={() => setIsModalOpen(false)}
-          onConfirm={handleDeactivate}
+          <ConfirmationModal
+            isOpen={isModalOpen}
+            title="Deactivate Account"
+            message="Are you sure you want to deactivate this account? This action cannot be undone."
+            onCancel={() => setIsModalOpen(false)}
+            onConfirm={handleDeactivate}
+          />
+
+          <button
+            className="button_sec width100 flexRow_cntr_mobile flexRow gap_8"
+            onClick={handleSwitch}
+          >
+            <Repeat size={16} />
+            Switch Account
+          </button>
+
+          <button
+            className="button_sec  flexRow_cntr_mobile flexRow gap_8 error"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Trash2 size={16} />
+            <span className="IsVisible">Delete Account</span>
+          </button>
+        </div>
+
+        <BottomBar />
+        <BackgroundBlur />
+        <ToastMessage
+          key={toastKey}
+          type={alertType}
+          message={alertMessage}
+          duration={3000}
         />
-
-        <button
-          className="button_sec width100 flexRow_cntr_mobile flexRow gap_8"
-          onClick={handleSwitch}
-        >
-          <Repeat size={16} />
-          Switch Account
-        </button>
-
-        <button
-          className="button_sec  flexRow_cntr_mobile flexRow gap_8 error"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Trash2 size={16} />
-          <span className="IsVisible">Delete Account</span>
-        </button>
       </div>
-
-      <BottomBar />
-      <BackgroundBlur />
-      <ToastMessage
-        key={toastKey}
-        type={alertType}
-        message={alertMessage}
-        duration={3000}
-      />
-    </div>
+    </>
   );
 };
 

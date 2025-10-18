@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import Head from "next/head";
 import { containerVariants, childVariants } from "@/animations/motionVariants";
 import { FcGoogle } from "react-icons/fc";
 import { register } from "@/api/auth";
@@ -291,237 +292,264 @@ function Register() {
   };
 
   return (
-    <div className="register flexClm gap_32">
-      <Navbar />
-      <div className="s_tit_des flexClm">
-        <span className="tit font_20">Register and start journaling !</span>
-        <span className="des font_14 shade_50">
-          Your discipline starts here
-        </span>
-      </div>
+    <>
+      <Head>
+        <title>JournalX | Register</title>
+        <meta
+          name="description"
+          content="Create your JournalX account to start tracking, analyzing, and improving your trading performance. Join JournalX today and take control of your trades with data-driven insights."
+        />
+        <meta
+          name="keywords"
+          content="JournalX register, trading journal signup, trading account creation, trading analytics, trade performance tracker"
+        />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:title" content="JournalX | Register" />
+        <meta
+          property="og:description"
+          content="Join JournalX and elevate your trading game. Register to start logging trades and gaining insights instantly."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://yourdomain.com/register" />
+        <meta property="og:image" content="/assets/Journalx_Banner.png" />
+      </Head>
+      <div className="register flexClm gap_32">
+        <Navbar />
+        <div className="s_tit_des flexClm">
+          <span className="tit font_20">Register and start journaling !</span>
+          <span className="des font_14 shade_50">
+            Your discipline starts here
+          </span>
+        </div>
 
-      <div className="container">
-        {step === "enter-email" && (
-          <div className="flexClm gap_24">
-            <div key="email-step" className="flexClm gap_24">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Name"
-                type="text"
-              />
-
-              <div className="suggestionInput flexClm">
+        <div className="container">
+          {step === "enter-email" && (
+            <div className="flexClm gap_24">
+              <div key="email-step" className="flexClm gap_24">
                 <input
-                  value={email}
-                  onChange={handleChange}
-                  placeholder="Email Address"
-                  type="email"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name"
+                  type="text"
                 />
-                {/* Email Validation */}
-                {email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
-                  <span className="font_12 error">
-                    Enter a valid email (must include @ and .com)
-                  </span>
-                )}
 
-                {suggestions.length > 0 && (
-                  <div className="suggestionBox flexClm gap_12">
-                    {suggestions.map((s, i) => (
-                      <span
-                        key={i}
-                        className="suggestion"
-                        onClick={() => handleSelect(s)}
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flexClm gap_8 flex_center">
-              <button
-                className="button_pri flexRow flexRow_stretch"
-                onClick={() => setStep("set-password")}
-                disabled={!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
-              >
-                Next <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === "set-password" && (
-          <div className="flexClm gap_24">
-            <div key="password-step" className="flexClm gap_24">
-              {/* Password */}
-              <div className="passwordWrap flexClm">
-                <input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  type={showPassword ? "text" : "password"}
-                  onKeyDown={handleKeyDown}
-                />
-                <button
-                  type="button"
-                  className="eyeButton button_ter flexRow"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-                {password &&
-                  !/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(
-                    password
-                  ) && (
+                <div className="suggestionInput flexClm">
+                  <input
+                    value={email}
+                    onChange={handleChange}
+                    placeholder="Email Address"
+                    type="email"
+                  />
+                  {/* Email Validation */}
+                  {email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
                     <span className="font_12 error">
-                      Password: 8–15 chars, letters, numbers & 1 special
-                      character
+                      Enter a valid email (must include @ and .com)
                     </span>
                   )}
-              </div>
 
-              {/* Confirm Password */}
-              <div className="passwordWrap flexClm">
-                <input
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm Password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  onKeyDown={handleKeyDown}
-                />
-                <button
-                  type="button"
-                  className="eyeButton button_ter flexRow"
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
+                  {suggestions.length > 0 && (
+                    <div className="suggestionBox flexClm gap_12">
+                      {suggestions.map((s, i) => (
+                        <span
+                          key={i}
+                          className="suggestion"
+                          onClick={() => handleSelect(s)}
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
                   )}
-                </button>
-                {confirmPassword && password !== confirmPassword && (
-                  <span className="font_12 error">Passwords do not match</span>
-                )}
+                </div>
               </div>
-            </div>
 
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-              onSuccess={(token) => setTurnstileToken(token)}
-            />
-
-            <div className="flexClm gap_8">
-              <div className="flexRow flexRow_stretch gap_12">
-                <button
-                  className="button_sec flexRow"
-                  onClick={() => setStep("enter-email")}
-                  disabled={isLoading}
-                >
-                  <ArrowLeft size={20} />
-                </button>
-
+              <div className="flexClm gap_8 flex_center">
                 <button
                   className="button_pri flexRow flexRow_stretch"
-                  onClick={handleRegister}
-                  disabled={isLoading || !turnstileToken} // ✅ disable until captcha success
+                  onClick={() => setStep("set-password")}
+                  disabled={!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
+                >
+                  Next <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === "set-password" && (
+            <div className="flexClm gap_24">
+              <div key="password-step" className="flexClm gap_24">
+                {/* Password */}
+                <div className="passwordWrap flexClm">
+                  <input
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    type={showPassword ? "text" : "password"}
+                    onKeyDown={handleKeyDown}
+                  />
+                  <button
+                    type="button"
+                    className="eyeButton button_ter flexRow"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                  {password &&
+                    !/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(
+                      password
+                    ) && (
+                      <span className="font_12 error">
+                        Password: 8–15 chars, letters, numbers & 1 special
+                        character
+                      </span>
+                    )}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="passwordWrap flexClm">
+                  <input
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm Password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    onKeyDown={handleKeyDown}
+                  />
+                  <button
+                    type="button"
+                    className="eyeButton button_ter flexRow"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                  {confirmPassword && password !== confirmPassword && (
+                    <span className="font_12 error">
+                      Passwords do not match
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setTurnstileToken(token)}
+              />
+
+              <div className="flexClm gap_8">
+                <div className="flexRow flexRow_stretch gap_12">
+                  <button
+                    className="button_sec flexRow"
+                    onClick={() => setStep("enter-email")}
+                    disabled={isLoading}
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+
+                  <button
+                    className="button_pri flexRow flexRow_stretch"
+                    onClick={handleRegister}
+                    disabled={isLoading || !turnstileToken} // ✅ disable until captcha success
+                  >
+                    {isLoading ? (
+                      <Loader2 size={18} className="spinner" />
+                    ) : (
+                      <>
+                        Register <ArrowRight size={16} />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === "verify-otp" && (
+            <div className="flexClm gap_24">
+              <div className="flexClm gap_24">
+                <span className="font_16">
+                  Enter the 6-digit OTP sent to your email
+                </span>
+                <input
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Enter OTP"
+                  type="text"
+                  maxLength={6}
+                />
+              </div>
+
+              <div className="flexRow gap_8">
+                <button
+                  className="button_sec flexRow width100 flex_center flexRow_stretch"
+                  onClick={handleResendOtp}
+                  disabled={isLoading || timer > 0 || resendLimitReached}
+                >
+                  {resendLimitReached
+                    ? "Resend limit reached"
+                    : timer > 0
+                    ? `Resend OTP in ${timer}s`
+                    : "Resend OTP"}
+                </button>
+
+                <button
+                  className="button_pri flexRow width100 flex_center flexRow_stretch"
+                  onClick={handleVerifyOtp}
+                  disabled={otp.length !== 6 || isLoading}
                 >
                   {isLoading ? (
                     <Loader2 size={18} className="spinner" />
                   ) : (
-                    <>
-                      Register <ArrowRight size={16} />
-                    </>
+                    "Verify OTP"
                   )}
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {step === "verify-otp" && (
-          <div className="flexClm gap_24">
-            <div className="flexClm gap_24">
-              <span className="font_16">
-                Enter the 6-digit OTP sent to your email
-              </span>
-              <input
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter OTP"
-                type="text"
-                maxLength={6}
-              />
-            </div>
-
-            <div className="flexRow gap_8">
-              <button
-                className="button_sec flexRow width100 flex_center flexRow_stretch"
-                onClick={handleResendOtp}
-                disabled={isLoading || timer > 0 || resendLimitReached}
-              >
-                {resendLimitReached
-                  ? "Resend limit reached"
-                  : timer > 0
-                  ? `Resend OTP in ${timer}s`
-                  : "Resend OTP"}
-              </button>
-
-              <button
-                className="button_pri flexRow width100 flex_center flexRow_stretch"
-                onClick={handleVerifyOtp}
-                disabled={otp.length !== 6 || isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 size={18} className="spinner" />
-                ) : (
-                  "Verify OTP"
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flexRow flex_center">
-        <span className="direct_tertiary" onClick={() => router.push("/login")}>
-          Already have an account? Sign-in
-        </span>
-      </div>
-
-      <div className="flexClm gap_24">
-        <div className="flexRow flex_center" style={{ position: "relative" }}>
-          <hr width="15%"></hr>
+        <div className="flexRow flex_center">
           <span
-            className="font_12"
-            style={{
-              position: "absolute",
-              top: "-12px",
-              background: "#1d1d1d",
-              padding: "12px",
-              cursor: "default",
-            }}
+            className="direct_tertiary"
+            onClick={() => router.push("/login")}
           >
-            or
+            Already have an account? Sign-in
           </span>
         </div>
 
-        <button
-          onClick={() => {
-            window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
-          }}
-          className="button_sec flexRow flex_center gap_8"
-        >
-          <FcGoogle size={20} /> Sign up with Google
-        </button>
-      </div>
+        <div className="flexClm gap_24">
+          <div className="flexRow flex_center" style={{ position: "relative" }}>
+            <hr width="15%"></hr>
+            <span
+              className="font_12"
+              style={{
+                position: "absolute",
+                top: "-12px",
+                background: "#1d1d1d",
+                padding: "12px",
+                cursor: "default",
+              }}
+            >
+              or
+            </span>
+          </div>
 
-      <ToastMessage type={popup.type} message={popup.message} />
-      <BackgroundBlur />
-    </div>
+          <button
+            onClick={() => {
+              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+            }}
+            className="button_sec flexRow flex_center gap_8"
+          >
+            <FcGoogle size={20} /> Sign up with Google
+          </button>
+        </div>
+
+        <ToastMessage type={popup.type} message={popup.message} />
+        <BackgroundBlur />
+      </div>
+    </>
   );
 }
 

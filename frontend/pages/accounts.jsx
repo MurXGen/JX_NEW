@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import axios from "axios";
 import {
@@ -229,10 +230,10 @@ function Accounts() {
       Cookies.set("accountId", accountId, {
         path: "/",
         sameSite: "Strict",
-        expires: 3650, // ~10 years
+        expires: 1 / 24, // 1 hour
       });
 
-      console.log("✅ Account ID saved to cookies:", accountId);
+      console.log("Account ID saved to cookies:", accountId);
 
       // 2️⃣ Redirect to home page
       router.push("/");
@@ -251,133 +252,157 @@ function Accounts() {
   }
 
   return (
-    <div className="dashboard flexClm gap_32">
-      <Navbar />
-      <BackgroundBlur />
+    <>
+      {/* ✅ SEO + Metadata */}
+      <Head>
+        <title>JournalX | Accounts</title>
+        <meta
+          name="description"
+          content="Manage your JournalX trading accounts. Add, view, and analyze your performance across multiple portfolios in one place."
+        />
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="JournalX" />
+        <meta property="og:title" content="JournalX | Accounts" />
+        <meta
+          property="og:description"
+          content="Access and manage all your JournalX accounts with a unified dashboard."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://journalx.app/accounts" />
+        <meta property="og:image" content="/assets/Journalx_Banner.png" />
+        <link rel="canonical" href="https://journalx.app/accounts" />
+      </Head>
+      <div className="dashboard flexClm gap_32">
+        <Navbar />
+        <BackgroundBlur />
 
-      <div className="flexRow flexRow_stretch">
-        <div className="flexClm">
-          <span className="font_20">Accounts</span>
-          <span className="font_12" style={{ color: "#ffffff60" }}>
-            Select account to proceed with
-          </span>
-        </div>
-        {accounts.length > 0 && (
-          <button
-            className="button_sec flexRow"
-            onClick={handleClick}
-            disabled={loading}
-          >
-            <Plus size={16} />
-          </button>
-        )}
-      </div>
-
-      <motion.div
-        className="accountsList flexClm gap_24"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {accounts.length === 0 ? (
-          <motion.div className="notFound" variants={childVariants}>
-            <FiDatabase size={48} className="vector" /> {/* Icon */}
-            <span className="font_12">
-              No account found. You can create one.
+        <div className="flexRow flexRow_stretch">
+          <div className="flexClm">
+            <span className="font_20">Accounts</span>
+            <span className="font_12" style={{ color: "#ffffff60" }}>
+              Select account to proceed with
             </span>
+          </div>
+          {accounts.length > 0 && (
             <button
               className="button_sec flexRow"
               onClick={handleClick}
               disabled={loading}
             >
-              <span>Create account</span>
               <Plus size={16} />
             </button>
-          </motion.div>
-        ) : (
-          accounts.map((acc) => {
-            const lastTradedAccountId = Cookies.get("accountId");
-            const isLastTraded = acc._id === lastTradedAccountId;
+          )}
+        </div>
 
-            return (
-              <motion.div
-                key={acc._id}
-                className="accountCard flexClm gap_16"
-                variants={childVariants}
-                onClick={() => handleAccountClick(acc._id)}
+        <motion.div
+          className="accountsList flexClm gap_24"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {accounts.length === 0 ? (
+            <motion.div className="notFound" variants={childVariants}>
+              <FiDatabase size={48} className="vector" /> {/* Icon */}
+              <span className="font_12">
+                No account found. You can create one.
+              </span>
+              <button
+                className="button_sec flexRow"
+                onClick={handleClick}
+                disabled={loading}
               >
-                <div
-                  className="accountName flexRow flexRow_stretch"
-                  style={{
-                    borderBottom: "0.5px solid #ffffff33",
-                    padding: "0 0 8px 0",
-                    margin: "0 0 4px 0",
-                  }}
+                <span>Create account</span>
+                <Plus size={16} />
+              </button>
+            </motion.div>
+          ) : (
+            accounts.map((acc) => {
+              const lastTradedAccountId = Cookies.get("accountId");
+              const isLastTraded = acc._id === lastTradedAccountId;
+
+              return (
+                <motion.div
+                  key={acc._id}
+                  className="accountCard flexClm gap_16"
+                  variants={childVariants}
+                  onClick={() => handleAccountClick(acc._id)}
                 >
-                  <span
-                    className="font_16 flexRow flex_center gap_12"
-                    style={{ color: "#ffffffcc" }}
+                  <div
+                    className="accountName flexRow flexRow_stretch"
+                    style={{
+                      borderBottom: "0.5px solid #ffffff33",
+                      padding: "0 0 8px 0",
+                      margin: "0 0 4px 0",
+                    }}
                   >
-                    {acc.name}
-                    {isLastTraded && (
-                      <span
-                        className="font_8"
-                        style={{
-                          borderLeft: "1px solid grey",
-                          paddingLeft: "8px",
-                        }}
-                      >
-                        Last traded
-                      </span>
-                    )}
-                  </span>
-                  <div className="flexRow gap_12">
-                    <span className="font_12">
-                      Trades: {tradesCount[acc.name] ?? 0}{" "}
-                    </span>
-                    <ArrowRight size={16} className="vector" />
-                  </div>
-                </div>
-
-                <div className="accountBalance flexRow flexRow_stretch">
-                  <div className="flexClm gap_4 font_12">
-                    <span className="font_12" style={{ color: "#ffffff80" }}>
-                      Starting Balance
-                    </span>
-                    <span className="accountAmounts font_16">
-                      {formatCurrency(
-                        acc.startingBalance.amount,
-                        accountSymbols[acc.name]
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flexClm gap_4 font_12">
-                    <span style={{ color: "#ffffff80" }}>Current Balance</span>
-
                     <span
-                      className={`accountAmounts font_16 vector ${
-                        (currentBalances[acc.name] ??
-                          acc.startingBalance.amount) >=
-                        acc.startingBalance.amount
-                          ? "success"
-                          : "error"
-                      }`}
-                      style={{ textAlign: "right" }}
+                      className="font_16 flexRow flex_center gap_12"
+                      style={{ color: "#ffffffcc" }}
                     >
-                      {formatCurrency(
-                        currentBalances[acc.name] ?? acc.startingBalance.amount,
-                        accountSymbols[acc.name]
+                      {acc.name}
+                      {isLastTraded && (
+                        <span
+                          className="font_8"
+                          style={{
+                            borderLeft: "1px solid grey",
+                            paddingLeft: "8px",
+                          }}
+                        >
+                          Last traded
+                        </span>
                       )}
                     </span>
+                    <div className="flexRow gap_12">
+                      <span className="font_12">
+                        Trades: {tradesCount[acc.name] ?? 0}{" "}
+                      </span>
+                      <ArrowRight size={16} className="vector" />
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })
-        )}
-      </motion.div>
-    </div>
+
+                  <div className="accountBalance flexRow flexRow_stretch">
+                    <div className="flexClm gap_4 font_12">
+                      <span className="font_12" style={{ color: "#ffffff80" }}>
+                        Starting Balance
+                      </span>
+                      <span className="accountAmounts font_16">
+                        {formatCurrency(
+                          acc.startingBalance.amount,
+                          accountSymbols[acc.name]
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flexClm gap_4 font_12">
+                      <span style={{ color: "#ffffff80" }}>
+                        Current Balance
+                      </span>
+
+                      <span
+                        className={`accountAmounts font_16 vector ${
+                          (currentBalances[acc.name] ??
+                            acc.startingBalance.amount) >=
+                          acc.startingBalance.amount
+                            ? "success"
+                            : "error"
+                        }`}
+                        style={{ textAlign: "right" }}
+                      >
+                        {formatCurrency(
+                          currentBalances[acc.name] ??
+                            acc.startingBalance.amount,
+                          accountSymbols[acc.name]
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
+        </motion.div>
+      </div>
+    </>
   );
 }
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Head from "next/head";
 import axios from "axios";
 import { ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -149,125 +150,169 @@ function Login() {
   };
 
   return (
-    <div className="login flexClm gap_32">
-      <Navbar />
-      <div className="flexClm gap_32">
-        <div className="s_tit_des flexClm">
-          <span className="tit font_20">Welcome Back !</span>
-          <span className="des font_14 shade_50">
-            Continue logging and getting insights
-          </span>
-        </div>
-        <div className="flexClm gap_24">
-          <div className="suggestionInput flexClm">
-            <input
-              value={email}
-              onChange={handleChange}
-              placeholder="Email Address"
-              type="email"
-              onKeyDown={handleKeyDown}
-            />
-            {suggestions.length > 0 && (
-              <div className="suggestionBox flexClm gap_12">
-                {suggestions.map((s, i) => (
-                  <span
-                    key={i}
-                    className="suggestion"
-                    onClick={() => handleSelect(s)}
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+    <>
+      {/* ✅ SEO + Meta Setup */}
+      <Head>
+        <title>JournalX | Login to Your Trading Journal</title>
+        <meta
+          name="description"
+          content="Login to JournalX to access your trading journal, performance analytics, trade history, and personalized trading insights. Stay ahead with data-driven decisions and behavioral tracking."
+        />
+        <meta
+          name="keywords"
+          content="trading journal login, forex trading journal, crypto trading journal, stock trading log, trading analytics, trading performance tracker, JournalX app, login trading tracker, trading logbook, online trading journal"
+        />
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="JournalX" />
 
-          <div className="passwordWrap flexClm">
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              type={showPassword ? "text" : "password"}
-              onKeyDown={handleKeyDown}
+        {/* ✅ Open Graph Meta (Facebook, WhatsApp, LinkedIn) */}
+        <meta
+          property="og:title"
+          content="JournalX | Login to Your Trading Journal"
+        />
+        <meta
+          property="og:description"
+          content="Access your AI-powered trading journal, track your trades, and improve your performance with JournalX."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://journalx.app/login" />
+        <meta property="og:image" content="/assets/Journalx_Banner.png" />
+
+        {/* ✅ Twitter Meta */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="JournalX | Login" />
+        <meta
+          name="twitter:description"
+          content="Login to JournalX to access your trades, analytics, and performance insights."
+        />
+        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
+
+        <link rel="canonical" href="https://journalx.app/login" />
+        <meta name="theme-color" content="#000000" />
+      </Head>
+      <div className="login flexClm gap_32">
+        <Navbar />
+        <div className="flexClm gap_32">
+          <div className="s_tit_des flexClm">
+            <span className="tit font_20">Welcome Back !</span>
+            <span className="des font_14 shade_50">
+              Continue logging and getting insights
+            </span>
+          </div>
+          <div className="flexClm gap_24">
+            <div className="suggestionInput flexClm">
+              <input
+                value={email}
+                onChange={handleChange}
+                placeholder="Email Address"
+                type="email"
+                onKeyDown={handleKeyDown}
+              />
+              {suggestions.length > 0 && (
+                <div className="suggestionBox flexClm gap_12">
+                  {suggestions.map((s, i) => (
+                    <span
+                      key={i}
+                      className="suggestion"
+                      onClick={() => handleSelect(s)}
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="passwordWrap flexClm">
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                type={showPassword ? "text" : "password"}
+                onKeyDown={handleKeyDown}
+              />
+              <button
+                type="button"
+                className="eyeButton button_ter flexRow"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setTurnstileToken(token)}
             />
+
             <button
-              type="button"
-              className="eyeButton button_ter flexRow"
-              onClick={() => setShowPassword((prev) => !prev)}
+              type="submit"
+              disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
+              className="button_pri flexRow gap_12 flexRow_center flexRow_stretch"
+              onClick={(e) => {
+                e.preventDefault(); // prevent form reload
+                handleLogin(); // call login function
+              }}
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {isLoading ? <Loader2 size={20} className="spinner" /> : "Login"}
+              {!isLoading && <ArrowRight size={16} />}
             </button>
           </div>
 
-          <Turnstile
-            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-            onSuccess={(token) => setTurnstileToken(token)}
-          />
-
-          <button
-            type="submit"
-            disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
-            className="button_pri flexRow gap_12 flexRow_center flexRow_stretch"
-            onClick={(e) => {
-              e.preventDefault(); // prevent form reload
-              handleLogin(); // call login function
-            }}
-          >
-            {isLoading ? <Loader2 size={20} className="spinner" /> : "Login"}
-            {!isLoading && <ArrowRight size={16} />}
-          </button>
-        </div>
-
-        <div className="flexClm gap_8 flex_center">
-          <span
-            className="direct_tertiary"
-            onClick={() => router.push("/register")}
-          >
-            New to journaling? Sign-up
-          </span>
-        </div>
-
-        <div className="flexClm gap_24">
-          <div className="flexRow flex_center" style={{ position: "relative" }}>
-            <hr width="15%"></hr>
+          <div className="flexClm gap_8 flex_center">
             <span
-              className="font_12"
-              style={{
-                position: "absolute",
-                top: "-12px",
-                background: "#1d1d1d",
-                padding: "12px",
-                cursor: "default",
-              }}
+              className="direct_tertiary"
+              onClick={() => router.push("/register")}
             >
-              or
+              New to journaling? Sign-up
             </span>
           </div>
 
-          <button
-            onClick={() => {
-              // Redirect to your backend Google OAuth endpoint
-              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
-            }}
-            className="button_sec flexRow flex_center gap_8 items-center justify-center px-4 py-2 border rounded shadow hover:bg-gray-100 transition"
-          >
-            <FcGoogle size={20} /> Sign in with Google
-          </button>
+          <div className="flexClm gap_24">
+            <div
+              className="flexRow flex_center"
+              style={{ position: "relative" }}
+            >
+              <hr width="15%"></hr>
+              <span
+                className="font_12"
+                style={{
+                  position: "absolute",
+                  top: "-12px",
+                  background: "#1d1d1d",
+                  padding: "12px",
+                  cursor: "default",
+                }}
+              >
+                or
+              </span>
+            </div>
+
+            <button
+              onClick={() => {
+                // Redirect to your backend Google OAuth endpoint
+                window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+              }}
+              className="button_sec flexRow flex_center gap_8 items-center justify-center px-4 py-2 border rounded shadow hover:bg-gray-100 transition"
+            >
+              <FcGoogle size={20} /> Sign in with Google
+            </button>
+          </div>
+
+          {popup.message && (
+            <ToastMessage message={popup.message} type={popup.type} />
+          )}
+
+          <BackgroundBlur />
         </div>
-
-        {popup.message && (
-          <ToastMessage message={popup.message} type={popup.type} />
+        {showWelcome && (
+          <WelcomeModal
+            username={username}
+            onClose={() => setShowWelcome(false)}
+          />
         )}
-
-        <BackgroundBlur />
       </div>
-      {showWelcome && (
-        <WelcomeModal
-          username={username}
-          onClose={() => setShowWelcome(false)}
-        />
-      )}
-    </div>
+    </>
   );
 }
 

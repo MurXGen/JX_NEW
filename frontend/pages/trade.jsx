@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
+import Head from "next/head";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import TradesHistory from "@/components/Trades/TradeHistory";
 import TradeCalendar from "@/components/Trades/TradeCalendar";
@@ -62,97 +63,133 @@ const TradePage = () => {
   if (loading) return <FullPageLoader />;
 
   return (
-    <div className="flexClm gap_32">
-      <BottomBar />
-      <div className="flexRow flexRow_stretch">
-        <div className="flexClm">
-          <span className="font_20">Trades History</span>
-          <span className="font_12">Log trade in seconds</span>
-        </div>
-        {/* Toggle Buttons */}
-        <div className="view-toggle flexRow gap_12">
-          <button
-            onClick={() => setView("history")}
-            className={`toggle-btn ${view === "history" ? "active" : ""}`}
-          >
-            <History size={18} />
-          </button>
-
-          <button
-            onClick={() => setView("calendar")}
-            className={`toggle-btn ${view === "calendar" ? "active" : ""}`}
-          >
-            <Calendar size={18} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flexRow flexRow_stretch">
-        {/* Global Month/Year Selectors */}
-        <div className="flexRow gap_12">
-          {/* Month Selector */}
-          <Dropdown
-            value={selectedMonth}
-            onChange={(val) => setSelectedMonth(val)}
-            placeholder={view === "history" ? "All Months" : "Select Month"}
-            options={[
-              ...(view === "history"
-                ? [{ value: "", label: "All" }] // ✅ only show in history
-                : []),
-              ...Array.from({ length: 12 }, (_, i) => ({
-                value: i + 1,
-                label: new Date(0, i).toLocaleString("default", {
-                  month: "long",
-                }),
-              })),
-            ]}
-          />
-
-          {/* Year Selector */}
-          <Dropdown
-            value={selectedYear}
-            onChange={(val) => setSelectedYear(val)}
-            placeholder={view === "history" ? "All Years" : "Select Year"}
-            options={[
-              ...(view === "history"
-                ? [{ value: "", label: "All" }] // ✅ only show in history
-                : []),
-              ...years.map((year) => ({ value: year, label: year })),
-            ]}
-          />
-        </div>
-      </div>
-
-      {view === "history" && (
-        <TradesHistory
-          trades={trades}
-          location={router}
-          selectedDate={selectedDate}
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          years={years}
-          setSelectedMonth={setSelectedMonth}
-          setSelectedYear={setSelectedYear}
-          // onTradesUpdated={handleTradesUpdated} // ✅ here
+    <>
+      {/* ✅ SEO + Meta Tags */}
+      <Head>
+        <title>JournalX | Trade History & Calendar</title>
+        <meta
+          name="description"
+          content="Track and analyze your trading performance with JournalX's Trade History and Calendar. View all your logged trades, performance summaries, and behavioral insights — all in one clean dashboard."
         />
-      )}
-
-      {view === "calendar" && (
-        <TradeCalendar
-          trades={trades}
-          onDateSelect={(dateKey) => {
-            setSelectedDate(new Date(dateKey));
-            setView("history");
-          }}
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          years={years} // ✅ pass years here
-          setSelectedMonth={setSelectedMonth}
-          setSelectedYear={setSelectedYear}
+        <meta
+          name="keywords"
+          content="trading journal, trade history, trade calendar, forex trading journal, stock trading log, crypto trade tracker, JournalX app, trade performance analytics, trade tracking tool, trading analytics platform, free trading journal"
         />
-      )}
-      <BackgroundBlur />
-    </div>
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="JournalX" />
+        <meta
+          property="og:title"
+          content="JournalX | Trade History & Calendar"
+        />
+        <meta
+          property="og:description"
+          content="Analyze your trades, identify mistakes, and grow consistently using JournalX’s AI-powered trading journal."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://journalx.app/trades" />
+        <meta property="og:image" content="/assets/Journalx_Banner.png" />
+        <link rel="canonical" href="https://journalx.app/trades" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="JournalX | Trade History" />
+        <meta
+          name="twitter:description"
+          content="Visualize and analyze all your trades in one place with JournalX — your AI-powered trading journal."
+        />
+        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
+      </Head>
+      <div className="flexClm gap_32">
+        <BottomBar />
+        <div className="flexRow flexRow_stretch">
+          <div className="flexClm">
+            <span className="font_20">Trades History</span>
+            <span className="font_12">Log trade in seconds</span>
+          </div>
+          {/* Toggle Buttons */}
+          <div className="view-toggle flexRow gap_12">
+            <button
+              onClick={() => setView("history")}
+              className={`toggle-btn ${view === "history" ? "active" : ""}`}
+            >
+              <History size={18} />
+            </button>
+
+            <button
+              onClick={() => setView("calendar")}
+              className={`toggle-btn ${view === "calendar" ? "active" : ""}`}
+            >
+              <Calendar size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="flexRow flexRow_stretch">
+          {/* Global Month/Year Selectors */}
+          <div className="flexRow gap_12">
+            {/* Month Selector */}
+            <Dropdown
+              value={selectedMonth}
+              onChange={(val) => setSelectedMonth(val)}
+              placeholder={view === "history" ? "All Months" : "Select Month"}
+              options={[
+                ...(view === "history"
+                  ? [{ value: "", label: "All" }] // ✅ only show in history
+                  : []),
+                ...Array.from({ length: 12 }, (_, i) => ({
+                  value: i + 1,
+                  label: new Date(0, i).toLocaleString("default", {
+                    month: "long",
+                  }),
+                })),
+              ]}
+            />
+
+            {/* Year Selector */}
+            <Dropdown
+              value={selectedYear}
+              onChange={(val) => setSelectedYear(val)}
+              placeholder={view === "history" ? "All Years" : "Select Year"}
+              options={[
+                ...(view === "history"
+                  ? [{ value: "", label: "All" }] // ✅ only show in history
+                  : []),
+                ...years.map((year) => ({ value: year, label: year })),
+              ]}
+            />
+          </div>
+        </div>
+
+        {view === "history" && (
+          <TradesHistory
+            trades={trades}
+            location={router}
+            selectedDate={selectedDate}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            years={years}
+            setSelectedMonth={setSelectedMonth}
+            setSelectedYear={setSelectedYear}
+            // onTradesUpdated={handleTradesUpdated} // ✅ here
+          />
+        )}
+
+        {view === "calendar" && (
+          <TradeCalendar
+            trades={trades}
+            onDateSelect={(dateKey) => {
+              setSelectedDate(new Date(dateKey));
+              setView("history");
+            }}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            years={years} // ✅ pass years here
+            setSelectedMonth={setSelectedMonth}
+            setSelectedYear={setSelectedYear}
+          />
+        )}
+        <BackgroundBlur />
+      </div>
+    </>
   );
 };
 

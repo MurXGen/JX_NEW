@@ -9,8 +9,8 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/assets/jx_trans_favicon.png",
-      "sizes": "192x192",
+      "src": "/assets/JournalX_Favicon.png",
+      "sizes": "200x200",
       "type": "image/png"
     },
     {
