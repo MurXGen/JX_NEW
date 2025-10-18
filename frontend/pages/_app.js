@@ -38,10 +38,7 @@ export default function MyApp({ Component, pageProps }) {
         />
 
         {/* Favicon */}
-        <link
-          rel="icon"
-          href="https://cdn.journalx.app/trades/close-images/1760761272162-Untitled_design-3.png"
-        />
+        <link rel="icon" href="/assets/JournalX_Favicon.png" />
 
         {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -50,6 +47,11 @@ export default function MyApp({ Component, pageProps }) {
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Poppins:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&family=Comfortaa:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://journalx.app" />
@@ -61,10 +63,7 @@ export default function MyApp({ Component, pageProps }) {
           property="og:description"
           content="Analyze your trades like a pro. JournalX helps you discover patterns, track performance, and grow smarter with AI insights."
         />
-        <meta
-          property="og:image"
-          content="https://cdn.journalx.app/trades/open-images/1760762109674-Best_journal_for_traders.png"
-        />
+        <meta property="og:image" content="/assets/JournalX_Banner.png" />
 
         {/* Twitter Meta */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -77,10 +76,7 @@ export default function MyApp({ Component, pageProps }) {
           name="twitter:description"
           content="Track, analyze, and improve your trades using AI-powered insights. JournalX – your intelligent trading companion."
         />
-        <meta
-          name="twitter:image"
-          content="https://cdn.journalx.app/trades/open-images/1760762109674-Best_journal_for_traders.png"
-        />
+        <meta name="twitter:image" content="/assets/JournalX_Banner.png" />
 
         {/* Theme initialization */}
         <script
