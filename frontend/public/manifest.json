@@ -1,0 +1,22 @@
+{
+  "name": "JournalX",
+  "short_name": "JournalX",
+  "description": "AI-powered trading journal and analytics app for traders.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1d1d1d",
+  "theme_color": "#a77d02",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/JournalX_Favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/JournalX_Favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

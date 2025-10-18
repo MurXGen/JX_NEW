@@ -1,3 +1,6 @@
+// next.config.mjs
+import withPWAInit from "next-pwa";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -7,7 +10,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "cdn.journalx.app",
-        pathname: "/**", // allow all paths under this domain
+        pathname: "/**", // Allow all images from your CDN
       },
     ],
   },
@@ -21,4 +24,13 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+// ✅ Initialize next-pwa
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development", // Disable in dev
+});
+
+// ✅ Export merged config
+export default withPWA(nextConfig);

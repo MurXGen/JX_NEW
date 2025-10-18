@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import Head from "next/head";
 import { useEffect } from "react";
+import { useState } from "react";
 
 export default function MyApp({ Component, pageProps }) {
   // Prevent desktop keyboard zoom (Ctrl + / Ctrl - / Ctrl =)
@@ -51,6 +52,9 @@ export default function MyApp({ Component, pageProps }) {
           href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Poppins:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&family=Comfortaa:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
+
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#1d1d1d" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />

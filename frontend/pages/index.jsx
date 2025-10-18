@@ -14,6 +14,56 @@ import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import Navbar from "@/components/Trades/Navbar";
 import BottomBar from "@/components/Trades/BottomBar";
 import { calculateStats } from "@/utils/calculateStats";
+import { X } from "lucide-react";
+
+function useInstallPrompt() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  useEffect(() => {
+    const dismissed =
+      localStorage.getItem("journalx_install_dismissed") === "true";
+
+    const isInstalled =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone ||
+      localStorage.getItem("journalx_installed") === "true" ||
+      dismissed;
+
+    if (isInstalled) return;
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowPrompt(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () =>
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const choiceResult = await deferredPrompt.userChoice;
+
+    if (choiceResult.outcome === "accepted") {
+      console.log("User installed the app");
+      localStorage.setItem("journalx_installed", "true");
+    }
+
+    setShowPrompt(false);
+    setDeferredPrompt(null);
+  };
+
+  return { showPrompt, handleInstall, setShowPrompt };
+}
 
 export default function Home() {
   const router = useRouter();
@@ -21,6 +71,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const { showPrompt, setShowPrompt, handleInstall } = useInstallPrompt();
 
   useEffect(() => {
     const loadTrades = async () => {
@@ -84,6 +135,40 @@ export default function Home() {
 
       <div className="flexClm gap_32">
         <Navbar />
+        {showPrompt && (
+          <div
+            className="flexClm chart_boxBg gap_12"
+            style={{ padding: "16px" }}
+          >
+            <div className="flexRow flexRow_stretch gap_24">
+              <span className="flexClm gap_4">
+                <span className="vector font_14">JournalX App</span>
+                <span className="shade_50">
+                  Install JournalX for a better experience!
+                </span>
+              </span>
+              <div className="flexRow gap_12">
+                <button
+                  className="button_pri"
+                  style={{ minWidth: "fit-content", maxWidth: "fit-content" }}
+                  onClick={handleInstall}
+                >
+                  Install App
+                </button>
+                {/* Close button */}
+                <button
+                  onClick={() => {
+                    setShowPrompt(false);
+                    localStorage.setItem("journalx_install_dismissed", "true"); // mark as dismissed
+                  }}
+                  className="button_sec flexRow flex_center"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div
