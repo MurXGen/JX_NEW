@@ -137,20 +137,24 @@ export default function Home() {
         <Navbar />
         {showPrompt && (
           <div
-            className="flexClm chart_boxBg gap_12"
-            style={{ padding: "16px" }}
+            className="flexClm chart_boxBg gap_12 installPromptBox"
+            style={{
+              padding: "16px",
+              position: "fixed",
+              zIndex: 10000,
+            }}
           >
             <div className="flexRow flexRow_stretch gap_24">
               <span className="flexClm gap_4">
                 <span className="vector font_14">JournalX App</span>
-                <span className="shade_50">
+                <span className="font_12 shade_50">
                   Install JournalX for a better experience!
                 </span>
               </span>
               <div className="flexRow gap_12">
                 <button
                   className="button_pri"
-                  style={{ minWidth: "fit-content", maxWidth: "fit-content" }}
+                  style={{ width: "100px" }}
                   onClick={handleInstall}
                 >
                   Install App
@@ -162,8 +166,15 @@ export default function Home() {
                     localStorage.setItem("journalx_install_dismissed", "true"); // mark as dismissed
                   }}
                   className="button_sec flexRow flex_center"
+                  style={{
+                    position: "absolute",
+                    top: "-10px",
+                    right: "-10px",
+                    padding: "8px",
+                    borderRadius: "24px",
+                  }}
                 >
-                  <X size={12} />
+                  <X size={14} />
                 </button>
               </div>
             </div>

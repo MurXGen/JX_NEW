@@ -100,6 +100,19 @@ body {
   margin: auto;
 }
 
+.installPromptBox {
+  position: fixed;
+  left: 50%;
+  bottom: 46px;
+  transform: translate(-50%, -50%);
+  background: rgba(34, 34, 34, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  max-width: 320px;
+  width: 85%;
+  color: #fff;
+}
+
 .flexRow {
   display: flex;
   flex-direction: row;
