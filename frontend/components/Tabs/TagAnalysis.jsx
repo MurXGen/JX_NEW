@@ -15,7 +15,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { formatCurrency, formatNumber } from "@/utils/formatNumbers";
-import { BarChart3, ListIcon } from "lucide-react";
+import { BarChart3, ListIcon, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const TagAnalysis = ({ tagAnalysis }) => {
@@ -25,16 +25,16 @@ const TagAnalysis = ({ tagAnalysis }) => {
   if (!tagAnalysis || tagAnalysis.length === 0) {
     return (
       <div
-        className="flexClm chart_boxBg flex_center gap_12"
+        className="flexRow flexRow_stretch chart_boxBg gap_12"
         style={{ padding: "16px" }}
       >
-        <span className="">🏷️</span>
-        <div className="flexClm flex_center gap_4">
+        <div className=" flexClm gap_8">
           <span className="font_16">No Tag Analysis Available</span>
-          <span className="font_12" style={{ textAlign: "center" }}>
-            Add reasons/tags to your trades to see performance insights
-          </span>
+          <span className="font_12">Add reasons/tags while logging trades</span>
         </div>
+        <span className="">
+          <Tag className="vector" />
+        </span>
       </div>
     );
   }

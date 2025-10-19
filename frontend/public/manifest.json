@@ -11,7 +11,8 @@
     {
       "src": "/assets/JournalX_Favicon.png",
       "sizes": "200x200",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/assets/jx_trans_favicon.png",

@@ -34,7 +34,7 @@ const DailyPnlChart = ({ data }) => {
   if (!data || data.length === 0) {
     return (
       <div className="daily-pnl-chart-placeholder">
-        <p>No trade data available</p>
+        <span className="font_12">No trades logged yet.</span>
       </div>
     );
   }
@@ -86,14 +86,6 @@ const DailyPnlChart = ({ data }) => {
     }
     return null;
   };
-
-  if (!data || data.length === 0) {
-    return (
-      <div className="daily-pnl-chart-placeholder">
-        <p>No trade data available</p>
-      </div>
-    );
-  }
 
   // Helper to add empty candle days
   const addPaddingDays = (data, before = 3, after = 3) => {

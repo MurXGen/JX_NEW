@@ -434,7 +434,7 @@ export default function CheckoutOnline() {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           <motion.button
-            className="button_pri"
+            className="upgrade_btn"
             onClick={handleConfirmPay}
             disabled={isProcessing}
             whileHover={{ scale: isProcessing ? 1 : 1.02 }}
@@ -458,7 +458,7 @@ export default function CheckoutOnline() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flexRow gap_4 flex_center"
+                  className="flexRow gap_4 flex_center "
                 >
                   <Zap size={18} />
                   Confirm & Pay
@@ -468,7 +468,7 @@ export default function CheckoutOnline() {
           </motion.button>
 
           <button
-            className="button_ter flexRow gap_4 flex_center"
+            className="button_ter flexRow gap_4 flex_center font_12"
             onClick={() => router.back()}
             disabled={isProcessing}
           >

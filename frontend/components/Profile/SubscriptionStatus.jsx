@@ -296,12 +296,19 @@ const SubscriptionStatus = () => {
                   >
                     Manage
                   </button>
-                  <button
+                  {/* <button
                     className="button_pri flexRow flex_center gap_12"
                     onClick={() => router.push("/pricing")}
                   >
                     <TrendingUp size={14} />
                     Upgrade
+                  </button> */}
+                  <button
+                    className="upgrade_btn width100 flexRow gap_8 flex_center"
+                    onClick={() => router.push("/pricing")}
+                  >
+                    <Crown size={16} className="vector" />
+                    Upgrade Limit
                   </button>
                 </>
               ) : (

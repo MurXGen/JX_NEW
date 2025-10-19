@@ -407,12 +407,12 @@ exports.createCryptoOrder = async (req, res) => {
     }
 
     const NETWORK_ADDRESSES = {
-      erc20: "0x742d35Cc6634C0532925a3b8Dc9B6e7f6C5A8E1F",
-      trc20: "TXYZ1234567890abcdefghijklmnopqrstuvw",
-      bep20: "0x8Ba1f109551bD432803012645Ac136ddd64DBA72",
-      avaxc: "0x9Ab3FD5c9d5e6B6d6C9B9E8D8F7A6D5C4B3A2E1F",
-      sol: "7Z5XWY6ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789",
-      ton: "EQABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz",
+      erc20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+      trc20: "TP4aBJBJaRL8Qumcb9TTGxecxryQhh8LTT",
+      bep20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+      avaxc: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+      sol: "Acw24wYJFWhQyk9NR8EHdpCAr53Wsuf1X78A2UPsvWDf",
+      ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
     };
 
     if (!NETWORK_ADDRESSES[network]) {

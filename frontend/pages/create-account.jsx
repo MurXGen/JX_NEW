@@ -13,6 +13,8 @@ import ToastMessage from "@/components/ui/ToastMessage";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import Cookies from "js-cookie";
 import { useSearchParams } from "next/navigation";
+import { canAddAccount } from "@/utils/planRestrictions";
+import PlanLimitModal from "@/components/ui/PlanLimitModal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -25,6 +27,7 @@ const CreateAccount = () => {
   const [alertType, setAlertType] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [toastKey, setToastKey] = useState(0);
+  const [showPlanModal, setShowPlanModal] = useState(false);
 
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode"); // e.g., "edit"
@@ -52,6 +55,15 @@ const CreateAccount = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const userData = await getFromIndexedDB("user-data");
+    const accountCount = (userData.accounts || []).length;
+
+    // ✅ Apply plan restriction ONLY when creating, not updating
+    if (!isEdit && !canAddAccount(userData, accountCount)) {
+      setShowPlanModal(true); // Show modal instead of alert
+      return;
+    }
 
     // ✅ Clear previous toast
     setAlertType("");
@@ -215,6 +227,11 @@ const CreateAccount = () => {
         duration={3000}
       />
       <BackgroundBlur />
+      <PlanLimitModal
+        isOpen={showPlanModal}
+        onKeep={() => setShowPlanModal(false)}
+        onUpgrade={() => router.push("/pricing")}
+      />
     </div>
   );
 };

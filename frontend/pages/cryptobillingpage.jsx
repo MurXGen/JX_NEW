@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Mail,
   ArrowLeft,
+  ShieldCheckIcon,
 } from "lucide-react";
 import axios from "axios";
 import Dropdown from "@/components/ui/Dropdown";
@@ -22,41 +23,21 @@ import Dropdown from "@/components/ui/Dropdown";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const NETWORKS = [
-  {
-    id: "erc20",
-    name: "Ethereum (ERC20)",
-    symbol: "ETH",
-    fee: "Network fee: $5-15",
-  },
-  {
-    id: "trc20",
-    name: "Tron (TRC20)",
-    symbol: "TRX",
-    fee: "Network fee: $1-2",
-  },
-  {
-    id: "bep20",
-    name: "BSC (BEP20)",
-    symbol: "BNB",
-    fee: "Network fee: $0.5-1",
-  },
-  {
-    id: "avaxc",
-    name: "Avalanche C-Chain",
-    symbol: "AVAX",
-    fee: "Network fee: $0.5-1",
-  },
-  { id: "sol", name: "Solana", symbol: "SOL", fee: "Network fee: $0.01-0.1" },
-  { id: "ton", name: "Toncoin", symbol: "TON", fee: "Network fee: $0.1-0.5" },
+  { id: "erc20", name: "Ethereum (ERC20)", symbol: "ETH" },
+  { id: "trc20", name: "Tron (TRC20)", symbol: "TRX" },
+  { id: "bep20", name: "BSC (BEP20)", symbol: "BNB" },
+  { id: "avaxc", name: "Avalanche C-Chain", symbol: "AVAX" },
+  { id: "sol", name: "Solana", symbol: "SOL" },
+  { id: "ton", name: "Toncoin", symbol: "TON" },
 ];
 
 const NETWORK_ADDRESSES = {
-  erc20: "0x742d35Cc6634C0532925a3b8Dc9B6e7f6C5A8E1F",
-  trc20: "TXYZ1234567890abcdefghijklmnopqrstuvw",
-  bep20: "0x8Ba1f109551bD432803012645Ac136ddd64DBA72",
-  avaxc: "0x9Ab3FD5c9d5e6B6d6C9B9E8D8F7A6D5C4B3A2E1F",
-  sol: "7Z5XWY6ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789",
-  ton: "EQABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz",
+  erc20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+  trc20: "TP4aBJBJaRL8Qumcb9TTGxecxryQhh8LTT",
+  bep20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+  avaxc: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+  sol: "Acw24wYJFWhQyk9NR8EHdpCAr53Wsuf1X78A2UPsvWDf",
+  ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
 };
 
 export default function CryptoBillingPage() {
@@ -87,19 +68,20 @@ export default function CryptoBillingPage() {
     }
   }, [paymentStatus, confirmTimer]);
 
-  // 5-minute processing timer + periodic verification (changed from 10s to 60s)
+  // 🕒 5-minute countdown timer + periodic verification
   useEffect(() => {
     if (paymentStatus === "processing") {
       const startTime = Date.now();
+      const totalTime = 300; // 5 minutes = 300s
       localStorage.setItem("cryptoPaymentInitiated", startTime.toString());
 
-      // Run every second for UI timer + verification every 60 seconds
       const interval = setInterval(async () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        setProcessingTime(elapsed);
+        const remaining = Math.max(totalTime - elapsed, 0);
+        setProcessingTime(remaining); // store remaining seconds
 
-        // ⏱️ Verify every 60 seconds (changed from 10s)
-        if (elapsed % 60 === 0) {
+        // ✅ Verify every 60 seconds
+        if (elapsed % 60 === 0 && elapsed > 0) {
           try {
             const storedOrderId = localStorage.getItem("cryptoOrderId");
             if (!storedOrderId) return;
@@ -113,7 +95,6 @@ export default function CryptoBillingPage() {
             if (res.data.success) {
               clearInterval(interval);
               setPaymentStatus("success");
-
               router.push(
                 `/subscription-success?planName=${encodeURIComponent(
                   planName
@@ -125,14 +106,14 @@ export default function CryptoBillingPage() {
           }
         }
 
-        // 🕐 Timeout after 5 minutes (300s)
-        if (elapsed >= 300) {
+        // ⏰ Timeout after 5 minutes
+        if (elapsed >= totalTime) {
           clearInterval(interval);
           handlePaymentTimeout();
+          setShowModal(false);
         }
       }, 1000);
 
-      // Cleanup when status changes or component unmounts
       return () => clearInterval(interval);
     }
   }, [paymentStatus]);
@@ -150,6 +131,13 @@ export default function CryptoBillingPage() {
   const createCryptoOrder = async () => {
     try {
       console.log("🚀 Creating crypto order...");
+
+      // Calculate start and expiry dates like Razorpay
+      const now = new Date();
+      const expiry = new Date(now);
+      if (period === "yearly") expiry.setFullYear(expiry.getFullYear() + 1);
+      else expiry.setMonth(expiry.getMonth() + 1);
+
       const response = await axios.post(
         `${API_BASE}/api/crypto-payments/create-order`,
         {
@@ -158,12 +146,20 @@ export default function CryptoBillingPage() {
           amount,
           network: selectedNetwork,
           currency: "USDT",
+          startAt: now.toISOString(),
+          expiresAt: expiry.toISOString(),
         },
-        { withCredentials: true } // ✅ Required to set cookie
+        { withCredentials: true }
       );
 
       console.log("✅ Crypto order created successfully:", response.data);
-      return response.data.orderId; // ✅ Now orderId is returned
+
+      // Store in localStorage for later verification
+      localStorage.setItem("cryptoOrderId", response.data.orderId);
+      localStorage.setItem("cryptoPaymentStart", now.toISOString());
+      localStorage.setItem("cryptoPaymentExpiry", expiry.toISOString());
+
+      return response.data.orderId;
     } catch (error) {
       console.error("🔥 Failed to create crypto order:", error);
       throw new Error("Failed to create payment order");
@@ -210,6 +206,7 @@ export default function CryptoBillingPage() {
           if (res.data.success) {
             clearInterval(interval);
             setPaymentStatus("success");
+            setShowModal(false);
 
             router.push(
               `/subscription-success?planName=${encodeURIComponent(
@@ -243,7 +240,7 @@ export default function CryptoBillingPage() {
 
   const networkOptions = NETWORKS.map((network) => ({
     value: network.id,
-    label: `${network.name} (${network.symbol}) - ${network.fee}`,
+    label: `${network.name} (${network.symbol})`,
   }));
 
   return (
@@ -383,8 +380,7 @@ export default function CryptoBillingPage() {
                   <div className="flexRow gap_8">
                     <AlertCircle size={16} className="error" />
                     <span className="font_12">
-                      Only send USDT on {selectedNetworkData?.name}. Sending
-                      other tokens may result in permanent loss.
+                      Only send USDT on {selectedNetworkData?.name}.
                     </span>
                   </div>
 
@@ -439,6 +435,35 @@ export default function CryptoBillingPage() {
               >
                 {paymentStatus === "waiting" && (
                   <div className="flexClm gap_12">
+                    <div className="flexRow flexRow_stretch boxBg">
+                      <div className="flexClm gap_4">
+                        <span className="font_16 font_weight_600">
+                          Waiting for Confirmation
+                        </span>
+                        <span
+                          className="font_12"
+                          style={{ color: "var(--white-50)" }}
+                        >
+                          Kindly make the payment to the above address
+                        </span>
+                      </div>
+                      <div
+                        className="timer-circle"
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          borderRadius: "50%",
+                          border: "2px solid var(--primary)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <span className="timer-value font_20 font_weight_700">
+                          {confirmTimer}s
+                        </span>
+                      </div>
+                    </div>
                     <motion.div
                       className="chart_boxBg flexClm gap_24"
                       style={{ padding: "16px" }}
@@ -518,61 +543,32 @@ export default function CryptoBillingPage() {
                       <div className="flexRow gap_8">
                         <AlertCircle size={16} className="error" />
                         <span className="font_12">
-                          Only send USDT on {selectedNetworkData?.name}. Sending
-                          other tokens may result in permanent loss.
+                          Only send USDT on {selectedNetworkData?.name}.
                         </span>
                       </div>
                     </motion.div>
-
-                    <div className="flexRow flexRow_stretch boxBg">
-                      <div className="flexClm gap_4">
-                        <span className="font_16 font_weight_600">
-                          Waiting for Confirmation
-                        </span>
-                        <span
-                          className="font_12"
-                          style={{ color: "var(--white-50)" }}
-                        >
-                          Kindly make the payment to the above address
-                        </span>
-                      </div>
-                      <div
-                        className="timer-circle"
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          borderRadius: "50%",
-                          border: "2px solid var(--primary)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span className="timer-value font_20 font_weight_700">
-                          {confirmTimer}s
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 )}
 
                 {paymentStatus === "confirming" && (
                   <div className="verify-section">
-                    <div className="verify-header text-center">
-                      <Shield size={48} className="vector" />
-                      <h3 className="font_18 font_weight_600">
-                        Verify Payment
-                      </h3>
-                      <p
-                        className="font_14"
-                        style={{ color: "var(--white-50)" }}
-                      >
-                        Click verify to start payment verification process
-                      </p>
+                    <div className="flexRow gap_12">
+                      <ShieldCheckIcon size={48} className="vector" />
+                      <div className="flexClm gap_4">
+                        <span className="font_18 font_weight_600">
+                          Verify Payment
+                        </span>
+                        <span
+                          className="font_14"
+                          style={{ color: "var(--white-50)" }}
+                        >
+                          Click verify to start payment verification process
+                        </span>
+                      </div>
                     </div>
 
                     <motion.button
-                      className="button_pri flexRow gap_8 flex_center"
+                      className="upgrade_btn flexRow gap_8 flex_center"
                       style={{ width: "100%", marginTop: "24px" }}
                       onClick={handleVerifyPayment}
                       whileHover={{ scale: 1.02 }}
@@ -585,51 +581,92 @@ export default function CryptoBillingPage() {
                 )}
 
                 {paymentStatus === "processing" && (
-                  <div className="verifying-section">
-                    <div className="verifying-header text-center">
-                      <motion.div className="spinner">
-                        {/* < size={48} className="vector" /> */}
-                      </motion.div>
-                      <h3 className="font_18 font_weight_600">
-                        Verifying Payment
-                      </h3>
-                      <p
-                        className="font_14"
-                        style={{ color: "var(--white-50)" }}
-                      >
-                        Checking your transaction on the blockchain
-                      </p>
-                    </div>
-
+                  <div className="flexClm gap_24">
+                    {/* Progress Bar */}
                     <div
-                      className="processing-details"
-                      style={{ textAlign: "center", margin: "20px 0" }}
+                      style={{
+                        display: "flex",
+                        gap: "4px",
+                        width: "100%",
+                        marginTop: "12px",
+                      }}
                     >
-                      <div
-                        className="time-elapsed"
-                        style={{ marginBottom: "12px" }}
-                      >
-                        <span className="font_14">Time Elapsed:</span>
-                        <span
-                          className="font_16 font_weight_600"
-                          style={{ marginLeft: "8px" }}
-                        >
-                          {Math.floor(processingTime / 60)}m{" "}
-                          {processingTime % 60}s
-                        </span>
-                      </div>
-                      <div className="verification-attempts">
-                        <span className="font_14">Verification Checks:</span>
-                        <span
-                          className="font_16 font_weight_600"
-                          style={{ marginLeft: "8px" }}
-                        >
-                          {verificationAttempts}
-                        </span>
-                      </div>
+                      {[0, 1, 2, 3].map((barIndex) => {
+                        const elapsed = 300 - processingTime;
+                        let fillPercent = 0;
+
+                        if (barIndex === 0)
+                          fillPercent = Math.min((elapsed / 30) * 100, 100);
+                        else if (barIndex === 1)
+                          fillPercent = Math.min(
+                            ((elapsed - 30) / 30) * 100,
+                            100
+                          );
+                        else if (barIndex === 2)
+                          fillPercent = Math.min(
+                            ((elapsed - 60) / 30) * 100,
+                            100
+                          );
+                        else if (barIndex === 3)
+                          fillPercent = Math.min(
+                            ((elapsed - 90) / 180) * 100,
+                            100
+                          );
+
+                        fillPercent = Math.max(0, Math.min(100, fillPercent));
+
+                        return (
+                          <div
+                            key={barIndex}
+                            style={{
+                              flex: 1,
+                              height: "6px",
+                              background: "rgba(255,255,255,0.1)",
+                              borderRadius: "4px",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                height: "100%",
+                                width: `${fillPercent}%`,
+                                background: "var(--success)",
+                                transition: "width 1s linear",
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
 
-                    <div className="processing-note flexRow gap_8 flex_center">
+                    <div className="flexRow flexRow_stretch gap_12">
+                      <div className="flexClm">
+                        <span className="font_18 font_weight_600">
+                          Verifying Payment
+                        </span>
+                        <span
+                          className="font_14"
+                          style={{ color: "var(--white-50)" }}
+                        >
+                          Verifying and processing your transaction...
+                        </span>
+                      </div>
+                      <div className="flexRow gap_12">
+                        <span
+                          className="font_16 font_weight_600"
+                          style={{ marginLeft: "8px" }}
+                        >
+                          {Math.floor(processingTime / 60)}:
+                          {(processingTime % 60).toString().padStart(2, "0")}
+                        </span>
+                        <motion.div className="spinner">
+                          {/* < size={48} className="vector" /> */}
+                        </motion.div>
+                      </div>
+                    </div>
+                    <hr width={100} color="grey" />
+
+                    <div className=" flexRow gap_8">
                       <Clock size={16} className="vector" />
                       <span className="font_12">
                         This may take up to 5 minutes. Please don't close this
@@ -662,32 +699,39 @@ export default function CryptoBillingPage() {
         <AnimatePresence>
           {paymentStatus === "failed" && (
             <motion.div
-              className="failed-section chart_boxBg"
+              className="flexClm gap_24 chart_boxBg"
+              style={{ padding: "16px" }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="failed-header text-center">
-                <AlertCircle size={48} className="error" />
-                <h3 className="font_18 font_weight_600">
-                  Payment Not Detected
-                </h3>
-                <p className="font_14" style={{ color: "var(--white-50)" }}>
-                  We couldn't verify your payment within the expected time.
-                </p>
+              <div className="flexClm gap_12">
+                <AlertCircle size={32} className="error" />
+                <div className="flexClm">
+                  <span className="font_18 font_weight_600">
+                    Payment Not Detected
+                  </span>
+                  <span
+                    className="font_14"
+                    style={{ color: "var(--white-50)" }}
+                  >
+                    We couldn't verify your payment within the expected time.
+                    Contact us if you have made the payment
+                  </span>
+                </div>
               </div>
 
-              <div className="failed-actions">
+              <div className="flexRow gap_12">
                 <button
-                  className="retry-button"
+                  className="button_sec flexRow gap_12"
                   onClick={() => window.location.reload()}
                 >
                   <RefreshCw size={16} />
                   Try Again
                 </button>
                 <button
-                  className="support-button"
-                  onClick={() => router.push("/support")}
+                  className="button_ter flexRow gap_12"
+                  onClick={() => router.push("/contact")}
                 >
                   <Mail size={16} />
                   Contact Support
@@ -701,23 +745,36 @@ export default function CryptoBillingPage() {
         <AnimatePresence>
           {paymentStatus === "success" && (
             <motion.div
-              className="success-section chart_boxBg"
+              className="flexClm gap_24 chart_boxBg"
+              style={{ padding: "16px" }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="success-header text-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200 }}
+              <div className="flexClm gap_12">
+                <Check size={32} className="success" />
+                <div className="flexClm">
+                  <span className="font_18 font_weight_600">
+                    Payment Confirmed!
+                  </span>
+                  <span
+                    className="font_14"
+                    style={{ color: "var(--white-50)" }}
+                  >
+                    Your subscription is now active. You’ll be redirected
+                    shortly.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flexRow gap_12">
+                <button
+                  className="button_pri flexRow gap_12"
+                  onClick={() => router.push("/accounts")}
                 >
-                  <Check size={48} className="success" />
-                </motion.div>
-                <h3 className="font_18 font_weight_600">Payment Confirmed!</h3>
-                <p className="font_14" style={{ color: "var(--white-50)" }}>
-                  Your subscription is now active. Redirecting...
-                </p>
+                  <RefreshCw size={16} />
+                  Go to Dashboard
+                </button>
               </div>
             </motion.div>
           )}

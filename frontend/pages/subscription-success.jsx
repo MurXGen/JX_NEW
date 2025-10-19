@@ -35,13 +35,15 @@ export default function SubscriptionSuccess() {
       setChecking(false);
     }
   }, [router]);
+
   useEffect(() => {
-    // Trigger confetti immediately on mount
+    // 🎊 Trigger confetti immediately
     setShowConfetti(true);
 
     if (showConfetti) {
       const duration = 3 * 1000; // 3 seconds
       const animationEnd = Date.now() + duration;
+
       const defaults = {
         startVelocity: 30,
         spread: 360,
@@ -54,21 +56,25 @@ export default function SubscriptionSuccess() {
 
         if (timeLeft <= 0) {
           clearInterval(interval);
+          // ⏩ Redirect after confetti stops
+          router.push("/");
           return;
         }
 
-        const particleCount = 5 + Math.random() * 5; // particles per tick
+        const particleCount = 5 + Math.random() * 5;
         confetti({
           ...defaults,
           particleCount,
           origin: {
-            x: Math.random(), // random horizontal start
-            y: 0, // always start from top
+            x: Math.random(),
+            y: 0,
           },
         });
       }, 250);
+
+      return () => clearInterval(interval);
     }
-  }, [showConfetti]);
+  }, [showConfetti, router]);
 
   useEffect(() => {
     const planName = searchParams.get("planName") || "Pro Plan";
