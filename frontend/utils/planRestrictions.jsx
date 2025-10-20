@@ -1,6 +1,6 @@
-import { getFromIndexedDB } from "./indexedDB"; // adjust path if needed
+import { getFromIndexedDB } from "./indexedDB";
+import dayjs from "dayjs";
 
-// 🧾 Plan Rules Definition
 const PLAN_RULES = {
   Free: {
     tradeLimitPerMonth: 10,
@@ -56,53 +56,103 @@ const PLAN_RULES = {
   },
 };
 
-// 🧩 Helper: Get plan rules from userData
+// Get plan rules
 export const getPlanRules = (userData) => {
   const planName =
     userData?.subscription?.planId ||
     userData?.subscription?.planName ||
     "Free";
+  console.log("[DEBUG] User plan:", planName);
   return PLAN_RULES[planName] || PLAN_RULES.Free;
 };
 
-// ✅ Check if user can add a trade
-export const canAddTrade = (userData, tradesCountThisMonth) => {
+// Check if user can add a trade
+export const canAddTrade = async (userData) => {
   const rules = getPlanRules(userData);
-  return tradesCountThisMonth < rules.tradeLimitPerMonth;
+  if (rules.tradeLimitPerMonth === Infinity) return true;
+
+  const trades = userData.trades || [];
+  const now = dayjs();
+
+  const tradesThisMonth = trades.filter((t) => {
+    if (!t.openTime) return false;
+    const tradeDate = dayjs(t.openTime);
+    const valid =
+      tradeDate.isValid() &&
+      tradeDate.month() === now.month() &&
+      tradeDate.year() === now.year();
+    console.log("[DEBUG] Trade date:", t.openTime, "Valid this month?", valid);
+    return valid;
+  }).length;
+
+  console.log(
+    "[DEBUG] Trades this month:",
+    tradesThisMonth,
+    "Limit:",
+    rules.tradeLimitPerMonth
+  );
+  return tradesThisMonth < rules.tradeLimitPerMonth;
 };
 
-// ✅ Check if user can add an account
+// Check if user can add an account
 export const canAddAccount = (userData, accountCount) => {
   const rules = getPlanRules(userData);
-  return accountCount <= rules.accountLimit;
+  console.log("[DEBUG] Accounts:", accountCount, "Limit:", rules.accountLimit);
+  return accountCount < rules.accountLimit;
 };
 
-// ✅ Check image upload eligibility
-export const canUploadImage = (
-  userData,
-  uploadedImagesThisMonth,
-  fileSizeMB
-) => {
+// Check image upload eligibility
+export const canUploadImage = async (userData, newImageSizeMB) => {
   const rules = getPlanRules(userData);
+  console.log(
+    "[DEBUG] New image size:",
+    newImageSizeMB,
+    "Max allowed:",
+    rules.maxImageSizeMB
+  );
   if (!rules.canUploadImages) return false;
-  if (fileSizeMB > rules.maxImageSizeMB) return false;
-  if (uploadedImagesThisMonth >= rules.imageLimitPerMonth) return false;
-  return true;
+  if (newImageSizeMB > rules.maxImageSizeMB) return false;
+  if (rules.imageLimitPerMonth === Infinity) return true;
+
+  const trades = userData.trades || [];
+  let imagesThisMonth = 0;
+  const now = dayjs();
+
+  trades.forEach((trade) => {
+    if (!trade.openTime) return;
+    const tradeDate = dayjs(trade.openTime);
+    if (
+      tradeDate.isValid() &&
+      tradeDate.month() === now.month() &&
+      tradeDate.year() === now.year()
+    ) {
+      if (trade.openImageUrl) imagesThisMonth += 1;
+      if (trade.closeImageUrl) imagesThisMonth += 1;
+    }
+  });
+
+  console.log(
+    "[DEBUG] Images this month:",
+    imagesThisMonth,
+    "Limit:",
+    rules.imageLimitPerMonth
+  );
+  return imagesThisMonth < rules.imageLimitPerMonth;
 };
 
-// ✅ Check feature access (generic)
+// Generic feature access
 export const canAccessFeature = (userData, feature) => {
   const rules = getPlanRules(userData);
   return rules[`canAccess${feature}`] || false;
 };
 
-// ✅ Get trade history limit (in days)
+// Trade history limit
 export const getTradeHistoryLimit = (userData) => {
   const rules = getPlanRules(userData);
   return rules.tradeHistoryDays;
 };
 
-// ✅ Wrapper: Get rules directly from IndexedDB
+// Wrapper: get rules from IndexedDB
 export const getCurrentPlanRules = async () => {
   const userData = await getFromIndexedDB("user-data");
   return getPlanRules(userData);

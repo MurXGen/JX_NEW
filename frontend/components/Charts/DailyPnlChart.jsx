@@ -135,7 +135,7 @@ const DailyPnlChart = ({ data }) => {
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
-          margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+          margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
         >
           <defs>
             {/* Positive (green) */}
@@ -178,51 +178,45 @@ const DailyPnlChart = ({ data }) => {
             dataKey={(entry) => [entry.low, entry.high]}
             fill="#8884d8"
             shape={(props) => {
-              const { open, close, high, low, isPadding } = props.payload;
+              const { x, y, width, height, payload } = props;
+              const { open, close, high, low, isPadding } = payload;
 
-              if (isPadding) {
-                // 👇 Don't render anything for padding dates
-                return null;
-              }
+              if (isPadding) return null; // skip padding
 
               const isPositive = close >= open;
-              const fill = isPositive
+              const fillColor = isPositive
                 ? "url(#candlePositive)"
                 : "url(#candleNegative)";
-              const stroke = isPositive ? "#16A34A" : "#B91C1C";
+              const strokeColor = isPositive ? "#16A34A" : "#B91C1C";
 
-              // Calculate candle body
-              const yHigh = Math.min(high, Math.max(open, close));
-              const yLow = Math.max(low, Math.min(open, close));
-              const barHeight = Math.abs(close - open);
+              const bodyHeight = Math.max(Math.abs(close - open), 2); // ensure min height
+              const yPos = isPositive
+                ? y + ((high - close) / (high - low)) * height
+                : y + ((high - open) / (high - low)) * height;
 
               return (
                 <g>
                   {/* Wick */}
                   <line
-                    x1={props.x + props.width / 2}
-                    y1={props.y}
-                    x2={props.x + props.width / 2}
-                    y2={props.y + props.height}
-                    stroke={stroke}
+                    x1={x + width / 2}
+                    y1={y}
+                    x2={x + width / 2}
+                    y2={y + height}
+                    stroke={strokeColor}
                     strokeWidth={1}
                   />
 
-                  {/* Candle body */}
+                  {/* Candle body with rounded corners */}
                   <rect
-                    x={props.x + props.width * 0.15}
-                    y={
-                      props.y +
-                      ((high - Math.max(open, close)) / (high - low)) *
-                        props.height
-                    }
-                    width={props.width * 0.7}
-                    height={(barHeight / (high - low)) * props.height || 2}
-                    fill={fill}
-                    stroke={stroke}
+                    x={x + width * 0.15}
+                    y={yPos}
+                    width={width * 0.7}
+                    height={(bodyHeight / (high - low)) * height || 2}
+                    fill={fillColor}
+                    stroke={strokeColor}
                     strokeWidth={1}
-                    rx={3}
-                    ry={3}
+                    rx={12} // horizontal corner radius
+                    ry={12} // vertical corner radius
                   />
                 </g>
               );

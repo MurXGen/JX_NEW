@@ -152,7 +152,6 @@ function Accounts() {
     const fetchAccountsAndTrades = async () => {
       try {
         const cachedUserData = await getFromIndexedDB("user-data");
-        console.log("🗂 Full cachedUserData from IndexedDB:", cachedUserData);
 
         // ✅ Directly use cachedUserData (not cachedUserData.userData)
         const userData = cachedUserData;

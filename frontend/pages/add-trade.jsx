@@ -23,6 +23,8 @@ import { getFromIndexedDB } from "@/utils/indexedDB";
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
+import { canAddTrade, canUploadImage } from "@/utils/planRestrictions";
+import PlanLimitModal from "@/components/ui/PlanLimitModal";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -34,6 +36,9 @@ export default function AddTrade() {
   const [toast, setToast] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [activeGrid, setActiveGrid] = useState(null);
+
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planModalMessage, setPlanModalMessage] = useState("");
 
   const statuses = [
     { value: "running", label: "Running" },
@@ -78,7 +83,7 @@ export default function AddTrade() {
     avgSLPrice: "",
     avgTPPrice: "",
     openTime: getLocalDateTime(),
-    closeTime: null,
+    closeTime: getLocalDateTime(),
 
     // Fee Fields
     feeType: "percent", // one type for both open/close
@@ -817,6 +822,32 @@ export default function AddTrade() {
   const handleSubmit = async (e) => {
     if (e?.preventDefault) e.preventDefault();
 
+    // 🟢 Get user data
+    const userData = await getFromIndexedDB("user-data");
+
+    // ✅ Check trade limit
+    const tradeAllowed = await canAddTrade(userData);
+    if (!tradeAllowed) {
+      setPlanModalMessage("You’ve reached your monthly trade limit!");
+      setShowPlanModal(true);
+      return;
+    }
+
+    // ✅ Calculate total file size (in MB)
+    const totalFileSize =
+      ((form.openImage?.size || 0) + (form.closeImage?.size || 0)) /
+      (1024 * 1024); // bytes → MB
+
+    console.log("[DEBUG] totalFileSize (MB):", totalFileSize);
+
+    // ✅ Check image upload eligibility
+    const imageAllowed = await canUploadImage(userData, totalFileSize);
+    if (!imageAllowed) {
+      setPlanModalMessage("You’ve reached your monthly image upload limit!");
+      setShowPlanModal(true);
+      return;
+    }
+
     const totalQuantity = parseFloat(form.totalQuantity) || 0;
     const pnl = parseFloat(form.pnl) || 0;
 
@@ -1212,6 +1243,12 @@ export default function AddTrade() {
               : "Submit Trade"}
           </button>
         </div>
+
+        <PlanLimitModal
+          isOpen={showPlanModal}
+          onKeep={() => setShowPlanModal(false)}
+          onUpgrade={() => router.push("/pricing")}
+        />
 
         <BackgroundBlur />
 

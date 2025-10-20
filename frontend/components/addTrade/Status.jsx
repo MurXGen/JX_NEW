@@ -11,7 +11,7 @@ const TradeStatusGrid = ({ form, handleChange, statuses }) => {
       case "quick":
         return (
           <motion.div className="vector">
-            <Zap size={18} color="#FFD700" />
+            <Zap size={14} color="#FFD700" />
           </motion.div>
         );
       default:

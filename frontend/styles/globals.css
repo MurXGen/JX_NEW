@@ -392,7 +392,7 @@ input:focus {
 }
 
 button {
-  font-weight: 600;
+  font-weight: 500;
   transition-duration: 0.1s;
 }
 
@@ -466,13 +466,13 @@ button:disabled {
 .popups_top.success {
   backdrop-filter: blur(10px);
   color: white;
-  border: 1px solid var(--success);
+  background: var(--white-10);
 }
 
 .popups_top.error {
   backdrop-filter: blur(10px);
   color: white;
-  border: 1px solid var(--error);
+  background: var(--white-10);
 }
 
 @keyframes popupFade {
@@ -3162,20 +3162,19 @@ footer {
 
 @media (min-width: 0px) {
   .stepper-scroll-wrapper {
-    display: grid;
-    grid-template-columns: 80% 17%;
-    gap: 3%;
   }
 
   .stepWizard {
     position: relative;
   }
 
-  /* .stepNavigation {
-    position: absolute;
-    top: 72px;
-    right: 1px;
-  } */
+  .stepNavigation {
+    position: fixed;
+    bottom: 12%;
+    right: 4%;
+    z-index: 10000;
+    box-shadow: 1px 1px 10px var(--base-box-bg);
+  }
 
   .stepperProgress {
     width: 100%;

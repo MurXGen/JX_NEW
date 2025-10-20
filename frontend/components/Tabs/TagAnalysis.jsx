@@ -22,23 +22,6 @@ const TagAnalysis = ({ tagAnalysis }) => {
   const [viewMode, setViewMode] = useState("chart"); // "chart" or "list"
   const [sortBy, setSortBy] = useState("pnl"); // "pnl", "trades", "winRate"
 
-  if (!tagAnalysis || tagAnalysis.length === 0) {
-    return (
-      <div
-        className="flexRow flexRow_stretch chart_boxBg gap_12"
-        style={{ padding: "16px" }}
-      >
-        <div className=" flexClm gap_8">
-          <span className="font_16">No Tag Analysis Available</span>
-          <span className="font_12">Add reasons/tags while logging trades</span>
-        </div>
-        <span className="">
-          <Tag className="vector" />
-        </span>
-      </div>
-    );
-  }
-
   // Format tag names - remove brackets, capitalize first letter, and filter blank strings
   const formatTagName = (tagName) => {
     const capitalize = (str) =>
@@ -50,22 +33,21 @@ const TagAnalysis = ({ tagAnalysis }) => {
           const cleanedName = name.replace(/[\[\]"]/g, "").trim();
           return cleanedName ? capitalize(cleanedName) : null;
         })
-        .filter(Boolean) // Remove null/empty values
+        .filter(Boolean)
         .join(", ");
     }
 
     const cleanedName = String(tagName)
       .replace(/[\[\]"]/g, "")
       .trim();
-    return cleanedName ? capitalize(cleanedName) : "Untagged";
+    return cleanedName ? capitalize(cleanedName) : null; // return null for empty tags
   };
 
-  // Prepare data for charts with formatted names and filter out blank tags
-  const chartData = tagAnalysis
-    .map((tag, index) => {
+  // Filtered & formatted data
+  const filteredData = tagAnalysis
+    ?.map((tag, index) => {
       const formattedName = formatTagName(tag.tag);
-      // Skip tags that result in empty names after cleaning
-      if (!formattedName || formattedName === "Untagged") return null;
+      if (!formattedName) return null; // skip empty tags
 
       return {
         name: formattedName,
@@ -77,44 +59,38 @@ const TagAnalysis = ({ tagAnalysis }) => {
         colorIndex: index,
       };
     })
-    .filter(Boolean); // Remove null entries
+    .filter(Boolean); // remove nulls
 
-  // For Bar chart (signed values so negatives render below axis)
-  const barChartData = tagAnalysis
-    .map((tag, index) => {
-      const formattedName = formatTagName(tag.tag);
-      // Skip tags that result in empty names after cleaning
-      if (!formattedName || formattedName === "Untagged") return null;
+  // If no valid data, show "No Tag Analysis" message
+  if (!filteredData || filteredData.length === 0) {
+    return (
+      <div
+        className="flexRow flexRow_stretch chart_boxBg gap_12"
+        style={{ padding: "16px" }}
+      >
+        <div className="flexClm gap_8">
+          <span className="font_16">No Tag Analysis Available</span>
+          <span className="font_12">Add reasons/tags while logging trades</span>
+        </div>
+        <span>
+          <Tag className="vector" />
+        </span>
+      </div>
+    );
+  }
 
-      return {
-        name: formattedName,
-        value: tag.totalPnL,
-        trades: tag.totalTrades,
-        winRate: tag.winRate,
-        pnl: tag.totalPnL,
-        colorIndex: index,
-      };
-    })
-    .filter(Boolean); // Remove null entries
-
-  // Sort data based on current sort option and filter out blank tags
-  const sortedData = [...tagAnalysis]
-    .map((tag) => ({
-      ...tag,
-      formattedTag: formatTagName(tag.tag),
-    }))
-    .filter((tag) => tag.formattedTag && tag.formattedTag !== "Untagged") // Filter out blank tags
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "trades":
-          return b.totalTrades - a.totalTrades;
-        case "winRate":
-          return b.winRate - a.winRate;
-        case "pnl":
-        default:
-          return b.totalPnL - a.totalPnL;
-      }
-    });
+  // Now you can safely use filteredData for charts or tables
+  const sortedData = [...filteredData].sort((a, b) => {
+    switch (sortBy) {
+      case "trades":
+        return b.trades - a.trades;
+      case "winRate":
+        return b.winRate - a.winRate;
+      case "pnl":
+      default:
+        return b.pnl - a.pnl;
+    }
+  });
 
   // Colors for charts - same as pie chart
   const COLORS = [

@@ -41,7 +41,106 @@ export default function Overview({ stats, trades }) {
   return (
     <div className="overview flexClm gap_32">
       <div className="flexClm gap_24">
-        <span className="font_12">Chart analysis</span>
+        <span className="font_12">Advanced visual analysis</span>
+        <div className="greedAndFear flexRow flexRow_stretch chart_boxBg">
+          <div className="gfHeader flexClm gap_12">
+            <span className="font_12">Greed & Fear Index</span>
+            <span>{gfValue}</span>
+          </div>
+
+          {/* Gauge */}
+          <div className="gfGauge">
+            <svg width="130" height="80" viewBox="0 0 200 120">
+              {/* Background semi-circle */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke="#444"
+                strokeWidth="14"
+              />
+
+              {/* Colored stroke (Fear→Neutral→Greed) */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke="url(#gfGradient)"
+                strokeWidth="14"
+                strokeLinecap="round"
+              />
+
+              <defs>
+                <linearGradient id="gfGradient" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#ef4444" /> {/* Fear */}
+                  <stop offset="50%" stopColor="#fbbf24" /> {/* Neutral */}
+                  <stop offset="100%" stopColor="#22c55e" /> {/* Greed */}
+                </linearGradient>
+              </defs>
+
+              {/* Needle */}
+              <line
+                x1="100"
+                y1="100"
+                x2="100"
+                y2="25"
+                stroke="white"
+                strokeWidth="3"
+                transform={`rotate(${angle} 100 100)`}
+              />
+
+              {/* Circle pivot */}
+              <circle cx="100" cy="100" r="5" fill="white" />
+
+              {/* Needle tip circle with value */}
+              {(() => {
+                // Needle tip calculation
+                const length = 75; // length of the needle
+                const rad = (angle * Math.PI) / 180; // convert angle to radians
+                const tipX = 100 + length * Math.cos(rad - Math.PI / 2); // adjust because SVG y-axis
+                const tipY = 100 + length * Math.sin(rad - Math.PI / 2);
+
+                return (
+                  <>
+                    <circle
+                      cx={tipX}
+                      cy={tipY}
+                      r={20}
+                      fill="white"
+                      stroke="#000"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={tipX}
+                      y={tipY + 5} // +5 to vertically center the number
+                      textAnchor="middle"
+                      fontSize="16"
+                      fontWeight="bold"
+                      fill="#000"
+                    >
+                      {gfValue}
+                    </text>
+                  </>
+                );
+              })()}
+
+              {/* Label below semicircle */}
+              <text
+                x="100"
+                y="115"
+                textAnchor="middle"
+                fontSize="14"
+                fill={
+                  gfLabel === "Fear"
+                    ? "#ef4444"
+                    : gfLabel === "Greed"
+                    ? "#22c55e"
+                    : "#fbbf24"
+                }
+              >
+                {gfLabel}
+              </text>
+            </svg>
+          </div>
+        </div>
         <div
           className="pnlChart chart_boxBg flexClm gap_12"
           style={{ padding: "16px 16px" }}
@@ -159,105 +258,6 @@ export default function Overview({ stats, trades }) {
 
         <div>
           <TagAnalysis tagAnalysis={stats?.tagAnalysis} />
-        </div>
-        <div className="greedAndFear flexRow flexRow_stretch chart_boxBg">
-          <div className="gfHeader flexClm gap_12">
-            <span className="font_12">Greed & Fear Index</span>
-            <span>{gfValue}</span>
-          </div>
-
-          {/* Gauge */}
-          <div className="gfGauge">
-            <svg width="130" height="80" viewBox="0 0 200 120">
-              {/* Background semi-circle */}
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="#444"
-                strokeWidth="14"
-              />
-
-              {/* Colored stroke (Fear→Neutral→Greed) */}
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="url(#gfGradient)"
-                strokeWidth="14"
-                strokeLinecap="round"
-              />
-
-              <defs>
-                <linearGradient id="gfGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#ef4444" /> {/* Fear */}
-                  <stop offset="50%" stopColor="#fbbf24" /> {/* Neutral */}
-                  <stop offset="100%" stopColor="#22c55e" /> {/* Greed */}
-                </linearGradient>
-              </defs>
-
-              {/* Needle */}
-              <line
-                x1="100"
-                y1="100"
-                x2="100"
-                y2="25"
-                stroke="white"
-                strokeWidth="3"
-                transform={`rotate(${angle} 100 100)`}
-              />
-
-              {/* Circle pivot */}
-              <circle cx="100" cy="100" r="5" fill="white" />
-
-              {/* Needle tip circle with value */}
-              {(() => {
-                // Needle tip calculation
-                const length = 75; // length of the needle
-                const rad = (angle * Math.PI) / 180; // convert angle to radians
-                const tipX = 100 + length * Math.cos(rad - Math.PI / 2); // adjust because SVG y-axis
-                const tipY = 100 + length * Math.sin(rad - Math.PI / 2);
-
-                return (
-                  <>
-                    <circle
-                      cx={tipX}
-                      cy={tipY}
-                      r={20}
-                      fill="white"
-                      stroke="#000"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={tipX}
-                      y={tipY + 5} // +5 to vertically center the number
-                      textAnchor="middle"
-                      fontSize="16"
-                      fontWeight="bold"
-                      fill="#000"
-                    >
-                      {gfValue}
-                    </text>
-                  </>
-                );
-              })()}
-
-              {/* Label below semicircle */}
-              <text
-                x="100"
-                y="115"
-                textAnchor="middle"
-                fontSize="14"
-                fill={
-                  gfLabel === "Fear"
-                    ? "#ef4444"
-                    : gfLabel === "Greed"
-                    ? "#22c55e"
-                    : "#fbbf24"
-                }
-              >
-                {gfLabel}
-              </text>
-            </svg>
-          </div>
         </div>
       </div>
 

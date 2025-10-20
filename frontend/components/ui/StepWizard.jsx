@@ -137,7 +137,10 @@ const StepWizard = ({ grids, onFinish }) => {
           ))}
         </div>
         {/* Navigation */}
-        <div className="stepNavigation flexClm flexRow_stretch flex_center gap_12">
+        <div
+          className="stepNavigation flexClm flexRow_stretch flex_center gap_12"
+          style={{}}
+        >
           {step > 0 && (
             <button
               className="button_ter width100"
