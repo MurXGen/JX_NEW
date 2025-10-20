@@ -1,8 +1,8 @@
 // utils/indexedDB.js
-import { openDB } from 'idb';
+import { openDB } from "idb";
 
-const DB_NAME = 'JX';
-const STORE_NAME = 'userData';
+const DB_NAME = "JX";
+const STORE_NAME = "userData";
 const DB_VERSION = 1;
 
 // Initialize DB
@@ -16,7 +16,6 @@ export const initDB = async () => {
       },
     });
   } catch (error) {
-    console.error("IndexedDB initialization failed:", error);
     return null;
   }
 };
@@ -33,9 +32,7 @@ export const saveToIndexedDB = async (key, data, expiryMs = null) => {
     };
 
     await db.put(STORE_NAME, payload, key);
-  } catch (error) {
-    console.error(`Error saving ${key} to IndexedDB:`, error);
-  }
+  } catch (error) {}
 };
 
 // Get item (checks expiry if set)
@@ -55,7 +52,6 @@ export const getFromIndexedDB = async (key) => {
 
     return stored.value;
   } catch (error) {
-    console.error(`Error getting ${key} from IndexedDB:`, error);
     return null;
   }
 };
@@ -66,9 +62,7 @@ export const deleteFromIndexedDB = async (key) => {
     const db = await initDB();
     if (!db) return;
     await db.delete(STORE_NAME, key);
-  } catch (error) {
-    console.error(`Error deleting ${key} from IndexedDB:`, error);
-  }
+  } catch (error) {}
 };
 
 // Clear all data
@@ -77,7 +71,5 @@ export const clearIndexedDB = async () => {
     const db = await initDB();
     if (!db) return;
     await db.clear(STORE_NAME);
-  } catch (error) {
-    console.error("Error clearing IndexedDB:", error);
-  }
+  } catch (error) {}
 };

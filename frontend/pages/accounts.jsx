@@ -1,26 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Cookies from "js-cookie";
-import Head from "next/head";
-import { useRouter } from "next/router";
-import axios from "axios";
-import {
-  ArrowDown,
-  ArrowRight,
-  Loader2,
-  LucideLassoSelect,
-  Plus,
-} from "lucide-react";
-import { FiDatabase } from "react-icons/fi";
-import { getFromIndexedDB } from "@/utils/indexedDB";
-import { motion } from "framer-motion";
-import { containerVariants, childVariants } from "@/animations/motionVariants";
-import { saveToIndexedDB } from "@/utils/indexedDB";
+import { childVariants, containerVariants } from "@/animations/motionVariants";
 import Navbar from "@/components/Trades/Navbar";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import { formatCurrency } from "@/utils/formatNumbers";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import { formatCurrency } from "@/utils/formatNumbers";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import axios from "axios";
+import { motion } from "framer-motion";
+import Cookies from "js-cookie";
+import { ArrowRight, Plus } from "lucide-react";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { FiDatabase } from "react-icons/fi";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -152,7 +145,6 @@ function Accounts() {
     const fetchAccountsAndTrades = async () => {
       try {
         const cachedUserData = await getFromIndexedDB("user-data");
-        console.log("🗂 Full cachedUserData from IndexedDB:", cachedUserData);
 
         // ✅ Directly use cachedUserData (not cachedUserData.userData)
         const userData = cachedUserData;
@@ -195,7 +187,6 @@ function Accounts() {
           );
         }
       } catch (err) {
-        console.error("❌ Error fetching accounts/trades:", err);
       } finally {
         setLoading(false); // ✅ Stop loader
       }
@@ -233,13 +224,9 @@ function Accounts() {
         expires: 1 / 24, // 1 hour
       });
 
-      console.log("Account ID saved to cookies:", accountId);
-
       // 2️⃣ Redirect to home page
       router.push("/");
-    } catch (err) {
-      console.error("❌ Failed to set accountId cookie:", err);
-    }
+    } catch (err) {}
   };
 
   const handleClick = async () => {

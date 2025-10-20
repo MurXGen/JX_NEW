@@ -1,24 +1,23 @@
 // components/Profile/SubscriptionStatus.jsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { getFromIndexedDB } from "@/utils/indexedDB";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Crown,
-  Zap,
-  Star,
-  Check,
-  Clock,
   AlertCircle,
   Calendar,
+  Check,
+  Clock,
+  Crown,
   Rocket,
-  Sparkles,
-  TrendingUp,
   Shield,
+  Sparkles,
+  Star,
   Users,
+  Zap,
 } from "lucide-react";
-import { getFromIndexedDB } from "@/utils/indexedDB";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import FullPageLoader from "../ui/FullPageLoader";
 
 const SubscriptionStatus = () => {
@@ -64,7 +63,6 @@ const SubscriptionStatus = () => {
         setTimeRemaining(remainingText);
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
     } finally {
       setIsLoading(false);
     }

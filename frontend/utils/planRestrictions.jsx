@@ -1,6 +1,6 @@
-import { getFromIndexedDB } from "./indexedDB";
 import dayjs from "dayjs";
 import Cookies from "js-cookie"; // for active account
+import { getFromIndexedDB } from "./indexedDB";
 
 const PLAN_RULES = {
   free: {
@@ -64,7 +64,6 @@ export const getPlanRules = (userData) => {
     userData?.subscription?.planName ||
     "free";
   const planName = planId.toLowerCase();
-  console.log("[DEBUG] User plan:", planName);
   return PLAN_RULES[planName] || PLAN_RULES.free;
 };
 
@@ -104,7 +103,6 @@ export const canAddTrade = async (userData) => {
 // ✅ Check if user can add an account (global)
 export const canAddAccount = (userData, accountCount) => {
   const rules = getPlanRules(userData);
-  console.log("[DEBUG] Accounts:", accountCount, "Limit:", rules.accountLimit);
   return accountCount < rules.accountLimit;
 };
 

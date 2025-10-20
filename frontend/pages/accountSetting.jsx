@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Cookies from "js-cookie";
-import axios from "axios";
-import Head from "next/head";
-import { useRouter } from "next/navigation";
-import { formatCurrency } from "@/utils/formatNumbers";
-import { Pencil, Trash2, Repeat } from "lucide-react";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
-import { calculateStats } from "@/utils/calculateStats";
 import BottomBar from "@/components/Trades/BottomBar";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import ToastMessage from "@/components/ui/ToastMessage";
+import { calculateStats } from "@/utils/calculateStats";
+import { formatCurrency } from "@/utils/formatNumbers";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { Pencil, Repeat, Trash2 } from "lucide-react";
+import Head from "next/head";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -115,50 +115,39 @@ const AccountSetting = () => {
 
     try {
       const accountId = Cookies.get("accountId");
-      console.log("🟢 Deactivating accountId:", accountId);
 
       if (!accountId) {
         setAlertType("error");
         setAlertMessage("No active account selected");
         setDeleting(false);
-        console.warn("⚠️ No accountId found in cookies");
         return;
       }
 
       const url = `${API_BASE}/api/account/deactivate`;
-      console.log("🔗 Axios POST URL:", url);
 
       const payload = { accountId };
-      console.log("📦 Payload being sent:", payload);
 
       const res = await axios.post(url, payload, { withCredentials: true });
-      console.log("✅ Response received:", res.data);
 
       const { userData, message } = res.data;
 
       if (userData) {
-        console.log("💾 Saving updated userData to IndexedDB");
         await saveToIndexedDB("user-data", userData);
 
         setAlertType("success");
         setAlertMessage(message || "Account deactivated successfully!");
-        console.log("⏳ Redirecting to /accounts in 1.2s");
         setTimeout(() => {
           Cookies.remove("accountId");
           router.push("/accounts");
         }, 1200);
       }
     } catch (error) {
-      console.error("❌ Account deactivation failed:", error);
       setAlertType("error");
       setAlertMessage(
         error.response?.data?.message || "Failed to deactivate account"
       );
 
       if (error.response) {
-        console.error("📄 Server response:", error.response.data);
-        console.error("📌 Status:", error.response.status);
-        console.error("📌 Headers:", error.response.headers);
       }
     } finally {
       setDeleting(false);

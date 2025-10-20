@@ -222,7 +222,6 @@ router.post("/webhook", async (req, res) => {
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("Telegram webhook error", err);
     res.sendStatus(500);
   }
 });

@@ -1,24 +1,23 @@
 // components/Admin/AdminUsers.js
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  Filter,
-  Edit,
-  Save,
-  X,
-  User,
-  CreditCard,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  MoreVertical,
-  ChevronDown,
-  Download,
-} from "lucide-react";
 import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  CreditCard,
+  Download,
+  Edit,
+  Filter,
+  Save,
+  Search,
+  User,
+  X,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -41,7 +40,6 @@ export default function AdminUsers() {
         const res = await axios.get(`${API_BASE}/admin/users`);
         setUsers(res.data.users);
       } catch (err) {
-        console.error("Failed to fetch users:", err);
       } finally {
         setLoading(false);
       }
@@ -59,7 +57,6 @@ export default function AdminUsers() {
       const res = await axios.get(`${API_BASE}/admin/users/${userId}/orders`);
       setOrders(res.data.orders);
     } catch (err) {
-      console.error("Failed to fetch orders:", err);
       setOrders([]);
     }
   };
@@ -95,9 +92,7 @@ export default function AdminUsers() {
 
       setEditingOrderId(null);
       handleUserClick(selectedUser._id); // Refresh orders
-    } catch (err) {
-      console.error("Failed to update order:", err);
-    }
+    } catch (err) {}
   };
 
   // Cancel editing

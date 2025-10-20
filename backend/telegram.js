@@ -26,15 +26,13 @@
 //     );
 //     return response.data.secure_url;
 //   } catch (err) {
-//     console.error('Cloudinary upload error:', err.message);
-//     return null;
+//     //     return null;
 //   }
 // };
 
 // function askStopLoss(chatId) {
 //   return bot.sendMessage(chatId, '🚨 Enter Stop Loss (SL) price 1:');
 // }
-
 
 // // START command
 // bot.onText(/\/start/, async (msg) => {
@@ -69,8 +67,7 @@
 //     return bot.sendMessage(chatId, '📩 Please enter your email to continue:');
 
 //   } catch (err) {
-//     console.error('Error during /start:', err);
-//     return bot.sendMessage(chatId, '⚠️ An error occurred. Please try again later.');
+//     //     return bot.sendMessage(chatId, '⚠️ An error occurred. Please try again later.');
 //   }
 // });
 
@@ -126,7 +123,6 @@
 //       });
 //     }
 
-
 //     case 'awaiting_open_date_manual': {
 //       const date = text.trim();
 //       const valid = moment(date, 'DD-MM-YYYY', true).isValid();
@@ -171,7 +167,6 @@
 //       return askOpenImageConfirm(chatId);
 //     }
 
-
 //     case 'awaiting_close_date_manual': {
 //       const date = text.trim();
 //       const valid = moment(date, 'DD-MM-YYYY', true).isValid();
@@ -210,7 +205,6 @@
 //       return askOpenImageConfirm(chatId);
 //     }
 
-
 //     case 'awaiting_reason_manual':
 //       state.trade.reason = [text];
 //       state.step = 'awaiting_mood';
@@ -226,7 +220,6 @@
 //       state.trade.learnings = text.toLowerCase() === 'no' ? '' : text;
 //       return finalizeTrade(chatId);
 //     }
-
 
 //     case /^awaiting_entry_\d+$/.test(state.step) && state.step: {
 //       const index = parseInt(state.step.split('_')[2]);
@@ -279,9 +272,7 @@
 //       state.step = 'awaiting_sl_price';
 //       return bot.sendMessage(chatId, '🚨 Enter Stop Loss (SL) price:');
 
-
 //     }
-
 
 //     case 'awaiting_entry_percent': {
 //       const percent = parseFloat(text);
@@ -349,13 +340,10 @@
 
 //     }
 
-
 //     case 'awaiting_sl': {
 //       state.step = 'awaiting_sl_price';
 //       return bot.sendMessage(chatId, '🚨 Enter Stop Loss (SL) price:');
 //     }
-
-
 
 //     case 'awaiting_sl_price': {
 //       const price = parseFloat(text);
@@ -452,8 +440,6 @@
 //       return askOpenImageConfirm(chatId);
 //     }
 
-
-
 //   }
 // });
 
@@ -504,7 +490,6 @@
 
 //     return bot.sendMessage(chatId, `💰 Enter quantity in ${label}:`);
 //   }
-
 
 //   if (['closed', 'running', 'quick'].includes(data)) {
 //     userStates[chatId].trade.tradeStatus = data;
@@ -680,7 +665,6 @@
 //     return askMood(chatId);
 //   }
 
-
 //   if (data.startsWith('mood_')) {
 //     const mood = data.replace('mood_', '');
 //     if (mood === 'other') {
@@ -722,7 +706,6 @@
 //     return finalizeTrade(chatId);
 //   }
 
-
 //   if (state.step.startsWith('awaiting_entry') && state.step.endsWith('allocation_method')) {
 //     const index = (state.trade.entries?.length || 0) + 1;
 
@@ -738,7 +721,6 @@
 //     }
 //   }
 
-
 //   if (state.step === 'awaiting_tp_allocation_method') {
 //     if (data === 'tp_alloc_percent') {
 //       state.step = 'awaiting_tp_percent';
@@ -752,9 +734,6 @@
 //     }
 
 //   }
-
-
-
 
 // });
 
@@ -797,7 +776,6 @@
 //   });
 // };
 
-
 // const askCloseImageConfirm = (chatId) => {
 //   userStates[chatId].step = 'ask_close_img_confirm';
 //   return bot.sendMessage(chatId, '📸 Do you want to upload a CLOSE image?', {
@@ -832,7 +810,6 @@
 //     }
 //   });
 // };
-
 
 // const askDirection = (chatId) => {
 //   userStates[chatId].step = 'awaiting_direction';
@@ -880,8 +857,6 @@
 //     reply_markup: { inline_keyboard: buttons }
 //   });
 // };
-
-
 
 // const finalizeTrade = async (chatId) => {
 //   const st = userStates[chatId];
@@ -959,11 +934,9 @@
 //       }
 //     });
 //   } catch (error) {
-//     console.error('❌ Trade submission failed:', error.response?.data || error.message);
-//     bot.sendMessage(chatId, '❌ Failed to save trade—please try again.');
+//     //     bot.sendMessage(chatId, '❌ Failed to save trade—please try again.');
 //   }
 
 //   // Clear trade data but keep lastTelegramCode
 //   delete st.trade;
 // };
-

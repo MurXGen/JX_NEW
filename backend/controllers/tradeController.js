@@ -36,14 +36,6 @@ async function uploadToB2(file, folder) {
 
   const key = `trades/${fileName}`; // must start with trades/
 
-  console.log("🔍 [B2 DEBUG] Preparing upload...");
-  console.log("   Bucket:   ", process.env.B2_BUCKET);
-  console.log("   Endpoint: ", process.env.B2_ENDPOINT);
-  console.log("   Region:   ", process.env.B2_REGION);
-  console.log("   Key:      ", key);
-  console.log("   File mimetype:", file.mimetype);
-  console.log("   File size (bytes):", file.size);
-
   const command = new PutObjectCommand({
     Bucket: process.env.B2_BUCKET,
     Key: key,
@@ -59,8 +51,6 @@ async function uploadToB2(file, folder) {
 
 exports.addTrade = async (req, res) => {
   try {
-    console.log("🔍 Cookies received:", req.cookies);
-
     const { body, files } = req;
     const accountId = req.body.accountId;
     const userId = req.cookies.userId;
@@ -124,7 +114,6 @@ exports.addTrade = async (req, res) => {
       userData,
     });
   } catch (err) {
-    console.error("[addTrade ERROR]:", err);
     res
       .status(500)
       .json({ success: false, message: err.message || "Failed to add trade" });
@@ -226,7 +215,6 @@ exports.updateTrade = async (req, res) => {
           oldTrade.openImageUrl !== trade.openImageUrl
         ) {
           await deleteImageFromB2(oldTrade.openImageUrl);
-          console.log("🗑 Deleted old openImage:", oldTrade.openImageUrl);
         }
 
         // Close image
@@ -235,14 +223,10 @@ exports.updateTrade = async (req, res) => {
           oldTrade.closeImageUrl !== trade.closeImageUrl
         ) {
           await deleteImageFromB2(oldTrade.closeImageUrl);
-          console.log("🗑 Deleted old closeImage:", oldTrade.closeImageUrl);
         }
-      } catch (cleanupErr) {
-        console.error("⚠️ Error deleting old images:", cleanupErr);
-      }
+      } catch (cleanupErr) {}
     });
   } catch (err) {
-    console.error("[updateTrade ERROR]:", err);
     res.status(500).json({
       success: false,
       message: err.message || "Error updating trade",
@@ -326,7 +310,6 @@ Each trade contains:
 
     res.json({ success: true, reply });
   } catch (err) {
-    console.error("❌ tradeChat error:", err);
     res
       .status(500)
       .json({ success: false, message: "Error processing trade insights" });
@@ -336,7 +319,6 @@ Each trade contains:
 exports.deleteTrade = async (req, res) => {
   try {
     const tradeId = req.cookies.TRADE_KEY || req.headers["x-trade-id"];
-    console.log("🪵 Deleting trade:", tradeId);
 
     if (!tradeId) {
       return res.status(400).json({ error: "Trade ID not found" });
@@ -349,7 +331,6 @@ exports.deleteTrade = async (req, res) => {
 
     // ✅ Delete trade
     await Trade.findByIdAndDelete(tradeId);
-    console.log("✅ Trade deleted from DB:", tradeId);
 
     const user = await User.findById(userId);
     const userData = await getUserData(user);
@@ -365,7 +346,6 @@ exports.deleteTrade = async (req, res) => {
     if (openImageUrl) deleteImageFromB2(openImageUrl);
     if (closeImageUrl) deleteImageFromB2(closeImageUrl);
   } catch (err) {
-    console.error("❌ Error deleting trade:", err);
     res.status(500).json({ error: "Failed to delete trade" });
   }
 };

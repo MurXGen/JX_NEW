@@ -26,7 +26,6 @@ export const login = async ({ email, password, turnstileToken }) => {
     );
     return res.data;
   } catch (err) {
-    console.error("Login error:", err.response?.data || err.message);
     throw err;
   }
 };

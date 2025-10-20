@@ -1,18 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
-import axios from "axios";
-import Head from "next/head";
-import { containerVariants, childVariants } from "@/animations/motionVariants";
-import { FcGoogle } from "react-icons/fc";
 import { register } from "@/api/auth";
 import Navbar from "@/components/Auth/Navbar";
-import ToastMessage from "@/components/ui/ToastMessage";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import ToastMessage from "@/components/ui/ToastMessage";
 import { Turnstile } from "@marsidev/react-turnstile";
+import axios from "axios";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
+import Head from "next/head";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FcGoogle } from "react-icons/fc";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -172,8 +170,6 @@ function Register() {
       setPassword("");
       setConfirmPassword("");
     } catch (err) {
-      console.error("Error during registration:", err);
-
       if (
         err.response?.status === 409 ||
         err.response?.data?.message === "User already exists. Please login."

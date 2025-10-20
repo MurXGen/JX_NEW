@@ -1,6 +1,5 @@
 "use client";
 
-import Head from "next/head";
 import EntriesSection from "@/components/addTrade/Entries";
 import ExitsSection from "@/components/addTrade/Exits";
 import TextAreaField from "@/components/addTrade/Learnings";
@@ -15,16 +14,17 @@ import TakeProfitSection from "@/components/addTrade/TP";
 import Ticker from "@/components/addTrade/Ticker";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import PlanLimitModal from "@/components/ui/PlanLimitModal";
 import StepWizard from "@/components/ui/StepWizard";
 import ToastMessage from "@/components/ui/ToastMessage";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { formatNumber } from "@/utils/formatNumbers"; //
 import { getFromIndexedDB } from "@/utils/indexedDB";
+import { canAddTrade, canUploadImage } from "@/utils/planRestrictions";
 import Cookies from "js-cookie";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { canAddTrade, canUploadImage } from "@/utils/planRestrictions";
-import PlanLimitModal from "@/components/ui/PlanLimitModal";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -352,11 +352,9 @@ export default function AddTrade() {
     const fetchAccounts = async () => {
       try {
         const cachedUser = await getFromIndexedDB("user-data");
-        console.log("📂 cachedUser:", cachedUser);
 
         if (cachedUser?.accounts?.length > 0) {
           const accountId = Cookies.get("accountId"); // ✅ active account from cookies
-          console.log("🍪 Active Account ID from cookies:", accountId);
 
           const activeAccount = cachedUser.accounts.find(
             (acc) => acc._id === accountId
@@ -370,11 +368,8 @@ export default function AddTrade() {
             );
           }
         } else {
-          console.warn("⚠ No accounts found in IndexedDB");
         }
-      } catch (err) {
-        console.error("❌ Error fetching accounts from IndexedDB:", err);
-      }
+      } catch (err) {}
     };
 
     fetchAccounts();
@@ -793,9 +788,7 @@ export default function AddTrade() {
         });
         // store per-field to avoid collisions
         localStorage.setItem(`newTradeImage_${field}`, payload);
-      } catch (err) {
-        console.error("Failed to save image to localStorage", err);
-      }
+      } catch (err) {}
     });
   }
 
@@ -837,8 +830,6 @@ export default function AddTrade() {
     const totalFileSize =
       ((form.openImage?.size || 0) + (form.closeImage?.size || 0)) /
       (1024 * 1024); // bytes → MB
-
-    console.log("[DEBUG] totalFileSize (MB):", totalFileSize);
 
     // ✅ Check image upload eligibility
     const imageAllowed = await canUploadImage(userData, totalFileSize);
@@ -922,7 +913,6 @@ export default function AddTrade() {
         query: { isNewTrade: "true" },
       });
     } catch (err) {
-      console.error(err);
       setToast({ type: "error", message: "Something went wrong." });
     } finally {
       setLoading(false);

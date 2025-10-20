@@ -1,20 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createAccount } from "@/api/auth";
-import { ArrowLeft, ArrowUpRight, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
-import { containerVariants, childVariants } from "@/animations/motionVariants";
-import axios from "axios";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
-import Navbar from "@/components/Trades/Navbar";
-import ToastMessage from "@/components/ui/ToastMessage";
+import { childVariants, containerVariants } from "@/animations/motionVariants";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import Cookies from "js-cookie";
-import { useSearchParams } from "next/navigation";
-import { canAddAccount } from "@/utils/planRestrictions";
 import PlanLimitModal from "@/components/ui/PlanLimitModal";
+import ToastMessage from "@/components/ui/ToastMessage";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { canAddAccount } from "@/utils/planRestrictions";
+import axios from "axios";
+import { motion } from "framer-motion";
+import Cookies from "js-cookie";
+import { ArrowUpRight, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -118,7 +115,6 @@ const CreateAccount = () => {
         router.push("/accounts");
       }, 1200);
     } catch (error) {
-      console.error("❌ Account operation failed:", error);
       setAlertType("error");
       setAlertMessage(
         error.response?.data?.message || "Failed to save account"

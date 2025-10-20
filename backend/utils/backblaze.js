@@ -19,17 +19,13 @@ async function deleteImageFromB2(fileUrl) {
       // fallback for B2 direct URLs
       const parts = fileUrl.split("/trades/");
       if (parts.length < 2) {
-        console.warn("⚠️ Invalid fileUrl format:", fileUrl);
         return;
       }
       fileName = "trades/" + decodeURIComponent(parts[1]);
     }
 
-    console.log("📝 Normalized fileName:", fileName);
-
     const fileId = await getFileId(fileName);
     if (!fileId) {
-      console.warn("⚠️ File not found in B2:", fileName);
       return;
     }
 
@@ -44,8 +40,6 @@ async function deleteImageFromB2(fileUrl) {
       fileName,
       fileId,
     });
-
-    console.log("🗑 Deleted image from B2:", fileName);
   } catch (err) {
     console.error(
       "❌ Error deleting image from B2:",

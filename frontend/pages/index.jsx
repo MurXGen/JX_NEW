@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Head from "next/head";
-import Cookies from "js-cookie";
-import { getFromIndexedDB } from "@/utils/indexedDB";
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import Overview from "@/components/Tabs/Overview";
 import LongShorts from "@/components/Tabs/Long_short";
-import TickerAnalysis from "@/components/Tabs/Ticketoverview";
 import MarketNews from "@/components/Tabs/MarketNews";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import Navbar from "@/components/Trades/Navbar";
+import Overview from "@/components/Tabs/Overview";
+import TickerAnalysis from "@/components/Tabs/Ticketoverview";
 import BottomBar from "@/components/Trades/BottomBar";
+import Navbar from "@/components/Trades/Navbar";
+import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 import { calculateStats } from "@/utils/calculateStats";
+import { getFromIndexedDB } from "@/utils/indexedDB";
+import Cookies from "js-cookie";
 import { X } from "lucide-react";
+import Head from "next/head";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -54,7 +54,6 @@ function useInstallPrompt() {
     const choiceResult = await deferredPrompt.userChoice;
 
     if (choiceResult.outcome === "accepted") {
-      console.log("User installed the app");
       localStorage.setItem("journalx_installed", "true");
     }
 

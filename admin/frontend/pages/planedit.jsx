@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import axios from "axios";
-import { DollarSign, Zap, Star } from "lucide-react";
+import { DollarSign, Star, Zap } from "lucide-react";
+import { useState } from "react";
 import PlanList from "../components/PlanList";
 
 const initialPlans = {
@@ -59,16 +59,12 @@ export default function PlanEdit() {
       setMessage("✅ Plans saved successfully!");
     } catch (err) {
       if (err.response) {
-        console.error("Error response data:", err.response.data);
-        console.error("Error response status:", err.response.status);
         setMessage(
           `❌ Error saving plans: ${err.response.data.message || err.message}`
         );
       } else if (err.request) {
-        console.error("No response received:", err.request);
         setMessage("❌ No response from server.");
       } else {
-        console.error("Error:", err.message);
         setMessage(`❌ ${err.message}`);
       }
     } finally {

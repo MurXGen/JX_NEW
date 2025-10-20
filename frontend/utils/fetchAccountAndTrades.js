@@ -52,7 +52,6 @@ export const fetchAccountsAndTrades = async () => {
 
     return { accounts, trades, currentBalances, tradesCount, accountSymbols };
   } catch (err) {
-    console.error("❌ Error fetching accounts/trades:", err);
     return {
       accounts: [],
       trades: [],
@@ -75,7 +74,6 @@ export const fetchPlansFromIndexedDB = async () => {
       yearly: plan.yearly,
     }));
   } catch (err) {
-    console.error("❌ Error fetching plans:", err);
     return [];
   }
 };

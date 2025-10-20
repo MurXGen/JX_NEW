@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import Head from "next/head";
+import { useEffect, useRef, useState } from "react";
 
-import { Send, Bot, ArrowLeft, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import ChatResponse from "@/components/Trades/ChatResponse";
-import { useRouter } from "next/navigation";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import Cookies from "js-cookie";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import { AnimatePresence, motion } from "framer-motion";
+import Cookies from "js-cookie";
+import { ArrowLeft, Bot, Send, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -81,7 +80,6 @@ export default function TradeAssistant() {
 
       setInput("");
     } catch (err) {
-      console.error("❌ Chat error:", err);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "⚠️ Something went wrong. Try again." },

@@ -34,7 +34,6 @@ exports.upsertPlan = async (req, res) => {
 
     res.status(200).json({ success: true, plans: results });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
@@ -44,7 +43,6 @@ exports.getPlans = async (req, res) => {
     const plans = await Plan.find();
     res.status(200).json({ success: true, plans });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
@@ -61,7 +59,6 @@ exports.deletePlan = async (req, res) => {
 
     res.status(200).json({ success: true, message: "Plan deleted" });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };

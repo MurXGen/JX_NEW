@@ -1,33 +1,25 @@
-import React, { useEffect, useState } from "react";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
-import { useRouter } from "next/router";
-import axios from "axios";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-import {
-  X,
-  Edit3,
-  Trash2,
-  Clock,
-  DollarSign,
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  BookOpen,
-  Lightbulb,
-  ArrowUp,
-  ArrowDown,
-  Image as ImageIcon,
-  PlayCircle,
-  CheckCircle,
-  Zap,
-  CircleDot,
-  Trash,
-  Loader2,
-} from "lucide-react";
-import { formatCurrency } from "@/utils/formatNumbers";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
+import { formatCurrency } from "@/utils/formatNumbers";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowDown,
+  ArrowUp,
+  CheckCircle,
+  CircleDot,
+  Clock,
+  Edit3,
+  Lightbulb,
+  Loader2,
+  PlayCircle,
+  Trash2,
+  X,
+  Zap,
+} from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import ConfirmationModal from "../ui/ConfirmationModal";
 import FullPageLoader from "../ui/FullPageLoader";
 import ToastMessage from "../ui/ToastMessage";
@@ -102,7 +94,6 @@ const TradeInfo = ({ onClose }) => {
         setToast({ type: "error", message: "Failed to delete trade!" });
       }
     } catch (err) {
-      console.error("❌ Error deleting trade:", err);
       setToast({
         type: "error",
         message: "Something went wrong while deleting trade.",

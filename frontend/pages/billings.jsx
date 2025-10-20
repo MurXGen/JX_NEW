@@ -1,29 +1,25 @@
 // components/Billing/BillingPage.js
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import { getFromIndexedDB } from "@/utils/indexedDB";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  AlertCircle,
+  ArrowLeft,
+  Calendar,
   CheckCircle,
   Clock,
-  XCircle,
-  AlertCircle,
-  Download,
-  Eye,
-  Calendar,
-  CreditCard,
-  Zap,
   Coins,
+  CreditCard,
   Crown,
-  Sparkles,
   Rocket,
-  ArrowLeft,
-  History,
+  Sparkles,
+  XCircle,
+  Zap,
 } from "lucide-react";
-import { getFromIndexedDB } from "@/utils/indexedDB";
-import { formatCurrency } from "@/utils/formatNumbers";
 import { useRouter } from "next/navigation";
-import FullPageLoader from "@/components/ui/FullPageLoader";
+import { useEffect, useState } from "react";
 
 export default function BillingPage() {
   const router = useRouter();
@@ -45,7 +41,6 @@ export default function BillingPage() {
         setSubscription(userData.subscription || null);
       }
     } catch (error) {
-      console.error("Error loading billing data:", error);
     } finally {
       setLoading(false);
     }

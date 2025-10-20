@@ -290,11 +290,9 @@ export default function AddTrade() {
     const fetchAccounts = async () => {
       try {
         const cachedUser = await getFromIndexedDB("user-data");
-        console.log("📂 cachedUser:", cachedUser);
 
         if (cachedUser?.accounts?.length > 0) {
           const accountId = Cookies.get("accountId"); // ✅ active account from cookies
-          console.log("🍪 Active Account ID from cookies:", accountId);
 
           const activeAccount = cachedUser.accounts.find(
             (acc) => acc._id === accountId
@@ -308,11 +306,8 @@ export default function AddTrade() {
             );
           }
         } else {
-          console.warn("⚠ No accounts found in IndexedDB");
         }
-      } catch (err) {
-        console.error("❌ Error fetching accounts from IndexedDB:", err);
-      }
+      } catch (err) {}
     };
 
     fetchAccounts();
@@ -679,9 +674,7 @@ export default function AddTrade() {
         });
         // store per-field to avoid collisions
         localStorage.setItem(`newTradeImage_${field}`, payload);
-      } catch (err) {
-        console.error("Failed to save image to localStorage", err);
-      }
+      } catch (err) {}
     });
   }
 
@@ -721,7 +714,6 @@ export default function AddTrade() {
         query: { isNewTrade: "true" },
       });
     } catch (err) {
-      console.error(err);
       setToast({ type: "error", message: "Something went wrong." });
     } finally {
       setLoading(false);

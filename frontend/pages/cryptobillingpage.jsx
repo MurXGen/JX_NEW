@@ -1,24 +1,23 @@
 // components/CryptoBilling/CryptoBillingPage.js
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import Dropdown from "@/components/ui/Dropdown";
+import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Copy,
+  AlertCircle,
+  ArrowLeft,
   Check,
   Clock,
-  Shield,
-  Zap,
-  AlertCircle,
-  ExternalLink,
-  RefreshCw,
+  Copy,
   Mail,
-  ArrowLeft,
+  RefreshCw,
+  Shield,
   ShieldCheckIcon,
+  Zap,
 } from "lucide-react";
-import axios from "axios";
-import Dropdown from "@/components/ui/Dropdown";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -101,9 +100,7 @@ export default function CryptoBillingPage() {
                 )}&period=${period}&amount=${amount}&method=crypto&orderId=${storedOrderId}`
               );
             }
-          } catch (err) {
-            console.warn("⚠️ Verification error:", err.message);
-          }
+          } catch (err) {}
         }
 
         // ⏰ Timeout after 5 minutes
@@ -123,15 +120,11 @@ export default function CryptoBillingPage() {
       await navigator.clipboard.writeText(text);
       setCopiedAddress(true);
       setTimeout(() => setCopiedAddress(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+    } catch (err) {}
   };
 
   const createCryptoOrder = async () => {
     try {
-      console.log("🚀 Creating crypto order...");
-
       // Calculate start and expiry dates like Razorpay
       const now = new Date();
       const expiry = new Date(now);
@@ -152,8 +145,6 @@ export default function CryptoBillingPage() {
         { withCredentials: true }
       );
 
-      console.log("✅ Crypto order created successfully:", response.data);
-
       // Store in localStorage for later verification
       localStorage.setItem("cryptoOrderId", response.data.orderId);
       localStorage.setItem("cryptoPaymentStart", now.toISOString());
@@ -161,13 +152,11 @@ export default function CryptoBillingPage() {
 
       return response.data.orderId;
     } catch (error) {
-      console.error("🔥 Failed to create crypto order:", error);
       throw new Error("Failed to create payment order");
     }
   };
 
   const handlePaymentTimeout = () => {
-    console.warn("⏰ Payment timeout reached — marking as failed");
     setPaymentStatus("failed");
     localStorage.removeItem("cryptoPaymentInitiated");
     localStorage.removeItem("cryptoOrderId");
@@ -190,8 +179,6 @@ export default function CryptoBillingPage() {
       localStorage.setItem("cryptoOrderId", orderId);
       localStorage.setItem("cryptoPaymentInitiated", "true");
 
-      console.log("✅ Polling started for order:", orderId);
-
       // ✅ Poll every 60 seconds (changed from 10s)
       const interval = setInterval(async () => {
         try {
@@ -200,8 +187,6 @@ export default function CryptoBillingPage() {
             { orderId },
             { withCredentials: true }
           );
-
-          console.log("🔍 Poll result:", res.data);
 
           if (res.data.success) {
             clearInterval(interval);
@@ -214,9 +199,7 @@ export default function CryptoBillingPage() {
               )}&period=${period}&amount=${amount}&method=crypto&orderId=${orderId}`
             );
           }
-        } catch (err) {
-          console.error("🔥 Crypto verification failed:", err);
-        }
+        } catch (err) {}
       }, 60000); // Changed from 10000 to 60000 (60 seconds)
 
       // ❌ Stop polling after 10 minutes
@@ -225,7 +208,6 @@ export default function CryptoBillingPage() {
         handlePaymentTimeout();
       }, 10 * 60 * 1000);
     } catch (err) {
-      console.error("❌ handleVerifyPayment failed:", err);
       setPaymentStatus("failed");
     }
   };

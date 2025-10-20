@@ -1,25 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // for Next.js 13+ app directory
-import TradeInfo from "./TradeInfo";
-import Skeleton from "@/components/ui/Skeleton";
-import axios from "axios";
-import Cookies from "js-cookie";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  ArrowUp,
-  ArrowDown,
-  ChevronDown,
-  ChevronUp,
-  Filter,
-  X,
-  TrendingUp,
-} from "lucide-react";
-import { formatCurrency } from "@/utils/formatNumbers";
 import { childVariants } from "@/animations/motionVariants";
-import { FiDatabase } from "react-icons/fi";
+import Skeleton from "@/components/ui/Skeleton";
+import { formatCurrency } from "@/utils/formatNumbers";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
+import Cookies from "js-cookie";
+import { ArrowDown, ArrowUp, TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation"; // for Next.js 13+ app directory
+import { useEffect, useState } from "react";
+import TradeInfo from "./TradeInfo";
 
 const TRADE_KEY = "__t_rd_iD";
 
@@ -119,9 +110,7 @@ const TradesHistory = ({
           const { dataUrl, name, type } = JSON.parse(openImagePayload);
           const file = dataUrlToFile(dataUrl, name, type);
           apiFormData.append("openImage", file);
-        } catch (err) {
-          console.error("Failed to parse open image payload", err);
-        }
+        } catch (err) {}
       }
 
       if (closeImagePayload) {
@@ -129,9 +118,7 @@ const TradesHistory = ({
           const { dataUrl, name, type } = JSON.parse(closeImagePayload);
           const file = dataUrlToFile(dataUrl, name, type);
           apiFormData.append("closeImage", file);
-        } catch (err) {
-          console.error("Failed to parse close image payload", err);
-        }
+        } catch (err) {}
       }
 
       // --- Send removal flags to backend ---
@@ -145,9 +132,7 @@ const TradesHistory = ({
       );
 
       // ✅ Debug logs to verify what’s sent
-      console.log("🔥 FormData being sent:");
       for (let pair of apiFormData.entries()) {
-        console.log(pair[0], ":", pair[1]);
       }
 
       // --- Submit request ---
@@ -215,7 +200,6 @@ const TradesHistory = ({
         throw new Error("Upload failed");
       }
     } catch (err) {
-      console.error("Trade submission failed:", err);
       setDisplayedTrades((prev) => prev.filter((trade) => !trade.loading));
       setToast({ type: "error", message: err.message || "Upload failed" });
     } finally {

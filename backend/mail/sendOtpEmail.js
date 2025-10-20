@@ -40,10 +40,8 @@ It will expire in 5 minutes.
       text,
       html,
     });
-    console.log("✅ Email sent successfully:", response);
     return response;
   } catch (err) {
-    console.error("❌ Failed to send email:", err);
     throw err;
   }
 }

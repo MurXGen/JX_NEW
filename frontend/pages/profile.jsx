@@ -1,25 +1,13 @@
 // components/Profile.jsx
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
-import {
-  Share2,
-  HelpCircle,
-  FileText,
-  Shield,
-  LogOut,
-  User,
-  Settings,
-  Bell,
-  CreditCard,
-  ArrowLeft,
-  Phone,
-} from "lucide-react";
-import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
 import SubscriptionStatus from "@/components/Profile/SubscriptionStatus";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import { motion } from "framer-motion";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import { motion } from "framer-motion";
+import Cookies from "js-cookie";
+import { ArrowLeft, FileText, LogOut, Phone, Shield, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
 
 const Profile = () => {
   const router = useRouter();
@@ -42,9 +30,7 @@ const Profile = () => {
       Cookies.remove("accountId");
       await clearIndexedDB();
       router.push("/login");
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
+    } catch (error) {}
   };
 
   const handleBackClick = () => {

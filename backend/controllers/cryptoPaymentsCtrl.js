@@ -57,14 +57,12 @@ exports.createCryptoOrder = async (req, res) => {
       orderId: cryptoOrder._id, // ✅ return orderId
     });
   } catch (err) {
-    console.error("🔥 createCryptoOrder Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 exports.verifyCryptoPayment = async (req, res) => {
   try {
-    console.log("🟢 VERIFY CRYPTO PAYMENT HIT");
     const { orderId } = req.body;
 
     if (!orderId) {
@@ -76,13 +74,10 @@ exports.verifyCryptoPayment = async (req, res) => {
     // 🔹 Find order
     const dbOrder = await Order.findById(orderId);
     if (!dbOrder) {
-      console.log("❌ Order not found:", orderId);
       return res
         .status(404)
         .json({ success: false, message: "Order not found" });
     }
-
-    console.log(`🔍 Current order status: ${dbOrder.status}`);
 
     // 🔹 Still pending or failed → polling continues
     if (dbOrder.status !== "paid") {
@@ -96,7 +91,6 @@ exports.verifyCryptoPayment = async (req, res) => {
     // 🔹 If already verified earlier, prevent duplicate subscription updates
     const user = await User.findById(dbOrder.userId);
     if (!user) {
-      console.log("❌ User not found:", dbOrder.userId);
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
@@ -131,7 +125,6 @@ exports.verifyCryptoPayment = async (req, res) => {
     if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
 
     await user.save();
-    console.log("✅ User subscription updated:", user._id);
 
     // 🔹 Update order to mark it verified
     dbOrder.status = "paid";
@@ -144,7 +137,6 @@ exports.verifyCryptoPayment = async (req, res) => {
       orderId: dbOrder._id,
     });
   } catch (err) {
-    console.error("🔥 verifyCryptoPayment Error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

@@ -16,7 +16,6 @@ const toPaise = (inr) => Math.round(Number(inr) * 100);
 // --- Create one-time order ---
 exports.createOrder = async (req, res) => {
   try {
-    console.log("🟢 CREATE ORDER HIT");
     const { planId, period, userName, userEmail } = req.body;
 
     console.log("📩 Payload received:", {
@@ -49,8 +48,6 @@ exports.createOrder = async (req, res) => {
       notes: { planId, period, userEmail },
     });
 
-    console.log("🧾 Razorpay order created:", order.id);
-
     // 🔹 Save order in DB
     const dbOrder = new Order({
       userId: req.cookies.userId || null,
@@ -65,8 +62,6 @@ exports.createOrder = async (req, res) => {
     });
     await dbOrder.save();
 
-    console.log("✅ Order saved in DB:", dbOrder._id);
-
     res.json({
       success: true,
       order: {
@@ -77,16 +72,12 @@ exports.createOrder = async (req, res) => {
       key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (err) {
-    console.error("🔥 createOrder Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 exports.verifyPayment = async (req, res) => {
   try {
-    console.log("🟢 VERIFY PAYMENT HIT");
-    console.log("Body:", req.body);
-
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
       req.body;
 
@@ -96,18 +87,13 @@ exports.verifyPayment = async (req, res) => {
       .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
-      console.log("❌ Invalid signature");
       return res.status(400).json({ message: "Invalid signature" });
     }
 
     const dbOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
     if (!dbOrder) {
-      console.log("❌ Order not found:", razorpay_order_id);
       return res.status(404).json({ message: "Order not found" });
     }
-
-    console.log("✅ Order found:", dbOrder);
-    console.log("🧾 Plan period:", dbOrder.period);
 
     dbOrder.razorpayPaymentId = razorpay_payment_id;
     dbOrder.razorpaySignature = razorpay_signature;
@@ -116,29 +102,23 @@ exports.verifyPayment = async (req, res) => {
 
     const user = await User.findById(dbOrder.userId);
     if (!user) {
-      console.log("❌ User not found:", dbOrder.userId);
       return res.status(404).json({ message: "User not found" });
     }
 
     const plan = await Plan.findOne({ planId: dbOrder.planId });
-    console.log("📦 Plan found:", plan?.planId);
 
     const startDate = new Date();
     const expiryDate = new Date(startDate);
 
     // DEBUG: show before setting expiry
-    console.log("📅 Before expiry set:", { startDate, expiryDate });
 
     if (dbOrder.period === "yearly") {
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-      console.log("🗓️ Setting expiry +1 year");
     } else {
       expiryDate.setMonth(expiryDate.getMonth() + 1);
-      console.log("🗓️ Setting expiry +1 month");
     }
 
     // DEBUG: show after expiry calculation
-    console.log("📅 Final expiry:", expiryDate);
 
     user.subscriptionStatus = "active";
     user.subscriptionPlan = plan.planId;
@@ -148,7 +128,6 @@ exports.verifyPayment = async (req, res) => {
     if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
 
     await user.save();
-    console.log("✅ User updated:", user._id);
 
     res.json({
       success: true,
@@ -156,14 +135,12 @@ exports.verifyPayment = async (req, res) => {
       orderId: dbOrder._id,
     });
   } catch (err) {
-    console.error("🔥 verifyPayment Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 exports.createSubscription = async (req, res) => {
   try {
-    console.log("🟢 CREATE SUBSCRIPTION HIT");
     const { planId, period, userName, userEmail, userContact } = req.body;
 
     console.log("📩 Payload received:", {
@@ -185,12 +162,10 @@ exports.createSubscription = async (req, res) => {
       return res.status(400).json({ message: "Plan pricing not configured" });
 
     const razorPeriod = period === "yearly" ? "yearly" : "monthly";
-    console.log(`💰 Calculated amount for ${period}: ₹${amountINR}`);
 
     // 🔹 Create or reuse Razorpay plan
     let razorpayPlanId = plan.razorpayPlanId;
     if (!razorpayPlanId) {
-      console.log("📦 Creating new Razorpay plan...");
       const createdPlan = await razorpay.plans.create({
         period: razorPeriod,
         interval: 1,
@@ -203,9 +178,7 @@ exports.createSubscription = async (req, res) => {
       razorpayPlanId = createdPlan.id;
       plan.razorpayPlanId = razorpayPlanId;
       await plan.save();
-      console.log("✅ New Razorpay plan created:", razorpayPlanId);
     } else {
-      console.log("🔁 Reusing existing Razorpay plan:", razorpayPlanId);
     }
 
     // 🔹 Create or reuse customer
@@ -217,16 +190,13 @@ exports.createSubscription = async (req, res) => {
         contact: userContact || undefined,
       });
       customerId = customer.id;
-      console.log("👤 New customer created:", customerId);
     } catch (err) {
       if (
         err.error?.code === "BAD_REQUEST_ERROR" &&
         err.error.description.includes("Customer already exists")
       ) {
-        console.log("⚠️ Customer already exists, fetching existing...");
         const existing = await razorpay.customers.all({ email: userEmail });
         customerId = existing.items[0]?.id;
-        console.log("👤 Existing customer ID:", customerId);
       } else {
         throw err;
       }
@@ -241,8 +211,6 @@ exports.createSubscription = async (req, res) => {
       notes: { planId, period },
     });
 
-    console.log("🧾 Razorpay subscription created:", subscription.id);
-
     // 🔹 Save subscription in DB
     const dbSub = new Subscription({
       userId: req.cookies.userId || null,
@@ -256,24 +224,18 @@ exports.createSubscription = async (req, res) => {
     });
     await dbSub.save();
 
-    console.log("✅ Subscription saved in DB:", dbSub._id);
-
     res.json({
       success: true,
       subscription: { id: subscription.id },
       key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (err) {
-    console.error("🔥 createSubscription Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 exports.verifySubscription = async (req, res) => {
   try {
-    console.log("🟢 VERIFY SUBSCRIPTION HIT");
-    console.log("Body:", req.body);
-
     const {
       razorpay_payment_id,
       razorpay_subscription_id,
@@ -286,7 +248,6 @@ exports.verifySubscription = async (req, res) => {
       .digest("hex");
 
     if (hmac !== razorpay_signature) {
-      console.log("❌ Invalid subscription signature");
       return res.status(400).json({ message: "Invalid signature" });
     }
 
@@ -294,40 +255,29 @@ exports.verifySubscription = async (req, res) => {
       razorpaySubscriptionId: razorpay_subscription_id,
     });
     if (!dbSub) {
-      console.log("❌ Subscription not found:", razorpay_subscription_id);
       return res.status(404).json({ message: "Subscription not found" });
     }
-
-    console.log("✅ Subscription found:", dbSub);
-    console.log("🧾 Plan period:", dbSub.meta?.subscription?.period);
 
     dbSub.status = "active";
     await dbSub.save();
 
     const user = await User.findById(dbSub.userId);
     if (!user) {
-      console.log("❌ User not found:", dbSub.userId);
       return res.status(404).json({ message: "User not found" });
     }
 
     const plan = await Plan.findOne({ planId: dbSub.planId });
-    console.log("📦 Plan found:", plan?.planId);
 
     const startDate = new Date();
     const expiryDate = new Date(startDate);
 
     const period = dbSub.meta?.subscription?.period;
-    console.log("📆 Period received:", period);
 
     if (period === "yearly") {
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-      console.log("🗓️ Setting expiry +1 year");
     } else {
       expiryDate.setMonth(expiryDate.getMonth() + 1);
-      console.log("🗓️ Setting expiry +1 month");
     }
-
-    console.log("📅 Final expiry:", expiryDate);
 
     user.subscriptionStatus = "active";
     user.subscriptionPlan = plan.planId;
@@ -337,11 +287,9 @@ exports.verifySubscription = async (req, res) => {
     if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
 
     await user.save();
-    console.log("✅ User updated:", user._id);
 
     res.json({ success: true, message: "Subscription verified" });
   } catch (err) {
-    console.error("🔥 verifySubscription Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -358,7 +306,6 @@ exports.webhookHandler = async (req, res) => {
       .digest("hex");
 
     if (expected !== signature) {
-      console.warn("Webhook signature mismatch");
       return res.status(400).send("invalid signature");
     }
 
@@ -390,7 +337,6 @@ exports.webhookHandler = async (req, res) => {
 
     res.json({ ok: true });
   } catch (err) {
-    console.error("webhookHandler error", err);
     res.status(500).send("server error");
   }
 };
@@ -399,7 +345,6 @@ exports.webhookHandler = async (req, res) => {
 
 exports.createCryptoOrder = async (req, res) => {
   try {
-    console.log("🟢 CREATE CRYPTO ORDER HIT");
     const { planName, period, amount, network, currency } = req.body;
 
     if (!planName || !period || !amount || !network) {
@@ -451,14 +396,11 @@ exports.createCryptoOrder = async (req, res) => {
       sameSite: "Strict",
     });
 
-    console.log("✅ Crypto order saved:", cryptoOrder._id);
-
     res.json({
       success: true,
       message: "Crypto order created successfully",
     });
   } catch (err) {
-    console.error("🔥 createCryptoOrder Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

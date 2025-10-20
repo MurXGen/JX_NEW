@@ -27,7 +27,6 @@ async function verifyTurnstileToken(token, ip) {
 
     return response.data.success === true;
   } catch (err) {
-    console.error("Turnstile verification error:", err);
     return false;
   }
 }
@@ -136,7 +135,6 @@ const registerUser = async (req, res) => {
       isVerified: false,
     });
   } catch (err) {
-    console.error("Registration error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -180,7 +178,6 @@ const loginUser = async (req, res) => {
       userData,
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -220,7 +217,6 @@ const verifyOtp = async (req, res) => {
 
     return res.json({ message: "Email verified" });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -273,7 +269,6 @@ const userFetchGoogleAuth = async (req, res) => {
       userData,
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -315,17 +310,14 @@ const updateSubscription = async (req, res) => {
 // const getFullUserData = async (req, res) => {
 //   try {
 //     const { userId } = req.cookies;
-//     console.log("🔍 getFullUserData() called — Cookie userId:", userId);
-
+//
 //     if (!userId) {
-//       console.warn("⚠ No userId in cookies — user not authenticated");
-//       return res.status(401).json({ message: 'User not authenticated' });
+//       //       return res.status(401).json({ message: 'User not authenticated' });
 //     }
 
 //     // Fetch all accounts for this user
 //     const accounts = await Account.find({ userId }).lean();
-//     console.log(`📂 Found ${accounts.length} account(s) for userId ${userId}`);
-//     if (accounts.length > 0) {
+//     //     if (accounts.length > 0) {
 //       console.log("📄 Accounts:", accounts.map(acc => ({
 //         id: acc._id,
 //         name: acc.name,
@@ -334,8 +326,7 @@ const updateSubscription = async (req, res) => {
 //     }
 
 //     if (!accounts.length) {
-//       console.warn("⚠ No accounts found for this user");
-//       return res.status(200).json({
+//       //       return res.status(200).json({
 //         userId,
 //         accounts: [],
 //         trades: []
@@ -344,11 +335,9 @@ const updateSubscription = async (req, res) => {
 
 //     // Get all trades for the fetched accounts
 //     const accountIds = accounts.map(acc => acc._id);
-//     console.log("🆔 Account IDs for trade lookup:", accountIds);
-
+//
 //     const trades = await Trade.find({ accountId: { $in: accountIds } }).lean();
-//     console.log(`📊 Found ${trades.length} trade(s) for these accounts`);
-
+//
 //     res.status(200).json({
 //       userId,
 //       accounts,
@@ -356,8 +345,7 @@ const updateSubscription = async (req, res) => {
 //     });
 
 //   } catch (err) {
-//     console.error('🚨 Error fetching full user data:', err);
-//     res.status(500).json({ message: 'Server error' });
+//     //     res.status(500).json({ message: 'Server error' });
 //   }
 // };
 

@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
 import axios from "axios";
 import { Pencil, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const PlanList = () => {
   const [plans, setPlans] = useState([]);
@@ -15,7 +15,6 @@ const PlanList = () => {
       const res = await axios.get("http://localhost:8000/api/plans");
       if (res.data.success) setPlans(res.data.plans);
     } catch (err) {
-      console.error(err);
       setMessage("❌ Error fetching plans");
     } finally {
       setLoading(false);
@@ -34,7 +33,6 @@ const PlanList = () => {
         fetchPlans();
       }
     } catch (err) {
-      console.error(err);
       setMessage("❌ Error deleting plan");
     }
   };
@@ -55,7 +53,6 @@ const PlanList = () => {
         fetchPlans();
       }
     } catch (err) {
-      console.error(err);
       setMessage("❌ Error updating plan");
     }
   };

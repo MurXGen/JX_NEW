@@ -99,7 +99,6 @@ const updateAccount = async (req, res) => {
       userData,
     });
   } catch (error) {
-    console.error("❌ Error updating account:", error);
     res.status(500).json({ message: "Server error: could not update account" });
   }
 };
@@ -140,7 +139,6 @@ const deactivateAccount = async (req, res) => {
       userData,
     });
   } catch (error) {
-    console.error("❌ Error deactivating account:", error);
     res
       .status(500)
       .json({ message: "Server error: could not deactivate account" });
@@ -160,8 +158,7 @@ const deactivateAccount = async (req, res) => {
 //       accounts
 //     });
 //   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ error: 'Server error' });
+//     //     res.status(500).json({ error: 'Server error' });
 //   }
 // };
 
@@ -183,8 +180,7 @@ const deactivateAccount = async (req, res) => {
 
 //     res.status(200).json({ account });
 //   } catch (err) {
-//     console.error('Error fetching account:', err);
-//     res.status(500).json({ message: 'Server error' });
+//     //     res.status(500).json({ message: 'Server error' });
 //   }
 // };
 
@@ -204,8 +200,7 @@ const deactivateAccount = async (req, res) => {
 //     await user.save();
 //     res.status(200).json({ message: 'Feedback submitted' });
 //   } catch (err) {
-//     console.error('Error submitting feedback:', err);
-//     res.status(500).json({ message: 'Server error' });
+//     //     res.status(500).json({ message: 'Server error' });
 //   }
 // };
 
@@ -224,8 +219,7 @@ const deactivateAccount = async (req, res) => {
 //     // Send back full user data
 //     res.status(200).json({ message: 'Account deleted successfully', user });
 //   } catch (err) {
-//     console.error('Error deleting account:', err);
-//     res.status(500).json({ message: 'Server error' });
+//     //     res.status(500).json({ message: 'Server error' });
 //   }
 // };
 
