@@ -439,7 +439,7 @@ button:disabled {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  z-index: 10000;
+  z-index: 100000;
 }
 
 .popups_btm {
@@ -611,17 +611,29 @@ textarea::placeholder {
   top: var(--px-8);
   right: var(--px-8);
 }
-
 .accountCard {
   padding: var(--padding-16x16);
   background: var(--secondary);
   border-radius: var(--px-12);
   cursor: pointer;
-  transition-duration: 0.3s;
+  transition: background 0.3s ease, transform 0.3s ease;
 }
 
 .accountCard:hover {
-  background: var(--white-30);
+  background: var(--white-10);
+  transform: translateY(-4px); /* subtle lift effect */
+}
+
+.accountCard .vector {
+  background: transparent; /* initial background */
+  border-radius: var(--px-12);
+  transition: padding 0.3s ease, background 0.3s ease, transform 0.3s ease;
+}
+
+.accountCard:hover .vector {
+  padding: var(--px-12);
+  background: var(--white-10);
+  transform: scale(1.05); /* subtle zoom effect */
 }
 
 .suggestionInput {

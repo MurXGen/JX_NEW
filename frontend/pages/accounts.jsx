@@ -379,7 +379,7 @@ function Accounts() {
                       </span>
 
                       <span
-                        className={`accountAmounts font_16 vector ${
+                        className={`accountAmounts font_16 ${
                           (currentBalances[acc.name] ??
                             acc.startingBalance.amount) >=
                           acc.startingBalance.amount
