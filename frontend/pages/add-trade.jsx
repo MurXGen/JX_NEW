@@ -82,8 +82,8 @@ export default function AddTrade() {
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
-    openTime: getLocalDateTime(),
-    closeTime: getLocalDateTime(),
+    openTime: null,
+    closeTime: null,
 
     // Fee Fields
     feeType: "percent", // one type for both open/close
