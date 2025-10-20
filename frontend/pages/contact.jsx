@@ -7,14 +7,40 @@ export default function Contact() {
         <title>Contact Us | JournalX</title>
         <meta
           name="description"
-          content="Contact JournalX for support, failed payment verification, feedback, or billing inquiries. We're here to help traders using our journaling and analytics platform."
-        />
-        <meta
-          name="keywords"
-          content="JournalX contact, support, trading journal help, payment verification, billing issues, feedback, trader journaling app"
+          content="Need help with JournalX? Contact our support team for payment verification, feedback, or account assistance."
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://journalx.app/contact" />
+
+        {/* ✅ Open Graph / WhatsApp / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://journalx.app/contact" />
+        <meta property="og:title" content="Contact JournalX Support" />
+        <meta
+          property="og:description"
+          content="Reach out to JournalX support for payment verification, plan activation issues, or general queries."
+        />
+        <meta
+          property="og:image"
+          content="https://cdn.journalx.app/trades/open-images/1760979199580-JournalX_Banner.png"
+        />
+        <meta property="og:site_name" content="JournalX" />
+
+        {/* ✅ Twitter (X) Cards */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://journalx.app/contact" />
+        <meta
+          name="twitter:title"
+          content="Contact JournalX – Get Support or Verify Payment"
+        />
+        <meta
+          name="twitter:description"
+          content="Contact JournalX for account or payment verification support. We're here to help traders worldwide."
+        />
+        <meta
+          name="twitter:image"
+          content="https://cdn.journalx.app/trades/open-images/1760979199580-JournalX_Banner.png"
+        />
       </Head>
 
       <main className="flexClm gap_32">
