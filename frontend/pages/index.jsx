@@ -119,17 +119,41 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>JournalX — Trading Journal & Analytics Tool</title>
+        <title>JournalX | Trading Journal Dashboard</title>
         <meta
           name="description"
-          content="JournalX is a free-to-start trading journal for traders. Log trades, get AI-powered insights, analyze performance, and improve your strategies."
+          content="JournalX is your personal trading journal dashboard to track trades, analyze performance, and discover what works best in your trading strategy. Empower your trading with AI insights and analytics."
         />
         <meta
           name="keywords"
-          content="trading journal, trading analytics, AI trade analysis, trade journal app, free trading journal, journal for traders"
+          content="trading journal, trade analytics, trading performance tracker, AI trading insights, forex journal, stock trading journal, crypto trading analysis, journalx dashboard, trading performance improvement"
         />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://journalx.app/" />
+
+        {/* Open Graph / Social Meta Tags */}
+        <meta
+          property="og:title"
+          content="JournalX | Trading Journal Dashboard"
+        />
+        <meta
+          property="og:description"
+          content="Track your trades, visualize your performance, and get AI-driven insights — all in one smart dashboard with JournalX."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://journalx.app/" />
+        <meta property="og:image" content="/assets/Journalx_Banner.png" />
+
+        {/* Twitter Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="JournalX | Trading Journal Dashboard"
+        />
+        <meta
+          name="twitter:description"
+          content="Simplify your trading journal. JournalX helps you track, analyze, and improve your trading performance with AI insights."
+        />
+        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>
 
       <div className="flexClm gap_32">

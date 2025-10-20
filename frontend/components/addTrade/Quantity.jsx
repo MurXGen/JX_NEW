@@ -1,21 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Dropdown from "../ui/Dropdown";
+import { X } from "lucide-react";
 
 const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
   const [showLeverage, setShowLeverage] = useState(false);
   const [showFees, setShowFees] = useState(false);
-
-  // Wrap the handler to enforce non-negative
-  const handleNonNegativeChange = (e) => {
-    const { name, value } = e.target;
-    const sanitized = Math.max(0, Number(value)); // force value >= 0
-
-    handleChange({
-      target: { name, value: sanitized },
-    });
-  };
-
+  const [storedQuantities, setStoredQuantities] = useState([]);
+  const [isSelecting, setIsSelecting] = useState(false);
   // Handle fee type change
   const handleFeeTypeChange = (e) => {
     const { value } = e.target;
@@ -47,6 +39,50 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
 
   const { feeAmount, pnlAfterFee } = calculateFeeAndPnL();
 
+  // Load saved quantities from localStorage on mount
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("quantities")) || [];
+    setStoredQuantities(saved);
+  }, []);
+
+  // Handle quantity input change
+  const handleNonNegativeChange = (e) => {
+    const { name, value } = e.target;
+    const sanitized = Math.max(0, Number(value));
+    handleChange({ target: { name, value: sanitized } });
+  };
+
+  // Save quantity to localStorage on blur
+  const handleQuantityBlur = () => {
+    if (isSelecting) return; // ignore when selecting chip
+
+    const val = form.quantityUSD;
+    if (!val) return;
+
+    const saved = JSON.parse(localStorage.getItem("quantities")) || [];
+    if (!saved.includes(val)) {
+      const updated = [val, ...saved].slice(0, 10); // keep last 10
+      localStorage.setItem("quantities", JSON.stringify(updated));
+      setStoredQuantities(updated);
+    }
+  };
+
+  // Select quantity from chip
+  const handleQuantitySelect = (val) => {
+    setIsSelecting(true);
+    handleChange({ target: { name: "quantityUSD", value: val } });
+    setTimeout(() => setIsSelecting(false), 200);
+  };
+
+  // Remove quantity from chips and localStorage
+  const removeQuantity = (val) => {
+    const updated = storedQuantities.filter((q) => q !== val);
+    localStorage.setItem("quantities", JSON.stringify(updated));
+    setStoredQuantities(updated);
+    if (form.quantityUSD === val)
+      handleChange({ target: { name: "quantityUSD", value: "" } });
+  };
+
   // Framer Motion animation variants
   const sectionVariants = {
     hidden: { opacity: 0, height: 0, overflow: "hidden" },
@@ -57,18 +93,65 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
     <div className="tradeGrid">
       <div className="flexClm gap_12">
         {/* Margin Input */}
-        <div className="inputLabelShift">
+        <div className="inputLabelShift" style={{ position: "relative" }}>
           <input
             type="number"
             name="quantityUSD"
             placeholder="Margin"
             value={form.quantityUSD || ""}
             onChange={handleNonNegativeChange}
-            required
+            onBlur={handleQuantityBlur}
             min="0"
           />
           <label>Margin</label>
+
+          {/* Clear input icon */}
+          {form.quantityUSD && (
+            <X
+              size={16}
+              style={{
+                position: "absolute",
+                right: 46,
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "#888",
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleChange({ target: { name: "quantityUSD", value: "" } });
+              }}
+            />
+          )}
         </div>
+
+        {/* Saved Quantities Chips */}
+        {storedQuantities.length > 0 && (
+          <div
+            className="flexRow gap_8 flexRow_scroll removeScrollBar"
+            style={{ marginTop: 8 }}
+          >
+            {storedQuantities.map((q) => (
+              <div
+                key={q}
+                className="button_ter font_14 flexRow flex_center gap_8"
+                onMouseDown={() => handleQuantitySelect(q)}
+              >
+                <span>{q}</span>
+                <X
+                  size={12}
+                  className="chart_boxBg"
+                  style={{ padding: "4px" }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    removeQuantity(q);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Leverage Checkbox */}
         <label className="customCheckbox">

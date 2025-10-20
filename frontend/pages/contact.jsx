@@ -71,7 +71,7 @@ export default function Contact() {
           </div>
 
           {/* ✅ Regular Support Info */}
-          <div className="flexClm gap_8" style={{ marginTop: "32px" }}>
+          <div className="flexClm gap_8">
             <h2 className="font_20">Support Email</h2>
             <p className="font_14" style={{ lineHeight: "28px" }}>
               officialjournalx@gmail.com
