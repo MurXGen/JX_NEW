@@ -145,7 +145,11 @@ const loginUser = async (req, res) => {
 
     const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
     if (!isHuman) {
-      return res.status(403).json({ message: "Captcha verification failed" });
+      return res
+        .status(403)
+        .json({
+          message: "Captcha verification failed. Refresh and try again",
+        });
     }
     if (!validateEmailCredentials(email, password, res)) return;
 

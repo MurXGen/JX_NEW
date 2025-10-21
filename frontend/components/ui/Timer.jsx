@@ -102,7 +102,7 @@ const Timer = () => {
           </motion.div>
 
           {/* Time */}
-          <div className="flexRow gap_4 font_18">
+          <div className="flexRow font_18">
             <AnimatePresence mode="wait">
               <motion.span
                 key={hour}
@@ -111,6 +111,7 @@ const Timer = () => {
                 animate="animate"
                 exit="exit"
                 transition={{ duration: 0.25 }}
+                style={{ width: "10px" }}
               >
                 {hour}
               </motion.span>
@@ -124,6 +125,7 @@ const Timer = () => {
                 animate="animate"
                 exit="exit"
                 transition={{ duration: 0.25 }}
+                style={{ width: "26px", textAlign: "center" }}
               >
                 {minute}
               </motion.span>
@@ -137,6 +139,7 @@ const Timer = () => {
                 animate="animate"
                 exit="exit"
                 transition={{ duration: 0.25 }}
+                style={{ width: "26px", textAlign: "center" }}
               >
                 {second}
               </motion.span>
