@@ -66,60 +66,72 @@ function Login() {
 
       const { userData, isVerified } = res.data;
 
-      // Save user data
+      // ✅ Save user data
       await saveToIndexedDB("user-data", userData);
       if (userData?.plans) {
         await saveToIndexedDB("plans", userData.plans);
       }
 
-      // ✅ Handle isVerified cookie
+      // ✅ Handle verified users
       if (isVerified === "yes") {
         Cookies.set("isVerified", "yes", {
           path: "/",
           sameSite: "Strict",
           expires: 3650,
         });
+        setShowWelcome(true);
       } else {
         Cookies.remove("isVerified");
-      }
+        // Redirect to OTP only if backend explicitly says unverified
+        setPopup({
+          message: "Redirecting... Please verify OTP first.",
+          type: "success",
+          id: Date.now(),
+        });
 
-      setShowWelcome(true);
-    } catch (err) {
-      // 🔥 Handle 403 verification redirect here
-      if (err.response?.status === 403) {
-        const { message, userId } = err.response.data;
+        localStorage.setItem("otpUserId", userData?._id);
 
-        setPopup(null);
         setTimeout(() => {
-          setPopup({
-            message: "Redirecting... Please verify OTP first.",
-            type: "success",
-            id: Date.now(),
+          router.push({
+            pathname: "/register",
+            query: { step: "verify-otp", userId: userData?._id },
           });
-        }, 0);
+        }, 1200);
+      }
+    } catch (err) {
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+
+      // ✅ Handle only the OTP verification case
+      if (
+        status === 403 &&
+        message?.toLowerCase().includes("verify your account")
+      ) {
+        const { userId } = err.response.data;
+
+        setPopup({
+          message: "Redirecting... Please verify OTP first.",
+          type: "success",
+          id: Date.now(),
+        });
 
         localStorage.setItem("otpUserId", userId);
 
-        // Redirect to register page with step=verify-otp
         setTimeout(() => {
           router.push({
             pathname: "/register",
             query: { step: "verify-otp", userId },
           });
         }, 1200);
-
         return;
       }
 
-      // Other errors
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message: err.response?.data?.message || "Login failed",
-          type: "error",
-          id: Date.now(),
-        });
-      }, 0);
+      // ✅ All other errors (e.g., wrong password, invalid email)
+      setPopup({
+        message: message || "Invalid email or password",
+        type: "error",
+        id: Date.now(),
+      });
     } finally {
       setIsLoading(false);
     }

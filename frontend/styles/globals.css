@@ -607,7 +607,6 @@ textarea::placeholder {
 
 .passwordWrap .eyeButton {
   position: absolute;
-  top: var(--px-8);
   right: var(--px-8);
 }
 .accountCard {
