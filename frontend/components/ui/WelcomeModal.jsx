@@ -10,6 +10,7 @@ import {
   Rocket,
   Heart,
   Trophy,
+  ArrowRight,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -55,16 +56,18 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
       setCurrentStep(3);
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Multiple confetti bursts
+      // 🔹 Confetti burst 1
       confetti({
         particleCount: 150,
         spread: 100,
         origin: { y: 0.3 },
         colors: ["#a77d02", "#22c55e", "#fdda70", "#ffffff"],
       });
+      bringConfettiToFront(); // ✅ Ensure confetti stays on top
 
       await new Promise((resolve) => setTimeout(resolve, 300));
 
+      // 🔹 Confetti burst 2 (left)
       confetti({
         particleCount: 100,
         angle: 60,
@@ -72,7 +75,9 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
         origin: { x: 0, y: 0.3 },
         colors: ["#a77d02", "#22c55e"],
       });
+      bringConfettiToFront();
 
+      // 🔹 Confetti burst 3 (right)
       confetti({
         particleCount: 100,
         angle: 120,
@@ -80,6 +85,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
         origin: { x: 1, y: 0.3 },
         colors: ["#a77d02", "#22c55e"],
       });
+      bringConfettiToFront();
 
       // Step 4: Final celebration
       setCurrentStep(4);
@@ -90,6 +96,18 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
         if (onClose) onClose();
         router.push("/");
       }, 4000);
+    };
+
+    // ✅ Helper: Move confetti canvas to top
+    const bringConfettiToFront = () => {
+      const confettiCanvas = document.querySelector("canvas");
+      if (confettiCanvas) {
+        confettiCanvas.style.position = "fixed";
+        confettiCanvas.style.top = "0";
+        confettiCanvas.style.left = "0";
+        confettiCanvas.style.pointerEvents = "none";
+        confettiCanvas.style.zIndex = "99999"; // 🔥 Topmost layer
+      }
     };
 
     sequence();
@@ -117,7 +135,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
   };
 
   return (
-    <div className="welcome-modal-overlay">
+    <div className="cm-backdrop">
       {/* Animated Background Particles */}
       <div className="floating-particles">
         {[...Array(15)].map((_, i) => (
@@ -147,7 +165,14 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
       </div>
 
       <motion.div
-        className="welcome-modal-container"
+        className="chart_boxBg flexClm gap_32 flex_center"
+        style={{
+          padding: "24px",
+          minWidth: "300px",
+          maxWidth: "600px",
+          width: "100%",
+          margin: "50px",
+        }}
         initial={{ scale: 0, rotate: -180 }}
         animate={controls}
       >
@@ -282,12 +307,12 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="message-container"
+            className="flexClm gap_4"
           >
-            <h2 className="welcome-title font_20 font_weight_700">
+            <span className="font_16 font_weight_700">
               {getCurrentMessage()}
-            </h2>
-            <p className="welcome-subtitle font_14">
+            </span>
+            <span className="font_14 shade_50">
               {currentStep >= 3 ? (
                 <motion.span
                   initial={{ opacity: 0 }}
@@ -299,7 +324,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
               ) : (
                 "Great to see you again!"
               )}
-            </p>
+            </span>
           </motion.div>
 
           {/* Progress Dots */}
@@ -323,7 +348,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
 
         {/* Action Button */}
         <motion.button
-          className="celebrate-button"
+          className="button_pri flexRow gap_8 flex_center"
           onClick={handleProceed}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{
@@ -336,9 +361,8 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
           }}
           whileTap={{ scale: 0.95 }}
         >
-          <Zap size={18} />
-          <span>Let's Trade! 🚀</span>
-          <Sparkles size={16} />
+          <span>Start journaling</span>
+          <ArrowRight size={18} />
         </motion.button>
 
         {/* Celebration Emojis */}
