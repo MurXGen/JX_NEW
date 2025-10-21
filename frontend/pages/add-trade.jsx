@@ -64,6 +64,9 @@ export default function AddTrade() {
     );
   };
 
+  const now = new Date().toISOString(); // current ISO timestamp
+  const tradeStatus = "running"; // your default status
+
   const [form, setForm] = useState({
     symbol: "",
     direction: "long",
@@ -82,8 +85,8 @@ export default function AddTrade() {
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
-    openTime: null,
-    closeTime: null,
+    openTime: now, // ✅ always set
+    closeTime: tradeStatus === "running" ? null : now, // ✅ conditional
 
     // Fee Fields
     feeType: "percent", // one type for both open/close
@@ -298,11 +301,11 @@ export default function AddTrade() {
 
     if (avgEntry && avgTP) {
       const profitPercent = ((avgTP - avgEntry) / avgEntry) * 100;
-      expectedProfit = ((profitPercent / 100) * form.quantityUSD).toFixed(2);
+      expectedProfit = ((profitPercent / 100) * form.totalQuantity).toFixed(2);
     }
     if (avgEntry && avgSL) {
       const lossPercent = ((avgEntry - avgSL) / avgEntry) * 100;
-      expectedLoss = ((lossPercent / 100) * form.quantityUSD).toFixed(2);
+      expectedLoss = ((lossPercent / 100) * form.totalQuantity).toFixed(2);
     }
 
     // Risk-Reward Ratio
@@ -321,7 +324,7 @@ export default function AddTrade() {
           ? ((avgExit - avgEntry) / avgEntry) * 100
           : ((avgEntry - avgExit) / avgEntry) * 100;
 
-      pnl = ((pnlPercent / 100) * form.quantityUSD).toFixed(2);
+      pnl = ((pnlPercent / 100) * form.totalQuantity).toFixed(2);
     }
 
     setForm((prev) => ({
@@ -344,6 +347,7 @@ export default function AddTrade() {
     form.openTime,
     form.closeTime,
     form.quantityUSD,
+    form.totalQuantity,
     form.tradeStatus,
     form.direction,
   ]);

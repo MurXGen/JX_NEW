@@ -4861,7 +4861,42 @@ footer {
   }
 }
 
-/* Billing page  */
+/* add trade for pnl display */
 
 @media (min-width: 0px) {
+  .trade-summary-container {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    width: 280px;
+    background-color: #1f1f1f;
+    color: #ffffff;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+    font-family: Arial, sans-serif;
+    z-index: 1000;
+  }
+
+  .trade-summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .trade-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+  }
+
+  .profit {
+    color: #22c55e; /* green */
+    font-weight: 600;
+  }
+
+  .loss {
+    color: #ef4444; /* red */
+    font-weight: 600;
+  }
 }

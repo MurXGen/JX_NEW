@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Dropdown from "./Dropdown";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 // Helper: ordinal for date
 const getOrdinal = (n) => {
@@ -88,7 +88,7 @@ const Timer = () => {
       className="chart_boxBg "
       style={{ padding: "16px", alignItems: "flex-start" }}
     >
-      <div className="flexRow_mobile flexRow_stretch gap_24">
+      <div className="flexRow flexRow_stretch gap_12">
         <div className="flexClm gap_4">
           {/* Date */}
           <motion.div
@@ -160,7 +160,9 @@ const Timer = () => {
             style={{ width: "fit-content" }}
             onClick={() => setShowDropdowns((prev) => !prev)}
           >
-            <ChevronDown size={14} />
+            {showDropdowns && <ChevronUp size={14} />}
+
+            {!showDropdowns && <ChevronDown size={14} />}
           </button>
         </div>
       </div>
