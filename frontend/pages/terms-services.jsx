@@ -21,6 +21,8 @@ export default function TermsServices() {
 
       <main className="flexClm gap_32">
         <BackgroundBlur />
+
+        {/* ✅ Terms of Service Section */}
         <section className="flexClm gap_16">
           <h1
             className="font_24 font_weight_700"
@@ -112,6 +114,47 @@ export default function TermsServices() {
           </p>
         </section>
 
+        {/* ✅ Verification Contact Details Section */}
+        <section className="flexClm">
+          <h1
+            className="font_24 font_weight_700"
+            style={{ color: "var(--primary-light)" }}
+          >
+            Entity details
+          </h1>
+          <p style={{ lineHeight: "32px" }} className="font_14">
+            For any payment verification or support-related concerns, please
+            reach out with your details to help us verify your request promptly.
+          </p>
+          <span className="font_14 flexClm gap_12">
+            <span>
+              👤 Full Name: <span>Murthy Poothapandi Thevar</span>
+            </span>
+            <span>
+              📧 Email: <span>murthyofficial3@gmail.com</span>
+            </span>
+            <span>
+              📱 Mobile: <span>+91 7977960242</span>
+            </span>
+          </span>
+          <p className="font_14" style={{ lineHeight: "28px" }}>
+            You may also click the link below to directly send us an email for
+            verification or support:
+          </p>
+          <a
+            href="mailto:murthyofficial3@gmail.com?subject=Verification%20Support%20-%20JournalX"
+            className="font_14"
+            style={{
+              color: "var(--primary-light)",
+              textDecoration: "underline",
+              fontWeight: "600",
+            }}
+          >
+            📧 Send Mail for Verification Support
+          </a>
+        </section>
+
+        {/* ✅ Disclaimer Section */}
         <section className="flexClm gap_16">
           <h1
             className="font_24 font_weight_700"
