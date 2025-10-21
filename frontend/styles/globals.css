@@ -224,7 +224,6 @@ body {
   position: relative;
   border-radius: var(--px-12);
   background: linear-gradient(to bottom left, #ffffff0a, #1d1d1d);
-  z-index: 1;
 }
 
 /* Gradient border */
@@ -240,7 +239,7 @@ body {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
-  z-index: -1;
+  z-index: 1;
 }
 
 .flexRow_scroll {
@@ -3159,13 +3158,13 @@ footer {
 }
 
 /* components/Charts/DailyPnlChart.css */
-.daily-pnl-chart-container {
+.chart_container {
   width: 100%;
   height: 300px;
 }
 
-.daily-pnl-chart-container svg:focus,
-.daily-pnl-chart-container svg *:focus {
+.chart_container svg:focus,
+.chart_container svg *:focus {
   outline: none !important;
   border: none !important;
 }

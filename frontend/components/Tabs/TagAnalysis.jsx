@@ -15,7 +15,13 @@ import {
   ReferenceLine,
 } from "recharts";
 import { formatCurrency, formatNumber } from "@/utils/formatNumbers";
-import { BarChart3, ListIcon, Tag } from "lucide-react";
+import {
+  BarChart3,
+  ListIcon,
+  PieChartIcon,
+  Tag,
+  TrendingUp,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const TagAnalysis = ({ tagAnalysis }) => {
@@ -204,31 +210,22 @@ const TagAnalysis = ({ tagAnalysis }) => {
 
   // Color legend component with badge design - use chartData instead of tagAnalysis
   const ColorLegend = () => (
-    <div className="color-legend">
-      <div className="legend-title font_12">Tags</div>
-      <div className="legend-items flexRow flexWrap gap_8">
+    <div style={{ marginTop: "12px" }}>
+      <div className=" flexRow flex_center gap_8">
         {chartData.map((tag, index) => {
           const color = COLORS[index % COLORS.length];
           return (
-            <div key={index} className="flexRow gap_4">
+            <div key={index} className="flexRow flex_center gap_4">
               <div
-                className="legend-badge font_12 flexRow gap_4"
+                className="legend-badge font_12 flexRow flex_center gap_4"
                 style={{
                   backgroundColor: color + "20",
                   borderRadius: "12px",
                   padding: "8px 8px",
                 }}
               >
-                <div
-                  className="legend-color-dot"
-                  style={{
-                    backgroundColor: color,
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                  }}
-                />
-                <span className="legend-label font_10" style={{ color: color }}>
+                <div className="flexRow flexRow_scroll flex_center" />
+                <span className="font_12" style={{ color: color }}>
                   {tag.name}
                 </span>
               </div>
@@ -244,11 +241,14 @@ const TagAnalysis = ({ tagAnalysis }) => {
   const validTags = chartData;
 
   return (
-    <div className="tag-analysis-container chart_boxBg">
+    <div
+      className="chart_boxBg flexClm gap_12"
+      style={{ padding: "var(--px-16)" }}
+    >
       {/* Header */}
-      <div className="tag-analysis-header flexRow flexRow_stretch">
+      <div className="flexRow flexRow_stretch">
         <div className="tag-analysis-title flexClm">
-          <span className="font_16">Tag Performance Analysis</span>
+          <span className="font_12">Tag Performance Analysis</span>
         </div>
 
         <div className="tag-analysis-controls flexRow gap_12">
@@ -293,10 +293,15 @@ const TagAnalysis = ({ tagAnalysis }) => {
             >
               {/* PnL Distribution Pie Chart with Legend below */}
               <div className="chart-section">
-                <div className="chart-title font_12">
+                <div className="boxBg flex_center font_12 flexRow gap_8">
+                  <PieChartIcon size={16} className="vector" />
                   PnL Distribution by Tag
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer
+                  width="100%"
+                  height={200}
+                  className="chart_container"
+                >
                   <PieChart>
                     <Pie
                       data={chartData}
@@ -327,8 +332,15 @@ const TagAnalysis = ({ tagAnalysis }) => {
 
               {/* Performance Bar Chart with PNL-style design */}
               <div className="chart-section">
-                <div className="chart-title font_12">Performance by Tag</div>
-                <ResponsiveContainer width="100%" height={330}>
+                <div className="boxBg flex_center flexRow gap_8 font_12">
+                  <TrendingUp size={16} className="vector" />
+                  Performance by Tag
+                </div>
+                <ResponsiveContainer
+                  width="100%"
+                  height={330}
+                  className="chart_container"
+                >
                   <BarChart
                     data={barChartData} // ✅ signed data
                     margin={{ top: 20, right: 10, left: 10, bottom: 40 }}
@@ -412,7 +424,8 @@ const TagAnalysis = ({ tagAnalysis }) => {
                     />
 
                     <YAxis
-                      tickFormatter={formatCurrency}
+                      dataKey="value"
+                      tickFormatter={(val) => formatCurrency(val)}
                       tick={{ fontSize: 12, fill: "#ccc" }}
                       width={60}
                     />

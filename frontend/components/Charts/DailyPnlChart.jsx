@@ -131,7 +131,7 @@ const DailyPnlChart = ({ data }) => {
   const chartData = addPaddingDays(data);
 
   return (
-    <div className="daily-pnl-chart-container">
+    <div className="chart_container">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
@@ -215,8 +215,8 @@ const DailyPnlChart = ({ data }) => {
                     fill={fillColor}
                     stroke={strokeColor}
                     strokeWidth={1}
-                    rx={12} // horizontal corner radius
-                    ry={12} // vertical corner radius
+                    rx={4} // horizontal corner radius
+                    ry={4} // vertical corner radius
                   />
                 </g>
               );

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import AllVolume from "../Charts/AllVolume";
 import TagAnalysis from "./TagAnalysis";
+import Timer from "../ui/Timer";
 
 export default function Overview({ stats, trades }) {
   const currencyCode = localStorage.getItem("currencyCode");
@@ -40,6 +41,8 @@ export default function Overview({ stats, trades }) {
 
   return (
     <div className="overview flexClm gap_32">
+      <Timer />
+
       <div className="flexClm gap_24">
         <span className="font_12">Advanced visual analysis</span>
         <div className="greedAndFear flexRow flexRow_stretch chart_boxBg">
@@ -443,7 +446,7 @@ export default function Overview({ stats, trades }) {
           className="totalTrades flexClm gap_12 chart_boxBg"
           style={{ padding: "16px 16px" }}
         >
-          <div className="flexRow flexRow_stretch font_12">
+          <div className="flexRow flexRow_stretch font_14">
             <span>Streak</span>
             <span
               className={`${
@@ -475,7 +478,7 @@ export default function Overview({ stats, trades }) {
                     return (
                       <div
                         key={idx}
-                        className={`tradeItem flexRow flex_center font_12 gap_4 ${
+                        className={`tradeItem flexRow flex_center font_14 gap_4 ${
                           isWin ? "tradeWin" : isLoss ? "tradeLoss" : "tradeBrk"
                         }`}
                       >

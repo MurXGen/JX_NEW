@@ -137,7 +137,7 @@ export default function PNLChart({ dailyData }) {
   };
 
   return (
-    <div className="chart-container daily-pnl-chart-container">
+    <div className="chart_container">
       {/* Navigation Header */}
       <div className="flexRow flexRow_stretch font_12">
         <button
