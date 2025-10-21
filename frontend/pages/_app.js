@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 import Head from "next/head";
 import { useEffect } from "react";
 import { useState } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function MyApp({ Component, pageProps }) {
   // Prevent desktop keyboard zoom (Ctrl + / Ctrl - / Ctrl =)
