@@ -156,7 +156,7 @@ export default function Home() {
         <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>
 
-      <div className="flexClm gap_32">
+      <div className="flexClm gap_32" style={{ width: "100%" }}>
         <Navbar />
         {showPrompt && (
           <div

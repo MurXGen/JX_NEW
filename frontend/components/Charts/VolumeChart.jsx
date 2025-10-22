@@ -84,7 +84,7 @@ export default function VolumeChart({ dailyData }) {
     if (active && payload?.length) {
       const { day, date, longVolume, shortVolume } = payload[0].payload;
       return (
-        <div className="boxBg font_12 flexClm gap_6">
+        <div className="boxBg tooltip font_12 flexClm gap_6">
           <div>
             {day} {date && `(${date})`}
           </div>
@@ -101,7 +101,7 @@ export default function VolumeChart({ dailyData }) {
       {/* Navigation */}
       <div className="flexRow flexRow_stretch font_12">
         <button onClick={handlePreviousWeek} className="button_ter flexRow">
-          <ChevronLeft size={20} />
+          <ChevronLeft size={16} />
         </button>
 
         <div className="flexRow gap_12">
@@ -114,7 +114,7 @@ export default function VolumeChart({ dailyData }) {
         </div>
 
         <button onClick={handleNextWeek} className="button_ter flexRow">
-          <ChevronRight size={20} />
+          <ChevronRight size={16} />
         </button>
       </div>
 

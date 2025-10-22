@@ -258,6 +258,13 @@ body {
   padding: var(--px-16) var(--px-16);
 }
 
+.tooltip {
+  background: var(--base-box-bg);
+  backdrop-filter: blur(50px);
+  box-shadow: 1px 1px 10px var(--base-bg);
+  width: 200px;
+}
+
 input {
   padding: var(--padding-16x16);
   font-size: var(--px-12);
@@ -3164,7 +3171,6 @@ footer {
 /* components/Charts/DailyPnlChart.css */
 .chart_container {
   width: 100%;
-  height: 300px;
 }
 
 .chart_container svg:focus,

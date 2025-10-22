@@ -107,7 +107,7 @@ const DailyPnlChart = ({ data }) => {
       const isPositive = netPnl >= 0;
 
       return (
-        <div className="boxBg font_12 flexClm gap_12">
+        <div className="boxBg tooltip font_12 flexClm gap_12">
           <div className="pnl-tooltip-header">
             {formatTooltipDate(data.date)}
           </div>
@@ -165,7 +165,7 @@ const DailyPnlChart = ({ data }) => {
           className="button_ter flexRow"
           disabled={currentIndex === 0}
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={16} />
         </button>
 
         <button
@@ -173,16 +173,13 @@ const DailyPnlChart = ({ data }) => {
           className="button_ter flexRow"
           disabled={currentIndex + CANDLE_WINDOW >= processedData.length}
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={16} />
         </button>
       </div>
 
       {/* Chart */}
-      <div
-        className="chart_container"
-        style={{ overflowX: "auto", width: "100%", height: "300px" }}
-      >
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="chart_container">
+        <ResponsiveContainer width="100%" height="300">
           <BarChart
             data={visibleData}
             margin={{ top: 20, right: 0, left: 0, bottom: 0 }}

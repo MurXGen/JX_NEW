@@ -122,7 +122,7 @@ export default function PNLChart({ dailyData }) {
       else if (pnl < 0) pnlClass = "negative";
 
       return (
-        <div className="boxBg font_12 flexClm gap_12">
+        <div className="boxBg tooltip font_12 flexClm gap_12">
           <div className="pnl-tooltip-header">
             {day} {date && `(${date})`}
           </div>
@@ -145,7 +145,7 @@ export default function PNLChart({ dailyData }) {
           className="button_ter flexRow"
           aria-label="Previous week"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={16} />
         </button>
 
         <div className="flexRow gap_12">
@@ -162,7 +162,7 @@ export default function PNLChart({ dailyData }) {
           className="button_ter flexRow"
           aria-label="Next week"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={16} />
         </button>
       </div>
 

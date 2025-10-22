@@ -224,10 +224,10 @@ const TradeCalendar = ({
 
           <div className="flexRow gap_8">
             <button className="navButton" onClick={() => navigateMonth("prev")}>
-              <ChevronLeft size={20} />
+              <ChevronLeft size={16} />
             </button>
             <button className="navButton" onClick={() => navigateMonth("next")}>
-              <ChevronRight size={20} />
+              <ChevronRight size={16} />
             </button>
           </div>
         </div>
@@ -242,14 +242,14 @@ const TradeCalendar = ({
 
           <div className="flexRow gap_8">
             <button className="navButton" onClick={() => navigateYear("prev")}>
-              <ChevronLeft size={20} />
+              <ChevronLeft size={16} />
             </button>
             <button
               className="navButton"
               onClick={() => navigateYear("next")}
               disabled={selectedYear === currentYear}
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={16} />
             </button>
           </div>
         </div>

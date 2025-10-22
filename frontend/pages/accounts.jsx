@@ -58,7 +58,101 @@ function Accounts() {
       });
     }
 
+    // Optionally clean the URL
     window.history.replaceState({}, document.title, window.location.pathname);
+  }, []);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      setLoading(true);
+
+      try {
+        const cachedUser = await getFromIndexedDB("user-data");
+        const hasData = cachedUser && Object.keys(cachedUser).length > 0;
+
+        const refreshKey = "user-refresh-info";
+        const now = new Date();
+        let refreshInfo = JSON.parse(localStorage.getItem(refreshKey)) || {
+          count: 0,
+          firstRefreshAt: null,
+        };
+
+        // Reset hourly limit if 1 hour passed
+        if (
+          !refreshInfo.firstRefreshAt ||
+          now - new Date(refreshInfo.firstRefreshAt) > 60 * 60 * 1000
+        ) {
+          refreshInfo.count = 0;
+          refreshInfo.firstRefreshAt = now;
+        }
+
+        // Check subscription expiration
+        let subscriptionExpired = false;
+        if (cachedUser?.subscription?.expiresAt) {
+          const expiryDate = new Date(cachedUser.subscription.expiresAt);
+          if (expiryDate < now) subscriptionExpired = true;
+        }
+
+        // Handle expired subscription
+        if (subscriptionExpired) {
+          try {
+            const res = await axios.put(
+              `${API_BASE}/api/auth/update-subscription`,
+              {
+                subscriptionType: "none",
+                subscriptionPlan: "free",
+                subscriptionStatus: "expired",
+              },
+              { withCredentials: true }
+            );
+
+            // Update IndexedDB immediately
+            if (hasData) {
+              cachedUser.subscription.status = "expired";
+              cachedUser.subscription.planId = "free";
+              cachedUser.subscription.type = "none";
+              cachedUser.subscription.startAt = null;
+              cachedUser.subscription.expiresAt = null;
+              await saveToIndexedDB("user-data", cachedUser);
+            }
+          } catch (err) {
+            // Do nothing — handled silently
+          }
+        }
+
+        const canFetch = refreshInfo.count < 10;
+
+        // Fetch fresh data if within limit
+        if (canFetch) {
+          try {
+            refreshInfo.count += 1;
+            if (!refreshInfo.firstRefreshAt) refreshInfo.firstRefreshAt = now;
+            localStorage.setItem(refreshKey, JSON.stringify(refreshInfo));
+
+            const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
+              withCredentials: true,
+            });
+            const { userData } = res.data;
+
+            if (userData) {
+              await saveToIndexedDB("user-data", userData);
+              if (userData?.plans)
+                await saveToIndexedDB("plans", userData.plans);
+              if (userData?.name)
+                localStorage.setItem("userName", userData.name);
+            }
+          } catch (err) {
+            // Do nothing — handled silently
+          }
+        }
+      } catch (error) {
+        // Silent fail
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
   }, []);
 
   useEffect(() => {

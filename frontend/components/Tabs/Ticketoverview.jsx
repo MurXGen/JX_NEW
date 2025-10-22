@@ -1,20 +1,14 @@
-export default function TickerAnalysis({ trades }) {
-  const tickerMap = {};
+"use client";
 
-  trades.forEach((t) => {
-    if (!tickerMap[t.symbol]) tickerMap[t.symbol] = { count: 0, pnl: 0 };
-    tickerMap[t.symbol].count++;
-    tickerMap[t.symbol].pnl += t.pnl || 0;
-  });
+import React, { useState, useEffect } from "react";
+import TickerAnalysis from "./TicketAnalysis";
 
+const TickerOverview = ({ trades }) => {
   return (
     <div>
-      <h2>Ticker Analysis</h2>
-      {Object.entries(tickerMap).map(([symbol, data]) => (
-        <p key={symbol}>
-          {symbol}: {data.count} trades, PnL {data.pnl}
-        </p>
-      ))}
+      <TickerAnalysis trades={trades} />
     </div>
   );
-}
+};
+
+export default TickerOverview;

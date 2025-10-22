@@ -1,20 +1,40 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import DailyPnLChart from "@/components/Charts/DailyPnlChart";
 import PNLChart from "@/components/Charts/PnlChart";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
-import { formatNumber } from "@/utils/formatNumbers";
+import { formatCurrency, formatNumber } from "@/utils/formatNumbers";
 import { processPnLCandles } from "@/utils/processPnLCandles";
 import {
   ArrowDownRightFromCircle,
   ArrowDownRightIcon,
   ArrowUpRightFromCircle,
   ArrowUpRightIcon,
+  CandlestickChart,
+  LineChart,
 } from "lucide-react";
 import AllVolume from "../Charts/AllVolume";
-import TagAnalysis from "./TagAnalysis";
+import TagAnalysis from "../Charts/TagAnalysis";
 import Timer from "../ui/Timer";
+import PnLAreaChart from "../Charts/PnLAreaChart";
 
 export default function Overview({ stats, trades }) {
   const currencyCode = localStorage.getItem("currencyCode");
+
+  const [chartType, setChartType] = useState("dailyPnLChart");
+
+  // Load chart preference from localStorage on mount
+  useEffect(() => {
+    const savedChart = localStorage.getItem("chartType");
+    if (savedChart) setChartType(savedChart);
+  }, []);
+
+  // Handle chart toggle and save preference
+  const handleChartChange = (type) => {
+    setChartType(type);
+    localStorage.setItem("chartType", type);
+  };
 
   if (!stats)
     return (
@@ -45,6 +65,139 @@ export default function Overview({ stats, trades }) {
 
       <div className="flexClm gap_24">
         <span className="font_12">Advanced visual analysis</span>
+        <div
+          className="pnlChart chart_boxBg flexClm gap_12"
+          style={{ padding: "16px" }}
+        >
+          {/* Header with toggle */}
+          <div className="flexRow flexRow_stretch">
+            <span className="font_12">PnL Daily Chart</span>
+            <div className="view-toggle flexRow">
+              <button
+                className={`toggle-btn ${
+                  chartType === "dailyPnLChart" ? "active" : ""
+                }`}
+                onClick={() => handleChartChange("dailyPnLChart")}
+              >
+                <CandlestickChart size={16} />
+              </button>
+              <button
+                className={`toggle-btn ${
+                  chartType === "pnlAreaChart" ? "active" : ""
+                }`}
+                onClick={() => handleChartChange("pnlAreaChart")}
+              >
+                <LineChart size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="flexRow flexRow_stretch gap_12">
+            <div
+              className="boxBg flexClm gap_12"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              <span className="font_12">Net PnL</span>
+              <span
+                className={`${
+                  stats?.netPnL >= 0 ? "success" : "error"
+                } stats-text`}
+              >
+                <span style={{ paddingRight: "4px" }}>
+                  {getCurrencySymbol(currencyCode)}
+                </span>
+                {stats?.netPnL?.toLocaleString("en-US", {
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          </div>
+
+          {/* Chart Toggle */}
+          {chartType === "dailyPnLChart" ? (
+            <DailyPnLChart data={candleData} />
+          ) : (
+            <PnLAreaChart data={candleData} />
+          )}
+        </div>
+        <div>
+          <TagAnalysis tagAnalysis={stats?.tagAnalysis} />
+        </div>
+        <div
+          className="pnlChart chart_boxBg flexClm gap_12"
+          style={{ padding: "16px 16px" }}
+        >
+          <span className="font_12">Daily PnL</span>
+          <div className="flexRow flexRow_stretch gap_12">
+            {/* Max Run up */}
+            <div
+              className="boxBg flexClm gap_12"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              <span className="font_12">Max profit</span>
+              <span
+                className={`${
+                  stats?.maxProfit >= 0 ? "success" : "error"
+                } stats-text`}
+              >
+                <span style={{ paddingRight: "4px" }}>
+                  {getCurrencySymbol(currencyCode)}
+                </span>
+                {stats?.maxProfit?.toLocaleString("en-US", {
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+
+            {/* Max Drawdown */}
+            <div
+              className="boxBg flexClm gap_12"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              <span className="font_12">Max loss</span>
+              <span
+                className={`${
+                  stats?.maxLoss < 0 ? "error" : "success"
+                } stats-text`}
+              >
+                <span style={{ paddingRight: "4px" }}>
+                  {getCurrencySymbol(currencyCode)}
+                </span>
+                {stats?.maxLoss?.toLocaleString("en-US", {
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          </div>
+
+          <PNLChart dailyData={stats.dailyData} />
+        </div>
+        <div
+          className="pnlChart chart_boxBg flexClm gap_12"
+          style={{ padding: "16px 16px" }}
+        >
+          <span className="font_12">Daily Volume chart</span>
+
+          <div className="flexRow flexRow_stretch gap_12">
+            <div
+              className="boxBg flexRow flexRow_center gap_8"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              <div className="flexClm gap_12">
+                <span className="font_12">Total Volume</span>
+                <span className="flexRow gap_8">
+                  {formatCurrency(
+                    stats.totalVolume,
+                    getCurrencySymbol(currencyCode)
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <AllVolume dailyData={stats.dailyVolumeData} />
+        </div>
         <div className="greedAndFear flexRow flexRow_stretch chart_boxBg">
           <div className="gfHeader flexClm gap_12">
             <span className="font_12">Greed & Fear Index</span>
@@ -143,124 +296,6 @@ export default function Overview({ stats, trades }) {
               </text>
             </svg>
           </div>
-        </div>
-        <div
-          className="pnlChart chart_boxBg flexClm gap_12"
-          style={{ padding: "16px 16px" }}
-        >
-          <span className="font_12">Daily PnL</span>
-          <div className="flexRow flexRow_stretch gap_12">
-            {/* Max Run up */}
-            <div
-              className="boxBg flexClm gap_12"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <span className="font_12">Max profit</span>
-              <span
-                className={`${
-                  stats?.maxProfit >= 0 ? "success" : "error"
-                } stats-text`}
-              >
-                <span style={{ paddingRight: "4px" }}>
-                  {getCurrencySymbol(currencyCode)}
-                </span>
-                {stats?.maxProfit?.toLocaleString("en-US", {
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-
-            {/* Max Drawdown */}
-            <div
-              className="boxBg flexClm gap_12"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <span className="font_12">Max loss</span>
-              <span
-                className={`${
-                  stats?.maxLoss < 0 ? "error" : "success"
-                } stats-text`}
-              >
-                <span style={{ paddingRight: "4px" }}>
-                  {getCurrencySymbol(currencyCode)}
-                </span>
-                {stats?.maxLoss?.toLocaleString("en-US", {
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-          </div>
-
-          <PNLChart dailyData={stats.dailyData} />
-        </div>
-        <div
-          className="pnlChart chart_boxBg flexClm gap_12"
-          style={{ padding: "16px 16px" }}
-        >
-          <span className="font_12">PnL Candlestick Chart</span>
-          <div className="flexRow flexRow_stretch gap_12">
-            {/* Net PnL */}
-            <div
-              className="boxBg flexClm gap_12"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <span className="font_12">Net PnL</span>
-              <span
-                className={`${
-                  stats?.netPnL >= 0 ? "success" : "error"
-                } stats-text`}
-              >
-                <span style={{ paddingRight: "4px" }}>
-                  {getCurrencySymbol(currencyCode)}
-                </span>
-                {stats?.netPnL?.toLocaleString("en-US", {
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-          </div>
-          <DailyPnLChart data={candleData} />
-        </div>
-        <div
-          className="pnlChart chart_boxBg flexClm gap_12"
-          style={{ padding: "16px 16px" }}
-        >
-          <span className="font_12">Daily Volume chart</span>
-
-          <div className="flexRow flexRow_stretch gap_12">
-            {/* Total Long Volume */}
-            {/* <div
-              className="boxBg flexRow flexRow_center gap_8"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <div className="flexClm gap_12">
-                <span className="font_12">Total Long Volume</span>
-                <span className="success flexRow gap_8">
-                  {stats.dailyVolumeData
-                    ?.reduce((sum, day) => sum + (day.longVolume || 0), 0)
-                    .toLocaleString("en-US")}
-                  <ArrowUpRightIcon className="success" size={20} />
-                </span>
-              </div>
-            </div> */}
-
-            {/* Total Short Volume */}
-            <div
-              className="boxBg flexRow flexRow_center gap_8"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <div className="flexClm gap_12">
-                <span className="font_12">Total Volume</span>
-                <span className="flexRow gap_8">{stats.totalVolume}</span>
-              </div>
-            </div>
-          </div>
-
-          <AllVolume dailyData={stats.dailyVolumeData} />
-        </div>
-
-        <div>
-          <TagAnalysis tagAnalysis={stats?.tagAnalysis} />
         </div>
       </div>
 
