@@ -9,10 +9,9 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/assets/JournalX_Favicon.png",
-      "sizes": "200x200",
-      "type": "image/png",
-      "purpose": "maskable"
+      "src": "/assets/JournalX_Favicon2.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
       "src": "/assets/jx_trans_favicon.png",

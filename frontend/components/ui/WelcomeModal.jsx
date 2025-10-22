@@ -309,7 +309,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
             transition={{ duration: 0.5 }}
             className="flexClm gap_4"
           >
-            <span className="font_16 font_weight_700">
+            <span className="font_20 font_weight_700">
               {getCurrentMessage()}
             </span>
             <span className="font_14 shade_50">

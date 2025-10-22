@@ -4,7 +4,6 @@ import { childVariants, containerVariants } from "@/animations/motionVariants";
 import Navbar from "@/components/Trades/Navbar";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
-import WelcomeModal from "@/components/ui/WelcomeModal";
 import { formatCurrency } from "@/utils/formatNumbers";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import axios from "axios";
