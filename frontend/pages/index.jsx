@@ -243,7 +243,7 @@ export default function Home() {
           />
         )}
         {activeTab === "ticker" && <TickerAnalysis trades={trades} />}
-        {activeTab === "news" && <MarketNews />}
+        {/* {activeTab === "news" && <MarketNews />} */}
 
         <BackgroundBlur />
       </div>

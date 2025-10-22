@@ -187,7 +187,27 @@ export default function PNLChart({ dailyData }) {
             dataKey="day"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 12, dy: 16, fill: "#888" }}
+            tick={({ x, y, payload }) => {
+              const today = new Date();
+              const currentDayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+              // Map Sunday = 0 to "Sun", Monday = 1 to "Mon", ...
+              const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+              const isToday = payload.value === daysMap[currentDayIndex];
+
+              return (
+                <text
+                  x={x}
+                  y={y + 16} // dy equivalent
+                  textAnchor="middle"
+                  className={isToday ? "" : "shade_50"}
+                  fontSize={12}
+                  fill={isToday ? "#fff" : "#888"} // fallback if shade_50 not applied
+                >
+                  {payload.value}
+                </text>
+              );
+            }}
           />
 
           <YAxis

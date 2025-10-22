@@ -1,6 +1,7 @@
 import Cookies from "js-cookie";
 import { getFromIndexedDB } from "./indexedDB"; // assuming this is your helper
 
+// 🟩 Main function to fetch accounts, trades, balances, and plan info
 export const fetchAccountsAndTrades = async () => {
   const verified = Cookies.get("isVerified");
   if (verified !== "yes") {
@@ -9,15 +10,16 @@ export const fetchAccountsAndTrades = async () => {
 
   try {
     const cachedUser = await getFromIndexedDB("user-data");
-
-    if (!cachedUser?.accounts?.length) {
-      return { accounts: [], trades: [] };
+    if (!cachedUser) {
+      return { accounts: [], trades: [], userPlan: null };
     }
 
-    const accounts = cachedUser.accounts;
+    const accounts = cachedUser.accounts || [];
     const trades = cachedUser.trades || [];
+    const plans = cachedUser.plans || [];
+    const subscription = cachedUser.subscription || null;
 
-    // Build balance and trades count maps
+    // 🟩 Build current balances and trade counts
     const currentBalances = {};
     const tradesCount = {};
     accounts.forEach((acc) => {
@@ -32,7 +34,7 @@ export const fetchAccountsAndTrades = async () => {
       tradesCount[acc.name] = tradesForAcc.length;
     });
 
-    // Build currency symbols
+    // 🟩 Build account currency symbols
     const accountSymbols = {};
     accounts.forEach((acc) => {
       switch ((acc.currency || "").toUpperCase()) {
@@ -50,18 +52,45 @@ export const fetchAccountsAndTrades = async () => {
       }
     });
 
-    return { accounts, trades, currentBalances, tradesCount, accountSymbols };
+    // 🟩 Extract active user plan info
+    let userPlan = null;
+    if (subscription?.planId) {
+      const matchedPlan =
+        plans.find((p) => p.planId === subscription.planId) || null;
+
+      const planName =
+        matchedPlan?.name ||
+        subscription.planId.charAt(0).toUpperCase() +
+          subscription.planId.slice(1);
+
+      userPlan = {
+        ...subscription,
+        planName,
+      };
+    }
+
+    return {
+      accounts,
+      trades,
+      currentBalances,
+      tradesCount,
+      accountSymbols,
+      userPlan,
+    };
   } catch (err) {
+    console.error("Error fetching accounts/trades:", err);
     return {
       accounts: [],
       trades: [],
       currentBalances: {},
       tradesCount: {},
       accountSymbols: {},
+      userPlan: null,
     };
   }
 };
 
+// 🟩 Separate helper for fetching all plan info (if needed)
 export const fetchPlansFromIndexedDB = async () => {
   try {
     const plans = await getFromIndexedDB("plans");
@@ -74,6 +103,7 @@ export const fetchPlansFromIndexedDB = async () => {
       yearly: plan.yearly,
     }));
   } catch (err) {
+    console.error("Error fetching plans:", err);
     return [];
   }
 };

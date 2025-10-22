@@ -135,8 +135,34 @@ export default function VolumeChart({ dailyData }) {
             dataKey="day"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 12, dy: 16, fill: "#888" }}
+            tick={({ x, y, payload }) => {
+              // Compute which day in this week is "today"
+              const today = new Date();
+              const adjustedToday = new Date(today);
+              adjustedToday.setHours(0, 0, 0, 0);
+
+              // The startOfWeek is already adjusted for weekOffset
+              const dayIndex = payload.index; // 0 = Monday, 6 = Sunday
+              const tickDate = new Date(startOfWeek);
+              tickDate.setDate(startOfWeek.getDate() + dayIndex);
+
+              const isToday = tickDate.getTime() === adjustedToday.getTime();
+
+              return (
+                <text
+                  x={x}
+                  y={y + 16} // dy
+                  textAnchor="middle"
+                  className={isToday ? "" : "shade_50"}
+                  fontSize={12}
+                  fill={isToday ? "#fff" : "#888"} // fallback if shade_50 not applied
+                >
+                  {payload.value}
+                </text>
+              );
+            }}
           />
+
           <YAxis hide />
           <ReferenceLine y={0} stroke="#aaa" strokeDasharray="3 3" />
           <Tooltip

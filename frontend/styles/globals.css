@@ -216,6 +216,10 @@ body {
   font-weight: var(--weight-600);
 }
 
+.pad_16 {
+  padding: var(--px-16);
+}
+
 .shade_50 {
   color: var(--base-text);
   opacity: 0.5;
@@ -5194,4 +5198,9 @@ footer {
       animation: none;
     }
   }
+}
+
+/* Legal pages  */
+
+@media (min-width: 0px) {
 }
