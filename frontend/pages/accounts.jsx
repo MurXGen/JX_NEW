@@ -466,7 +466,7 @@ function Accounts() {
               {/* Show More/Less Toggle */}
               {accounts.length > 2 && (
                 <motion.button
-                  className="show-more-button"
+                  className="button_sec flexRow gap_4 flex_center"
                   onClick={() => setShowAllAccounts(!showAllAccounts)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
