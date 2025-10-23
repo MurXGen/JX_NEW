@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import TickerAnalysis from "./TicketAnalysis";
 
-const News = ({ trades }) => {
+const News = () => {
   return (
     <div>
       <h2>Coming soon...</h2>
