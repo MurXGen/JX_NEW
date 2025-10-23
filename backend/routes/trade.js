@@ -1,9 +1,13 @@
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
+const dayjs = require("dayjs");
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 // Multer for handling multipart form-data
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
+
 const {
   addTrade,
   updateTrade,

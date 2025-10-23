@@ -3,6 +3,7 @@
 import LongShorts from "@/components/Tabs/Long_short";
 import MarketNews from "@/components/Tabs/MarketNews";
 import Overview from "@/components/Tabs/Overview";
+import TickerOverview from "@/components/Tabs/Ticketoverview";
 import TickerAnalysis from "@/components/Tabs/Ticketoverview";
 import BottomBar from "@/components/Trades/BottomBar";
 import Navbar from "@/components/Trades/Navbar";
@@ -242,8 +243,8 @@ export default function Home() {
             shortTrades={trades.filter((t) => t.direction === "short")}
           />
         )}
-        {activeTab === "ticker" && <TickerAnalysis trades={trades} />}
-        {/* {activeTab === "news" && <MarketNews />} */}
+        {activeTab === "ticker" && <TickerOverview trades={trades} />}
+        {activeTab === "news" && <MarketNews />}
 
         <BackgroundBlur />
       </div>

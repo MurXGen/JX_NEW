@@ -28,6 +28,7 @@ import {
   Check,
 } from "lucide-react";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { FiDatabase } from "react-icons/fi";
@@ -602,33 +603,38 @@ function Accounts() {
             {quickActions.map((action) => {
               const IconComponent = action.icon;
               return (
-                <motion.button
+                <Link
                   key={action.id}
-                  className={`chart_boxBg pad_16 flexClm gap_24 ${
-                    !action.enabled ? "disabled" : ""
-                  }`}
-                  style={{
-                    fontFamily: "Poppins",
-                    border: "var(--px-12)",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => action.enabled && router.push(action.path)}
-                  whileHover={action.enabled ? { scale: 1.02 } : {}}
-                  whileTap={action.enabled ? { scale: 0.98 } : {}}
-                  disabled={!action.enabled}
+                  href={action.enabled ? action.path : "#"}
+                  style={{ textDecoration: "none" }}
                 >
-                  <div className="">
-                    <IconComponent size={24} className="vector" />
-                  </div>
-                  <div className="flexClm gap_4">
-                    <span className="" style={{ color: "var(--base-text)" }}>
-                      {action.title}
-                    </span>
-                    <span className="font_12 shade_50">
-                      {action.description}
-                    </span>
-                  </div>
-                </motion.button>
+                  <motion.button
+                    className={`chart_boxBg pad_16 flexClm gap_24 ${
+                      !action.enabled ? "disabled" : ""
+                    }`}
+                    style={{
+                      fontFamily: "Poppins",
+                      border: "var(--px-12)",
+                      cursor: action.enabled ? "pointer" : "not-allowed",
+                      width: "100%",
+                    }}
+                    whileHover={action.enabled ? { scale: 1.02 } : {}}
+                    whileTap={action.enabled ? { scale: 0.98 } : {}}
+                    disabled={!action.enabled}
+                  >
+                    <div>
+                      <IconComponent size={24} className="vector" />
+                    </div>
+                    <div className="flexClm gap_4">
+                      <span className="" style={{ color: "var(--base-text)" }}>
+                        {action.title}
+                      </span>
+                      <span className="font_12 shade_50">
+                        {action.description}
+                      </span>
+                    </div>
+                  </motion.button>
+                </Link>
               );
             })}
           </div>

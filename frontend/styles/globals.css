@@ -5206,7 +5206,80 @@ footer {
   }
 }
 
-/* Legal pages  */
+/* API DATa  */
 
 @media (min-width: 0px) {
+  /* Market News Styles */
+  .marketNews {
+    width: 100%;
+  }
+
+  .dateButton {
+    min-width: 60px;
+    border: 1px solid var(--white-20);
+    border-radius: 8px;
+    background: transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .dateButton:hover {
+    border-color: var(--white-50);
+    background: var(--white-5);
+  }
+
+  .dateButton.active {
+    border-color: var(--primary);
+    background: var(--primary-10);
+  }
+
+  .impactFilter {
+    border: 1px solid;
+    border-radius: 20px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .impactFilter:hover {
+    background: var(--white-5);
+  }
+
+  .impactFilter.active {
+    background: var(--white-10);
+  }
+
+  .eventItem {
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .eventItem:hover {
+    background: var(--white-5);
+    transform: translateX(2px);
+  }
+
+  .impactIndicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--white-10);
+  }
+
+  .eventData {
+    padding-top: 8px;
+    border-top: 1px solid var(--white-10);
+  }
+
+  .dataPoint {
+    min-width: 60px;
+  }
+
+  .text_capitalize {
+    text-transform: capitalize;
+  }
+
+  .error_border {
+    border: 1px solid var(--error);
+  }
 }
