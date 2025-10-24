@@ -443,20 +443,26 @@ function Accounts() {
         >
           {accounts.length === 0 ? (
             <motion.div
-              className="notFound flexClm gap_16 text-center"
+              className="notFound flexClm gap_16 flex_center"
               variants={childVariants}
             >
               <FiDatabase size={48} className="vector" />
-              <div className="flexClm gap_8">
-                <span className="font_16 font_weight_600">
+              <div className="flexClm gap_8 ">
+                <span
+                  className="font_16 font_weight_600"
+                  style={{ textAlign: "center" }}
+                >
                   No Accounts Found
                 </span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
+                <span
+                  className="font_12 shade_50"
+                  style={{ textAlign: "center" }}
+                >
                   Create your first trading account to get started
                 </span>
               </div>
               <button
-                className="button_pri flexRow gap_8"
+                className="button_pri flexRow flex_center gap_8"
                 onClick={handleCreateAccount}
                 disabled={loading}
               >

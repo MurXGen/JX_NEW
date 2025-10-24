@@ -4,7 +4,14 @@ import Dropdown from "@/components/ui/Dropdown";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getCurrentPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
-import { Calendar, Check, ChevronDown, Download, Info } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Check,
+  ChevronDown,
+  Download,
+  Info,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, ArrowDown } from "lucide-react";
@@ -270,10 +277,17 @@ const ExportPage = () => {
     );
   }
 
+  const handleBackClick = () => {
+    router.push("/");
+  };
+
   return (
     <div className="exportPage flexClm gap_24 pad_24">
       {/* Header */}
-      <div className="flexRow flexRow_stretch">
+      <div className="flexRow gap_8">
+        <button className="button_sec flexRow" onClick={handleBackClick}>
+          <ArrowLeft size={20} />
+        </button>
         <div className="flexClm">
           <span className="font_20 font_weight_600">Export Trades</span>
           <span className="font_14 shade_50">

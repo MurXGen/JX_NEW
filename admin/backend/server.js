@@ -20,11 +20,15 @@ mongoose
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 // Optional: Listen to connection events
-mongoose.connection.on("connected", () => log("Mongoose connected to DB"));
+mongoose.connection.on("connected", () =>
+  console.log("Mongoose connected to DB")
+);
 mongoose.connection.on("error", (err) =>
   error("Mongoose connection error:", err)
 );
-mongoose.connection.on("disconnected", () => log("Mongoose disconnected"));
+mongoose.connection.on("disconnected", () =>
+  console.log("Mongoose disconnected")
+);
 
 // Routes
 app.use("/api/plans", planRoutes);

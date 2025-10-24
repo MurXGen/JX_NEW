@@ -4,7 +4,7 @@ import Dropdown from "@/components/ui/Dropdown";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getCurrentPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
-import { Check, Copy, Share2, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Copy, Share2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, ArrowDown } from "lucide-react";
@@ -273,10 +273,17 @@ const ShareTrades = () => {
     );
   }
 
+  const handleBackClick = () => {
+    router.push("/");
+  };
+
   return (
     <div className="shareTradesPage flexClm gap_24 pad_24">
       {/* Header */}
-      <div className="flexRow flexRow_stretch">
+      <div className="flexRow gap_8">
+        <button className="button_sec flexRow" onClick={handleBackClick}>
+          <ArrowLeft size={20} />
+        </button>
         <div className="flexClm">
           <span className="font_20 font_weight_600">Share Trades</span>
           <span className="font_14 shade_50">

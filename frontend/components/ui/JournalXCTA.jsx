@@ -22,6 +22,10 @@ const JournalXCTA = () => {
     return () => clearInterval(interval);
   }, [features.length]);
 
+  const handleCTA = () => {
+    router.push("/");
+  };
+
   return (
     <div
       className="chart_boxBg pad_16 flexRow "
@@ -81,7 +85,7 @@ const JournalXCTA = () => {
           flexShrink: 0,
           whiteSpace: "nowrap",
         }}
-        onClick={() => window.open("https://journalx.app/", "_blank")}
+        onClick={handleCTA}
       >
         Join JournalX
         <ArrowRight size={16} />
