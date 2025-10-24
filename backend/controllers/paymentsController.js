@@ -18,13 +18,6 @@ exports.createOrder = async (req, res) => {
   try {
     const { planId, period, userName, userEmail } = req.body;
 
-    console.log("📩 Payload received:", {
-      planId,
-      period,
-      userName,
-      userEmail,
-    });
-
     if (!planId) return res.status(400).json({ message: "planId required" });
     if (!period) return res.status(400).json({ message: "period required" });
 
@@ -36,9 +29,6 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ message: "Plan pricing not configured" });
 
     const amountPaise = toPaise(priceINR);
-    console.log(
-      `💰 Calculated amount for ${period}: ₹${priceINR} (${amountPaise} paise)`
-    );
 
     // 🔹 Create Razorpay order
     const order = await razorpay.orders.create({
@@ -142,14 +132,6 @@ exports.verifyPayment = async (req, res) => {
 exports.createSubscription = async (req, res) => {
   try {
     const { planId, period, userName, userEmail, userContact } = req.body;
-
-    console.log("📩 Payload received:", {
-      planId,
-      period,
-      userName,
-      userEmail,
-      userContact,
-    });
 
     if (!planId) return res.status(400).json({ message: "planId required" });
     if (!period) return res.status(400).json({ message: "period required" });

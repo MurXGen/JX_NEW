@@ -301,9 +301,7 @@ export default function AddTrade() {
           if (activeAccount?.currency) {
             setCurrencySymbol(getCurrencySymbol(activeAccount.currency));
           } else {
-            console.warn(
-              "⚠️ No matching account found or missing currency field."
-            );
+            warn("⚠️ No matching account found or missing currency field.");
           }
         } else {
         }

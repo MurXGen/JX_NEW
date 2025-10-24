@@ -5283,3 +5283,6 @@ footer {
     border: 1px solid var(--error);
   }
 }
+
+@media (min-width: 0px) {
+}

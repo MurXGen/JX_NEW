@@ -91,12 +91,6 @@ export const canAddTrade = async (userData) => {
     );
   }).length;
 
-  console.log(
-    "[DEBUG] Trades this month (active account):",
-    tradesThisMonth,
-    "Limit:",
-    rules.tradeLimitPerMonth
-  );
   return tradesThisMonth < rules.tradeLimitPerMonth;
 };
 
@@ -133,12 +127,6 @@ export const canUploadImage = async (userData, newImageSizeMB) => {
     }
   });
 
-  console.log(
-    "[DEBUG] Images this month (active account):",
-    imagesThisMonth,
-    "Limit:",
-    rules.imageLimitPerMonth
-  );
   return imagesThisMonth < rules.imageLimitPerMonth;
 };
 

@@ -126,7 +126,7 @@ const TickerStats = ({ trades }) => {
 
   if (!trades || trades.length === 0) {
     return (
-      <div className="otherStats flexClm gap_24">
+      <div className="otherStats flexClm gap_24 pad_16">
         <span className="font_12">Ticker Performance</span>
         <div className="chart_boxBg flex_center pad_32">
           <span className="font_12 shade_50">No trade data available</span>

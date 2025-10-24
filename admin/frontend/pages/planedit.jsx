@@ -47,15 +47,11 @@ export default function PlanEdit() {
     setMessage("");
 
     try {
-      console.log("Submitting plans:", plans); // 🔹 Check payload
-
       // Direct POST, no headers
       const response = await axios.post(
         "http://localhost:8000/api/plans/upsert",
         plans
       );
-
-      console.log("Response from backend:", response.data); // 🔹 Check backend response
       setMessage("✅ Plans saved successfully!");
     } catch (err) {
       if (err.response) {

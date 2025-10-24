@@ -8,24 +8,18 @@ import { formatCurrency } from "@/utils/formatNumbers";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getPlanRules } from "@/utils/planRestrictions";
 import axios from "axios";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
   ArrowRight,
-  Plus,
-  Download,
-  Upload,
-  Share2,
-  TrendingUp,
-  Zap,
+  Check,
   ChevronDown,
   ChevronUp,
-  Database,
-  Image,
-  Bell,
-  Bot,
   Crown,
-  Check,
+  Plus,
+  Share2,
+  TrendingUp,
+  Upload,
 } from "lucide-react";
 import Head from "next/head";
 import Link from "next/link";
@@ -309,7 +303,7 @@ function Accounts() {
           }
         }
       } catch (err) {
-        console.error("Error fetching user data:", err);
+        error("Error fetching user data:", err);
       } finally {
         setLoading(false);
       }
@@ -356,11 +350,11 @@ function Accounts() {
 
   const quickActions = [
     {
-      id: "import-export",
+      id: "export",
       title: "Import / Export Trades",
       description: "Backup or migrate your trading data",
       icon: Upload,
-      path: "/import-export",
+      path: "/export",
       enabled: userPlan?.canExportTrades || false,
     },
     {

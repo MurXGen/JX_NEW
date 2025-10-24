@@ -367,9 +367,7 @@ export default function AddTrade() {
           if (activeAccount?.currency) {
             setCurrencySymbol(getCurrencySymbol(activeAccount.currency));
           } else {
-            console.warn(
-              "⚠️ No matching account found or missing currency field."
-            );
+            warn("⚠️ No matching account found or missing currency field.");
           }
         } else {
         }
@@ -809,10 +807,7 @@ export default function AddTrade() {
     try {
       localStorage.removeItem(`newTradeImage_${field}`);
     } catch (err) {
-      console.error(
-        `Failed to remove image from localStorage for ${field}`,
-        err
-      );
+      error(`Failed to remove image from localStorage for ${field}`, err);
     }
   }
 

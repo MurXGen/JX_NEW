@@ -201,15 +201,15 @@ const TickerAnalysis = ({ trades }) => {
 
   if (!trades || trades.length === 0) {
     return (
-      <div className="flexClm gap_32 chart_boxBg">
+      <div className="flexClm gap_32 chart_boxBg pad_16">
         <div className="section-header">
           <span className="font_16 font_weight_600">Ticker Analysis</span>
           <span className="font_12" style={{ color: "var(--white-50)" }}>
             Performance by trading symbol
           </span>
         </div>
-        <div className="flex_center" style={{ height: "300px" }}>
-          <div className="font_14" style={{ color: "var(--white-50)" }}>
+        <div className="flex_center">
+          <div className="font_14 shade_50">
             No trades available for analysis
           </div>
         </div>
@@ -218,7 +218,7 @@ const TickerAnalysis = ({ trades }) => {
   }
 
   return (
-    <div className=" flexClm gap_12 chart_boxBg pad_16">
+    <div className=" flexClm gap_16 chart_boxBg pad_16">
       {/* Header */}
       <div className="flexRow flexRow_stretch">
         <div className="flexClm">
@@ -229,7 +229,7 @@ const TickerAnalysis = ({ trades }) => {
       <div className="flexRow flexRow_stretch">
         {/* Summary Stats */}
 
-        <div className="flexClm gap_12 width100 boxBg">
+        <div className="flexClm gap_16 width100 boxBg">
           <span className="font_12" style={{ color: "var(--white-50)" }}>
             Tickers
           </span>

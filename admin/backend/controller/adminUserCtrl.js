@@ -11,7 +11,7 @@ exports.getAllUsers = async (req, res) => {
     );
     res.json({ success: true, users });
   } catch (err) {
-    console.error("🔥 getAllUsers Error:", err);
+    error("🔥 getAllUsers Error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -19,10 +19,9 @@ exports.getAllUsers = async (req, res) => {
 exports.getUserOrders = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("🟢 getUserOrders hit for userId:", userId);
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      console.warn("⚠️ Invalid userId:", userId);
+      warn("⚠️ Invalid userId:", userId);
       return res
         .status(400)
         .json({ success: false, message: "Invalid userId" });
@@ -32,12 +31,11 @@ exports.getUserOrders = async (req, res) => {
       userId: new mongoose.Types.ObjectId(userId),
     }).populate("userId", "name email");
 
-    console.log(`🔹 Orders found for user (${userId}):`, orders.length);
-    orders.forEach((o) => console.log(o));
+    orders.forEach((o) => log(o));
 
     res.json({ success: true, orders });
   } catch (err) {
-    console.error("🔥 getUserOrders Error:", err);
+    error("🔥 getUserOrders Error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -65,7 +63,7 @@ exports.updateOrder = async (req, res) => {
 
     res.json({ success: true, message: "Order updated successfully", order });
   } catch (err) {
-    console.error("🔥 updateOrder Error:", err);
+    error("🔥 updateOrder Error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

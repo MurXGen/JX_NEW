@@ -11,7 +11,7 @@ export const getCurrencySymbol = (currencyCode) => {
 
   // Defensive check
   if (!currencyCode || typeof currencyCode !== "string") {
-    console.warn(
+    warn(
       "⚠️ Invalid currencyCode provided to getCurrencySymbol:",
       currencyCode
     );

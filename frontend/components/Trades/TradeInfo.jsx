@@ -75,11 +75,6 @@ const TradeInfo = ({ onClose }) => {
       if (res.data.success) {
         const { userData, message } = res.data;
 
-        console.log("💾 Syncing updated userData into IndexedDB:", {
-          accountsCount: userData?.accounts?.length || 0,
-          tradesCount: userData?.trades?.length || 0,
-        });
-
         // ✅ Save full userData to IndexedDB (same as add/update)
         await saveToIndexedDB("user-data", userData);
 
