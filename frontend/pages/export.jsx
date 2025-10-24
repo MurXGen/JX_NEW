@@ -15,8 +15,10 @@ import {
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import { useRouter } from "next/router";
 
 const ExportPage = () => {
+  const router = useRouter();
   const [accounts, setAccounts] = useState([]);
   const [trades, setTrades] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState("all");

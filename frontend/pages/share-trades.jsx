@@ -8,6 +8,7 @@ import { ArrowLeft, Check, Copy, Share2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import { useRouter } from "next/router";
 
 const ShareTrades = () => {
   const [accounts, setAccounts] = useState([]);
@@ -21,6 +22,7 @@ const ShareTrades = () => {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shortening, setShortening] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     loadDataAndCheckAccess();
