@@ -1,11 +1,6 @@
 const axios = require("axios");
 
-export const sendTelegramNotification = async ({
-  name,
-  email,
-  type,
-  status,
-}) => {
+const sendTelegramNotification = async ({ name, email, type, status }) => {
   try {
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -29,3 +24,5 @@ export const sendTelegramNotification = async ({
     console.error("Telegram notification failed:", err.message);
   }
 };
+
+module.exports = { sendTelegramNotification };
