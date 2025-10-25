@@ -1,20 +1,11 @@
-// utils/telegramNotifier.js
 const axios = require("axios");
 
-const sendTelegramNotification = async ({
-  chatId = process.env.TELEGRAM_CHAT_ID, // default user notifications group
-  name,
-  email,
-  type,
-  status,
-  message, // optional custom message
-}) => {
+const sendTelegramNotification = async ({ name, email, type, status }) => {
   try {
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-    const msg =
-      message ||
-      `
+    const message = `
 📣 *JournalX User ${type === "register" ? "Registration" : "Login"}*
 ━━━━━━━━━━━━━━━
 👤 *Name:* ${name || "N/A"}
@@ -25,8 +16,8 @@ const sendTelegramNotification = async ({
 `;
 
     await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      chat_id: chatId,
-      text: msg,
+      chat_id: CHAT_ID,
+      text: message,
       parse_mode: "Markdown",
     });
   } catch (err) {
