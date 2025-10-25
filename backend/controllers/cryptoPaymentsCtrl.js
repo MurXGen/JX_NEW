@@ -1,6 +1,7 @@
 const Order = require("../models/Orders");
 const Plan = require("../models/Plan");
 const User = require("../models/User");
+const { sendTelegramNotification } = require("../utils/telegramNotifier");
 
 exports.createCryptoOrder = async (req, res) => {
   try {
@@ -24,7 +25,9 @@ exports.createCryptoOrder = async (req, res) => {
     const plan = await Plan.findOne({ name: new RegExp(planName, "i") });
     if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-    const cryptoPaymentId = `crypto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const cryptoPaymentId = `crypto_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
 
     const cryptoOrder = new Order({
       userId: req.cookies.userId || null,
@@ -51,12 +54,33 @@ exports.createCryptoOrder = async (req, res) => {
       sameSite: "Strict",
     });
 
+    // ✅ Send Telegram notification to payment group
+    await sendTelegramNotification({
+      chatId: process.env.TELEGRAM_PAYMENTS_CHAT_ID, // separate group chat ID
+      name: req.user?.name || "Guest",
+      email: req.user?.email || "N/A",
+      type: "crypto_payment",
+      status: "pending",
+      message: `
+📌 *New Crypto Payment*
+━━━━━━━━━━━━━━━
+👤 User: ${req.user?.name || "Guest"}
+📧 Email: ${req.user?.email || "N/A"}
+💳 Plan: ${plan.name}
+💰 Amount: ${amount} ${currency || "USDT"}
+🪙 Network: ${network}
+🔗 Address: ${NETWORK_ADDRESSES[network]}
+🕒 Time: ${new Date().toLocaleString("en-IN")}
+      `,
+    });
+
     res.json({
       success: true,
       message: "Crypto order created successfully",
-      orderId: cryptoOrder._id, // ✅ return orderId
+      orderId: cryptoOrder._id,
     });
   } catch (err) {
+    console.error(err.message);
     res.status(500).json({ message: "Server error" });
   }
 };

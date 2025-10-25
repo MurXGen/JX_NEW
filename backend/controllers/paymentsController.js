@@ -343,64 +343,64 @@ exports.webhookHandler = async (req, res) => {
 
 // controllers/paymentsController.js - Add these functions
 
-exports.createCryptoOrder = async (req, res) => {
-  try {
-    const { planName, period, amount, network, currency } = req.body;
+// exports.createCryptoOrder = async (req, res) => {
+//   try {
+//     const { planName, period, amount, network, currency } = req.body;
 
-    if (!planName || !period || !amount || !network) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+//     if (!planName || !period || !amount || !network) {
+//       return res.status(400).json({ message: "Missing required fields" });
+//     }
 
-    const NETWORK_ADDRESSES = {
-      erc20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-      trc20: "TP4aBJBJaRL8Qumcb9TTGxecxryQhh8LTT",
-      bep20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-      avaxc: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-      sol: "Acw24wYJFWhQyk9NR8EHdpCAr53Wsuf1X78A2UPsvWDf",
-      ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
-    };
+//     const NETWORK_ADDRESSES = {
+//       erc20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+//       trc20: "TP4aBJBJaRL8Qumcb9TTGxecxryQhh8LTT",
+//       bep20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+//       avaxc: "0x3757a7076cb4eab649de3b44747f260f619ba754",
+//       sol: "Acw24wYJFWhQyk9NR8EHdpCAr53Wsuf1X78A2UPsvWDf",
+//       ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
+//     };
 
-    if (!NETWORK_ADDRESSES[network]) {
-      return res.status(400).json({ message: "Unsupported network" });
-    }
+//     if (!NETWORK_ADDRESSES[network]) {
+//       return res.status(400).json({ message: "Unsupported network" });
+//     }
 
-    const plan = await Plan.findOne({ name: new RegExp(planName, "i") });
-    if (!plan) return res.status(404).json({ message: "Plan not found" });
+//     const plan = await Plan.findOne({ name: new RegExp(planName, "i") });
+//     if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-    const cryptoPaymentId = `crypto_${Date.now()}_${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
+//     const cryptoPaymentId = `crypto_${Date.now()}_${Math.random()
+//       .toString(36)
+//       .substr(2, 9)}`;
 
-    const cryptoOrder = new Order({
-      userId: req.cookies.userId || null,
-      planId: plan.planId,
-      amount: parseInt(amount) * 100,
-      currency: currency || "USDT",
-      method: "crypto",
-      cryptoPaymentId,
-      status: "pending",
-      period,
-      meta: {
-        planName: plan.name,
-        network,
-        cryptoAddress: NETWORK_ADDRESSES[network],
-      },
-    });
+//     const cryptoOrder = new Order({
+//       userId: req.cookies.userId || null,
+//       planId: plan.planId,
+//       amount: parseInt(amount) * 100,
+//       currency: currency || "USDT",
+//       method: "crypto",
+//       cryptoPaymentId,
+//       status: "pending",
+//       period,
+//       meta: {
+//         planName: plan.name,
+//         network,
+//         cryptoAddress: NETWORK_ADDRESSES[network],
+//       },
+//     });
 
-    await cryptoOrder.save();
+//     await cryptoOrder.save();
 
-    // ✅ Store cryptoPaymentId in HTTP cookie
-    res.cookie("cryptoPaymentId", cryptoPaymentId, {
-      httpOnly: true,
-      maxAge: 10 * 60 * 1000, // 10 minutes
-      sameSite: "Strict",
-    });
+//     // ✅ Store cryptoPaymentId in HTTP cookie
+//     res.cookie("cryptoPaymentId", cryptoPaymentId, {
+//       httpOnly: true,
+//       maxAge: 10 * 60 * 1000, // 10 minutes
+//       sameSite: "Strict",
+//     });
 
-    res.json({
-      success: true,
-      message: "Crypto order created successfully",
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+//     res.json({
+//       success: true,
+//       message: "Crypto order created successfully",
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };

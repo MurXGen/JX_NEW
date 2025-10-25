@@ -10,6 +10,7 @@ const {
 } = require("../controllers/authController");
 require("../utils/passport");
 const passport = require("passport");
+const { sendTelegramNotification } = require("../utils/telegramNotifier");
 
 // 📌 Email/Password Registration
 router.post("/register", registerUser);
@@ -27,30 +28,51 @@ router.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-// 📌 Google OAuth Callback
 router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
     failureRedirect: `${process.env.CLIENT_URL}/login`,
   }),
-  (req, res) => {
-    // ✅ Set userId cookie
-    res.cookie("userId", req.user._id.toString(), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
-    });
+  async (req, res) => {
+    try {
+      // ✅ Set userId cookie
+      res.cookie("userId", req.user._id.toString(), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+        maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
+      });
 
-    const isVerified = "yes";
+      // Send Telegram notification
+      await sendTelegramNotification({
+        name: req.user.name || "N/A",
+        email: req.user.email || "N/A",
+        type: "login",
+        status: "success",
+      });
 
-    // ✅ Redirect with query params
-    const redirectUrl = `${
-      process.env.CLIENT_URL || "http://localhost:3000"
-    }/accounts?isVerified=${isVerified}`;
+      const isVerified = "yes";
 
-    res.redirect(redirectUrl);
+      // ✅ Redirect with query params
+      const redirectUrl = `${
+        process.env.CLIENT_URL || "http://localhost:3000"
+      }/accounts?isVerified=${isVerified}`;
+
+      res.redirect(redirectUrl);
+    } catch (err) {
+      console.error("Google OAuth Telegram notification failed:", err.message);
+
+      // Optional: notify Telegram of failure
+      await sendTelegramNotification({
+        name: req.user?.name || "N/A",
+        email: req.user?.email || "N/A",
+        type: "login",
+        status: "failure",
+      });
+
+      res.redirect(`${process.env.CLIENT_URL}/login?error=google_auth_failed`);
+    }
   }
 );
 
