@@ -54,9 +54,9 @@ exports.createCryptoOrder = async (req, res) => {
       sameSite: "Strict",
     });
 
-    // ✅ Send Telegram notification to payment group
+    // ✅ Telegram notification to payments group
     await sendTelegramNotification({
-      chatId: process.env.TELEGRAM_PAYMENTS_CHAT_ID, // separate group chat ID
+      chatId: process.env.TELEGRAM_PAYMENTS_CHAT_ID, // payment notifications group
       name: req.user?.name || "Guest",
       email: req.user?.email || "N/A",
       type: "crypto_payment",
