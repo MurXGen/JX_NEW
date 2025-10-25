@@ -8,7 +8,7 @@ const { sendOtpEmail } = require("../mail/sendOtpEmail");
 const Plan = require("../models/Plan");
 const getUserData = require("../utils/getUserData");
 const axios = require("axios");
-const { sendTelegramNotification } = require("../utils/telegramNotifier");
+
 
 const SALT_ROUNDS = 10;
 
@@ -128,13 +128,6 @@ const registerUser = async (req, res) => {
       await sendOtpEmail({ to: user.email, otp, name: user.name });
     }
 
-    await sendTelegramNotification({
-  name,
-  email,
-  type: "register",
-  status: "success",
-});
-
     return res.status(201).json({
       message: googleId
         ? "Registered via Google. Free plan activated."
@@ -143,13 +136,6 @@ const registerUser = async (req, res) => {
       isVerified: false,
     });
   } catch (err) {
-    // Inside catch block:
-await sendTelegramNotification({
-  name,
-  email,
-  type: "register",
-  status: "failure",
-});
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -186,15 +172,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // After successful login:
-await sendTelegramNotification({
-  name: user.name,
-  email,
-  type: "login",
-  status: "success",
-});
-
-
     // ✅ Set cookie before sending response
     setUserIdCookie(res, user._id);
 
@@ -206,13 +183,6 @@ await sendTelegramNotification({
       userData,
     });
   } catch (err) {
-    // Inside catch block:
-await sendTelegramNotification({
-  name: email,
-  email,
-  type: "login",
-  status: "failure",
-});
     res.status(500).json({ message: "Server error" });
   }
 };
