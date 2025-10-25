@@ -99,14 +99,7 @@ const TradeInfo = ({ onClose }) => {
   };
 
   if (loading) {
-    return (
-      <div className="modalOverlay flex_center">
-        <div className="modalContent loadingModal">
-          <div className="loadingSpinner"></div>
-          <p className="font_16 shade_50">Loading trade details...</p>
-        </div>
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   if (!trade) return null;
@@ -197,16 +190,7 @@ const TradeInfo = ({ onClose }) => {
                         }}
                       >
                         {!trade.openImageLoaded && (
-                          <Loader2
-                            size={24}
-                            className="spinner"
-                            style={{
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                            }}
-                          />
+                          <div className="spinner"></div>
                         )}
                         <Image
                           src={trade.openImageUrl}
@@ -242,16 +226,7 @@ const TradeInfo = ({ onClose }) => {
                         }}
                       >
                         {!trade.closeImageLoaded && (
-                          <Loader2
-                            size={24}
-                            className="spinner"
-                            style={{
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                            }}
-                          />
+                          <div className="spinner"></div>
                         )}
                         <Image
                           src={trade.closeImageUrl}

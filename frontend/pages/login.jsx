@@ -266,7 +266,7 @@ function Login() {
                 handleLogin(); // call login function
               }}
             >
-              {isLoading ? <Loader2 size={20} className="spinner" /> : "Login"}
+              {isLoading ? <div className="spinner"></div> : "Login"}
               {!isLoading && <ArrowRight size={16} />}
             </button>
           </div>

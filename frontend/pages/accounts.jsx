@@ -11,7 +11,9 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
+  ArrowDown,
   ArrowRight,
+  ArrowUp,
   Check,
   ChevronDown,
   ChevronUp,
@@ -40,6 +42,20 @@ function Accounts() {
   const [userPlan, setUserPlan] = useState(null);
   const [planUsage, setPlanUsage] = useState({});
   const [showMore, setShowMore] = useState(false);
+  const [orderedAccounts, setOrderedAccounts] = useState([]);
+
+  useEffect(() => {
+    const storedOrder = localStorage.getItem("accountOrder");
+    if (storedOrder) {
+      const order = JSON.parse(storedOrder);
+      const sorted = [...accounts].sort(
+        (a, b) => order.indexOf(a._id) - order.indexOf(b._id)
+      );
+      setOrderedAccounts(sorted);
+    } else {
+      setOrderedAccounts(accounts);
+    }
+  }, [accounts]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -350,40 +366,71 @@ function Accounts() {
 
   const quickActions = [
     {
-      id: "export",
-      title: "Import / Export Trades",
-      description: "Backup or migrate your trading data",
-      icon: Upload,
-      path: "/export",
-      enabled: userPlan?.canExportTrades || false,
-    },
-    {
       id: "upgrade-plan",
-      title: "Upgrade Plan Limit",
+      title: "Upgrade plan limit",
       description: "Unlock more features and higher limits",
       icon: Crown,
       path: "/pricing",
       enabled: true,
     },
     {
+      id: "export",
+      title: "Export trades",
+      description: "Backup or migrate your trading data",
+      icon: Upload,
+      path: "/export",
+      // enabled: userPlan?.canExportTrades || false,
+      enabled: true,
+    },
+    {
       id: "share-trades",
-      title: "Share Trades",
+      title: "Share trades",
       description: "Share your trading performance",
       icon: Share2,
       path: "/share-trades",
-      enabled: userPlan?.canShareTrades || false,
+      // enabled: userPlan?.canShareTrades || false,
+      enabled: true,
     },
     {
       id: "market-news",
-      title: "Market News",
-      description: "Latest financial market updates",
+      title: "Market news",
+      description: "Forex factory's market updates",
       icon: TrendingUp,
-      path: "/news",
-      enabled: userPlan?.canAccessFinancialNews || false,
+      path: "https://www.forexfactory.com/calendar",
+      // enabled: userPlan?.canAccessFinancialNews || false,
+      enabled: true,
     },
   ];
 
-  const displayedAccounts = showAllAccounts ? accounts : accounts.slice(0, 2);
+  // 🔼 Move Up
+  const moveUp = (index) => {
+    if (index === 0) return;
+    const newList = [...orderedAccounts];
+    [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
+    setOrderedAccounts(newList);
+    saveOrder(newList);
+  };
+
+  // 🔽 Move Down
+  const moveDown = (index) => {
+    if (index === orderedAccounts.length - 1) return;
+    const newList = [...orderedAccounts];
+    [newList[index + 1], newList[index]] = [newList[index], newList[index + 1]];
+    setOrderedAccounts(newList);
+    saveOrder(newList);
+  };
+
+  const displayedAccounts = showAllAccounts
+    ? orderedAccounts
+    : orderedAccounts.slice(0, 2);
+
+  // 🧠 Save to localStorage
+  const saveOrder = (updatedList) => {
+    localStorage.setItem(
+      "accountOrder",
+      JSON.stringify(updatedList.map((a) => a._id))
+    );
+  };
 
   if (loading) {
     return <FullPageLoader />;
@@ -441,7 +488,7 @@ function Accounts() {
           initial="hidden"
           animate="visible"
         >
-          {accounts.length === 0 ? (
+          {orderedAccounts.length === 0 ? (
             <motion.div
               className="notFound flexClm gap_16 flex_center"
               variants={childVariants}
@@ -472,7 +519,7 @@ function Accounts() {
             </motion.div>
           ) : (
             <>
-              {displayedAccounts.map((acc) => {
+              {displayedAccounts.map((acc, index) => {
                 const lastTradedAccountId = Cookies.get("accountId");
                 const isLastTraded = acc._id === lastTradedAccountId;
 
@@ -481,12 +528,14 @@ function Accounts() {
                     key={acc._id}
                     className="accountCard flexClm gap_32 chart_boxBg"
                     variants={childVariants}
-                    onClick={() => handleAccountClick(acc._id)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <div className="flexRow flexRow_stretch">
-                      <div className="flexClm">
+                    <div className="flexRow flexRow_stretch spaceBetween">
+                      <div
+                        className="flexClm"
+                        onClick={() => handleAccountClick(acc._id)}
+                      >
                         <span className="font_16 font_weight_600">
                           {acc.name}
                         </span>
@@ -499,18 +548,32 @@ function Accounts() {
                           </span>
                         </div>
                       </div>
-                      <div className="flexRow gap_12">
-                        <span>
-                          {isLastTraded && (
-                            <span
-                              className="button_ter"
-                              style={{ fontSize: "10px" }}
-                            >
-                              Last traded
-                            </span>
-                          )}
-                        </span>
-                        <ArrowRight size={18} className="vector" />
+
+                      {/* 🔼🔽 Move Buttons (only shown when allowed) */}
+                      <div className="flexRow gap_8">
+                        {index > 0 && (
+                          <button
+                            onClick={() => moveUp(index)}
+                            className="button_ter small_icon"
+                            title="Move Up"
+                          >
+                            <ArrowUp size={10} />
+                          </button>
+                        )}
+                        {index < orderedAccounts.length - 1 && (
+                          <button
+                            onClick={() => moveDown(index)}
+                            className="button_ter small_icon"
+                            title="Move Down"
+                          >
+                            <ArrowDown size={10} />
+                          </button>
+                        )}
+                        <ArrowRight
+                          size={18}
+                          className="vector"
+                          onClick={() => handleAccountClick(acc._id)}
+                        />
                       </div>
                     </div>
 
@@ -558,8 +621,7 @@ function Accounts() {
                 );
               })}
 
-              {/* Show More/Less Toggle */}
-              {accounts.length > 2 && (
+              {orderedAccounts.length > 2 && (
                 <motion.button
                   className="button_sec flexRow gap_4 flex_center"
                   onClick={() => setShowAllAccounts(!showAllAccounts)}
@@ -574,7 +636,9 @@ function Accounts() {
                   ) : (
                     <>
                       <ChevronDown size={16} />
-                      <span>Show {accounts.length - 2} More Accounts</span>
+                      <span>
+                        Show {orderedAccounts.length - 2} More Accounts
+                      </span>
                     </>
                   )}
                 </motion.button>
@@ -599,7 +663,7 @@ function Accounts() {
             </span>
           </div>
 
-          <div className="flexClm gap_32">
+          <div className="gridContainer">
             {quickActions.map((action) => {
               const IconComponent = action.icon;
               return (
@@ -609,7 +673,7 @@ function Accounts() {
                   style={{ textDecoration: "none" }}
                 >
                   <motion.button
-                    className={`chart_boxBg pad_16 flexClm gap_24 ${
+                    className={`chart_boxBg flexRow gap_12 pad_16${
                       !action.enabled ? "disabled" : ""
                     }`}
                     style={{
@@ -623,14 +687,14 @@ function Accounts() {
                     disabled={!action.enabled}
                   >
                     <div>
-                      <IconComponent size={24} className="vector" />
+                      <IconComponent size={12} className="vector tag" />
                     </div>
-                    <div className="flexClm gap_4">
-                      <span className="" style={{ color: "var(--base-text)" }}>
+                    <div className="flexClm" style={{ textAlign: "left" }}>
+                      <span
+                        className="font_14"
+                        style={{ color: "var(--base-text)" }}
+                      >
                         {action.title}
-                      </span>
-                      <span className="font_12 shade_50">
-                        {action.description}
                       </span>
                     </div>
                   </motion.button>
@@ -644,103 +708,110 @@ function Accounts() {
 
         {/* Plan Usage Overview */}
         {userPlan && (
-          <motion.div
-            className="pad_16 flexClm gap_24 chart_boxBg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flexRow flexRow_stretch">
-              <div className="flexClm">
-                <span className="font_16 font_weight_600">Plan Usage</span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Current monthly usage and limits
-                </span>
-              </div>
-              <div className="plan-badge flexRow gap_8">
-                <Check size={14} className="success" />
-                <span className="font_10 font_weight_600 success">
-                  {userPlan?.planName || "Free Plan"}
-                </span>
-              </div>
+          <div className="flexClm gap_12">
+            <div className="flexClm gap_4">
+              <span className="font_18 font_weight_600">
+                Plan usage and benefits
+              </span>
+              <span className="font_12" style={{ color: "var(--white-50)" }}>
+                Manage your plan usage
+              </span>
             </div>
-
-            <div className="flexClm gap_24">
-              <div className="flexClm gap_12">
-                <div className="flexRow flexRow_stretch">
-                  <span className="font_14">Accounts</span>
-                  {/* Accounts */}
-                  <span
-                    className="font_12"
-                    style={{ color: "var(--white-50)" }}
-                  >
-                    {planUsage.accounts.current}/{planUsage.accounts.limit}
-                  </span>
+            <motion.div
+              className="pad_16 flexClm gap_24 chart_boxBg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="flexRow flexRow_stretch">
+                <div className="flexClm">
+                  <span className="font_16 font_weight_600">Current plan</span>
                 </div>
-                <div className="progress-bar">
-                  <motion.div
-                    className="progress-fill"
-                    style={{ backgroundColor: "var(--primary)" }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${planUsage.accounts.percentage}%` }}
-                    transition={{ duration: 1, delay: 0.2 }}
-                  />
+                <div className="plan-badge flexRow gap_8">
+                  <Check size={14} className="success" />
+                  <span className="font_10 font_weight_600 success">
+                    {userPlan?.planName || "Free Plan"}
+                  </span>
                 </div>
               </div>
 
-              <div className="flexClm gap_12">
-                <div className="usage-header flexRow flexRow_stretch">
-                  <span className="font_14">Monthly Trades</span>
-                  {/* Monthly Trades */}
-                  <span
-                    className="font_12"
-                    style={{ color: "var(--white-50)" }}
-                  >
-                    {planUsage.trades.current}/{planUsage.trades.limit}
-                  </span>
+              <div className="flexClm gap_24">
+                <div className="flexClm gap_12">
+                  <div className="flexRow flexRow_stretch">
+                    <span className="font_14">Accounts</span>
+                    {/* Accounts */}
+                    <span
+                      className="font_12"
+                      style={{ color: "var(--white-50)" }}
+                    >
+                      {planUsage.accounts.current}/{planUsage.accounts.limit}
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <motion.div
+                      className="progress-fill"
+                      style={{ backgroundColor: "var(--primary)" }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${planUsage.accounts.percentage}%` }}
+                      transition={{ duration: 1, delay: 0.2 }}
+                    />
+                  </div>
                 </div>
-                <div className="progress-bar">
-                  <motion.div
-                    className="progress-fill"
-                    style={{ backgroundColor: "var(--success)" }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${planUsage.trades.percentage}%` }}
-                    transition={{ duration: 1, delay: 0.4 }}
-                  />
-                </div>
-              </div>
 
-              <div className="flexClm gap_12">
-                <div className="usage-header flexRow flexRow_stretch">
-                  <span className="font_14">Monthly Images</span>
-                  {/* Monthly Images */}
-                  <span
-                    className="font_12"
-                    style={{ color: "var(--white-50)" }}
-                  >
-                    {planUsage.images.current}/{planUsage.images.limit}
-                  </span>
+                <div className="flexClm gap_12">
+                  <div className="usage-header flexRow flexRow_stretch">
+                    <span className="font_14">Monthly Trades</span>
+                    {/* Monthly Trades */}
+                    <span
+                      className="font_12"
+                      style={{ color: "var(--white-50)" }}
+                    >
+                      {planUsage.trades.current}/{planUsage.trades.limit}
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <motion.div
+                      className="progress-fill"
+                      style={{ backgroundColor: "var(--success)" }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${planUsage.trades.percentage}%` }}
+                      transition={{ duration: 1, delay: 0.4 }}
+                    />
+                  </div>
                 </div>
-                <div className="progress-bar">
-                  <motion.div
-                    className="progress-fill"
-                    style={{ backgroundColor: "var(--primary-light)" }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${planUsage.images.percentage}%` }}
-                    transition={{ duration: 1, delay: 0.6 }}
-                  />
+
+                <div className="flexClm gap_12">
+                  <div className="usage-header flexRow flexRow_stretch">
+                    <span className="font_14">Monthly Images</span>
+                    {/* Monthly Images */}
+                    <span
+                      className="font_12"
+                      style={{ color: "var(--white-50)" }}
+                    >
+                      {planUsage.images.current}/{planUsage.images.limit}
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <motion.div
+                      className="progress-fill"
+                      style={{ backgroundColor: "var(--primary-light)" }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${planUsage.images.percentage}%` }}
+                      transition={{ duration: 1, delay: 0.6 }}
+                    />
+                  </div>
                 </div>
+                <a
+                  className="direct_tertiary flexRow gap_8 font_12"
+                  onClick={(e) => {
+                    router.push("/pricing"); // redirect to pricing page
+                  }}
+                >
+                  Show all features <ChevronDown size={16} />
+                </a>
               </div>
-              <a
-                className="direct_tertiary flexRow gap_8 font_12"
-                onClick={(e) => {
-                  router.push("/pricing"); // redirect to pricing page
-                }}
-              >
-                Show all features <ChevronDown size={16} />
-              </a>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </div>
     </>

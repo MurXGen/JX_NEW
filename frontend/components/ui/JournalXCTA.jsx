@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/router";
 
 const JournalXCTA = () => {
+  const router = useRouter();
   const features = [
     "Turn your trades into powerful insights 📈",
     "Track performance and refine your strategy 🧠",

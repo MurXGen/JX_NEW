@@ -13,7 +13,7 @@ const ToastMessage = ({ type = "success", message = "", duration = 3000 }) => {
       setProgress(0);
 
       const interval = 10; // update every 10ms
-      const step = (interval / duration) * 100;
+      const step = (interval / duration) * 250;
 
       const timer = setInterval(() => {
         setProgress((prev) => {

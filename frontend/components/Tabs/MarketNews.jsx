@@ -14,19 +14,8 @@ const MarketNews = () => {
       <Timer />
 
       {/* Calendar iframe with loader */}
-      <div style={{ width: "100%", height: "600px", position: "relative" }}>
-        {loading && (
-          <div
-            className="spinner"
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 10,
-            }}
-          />
-        )}
+      <div>
+        {loading && <div className="spinner" />}
 
         <iframe
           src="https://tradingeconomics.com/calendar?embed=true"

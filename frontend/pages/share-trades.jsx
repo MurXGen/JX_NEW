@@ -4,7 +4,18 @@ import Dropdown from "@/components/ui/Dropdown";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getCurrentPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
-import { ArrowLeft, Check, Copy, Share2, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Share2,
+  Sparkles,
+  Users,
+  BarChart3,
+  Link,
+  Trophy,
+  TrendingUp,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, ArrowDown } from "lucide-react";
@@ -255,28 +266,11 @@ const ShareTrades = () => {
 
   if (!hasAccess) {
     return (
-      <div className="flexClm gap_24 pad_24">
-        <div className="flexRow flexRow_stretch">
-          <span className="font_20 font_weight_600">Share Trades</span>
-        </div>
-
-        <div className="chart_boxBg flexClm gap_16 pad_32 flex_center text_center">
-          <Share2 size={48} className="shade_50" />
-          <div className="flexClm gap_8">
-            <span className="font_16 font_weight_600">
-              Sharing Feature Locked
-            </span>
-            <span className="font_14 shade_50">
-              Upgrade to Master plan to share your trades with others
-            </span>
-          </div>
-        </div>
-      </div>
+      <div className="chart_boxBg pad_16 flexClm flex_center">No access</div>
     );
   }
-
   const handleBackClick = () => {
-    router.push("/");
+    router.push("/accounts");
   };
 
   return (
@@ -289,8 +283,7 @@ const ShareTrades = () => {
         <div className="flexClm">
           <span className="font_20 font_weight_600">Share Trades</span>
           <span className="font_14 shade_50">
-            Generate a short, shareable link to showcase your trading
-            performance
+            Showcase your trading performance
           </span>
         </div>
       </div>
@@ -368,10 +361,8 @@ const ShareTrades = () => {
             : `Generate Share Link (${filteredTrades.length} trades)`}
         </button>
 
-        <hr width="100" color="grey" />
-
         {(shareUrl || shortUrl) && (
-          <div className="shareUrlSection flexClm gap_12">
+          <div className="flexClm gap_12">
             <span className="font_12 shade_50">
               {shortening ? "Shortening URL..." : "Share this URL with others:"}
             </span>
@@ -477,7 +468,7 @@ const ShareTrades = () => {
             <div className="flexClm">
               <span className="font_20 font_weight_600">Preview</span>
               <span className="font_14 shade_50">
-                its displayed like this when user receives
+                This is how it will appear to the receiver.
               </span>
             </div>
           </div>

@@ -450,7 +450,7 @@ function Register() {
                     disabled={isLoading || !turnstileToken} // ✅ disable until captcha success
                   >
                     {isLoading ? (
-                      <Loader2 size={18} className="spinner" />
+                      <div className="spinner"></div>
                     ) : (
                       <>
                         Register <ArrowRight size={16} />
@@ -495,11 +495,7 @@ function Register() {
                   onClick={handleVerifyOtp}
                   disabled={otp.length !== 6 || isLoading}
                 >
-                  {isLoading ? (
-                    <Loader2 size={18} className="spinner" />
-                  ) : (
-                    "Verify OTP"
-                  )}
+                  {isLoading ? <div className="spinner"></div> : "Verify OTP"}
                 </button>
               </div>
             </div>

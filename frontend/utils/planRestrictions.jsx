@@ -13,8 +13,8 @@ const PLAN_RULES = {
     canUploadImages: true,
     canAccessFinancialNews: false,
     canAccessTelegramBot: false,
-    canExportTrades: false,
-    canShareTrades: false,
+    canExportTrades: true,
+    canShareTrades: true,
   },
   pro: {
     tradeLimitPerMonth: Infinity,
@@ -27,7 +27,7 @@ const PLAN_RULES = {
     canAccessFinancialNews: false,
     canAccessTelegramBot: false,
     canExportTrades: true,
-    canShareTrades: false,
+    canShareTrades: true,
   },
   elite: {
     tradeLimitPerMonth: Infinity,
@@ -40,7 +40,7 @@ const PLAN_RULES = {
     canAccessFinancialNews: true,
     canAccessTelegramBot: true,
     canExportTrades: true,
-    canShareTrades: false,
+    canShareTrades: true,
   },
   master: {
     tradeLimitPerMonth: Infinity,

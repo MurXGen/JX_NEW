@@ -1,22 +1,37 @@
-const Order = require("../models/Orders");
-const Plan = require("../models/Plan");
-const User = require("../models/User");
 const express = require("express");
+const axios = require("axios");
+const Order = require("../models/Orders");
+
 const router = express.Router();
 
 router.post("/webhook", async (req, res) => {
   const body = req.body;
 
+  console.log("📩 Incoming Telegram Webhook:", JSON.stringify(body, null, 2));
+
   if (body.callback_query) {
     const { id, data, message } = body.callback_query;
     const chatId = message.chat.id;
-
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
+    console.log("🟦 Callback Data Received:", data);
+
     try {
+      let orderId;
+      let updateResult;
+
       if (data.startsWith("payment_success_")) {
-        const orderId = data.split("payment_success_")[1];
-        await Order.findByIdAndUpdate(orderId, { status: "paid" });
+        orderId = data.replace("payment_success_", "").trim();
+        console.log(`✅ Marking Order ${orderId} as PAID...`);
+
+        updateResult = await Order.findByIdAndUpdate(
+          orderId,
+          { status: "paid" },
+          { new: true }
+        );
+
+        console.log("🟢 DB Update Result:", updateResult);
+
         await axios.post(
           `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
           {
@@ -26,8 +41,17 @@ router.post("/webhook", async (req, res) => {
           }
         );
       } else if (data.startsWith("payment_failed_")) {
-        const orderId = data.split("payment_failed_")[1];
-        await Order.findByIdAndUpdate(orderId, { status: "failed" });
+        orderId = data.replace("payment_failed_", "").trim();
+        console.log(`❌ Marking Order ${orderId} as FAILED...`);
+
+        updateResult = await Order.findByIdAndUpdate(
+          orderId,
+          { status: "failed" },
+          { new: true }
+        );
+
+        console.log("🔴 DB Update Result:", updateResult);
+
         await axios.post(
           `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
           {
@@ -36,9 +60,11 @@ router.post("/webhook", async (req, res) => {
             parse_mode: "Markdown",
           }
         );
+      } else {
+        console.warn("⚠️ Unknown callback data:", data);
       }
 
-      // Acknowledge callback so Telegram removes loading spinner
+      // Acknowledge the callback (removes the loading spinner in Telegram)
       await axios.post(
         `https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`,
         {
@@ -46,8 +72,10 @@ router.post("/webhook", async (req, res) => {
         }
       );
     } catch (error) {
-      console.error("Telegram webhook error:", error.message);
+      console.error("🚨 Telegram webhook error:", error.message);
     }
+  } else {
+    console.warn("⚠️ No callback_query found in request body");
   }
 
   res.sendStatus(200);

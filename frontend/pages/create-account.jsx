@@ -206,7 +206,7 @@ const CreateAccount = () => {
             disabled={loading}
           >
             {loading ? (
-              <Loader2 className="spinner" size={16} />
+              <div className="spinner"></div>
             ) : (
               <>
                 {isEdit ? "Update Account" : "Create Account"}{" "}

@@ -280,7 +280,7 @@ const ExportPage = () => {
   }
 
   const handleBackClick = () => {
-    router.push("/");
+    router.push("/accounts");
   };
 
   return (

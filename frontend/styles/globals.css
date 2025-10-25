@@ -498,6 +498,8 @@ button:disabled {
   }
 }
 
+/* 🔹 Reusable container class */
+
 .fullpageLoader {
   position: fixed;
   inset: 0;
@@ -635,15 +637,17 @@ textarea::placeholder {
 }
 
 .accountCard .vector {
-  background: transparent; /* initial background */
+  padding: var(--px-12);
+  background: var(--white-10);
   border-radius: var(--px-12);
-  transition: padding 0.3s ease, background 0.3s ease, transform 0.3s ease;
 }
 
 .accountCard:hover .vector {
   padding: var(--px-12);
-  background: var(--white-10);
-  transform: scale(1.05); /* subtle zoom effect */
+  background: var(--primary);
+  box-shadow: 1px 1px 12px var(--primary);
+  border-radius: var(--px-12);
+  color: var(--base-text);
 }
 
 .suggestionInput {
@@ -1310,7 +1314,7 @@ footer {
   .gridContainer {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--px-8);
+    gap: var(--px-16);
   }
 
   .quickPromptButton:hover {
