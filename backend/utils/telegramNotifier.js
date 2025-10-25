@@ -1,17 +1,30 @@
 const axios = require("axios");
 
-const sendTelegramNotification = async ({ name, email, type, status }) => {
+const sendTelegramNotification = async ({
+  name,
+  email,
+  type,
+  status,
+  details,
+}) => {
   try {
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
+    let header = "";
+    if (type === "register") header = "📝 *New User Registration*";
+    else if (type === "login") header = "🔐 *User Login*";
+    else if (type === "payment") header = "💰 *New Payment Created*";
+    else header = "📣 *JournalX Notification*";
+
     const message = `
-📣 *JournalX User ${type === "register" ? "Registration" : "Login"}*
+${header}
 ━━━━━━━━━━━━━━━
 👤 *Name:* ${name || "N/A"}
-📧 *Email:* ${email}
+📧 *Email:* ${email || "N/A"}
 ⚙️ *Type:* ${type}
 ✅ *Status:* ${status}
+${details ? `💬 *Details:* ${details}` : ""}
 🕒 *Time:* ${new Date().toLocaleString("en-IN")}
 `;
 

@@ -19,23 +19,15 @@ exports.createCryptoOrder = async (req, res) => {
       ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
     };
 
-    if (!NETWORK_ADDRESSES[network])
-      return res.status(400).json({ message: "Unsupported network" });
-
     const plan = await Plan.findOne({ name: new RegExp(planName, "i") });
     if (!plan) return res.status(404).json({ message: "Plan not found" });
-
-    const cryptoPaymentId = `crypto_${Date.now()}_${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
 
     const cryptoOrder = new Order({
       userId: req.cookies.userId || null,
       planId: plan.planId,
-      amount: amount,
+      amount,
       currency: currency || "USDT",
       method: "crypto",
-      cryptoPaymentId,
       status: "pending",
       period,
       meta: {
@@ -47,31 +39,14 @@ exports.createCryptoOrder = async (req, res) => {
 
     await cryptoOrder.save();
 
-    // Store cryptoPaymentId in HTTP cookie
-    res.cookie("cryptoPaymentId", cryptoPaymentId, {
-      httpOnly: true,
-      maxAge: 10 * 60 * 1000, // 10 minutes
-      sameSite: "Strict",
-    });
-
-    // ✅ Telegram notification to payments group
+    // ✅ Send Telegram notification with inline buttons
     await sendTelegramNotification({
-      chatId: process.env.TELEGRAM_BOT_TOKEN, // payment notifications group
-      name: req.user?.name || "Guest",
+      name: req.user?.name || "N/A",
       email: req.user?.email || "N/A",
-      type: "crypto_payment",
-      status: "pending",
-      message: `
-📌 *New Crypto Payment*
-━━━━━━━━━━━━━━━
-👤 User: ${req.user?.name || "Guest"}
-📧 Email: ${req.user?.email || "N/A"}
-💳 Plan: ${plan.name}
-💰 Amount: ${amount} ${currency || "USDT"}
-🪙 Network: ${network}
-🔗 Address: ${NETWORK_ADDRESSES[network]}
-🕒 Time: ${new Date().toLocaleString("en-IN")}
-      `,
+      type: "payment",
+      status: "Created",
+      details: `Plan: ${plan.name}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}`,
+      orderId: cryptoOrder._id,
     });
 
     res.json({
@@ -80,7 +55,7 @@ exports.createCryptoOrder = async (req, res) => {
       orderId: cryptoOrder._id,
     });
   } catch (err) {
-    console.error(err.message);
+    console.error("Create order error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 };
