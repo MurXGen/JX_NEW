@@ -29,13 +29,19 @@ async function deleteImageFromB2(fileUrl) {
       return;
     }
 
+    console.log("🪵 Deleting from B2 with:", {
+      bucketId: process.env.B2_BUCKET_ID,
+      fileName,
+      fileId,
+    });
+
     await b2.deleteFileVersion({
       bucketId: process.env.B2_BUCKET_ID,
       fileName,
       fileId,
     });
   } catch (err) {
-    error(
+    console.error(
       "❌ Error deleting image from B2:",
       err.response?.data || err.message
     );
@@ -53,7 +59,10 @@ async function getFileId(fileName) {
     const file = res.data.files.find((f) => f.fileName === fileName);
     return file?.fileId || null;
   } catch (err) {
-    error("❌ Error fetching fileId:", err.response?.data || err.message);
+    console.error(
+      "❌ Error fetching fileId:",
+      err.response?.data || err.message
+    );
     return null;
   }
 }

@@ -145,9 +145,11 @@ const loginUser = async (req, res) => {
 
     const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
     if (!isHuman) {
-      return res.status(403).json({
-        message: "Captcha verification failed. Refresh and try again",
-      });
+      return res
+        .status(403)
+        .json({
+          message: "Captcha verification failed. Refresh and try again",
+        });
     }
     if (!validateEmailCredentials(email, password, res)) return;
 
@@ -320,7 +322,7 @@ const updateSubscription = async (req, res) => {
 //     // Fetch all accounts for this user
 //     const accounts = await Account.find({ userId }).lean();
 //     //     if (accounts.length > 0) {
-//       log("📄 Accounts:", accounts.map(acc => ({
+//       console.log("📄 Accounts:", accounts.map(acc => ({
 //         id: acc._id,
 //         name: acc.name,
 //         currency: acc.currency
