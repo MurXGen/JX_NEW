@@ -8,7 +8,7 @@ const { sendOtpEmail } = require("../mail/sendOtpEmail");
 const Plan = require("../models/Plan");
 const getUserData = require("../utils/getUserData");
 const axios = require("axios");
-
+const { sendTelegramNotification } = require("../utils/telegramNotifier");
 
 const SALT_ROUNDS = 10;
 
@@ -57,21 +57,20 @@ const validateEmailCredentials = (email, password, res) => {
   return true;
 };
 
+// 🔹 REGISTER USER
 const registerUser = async (req, res) => {
-  try {
-    const { name, email, password, googleId, turnstileToken } = req.body;
+  const { name, email, password, googleId, turnstileToken } = req.body;
 
-    // Verify Cloudflare Turnstile
+  try {
+    // ✅ Verify Cloudflare Turnstile
     const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
-    if (!isHuman) {
+    if (!isHuman)
       return res.status(403).json({ message: "Captcha verification failed" });
-    }
 
     if (!googleId && (!email || !password))
       return res.status(400).json({ message: "Email and password required" });
 
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
       if (!existingUser.isVerified) {
         return res.status(200).json({
@@ -79,12 +78,10 @@ const registerUser = async (req, res) => {
           userId: existingUser._id,
           isVerified: false,
         });
-      } else {
-        return res.status(409).json({
-          message: "User already exists. Please login.",
-          // isVerified: true,
-        });
       }
+      return res
+        .status(409)
+        .json({ message: "User already exists. Please login." });
     }
 
     const hashedPassword = password
@@ -93,9 +90,9 @@ const registerUser = async (req, res) => {
 
     const now = new Date();
     const expiry = new Date(now);
-    expiry.setDate(expiry.getDate() + 7); // Free plan lasts 7 days
+    expiry.setDate(expiry.getDate() + 7);
 
-    // Create user
+    // ✅ Create new user
     const user = new User({
       name,
       email,
@@ -111,22 +108,28 @@ const registerUser = async (req, res) => {
     });
     await user.save();
 
-    // Generate OTP if email/password registration
+    // ✅ Send OTP if not Google
     if (!googleId) {
       const otp = String(Math.floor(100000 + Math.random() * 900000));
       const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-      const nextResendAllowedAt = new Date(Date.now() + 60 * 1000);
 
       await EmailVerification.create({
         userId: user._id,
         otpHash,
-        expiresAt,
-        nextResendAllowedAt,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        nextResendAllowedAt: new Date(Date.now() + 60 * 1000),
       });
 
       await sendOtpEmail({ to: user.email, otp, name: user.name });
     }
+
+    // ✅ Notify Telegram
+    await sendTelegramNotification({
+      name,
+      email,
+      type: "register",
+      status: "success",
+    });
 
     return res.status(201).json({
       message: googleId
@@ -136,22 +139,30 @@ const registerUser = async (req, res) => {
       isVerified: false,
     });
   } catch (err) {
+    console.error("Register Error:", err.message);
+
+    await sendTelegramNotification({
+      name: name || "N/A",
+      email: email || "N/A",
+      type: "register",
+      status: "failure",
+    });
+
     res.status(500).json({ message: "Server error" });
   }
 };
 
+// 🔹 LOGIN USER
 const loginUser = async (req, res) => {
-  try {
-    const { email, password, turnstileToken } = req.body;
+  const { email, password, turnstileToken } = req.body;
 
+  try {
     const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
-    if (!isHuman) {
+    if (!isHuman)
       return res
         .status(403)
-        .json({
-          message: "Captcha verification failed. Refresh and try again",
-        });
-    }
+        .json({ message: "Captcha verification failed. Refresh and try again" });
+
     if (!validateEmailCredentials(email, password, res)) return;
 
     const user = await User.findOne({ email });
@@ -172,17 +183,32 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // ✅ Set cookie before sending response
+    // ✅ Set cookie + send Telegram success
     setUserIdCookie(res, user._id);
 
-    const userData = await getUserData(user);
+    await sendTelegramNotification({
+      name: user.name,
+      email: user.email,
+      type: "login",
+      status: "success",
+    });
 
+    const userData = await getUserData(user);
     res.status(200).json({
       message: "Login successful",
       isVerified: "yes",
       userData,
     });
   } catch (err) {
+    console.error("Login Error:", err.message);
+
+    await sendTelegramNotification({
+      name: "N/A",
+      email: email || "N/A",
+      type: "login",
+      status: "failure",
+    });
+
     res.status(500).json({ message: "Server error" });
   }
 };
