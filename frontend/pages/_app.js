@@ -31,6 +31,8 @@ export default function MyApp({ Component, pageProps }) {
           name="keywords"
           content="trading journal, trade analytics, AI trading journal, performance tracker, stock trading log, crypto trading journal, forex journal, trade analysis, trading performance app, journalx, trading tracker, best trading journal app, trading notebook, trader diary"
         />
+        <meta name="google-adsense-account" content="ca-pub-9495953709882107" />
+
         <meta name="author" content="Murthy Poothapandi Thevar" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#0d1117" />
