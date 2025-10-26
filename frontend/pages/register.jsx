@@ -146,7 +146,7 @@ function Register() {
         setTimeout(() => {
           setPopup({
             message: "User exists. Please verify OTP.",
-            type: "info",
+            type: "success",
             id: Date.now(),
           });
         }, 0);

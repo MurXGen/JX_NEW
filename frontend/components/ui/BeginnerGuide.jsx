@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SectionHeader from "./SectionHeader";
 
 const guideSteps = [
@@ -29,14 +29,33 @@ const guideSteps = [
 
 const BeginnerGuide = ({ onClose }) => {
   const [step, setStep] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  // ✅ Preload images once when component mounts
+  useEffect(() => {
+    const preloadImages = async () => {
+      const promises = guideSteps.map(
+        (step) =>
+          new Promise((resolve) => {
+            const img = new Image();
+            img.src = step.image;
+            img.onload = resolve;
+            img.onerror = resolve;
+          })
+      );
+      await Promise.all(promises);
+      setImagesLoaded(true);
+    };
+    preloadImages();
+  }, []);
 
   const handleNext = () => {
-    if (step < guideSteps.length - 1) setStep(step + 1);
+    if (step < guideSteps.length - 1) setStep((prev) => prev + 1);
     else onClose?.();
   };
 
   const handlePrevious = () => {
-    if (step > 0) setStep(step - 1);
+    if (step > 0) setStep((prev) => prev - 1);
   };
 
   const handleSkip = () => {
@@ -77,12 +96,27 @@ const BeginnerGuide = ({ onClose }) => {
         </div>
 
         {/* Section 1: Image */}
-        <div className="guideImageContainer flex_center">
-          <img
-            src={current.image}
-            alt={current.title}
-            className="guideImageShake"
-          />
+        <div
+          className="guideImageContainer flex_center"
+          style={{ height: "250px" }}
+        >
+          {imagesLoaded ? (
+            <img
+              key={current.image}
+              src={current.image}
+              alt={current.title}
+              className="guideImageShake"
+              style={{
+                width: "100%",
+                height: "auto",
+                maxHeight: "250px",
+                objectFit: "contain",
+                transition: "opacity 0.3s ease",
+              }}
+            />
+          ) : (
+            <div className="spinner" />
+          )}
           <div className="guideImageShadow" />
         </div>
 

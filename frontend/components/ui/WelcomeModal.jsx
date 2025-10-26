@@ -58,7 +58,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
 
       // 🔹 Confetti burst 1
       confetti({
-        particleCount: 150,
+        particleCount: 10,
         spread: 100,
         origin: { y: 0.3 },
         colors: ["#a77d02", "#22c55e", "#fdda70", "#ffffff"],
@@ -69,7 +69,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
 
       // 🔹 Confetti burst 2 (left)
       confetti({
-        particleCount: 100,
+        particleCount: 10,
         angle: 60,
         spread: 80,
         origin: { x: 0, y: 0.3 },
@@ -79,7 +79,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
 
       // 🔹 Confetti burst 3 (right)
       confetti({
-        particleCount: 100,
+        particleCount: 10,
         angle: 120,
         spread: 80,
         origin: { x: 1, y: 0.3 },
