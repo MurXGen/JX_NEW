@@ -1,76 +1,75 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import PropTypes from "prop-types";
 import { shouldShowAdsForCurrentUser } from "@/utils/planRestrictions";
 
 const ADSENSE_SRC =
   "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
 
+const adClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+const adSlot = process.env.NEXT_PUBLIC_ADSENSE_SLOT;
+
 const ensureAdsScript = (client) => {
-  // If already present, ensure it has correct client param
+  // If already present, ensure correct client param
   if (document.querySelector(`script[data-adsbygoogle-client="${client}"]`))
     return;
 
   // Prevent duplicate script
   if (document.querySelector(`script[src^="${ADSENSE_SRC}"]`)) {
-    // If existing script present but not tagged, add client attribute (best-effort)
     const existing = document.querySelector(`script[src^="${ADSENSE_SRC}"]`);
     if (existing && client)
       existing.setAttribute("data-adsbygoogle-client", client);
     return;
   }
 
-  const s = document.createElement("script");
-  s.async = true;
-  s.src = `${ADSENSE_SRC}?client=${client}`;
-  s.crossOrigin = "anonymous";
-  s.setAttribute("data-adsbygoogle-client", client);
-  document.head.appendChild(s);
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `${ADSENSE_SRC}?client=${client}`;
+  script.crossOrigin = "anonymous";
+  script.setAttribute("data-adsbygoogle-client", client);
+  document.head.appendChild(script);
 };
 
-// Simple responsive banner component
-const GoogleBannerAd = ({ adClient, adSlot, style = {}, className = "" }) => {
+const GoogleBannerAd = ({ style = {}, className = "" }) => {
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
     let mounted = true;
+
     (async () => {
       const show = await shouldShowAdsForCurrentUser();
-      if (!mounted) return;
-      if (!show) {
-        setAllowed(false);
-        return;
-      }
 
-      // Basic checks
-      if (!adClient || !adSlot) {
-        console.warn(
-          "GoogleBannerAd: adClient or adSlot missing. Set env vars or props."
-        );
+      if (!mounted) return;
+
+      // Show only if user is allowed and env values exist
+      if (!show || !adClient || !adSlot) {
+        if (!adClient || !adSlot)
+          console.warn("Missing AdSense client or slot environment variables.");
         setAllowed(false);
         return;
       }
 
       ensureAdsScript(adClient);
       setAllowed(true);
-
-      // Slight delay to allow script to load — the push will be done in render
     })();
 
     return () => {
       mounted = false;
     };
-  }, [adClient, adSlot]);
+  }, []);
 
   if (!allowed) return null;
 
   return (
     <div
       className={`google-ad-container ${className}`}
-      style={{ width: "100%", textAlign: "center", ...style }}
+      style={{
+        width: "100%",
+        textAlign: "center",
+        padding: "8px 0",
+        ...style,
+      }}
     >
-      {/* AdSense slot */}
       <ins
         className="adsbygoogle"
         style={{ display: "block", margin: "0 auto" }}
@@ -86,18 +85,6 @@ const GoogleBannerAd = ({ adClient, adSlot, style = {}, className = "" }) => {
       />
     </div>
   );
-};
-
-GoogleBannerAd.propTypes = {
-  adClient: PropTypes.string,
-  adSlot: PropTypes.string,
-  style: PropTypes.object,
-  className: PropTypes.string,
-};
-
-GoogleBannerAd.defaultProps = {
-  adClient: process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "",
-  adSlot: process.env.NEXT_PUBLIC_ADSENSE_SLOT || "",
 };
 
 export default GoogleBannerAd;
