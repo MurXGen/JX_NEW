@@ -5,7 +5,6 @@ require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
 require("./utils/passport"); // Passport Google strategy
-const path = require("path");
 
 // Routes
 const tradeRoutes = require("./routes/trade");
@@ -15,6 +14,9 @@ const paymentsRoutes = require("./routes/payments");
 const cryptoPaymentsRoutes = require("./routes/cryptoPayments");
 const telegramRoutes = require("./routes/telegramRoutes");
 
+// Rate limiter
+const createLimiter = require("./utils/rateLimiter");
+
 const app = express();
 
 // 🛡 Middleware
@@ -23,11 +25,7 @@ app.use(
     origin: [process.env.CLIENT_URL, "http://localhost:3000"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "x-trade-id", // ✅ allow your custom header
-    ],
+    allowedHeaders: ["Content-Type", "Authorization", "x-trade-id"],
   })
 );
 
@@ -43,18 +41,19 @@ mongoose
   .then(() => console.log("✅ MongoDB (User DB) Connected"))
   .catch((err) => console.error("❌ MongoDB User DB Connection Error:", err));
 
-// 🔗 API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/account", accountRoutes);
-app.use("/api/trades", tradeRoutes);
+// 🔗 Apply rate limiter to each route separately
+app.use("/api/auth", createLimiter(10), authRoutes);
+app.use("/api/account", createLimiter(10), accountRoutes);
+app.use("/api/trades", createLimiter(10), tradeRoutes);
 app.use(
   "/api/payments/webhook",
+  createLimiter(10),
   express.raw({ type: "application/json" }),
   paymentsRoutes
 );
-app.use("/api/payments", express.json(), paymentsRoutes);
-app.use("/api/crypto-payments", cryptoPaymentsRoutes);
-app.use("/api/telegram", telegramRoutes);
+app.use("/api/payments", createLimiter(10), express.json(), paymentsRoutes);
+app.use("/api/crypto-payments", createLimiter(10), cryptoPaymentsRoutes);
+app.use("/api/telegram", createLimiter(10), telegramRoutes);
 
 // 🤖 Telegram Bot Init
 require("./telegram");

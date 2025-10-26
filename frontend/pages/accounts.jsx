@@ -186,32 +186,32 @@ function Accounts() {
     loadUser();
   }, []);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      setLoading(true);
-      try {
-        const cachedUser = await getFromIndexedDB("user-data");
-        const hasData = cachedUser && Object.keys(cachedUser).length > 0;
+  // useEffect(() => {
+  //   const loadUser = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const cachedUser = await getFromIndexedDB("user-data");
+  //       const hasData = cachedUser && Object.keys(cachedUser).length > 0;
 
-        // Load user plan and calculate usage
-        if (hasData) {
-          const planRules = getPlanRules(cachedUser);
-          setUserPlan(planRules);
+  //       // Load user plan and calculate usage
+  //       if (hasData) {
+  //         const planRules = getPlanRules(cachedUser);
+  //         setUserPlan(planRules);
 
-          // Calculate current usage
-          const currentUsage = calculatePlanUsage(cachedUser, planRules);
-          setPlanUsage(currentUsage);
-        }
+  //         // Calculate current usage
+  //         const currentUsage = calculatePlanUsage(cachedUser, planRules);
+  //         setPlanUsage(currentUsage);
+  //       }
 
-        // ... existing refresh logic ...
-      } catch (error) {
-      } finally {
-        setLoading(false);
-      }
-    };
+  //       // ... existing refresh logic ...
+  //     } catch (error) {
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    loadUser();
-  }, []);
+  //   loadUser();
+  // }, []);
 
   const calculatePlanUsage = (userData, planRules) => {
     const accountsCount = userData.accounts?.length || 0;
