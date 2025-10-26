@@ -9,21 +9,21 @@ const guideSteps = [
     description:
       "Maintain trades from different markets like Forex, Stocks, Crypto, etc., organized in one place.",
     image:
-      "https://cdn.journalx.app/trades/close-images/1761475475904-Frame_588-2.png",
+      "https://cdn.journalx.app/trades/close-images/1761478467537-Frame_588-4.png",
   },
   {
     title: "Log Trades",
     description:
       "Easily log your trades with all details to track performance and analyze trends.",
     image:
-      "https://cdn.journalx.app/trades/open-images/1761475473555-Frame_588.png",
+      "https://cdn.journalx.app/trades/open-images/1761478464677-Frame_588-3.png",
   },
   {
     title: "Get Analysis",
     description:
       "Receive insights and analysis based on your trading activity to make informed decisions.",
     image:
-      "https://cdn.journalx.app/trades/open-images/1761475492800-Group_19-2.png",
+      "https://cdn.journalx.app/trades/open-images/1761478613157-Group_19-3.png",
   },
 ];
 
