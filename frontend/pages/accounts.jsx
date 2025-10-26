@@ -728,24 +728,23 @@ function Accounts() {
         <hr width="100" color="grey" />
 
         {/* Plan Usage Overview */}
-        {userPlan && (
+        {userPlan && planUsage ? (
           <div className="flexClm gap_24">
             <SectionHeader
               title="Plan usage and benefits"
               description="Manage your plan usage"
-              level={2} // uses <h2>
-              // showButton={accounts.length > 0}
-              // buttonLabel="Create journal"
-              // onButtonClick={handleCreateAccount}
+              level={2}
               loading={loading}
             />
 
             <motion.div
+              key={userPlan?.planName} // ensures Framer Motion remounts safely on plan change
               className="pad_16 flexClm gap_24 chart_boxBg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
+              {/* Current Plan */}
               <div className="flexRow flexRow_stretch">
                 <div className="flexClm">
                   <span className="font_16 font_weight_600">Current plan</span>
@@ -758,16 +757,18 @@ function Accounts() {
                 </div>
               </div>
 
+              {/* Usage Metrics */}
               <div className="flexClm gap_24">
+                {/* Accounts */}
                 <div className="flexClm gap_12">
                   <div className="flexRow flexRow_stretch">
                     <span className="font_14">Accounts</span>
-                    {/* Accounts */}
                     <span
                       className="font_12"
                       style={{ color: "var(--white-50)" }}
                     >
-                      {planUsage.accounts.current}/{planUsage.accounts.limit}
+                      {planUsage?.accounts?.current ?? 0}/
+                      {planUsage?.accounts?.limit ?? 0}
                     </span>
                   </div>
                   <div className="progress-bar">
@@ -775,21 +776,24 @@ function Accounts() {
                       className="progress-fill"
                       style={{ backgroundColor: "var(--primary)" }}
                       initial={{ width: 0 }}
-                      animate={{ width: `${planUsage.accounts.percentage}%` }}
+                      animate={{
+                        width: `${planUsage?.accounts?.percentage || 0}%`,
+                      }}
                       transition={{ duration: 1, delay: 0.2 }}
                     />
                   </div>
                 </div>
 
+                {/* Monthly Trades */}
                 <div className="flexClm gap_12">
                   <div className="usage-header flexRow flexRow_stretch">
                     <span className="font_14">Monthly Trades</span>
-                    {/* Monthly Trades */}
                     <span
                       className="font_12"
                       style={{ color: "var(--white-50)" }}
                     >
-                      {planUsage.trades.current}/{planUsage.trades.limit}
+                      {planUsage?.trades?.current ?? 0}/
+                      {planUsage?.trades?.limit ?? 0}
                     </span>
                   </div>
                   <div className="progress-bar">
@@ -797,21 +801,24 @@ function Accounts() {
                       className="progress-fill"
                       style={{ backgroundColor: "var(--success)" }}
                       initial={{ width: 0 }}
-                      animate={{ width: `${planUsage.trades.percentage}%` }}
+                      animate={{
+                        width: `${planUsage?.trades?.percentage || 0}%`,
+                      }}
                       transition={{ duration: 1, delay: 0.4 }}
                     />
                   </div>
                 </div>
 
+                {/* Monthly Images */}
                 <div className="flexClm gap_12">
                   <div className="usage-header flexRow flexRow_stretch">
                     <span className="font_14">Monthly Images</span>
-                    {/* Monthly Images */}
                     <span
                       className="font_12"
                       style={{ color: "var(--white-50)" }}
                     >
-                      {planUsage.images.current}/{planUsage.images.limit}
+                      {planUsage?.images?.current ?? 0}/
+                      {planUsage?.images?.limit ?? 0}
                     </span>
                   </div>
                   <div className="progress-bar">
@@ -819,22 +826,29 @@ function Accounts() {
                       className="progress-fill"
                       style={{ backgroundColor: "var(--primary-light)" }}
                       initial={{ width: 0 }}
-                      animate={{ width: `${planUsage.images.percentage}%` }}
+                      animate={{
+                        width: `${planUsage?.images?.percentage || 0}%`,
+                      }}
                       transition={{ duration: 1, delay: 0.6 }}
                     />
                   </div>
                 </div>
+
+                {/* View More */}
                 <a
                   className="direct_tertiary flexRow gap_8 font_12"
-                  onClick={(e) => {
-                    router.push("/pricing"); // redirect to pricing page
-                  }}
+                  onClick={() => router.push("/pricing")}
                 >
                   Show all features <ChevronDown size={16} />
                 </a>
               </div>
             </motion.div>
           </div>
+        ) : (
+          // Optional: Fallback while loading
+          <p className="font_12" style={{ color: "var(--white-50)" }}>
+            Loading plan details...
+          </p>
         )}
 
         {showGuide && <BeginnerGuide onClose={handleCloseGuide} />}
