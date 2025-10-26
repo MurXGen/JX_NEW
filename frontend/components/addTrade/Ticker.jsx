@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, ArrowDownRight, X } from "lucide-react";
-import { getFromIndexedDB, saveToIndexedDB } from "../utils/indexedDB"; // ✅ your existing helper
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB"; // ✅ your existing helper
 
 const Ticker = ({ form, setForm }) => {
   const [storedSymbols, setStoredSymbols] = useState([]);
