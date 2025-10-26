@@ -3,6 +3,7 @@
 import { register } from "@/api/auth";
 import Navbar from "@/components/Auth/Navbar";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import MessageCard from "@/components/ui/BannerInstruction";
 import ToastMessage from "@/components/ui/ToastMessage";
 import { Turnstile } from "@marsidev/react-turnstile";
 import axios from "axios";
@@ -385,7 +386,13 @@ function Register() {
                   />
                   <button
                     type="button"
-                    className="eyeButton button_ter flexRow"
+                    className="eyeButton"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "white",
+                      marginTop: "4px",
+                    }}
                     onClick={() => setShowPassword((prev) => !prev)}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -412,7 +419,13 @@ function Register() {
                   />
                   <button
                     type="button"
-                    className="eyeButton button_ter flexRow"
+                    className="eyeButton"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "white",
+                      marginTop: "4px",
+                    }}
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
                   >
                     {showConfirmPassword ? (
@@ -537,6 +550,12 @@ function Register() {
             <FcGoogle size={20} /> Sign up with Google
           </button>
         </div>
+
+        <MessageCard
+          type="info"
+          title="Best analysis place to learn trading by journaling"
+          description="We offer analysis and education — no trading services provided."
+        />
 
         <ToastMessage type={popup.type} message={popup.message} />
         <BackgroundBlur />

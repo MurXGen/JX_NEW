@@ -246,7 +246,13 @@ function Login() {
               />
               <button
                 type="button"
-                className="eyeButton button_ter flexRow"
+                className="eyeButton"
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "white",
+                  marginTop: "4px",
+                }}
                 onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

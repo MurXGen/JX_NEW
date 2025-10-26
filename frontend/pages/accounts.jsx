@@ -3,6 +3,7 @@
 import { childVariants, containerVariants } from "@/animations/motionVariants";
 import Navbar from "@/components/Trades/Navbar";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import MessageCard from "@/components/ui/BannerInstruction";
 import BeginnerGuide from "@/components/ui/BeginnerGuide";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -19,6 +20,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  CreditCard,
   Crown,
   Plus,
   Share2,
@@ -506,13 +508,13 @@ function Accounts() {
                   className="font_16 font_weight_600"
                   style={{ textAlign: "center" }}
                 >
-                  No Accounts Found
+                  No journal found
                 </span>
                 <span
                   className="font_12 shade_50"
                   style={{ textAlign: "center" }}
                 >
-                  Create your first trading account to get started
+                  Create your first trading journal to get started
                 </span>
               </div>
               <button
@@ -653,6 +655,14 @@ function Accounts() {
             </>
           )}
         </motion.div>
+
+        {accounts.length <= 0 && (
+          <MessageCard
+            type="info"
+            title="Best analysis place to learn trading by journaling"
+            description="We offer analysis and education — no trading services provided."
+          />
+        )}
 
         <hr width="100" color="grey" />
 
