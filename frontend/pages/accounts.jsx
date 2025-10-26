@@ -480,7 +480,6 @@ function Accounts() {
       <div className="dashboard flexClm gap_32">
         <Navbar />
         <BackgroundBlur />
-        <GoogleBannerAd />
 
         <SectionHeader
           title="Journals"
@@ -839,6 +838,7 @@ function Accounts() {
         )}
 
         {showGuide && <BeginnerGuide onClose={handleCloseGuide} />}
+        <GoogleBannerAd />
       </div>
     </>
   );
