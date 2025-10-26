@@ -1,7 +1,7 @@
 "use client";
 
 import LongShorts from "@/components/Tabs/Long_short";
-import MarketNews from "@/components/Tabs/MarketNews";
+import MarketNews from "@/components/Tabs/HeatMaps";
 import Overview from "@/components/Tabs/Overview";
 import TickerOverview from "@/components/Tabs/Ticketoverview";
 import TickerAnalysis from "@/components/Tabs/Ticketoverview";
@@ -214,7 +214,7 @@ export default function Home() {
             { key: "overview", label: "Overview" },
             { key: "longshorts", label: "Long/Shorts" },
             { key: "ticker", label: "Ticker Analysis" },
-            { key: "news", label: "Market News" },
+            { key: "news", label: "Heatmaps" },
           ].map((tab) => (
             <button
               key={tab.key}

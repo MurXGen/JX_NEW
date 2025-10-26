@@ -79,6 +79,7 @@ function Login() {
           sameSite: "Strict",
           expires: 3650,
         });
+        localStorage.setItem("guide", "yes");
         setShowWelcome(true);
       } else {
         Cookies.remove("isVerified");

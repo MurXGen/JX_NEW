@@ -18,6 +18,7 @@ import AllVolume from "../Charts/AllVolume";
 import TagAnalysis from "../Charts/TagAnalysis";
 import Timer from "../ui/Timer";
 import PnLAreaChart from "../Charts/PnLAreaChart";
+import SectionHeader from "../ui/SectionHeader";
 
 export default function Overview({ stats, trades }) {
   const currencyCode = localStorage.getItem("currencyCode");
@@ -63,246 +64,16 @@ export default function Overview({ stats, trades }) {
     <div className="overview flexClm gap_32">
       <Timer />
 
-      <div className="flexClm gap_24">
-        <span className="font_12">Advanced visual analysis</span>
-        <div
-          className="pnlChart chart_boxBg flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          {/* Header with toggle */}
-          <div className="flexRow flexRow_stretch">
-            <span className="font_12">PnL Daily Chart</span>
-            <div className="view-toggle flexRow">
-              <button
-                className={`toggle-btn ${
-                  chartType === "dailyPnLChart" ? "active" : ""
-                }`}
-                onClick={() => handleChartChange("dailyPnLChart")}
-              >
-                <CandlestickChart size={16} />
-              </button>
-              <button
-                className={`toggle-btn ${
-                  chartType === "pnlAreaChart" ? "active" : ""
-                }`}
-                onClick={() => handleChartChange("pnlAreaChart")}
-              >
-                <LineChart size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="flexRow flexRow_stretch gap_12">
-            <div
-              className="boxBg flexClm gap_12"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <span className="font_12">Net PnL</span>
-              <span
-                className={`${
-                  stats?.netPnL >= 0 ? "success" : "error"
-                } stats-text`}
-              >
-                <span style={{ paddingRight: "4px" }}>
-                  {getCurrencySymbol(currencyCode)}
-                </span>
-                {stats?.netPnL?.toLocaleString("en-US", {
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-          </div>
-
-          {/* Chart Toggle */}
-          {chartType === "dailyPnLChart" ? (
-            <DailyPnLChart data={candleData} />
-          ) : (
-            <PnLAreaChart data={candleData} />
-          )}
-        </div>
-        <div>
-          <TagAnalysis tagAnalysis={stats?.tagAnalysis} />
-        </div>
-        <div
-          className="pnlChart chart_boxBg flexClm gap_12"
-          style={{ padding: "16px 16px" }}
-        >
-          <span className="font_12">Daily PnL</span>
-          <div className="flexRow flexRow_stretch gap_12">
-            {/* Max Run up */}
-            <div
-              className="boxBg flexClm gap_12"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <span className="font_12">Max profit</span>
-              <span
-                className={`${
-                  stats?.maxProfit >= 0 ? "success" : "error"
-                } stats-text`}
-              >
-                <span style={{ paddingRight: "4px" }}>
-                  {getCurrencySymbol(currencyCode)}
-                </span>
-                {stats?.maxProfit?.toLocaleString("en-US", {
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-
-            {/* Max Drawdown */}
-            <div
-              className="boxBg flexClm gap_12"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <span className="font_12">Max loss</span>
-              <span
-                className={`${
-                  stats?.maxLoss < 0 ? "error" : "success"
-                } stats-text`}
-              >
-                <span style={{ paddingRight: "4px" }}>
-                  {getCurrencySymbol(currencyCode)}
-                </span>
-                {stats?.maxLoss?.toLocaleString("en-US", {
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-          </div>
-
-          <PNLChart dailyData={stats.dailyData} />
-        </div>
-        <div
-          className="pnlChart chart_boxBg flexClm gap_12"
-          style={{ padding: "16px 16px" }}
-        >
-          <span className="font_12">Daily Volume chart</span>
-
-          <div className="flexRow flexRow_stretch gap_12">
-            <div
-              className="boxBg flexRow flexRow_center gap_8"
-              style={{ width: "100%", padding: "12px" }}
-            >
-              <div className="flexClm gap_12">
-                <span className="font_12">Total Volume</span>
-                <span className="flexRow gap_8">
-                  {formatCurrency(
-                    stats.totalVolume,
-                    getCurrencySymbol(currencyCode)
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <AllVolume dailyData={stats.dailyVolumeData} />
-        </div>
-        <div className="greedAndFear flexRow flexRow_stretch chart_boxBg">
-          <div className="gfHeader flexClm gap_12">
-            <span className="font_12">Greed & Fear Index</span>
-            <span>{gfValue}</span>
-          </div>
-
-          {/* Gauge */}
-          <div className="gfGauge">
-            <svg width="130" height="80" viewBox="0 0 200 120">
-              {/* Background semi-circle */}
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="#444"
-                strokeWidth="14"
-              />
-
-              {/* Colored stroke (Fear→Neutral→Greed) */}
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="url(#gfGradient)"
-                strokeWidth="14"
-                strokeLinecap="round"
-              />
-
-              <defs>
-                <linearGradient id="gfGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#ef4444" /> {/* Fear */}
-                  <stop offset="50%" stopColor="#fbbf24" /> {/* Neutral */}
-                  <stop offset="100%" stopColor="#22c55e" /> {/* Greed */}
-                </linearGradient>
-              </defs>
-
-              {/* Needle */}
-              <line
-                x1="100"
-                y1="100"
-                x2="100"
-                y2="25"
-                stroke="white"
-                strokeWidth="3"
-                transform={`rotate(${angle} 100 100)`}
-              />
-
-              {/* Circle pivot */}
-              <circle cx="100" cy="100" r="5" fill="white" />
-
-              {/* Needle tip circle with value */}
-              {(() => {
-                // Needle tip calculation
-                const length = 75; // length of the needle
-                const rad = (angle * Math.PI) / 180; // convert angle to radians
-                const tipX = 100 + length * Math.cos(rad - Math.PI / 2); // adjust because SVG y-axis
-                const tipY = 100 + length * Math.sin(rad - Math.PI / 2);
-
-                return (
-                  <>
-                    <circle
-                      cx={tipX}
-                      cy={tipY}
-                      r={20}
-                      fill="white"
-                      stroke="#000"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={tipX}
-                      y={tipY + 5} // +5 to vertically center the number
-                      textAnchor="middle"
-                      fontSize="16"
-                      fontWeight="bold"
-                      fill="#000"
-                    >
-                      {gfValue}
-                    </text>
-                  </>
-                );
-              })()}
-
-              {/* Label below semicircle */}
-              <text
-                x="100"
-                y="115"
-                textAnchor="middle"
-                fontSize="14"
-                fill={
-                  gfLabel === "Fear"
-                    ? "#ef4444"
-                    : gfLabel === "Greed"
-                    ? "#22c55e"
-                    : "#fbbf24"
-                }
-              >
-                {gfLabel}
-              </text>
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <hr width={100} color="grey" />
-
       <div className="otherStats flexClm gap_24">
-        <span className="font_12">Overview</span>
+        <SectionHeader
+          title="Overview"
+          description="Know about your logged trades"
+          level={2} // uses <h2>
+          // showButton={accounts.length > 0}
+          // buttonLabel="Create journal"
+          // onButtonClick={handleCreateAccount}
+          // loading={loading}
+        />
 
         {/* 🔹 Total Trades */}
         <div
@@ -536,6 +307,251 @@ export default function Overview({ stats, trades }) {
                 <span className="shade_50 font_12">No trade data</span>
               )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      <hr width={100} color="grey" />
+      <div className="flexClm gap_24">
+        <SectionHeader
+          title="Advanced charts analysis"
+          description="Get visual analysis of your logged trades"
+          level={2} // uses <h2>
+          // showButton={accounts.length > 0}
+          // buttonLabel="Create journal"
+          // onButtonClick={handleCreateAccount}
+          // loading={loading}
+        />
+        <div
+          className="pnlChart chart_boxBg flexClm gap_12"
+          style={{ padding: "16px" }}
+        >
+          {/* Header with toggle */}
+          <div className="flexRow flexRow_stretch">
+            <span className="font_12">PnL Daily Chart</span>
+            <div className="view-toggle flexRow">
+              <button
+                className={`toggle-btn ${
+                  chartType === "dailyPnLChart" ? "active" : ""
+                }`}
+                onClick={() => handleChartChange("dailyPnLChart")}
+              >
+                <CandlestickChart size={16} />
+              </button>
+              <button
+                className={`toggle-btn ${
+                  chartType === "pnlAreaChart" ? "active" : ""
+                }`}
+                onClick={() => handleChartChange("pnlAreaChart")}
+              >
+                <LineChart size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="flexRow flexRow_stretch gap_12">
+            <div
+              className="boxBg flexClm gap_12"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              <span className="font_12">Net PnL</span>
+              <span
+                className={`${
+                  stats?.netPnL >= 0 ? "success" : "error"
+                } stats-text`}
+              >
+                <span style={{ paddingRight: "4px" }}>
+                  {getCurrencySymbol(currencyCode)}
+                </span>
+                {stats?.netPnL?.toLocaleString("en-US", {
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          </div>
+
+          {/* Chart Toggle */}
+          {chartType === "dailyPnLChart" ? (
+            <DailyPnLChart data={candleData} />
+          ) : (
+            <PnLAreaChart data={candleData} />
+          )}
+        </div>
+        <div>
+          <TagAnalysis tagAnalysis={stats?.tagAnalysis} />
+        </div>
+        <div
+          className="pnlChart chart_boxBg flexClm gap_12"
+          style={{ padding: "16px 16px" }}
+        >
+          <span className="font_12">Daily PnL</span>
+          <div className="flexRow flexRow_stretch gap_12">
+            {/* Max Run up */}
+            <div
+              className="boxBg flexClm gap_12"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              <span className="font_12">Max profit</span>
+              <span
+                className={`${
+                  stats?.maxProfit >= 0 ? "success" : "error"
+                } stats-text`}
+              >
+                <span style={{ paddingRight: "4px" }}>
+                  {getCurrencySymbol(currencyCode)}
+                </span>
+                {stats?.maxProfit?.toLocaleString("en-US", {
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+
+            {/* Max Drawdown */}
+            <div
+              className="boxBg flexClm gap_12"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              <span className="font_12">Max loss</span>
+              <span
+                className={`${
+                  stats?.maxLoss < 0 ? "error" : "success"
+                } stats-text`}
+              >
+                <span style={{ paddingRight: "4px" }}>
+                  {getCurrencySymbol(currencyCode)}
+                </span>
+                {stats?.maxLoss?.toLocaleString("en-US", {
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          </div>
+
+          <PNLChart dailyData={stats.dailyData} />
+        </div>
+        <div
+          className="pnlChart chart_boxBg flexClm gap_12"
+          style={{ padding: "16px 16px" }}
+        >
+          <span className="font_12">Daily Volume chart</span>
+
+          <div className="flexRow flexRow_stretch gap_12">
+            <div
+              className="boxBg flexRow flexRow_center gap_8"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              <div className="flexClm gap_12">
+                <span className="font_12">Total Volume</span>
+                <span className="flexRow gap_8">
+                  {formatCurrency(
+                    stats.totalVolume,
+                    getCurrencySymbol(currencyCode)
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <AllVolume dailyData={stats.dailyVolumeData} />
+        </div>
+        <div className="greedAndFear flexRow flexRow_stretch chart_boxBg">
+          <div className="gfHeader flexClm gap_12">
+            <span className="font_12">Greed & Fear Index</span>
+            <span>{gfValue}</span>
+          </div>
+
+          {/* Gauge */}
+          <div className="gfGauge">
+            <svg width="130" height="80" viewBox="0 0 200 120">
+              {/* Background semi-circle */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke="#444"
+                strokeWidth="14"
+              />
+
+              {/* Colored stroke (Fear→Neutral→Greed) */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke="url(#gfGradient)"
+                strokeWidth="14"
+                strokeLinecap="round"
+              />
+
+              <defs>
+                <linearGradient id="gfGradient" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#ef4444" /> {/* Fear */}
+                  <stop offset="50%" stopColor="#fbbf24" /> {/* Neutral */}
+                  <stop offset="100%" stopColor="#22c55e" /> {/* Greed */}
+                </linearGradient>
+              </defs>
+
+              {/* Needle */}
+              <line
+                x1="100"
+                y1="100"
+                x2="100"
+                y2="25"
+                stroke="white"
+                strokeWidth="3"
+                transform={`rotate(${angle} 100 100)`}
+              />
+
+              {/* Circle pivot */}
+              <circle cx="100" cy="100" r="5" fill="white" />
+
+              {/* Needle tip circle with value */}
+              {(() => {
+                // Needle tip calculation
+                const length = 75; // length of the needle
+                const rad = (angle * Math.PI) / 180; // convert angle to radians
+                const tipX = 100 + length * Math.cos(rad - Math.PI / 2); // adjust because SVG y-axis
+                const tipY = 100 + length * Math.sin(rad - Math.PI / 2);
+
+                return (
+                  <>
+                    <circle
+                      cx={tipX}
+                      cy={tipY}
+                      r={20}
+                      fill="white"
+                      stroke="#000"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={tipX}
+                      y={tipY + 5} // +5 to vertically center the number
+                      textAnchor="middle"
+                      fontSize="16"
+                      fontWeight="bold"
+                      fill="#000"
+                    >
+                      {gfValue}
+                    </text>
+                  </>
+                );
+              })()}
+
+              {/* Label below semicircle */}
+              <text
+                x="100"
+                y="115"
+                textAnchor="middle"
+                fontSize="14"
+                fill={
+                  gfLabel === "Fear"
+                    ? "#ef4444"
+                    : gfLabel === "Greed"
+                    ? "#22c55e"
+                    : "#fbbf24"
+                }
+              >
+                {gfLabel}
+              </text>
+            </svg>
           </div>
         </div>
       </div>

@@ -148,8 +148,6 @@ const TickerStats = ({ trades }) => {
 
   return (
     <div className="otherStats flexClm gap_24">
-      <span className="font_12">Ticker Performance</span>
-
       {/* 🔹 Total Tickers & Most Traded */}
       <div className="bestTime flexRow flexRow_stretch gap_12">
         <div

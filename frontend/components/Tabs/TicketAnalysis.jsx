@@ -222,7 +222,7 @@ const TickerAnalysis = ({ trades }) => {
       {/* Header */}
       <div className="flexRow flexRow_stretch">
         <div className="flexClm">
-          <span className="font_16 font_weight_600">Ticker Analysis</span>
+          <span className="font_14">Ticker Analysis</span>
         </div>
       </div>
 

@@ -13,6 +13,7 @@ import { Calendar, History } from "lucide-react";
 import Dropdown from "@/components/ui/Dropdown";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const TradePage = () => {
   const [trades, setTrades] = useState([]);
@@ -101,10 +102,15 @@ const TradePage = () => {
       <div className="flexClm gap_32">
         <BottomBar />
         <div className="flexRow flexRow_stretch">
-          <div className="flexClm">
-            <span className="font_20">Trades History</span>
-            <span className="font_12">Log trade in seconds</span>
-          </div>
+          <SectionHeader
+            title="Logged trades"
+            description="Logged trades history & calednar"
+            level={2} // uses <h2>
+            // showButton={accounts.length > 0}
+            // buttonLabel="Create journal"
+            // onButtonClick={handleCreateAccount}
+            // loading={loading}
+          />
           {/* Toggle Buttons */}
           <div className="view-toggle flexRow gap_12">
             <button

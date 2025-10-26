@@ -3,7 +3,9 @@
 import { childVariants, containerVariants } from "@/animations/motionVariants";
 import Navbar from "@/components/Trades/Navbar";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import BeginnerGuide from "@/components/ui/BeginnerGuide";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import SectionHeader from "@/components/ui/SectionHeader";
 import { formatCurrency } from "@/utils/formatNumbers";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getPlanRules } from "@/utils/planRestrictions";
@@ -43,6 +45,21 @@ function Accounts() {
   const [planUsage, setPlanUsage] = useState({});
   const [showMore, setShowMore] = useState(false);
   const [orderedAccounts, setOrderedAccounts] = useState([]);
+
+  const [showGuide, setShowGuide] = useState(false);
+
+  // Check localStorage for guide on mount
+  useEffect(() => {
+    const guideFlag = localStorage.getItem("guide");
+    if (guideFlag === "yes") {
+      setShowGuide(true);
+    }
+  }, []);
+
+  const handleCloseGuide = () => {
+    setShowGuide(false);
+    localStorage.removeItem("guide"); // clear guide flag
+  };
 
   useEffect(() => {
     const storedOrder = localStorage.getItem("accountOrder");
@@ -461,25 +478,15 @@ function Accounts() {
         <Navbar />
         <BackgroundBlur />
 
-        {/* Header Section */}
-        <div className="flexRow flexRow_stretch">
-          <div className="flexClm">
-            <span className="font_20">Accounts</span>
-            <span className="font_12" style={{ color: "var(--white-50)" }}>
-              Select account to proceed with
-            </span>
-          </div>
-          {accounts.length > 0 && (
-            <button
-              className="button_sec flexRow gap_8"
-              onClick={handleCreateAccount}
-              disabled={loading}
-            >
-              <Plus size={16} />
-              <span>Add Account</span>
-            </button>
-          )}
-        </div>
+        <SectionHeader
+          title="Journals"
+          description="Select you journal"
+          level={2} // uses <h2>
+          showButton={accounts.length > 0}
+          buttonLabel="Create journal"
+          onButtonClick={handleCreateAccount}
+          loading={loading}
+        />
 
         {/* Accounts List */}
         <motion.div
@@ -656,12 +663,15 @@ function Accounts() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <div className="flexClm gap_4">
-            <span className="font_18 font_weight_600">Quick Actions</span>
-            <span className="font_12" style={{ color: "var(--white-50)" }}>
-              Manage your trading data and access features
-            </span>
-          </div>
+          <SectionHeader
+            title="Quick Actions"
+            description="Manage your trading data and access features"
+            level={2} // uses <h2>
+            // showButton={accounts.length > 0}
+            // buttonLabel="Create journal"
+            // onButtonClick={handleCreateAccount}
+            loading={loading}
+          />
 
           <div className="gridContainer">
             {quickActions.map((action) => {
@@ -708,15 +718,17 @@ function Accounts() {
 
         {/* Plan Usage Overview */}
         {userPlan && (
-          <div className="flexClm gap_12">
-            <div className="flexClm gap_4">
-              <span className="font_18 font_weight_600">
-                Plan usage and benefits
-              </span>
-              <span className="font_12" style={{ color: "var(--white-50)" }}>
-                Manage your plan usage
-              </span>
-            </div>
+          <div className="flexClm gap_24">
+            <SectionHeader
+              title="Plan usage and benefits"
+              description="Manage your plan usage"
+              level={2} // uses <h2>
+              // showButton={accounts.length > 0}
+              // buttonLabel="Create journal"
+              // onButtonClick={handleCreateAccount}
+              loading={loading}
+            />
+
             <motion.div
               className="pad_16 flexClm gap_24 chart_boxBg"
               initial={{ opacity: 0, y: 20 }}
@@ -813,6 +825,8 @@ function Accounts() {
             </motion.div>
           </div>
         )}
+
+        {showGuide && <BeginnerGuide onClose={handleCloseGuide} />}
       </div>
     </>
   );

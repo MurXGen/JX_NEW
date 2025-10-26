@@ -3,6 +3,7 @@
 import { childVariants, containerVariants } from "@/animations/motionVariants";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import PlanLimitModal from "@/components/ui/PlanLimitModal";
+import SectionHeader from "@/components/ui/SectionHeader";
 import ToastMessage from "@/components/ui/ToastMessage";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { canAddAccount } from "@/utils/planRestrictions";
@@ -92,7 +93,7 @@ const CreateAccount = () => {
 
       if (isEdit) {
         const accountId = Cookies.get("accountId");
-        if (!accountId) throw new Error("Account ID not found for editing");
+        if (!accountId) throw new Error("Journal ID not found for editing");
         payload.accountId = accountId;
         url = `${API_BASE}/api/account/update`;
       }
@@ -106,8 +107,8 @@ const CreateAccount = () => {
       setAlertMessage(
         message ||
           (isEdit
-            ? "Account updated successfully!"
-            : "Account created successfully!")
+            ? "Journal updated successfully!"
+            : "Journal created successfully!")
       );
 
       // Redirect after short delay so user sees the toast
@@ -130,14 +131,15 @@ const CreateAccount = () => {
 
   return (
     <div className="createAccount flexClm gap_32">
-      <div>
-        <div className="flexClm">
-          <span className="font_20">Create account</span>
-          <span className="font_12">
-            Accounts helps in managing different markets
-          </span>
-        </div>
-      </div>
+      <SectionHeader
+        title="Create journal"
+        description="Journals structure logged trades"
+        level={2} // uses <h2>
+        // showButton={accounts.length > 0}
+        // buttonLabel="Create journal"
+        // onButtonClick={handleCreateAccount}
+        loading={loading}
+      />
 
       <motion.form
         onSubmit={handleSubmit}
@@ -150,7 +152,7 @@ const CreateAccount = () => {
           type="text"
           className="accountName"
           value={accountName}
-          placeholder="Account Name"
+          placeholder="Journal name"
           onChange={(e) => setAccountName(e.target.value.toUpperCase())}
           required
         />
@@ -209,7 +211,7 @@ const CreateAccount = () => {
               <div className="spinner"></div>
             ) : (
               <>
-                {isEdit ? "Update Account" : "Create Account"}{" "}
+                {isEdit ? "Update Journal" : "Create"}{" "}
                 <ArrowUpRight size={16} />
               </>
             )}

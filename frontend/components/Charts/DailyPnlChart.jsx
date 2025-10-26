@@ -189,7 +189,7 @@ const DailyPnlChart = ({ data }) => {
               stroke="#374151"
               opacity={0.3}
             />
-            <XAxis
+            {/* <XAxis
               dataKey="date"
               tick={({ x, y, payload }) => {
                 const d = new Date(payload.value);
@@ -215,6 +215,14 @@ const DailyPnlChart = ({ data }) => {
                   </text>
                 );
               }}
+            /> */}
+
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 12, fill: "#ccc" }}
+              tickFormatter={formatXAxisDate}
+              axisLine={false}
+              tickLine={false}
             />
 
             <YAxis
