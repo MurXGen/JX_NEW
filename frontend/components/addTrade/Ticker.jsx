@@ -8,7 +8,7 @@ const Ticker = ({ form, setForm }) => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const API_KEY = import.meta.env.VITE_TWELVE_DATA_API_KEY; // ✅ Twelve Data API key
+  const API_KEY = process.env.VITE_TWELVE_DATA_API_KEY; // ✅ Twelve Data API key
   const API_URL = "https://api.twelvedata.com/price";
 
   // 🧠 Load previously searched tickers from IndexedDB
@@ -88,7 +88,17 @@ const Ticker = ({ form, setForm }) => {
 
   const handleSymbolSelect = (symbol) => {
     setIsSelecting(true);
-    setForm((prev) => ({ ...prev, symbol: symbol.symbol }));
+    setForm((prev) => ({
+      ...prev,
+      symbol: symbol.symbol,
+      entries: [
+        {
+          ...prev.entries[0],
+          price: symbol.price?.toString() || "", // ✅ auto-fill entry price
+        },
+        ...prev.entries.slice(1),
+      ],
+    }));
     setFilteredSymbols([]);
     setTimeout(() => setIsSelecting(false), 200);
   };
