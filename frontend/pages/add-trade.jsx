@@ -12,6 +12,7 @@ import StopLossSection from "@/components/addTrade/SL";
 import TradeStatusGrid from "@/components/addTrade/Status";
 import TakeProfitSection from "@/components/addTrade/TP";
 import Ticker from "@/components/addTrade/Ticker";
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import PlanLimitModal from "@/components/ui/PlanLimitModal";
@@ -1200,6 +1201,8 @@ export default function AddTrade() {
         )}
 
         {loading && <FullPageLoader />}
+
+        <GoogleBannerAd />
 
         <div
           className="popups_btm flexRow flexRow_stretch gap_8"

@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import JournalXCTA from "@/components/ui/JournalXCTA";
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 
 const ViewTrades = () => {
   const [sharedData, setSharedData] = useState(null);
@@ -382,6 +383,8 @@ const ViewTrades = () => {
       </div>
 
       <JournalXCTA />
+
+      <GoogleBannerAd />
 
       {/* Footer */}
       <div className="footerSection flexRow flexRow_center">

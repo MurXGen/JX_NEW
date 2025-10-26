@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { useRouter } from "next/router";
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 
 const ExportPage = () => {
   const router = useRouter();
@@ -460,6 +461,8 @@ const ExportPage = () => {
           )}
         </div>
       )}
+
+      <GoogleBannerAd />
     </div>
   );
 };

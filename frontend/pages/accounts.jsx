@@ -1,6 +1,7 @@
 "use client";
 
 import { childVariants, containerVariants } from "@/animations/motionVariants";
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 import Navbar from "@/components/Trades/Navbar";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import MessageCard from "@/components/ui/BannerInstruction";
@@ -479,6 +480,7 @@ function Accounts() {
       <div className="dashboard flexClm gap_32">
         <Navbar />
         <BackgroundBlur />
+        <GoogleBannerAd />
 
         <SectionHeader
           title="Journals"

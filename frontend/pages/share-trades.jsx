@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { useRouter } from "next/router";
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 
 const ShareTrades = () => {
   const [accounts, setAccounts] = useState([]);
@@ -562,6 +563,8 @@ const ShareTrades = () => {
           </div>
         </div>
       )}
+
+      <GoogleBannerAd />
     </div>
   );
 };

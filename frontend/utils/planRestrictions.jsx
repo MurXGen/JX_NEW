@@ -15,6 +15,7 @@ const PLAN_RULES = {
     canAccessTelegramBot: false,
     canExportTrades: true,
     canShareTrades: true,
+    showAds: true, // show ads for free users
   },
   pro: {
     tradeLimitPerMonth: Infinity,
@@ -28,6 +29,7 @@ const PLAN_RULES = {
     canAccessTelegramBot: false,
     canExportTrades: true,
     canShareTrades: true,
+    showAds: true,
   },
   elite: {
     tradeLimitPerMonth: Infinity,
@@ -41,6 +43,7 @@ const PLAN_RULES = {
     canAccessTelegramBot: true,
     canExportTrades: true,
     canShareTrades: true,
+    showAds: false,
   },
   master: {
     tradeLimitPerMonth: Infinity,
@@ -54,7 +57,14 @@ const PLAN_RULES = {
     canAccessTelegramBot: true,
     canExportTrades: true,
     canShareTrades: true,
+    showAds: false,
   },
+};
+
+// Check if ads should be shown for given user
+export const canShowAds = (userData) => {
+  const rules = getPlanRules(userData);
+  return Boolean(rules.showAds);
 };
 
 // Normalize plan names
@@ -63,7 +73,7 @@ export const getPlanRules = (userData) => {
     userData?.subscription?.planId ||
     userData?.subscription?.planName ||
     "free";
-  const planName = planId.toLowerCase();
+  const planName = String(planId).toLowerCase();
   return PLAN_RULES[planName] || PLAN_RULES.free;
 };
 
@@ -142,8 +152,13 @@ export const getTradeHistoryLimit = (userData) => {
   return rules.tradeHistoryDays;
 };
 
-// ✅ Wrapper: get rules from IndexedDB
 export const getCurrentPlanRules = async () => {
   const userData = await getFromIndexedDB("user-data");
   return getPlanRules(userData);
+};
+
+// If you need an async wrapper to check ads for the currently cached user
+export const shouldShowAdsForCurrentUser = async () => {
+  const userData = await getFromIndexedDB("user-data");
+  return canShowAds(userData);
 };

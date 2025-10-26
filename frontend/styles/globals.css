@@ -5269,3 +5269,18 @@ footer {
   pointer-events: none;
   border-radius: 0 0 16px 16px;
 }
+
+/* Goofle ads */
+
+/* styles/ads.css */
+.google-ad-container {
+  display: block;
+  max-width: 100%;
+  margin: 12px 0;
+}
+
+/* responsive small rule to prevent overflow */
+.google-ad-container .adsbygoogle {
+  display: block !important;
+  width: 100% !important;
+}

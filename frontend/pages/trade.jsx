@@ -14,6 +14,7 @@ import Dropdown from "@/components/ui/Dropdown";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import SectionHeader from "@/components/ui/SectionHeader";
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 
 const TradePage = () => {
   const [trades, setTrades] = useState([]);
@@ -194,6 +195,8 @@ const TradePage = () => {
           />
         )}
         <BackgroundBlur />
+
+        <GoogleBannerAd />
       </div>
     </>
   );
