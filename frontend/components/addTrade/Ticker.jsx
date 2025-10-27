@@ -1,37 +1,26 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, ArrowDownRight, X } from "lucide-react";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB"; // ✅ your existing helper
 
 const Ticker = ({ form, setForm }) => {
   const [storedSymbols, setStoredSymbols] = useState([]);
   const [filteredSymbols, setFilteredSymbols] = useState([]);
   const [isSelecting, setIsSelecting] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const API_KEY = process.env.VITE_TWELVE_DATA_API_KEY; // ✅ Twelve Data API key
-  const API_URL = "https://api.twelvedata.com/price";
-
-  // 🧠 Load previously searched tickers from IndexedDB
   useEffect(() => {
-    const loadTickers = async () => {
-      const saved = (await getFromIndexedDB("searched-tickers")) || [];
-      setStoredSymbols(saved);
-      setFilteredSymbols(saved);
-    };
-    loadTickers();
+    const saved = JSON.parse(localStorage.getItem("tickers")) || [];
+    setStoredSymbols(saved);
+    setFilteredSymbols(saved);
   }, []);
 
-  // 🕵️ Handle search input
-  const handleSymbolChange = async (e) => {
+  const handleSymbolChange = (e) => {
     const upperValue = e.target.value.toUpperCase();
     setForm((prev) => ({ ...prev, symbol: upperValue }));
 
     if (isSelecting) return;
 
-    // Show locally stored tickers first
     if (upperValue.trim()) {
       const filtered = storedSymbols.filter((sym) =>
-        sym.symbol.toUpperCase().includes(upperValue)
+        sym.toUpperCase().includes(upperValue)
       );
       setFilteredSymbols(filtered);
     } else {
@@ -39,95 +28,55 @@ const Ticker = ({ form, setForm }) => {
     }
   };
 
-  // 📈 Fetch live price and store in IndexedDB
-  const fetchAndStoreTicker = async (symbol) => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `${API_URL}?symbol=${symbol}/USD&apikey=${API_KEY}`
-      );
-      const data = await res.json();
-
-      if (data?.price) {
-        const newEntry = {
-          symbol: `${symbol.toUpperCase()}USDT`,
-          price: parseFloat(data.price),
-          timestamp: Date.now(),
-        };
-
-        const existing = (await getFromIndexedDB("searched-tickers")) || [];
-        const updated = [
-          newEntry,
-          ...existing.filter((t) => t.symbol !== newEntry.symbol),
-        ].slice(0, 10);
-
-        await saveToIndexedDB("searched-tickers", updated);
-        setStoredSymbols(updated);
-        setFilteredSymbols(updated);
-      }
-    } catch (err) {
-      console.error("Error fetching price:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ On blur (user finished typing), fetch from API if not in cache
-  const handleSymbolBlur = async () => {
+  const handleSymbolBlur = () => {
     if (isSelecting) return;
+
     const trimmed = form.symbol.trim();
     if (!trimmed) return;
 
-    const existing = storedSymbols.find((t) =>
-      t.symbol.toUpperCase().includes(trimmed.toUpperCase())
-    );
-    if (!existing) {
-      await fetchAndStoreTicker(trimmed);
+    const saved = JSON.parse(localStorage.getItem("tickers")) || [];
+    if (!saved.includes(trimmed)) {
+      const updated = [trimmed, ...saved].slice(0, 10);
+      localStorage.setItem("tickers", JSON.stringify(updated));
+      setStoredSymbols(updated);
+      setFilteredSymbols(updated);
     }
   };
 
   const handleSymbolSelect = (symbol) => {
     setIsSelecting(true);
-    setForm((prev) => ({
-      ...prev,
-      symbol: symbol.symbol,
-      entries: [
-        {
-          ...prev.entries[0],
-          price: symbol.price?.toString() || "", // ✅ auto-fill entry price
-        },
-        ...prev.entries.slice(1),
-      ],
-    }));
+    setForm((prev) => ({ ...prev, symbol }));
     setFilteredSymbols([]);
     setTimeout(() => setIsSelecting(false), 200);
   };
 
-  const removeSymbol = async (symbol) => {
-    const updated = storedSymbols.filter((s) => s.symbol !== symbol);
-    await saveToIndexedDB("searched-tickers", updated);
+  const removeSymbol = (symbol) => {
+    const updated = storedSymbols.filter((s) => s !== symbol);
+    localStorage.setItem("tickers", JSON.stringify(updated));
     setStoredSymbols(updated);
     setFilteredSymbols(updated);
     if (form.symbol === symbol) setForm((prev) => ({ ...prev, symbol: "" }));
   };
 
+  // 🟢 Clear input function
   const clearInput = () => setForm((prev) => ({ ...prev, symbol: "" }));
 
   return (
     <div className="tradeGrid flexClm gap_12">
-      {/* Symbol Input */}
+      {/* Symbol Input with Clear Icon */}
       <div className="inputLabelShift" style={{ position: "relative" }}>
         <input
           name="symbol"
           value={form.symbol}
           onChange={handleSymbolChange}
           onBlur={handleSymbolBlur}
-          placeholder="Ticker name (e.g. BTC)"
+          placeholder="Ticker name"
           autoComplete="off"
-          style={{ paddingRight: "28px" }}
+          style={{ paddingRight: "28px" }} // space for X icon
         />
         <label>Ticker name</label>
 
+        {/* Clear Input Icon */}
         {form.symbol && (
           <X
             size={16}
@@ -140,14 +89,14 @@ const Ticker = ({ form, setForm }) => {
               color: "#888",
             }}
             onMouseDown={(e) => {
-              e.preventDefault();
+              e.preventDefault(); // prevent blur
               clearInput();
             }}
           />
         )}
       </div>
 
-      {/* Suggested / Cached Tickers */}
+      {/* Chip-style suggestions */}
       {filteredSymbols.length > 0 && (
         <div
           className="flexRow gap_8 flexRow_scroll removeScrollBar"
@@ -155,18 +104,13 @@ const Ticker = ({ form, setForm }) => {
         >
           {filteredSymbols.map((sym) => (
             <div
-              key={sym.symbol}
+              key={sym}
               className={`button_ter font_14 flexRow flex_center gap_8 ${
-                form.symbol === sym.symbol ? "selected" : ""
+                form.symbol === sym ? "selected" : ""
               }`}
               onMouseDown={() => handleSymbolSelect(sym)}
             >
-              <span>
-                {sym.symbol}{" "}
-                <span style={{ color: "#888", fontSize: "12px" }}>
-                  (${sym.price})
-                </span>
-              </span>
+              <span>{sym}</span>
               <X
                 size={12}
                 className="chart_boxBg"
@@ -174,15 +118,13 @@ const Ticker = ({ form, setForm }) => {
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
-                  removeSymbol(sym.symbol);
+                  removeSymbol(sym);
                 }}
               />
             </div>
           ))}
         </div>
       )}
-
-      {loading && <p style={{ fontSize: "13px" }}>Fetching live price...</p>}
 
       <hr width={100} color="grey" />
 
