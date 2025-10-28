@@ -7,22 +7,60 @@ import {
   ArrowUp,
   BarChart3,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
   RefreshCw,
   Target,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import JournalXCTA from "@/components/ui/JournalXCTA";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
+
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const shortMonths = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const ViewTrades = () => {
   const [sharedData, setSharedData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isClient, setIsClient] = useState(false);
+  const [calendarView, setCalendarView] = useState("month"); // 'month' or 'year'
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedDate, setSelectedDate] = useState(null);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -67,17 +105,131 @@ const ViewTrades = () => {
 
         setSharedData(parsedData);
       } catch (parseError) {
-        error("❌ Parse error:", parseError);
+        console.error("❌ Parse error:", parseError);
         throw new Error(
           "Failed to parse trade data. The link may be corrupted or expired."
         );
       }
     } catch (err) {
-      error("❌ Error loading shared data:", err);
+      console.error("❌ Error loading shared data:", err);
       setError(err.message || "Invalid or corrupted share link");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calendar calculations
+  const calendarDays = useMemo(() => {
+    if (!selectedMonth || !selectedYear) return [];
+    const firstDay = new Date(selectedYear, selectedMonth - 1, 1);
+    const lastDay = new Date(selectedYear, selectedMonth, 0);
+
+    const startDay = (firstDay.getDay() + 6) % 7; // shift Sun→last (Mon=0)
+    const totalDays = lastDay.getDate();
+
+    const days = [];
+    for (let i = 0; i < startDay; i++) days.push(null); // empty slots
+    for (let d = 1; d <= totalDays; d++) days.push(d);
+
+    return days;
+  }, [selectedMonth, selectedYear]);
+
+  // Group trades by date
+  const tradesByDate = useMemo(() => {
+    if (!sharedData?.trades) return {};
+
+    const grouped = {};
+    sharedData.trades.forEach((t) => {
+      const dateStr = dayjs(t.openTime).format("YYYY-MM-DD");
+      if (!grouped[dateStr]) grouped[dateStr] = [];
+      grouped[dateStr].push(t);
+    });
+    return grouped;
+  }, [sharedData?.trades]);
+
+  // Filter trades for selected month
+  const monthlyTrades = useMemo(() => {
+    if (!sharedData?.trades || !selectedMonth || !selectedYear) return [];
+    return sharedData.trades.filter((trade) => {
+      const tradeDate = dayjs(trade.openTime);
+      return (
+        tradeDate.month() + 1 === selectedMonth &&
+        tradeDate.year() === selectedYear
+      );
+    });
+  }, [sharedData?.trades, selectedMonth, selectedYear]);
+
+  // Monthly stats
+  const monthlyStats = useMemo(() => {
+    const totalTrades = monthlyTrades.length;
+    const winTrades = monthlyTrades.filter((t) => t.pnl > 0).length;
+    const loseTrades = monthlyTrades.filter((t) => t.pnl < 0).length;
+    const totalPnL = monthlyTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const winRate = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
+
+    return {
+      totalTrades,
+      winTrades,
+      loseTrades,
+      totalPnL,
+      winRate: winRate.toFixed(1),
+    };
+  }, [monthlyTrades]);
+
+  // Navigation handlers
+  const navigateMonth = (direction) => {
+    if (direction === "prev") {
+      if (selectedMonth === 1) {
+        setSelectedMonth(12);
+        setSelectedYear(selectedYear - 1);
+      } else {
+        setSelectedMonth(selectedMonth - 1);
+      }
+    } else {
+      if (selectedMonth === 12) {
+        setSelectedMonth(1);
+        setSelectedYear(selectedYear + 1);
+      } else {
+        setSelectedMonth(selectedMonth + 1);
+      }
+    }
+  };
+
+  const navigateYear = (direction) => {
+    const currentYear = new Date().getFullYear();
+    setSelectedYear((prev) => {
+      if (direction === "prev") return prev - 1;
+      if (direction === "next" && prev < currentYear) return prev + 1;
+      return prev;
+    });
+  };
+
+  const handleDateClick = (day) => {
+    if (!day) return;
+
+    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(
+      2,
+      "0"
+    )}-${String(day).padStart(2, "0")}`;
+    const dayTrades = tradesByDate[dateStr];
+
+    if (dayTrades && dayTrades.length > 0) {
+      setSelectedDate(dateStr);
+    }
+  };
+
+  const getDateTrades = (day) => {
+    if (!day) return [];
+    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(
+      2,
+      "0"
+    )}-${String(day).padStart(2, "0")}`;
+    return tradesByDate[dateStr] || [];
+  };
+
+  const getDatePnL = (day) => {
+    const trades = getDateTrades(day);
+    return trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   };
 
   const getStats = (tradesData) => {
@@ -133,7 +285,7 @@ const ViewTrades = () => {
   };
 
   if (loading) {
-    <FullPageLoader />;
+    return <FullPageLoader />;
   }
 
   if (error || !sharedData) {
@@ -183,43 +335,16 @@ const ViewTrades = () => {
               {sharedData.meta.account ? `from ${sharedData.meta.account}` : ""}
             </span>
           </div>
-          {/* <div className="flexClm gap_4 boxBg">
-            <div
-              className="flexRow gap_8"
-              style={{
-                display: "flex",
-                justifyContent: "end",
-              }}
-            >
-              <Calendar size={16} className="shade_50" />
-              <span className="font_12">
-                {getTimeRangeLabel(sharedData.meta.timeRange)}
-              </span>
-            </div>
-            <span
-              className="font_14 shade_50 flexRow_mobile"
-              style={{ textAlign: "right" }}
-            >
-              Shared on{" "}
-              <span>
-                {dayjs(sharedData.meta.generatedAt).format(
-                  "MMM D, YYYY [at] h:mm A"
-                )}
-              </span>
-            </span>
-          </div> */}
         </div>
 
         {/* Key Stats */}
         <div className="flexRow flexRow_stretch gap_16">
           <div className="chart_boxBg flexClm gap_8 pad_16 width100">
-            {" "}
             <span className="font_12 shade_50">Win Rate</span>
             <span className="font_16 font_weight_600">{stats.winRate}%</span>
           </div>
 
           <div className="chart_boxBg flexClm gap_8 pad_16 width100">
-            {" "}
             <span className="font_12 shade_50">Total Trades</span>
             <span className="font_16 font_weight_600">{stats.totalTrades}</span>
           </div>
@@ -236,6 +361,151 @@ const ViewTrades = () => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Calendar Section */}
+      <div className="calendarSection flexClm gap_20">
+        <div className="flexRow flexRow_stretch">
+          <span className="font_18 font_weight_600">Trading Calendar</span>
+          <span className="font_12 shade_50">
+            {monthlyStats.totalTrades} trades in {months[selectedMonth - 1]}{" "}
+            {selectedYear}
+          </span>
+        </div>
+
+        {/* Calendar Header */}
+        <div className="calendarHeader flexRow flexRow_stretch chart_boxBg pad_16">
+          <div className="flexClm">
+            <span className="font_weight_600">
+              {months[selectedMonth - 1]} {selectedYear}
+            </span>
+            <span className="font_12">
+              {monthlyStats.winRate}% Win Rate •{" "}
+              {formatCurrency(monthlyStats.totalPnL)} P&L
+            </span>
+          </div>
+
+          <div className="flexRow gap_8">
+            <button
+              className="navButton button_ter flexRow flex_center"
+              onClick={() => navigateMonth("prev")}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              className="navButton button_ter flexRow flex_center"
+              onClick={() => navigateMonth("next")}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="calendarGrid chart_boxBg pad_16">
+          {/* Weekday Headers */}
+          <div className="weekdayHeaders grid grid_7 gap_4 margin_bottom_12">
+            {weekdays.map((day) => (
+              <div
+                key={day}
+                className="weekdayHeader text_center font_12 font_weight_600 shade_50"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Days */}
+          <div className="calendarDays grid grid_7 gap_4">
+            {calendarDays.map((day, index) => {
+              const dayTrades = getDateTrades(day);
+              const dayPnL = getDatePnL(day);
+              const hasTrades = dayTrades.length > 0;
+              const isSelected =
+                selectedDate ===
+                `${selectedYear}-${String(selectedMonth).padStart(
+                  2,
+                  "0"
+                )}-${String(day).padStart(2, "0")}`;
+
+              return (
+                <div
+                  key={index}
+                  className={`calendarDay flexCol gap_2 pad_8 text_center ${
+                    !day ? "emptyDay" : ""
+                  } ${hasTrades ? "hasTrades" : ""} ${
+                    isSelected ? "selectedDay" : ""
+                  }`}
+                  onClick={() => handleDateClick(day)}
+                >
+                  {day && (
+                    <>
+                      <span
+                        className={`font_12 font_weight_500 ${
+                          !hasTrades ? "shade_50" : ""
+                        }`}
+                      >
+                        {day}
+                      </span>
+                      {hasTrades && (
+                        <div
+                          className={`pnlIndicator ${getPnlColorClass(
+                            dayPnL
+                          )} font_10`}
+                        >
+                          {dayPnL > 0 ? "+" : ""}
+                          {formatCurrency(dayPnL)}
+                        </div>
+                      )}
+                      {hasTrades && (
+                        <div className="tradeCount font_10 shade_50">
+                          {dayTrades.length} trade
+                          {dayTrades.length !== 1 ? "s" : ""}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Selected Date Details */}
+        {selectedDate && tradesByDate[selectedDate] && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="selectedDateDetails chart_boxBg pad_16"
+          >
+            <div className="flexRow flexRow_stretch margin_bottom_12">
+              <span className="font_14 font_weight_600">
+                {dayjs(selectedDate).format("MMMM D, YYYY")}
+              </span>
+              <span className="font_12 shade_50">
+                {tradesByDate[selectedDate].length} trades
+              </span>
+            </div>
+
+            <div className="flexClm gap_8">
+              {tradesByDate[selectedDate].slice(0, 3).map((trade, index) => (
+                <div key={index} className="flexRow flexRow_stretch font_12">
+                  <span className="flex1">{trade.symbol}</span>
+                  <span className={`${getPnlColorClass(trade.pnl)}`}>
+                    {trade.pnl > 0 ? "+" : ""}
+                    {formatCurrency(trade.pnl)}
+                  </span>
+                </div>
+              ))}
+              {tradesByDate[selectedDate].length > 3 && (
+                <span className="font_10 shade_50 text_center">
+                  ... and {tradesByDate[selectedDate].length - 3} more trades
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Detailed Stats */}
@@ -270,17 +540,11 @@ const ViewTrades = () => {
             <div className="flexClm gap_8">
               <div className="flexRow flexRow_stretch">
                 <span className="font_12 shade_50">Long Trades</span>
-                <span className="font_12">
-                  {stats.longTrades}
-                  {/* ({stats.longWinRate}% WR) */}
-                </span>
+                <span className="font_12">{stats.longTrades}</span>
               </div>
               <div className="flexRow flexRow_stretch">
                 <span className="font_12 shade_50">Short Trades</span>
-                <span className="font_12">
-                  {stats.shortTrades}
-                  {/* ({stats.shortWinRate}% WR) */}
-                </span>
+                <span className="font_12">{stats.shortTrades}</span>
               </div>
               <div className="flexRow flexRow_stretch">
                 <span className="font_12 shade_50">Avg P&L per Trade</span>
@@ -299,7 +563,7 @@ const ViewTrades = () => {
       </div>
 
       {/* All Trades Table */}
-      <div className=" flexClm gap_16">
+      <div className="flexClm gap_16">
         <span className="font_18 font_weight_600">
           All Trades ({sharedData.trades.length})
         </span>
@@ -383,7 +647,6 @@ const ViewTrades = () => {
       </div>
 
       <JournalXCTA />
-
       <GoogleBannerAd />
 
       {/* Footer */}
