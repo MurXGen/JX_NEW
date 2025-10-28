@@ -20,38 +20,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import JournalXCTA from "@/components/ui/JournalXCTA";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const shortMonths = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
 const ViewTrades = () => {
   const [sharedData, setSharedData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +29,41 @@ const ViewTrades = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [showAllMonths, setShowAllMonths] = useState(false);
+
   const searchParams = useSearchParams();
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const shortMonths = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   useEffect(() => {
     setIsClient(true);
@@ -86,15 +88,10 @@ const ViewTrades = () => {
 
       // Decode base64 data
       try {
-        // Clean the data parameter (remove any URL encoding issues)
         const cleanData = dataParam.replace(/\s/g, "+");
-
-        // Decode base64
         const decodedData = atob(cleanData);
-
         const parsedData = JSON.parse(decodedData);
 
-        // Validate data structure
         if (!parsedData.trades || !Array.isArray(parsedData.trades)) {
           throw new Error("Invalid trade data format - missing trades array");
         }
@@ -124,59 +121,67 @@ const ViewTrades = () => {
     const firstDay = new Date(selectedYear, selectedMonth - 1, 1);
     const lastDay = new Date(selectedYear, selectedMonth, 0);
 
-    const startDay = (firstDay.getDay() + 6) % 7; // shift Sun→last (Mon=0)
+    const startDay = (firstDay.getDay() + 6) % 7;
     const totalDays = lastDay.getDate();
 
     const days = [];
-    for (let i = 0; i < startDay; i++) days.push(null); // empty slots
+    for (let i = 0; i < startDay; i++) days.push(null);
     for (let d = 1; d <= totalDays; d++) days.push(d);
 
     return days;
   }, [selectedMonth, selectedYear]);
 
-  // Group trades by date
   const tradesByDate = useMemo(() => {
     if (!sharedData?.trades) return {};
-
     const grouped = {};
     sharedData.trades.forEach((t) => {
-      const dateStr = dayjs(t.openTime).format("YYYY-MM-DD");
+      const d = new Date(t.openTime);
+      const dateStr = d.toLocaleDateString("en-CA");
       if (!grouped[dateStr]) grouped[dateStr] = [];
       grouped[dateStr].push(t);
     });
     return grouped;
   }, [sharedData?.trades]);
 
-  // Filter trades for selected month
   const monthlyTrades = useMemo(() => {
-    if (!sharedData?.trades || !selectedMonth || !selectedYear) return [];
+    if (!selectedMonth || !selectedYear || !sharedData?.trades) return [];
     return sharedData.trades.filter((trade) => {
-      const tradeDate = dayjs(trade.openTime);
+      const d = new Date(trade.openTime);
       return (
-        tradeDate.month() + 1 === selectedMonth &&
-        tradeDate.year() === selectedYear
+        d.getMonth() + 1 === selectedMonth && d.getFullYear() === selectedYear
       );
     });
   }, [sharedData?.trades, selectedMonth, selectedYear]);
 
-  // Monthly stats
-  const monthlyStats = useMemo(() => {
-    const totalTrades = monthlyTrades.length;
-    const winTrades = monthlyTrades.filter((t) => t.pnl > 0).length;
-    const loseTrades = monthlyTrades.filter((t) => t.pnl < 0).length;
-    const totalPnL = monthlyTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
-    const winRate = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
+  const yearlyTrades = useMemo(() => {
+    if (!selectedYear || !sharedData?.trades) return [];
+    return sharedData.trades.filter(
+      (trade) => new Date(trade.openTime).getFullYear() === selectedYear
+    );
+  }, [sharedData?.trades, selectedYear]);
 
-    return {
-      totalTrades,
-      winTrades,
-      loseTrades,
-      totalPnL,
-      winRate: winRate.toFixed(1),
-    };
+  const monthlyStats = useMemo(() => {
+    let totalTrades = monthlyTrades.length;
+    let winTrades = monthlyTrades.filter((t) => t.pnl > 0).length;
+    let loseTrades = monthlyTrades.filter((t) => t.pnl < 0).length;
+    let totalPnl = monthlyTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    let winRate = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
+
+    return { totalTrades, winTrades, loseTrades, totalPnl, winRate };
   }, [monthlyTrades]);
 
-  // Navigation handlers
+  const yearlyStats = useMemo(() => {
+    let totalTrades = yearlyTrades.length;
+    let winTrades = yearlyTrades.filter((t) => t.pnl > 0).length;
+    let loseTrades = yearlyTrades.filter((t) => t.pnl < 0).length;
+    let totalPnl = yearlyTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    let winRate = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
+
+    return { totalTrades, winTrades, loseTrades, totalPnl, winRate };
+  }, [yearlyTrades]);
+
+  const currentStats = calendarView === "month" ? monthlyStats : yearlyStats;
+
   const navigateMonth = (direction) => {
     if (direction === "prev") {
       if (selectedMonth === 1) {
@@ -204,32 +209,24 @@ const ViewTrades = () => {
     });
   };
 
-  const handleDateClick = (day) => {
-    if (!day) return;
-
-    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(
-      2,
-      "0"
-    )}-${String(day).padStart(2, "0")}`;
-    const dayTrades = tradesByDate[dateStr];
-
+  const handleDateClick = (dateStr, dayTrades) => {
     if (dayTrades && dayTrades.length > 0) {
       setSelectedDate(dateStr);
     }
   };
 
-  const getDateTrades = (day) => {
-    if (!day) return [];
-    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(
-      2,
-      "0"
-    )}-${String(day).padStart(2, "0")}`;
-    return tradesByDate[dateStr] || [];
-  };
+  const buildCalendar = (monthIndex) => {
+    const firstDay = new Date(selectedYear, monthIndex, 1);
+    const lastDay = new Date(selectedYear, monthIndex + 1, 0);
 
-  const getDatePnL = (day) => {
-    const trades = getDateTrades(day);
-    return trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const startDay = (firstDay.getDay() + 6) % 7;
+    const totalDays = lastDay.getDate();
+
+    const days = [];
+    for (let i = 0; i < startDay; i++) days.push(null);
+    for (let d = 1; d <= totalDays; d++) days.push(d);
+
+    return days;
   };
 
   const getStats = (tradesData) => {
@@ -241,11 +238,9 @@ const ViewTrades = () => {
     const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
     const avgPnL = totalTrades > 0 ? totalPnL / totalTrades : 0;
 
-    // Best and worst trades
     const bestTrade = [...tradesData].sort((a, b) => b.pnl - a.pnl)[0];
     const worstTrade = [...tradesData].sort((a, b) => a.pnl - b.pnl)[0];
 
-    // Long/Short stats
     const longTrades = tradesData.filter((t) => t.direction === "long");
     const shortTrades = tradesData.filter((t) => t.direction === "short");
     const longWinRate =
@@ -284,6 +279,15 @@ const ViewTrades = () => {
     return labels[timeRange] || "Custom Range";
   };
 
+  const formatNumber = (num) => {
+    return (
+      num?.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) || "0.00"
+    );
+  };
+
   if (loading) {
     return <FullPageLoader />;
   }
@@ -316,10 +320,8 @@ const ViewTrades = () => {
   }
 
   const stats = getStats(sharedData.trades);
-
   const formatCurrency = (val) =>
     val ? `$${Number(val).toFixed(2)}` : "$0.00";
-
   const getPnlColorClass = (pnl) =>
     pnl >= 0 ? "success" : pnl < 0 ? "error" : "shade_50";
 
@@ -364,150 +366,256 @@ const ViewTrades = () => {
       </div>
 
       {/* Calendar Section */}
-      <div className="calendarSection flexClm gap_20">
-        <div className="flexRow flexRow_stretch">
-          <span className="font_18 font_weight_600">Trading Calendar</span>
-          <span className="font_12 shade_50">
-            {monthlyStats.totalTrades} trades in {months[selectedMonth - 1]}{" "}
-            {selectedYear}
-          </span>
-        </div>
-
+      <div className="calendarSection flexClm gap_24">
         {/* Calendar Header */}
-        <div className="calendarHeader flexRow flexRow_stretch chart_boxBg pad_16">
-          <div className="flexClm">
-            <span className="font_weight_600">
-              {months[selectedMonth - 1]} {selectedYear}
-            </span>
-            <span className="font_12">
-              {monthlyStats.winRate}% Win Rate •{" "}
-              {formatCurrency(monthlyStats.totalPnL)} P&L
-            </span>
-          </div>
-
-          <div className="flexRow gap_8">
-            <button
-              className="navButton button_ter flexRow flex_center"
-              onClick={() => navigateMonth("prev")}
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              className="navButton button_ter flexRow flex_center"
-              onClick={() => navigateMonth("next")}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* Calendar Grid */}
-        <div className="calendarGrid chart_boxBg pad_16">
-          {/* Weekday Headers */}
-          <div className="weekdayHeaders grid grid_7 gap_4 margin_bottom_12">
-            {weekdays.map((day) => (
-              <div
-                key={day}
-                className="weekdayHeader text_center font_12 font_weight_600 shade_50"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Calendar Days */}
-          <div className="calendarDays grid grid_7 gap_4">
-            {calendarDays.map((day, index) => {
-              const dayTrades = getDateTrades(day);
-              const dayPnL = getDatePnL(day);
-              const hasTrades = dayTrades.length > 0;
-              const isSelected =
-                selectedDate ===
-                `${selectedYear}-${String(selectedMonth).padStart(
-                  2,
-                  "0"
-                )}-${String(day).padStart(2, "0")}`;
-
-              return (
-                <div
-                  key={index}
-                  className={`calendarDay flexCol gap_2 pad_8 text_center ${
-                    !day ? "emptyDay" : ""
-                  } ${hasTrades ? "hasTrades" : ""} ${
-                    isSelected ? "selectedDay" : ""
-                  }`}
-                  onClick={() => handleDateClick(day)}
-                >
-                  {day && (
-                    <>
-                      <span
-                        className={`font_12 font_weight_500 ${
-                          !hasTrades ? "shade_50" : ""
-                        }`}
-                      >
-                        {day}
-                      </span>
-                      {hasTrades && (
-                        <div
-                          className={`pnlIndicator ${getPnlColorClass(
-                            dayPnL
-                          )} font_10`}
-                        >
-                          {dayPnL > 0 ? "+" : ""}
-                          {formatCurrency(dayPnL)}
-                        </div>
-                      )}
-                      {hasTrades && (
-                        <div className="tradeCount font_10 shade_50">
-                          {dayTrades.length} trade
-                          {dayTrades.length !== 1 ? "s" : ""}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Selected Date Details */}
-        {selectedDate && tradesByDate[selectedDate] && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="selectedDateDetails chart_boxBg pad_16"
-          >
-            <div className="flexRow flexRow_stretch margin_bottom_12">
-              <span className="font_14 font_weight_600">
-                {dayjs(selectedDate).format("MMMM D, YYYY")}
+        {calendarView === "month" && (
+          <div className="calendarHeader flexRow flexRow_stretch">
+            <div className="flexClm">
+              <span className="font_weight_600">
+                {selectedMonth
+                  ? `${new Date(0, selectedMonth - 1).toLocaleString(
+                      "default",
+                      {
+                        month: "long",
+                      }
+                    )} ${selectedYear}`
+                  : "All Months"}
               </span>
-              <span className="font_12 shade_50">
-                {tradesByDate[selectedDate].length} trades
-              </span>
+              <span className="font_12">Overview</span>
             </div>
-
-            <div className="flexClm gap_8">
-              {tradesByDate[selectedDate].slice(0, 3).map((trade, index) => (
-                <div key={index} className="flexRow flexRow_stretch font_12">
-                  <span className="flex1">{trade.symbol}</span>
-                  <span className={`${getPnlColorClass(trade.pnl)}`}>
-                    {trade.pnl > 0 ? "+" : ""}
-                    {formatCurrency(trade.pnl)}
-                  </span>
-                </div>
-              ))}
-              {tradesByDate[selectedDate].length > 3 && (
-                <span className="font_10 shade_50 text_center">
-                  ... and {tradesByDate[selectedDate].length - 3} more trades
-                </span>
-              )}
-            </div>
-          </motion.div>
+          </div>
         )}
+
+        {/* Calendar View */}
+        <AnimatePresence mode="wait">
+          {calendarView === "month" ? (
+            <motion.div
+              key="month-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="monthView chart_boxBg pad_16"
+            >
+              {/* Weekday Headers */}
+              <div className="weekdayHeaders flexRow">
+                {weekdays.map((day) => (
+                  <div
+                    key={day}
+                    className="weekdayHeader font_12 font_weight_600 shade_50 text_center"
+                  >
+                    {day.substring(0, 1)}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="calendarGrid">
+                {calendarDays.map((day, i) => {
+                  if (!day) return <div key={i} className="emptyDay"></div>;
+
+                  const dateStr = `${selectedYear}-${String(
+                    selectedMonth
+                  ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                  const dayTrades = tradesByDate[dateStr] || [];
+                  const pnl = dayTrades.reduce(
+                    (sum, t) => sum + (t.pnl || 0),
+                    0
+                  );
+                  const hasTrades = dayTrades.length > 0;
+
+                  const todayStr = new Date().toISOString().split("T")[0];
+                  const isToday = dateStr === todayStr;
+
+                  return (
+                    <motion.div
+                      key={i}
+                      className={`calendarDay ${hasTrades ? "hasTrades" : ""} 
+                        ${selectedDate === dateStr ? "selected" : ""} 
+                        ${
+                          pnl > 0
+                            ? "success"
+                            : pnl < 0
+                            ? "error"
+                            : hasTrades
+                            ? "shade_50"
+                            : ""
+                        } 
+                        ${isToday ? "today" : ""}`}
+                      onClick={() => handleDateClick(dateStr, dayTrades)}
+                      whileHover={{ scale: hasTrades ? 1.05 : 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <span className="dayNumber font_12">{day}</span>
+                      {hasTrades && (
+                        <div className="dayInfo">
+                          <div
+                            className={`pnlIndicator font_10 ${
+                              pnl > 0
+                                ? "profit"
+                                : pnl < 0
+                                ? "loss"
+                                : "breakeven"
+                            }`}
+                          >
+                            {pnl > 0 ? "+" : ""}
+                            {formatNumber(pnl)}
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="year-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="yearView chart_boxBg pad_20"
+            >
+              <div className="yearGrid">
+                {(showAllMonths ? months : months.slice(0, 6)) // Show first 6 months by default
+                  .map((month, idx) => {
+                    const days = buildCalendar(idx);
+                    const monthTrades = sharedData.trades.filter((t) => {
+                      const d = new Date(t.openTime);
+                      return (
+                        d.getMonth() === idx && d.getFullYear() === selectedYear
+                      );
+                    });
+
+                    const monthMaxProfit = Math.max(
+                      ...monthTrades.map((t) => t.pnl).filter((p) => p > 0),
+                      0
+                    );
+                    const monthMaxLoss = Math.min(
+                      ...monthTrades.map((t) => t.pnl).filter((p) => p < 0),
+                      0
+                    );
+
+                    const monthPnl = monthTrades.reduce(
+                      (sum, t) => sum + (t.pnl || 0),
+                      0
+                    );
+
+                    return (
+                      <motion.div
+                        key={idx}
+                        className={`monthCell ${
+                          idx === new Date().getMonth() &&
+                          selectedYear === new Date().getFullYear()
+                            ? "currentMonth"
+                            : ""
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="monthHeader flexRow flexRow_stretch">
+                          <span className="monthName font_12 font_weight_600">
+                            {shortMonths[idx]}
+                          </span>
+                          {monthTrades.length > 0 && (
+                            <span
+                              className={`monthPnl font_10 ${
+                                monthPnl > 0
+                                  ? "success"
+                                  : monthPnl < 0
+                                  ? "error"
+                                  : "shade_50"
+                              }`}
+                            >
+                              {monthPnl > 0 ? "+" : ""}
+                              {formatNumber(monthPnl)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="monthWeekdays flexRow">
+                          {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
+                            <span
+                              key={day}
+                              className="weekdayInitial font_10 shade_50"
+                            >
+                              {day}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="monthDays">
+                          {days.map((d, i) => {
+                            if (!d)
+                              return <div key={i} className="emptyDay"></div>;
+
+                            const dateStr = `${selectedYear}-${String(
+                              idx + 1
+                            ).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+                            const dayTrades = tradesByDate[dateStr] || [];
+                            const hasTrades = dayTrades.length > 0;
+                            const dayPnl = dayTrades.reduce(
+                              (sum, t) => sum + (t.pnl || 0),
+                              0
+                            );
+
+                            let intensity = 0;
+                            let bgStyle = {};
+
+                            if (dayPnl > 0 && monthMaxProfit > 0) {
+                              intensity = Math.min(1, dayPnl / monthMaxProfit);
+                              bgStyle = {
+                                background: `rgba(34, 197, 94, ${
+                                  0.3 + intensity * 0.7
+                                })`,
+                              };
+                            } else if (dayPnl < 0 && monthMaxLoss < 0) {
+                              intensity = Math.min(
+                                1,
+                                Math.abs(dayPnl) / Math.abs(monthMaxLoss)
+                              );
+                              bgStyle = {
+                                background: `rgba(239, 68, 68, ${
+                                  0.3 + intensity * 0.7
+                                })`,
+                              };
+                            }
+
+                            return (
+                              <div
+                                key={i}
+                                className={`yearDay ${
+                                  hasTrades ? "hasTrades" : ""
+                                }`}
+                                onClick={() =>
+                                  handleDateClick(dateStr, dayTrades)
+                                }
+                                style={bgStyle}
+                              />
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+              </div>
+
+              {/* Show More/Less Button */}
+              <div className="flexRow flexRow_center margin_top_16">
+                <button
+                  className="button_ter font_12"
+                  onClick={() => setShowAllMonths(!showAllMonths)}
+                >
+                  {showAllMonths ? "Show Less" : "Show All Months"}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
+      {/* Rest of the component remains the same */}
       {/* Detailed Stats */}
       <div className="flexClm gap_24">
         <span className="font_18 font_weight_600">Performance Overview</span>
