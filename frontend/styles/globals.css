@@ -1504,9 +1504,6 @@ footer {
     border-radius: var(--px-16) var(--px-16) 0 0;
   }
 
-  .modalHeaderText {
-  }
-
   .modalHeaderTitle {
     font-size: 16px;
     font-weight: var(--weight-600);
@@ -3207,9 +3204,6 @@ footer {
 /* For stepper */
 
 @media (min-width: 0px) {
-  .stepper-scroll-wrapper {
-  }
-
   .stepWizard {
     position: relative;
   }

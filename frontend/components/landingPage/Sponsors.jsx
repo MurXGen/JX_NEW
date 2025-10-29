@@ -7,6 +7,7 @@ import {
   FcStatistics,
 } from "react-icons/fc";
 import { motion } from "framer-motion";
+import "../styles/landing.css";
 
 const SponsorsSection = () => {
   const markets = [
