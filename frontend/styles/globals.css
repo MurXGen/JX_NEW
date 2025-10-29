@@ -42,6 +42,7 @@
   --px-24: 24px;
   --px-32: 32px;
   --px-46: 46px;
+  --px-52: 52px;
 
   --weight-400: 400;
   --weight-500: 500;
@@ -50,7 +51,10 @@
   --weight-800: 800;
   --weight-900: 900;
 
+  --bodyWidth: 850px;
+
   --border-stroke: var(--primary);
+  --bodyPadding: 32px 16px;
 }
 
 /* Light theme overrides */
@@ -94,9 +98,9 @@ body {
   font-family: var(--ff-Pop);
   background: var(--base-bg);
   color: var(--base-text);
-  padding: var(--margin-32x16);
+  padding: var(--bodyPadding);
   min-width: 300px;
-  max-width: 850px;
+  max-width: var(--bodyWidth);
   margin: auto;
 }
 
@@ -202,6 +206,10 @@ body {
 
 .font_24 {
   font-size: var(--px-24);
+}
+
+.font_52 {
+  font-size: var(--px-52);
 }
 
 .font_weight_400 {
@@ -2844,6 +2852,7 @@ footer {
     --px-24: 20px;
     --px-32: 28px;
     --px-46: 38px;
+    --px-52: 38px;
 
     --base-bg: #1d1d1d;
     --base-text: #ffffff;

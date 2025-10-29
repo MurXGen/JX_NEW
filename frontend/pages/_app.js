@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+
 import Head from "next/head";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -6,17 +7,17 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function MyApp({ Component, pageProps }) {
   // Prevent desktop keyboard zoom (Ctrl + / Ctrl - / Ctrl =)
-  useEffect(() => {
-    const preventZoom = (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "+" || e.key === "-" || e.key === "=") {
-          e.preventDefault();
-        }
-      }
-    };
-    window.addEventListener("keydown", preventZoom);
-    return () => window.removeEventListener("keydown", preventZoom);
-  }, []);
+  // useEffect(() => {
+  //   const preventZoom = (e) => {
+  //     if (e.ctrlKey || e.metaKey) {
+  //       if (e.key === "+" || e.key === "-" || e.key === "=") {
+  //         e.preventDefault();
+  //       }
+  //     }
+  //   };
+  //   window.addEventListener("keydown", preventZoom);
+  //   return () => window.removeEventListener("keydown", preventZoom);
+  // }, []);
 
   return (
     <>
