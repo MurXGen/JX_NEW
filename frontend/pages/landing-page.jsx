@@ -4,6 +4,7 @@ import Navbar from "@/components/landingPage/Navbar";
 import Head from "next/head";
 import HeroSection from "@/components/landingPage/Hero";
 import SponsorsSection from "@/components/landingPage/Sponsors";
+import WhyJournalSection from "@/components/landingPage/WhyJournal";
 
 export default function Home() {
   useEffect(() => {
@@ -28,10 +29,11 @@ export default function Home() {
         />
       </Head>
 
-      <div className="landing-body">
+      <div className="">
         <Navbar />
         <HeroSection />
         <SponsorsSection />
+        <WhyJournalSection />
         {/* Add your landing sections here later */}
       </div>
     </>

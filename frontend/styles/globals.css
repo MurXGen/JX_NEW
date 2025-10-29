@@ -228,6 +228,10 @@ body {
   padding: var(--px-16);
 }
 
+.pad_32 {
+  padding: var(--px-32);
+}
+
 .marg_0 {
   margin: 0;
 }
@@ -243,6 +247,16 @@ body {
 .shade_50 {
   color: var(--base-text);
   opacity: 0.5;
+}
+
+.mrgin_tp_100 {
+  margin-top: 100px;
+}
+
+.section_grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
 }
 
 .chart_boxBg {
@@ -2885,6 +2899,11 @@ footer {
     --padding-8x8: 8px 8px;
   }
 
+  .section_grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
   .font_8 {
     font-size: var(--px-8);
     color: var(--white-80);
@@ -5372,7 +5391,7 @@ footer {
 .heroImageSec::before {
   content: "";
   position: absolute;
-  top: 70px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   width: 60%;
@@ -5384,7 +5403,7 @@ footer {
     var(--primary) 70%,
     transparent 100%
   );
-  filter: blur(60px);
+  filter: blur(100px);
   opacity: 0.8;
   pointer-events: none;
   z-index: -2;
@@ -5432,28 +5451,69 @@ footer {
    ✨ Sponsor
 ==================================*/
 
-.sponsor_container {
-  margin-top: 100px;
-}
-
 .sponsor_marquee_container {
   width: 100%;
   overflow: hidden;
   position: relative;
+  white-space: nowrap;
 }
 
 .sponsor_marquee {
   display: flex;
-  gap: 48px;
-  white-space: nowrap;
+  flex-direction: row;
+}
+
+.sponsor_marquee_content {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem; /* spacing between icons */
 }
 
 .sponsor_item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  color: var(--base-text);
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.sponsor_item span {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* HEader middle glow */
+
+.header-section {
+  position: relative;
+}
+
+.header-section.center {
+  text-align: center;
+}
+
+.header-section .content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Glowing white light behind header */
+.glow-light {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 200px;
+  height: 100px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.6),
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  filter: blur(80px);
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* ===============================
@@ -5493,6 +5553,10 @@ footer {
    📱 Responsive Design
 ==================================*/
 @media (max-width: 768px) {
+  .landingBody {
+    margin: 24px 16px;
+  }
+
   .hero {
     margin-top: 150px;
     text-align: center;
@@ -5513,11 +5577,11 @@ footer {
   }
 
   .heroImageSec::before {
-    top: 70px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     width: 60%;
-    height: 40px;
+    height: 120px;
   }
 
   .navbar_links {
