@@ -14,11 +14,12 @@ export default function Navbar() {
       <section className="flexRow flex_center">
         <Link href="/">
           <Image
-            src="https://cdn.journalx.app/trades/open-images/1761675859363-Journalx_logo.svg"
+            src="/assets/journalx_navbar.svg"
             alt="JournalX Logo"
             width={120}
             height={40}
             className="navbar_logo"
+            priority
           />
         </Link>
       </section>
@@ -37,7 +38,7 @@ export default function Navbar() {
         <Link href="/features" className="navbar_link">
           Features
         </Link>
-        <button className="button_pri flexRow gap_4 flex_center ">
+        <button className="button_pri flexRow gap_4 flex_center">
           Start Free
           <ArrowRight size={14} />
         </button>

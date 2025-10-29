@@ -5,14 +5,17 @@ import React from "react";
 const HeroSection = () => {
   return (
     <section className="hero flexClm flex_center">
+      {/* Background Image */}
       <Image
-        src="https://cdn.journalx.app/trades/open-images/1761715550330-tempImage0MZ9zp_1.svg"
-        alt="Trading analytics dashboard"
+        src="/assets/hero_bg.svg"
+        alt="Trading analytics dashboard background"
         width={1200}
         height={1000}
         className="heroBg"
         priority
       />
+
+      {/* Hero Text */}
       <div className="flexClm gap_12 flex_center">
         <div
           className="flexClm gap_12 flex_center heroContent"
@@ -28,17 +31,19 @@ const HeroSection = () => {
             emotions.
           </p>
         </div>
+
         <button className="button_pri" style={{ maxWidth: "fit-content" }}>
           Start Journaling
         </button>
       </div>
 
+      {/* Hero Image Section */}
       <div className="heroImageSec">
         <div className="shootingLine">
           <div className="shootingGlow"></div>
         </div>
         <Image
-          src="https://cdn.journalx.app/trades/open-images/1761732725193-Hero_section-2.svg"
+          src="/assets/hero_image.svg"
           alt="Trading analytics dashboard"
           width={1200}
           height={600}

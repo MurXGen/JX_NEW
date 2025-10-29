@@ -18,11 +18,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    document.body.classList.add("landing-page");
-    return () => document.body.classList.remove("landing-page");
-  }, []);
-
   return (
     <>
       <Head>
@@ -33,7 +28,7 @@ export default function Home() {
         />
       </Head>
 
-      <div className="landingPage">
+      <div className="landing-body">
         <Navbar />
         <HeroSection />
         <SponsorsSection />
