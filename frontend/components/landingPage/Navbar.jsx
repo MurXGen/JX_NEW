@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import "../../styles/landing.css";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = React.useState(false);

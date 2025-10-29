@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import Navbar from "@/components/landingPage/Navbar";
 import Head from "next/head";
-import "../styles/landing.css";
+import styles from "../styles/landing.module.css";
 import HeroSection from "@/components/landingPage/Hero";
 import SponsorsSection from "@/components/landingPage/Sponsors";
 
