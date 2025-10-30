@@ -5401,8 +5401,8 @@ footer {
   transition: all 0.3s ease;
   box-shadow: 0 0 16px var(--primary-50), 0 0 40px var(--primary-50);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
   margin-top: 8px;
+  font-weight: 600;
 }
 
 .cta_button:hover {
@@ -5508,42 +5508,129 @@ footer {
   padding-right: 0 !important;
 }
 
+/* CTA BOTTOM */
+
 /* ===============================
    ✨ Sponsor
 ==================================*/
 
-.sponsor_marquee_container {
+.marquee_wrapper {
+  position: relative;
   width: 100%;
   overflow: hidden;
-  position: relative;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+
+.marquee_track {
+  display: flex;
+  width: max-content;
   white-space: nowrap;
 }
 
-.sponsor_marquee_track {
-  display: flex;
-  flex-direction: row;
-  width: fit-content;
-}
-
-.sponsor_marquee_content {
-  display: flex;
-  flex-direction: row;
-  gap: 4rem;
-  padding-right: 4rem;
-}
-
-.sponsor_item {
+.marquee_content {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  white-space: nowrap;
-  user-select: none;
+  gap: 48px;
+  padding: 0 40px;
 }
 
-.sponsor_item span {
-  color: var(--text);
+.marquee_item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  color: var(--white-80);
+  font-family: var(--ff-Pop);
+  font-size: 18px;
   font-weight: 500;
+}
+
+.icon_wrapper {
+  color: var(--primary);
+}
+
+/* Reviews section */
+
+.reviews_section {
+  max-width: 1000px;
+  margin: auto;
+  text-align: center;
+}
+
+.reviews_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+.review_card {
+  background: var(--white-4);
+  border: 1px solid var(--white-10);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  box-shadow: 0 0 20px var(--primary-10);
+  transition: all 0.4s ease;
+}
+
+.review_card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 40px var(--primary-20);
+}
+
+.review_icon {
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.review_text {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  color: var(--white-80);
+}
+
+.review_meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.review_meta strong {
+  display: block;
+  color: var(--base-text);
+  font-weight: 600;
+}
+
+.review_meta span {
+  display: block;
+  font-size: 13px;
+}
+
+.review_stars {
+  display: flex;
+  gap: 2px;
+}
+
+.center_txt {
+  text-align: center;
+  max-width: 500px;
 }
 
 /* HEader middle glow */
@@ -5577,6 +5664,101 @@ footer {
   filter: blur(80px);
   z-index: -1;
   pointer-events: none;
+}
+
+/* Footer  */
+
+.footer_container {
+  background: var(--base);
+  color: var(--white-80);
+  border-top: 1px solid var(--white-10);
+  position: relative;
+}
+
+.footer_container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: radial-gradient(circle, var(--primary) 0%, transparent 80%);
+  opacity: 0.4;
+}
+
+.footer_brand p {
+  font-size: var(--px-14);
+  margin-top: var(--px-12);
+  color: var(--white-70);
+  line-height: 1.6;
+}
+
+.footer_links h4,
+.footer_contact h4 {
+  font-size: var(--px-16);
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 10px;
+}
+
+.footer_links ul,
+.footer_contact ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer_links li,
+.footer_contact li {
+  margin-bottom: 8px;
+}
+
+.footer_links a,
+.footer_contact a {
+  font-size: var(--px-14);
+  color: var(--white-70);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer_links a:hover,
+.footer_contact a:hover {
+  color: var(--primary);
+}
+
+.footer_link_hover {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--white-70);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.footer_link_hover .arrow_icon {
+  transform: translateY(4px);
+  opacity: 0;
+  transition: all 0.3s ease;
+  color: var(--primary);
+}
+
+.footer_link_hover:hover {
+  color: var(--primary);
+}
+
+.footer_link_hover:hover .arrow_icon {
+  transform: translateY(-1px);
+  opacity: 1;
+}
+
+.footer_bottom {
+  text-align: center;
+  font-size: var(--px-12);
+  color: var(--white-60);
+  border-top: 1px solid var(--white-10);
+  padding-top: 16px;
 }
 
 /* Choose journalx */
@@ -5618,13 +5800,13 @@ footer {
   .choose_container,
   .choose_container.reverse {
     flex-direction: column;
-    text-align: center;
     gap: var(--px-4);
     padding: 16px;
     border-radius: var(--px-12);
     width: 100%;
     box-sizing: border-box;
     border: 0.2px solid rgb(31, 31, 31);
+    align-items: baseline;
   }
 
   .choose_text {

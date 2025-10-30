@@ -66,51 +66,100 @@ export default function Faqs() {
   };
 
   return (
-    <section className="flexClm gap_32">
+    <section className="flexClm gap_32 landingBody">
       <HeaderSection
-        title="Faqs"
-        subtitle="Checkout Faqs to understand using Journalx"
+        title="FAQs"
+        subtitle="Get answers to common questions about JournalX"
       />
 
       <div
-        className="flexClm gap_4 width100 chart_boxBg"
-        style={{ minWidth: "300px", maxWidth: "600px", margin: "auto" }}
+        className="flexClm width100 chart_boxBg"
+        style={{
+          minWidth: "300px",
+          maxWidth: "720px",
+          margin: "auto",
+        }}
       >
-        {faqs.map((faq, index) => (
-          <div key={index} className="flexClm gap_12 ">
-            <button
-              onClick={() => toggleFAQ(index)}
-              className=" flexRow flexRow_stretch width100 pad_16"
+        {faqs.map((faq, index) => {
+          const isActive = activeIndex === index;
+
+          return (
+            <motion.div
+              key={index}
+              initial={false}
+              animate={{
+                backgroundColor: isActive
+                  ? "rgba(167,125,2,0.08)"
+                  : "rgba(255,255,255,0.03)",
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="faq_item"
               style={{
-                color: "white",
-                border: "none",
-                background: "var(--white-4)",
+                borderBottom: "1px solid var(--white-10)",
               }}
             >
-              <h3 className="font_16 font_weight_500">{faq.question}</h3>
-              {activeIndex === index ? (
-                <Minus className="" size={20} />
-              ) : (
-                <Plus className="" size={20} />
-              )}
-            </button>
-
-            <AnimatePresence initial={false}>
-              {activeIndex === index && (
-                <motion.div
-                  key="content"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: "easeInOut" }}
-                  className="pad_16"
+              {/* Question Button */}
+              <motion.button
+                onClick={() => toggleFAQ(index)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 250, damping: 18 }}
+                className="flexRow flexRow_stretch width100 pad_16"
+                style={{
+                  color: "white",
+                  border: "none",
+                  background: "transparent",
+                  fontFamily: "var(--ff-Pop)",
+                  cursor: "pointer",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <motion.h3
+                  className="font_16 font_weight_500"
+                  style={{ textAlign: "left" }}
+                  animate={{
+                    color: isActive ? "var(--primary-light)" : "white",
+                  }}
+                  transition={{ duration: 0.25 }}
                 >
-                  <span className="font_14">{faq.answer}</span>
+                  {faq.question}
+                </motion.h3>
+                <motion.div
+                  animate={{ rotate: isActive ? 180 : 0 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  {isActive ? (
+                    <Minus size={20} strokeWidth={2} />
+                  ) : (
+                    <Plus size={20} strokeWidth={2} />
+                  )}
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ))}
+              </motion.button>
+
+              {/* Animated Answer */}
+              <AnimatePresence initial={false}>
+                {isActive && (
+                  <motion.div
+                    key="content"
+                    initial={{ height: 0, opacity: 0, y: -5 }}
+                    animate={{ height: "auto", opacity: 1, y: 0 }}
+                    exit={{ height: 0, opacity: 0, y: -5 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    className="pad_16"
+                    style={{
+                      color: "var(--white-80)",
+                      fontSize: "14px",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    {faq.answer}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

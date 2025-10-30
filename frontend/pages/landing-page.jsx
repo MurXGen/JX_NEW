@@ -7,6 +7,10 @@ import SponsorsSection from "@/components/landingPage/Sponsors";
 import WhyJournalSection from "@/components/landingPage/WhyJournal";
 import ChooseJournalX from "@/components/landingPage/ChooseJournalx";
 import Faqs from "@/components/landingPage/Faqs";
+import ReviewsSection from "@/components/landingPage/Reviews";
+import BottomCTA from "@/components/landingPage/BottomCTA";
+import Footer from "@/components/landingPage/Footer";
+import FeatureSection from "@/components/landingPage/Features";
 
 export default function Home() {
   useEffect(() => {
@@ -37,7 +41,11 @@ export default function Home() {
         <SponsorsSection />
         <WhyJournalSection />
         <ChooseJournalX />
+        <FeatureSection />
+        <ReviewsSection />
         <Faqs />
+        <BottomCTA />
+        <Footer />
         {/* Add your landing sections here later */}
       </div>
     </>

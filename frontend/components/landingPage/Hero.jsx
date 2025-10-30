@@ -1,5 +1,5 @@
 "use client";
-import { Star } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
@@ -18,40 +18,45 @@ const HeroSection = () => {
 
       {/* Hero Text */}
       <div
-        className="flexClm gap_16 flex_center heroContent"
+        className="flexClm gap_46 flex_center heroContent"
         style={{ minWidth: "400px", maxWidth: "600px" }}
       >
-        <h1
-          className="marg_0 font_52"
-          style={{
-            lineHeight: "52px",
-            textAlign: "center",
-          }}
-        >
-          Journal trades like
-          <br />
-          <strong
-            className="vector"
+        <div className="flexClm gap_4">
+          <h1
+            className="marg_0 font_52"
             style={{
-              color: "var(--primary-light)",
-              textShadow: "0px 0px 16px var(--primary)",
+              lineHeight: "52px",
+              textAlign: "center",
             }}
           >
-            never before
-          </strong>
-        </h1>
+            Journal trades like
+            <br />
+            <strong
+              className="vector"
+              style={{
+                color: "var(--primary-light)",
+                textShadow: "0px 0px 16px var(--primary)",
+              }}
+            >
+              never before
+            </strong>
+          </h1>
 
-        <p
-          className="marg_0 font_16 shade_50"
-          style={{
-            width: "340px",
-            textAlign: "center",
-          }}
-        >
-          Track your trades, analyze your performance, and master your emotions.
-        </p>
+          <p
+            className="marg_0 font_16 shade_50"
+            style={{
+              width: "340px",
+              textAlign: "center",
+            }}
+          >
+            Track your trades, analyze your performance, and master your
+            emotions.
+          </p>
+        </div>
 
-        <button className="cta_button">Start Journaling</button>
+        <button className="cta_button flexRow gap_4">
+          Start Journaling <ArrowRight size={20} />
+        </button>
 
         {/* Trust Indicator */}
         <div className="flexRow flex_center gap_8 trust_badge">

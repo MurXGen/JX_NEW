@@ -1,23 +1,24 @@
 "use client";
+import React from "react";
 import {
-  FcCurrencyExchange,
-  FcBullish,
-  FcTimeline,
-  FcComboChart,
-  FcParallelTasks,
-  FcStatistics,
-} from "react-icons/fc";
+  Bitcoin,
+  LineChart,
+  CandlestickChart,
+  BarChart3,
+  Layers,
+  Coins,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import HeaderSection from "./HeaderSection";
 
 const SponsorsSection = () => {
   const markets = [
-    { icon: <FcCurrencyExchange size={40} />, text: "Crypto" },
-    { icon: <FcBullish size={40} />, text: "Forex" },
-    { icon: <FcTimeline size={40} />, text: "Metals" },
-    { icon: <FcComboChart size={40} />, text: "Stocks" },
-    { icon: <FcParallelTasks size={40} />, text: "Futures" },
-    { icon: <FcStatistics size={40} />, text: "Options" },
+    { icon: <Bitcoin size={32} strokeWidth={1.8} />, text: "Crypto" },
+    { icon: <CandlestickChart size={32} strokeWidth={1.8} />, text: "Forex" },
+    { icon: <Coins size={32} strokeWidth={1.8} />, text: "Metals" },
+    { icon: <LineChart size={32} strokeWidth={1.8} />, text: "Stocks" },
+    { icon: <Layers size={32} strokeWidth={1.8} />, text: "Futures" },
+    { icon: <BarChart3 size={32} strokeWidth={1.8} />, text: "Options" },
   ];
 
   return (
@@ -27,26 +28,32 @@ const SponsorsSection = () => {
         subtitle="Track different market trades with JournalX"
       />
 
-      <div className="sponsor_marquee_container">
-        {/* TWO TRACKS for seamless loop */}
+      <div className="marquee_wrapper">
         <motion.div
-          className="sponsor_marquee_track"
-          animate={{ x: ["0%", "-100%"] }}
+          className="marquee_track"
+          animate={{ x: ["0%", "-50%"] }} // move half (since we duplicate)
           transition={{
             ease: "linear",
-            duration: 20, // one full cycle = 8s
+            duration: 30, // adjust for speed
             repeat: Infinity,
           }}
         >
+          {/* Duplicate list twice for continuous loop */}
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="sponsor_marquee_content">
+            <div key={i} className="marquee_content">
               {markets.map((item, index) => (
                 <div
-                  key={index}
-                  className="sponsor_item flexRow gap_8 flex_center"
+                  key={`${item.text}-${index}-${i}`}
+                  className="marquee_item"
                 >
-                  {item.icon}
-                  <span className="font_18">{item.text}</span>
+                  <motion.div
+                    whileHover={{ scale: 1.2 }}
+                    transition={{ duration: 0.3 }}
+                    className="icon_wrapper"
+                  >
+                    {item.icon}
+                  </motion.div>
+                  <span>{item.text}</span>
                 </div>
               ))}
             </div>

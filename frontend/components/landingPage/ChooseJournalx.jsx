@@ -6,28 +6,28 @@ import HeaderSection from "./HeaderSection";
 
 const features = [
   {
-    title: "Free to use",
+    title: "Free to Use — No Barriers",
     description:
-      "Start journaling instantly — no hidden fees, no paywalls. JournalX empowers every trader to track, learn, and grow with low cost barriers.",
+      "Get started instantly and experience the power of trading insights without spending a dime. Build habits that improve your results from day one.",
     image: "/assets/free_use.svg",
   },
   {
-    title: "Unlimited logs, seamless flow",
+    title: "Unlimited Logs, Effortless Flow",
     description:
-      "Log every trade effortlessly. JournalX’s smooth, intuitive design keeps your focus on performance, not paperwork — unlimited trades, unlimited learning.",
+      "Journal every trade in seconds — no limits, no clutter. Stay consistent, stay in control, and let JournalX do the heavy lifting.",
     image: "/assets/easy_smooth.svg",
   },
   {
-    title: "Advanced chart analytics",
+    title: "Advanced Chart Analytics",
     description:
-      "Turn data into decisions. Get intelligent visual insights, win-rate tracking, and strategy patterns — all designed to elevate your trading confidence.",
+      "Transform your trade history into winning insights. Visualize performance trends, emotions, and strategies that drive consistent profitability.",
     image: "/assets/advanced_charts.svg",
   },
 ];
 
 const ChooseJournalX = () => {
   return (
-    <section className="flexClm gap_32">
+    <section className="flexClm gap_32 landingBody">
       <HeaderSection
         title="Why Choose JournalX?"
         subtitle="Powerful, Intuitive, and Made for Every Trader"
@@ -54,13 +54,14 @@ const ChooseJournalX = () => {
               className={`choose_container ${isEven ? "reverse" : ""} flexRow`}
               initial="hidden"
               whileInView="visible"
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 1.4, ease: [0.25, 0.1, 0.25, 1] }} // smoother, slower easing
               viewport={{ once: true, amount: 0.3 }}
             >
               {/* Text Section */}
               <motion.div
                 className="choose_text flexClm gap_12"
                 variants={textVariant}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
               >
                 <h3 className="font_24 marg_0">{item.title}</h3>
                 <p className="font_14 shade_50 marg_0">{item.description}</p>
@@ -69,20 +70,25 @@ const ChooseJournalX = () => {
               <motion.div
                 className="choose_text_mobile flexClm gap_12"
                 variants={textVariant}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
               >
-                <span className="font_16 marg_0">
+                <span className="marg_0 flexClm">
                   <strong
-                    className="font_16 marg_0"
+                    className="font_20 marg_0"
                     style={{ paddingRight: "4px" }}
                   >
                     {item.title}
                   </strong>
-                  <span className="shade_50">{item.description}</span>
+                  <span className="font_14 shade_50">{item.description}</span>
                 </span>
               </motion.div>
 
               {/* Image Section */}
-              <motion.div className="choose_image" variants={imageVariant}>
+              <motion.div
+                className="choose_image"
+                variants={imageVariant}
+                transition={{ duration: 1.3, ease: "easeInOut" }}
+              >
                 <Image
                   src={item.image}
                   alt={item.title}
