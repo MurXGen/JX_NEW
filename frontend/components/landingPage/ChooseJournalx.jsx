@@ -63,7 +63,22 @@ const ChooseJournalX = () => {
                 variants={textVariant}
               >
                 <h3 className="font_24 marg_0">{item.title}</h3>
-                <p className="font_16 shade_50 marg_0">{item.description}</p>
+                <p className="font_14 shade_50 marg_0">{item.description}</p>
+              </motion.div>
+
+              <motion.div
+                className="choose_text_mobile flexClm gap_12"
+                variants={textVariant}
+              >
+                <span className="font_14 marg_0">
+                  <strong
+                    className="font_14 marg_0"
+                    style={{ paddingRight: "4px" }}
+                  >
+                    {item.title}
+                  </strong>
+                  <span className="shade_50">{item.description}</span>
+                </span>
               </motion.div>
 
               {/* Image Section */}

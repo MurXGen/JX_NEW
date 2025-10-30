@@ -5546,6 +5546,10 @@ footer {
   max-width: 480px;
 }
 
+.choose_text_mobile {
+  display: none;
+}
+
 /* .choose_image {
   flex: 1;
 } */
@@ -5563,11 +5567,21 @@ footer {
   .choose_container.reverse {
     flex-direction: column;
     text-align: center;
-    gap: 32px;
+    gap: var(--px-4);
+    padding: 16px;
+    border-radius: var(--px-12);
+    width: 100%;
+    box-sizing: border-box;
+    border: 0.2px solid rgb(31, 31, 31);
   }
 
   .choose_text {
-    max-width: 100%;
+    display: none;
+  }
+
+  .choose_text_mobile {
+    display: block;
+    text-align: left;
   }
 
   .choose_image {

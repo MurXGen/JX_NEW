@@ -7,19 +7,23 @@ import HeaderSection from "./HeaderSection";
 const reasons = [
   {
     title: "Pass Funding Accounts",
-    description: "Your performance decides your profitability",
+    description:
+      "Master your trades, impress funders, and unlock limitless capital growth.",
   },
   {
     title: "Grow Personal Account",
-    description: "Your performance decides your profitability",
+    description:
+      "Turn consistent analysis into compounding profits and real financial freedom.",
   },
   {
     title: "No Main Emotion Damage",
-    description: "Your performance decides your profitability",
+    description:
+      "Trade calmly, think clearly, and protect your edge from emotions.",
   },
   {
     title: "Build Powerful Strategies",
-    description: "Your performance decides your profitability",
+    description:
+      "Design data-driven trading systems that adapt, scale, and win consistently.",
   },
 ];
 
