@@ -1,28 +1,23 @@
+"use client";
 import "@/styles/globals.css";
-
 import Head from "next/head";
-import { useEffect } from "react";
-import { useState } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { useEffect } from "react";
 
 export default function MyApp({ Component, pageProps }) {
-  // Prevent desktop keyboard zoom (Ctrl + / Ctrl - / Ctrl =)
-  // useEffect(() => {
-  //   const preventZoom = (e) => {
-  //     if (e.ctrlKey || e.metaKey) {
-  //       if (e.key === "+" || e.key === "-" || e.key === "=") {
-  //         e.preventDefault();
-  //       }
-  //     }
-  //   };
-  //   window.addEventListener("keydown", preventZoom);
-  //   return () => window.removeEventListener("keydown", preventZoom);
-  // }, []);
+  useEffect(() => {
+    // Preload global styles if supported
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(() => {
+        import("@/styles/globals.css");
+      });
+    }
+  }, []);
 
   return (
     <>
       <Head>
-        {/* Primary Meta */}
+        {/* ===== Primary SEO Meta ===== */}
         <title>JournalX | Smart Trading Journal & AI Performance Tracker</title>
         <meta
           name="description"
@@ -32,8 +27,6 @@ export default function MyApp({ Component, pageProps }) {
           name="keywords"
           content="trading journal, trade analytics, AI trading journal, performance tracker, stock trading log, crypto trading journal, forex journal, trade analysis, trading performance app, journalx, trading tracker, best trading journal app, trading notebook, trader diary"
         />
-        <meta name="google-adsense-account" content="ca-pub-9495953709882107" />
-
         <meta name="author" content="Murthy Poothapandi Thevar" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#0d1117" />
@@ -42,25 +35,34 @@ export default function MyApp({ Component, pageProps }) {
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
         />
 
-        {/* Favicon */}
+        {/* ===== Favicon ===== */}
         <link rel="icon" href="/assets/JournalX_Favicon.png" />
+        <link rel="manifest" href="/manifest.json" />
 
-        {/* Fonts */}
+        {/* ===== Preload critical CSS ===== */}
+        <link rel="preload" href="/_next/static/css/globals.css" as="style" />
+        <link rel="stylesheet" href="/_next/static/css/globals.css" />
+
+        {/* ===== Font Optimization ===== */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+
+        {/* Preload critical font weights */}
+        <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+          as="style"
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Poppins:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&family=Comfortaa:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
 
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1d1d1d" />
-
-        {/* Open Graph / Facebook */}
+        {/* ===== Social Meta Tags ===== */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://journalx.app" />
         <meta
@@ -73,7 +75,6 @@ export default function MyApp({ Component, pageProps }) {
         />
         <meta property="og:image" content="/assets/JournalX_Banner.png" />
 
-        {/* Twitter Meta */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content="https://journalx.app" />
         <meta
@@ -86,7 +87,10 @@ export default function MyApp({ Component, pageProps }) {
         />
         <meta name="twitter:image" content="/assets/JournalX_Banner.png" />
 
-        {/* Theme initialization */}
+        {/* ===== Google AdSense ===== */}
+        <meta name="google-adsense-account" content="ca-pub-9495953709882107" />
+
+        {/* ===== Early Theme Load (No Flash) ===== */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function () {
@@ -97,7 +101,9 @@ export default function MyApp({ Component, pageProps }) {
         />
       </Head>
 
+      {/* ===== Main App ===== */}
       <Component {...pageProps} />
+      <SpeedInsights />
     </>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { Star } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
@@ -16,25 +17,57 @@ const HeroSection = () => {
       />
 
       {/* Hero Text */}
-      <div className="flexClm gap_12 flex_center">
-        <div
-          className="flexClm gap_12 flex_center heroContent"
-          style={{ minWidth: "400px", maxWidth: "600px" }}
+      <div
+        className="flexClm gap_16 flex_center heroContent"
+        style={{ minWidth: "400px", maxWidth: "600px" }}
+      >
+        <h1
+          className="marg_0 font_52"
+          style={{
+            lineHeight: "52px",
+            textAlign: "center",
+          }}
         >
-          <h1 className="marg_0 font_52" style={{ lineHeight: "52px" }}>
-            Journal trades like
-            <br />
-            <strong className="vector">never before</strong>
-          </h1>
-          <p className="marg_0 font_14 shade_50" style={{ width: "300px" }}>
-            Track your trades, analyze your performance, and master your
-            emotions.
-          </p>
-        </div>
+          Journal trades like
+          <br />
+          <strong
+            className="vector"
+            style={{
+              color: "var(--primary-light)",
+              textShadow: "0px 0px 16px var(--primary)",
+            }}
+          >
+            never before
+          </strong>
+        </h1>
 
-        <button className="button_pri" style={{ maxWidth: "fit-content" }}>
-          Start Journaling
-        </button>
+        <p
+          className="marg_0 font_16 shade_50"
+          style={{
+            width: "340px",
+            textAlign: "center",
+          }}
+        >
+          Track your trades, analyze your performance, and master your emotions.
+        </p>
+
+        <button className="cta_button">Start Journaling</button>
+
+        {/* Trust Indicator */}
+        <div className="flexRow flex_center gap_8 trust_badge">
+          <Star
+            size={16}
+            strokeWidth={2}
+            className="trust_star"
+            style={{
+              color: "var(--primary-light)",
+              filter: "drop-shadow(0 0 6px var(--primary-light))",
+            }}
+          />
+          <span className="font_12 shade_50">
+            Trusted and journaled by traders across markets
+          </span>
+        </div>
       </div>
 
       {/* Hero Image Section */}
