@@ -64,14 +64,14 @@ const WhyJournalSection = () => {
               transition={{ duration: 0.8, delay: index * 0.8 }}
               viewport={{ once: true }}
             >
-              <Check size={14} />
+              <Check size={14} className="successBg" />
             </motion.div>
 
             <div>
               <h3 className="font_16 marg_0">
                 {highlightLastTwoWords(reason.title)}
               </h3>
-              <p className="font_16 shade_50 marg_0">{reason.description}</p>
+              <p className="font_14 shade_50 marg_0">{reason.description}</p>
             </div>
           </motion.div>
         ))}

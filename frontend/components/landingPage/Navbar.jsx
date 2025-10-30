@@ -53,11 +53,11 @@ export default function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <motion.nav
-            className="navbar_mobile_menu flexClm gap_8 font_16"
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.3 }}
+            className="navbar_mobile_menu flexClm gap_16 font_16"
+            initial={{ y: "-100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "-100%", opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
           >
             {["Dashboard", "Pricing", "About Us", "Features"].map((item) => (
               <Link
@@ -69,6 +69,7 @@ export default function Navbar() {
                 {item}
               </Link>
             ))}
+
             <button
               className="button_pri flexRow gap_4 flex_center"
               onClick={() => setMenuOpen(false)}

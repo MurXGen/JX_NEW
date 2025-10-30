@@ -20,9 +20,6 @@ const SponsorsSection = () => {
     { icon: <FcStatistics size={40} />, text: "Options" },
   ];
 
-  // Duplicate for continuous flow
-  const loopMarkets = [...markets, ...markets];
-
   return (
     <section className="mrgin_tp_100 landingBody flex_center flexClm gap_32">
       <HeaderSection
@@ -31,26 +28,29 @@ const SponsorsSection = () => {
       />
 
       <div className="sponsor_marquee_container">
+        {/* TWO TRACKS for seamless loop */}
         <motion.div
-          className="sponsor_marquee"
-          animate={{ x: ["-50%", "0%"] }}
+          className="sponsor_marquee_track"
+          animate={{ x: ["0%", "-100%"] }}
           transition={{
             ease: "linear",
-            duration: 5, // completes one round in 5 seconds
+            duration: 20, // one full cycle = 8s
             repeat: Infinity,
           }}
         >
-          <div className="sponsor_marquee_content">
-            {loopMarkets.map((item, index) => (
-              <div
-                key={index}
-                className="sponsor_item flexRow gap_8 flex_center"
-              >
-                {item.icon}
-                <span className="font_18">{item.text}</span>
-              </div>
-            ))}
-          </div>
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="sponsor_marquee_content">
+              {markets.map((item, index) => (
+                <div
+                  key={index}
+                  className="sponsor_item flexRow gap_8 flex_center"
+                >
+                  {item.icon}
+                  <span className="font_18">{item.text}</span>
+                </div>
+              ))}
+            </div>
+          ))}
         </motion.div>
       </div>
     </section>

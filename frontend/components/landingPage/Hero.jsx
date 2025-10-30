@@ -48,7 +48,15 @@ const HeroSection = () => {
           width={1200}
           height={600}
           className="heroImage"
-          style={{ borderTop: "1px solid var(--white-20)" }}
+          priority
+        />
+
+        <Image
+          src="/assets/hero_mob_image.svg"
+          alt="Trading analytics dashboard"
+          width={1200}
+          height={600}
+          className="heroImage_mobile"
           priority
         />
       </div>

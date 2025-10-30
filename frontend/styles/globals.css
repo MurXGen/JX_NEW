@@ -583,6 +583,10 @@ button:disabled {
   text-shadow: 0 0 46px var(--success);
 }
 
+.successBg {
+  box-shadow: 0 0 46px var(--success);
+}
+
 .error {
   color: var(--error);
   text-shadow: 0 0 46px var(--error);
@@ -5385,6 +5389,11 @@ footer {
   height: 100%;
   border-radius: var(--px-12);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--white-20);
+}
+
+.heroImage_mobile {
+  display: none;
 }
 
 /* Top Glow Behind Image */
@@ -5458,15 +5467,17 @@ footer {
   white-space: nowrap;
 }
 
-.sponsor_marquee {
+.sponsor_marquee_track {
   display: flex;
   flex-direction: row;
+  width: fit-content;
 }
 
 .sponsor_marquee_content {
   display: flex;
   flex-direction: row;
-  gap: 2rem; /* spacing between icons */
+  gap: 4rem;
+  padding-right: 4rem;
 }
 
 .sponsor_item {
@@ -5514,6 +5525,71 @@ footer {
   filter: blur(80px);
   z-index: -1;
   pointer-events: none;
+}
+
+/* Choose journalx */
+
+.choose_container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  width: 100%;
+}
+
+.choose_container.reverse {
+  flex-direction: row-reverse;
+}
+
+.choose_text {
+  flex: 1;
+  max-width: 480px;
+}
+
+/* .choose_image {
+  flex: 1;
+} */
+
+.choose_img {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Responsive for mobile */
+@media (max-width: 768px) {
+  .choose_container,
+  .choose_container.reverse {
+    flex-direction: column;
+    text-align: center;
+    gap: 32px;
+  }
+
+  .choose_text {
+    max-width: 100%;
+  }
+
+  .choose_image {
+    order: -1;
+  }
+
+  /* pop-in animation only for mobile */
+  .choose_text,
+  .choose_image {
+    animation: popIn 0.6s ease-out both;
+  }
+
+  @keyframes popIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 }
 
 /* ===============================
@@ -5565,6 +5641,23 @@ footer {
   .heroImageSec {
     position: relative;
     margin-top: 50px;
+  }
+
+  .heroImage {
+    display: none;
+  }
+
+  .shootingLine {
+    display: none;
+  }
+
+  .heroImage_mobile {
+    display: block;
+    width: 100%;
+    transform: scale(1.02);
+    height: 100%;
+    border-radius: var(--px-12);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   }
 
   .heroBg {

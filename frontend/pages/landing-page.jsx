@@ -5,6 +5,7 @@ import Head from "next/head";
 import HeroSection from "@/components/landingPage/Hero";
 import SponsorsSection from "@/components/landingPage/Sponsors";
 import WhyJournalSection from "@/components/landingPage/WhyJournal";
+import ChooseJournalX from "@/components/landingPage/ChooseJournalx";
 
 export default function Home() {
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function Home() {
         <HeroSection />
         <SponsorsSection />
         <WhyJournalSection />
+        <ChooseJournalX />
         {/* Add your landing sections here later */}
       </div>
     </>
