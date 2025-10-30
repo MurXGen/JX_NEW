@@ -70,9 +70,9 @@ const ChooseJournalX = () => {
                 className="choose_text_mobile flexClm gap_12"
                 variants={textVariant}
               >
-                <span className="font_14 marg_0">
+                <span className="font_16 marg_0">
                   <strong
-                    className="font_14 marg_0"
+                    className="font_16 marg_0"
                     style={{ paddingRight: "4px" }}
                   >
                     {item.title}
