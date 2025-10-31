@@ -52,6 +52,17 @@ function Pricing() {
   //   });
 
   useEffect(() => {
+    // Set landing page background
+    document.body.style.backgroundColor = "#020202";
+    document.body.style.color = "white";
+
+    return () => {
+      document.body.style.backgroundColor = "";
+      document.body.style.color = "";
+    };
+  }, []);
+
+  useEffect(() => {
     (async () => {
       const data = await fetchPlansFromIndexedDB();
       setPlans(data);
@@ -67,21 +78,50 @@ function Pricing() {
     })();
   }, []);
 
-  // Fetch plans from IndexedDB
+  // // Fetch plans from IndexedDB
+  // useEffect(() => {
+  //   // Load user data and set current plan
+  //   (async () => {
+  //     const userData = await getFromIndexedDB("user-data");
+  //     if (userData?.subscription?.planId) {
+  //       setCurrentPlanId(userData.subscription.planId);
+  //       // Optional: auto-select current plan in UI
+  //       setActivePlan(userData.subscription.planId);
+  //     } else if (plans.length >= 2) {
+  //       // fallback: select middle plan (usually Pro)
+  //       setActivePlan(plans[1].planId);
+  //     }
+  //   })();
+  // }, [plans]);
+
+  // ✅ Set predefined plans directly here instead of fetching from IndexedDB
   useEffect(() => {
-    // Load user data and set current plan
-    (async () => {
-      const userData = await getFromIndexedDB("user-data");
-      if (userData?.subscription?.planId) {
-        setCurrentPlanId(userData.subscription.planId);
-        // Optional: auto-select current plan in UI
-        setActivePlan(userData.subscription.planId);
-      } else if (plans.length >= 2) {
-        // fallback: select middle plan (usually Pro)
-        setActivePlan(plans[1].planId);
-      }
-    })();
-  }, [plans]);
+    const staticPlans = [
+      {
+        name: "Pro",
+        planId: "pro",
+        monthly: { inr: 149, usdt: 5 },
+        yearly: { inr: 999, usdt: 10 },
+      },
+      {
+        name: "Elite",
+        planId: "elite",
+        monthly: { inr: 499, usdt: 8 },
+        yearly: { inr: 3999, usdt: 50 },
+      },
+      {
+        name: "Master",
+        planId: "master",
+        monthly: { inr: 999, usdt: 15 },
+        yearly: { inr: 9999, usdt: 100 },
+      },
+    ];
+
+    setPlans(staticPlans);
+
+    // Set default plan selection
+    setActivePlan(staticPlans[1].planId); // defaults to "Elite"
+  }, []);
 
   // Icon mapping with premium styling
   const getPlanIcon = (planId) => {
@@ -306,16 +346,18 @@ function Pricing() {
   };
 
   return (
-    <div className="pricing-page flexClm gap_24">
+    <div className="pricing-page flexClm gap_32">
       {/* Header Section */}
 
-      <div className="flexRow gap_12">
-        <button className="button_sec flexRow" onClick={handleBackClick}>
+      <div className="flexClm gap_32">
+        {/* <button className="button_sec flexRow" onClick={handleBackClick}>
           <ArrowLeft size={20} />
-        </button>
-        <div className="flexClm">
-          <span className="font_20">Choose plan</span>
-          <span className="font_12">Pay with what suits you</span>
+        </button> */}
+        <div className="flexClm flex_center">
+          <span className="font_24 font_weight_600">Choose plan</span>
+          <span className="font_16 shade_50">
+            Increase your journaling limits
+          </span>
         </div>
       </div>
 
@@ -363,7 +405,7 @@ function Pricing() {
       </motion.div>
 
       {/* Plans Grid */}
-      <div className="flexClm gap_24">
+      <div className="gridContainer">
         <AnimatePresence>
           {plans.map((plan, index) => {
             const priceInfo = getPriceDisplay(plan, billingPeriod);
@@ -385,6 +427,7 @@ function Pricing() {
                 onHoverStart={() => setIsHovered(plan.planId)}
                 onHoverEnd={() => setIsHovered(null)}
                 onClick={() => setActivePlan(plan.planId)}
+                style={{ maxHeight: "fit-content" }}
               >
                 {/* Plan Header */}
                 <div className="flexRow flexRow_stretch width100">
@@ -444,7 +487,9 @@ function Pricing() {
 
                 {/* CTA Button */}
                 <motion.button
-                  className={`plan-cta ${isActive ? "active" : ""}`}
+                  className={`flexRow gap_4 flex_center ${
+                    isActive ? "button_pri" : "button_sec"
+                  }`}
                   disabled={isCurrent}
                   onClick={(e) => {
                     e.stopPropagation(); // prevent card click from firing
@@ -482,7 +527,7 @@ function Pricing() {
                         >
                           <div className="flexRow flexRow_stretch width100 font_12">
                             <strong>{feature.title}:</strong>
-                            <span>
+                            <span style={{ textAlign: "right" }}>
                               {feature.value !== "✅" && feature.value !== "❌"
                                 ? feature.value
                                 : ""}
@@ -519,11 +564,11 @@ function Pricing() {
           </div>
           <div className="trust-item">
             <Clock size={20} className="vector" />
-            <span className="font_12">Cancel Anytime</span>
+            <span className="font_12">Switch anytime</span>
           </div>
           <div className="trust-item">
             <Users size={20} className="vector" />
-            <span className="font_12">10,000+ Traders</span>
+            <span className="font_12">Helping Traders</span>
           </div>
         </div>
       </motion.div>

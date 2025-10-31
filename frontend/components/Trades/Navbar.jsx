@@ -1,9 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Sun, Moon, User, Repeat, ChevronDown, Menu } from "lucide-react";
+import {
+  Sun,
+  Moon,
+  User,
+  Repeat,
+  ChevronDown,
+  Menu,
+  ArrowUpCircle,
+  Crown,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
+import { getFromIndexedDB } from "@/utils/indexedDB";
 import Cookies from "js-cookie";
 
 const Navbar = () => {
@@ -13,6 +23,7 @@ const Navbar = () => {
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [hideAccountBox, setHideAccountBox] = useState(false);
+  const [isFreePlan, setIsFreePlan] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -22,7 +33,7 @@ const Navbar = () => {
       const theme = document.body.getAttribute("data-theme");
       if (theme === "dark") setDarkMode(true);
 
-      // Hide account box if on /accounts page on specific hosts
+      // Hide account box if on /accounts page
       const hostname = window.location.hostname;
       const pathname = window.location.pathname;
       if (
@@ -32,19 +43,28 @@ const Navbar = () => {
         setHideAccountBox(true);
       }
 
+      // Fetch account/trade data
       const { redirectToLogin, accounts: fetchedAccounts } =
         await fetchAccountsAndTrades();
       if (redirectToLogin) {
         router.push("/login");
         return;
       }
-
       setAccounts(fetchedAccounts);
 
-      // Get selected account from cookie
+      // Selected account
       const accountId = Cookies.get("accountId");
       const account = fetchedAccounts.find((acc) => acc._id === accountId);
-      setSelectedAccount(account || fetchedAccounts[0]); // fallback to first account
+      setSelectedAccount(account || fetchedAccounts[0]);
+
+      // ✅ Check user subscription plan from IndexedDB
+      const userData = await getFromIndexedDB("userData");
+      if (userData && userData.subscription) {
+        const planId = userData.subscription.planId;
+        if (planId === "free" || !planId) setIsFreePlan(true);
+      } else {
+        setIsFreePlan(true); // Default to free if not found
+      }
     };
 
     init();
@@ -62,13 +82,17 @@ const Navbar = () => {
     router.push("/profile");
   };
 
+  const handleUpgradeClick = () => {
+    router.push("/pricing");
+  };
+
   return (
     <div className="navbarTrades flexRow flexRow_stretch">
+      {/* Profile + Greeting */}
       <div
         className="flexRow gap_8 navbar_profile"
         onClick={handleClick}
         style={{ userSelect: "none", cursor: "pointer" }}
-        // optional: prevent text selection
       >
         <Menu size={20} className="button_sec" />
         <div className="flexClm">
@@ -84,8 +108,9 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Right Side Controls */}
       <div className="flexRow flex_center gap_12">
-        {/* Selected Account Box (conditionally hidden) */}
+        {/* Selected Account */}
         {selectedAccount && !hideAccountBox && (
           <div
             className="button_sec flexRow gap_8"
@@ -96,11 +121,17 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* <div className="flexRow flex_center gap_8">
-          <button onClick={toggleDarkMode} className="button_sec">
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </div> */}
+        {/* 🌟 Show Upgrade Banner for Free Users */}
+        {isFreePlan && (
+          <div
+            onClick={handleUpgradeClick}
+            className="button_pri flexRow flex_center gap_8"
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            <Crown size={16} />
+          </div>
+        )}
       </div>
     </div>
   );

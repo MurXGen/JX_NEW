@@ -490,7 +490,7 @@ export default function CheckoutOnline() {
           </div>
           <div className="trust-item">
             <Check size={16} className="success" />
-            <span className="font_12">Cancel Anytime • 30-day Guarantee</span>
+            <span className="font_12">Cancel Anytime</span>
           </div>
         </motion.div>
       </div>

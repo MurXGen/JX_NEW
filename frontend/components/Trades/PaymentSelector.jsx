@@ -31,20 +31,20 @@ export default function PaymentSelector({
   const paymentMethods = [
     {
       id: "upi",
-      name: "UPI Payment",
+      name: "Online payment",
       icon: CreditCard,
-      description: "Instant payment for Indian users",
+      description: "Pay through UPI , Debit & Credit card, etc ",
       available: userCountry === "IN",
       color: "#22c55e",
     },
-    {
-      id: "crypto",
-      name: "Crypto Payment",
-      icon: Coins,
-      description: "Pay with USDT networks",
-      available: true,
-      color: "#f59e0b",
-    },
+    // {
+    //   id: "crypto",
+    //   name: "Crypto Payment",
+    //   icon: Coins,
+    //   description: "Pay with USDT networks",
+    //   available: true,
+    //   color: "#f59e0b",
+    // },
   ];
 
   const handlePayment = (method) => {
