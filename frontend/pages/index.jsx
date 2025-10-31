@@ -13,28 +13,37 @@ import Footer from "@/components/landingPage/Footer";
 import FeatureSection from "@/components/landingPage/Features";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 export default function Home() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true); // ✅ track loader state
 
   useEffect(() => {
     const isVerified = Cookies.get("isVerified");
+
     if (isVerified === "yes") {
       router.push("/accounts");
+    } else {
+      setLoading(false); // ✅ stop loader when not redirecting
     }
   }, [router]);
 
   useEffect(() => {
     // Set landing page background
     document.body.style.backgroundColor = "#020202";
-    document.body.style.color = "white"; // optional, for contrast
+    document.body.style.color = "white";
 
-    // Reset when leaving page
     return () => {
       document.body.style.backgroundColor = "";
       document.body.style.color = "";
     };
   }, []);
+
+  // ✅ Show loader until verification is done
+  if (loading) {
+    return <FullPageLoader />;
+  }
 
   return (
     <>
