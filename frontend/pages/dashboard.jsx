@@ -20,6 +20,34 @@ import { useEffect, useState } from "react";
 function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [userCountry, setUserCountry] = useState("IN");
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const res = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`
+            );
+            const data = await res.json();
+            const country = data.countryCode === "IN" ? "IN" : "OTHER";
+            setUserCountry(country);
+            localStorage.setItem("userCountry", country);
+          } catch {
+            setUserCountry("OTHER");
+          }
+        },
+        () => setUserCountry("OTHER")
+      );
+    } else {
+      setUserCountry("OTHER");
+    }
+  }, []);
+
+  if (userCountry === null) {
+    return <FullPageLoader />; // show loader until country is detected
+  }
 
   useEffect(() => {
     const dismissed =

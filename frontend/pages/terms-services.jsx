@@ -1,176 +1,217 @@
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
+"use client";
 import Head from "next/head";
+import { useEffect } from "react";
 
 export default function TermsServices() {
+  useEffect(() => {
+    // Set landing page background
+    document.body.style.backgroundColor = "#020202";
+    document.body.style.color = "white";
+
+    return () => {
+      document.body.style.backgroundColor = "";
+      document.body.style.color = "";
+    };
+  }, []);
   return (
     <>
       <Head>
         <title>Terms of Service | JournalX</title>
         <meta
           name="description"
-          content="Read JournalX's Terms of Service, Privacy Policy, and Refund Policy. JournalX is a digital journaling and analytics tool for traders to log, track, and analyze their trades. We do not facilitate trading or financial transactions."
+          content="Official Terms of Service for JournalX. JournalX is a digital journaling and analytics tool for traders. We do NOT offer trading signals, brokerage, or financial advice."
         />
-        <meta
-          name="keywords"
-          content="JournalX terms of service, privacy policy, refund policy, trader journal app, trading journal, journaling tool for traders, analytics for traders"
-        />
-        <meta name="robots" content="index, follow" />
-        <meta name="author" content="JournalX" />
         <link rel="canonical" href="https://journalx.app/terms-services" />
       </Head>
 
-      <main className="flexClm gap_32">
-        <BackgroundBlur />
-
-        {/* ✅ Terms of Service Section */}
-        <section className="flexClm gap_16">
-          <h1
-            className="font_24 font_weight_700"
-            style={{ color: "var(--primary-light)" }}
-          >
-            Terms of Service
-          </h1>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            Welcome to JournalX. By accessing or using our website
-            (https://journalx.app), you agree to the following Terms of Service.
-            If you do not agree, please discontinue use of the platform
-            immediately.
+      <main className="legalPageContainer">
+        {/* HEADER */}
+        <header className="legalHeader">
+          <h1>Terms of Service</h1>
+          <p>
+            Welcome to JournalX. These Terms of Service (“Terms”) explain how
+            you can use our website, app, and services. By using JournalX, you
+            agree to follow these Terms. If you disagree, please stop using the
+            service.
           </p>
+        </header>
 
-          <h2 className="font_20">1. Nature of Services</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            JournalX is a digital journaling and analytics platform designed for
-            traders to log, track, and analyze their own trading performance.
-            JournalX does not execute, facilitate, or manage trades, nor does it
-            provide investment advice or handle any user funds. All trade data
-            is entered voluntarily by users for self-assessment and improvement.
+        {/* SECTION 1 */}
+        <section>
+          <h2>1. About JournalX</h2>
+          <p>
+            JournalX is a digital journaling and analytics tool for traders to
+            record, track, and understand their own trading behavior.
           </p>
-
-          <h2 className="font_20">2. Account Registration</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            Users must register an account using a valid email address and
-            password. You are responsible for maintaining the confidentiality of
-            your login details and all activity under your account. JournalX
-            reserves the right to suspend or terminate accounts for misuse or
-            violation of these terms.
+          <p>
+            – JournalX does <span className="highlight-not">NOT</span> provide
+            trading signals or investment advice. <br />– JournalX does{" "}
+            <span className="highlight-not">NOT</span> execute or manage trades.{" "}
+            <br />– JournalX does <span className="highlight-not">NOT</span>{" "}
+            hold or manage any user money or funds.
           </p>
-
-          <h2 className="font_20">3. Subscription and Payments</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            JournalX offers Free, Pro, Elite, and Master plans with varying
-            features. Subscriptions are billed monthly or annually via Razorpay
-            (for Indian users) or USDT (for international users). All
-            subscriptions renew automatically unless canceled before the next
-            billing cycle.
-          </p>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            Refunds are not provided for successful payments. Refunds apply only
-            for failed or duplicate transactions and are processed within 3–4
-            business days (Monday–Friday).
-          </p>
-
-          <h2 className="font_20">4. AI and Third-Party Services</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            JournalX integrates AI tools such as ChatGPT API for performance
-            insights and recommendations. Data shared with third-party AI
-            providers may be processed under their respective privacy policies.
-            JournalX does not store or resell this data.
-          </p>
-
-          <h2 className="font_20">5. Data Privacy</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            JournalX collects minimal data, including user email, password, and
-            trade logs, solely for platform functionality. We do not sell,
-            share, or distribute personal data for marketing or profit. Users
-            may request data deletion by contacting support.
-          </p>
-
-          <h2 className="font_20">6. Intellectual Property</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            All content, branding, design, and code within JournalX are owned by
-            JournalX. Users may not copy, modify, or redistribute any part of
-            the website without written permission.
-          </p>
-
-          <h2 className="font_20">7. Limitation of Liability</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            JournalX is not responsible for any financial loss, trading
-            decision, or data error resulting from use of the platform. JournalX
-            is intended solely for analytical and educational purposes. Users
-            acknowledge that all trading activities are done at their own risk.
-          </p>
-
-          <h2 className="font_20">8. Termination</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            JournalX may suspend or terminate user access at any time for
-            violation of these terms or misuse of the platform. Users may delete
-            their accounts upon request.
-          </p>
-
-          <h2 className="font_20">9. Governing Law</h2>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            These Terms are governed by the laws of India, with jurisdiction
-            under Mumbai, Maharashtra.
+          <p>
+            The purpose of JournalX is to help traders learn from their own
+            activity, not to influence or guide trading decisions.
           </p>
         </section>
 
-        {/* ✅ Verification Contact Details Section */}
-        <section className="flexClm">
-          <h1
-            className="font_24 font_weight_700"
-            style={{ color: "var(--primary-light)" }}
-          >
-            Entity details
-          </h1>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            For any payment verification or support-related concerns, please
-            reach out with your details to help us verify your request promptly.
+        {/* SECTION 2 */}
+        <section>
+          <h2>2. Account Registration</h2>
+          <p>
+            To use JournalX, you need to create an account using a valid email
+            address. You are responsible for:
           </p>
-          <span className="font_14 flexClm gap_12">
-            <span>
-              👤 Full Name: <span>Murthy Poothapandi Thevar</span>
-            </span>
-            <span>
-              📧 Email: <span>murthyofficial3@gmail.com</span>
-            </span>
-            <span>
-              📱 Mobile: <span>+91 7977960242</span>
-            </span>
-          </span>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            You may also click the link below to directly send us an email for
-            verification or support:
+          <p>
+            – Keeping your password and login secure. <br />– Any actions taken
+            from your account.
           </p>
-          <a
-            href="mailto:murthyofficial3@gmail.com?subject=Verification%20Support%20-%20JournalX"
-            className="font_14"
-            style={{
-              color: "var(--primary-light)",
-              textDecoration: "underline",
-              fontWeight: "600",
-            }}
-          >
-            📧 Send Mail for Verification Support
-          </a>
+          <p>
+            JournalX may suspend or remove your account if you misuse the
+            platform or break these Terms.
+          </p>
         </section>
 
-        {/* ✅ Disclaimer Section */}
-        <section className="flexClm gap_16">
-          <h1
-            className="font_24 font_weight_700"
-            style={{ color: "var(--primary-light)" }}
-          >
-            Disclaimer
-          </h1>
-          <p style={{ lineHeight: "32px" }} className="font_14">
-            JournalX is not a financial institution, broker, or investment
-            advisor. The platform is intended only for journaling and analytical
-            purposes. Any insights provided by the system or AI tools are for
-            educational use only and should not be considered financial advice.
-            Users should consult certified professionals before making any
-            investment decisions.
+        {/* SECTION 3 */}
+        <section>
+          <h2>3. Subscriptions and Payments</h2>
+          <p>
+            JournalX provides both free and paid plans to help users personalize
+            their journaling experience. The paid plans are designed only to
+            unlock additional journaling features such as:
+          </p>
+          <p>
+            – Adding more daily or monthly journal entries <br />
+            – Creating and managing multiple trading accounts <br />
+            – Backing up and restoring journal data securely <br />– Accessing
+            advanced insights and analytics for self-review
+          </p>
+          <p>
+            These paid features are meant to improve your record-keeping and
+            organization. JournalX does{" "}
+            <span className="highlight-not">NOT</span> provide any trading
+            signals, stock recommendations, or financial services of any kind.
+          </p>
+          <p>
+            Payments for subscriptions are processed securely through trusted
+            gateways such as Razorpay (for Indian users) and Stripe (for
+            international users).
+          </p>
+          <p>
+            – Subscriptions renew automatically unless canceled before the
+            renewal date. <br />– You can manage or cancel your plan anytime
+            from your account settings.
+          </p>
+
+          <h3>Refund Policy</h3>
+          <p>
+            Refunds are only applicable for failed or duplicate transactions. We
+            do <span className="highlight-not">NOT</span> provide refunds for
+            active subscriptions or completed usage. Approved refunds are
+            processed within 3–5 business days of confirmation.
           </p>
         </section>
+
+        {/* SECTION 4 */}
+        <section>
+          <h2>4. Data Privacy</h2>
+          <p>
+            We value your privacy. JournalX collects only what’s needed for
+            functionality:
+          </p>
+          <p>
+            – Email and password (securely encrypted) <br />
+            – Trade notes and journal entries (entered by you) <br />– Anonymous
+            analytics data for improving the platform
+          </p>
+          <p>
+            We do <span className="highlight-not">NOT</span> sell or share your
+            personal data for marketing. See our{" "}
+            <a href="/privacy-policy">Privacy Policy</a> for more details.
+          </p>
+        </section>
+
+        {/* SECTION 5 */}
+        <section>
+          <h2>5. Intellectual Property</h2>
+          <p>
+            All designs, code, branding, and content of JournalX are owned by
+            the company. You own your journal data. You may{" "}
+            <span className="highlight-not">NOT</span> copy, reproduce, or
+            distribute any part of JournalX without written permission.
+          </p>
+        </section>
+
+        {/* SECTION 6 */}
+        <section>
+          <h2>6. Limitation of Liability</h2>
+          <p>
+            JournalX is provided for journaling and educational use. We are{" "}
+            <span className="highlight-not">NOT</span> responsible for financial
+            results, trading losses, or any actions you take based on your
+            journal insights. Always make your own independent decisions or
+            consult certified professionals.
+          </p>
+        </section>
+
+        {/* SECTION 7 */}
+        <section>
+          <h2>7. Termination</h2>
+          <p>
+            – JournalX may suspend or delete accounts that break these Terms.{" "}
+            <br />– You can request to delete your account anytime by contacting
+            our support team.
+          </p>
+        </section>
+
+        {/* SECTION 8 */}
+        <section>
+          <h2>8. MSME & Business Information</h2>
+          <p>JournalX is a registered MSME business in India.</p>
+          <p>
+            – Legal Name: <strong>Murthy Poothapandi Thevar (JournalX)</strong>{" "}
+            <br />– Udyam Registration No: <strong>UDYAM-MH-19-0386866</strong>{" "}
+            <br />– PAN: <strong>CFXPT4171B</strong> <br />– Email:{" "}
+            <a href="mailto:murthyofficial3@gmail.com">
+              murthyofficial3@gmail.com
+            </a>{" "}
+            <br />– Phone: <strong>+91 7977960242</strong>
+          </p>
+        </section>
+
+        {/* SECTION 9 */}
+        <section>
+          <h2>9. Governing Law</h2>
+          <p>
+            These Terms are governed by Indian law and fall under the
+            jurisdiction of courts in Mumbai, Maharashtra.
+          </p>
+        </section>
+
+        {/* SECTION 10 */}
+        <section>
+          <h2>10. Contact</h2>
+          <p>
+            For questions or support, please reach out at: <br />
+            <strong>Email:</strong>{" "}
+            <a href="mailto:murthyofficial3@gmail.com">
+              murthyofficial3@gmail.com
+            </a>{" "}
+            <br />
+            <strong>Phone:</strong> +91 7977960242
+          </p>
+        </section>
+
+        {/* FOOTER */}
+        <footer className="termsDisclaimer">
+          <p className="legalDisclaimer">
+            JournalX is a journaling and analytics tool. We are{" "}
+            <span className="highlight-not">NOT</span> a broker, financial
+            advisor, or trading signal provider. Use JournalX responsibly for
+            personal learning and record-keeping.
+          </p>
+        </footer>
       </main>
     </>
   );

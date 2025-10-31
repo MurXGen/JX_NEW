@@ -1,284 +1,278 @@
+"use client";
+
 import Head from "next/head";
+import { useEffect } from "react";
 
 export default function PrivacyPolicy() {
+  const effectiveDate = "2025-11-01"; // update as needed
+
+  useEffect(() => {
+    // Set landing page background
+    document.body.style.backgroundColor = "#020202";
+    document.body.style.color = "white";
+
+    return () => {
+      document.body.style.backgroundColor = "";
+      document.body.style.color = "";
+    };
+  }, []);
+
   return (
     <>
       <Head>
         <title>Privacy Policy | JournalX</title>
         <meta
           name="description"
-          content="Read JournalX's Privacy Policy to understand how we collect, use, and protect your personal data. JournalX.app values transparency, user trust, and secure data handling."
-        />
-        <meta
-          name="keywords"
-          content="JournalX privacy policy, data protection, user privacy, data collection, cookies, secure trading journal, JournalX app policy"
+          content="JournalX Privacy Policy — how we collect, use, store, and protect your data. We do NOT sell user data. We use AI tools for analytics and provide clear controls for data export and deletion."
         />
         <meta name="robots" content="index, follow" />
-        <meta name="author" content="JournalX" />
         <link rel="canonical" href="https://journalx.app/privacy-policy" />
       </Head>
 
-      <main className="flexClm gap_32">
-        <section className="flexClm gap_16">
-          <h1
-            className="font_24 font_weight_700"
-            style={{ color: "var(--primary-light)" }}
-          >
-            Privacy Policy
-          </h1>
-
-          <p className="font_14" style={{ lineHeight: "32px" }}>
-            Welcome to <strong>JournalX.app</strong> (“we”, “our”, “us”). We
-            value your privacy and are committed to protecting your personal
-            data. This Privacy Policy explains how we collect, use, store, and
-            protect information when you visit or use our website,{" "}
-            <a
-              href="https://journalx.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "var(--primary-light)",
-                textDecoration: "underline",
-              }}
-            >
-              https://journalx.app
-            </a>{" "}
-            (the “Website”), and related services.
+      <main className="legalPageContainer">
+        {/* PAGE HEADER */}
+        <header className="legalHeader">
+          <h1>Privacy Policy</h1>
+          <p>
+            This Privacy Policy explains how JournalX collects, uses, and
+            safeguards your personal information. We aim to keep this clear and
+            simple while providing the details required by law and by our
+            partners.
           </p>
-
-          <hr className="divider" />
-
-          {/* 1. Information We Collect */}
-          <h2 className="font_20">1. Information We Collect</h2>
-
-          <h3 className="font_16 font_weight_600">
-            a) Information You Provide
-          </h3>
-          <ul
-            className="font_14"
-            style={{ lineHeight: "28px", marginLeft: "16px" }}
-          >
-            <li>
-              Name, email address, and contact information when you sign up or
-              contact us.
-            </li>
-            <li>Login credentials or account details (if applicable).</li>
-            <li>
-              Information submitted through forms, chat, or support requests.
-            </li>
-            <li>
-              Payment or billing information when subscribing to paid plans
-              (handled by secure third-party payment processors).
-            </li>
-          </ul>
-
-          <h3 className="font_16 font_weight_600">
-            b) Automatically Collected Information
-          </h3>
-          <ul
-            className="font_14"
-            style={{ lineHeight: "28px", marginLeft: "16px" }}
-          >
-            <li>IP address, browser type, and operating system.</li>
-            <li>Date, time, and pages visited.</li>
-            <li>
-              Cookies, analytics, and tracking data for performance and security
-              purposes.
-            </li>
-          </ul>
-
-          <h3 className="font_16 font_weight_600">
-            c) Cookies and Tracking Technologies
-          </h3>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            We use cookies and similar technologies to:
+          <p>
+            <strong>Effective date:</strong> {effectiveDate}
           </p>
-          <ul
-            className="font_14"
-            style={{ lineHeight: "28px", marginLeft: "16px" }}
-          >
-            <li>Enhance user experience and functionality.</li>
-            <li>Analyze traffic and usage trends.</li>
-            <li>Remember preferences for future visits.</li>
-          </ul>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            You can disable cookies through your browser settings, but some
-            features may not function properly.
+        </header>
+
+        {/* 1. Summary (plain language) */}
+        <section>
+          <h2>1. What we do</h2>
+          <p>
+            – We collect the information you give us (email, password, trade
+            logs, screenshots) to run the service. <br />– We do{" "}
+            <span className="highlight-not">NOT</span> sell your personal data.{" "}
+            <br />
+            – We may use third-party AI services (for example, OpenAI's ChatGPT)
+            to provide analytics — see details below. <br />– You can request to
+            download or delete your data anytime.
           </p>
+        </section>
 
-          <hr className="divider" />
-
-          {/* 2. How We Use Your Information */}
-          <h2 className="font_20">2. How We Use Your Information</h2>
-          <ul
-            className="font_14"
-            style={{ lineHeight: "28px", marginLeft: "16px" }}
-          >
-            <li>Provide and maintain our Website and services.</li>
-            <li>Process payments and manage user accounts.</li>
-            <li>Improve site functionality and user experience.</li>
-            <li>
-              Communicate important updates, offers, or responses to your
-              queries.
-            </li>
-            <li>
-              Ensure compliance with legal obligations and enforce our terms.
-            </li>
-          </ul>
-
-          <hr className="divider" />
-
-          {/* 3. How We Share Information */}
-          <h2 className="font_20">3. How We Share Information</h2>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            We do not sell or trade your personal information. However, we may
-            share information with:
+        {/* 2. What we collect */}
+        <section>
+          <h2>2. What information we collect</h2>
+          <p>
+            We collect only what is necessary to operate JournalX and to improve
+            the product:
           </p>
-          <ul
-            className="font_14"
-            style={{ lineHeight: "28px", marginLeft: "16px" }}
-          >
-            <li>
-              <strong>Service Providers:</strong> Trusted partners who perform
-              hosting, analytics, or payment processing on our behalf.
-            </li>
-            <li>
-              <strong>Legal Authorities:</strong> When required by law or to
-              protect rights, safety, and security.
-            </li>
-            <li>
-              <strong>Business Transfers:</strong> In case of a merger,
-              acquisition, or asset sale.
-            </li>
-          </ul>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            All third-party providers are bound by confidentiality and data
-            protection agreements.
+          <p>
+            – <strong>Account information:</strong> email address, hashed
+            password (we never store plain passwords). <br />–{" "}
+            <strong>Profile settings:</strong> display name, timezone,
+            preferences. <br />– <strong>Journal data:</strong> trades you
+            enter, notes, screenshots, attachments, timestamps, tags. <br />–{" "}
+            <strong>Usage & analytics:</strong> anonymized usage metrics, crash
+            logs, feature usage (for product improvement). <br />–{" "}
+            <strong>Payment data:</strong> we store payment receipts and
+            subscription metadata. Payments themselves are handled by payment
+            gateways (we do NOT store raw card data). <br />–{" "}
+            <strong>Support communications:</strong> messages you send to
+            support (email content).
           </p>
+        </section>
 
-          <hr className="divider" />
+        {/* 3. How we use your data */}
+        <section>
+          <h2>3. How we use your information</h2>
+          <p>We use the information to:</p>
+          <p>
+            – Provide and maintain your account and journaling features. <br />
+            – Store, backup, and restore your journal entries when you request
+            it. <br />– Improve JournalX by analyzing anonymous usage and fixing
+            bugs. <br />
+            – Provide optional AI-driven analysis or summaries you choose to run
+            on your journal data (see AI section). <br />
+            – Process payments and invoices via trusted gateways. <br />–
+            Respond to support requests and account recovery.
+          </p>
+        </section>
 
-          {/* 4. Data Storage and Security */}
-          <h2 className="font_20">4. Data Storage and Security</h2>
-          <ul
-            className="font_14"
-            style={{ lineHeight: "28px", marginLeft: "16px" }}
-          >
-            <li>Your personal data is stored securely on encrypted servers.</li>
-            <li>
-              We use SSL (Secure Socket Layer) technology for secure
-              transmission of data.
-            </li>
-            <li>
-              While we implement strong security measures, no online system is
-              100% secure. Users are advised to maintain secure passwords and
-              device protection.
-            </li>
-          </ul>
+        {/* 4. AI and third-party processing */}
+        <section>
+          <h2>4. AI, third-party services & external processors</h2>
+          <p>
+            JournalX may use third-party services to provide certain features.
+            This includes:
+          </p>
+          <p>
+            – <strong>AI services (example: OpenAI / ChatGPT):</strong> if you
+            use features that analyze or summarize your journal entries, the
+            specific journal content you submit for analysis will be sent to the
+            AI provider for processing. We do{" "}
+            <span className="highlight-not">NOT</span> use that submitted
+            content for training or resale — only to produce the analysis you
+            requested. Processing is subject to the AI provider's terms and
+            privacy policy. <br />– <strong>Payment processors:</strong>{" "}
+            Razorpay, Stripe, or other gateways handle payments; we store
+            receipts and subscription metadata only. We never store raw card or
+            UPI credentials. <br />– <strong>Hosting & database:</strong>{" "}
+            JournalX uses secure hosting and database services (e.g.,
+            Vercel/Render for app hosting, MongoDB Atlas for data storage).
+            These providers are processors and store data according to their
+            policies.
+          </p>
+          <p>
+            When we send data to third-parties we limit what is shared and
+            require processors to protect the data under contract.
+          </p>
+        </section>
 
-          <hr className="divider" />
+        {/* 5. Cookies & tracking */}
+        <section>
+          <h2>5. Cookies, local storage & analytics</h2>
+          <p>
+            – We use cookies and local storage to keep you logged in, remember
+            preferences, and improve UX. <br />
+            – We may use analytics tools (e.g., Google Analytics, Vercel
+            analytics) to measure site performance and usage. These are
+            configured to collect minimal, pseudonymized data. <br />– You can
+            opt out of certain analytics tracking via browser settings or
+            opt-out links if provided in the app.
+          </p>
+        </section>
 
-          {/* 5. Your Rights and Choices */}
-          <h2 className="font_20">5. Your Rights and Choices</h2>
-          <ul
-            className="font_14"
-            style={{ lineHeight: "28px", marginLeft: "16px" }}
-          >
-            <li>Access and review your personal data.</li>
-            <li>Request correction or deletion of inaccurate data.</li>
-            <li>
-              Withdraw consent for data collection (subject to legal limits).
-            </li>
-            <li>Opt-out of marketing communications.</li>
-          </ul>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            To exercise these rights, contact us at{" "}
-            <a
-              href="mailto:murthyofficial3@gmail.com"
-              style={{
-                color: "var(--primary-light)",
-                textDecoration: "underline",
-              }}
-            >
+        {/* 6. Data retention and backups */}
+        <section>
+          <h2>6. Data retention, backup & deletion</h2>
+          <p>
+            – We retain your active account data while your account is active.{" "}
+            <br />
+            – When you delete your account, we will delete your personal data
+            and journal entries within 30 days, unless we must retain some data
+            to comply with legal obligations. <br />– We maintain encrypted
+            backups for disaster recovery. Backups are retained for limited
+            periods and are protected.
+          </p>
+        </section>
+
+        {/* 7. User rights & controls */}
+        <section>
+          <h2>7. Your rights & how to use them</h2>
+          <p>You have the right to:</p>
+          <p>
+            – Request a copy of your personal data (export): email us and we
+            will provide a machine-readable export of your journal data. <br />
+            – Request deletion of your account and data: we will delete your
+            account as described above. <br />
+            – Correct inaccurate personal information: update your profile from
+            account settings or ask support. <br />– Object to certain
+            processing (where legal) and ask for restriction — contact us and we
+            will review your request.
+          </p>
+          <p>
+            To exercise any rights, contact:{" "}
+            <a href="mailto:murthyofficial3@gmail.com">
               murthyofficial3@gmail.com
             </a>
             .
           </p>
-
-          <hr className="divider" />
-
-          {/* 6. Third-Party Links */}
-          <h2 className="font_20">6. Third-Party Links</h2>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            Our Website may include links to external websites. We are not
-            responsible for their content, privacy policies, or practices. We
-            encourage you to review their policies before providing any personal
-            data.
-          </p>
-
-          <hr className="divider" />
-
-          {/* 7. International Data Transfers */}
-          <h2 className="font_20">7. International Data Transfers</h2>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            If you access our site from outside our hosting region, your data
-            may be transferred across borders. By using our Website, you consent
-            to such transfers.
-          </p>
-
-          <hr className="divider" />
-
-          {/* 8. Children’s Privacy */}
-          <h2 className="font_20">8. Children’s Privacy</h2>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            JournalX.app is not intended for children under 13 years of age. We
-            do not knowingly collect personal information from minors.
-          </p>
-
-          <hr className="divider" />
-
-          {/* 9. Policy Updates */}
-          <h2 className="font_20">9. Policy Updates</h2>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            We may update this Privacy Policy periodically. The “Last Updated”
-            date will reflect the latest revision. Continued use of our Website
-            means you accept these changes.
-          </p>
-
-          <hr className="divider" />
-
-          {/* 10. Contact Us */}
-          <h2 className="font_20">10. Contact Us</h2>
-          <p className="font_14" style={{ lineHeight: "28px" }}>
-            If you have any questions about this Privacy Policy, please contact
-            us:
-          </p>
-          <ul
-            className="font_14"
-            style={{ lineHeight: "28px", marginLeft: "16px" }}
-          >
-            <li>
-              <strong>JournalX</strong>
-            </li>
-            <li>
-              Website:{" "}
-              <a
-                href="https://journalx.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "var(--primary-light)" }}
-              >
-                https://journalx.app
-              </a>
-            </li>
-            <li>
-              Email: <strong>murthyofficial3@gmail.com</strong>
-            </li>
-            <li>
-              Phone: <strong>+91 79779 60242</strong>
-            </li>
-          </ul>
         </section>
+
+        {/* 8. Security measures */}
+        <section>
+          <h2>8. Security</h2>
+          <p>We take security seriously:</p>
+          <p>
+            – Passwords are hashed and stored securely. <br />
+            – Data is sent over HTTPS (TLS) in transit. <br />
+            – Databases and backups are protected with industry-standard
+            controls and access restrictions. <br />– We periodically review
+            security and patch vulnerabilities.
+          </p>
+          <p>
+            While we maintain strict safeguards, no system is 100% secure. If a
+            breach occurs, we will notify affected users and regulators as
+            required by law.
+          </p>
+        </section>
+
+        {/* 9. Minors */}
+        <section>
+          <h2>9. Children</h2>
+          <p>
+            JournalX is not intended for children under 16. We do{" "}
+            <span className="highlight-not">NOT</span> knowingly collect
+            personal data from children under 16. If you believe a child under
+            16 has created an account, contact us to remove the data.
+          </p>
+        </section>
+
+        {/* 10. International transfers */}
+        <section>
+          <h2>10. International data transfers</h2>
+          <p>
+            Your data may be stored or processed in countries outside your home
+            country. We take steps to ensure appropriate protections (contracts
+            and standard contractual clauses) when data is transferred
+            internationally.
+          </p>
+        </section>
+
+        {/* 11. Third-party links */}
+        <section>
+          <h2>11. Links to other sites</h2>
+          <p>
+            Our service may contain links to third-party sites. We are not
+            responsible for the privacy practices of other sites. Review their
+            privacy policies before sharing personal data.
+          </p>
+        </section>
+
+        {/* 12. Changes to this policy */}
+        <section>
+          <h2>12. Changes to this policy</h2>
+          <p>
+            We may update this policy to reflect changes in our practices or
+            legal requirements. We will post the updated policy with a new
+            effective date. Continued use after changes means you accept the
+            revised policy.
+          </p>
+        </section>
+
+        {/* 13. Contact & business details */}
+        <section>
+          <h2>13. Contact & business details</h2>
+          <p>
+            If you have questions or requests about your personal data, contact:
+          </p>
+          <p>
+            – Email:{" "}
+            <a href="mailto:murthyofficial3@gmail.com">
+              murthyofficial3@gmail.com
+            </a>{" "}
+            <br />– Phone: +91 7977960242
+          </p>
+
+          <p style={{ marginTop: 8 }}>
+            Business details (for verification): <br />– Legal name:{" "}
+            <strong>Murthy Poothapandi Thevar (JournalX)</strong> <br />– Udyam
+            registration: <strong>UDYAM-MH-19-0386866</strong> <br />– PAN:{" "}
+            <strong>CFXPT4171B</strong>
+          </p>
+        </section>
+
+        {/* FOOTER */}
+        <footer>
+          <p className="legalDisclaimer">
+            JournalX does <span className="highlight-not">NOT</span> sell
+            personal data. We limit collection to what we need to operate the
+            service and provide optional AI analysis only when you request it.
+          </p>
+
+          <p style={{ marginTop: 8, color: "var(--white-70)" }}>
+            Last updated: {effectiveDate}
+          </p>
+        </footer>
       </main>
     </>
   );

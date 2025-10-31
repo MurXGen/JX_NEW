@@ -1181,8 +1181,8 @@ export default function AddTrade() {
       <div className="flexClm gap_32">
         <div>
           <div className="flexClm">
-            <span className="font_20">Add trade</span>
-            <span className="font_12">Log trade in seconds</span>
+            <span className="font_20">Log trade</span>
+            <span className="font_12">Get analysis after logging trades</span>
           </div>
         </div>
         <form onSubmit={handleSubmit}>

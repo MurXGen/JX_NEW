@@ -395,7 +395,7 @@ function Accounts() {
     },
     {
       id: "export",
-      title: "Export trades",
+      title: "Export journal",
       description: "Backup or migrate your trading data",
       icon: Upload,
       path: "/export",
@@ -404,7 +404,7 @@ function Accounts() {
     },
     {
       id: "share-trades",
-      title: "Share trades",
+      title: "Share journal",
       description: "Share your trading performance",
       icon: Share2,
       path: "/share-trades",
@@ -413,7 +413,7 @@ function Accounts() {
     },
     {
       id: "market-news",
-      title: "Market news",
+      title: "Events calendar",
       description: "Forex factory's market updates",
       icon: TrendingUp,
       path: "https://www.forexfactory.com/calendar",
@@ -725,18 +725,16 @@ function Accounts() {
           </div>
         </motion.div>
 
-        <hr width="100" color="grey" />
+        {/* <hr width="100" color="grey" /> */}
 
         {/* Plan Usage Overview */}
-        {userPlan && (
+        {/* {userPlan && (
           <div className="flexClm gap_24">
             <SectionHeader
               title="Plan usage and benefits"
               description="Manage your plan usage"
-              level={2} // uses <h2>
-              // showButton={accounts.length > 0}
-              // buttonLabel="Create journal"
-              // onButtonClick={handleCreateAccount}
+              level={2} 
+            
               loading={loading}
             />
 
@@ -762,7 +760,7 @@ function Accounts() {
                 <div className="flexClm gap_12">
                   <div className="flexRow flexRow_stretch">
                     <span className="font_14">Accounts</span>
-                    {/* Accounts */}
+                   
                     <span
                       className="font_12"
                       style={{ color: "var(--white-50)" }}
@@ -784,7 +782,7 @@ function Accounts() {
                 <div className="flexClm gap_12">
                   <div className="usage-header flexRow flexRow_stretch">
                     <span className="font_14">Monthly Trades</span>
-                    {/* Monthly Trades */}
+                   
                     <span
                       className="font_12"
                       style={{ color: "var(--white-50)" }}
@@ -806,7 +804,7 @@ function Accounts() {
                 <div className="flexClm gap_12">
                   <div className="usage-header flexRow flexRow_stretch">
                     <span className="font_14">Monthly Images</span>
-                    {/* Monthly Images */}
+                   
                     <span
                       className="font_12"
                       style={{ color: "var(--white-50)" }}
@@ -835,7 +833,7 @@ function Accounts() {
               </div>
             </motion.div>
           </div>
-        )}
+        )} */}
 
         {showGuide && <BeginnerGuide onClose={handleCloseGuide} />}
         <GoogleBannerAd />

@@ -428,7 +428,7 @@ input:focus {
 
 .button_sec:hover {
   border: none;
-  transform: translateY(-2px); /* small lift effect */
+  transform: scale(0.98); /* small lift effect */
 }
 
 .button_ter {
@@ -3207,13 +3207,10 @@ footer {
 /* 🔥 New: Make it vertical when screen >= 760px */
 @media (min-width: 1024px) {
   .bottom-bar {
-    flex-direction: column;
-    top: 50%;
-    left: var(--px-16);
-    bottom: auto;
-    transform: translateY(-50%);
-    width: auto;
-    height: 50%;
+    flex-direction: row;
+    bottom: 24px;
+    margin: auto;
+    max-width: 600px;
   }
 
   .nav-item {
@@ -4186,35 +4183,73 @@ footer {
     border-color: var(--primary-50);
     transform: translateY(-2px);
   }
+}
 
-  /* Legal Section */
-  .legal-section {
+/* Legal docs */
+@media (min-width: 0) {
+  /* ====== Legal Page Base ====== */
+  .legalPageContainer {
     display: flex;
     flex-direction: column;
-    gap: var(--px-8);
+    gap: 48px;
+    color: var(--white-80, #dcdcdc);
+    background-color: #020202;
+    line-height: 1.8;
   }
 
-  .legal-button {
-    background: transparent;
-    border: 1px solid var(--white-10);
-    border-radius: var(--px-12);
-    padding: var(--px-12) var(--px-16);
-    color: var(--white-80);
-    display: flex;
-    align-items: center;
-    gap: var(--px-8);
-    cursor: pointer;
-    transition: all 0.3s ease;
+  .legalHeader h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
   }
 
-  .legal-button:hover {
-    border-color: var(--primary-50);
-    color: var(--base-text);
+  .legalHeader p {
+    font-size: 15px;
+    color: var(--white-70, #c5c5c5);
   }
 
-  .legal-button.error:hover {
-    border-color: var(--error);
-    color: var(--error);
+  section h2 {
+    font-size: 20px;
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  section h3 {
+    font-size: 17px;
+    color: #ffffff;
+    font-weight: 600;
+    margin-top: 12px;
+  }
+
+  section p {
+    font-size: 15px;
+    color: var(--white-80, #d0d0d0);
+  }
+
+  section a {
+    color: var(--primary-light, #4da6ff);
+    text-decoration: underline;
+    font-weight: 500;
+  }
+
+  .highlight-not {
+    color: #ff6666;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .termsDisclaimer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 16px;
+    margin-top: 24px;
+  }
+
+  .legalDisclaimer {
+    font-size: 14px;
+    color: #aaa;
+    font-style: italic;
   }
 }
 
@@ -6029,21 +6064,6 @@ footer {
   z-index: 1;
   max-width: 1100px;
 }
-
-/* Icon */
-.feature-icon {
-  background: rgba(60, 210, 120, 0.1);
-  color: var(--success);
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  box-shadow: 0 0 15px rgba(60, 210, 120, 0.15);
-  transition: background 0.3s ease, transform 0.3s ease;
-}
-
 /* CTA */
 .feature-cta {
   z-index: 2;

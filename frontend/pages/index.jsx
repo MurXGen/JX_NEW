@@ -1,5 +1,5 @@
 // pages/index.jsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/landingPage/Navbar";
 import Head from "next/head";
 import HeroSection from "@/components/landingPage/Hero";

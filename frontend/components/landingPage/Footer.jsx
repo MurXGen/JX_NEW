@@ -32,9 +32,9 @@ export default function Footer() {
               {[
                 { href: "/dashboard", text: "Dashboard" },
                 { href: "/accounts", text: "Accounts" },
-                { href: "/add-trade", text: "Add Trade" },
+                { href: "/add-trade", text: "Log Trade" },
                 { href: "/pricing", text: "Pricing" },
-                { href: "/contact-us", text: "Contact Us" },
+                { href: "/contact", text: "Contact Us" },
               ].map((link, i) => (
                 <li key={i} className="footer_link_item flexRow gap_4 shade_50">
                   <Link href={link.href} className="footer_link_hover">

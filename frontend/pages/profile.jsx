@@ -142,37 +142,37 @@ const Profile = () => {
         </div> */}
 
         {/* Legal & Support Section */}
-        <div className="legal-section">
+        <div className="flexClm gap_12 width100">
           <button
-            className="button_sec flexRow gap_8 flexRow_center"
+            className="button_sec flexRow gap_8 flexRow_center width100"
             onClick={() => router.push("/terms-services")}
           >
             <FileText size={16} />
             Terms of Service
           </button>
           <button
-            className="button_sec flexRow gap_8 flexRow_center"
+            className="button_sec flexRow gap_8 flexRow_center width100"
             onClick={() => router.push("/privacy-policy")}
           >
             <Shield size={16} />
             Privacy Policy
           </button>{" "}
           <button
-            className="button_sec flexRow gap_8 flexRow_center"
+            className="button_sec flexRow gap_8 flexRow_center width100"
             onClick={() => router.push("/refund-policy")}
           >
             <Phone size={16} />
             Refund policy
           </button>
           <button
-            className="button_sec flexRow gap_8 flexRow_center"
+            className="button_sec flexRow gap_8 flexRow_center width100"
             onClick={() => router.push("/contact")}
           >
             <Phone size={16} />
             Contact for support
           </button>
           <button
-            className="button_sec flexRow gap_8 flexRow_center"
+            className="button_sec flexRow gap_8 flexRow_center width100"
             onClick={handleLogout}
           >
             <LogOut size={16} />

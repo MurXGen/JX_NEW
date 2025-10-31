@@ -18,7 +18,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const CreateAccount = () => {
   const [accountName, setAccountName] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("INR");
   const [balance, setBalance] = useState("");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -169,7 +169,7 @@ const CreateAccount = () => {
           required
         />
 
-        <div
+        {/* <div
           className="currencyOptions flexRow gap_12"
           variants={containerVariants}
           initial="hidden"
@@ -188,7 +188,7 @@ const CreateAccount = () => {
               {cur}
             </span>
           ))}
-        </div>
+        </div> */}
 
         <motion.div
           className="flexRow flexRow_stretch gap_12"
