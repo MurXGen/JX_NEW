@@ -21,7 +21,7 @@ const HeroSection = () => {
         className="flexClm gap_46 flex_center heroContent"
         style={{ minWidth: "400px", maxWidth: "600px" }}
       >
-        <div className="flexClm gap_4">
+        <div className="flexClm gap_12 flex_center">
           <h1
             className="marg_0 font_52"
             style={{
@@ -55,7 +55,7 @@ const HeroSection = () => {
         </div>
 
         <button className="cta_button flexRow gap_4">
-          Start Journaling <ArrowRight size={20} />
+          Try it free <ArrowRight size={20} />
         </button>
 
         {/* Trust Indicator */}

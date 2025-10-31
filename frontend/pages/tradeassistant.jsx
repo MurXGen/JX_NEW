@@ -97,7 +97,7 @@ export default function TradeAssistant() {
   };
 
   const handleBackClick = () => {
-    router.push("/");
+    router.push("/dashboard");
   };
 
   if (checkingAccount) return <FullPageLoader />; // ✅ show loader while checking

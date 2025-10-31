@@ -57,7 +57,7 @@ export default function SubscriptionSuccess() {
         if (timeLeft <= 0) {
           clearInterval(interval);
           // ⏩ Redirect after confetti stops
-          router.push("/");
+          router.push("/dashboard");
           return;
         }
 

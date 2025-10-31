@@ -375,7 +375,7 @@ function Accounts() {
         sameSite: "Strict",
         expires: 1 / 24,
       });
-      router.push("/");
+      router.push("/dashboard");
     } catch (err) {}
   };
 

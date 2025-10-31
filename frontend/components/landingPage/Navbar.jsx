@@ -10,7 +10,7 @@ export default function Navbar() {
 
   return (
     <header className="navbar_container flexRow flexRow_stretch bg_blur_20">
-      {/* Logo Section */}
+      {/* Logo */}
       <section className="flexRow flex_center">
         <Link href="/">
           <Image
@@ -39,8 +39,7 @@ export default function Navbar() {
           Features
         </Link>
         <button className="button_pri flexRow gap_4 flex_center">
-          Start Free
-          <ArrowRight size={14} />
+          Start Free <ArrowRight size={14} />
         </button>
       </nav>
 
@@ -49,35 +48,42 @@ export default function Navbar() {
         {menuOpen ? <X size={24} /> : <Menu size={24} />}
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* Fullscreen Mobile Menu */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.nav
-            className="navbar_mobile_menu flexClm gap_16 font_16"
-            initial={{ y: "-100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "-100%", opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
+          <motion.div
+            className="navbar_fullscreen_menu flexClm flex_center"
+            initial={{ y: "-100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "-100%" }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            {["Dashboard", "Pricing", "About Us", "Features"].map((item) => (
-              <Link
-                key={item}
-                href={`/${item.toLowerCase().replace(/\s/g, "")}`}
-                className="navbar_link"
-                onClick={() => setMenuOpen(false)}
-              >
-                {item}
-              </Link>
-            ))}
-
             <button
-              className="button_pri flexRow gap_4 flex_center"
+              className="menu_close_btn"
               onClick={() => setMenuOpen(false)}
             >
-              Start Free
-              <ArrowRight size={14} />
+              <X size={30} />
             </button>
-          </motion.nav>
+
+            <div className="mobile_menu_links flexClm gap_24 font_18 font_weight_500">
+              {["Dashboard", "Pricing", "About Us", "Features"].map((item) => (
+                <Link
+                  key={item}
+                  href={`/${item.toLowerCase().replace(/\s/g, "")}`}
+                  className="navbar_link mobile_nav_link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item}
+                </Link>
+              ))}
+              <button
+                className="button_pri flexRow gap_4 flex_center"
+                onClick={() => setMenuOpen(false)}
+              >
+                Start Free <ArrowRight size={14} />
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </header>

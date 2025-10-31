@@ -94,7 +94,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
       // Auto redirect after full celebration
       setTimeout(() => {
         if (onClose) onClose();
-        router.push("/");
+        router.push("/dashboard");
       }, 4000);
     };
 
@@ -124,7 +124,7 @@ export default function WelcomeModal({ onClose, userName = "Trader" }) {
 
     setTimeout(() => {
       if (onClose) onClose();
-      router.push("/");
+      router.push("/dashboard");
     }, 300);
   };
 

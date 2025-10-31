@@ -25,7 +25,7 @@ const JournalXCTA = () => {
   }, [features.length]);
 
   const handleCTA = () => {
-    router.push("/");
+    router.push("/dashboard");
   };
 
   return (

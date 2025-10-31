@@ -54,7 +54,7 @@
   --bodyWidth: 1200px;
 
   --border-stroke: var(--primary);
-  --bodyPadding: 32px 16px;
+  --bodyPadding: 32px 16px 94px 16px;
 }
 
 /* Light theme overrides */
@@ -410,6 +410,8 @@ input:focus {
   cursor: pointer;
   font-family: var(--ff-Pop);
   font-size: var(--px-12);
+  height: 100%;
+  transition: 0.3s;
 }
 
 .button_sec {
@@ -5324,7 +5326,7 @@ footer {
    🧭 Navbar Styles
 ==================================*/
 .navbar_container {
-  background: var(--white-10);
+  background: var(--white-4);
   border-radius: var(--px-12);
   padding: var(--px-12) var(--px-24);
   position: fixed;
@@ -5334,50 +5336,95 @@ footer {
   width: 80%;
   z-index: 1000;
   backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .navbar_links {
   display: flex;
+  align-items: center;
+  gap: 32px;
 }
 
 .navbar_link {
   text-decoration: none;
   color: var(--base-text);
-  min-width: fit-content;
   transition: color 0.3s;
+  font-size: var(--px-12);
+  min-width: fit-content;
 }
 
 .navbar_link:hover {
   color: var(--primary-light);
 }
 
-.medsize_btn {
-  color: var(--base-text);
-  padding: 12px 24px;
-  background: var(--primary);
-  border: none;
-  font-size: var(--px-14);
-  font-weight: var(--weight-500);
-  border-radius: var(--px-24);
-  font-family: var(--ff-Pop);
-  cursor: pointer;
-}
-
 .navbar_menu_icon {
   display: none;
   cursor: pointer;
   color: var(--base-text);
+  z-index: 1100;
 }
-.navbar_mobile_menu {
-  position: absolute;
-  top: 80px;
-  right: 0;
+
+@media (max-width: 900px) {
+  .navbar_links {
+    display: none;
+  }
+
+  .navbar_menu_icon {
+    display: block;
+  }
+}
+
+/* ✅ Fullscreen Mobile Menu */
+.navbar_fullscreen_menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100dvh;
+  width: 100%;
   background: var(--base-bg);
-  border-radius: var(--px-12);
-  padding: 16px;
-  width: 200px;
-  box-shadow: 0 0 20px var(--white-10);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1200;
+  overflow: hidden;
+  border-radius: var(--px-24);
 }
+
+.menu_close_btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: transparent;
+  border: none;
+  color: var(--white);
+  cursor: pointer;
+}
+
+.mobile_menu_links {
+  text-align: center;
+}
+
+.mobile_nav_link {
+  font-size: var(--px-16);
+  color: var(--white);
+  transition: all 0.3s ease;
+}
+
+.mobile_nav_link:hover {
+  color: var(--primary-light);
+  transform: scale(1.05);
+}
+
+.button_pri:hover {
+  box-shadow: 0 0 32px var(--primary-50);
+  color: var(--base-bg);
+  color: white;
+  transform: scale(0.98);
+}
+
 /* ===============================
    🌄 Hero Section
 ==================================*/
@@ -5393,12 +5440,8 @@ footer {
 
 /* CTA Button Styling */
 .cta_button {
-  background: linear-gradient(
-    90deg,
-    var(--primary) 0%,
-    var(--primary-light) 100%
-  );
-  color: var(--base-text);
+  background: var(--primary);
+  color: white;
   border: none;
   padding: var(--px-24) var(--px-46) !important;
   border-radius: var(--px-46);
@@ -5406,20 +5449,14 @@ footer {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 0 16px var(--primary-50), 0 0 40px var(--primary-50);
+  box-shadow: 0 0 16px var(--primary-50);
   text-transform: uppercase;
   margin-top: 8px;
   font-weight: 600;
 }
 
 .cta_button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 24px var(--primary-light), 0 0 60px var(--primary-50);
-  background: linear-gradient(
-    90deg,
-    var(--primary-light) 0%,
-    var(--primary) 100%
-  );
+  box-shadow: 0 0 32px var(--primary);
 }
 
 .cta_button:active {
@@ -5828,6 +5865,11 @@ footer {
 
   .choose_image {
     order: -1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
   /* pop-in animation only for mobile */
@@ -5952,10 +5994,10 @@ footer {
   }
 }
 
-/* Section Container */
+/* Feature Container */
 .feature-section {
   position: relative;
-  padding: 100px 20px;
+  padding: 0 20px 100px 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
