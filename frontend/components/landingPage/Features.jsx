@@ -22,22 +22,37 @@ const features = [
 
 const FeatureSection = () => {
   return (
-    <section className="flexClm landingBody gap_32 mrgin_tp_100">
+    <section className="feature-section">
+      <div className="feature-gradient" />
       <HeaderSection
         title="Feature Overview"
         subtitle="Powerful tools designed to simplify your trading journey"
       />
 
-      <div className="section_grid">
+      <div className="feature-grid">
         {features.map((feature, index) => {
           const Icon = feature.icon;
+          const randomDelay = Math.random() * 0.3 + index * 0.15;
+
           return (
             <motion.div
               key={index}
-              className="chart_boxBg flexRow gap_12 pad_32 br_24"
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, delay: index * 0.12 }}
+              className="chart_boxBg pad_32 gap_24 flexRow featureCard"
+              initial={{
+                opacity: 0,
+                y: 60,
+                rotate: Math.random() * 5 - 2.5,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+                rotate: 0,
+              }}
+              transition={{
+                duration: 0.8,
+                delay: randomDelay,
+                ease: [0.25, 0.1, 0.25, 1],
+              }}
               viewport={{ once: true }}
             >
               <motion.div
@@ -53,28 +68,24 @@ const FeatureSection = () => {
               >
                 <Icon size={14} className="successBg" />
               </motion.div>
-
-              <div>
-                <h3 className="font_16 marg_0">{feature.title}</h3>
-              </div>
+              <h3 className="font_16">{feature.title}</h3>
             </motion.div>
           );
         })}
       </div>
 
-      {/* CTA */}
       <motion.div
-        className="flexCenter"
-        initial={{ opacity: 0, y: 30 }}
+        className="feature-cta"
+        initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
+        transition={{ duration: 0.7, delay: 0.4 }}
         viewport={{ once: true }}
       >
         <motion.button
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.96 }}
           transition={{ duration: 0.2 }}
-          className="button_pri"
+          className="cta-button"
         >
           Explore JournalX Features
         </motion.button>
