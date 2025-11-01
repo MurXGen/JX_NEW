@@ -173,8 +173,8 @@ export default function TermsServices() {
             – Legal Name: <strong>Murthy Poothapandi Thevar (JournalX)</strong>{" "}
             <br />– Udyam Registration No: <strong>UDYAM-MH-19-0386866</strong>{" "}
             <br />– PAN: <strong>CFXPT4171B</strong> <br />– Email:{" "}
-            <a href="mailto:murthyofficial3@gmail.com">
-              murthyofficial3@gmail.com
+            <a href="mailto:officialjournalx@gmail.app">
+              officialjournalx@gmail.app
             </a>{" "}
             <br />– Phone: <strong>+91 7977960242</strong>
           </p>
@@ -195,8 +195,8 @@ export default function TermsServices() {
           <p>
             For questions or support, please reach out at: <br />
             <strong>Email:</strong>{" "}
-            <a href="mailto:murthyofficial3@gmail.com">
-              murthyofficial3@gmail.com
+            <a href="mailto:officialjournalx@gmail.app">
+              officialjournalx@gmail.app
             </a>{" "}
             <br />
             <strong>Phone:</strong> +91 7977960242

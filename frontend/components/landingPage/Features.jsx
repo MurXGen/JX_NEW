@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import HeaderSection from "./HeaderSection";
+import { useRouter } from "next/router";
 
 const features = [
   { title: "Multiple Journal Accounts", icon: Layers },
@@ -21,6 +22,7 @@ const features = [
 ];
 
 const FeatureSection = () => {
+  const router = useRouter();
   return (
     <section className="feature-section">
       <div className="feature-gradient" />
@@ -86,6 +88,7 @@ const FeatureSection = () => {
           whileTap={{ scale: 0.96 }}
           transition={{ duration: 0.2 }}
           className="cta-button"
+          onClick={() => router.push("/register")}
         >
           Explore JournalX Features
         </motion.button>

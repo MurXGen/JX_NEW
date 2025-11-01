@@ -71,7 +71,9 @@ export default function Footer() {
             <ul className="shade_50">
               <li className="flexRow flex_align_center gap_8">
                 <Mail size={16} />{" "}
-                <a href="mailto:support@journalx.app">support@journalx.app</a>
+                <a href="mailto:officialjournalx@gmail.app">
+                  officialjournalx@gmail.app
+                </a>
               </li>
               <li className="flexRow flex_align_center gap_8">
                 <Globe size={16} />{" "}

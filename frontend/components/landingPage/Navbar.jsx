@@ -32,13 +32,27 @@ export default function Navbar() {
         <Link href="/pricing" className="navbar_link">
           Pricing
         </Link>
-        <Link href="/about" className="navbar_link">
-          About Us
+        <Link href="/contact" className="navbar_link">
+          Contact Us
         </Link>
-        <Link href="/features" className="navbar_link">
+        <Link
+          href="#"
+          className="navbar_link"
+          onClick={(e) => {
+            e.preventDefault();
+            const section = document.querySelector(".feature-section");
+            if (section) {
+              section.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+        >
           Features
         </Link>
-        <button className="button_pri flexRow gap_4 flex_center">
+
+        <button
+          className="button_pri flexRow gap_4 flex_center"
+          onClick={() => router.push("/register")}
+        >
           Start Free <ArrowRight size={14} />
         </button>
       </nav>

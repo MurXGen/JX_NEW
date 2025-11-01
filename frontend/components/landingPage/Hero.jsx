@@ -54,7 +54,10 @@ const HeroSection = () => {
           </p>
         </div>
 
-        <button className="cta_button flexRow gap_4">
+        <button
+          className="cta_button flexRow gap_4"
+          onClick={() => router.push("/register")}
+        >
           Try it free <ArrowRight size={20} />
         </button>
 
