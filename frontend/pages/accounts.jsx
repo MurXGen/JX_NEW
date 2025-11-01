@@ -494,9 +494,13 @@ function Accounts() {
         {/* Accounts List */}
         <motion.div
           className="accountsList flexClm gap_24"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.6,
+            ease: "easeOut",
+            staggerChildren: 0.12,
+          }}
         >
           {orderedAccounts.length === 0 ? (
             <motion.div
@@ -537,9 +541,15 @@ function Accounts() {
                   <motion.div
                     key={acc._id}
                     className="accountCard flexClm gap_32 chart_boxBg"
-                    variants={childVariants}
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.5,
+                      ease: "easeOut",
+                      delay: index * 0.1, // ✅ slight stagger per card
+                    }}
                     whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileTap={{ scale: 0.97 }}
                   >
                     <div className="flexRow flexRow_stretch spaceBetween">
                       <div
@@ -647,7 +657,7 @@ function Accounts() {
                     <>
                       <ChevronDown size={16} />
                       <span>
-                        Show {orderedAccounts.length - 2} More Accounts
+                        Show {orderedAccounts.length - 2} more journal
                       </span>
                     </>
                   )}

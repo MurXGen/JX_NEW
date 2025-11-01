@@ -62,18 +62,39 @@ function Pricing() {
     };
   }, []);
 
+  // Fetch static plans & user’s current plan
   useEffect(() => {
+    const staticPlans = [
+      {
+        name: "Pro",
+        planId: "pro",
+        monthly: { inr: 149, usdt: 5 },
+        yearly: { inr: 999, usdt: 10 },
+      },
+      {
+        name: "Elite",
+        planId: "elite",
+        monthly: { inr: 499, usdt: 8 },
+        yearly: { inr: 3999, usdt: 50 },
+      },
+      {
+        name: "Master",
+        planId: "master",
+        monthly: { inr: 999, usdt: 15 },
+        yearly: { inr: 9999, usdt: 100 },
+      },
+    ];
+
+    setPlans(staticPlans);
+
+    // Load user’s active subscription from IndexedDB
     (async () => {
-      const data = await fetchPlansFromIndexedDB();
-      setPlans(data);
-
       const userData = await getFromIndexedDB("user-data");
-      const currentPlanId = userData?.subscription?.planId || null;
+      const planId = userData?.subscription?.planId || null;
 
-      if (currentPlanId) {
-        setActivePlan(currentPlanId); // set current plan as active
-      } else if (data.length >= 2) {
-        setActivePlan(data[1].planId); // fallback: middle plan
+      if (planId) {
+        setCurrentPlanId(planId); // user’s current subscription
+        setActivePlan(planId); // highlight it
       }
     })();
   }, []);
@@ -118,9 +139,6 @@ function Pricing() {
     ];
 
     setPlans(staticPlans);
-
-    // Set default plan selection
-    setActivePlan(staticPlans[1].planId); // defaults to "Elite"
   }, []);
 
   // Icon mapping with premium styling
@@ -315,16 +333,22 @@ function Pricing() {
     const selectedPlan = plans.find((p) => p.planId === selectedPlanId);
     if (!selectedPlan) return;
 
-    // Determine amount based on country
-    const amount =
-      userCountry === "IN"
-        ? selectedPlan[billingPeriod]?.inr
-        : selectedPlan[billingPeriod]?.usdt;
+    // Determine currency and amount based on user location
+    const isIndia = userCountry === "IN";
+    const amount = isIndia
+      ? selectedPlan[billingPeriod]?.inr
+      : selectedPlan[billingPeriod]?.usdt;
 
-    // Auto-redirect if INR < 450
-    if (userCountry === "IN" && amount < 450) {
+    if (!amount) {
+      console.error("Amount not found for selected plan or billing period.");
+      return;
+    }
+
+    // INR flow → auto-redirect if low amount (like UPI-friendly small plans)
+    if (isIndia && amount < 450) {
       const query = new URLSearchParams({
         planName: selectedPlan.name,
+        planId: selectedPlan.planId,
         period: billingPeriod,
         method: "upi",
         amount: amount.toString(),
@@ -334,19 +358,15 @@ function Pricing() {
       return;
     }
 
-    // Otherwise show payment selector
+    // Otherwise → show payment selection modal
     setShowPaymentSelector(true);
 
-    // Optionally, store the selected plan in state for later use
+    // Save selected plan to state for later reference
     setActivePlan(selectedPlanId);
   };
 
-  const handleBackClick = () => {
-    router.push("/profile");
-  };
-
   return (
-    <div className="pricing-page flexClm gap_32">
+    <div className="pricing-page flexClm gap_46">
       {/* Header Section */}
 
       <div className="flexClm gap_32">
@@ -423,35 +443,46 @@ function Pricing() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
+                whileHover={{
+                  scale: 1.03,
+                  boxShadow: "0px 8px 25px rgba(0, 255, 120, 0.1)",
+                }}
+                whileTap={{
+                  scale: 0.97,
+                  boxShadow: "0px 2px 10px rgba(0, 255, 120, 0.2)",
+                }}
                 onHoverStart={() => setIsHovered(plan.planId)}
                 onHoverEnd={() => setIsHovered(null)}
                 onClick={() => setActivePlan(plan.planId)}
-                style={{ maxHeight: "fit-content" }}
+                style={{
+                  maxHeight: "fit-content",
+                  cursor: "pointer",
+                  borderRadius: "16px",
+                  transition: "all 0.2s ease",
+                }}
               >
                 {/* Plan Header */}
-                <div className="flexRow flexRow_stretch width100">
-                  <div className="flexRow gap_12 flex_center">
+                <div className="flexClm gap_12 width100">
+                  <div className="flexRow gap_12">
                     <div>{getPlanIcon(plan.planId)}</div>
                     <div className="flexClm">
                       <span className="font_20 font_weight_600">
                         {plan.name}
                       </span>
                       <span className="plan-description font_12">
-                        {plan.planId === "pro" && "Perfect for serious traders"}
-                        {plan.planId === "elite" && "For professional trading"}
-                        {plan.planId === "master" &&
-                          "Enterprise-grade solution"}
+                        {plan.planId === "pro" && "Short term analysis"}
+                        {plan.planId === "elite" && "Long term analysis"}
+                        {plan.planId === "master" && "Unlimited access"}
                       </span>
                     </div>
                   </div>
 
                   {/* Price Section */}
                   <div>
-                    <div className="flexClm" style={{ alignItems: "end" }}>
-                      <div>
+                    <div className="flexClm">
+                      <div style={{ fontSize: "32px" }}>
                         <span>{priceInfo.currency}</span>
-                        <span className="font_32 font_weight_600">
+                        <span className="font_weight_600">
                           {priceInfo.price}
                         </span>
                       </div>
@@ -463,7 +494,7 @@ function Pricing() {
                 </div>
 
                 {/* Show Details */}
-                <div className="flexRow flexRow_stretch">
+                <div className="flexRow flexRow_stretch gap_12">
                   <a
                     className="direct_tertiary flexRow gap_8 font_12"
                     onClick={(e) => {
@@ -488,15 +519,20 @@ function Pricing() {
                 {/* CTA Button */}
                 <motion.button
                   className={`flexRow gap_4 flex_center ${
-                    isActive ? "button_pri" : "button_sec"
+                    activePlan === plan.planId ? "button_pri" : "button_sec"
                   }`}
-                  disabled={isCurrent}
+                  disabled={currentPlanId === plan.planId} // ✅ disables if user already owns this plan
                   onClick={(e) => {
-                    e.stopPropagation(); // prevent card click from firing
-                    handleContinue(plan.planId); // ✅ pass planId directly
+                    e.stopPropagation();
+                    if (currentPlanId !== plan.planId) {
+                      handleContinue(plan.planId);
+                    }
                   }}
                 >
-                  {isCurrent ? "Current Plan" : "Get Started"} <Zap size={16} />
+                  {currentPlanId === plan.planId
+                    ? "Current Plan"
+                    : "Get Started"}{" "}
+                  <Zap size={16} />
                 </motion.button>
 
                 {/* Plan Features */}

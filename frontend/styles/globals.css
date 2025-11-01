@@ -411,6 +411,7 @@ input:focus {
   font-family: var(--ff-Pop);
   font-size: var(--px-12);
   height: 100%;
+  max-height: fit-content;
   transition: 0.3s;
 }
 
@@ -1360,7 +1361,7 @@ footer {
 
   .gridContainer {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: var(--px-16);
   }
 

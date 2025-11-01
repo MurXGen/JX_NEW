@@ -52,11 +52,16 @@ export default function CheckoutOnline() {
       day: "numeric",
     });
   };
+  const [loading, setLoading] = useState(true); // ✅ track loader state
 
-  // Redirect unverified users
   useEffect(() => {
-    const verified = Cookies.get("isVerified");
-    if (verified !== "yes") router.push("/login");
+    const isVerified = Cookies.get("isVerified");
+
+    if (!isVerified === "yes") {
+      router.push("/accounts");
+    } else {
+      setLoading(false); // ✅ stop loader when not redirecting
+    }
   }, [router]);
 
   // Fetch plan details from IndexedDB
@@ -258,6 +263,11 @@ export default function CheckoutOnline() {
       setIsProcessing(false);
     }
   };
+
+  // ✅ Show loader until verification is done
+  if (loading) {
+    return <FullPageLoader />;
+  }
 
   if (!planDetails) return <FullPageLoader />;
 

@@ -262,7 +262,7 @@ const ExportPage = () => {
     return (
       <div className="exportPage flexClm gap_24 pad_24">
         <div className="flexRow flexRow_stretch">
-          <span className="font_20 font_weight_600">Export Trades</span>
+          <span className="font_20 font_weight_600">Export journal</span>
         </div>
 
         <div className="chart_boxBg flexClm gap_16 pad_32 flex_center text_center">
@@ -292,7 +292,7 @@ const ExportPage = () => {
           <ArrowLeft size={20} />
         </button>
         <div className="flexClm">
-          <span className="font_20 font_weight_600">Export Trades</span>
+          <span className="font_20 font_weight_600">Export</span>
           <span className="font_14 shade_50">
             Export your trading data to CSV for analysis
           </span>
@@ -371,7 +371,7 @@ const ExportPage = () => {
           <Download size={18} />
           {exporting
             ? "Exporting..."
-            : `Export ${filteredTrades.length} Trades as CSV`}
+            : `Export ${filteredTrades.length} logged trades as CSV`}
         </button>
 
         <div className="flexRow flexRow_center">

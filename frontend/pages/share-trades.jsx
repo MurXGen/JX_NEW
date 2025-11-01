@@ -282,7 +282,7 @@ const ShareTrades = () => {
           <ArrowLeft size={20} />
         </button>
         <div className="flexClm">
-          <span className="font_20 font_weight_600">Share Trades</span>
+          <span className="font_20 font_weight_600">Share</span>
           <span className="font_14 shade_50">
             Showcase your trading performance
           </span>
