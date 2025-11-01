@@ -1,11 +1,23 @@
 import "@/styles/globals.css";
-
+import * as gtag from "@/utils/gtag";
 import Head from "next/head";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
 import { useState } from "react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function MyApp({ Component, pageProps }) {
+  const router = useRouter();
+  useEffect(() => {
+    const handleRouteChange = (url) => {
+      gtag.pageview(url);
+    };
+    router.events.on("routeChangeComplete", handleRouteChange);
+    // first page load
+    handleRouteChange(window.location.pathname);
+    return () => {
+      router.events.off("routeChangeComplete", handleRouteChange);
+    };
+  }, [router.events]);
   return (
     <>
       <Head>
@@ -82,6 +94,26 @@ export default function MyApp({ Component, pageProps }) {
             })();`,
           }}
         />
+
+        {/* GA4 */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', { send_page_view: false });
+                `,
+              }}
+            />
+          </>
+        )}
       </Head>
 
       <Component {...pageProps} />
