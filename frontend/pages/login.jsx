@@ -15,6 +15,7 @@ import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import WelcomeModal from "@/components/ui/WelcomeModal";
 import { FcGoogle } from "react-icons/fc";
 import { Turnstile } from "@marsidev/react-turnstile";
+import LegalLinks from "@/components/landingPage/LegalLinks";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -331,6 +332,7 @@ function Login() {
           />
         )}
       </div>
+      <LegalLinks />
     </>
   );
 }

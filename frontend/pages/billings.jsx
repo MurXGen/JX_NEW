@@ -1,6 +1,7 @@
 // components/Billing/BillingPage.js
 "use client";
 
+import LegalLinks from "@/components/landingPage/LegalLinks";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import { AnimatePresence, motion } from "framer-motion";
@@ -381,6 +382,8 @@ export default function BillingPage() {
           )}
         </AnimatePresence>
       </motion.div>
+
+      <LegalLinks />
 
       {/* Order Details Modal */}
       {/* <AnimatePresence>

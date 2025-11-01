@@ -27,6 +27,7 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import LegalLinks from "@/components/landingPage/LegalLinks";
 
 function Pricing() {
   const router = useRouter();
@@ -628,6 +629,7 @@ function Pricing() {
           />
         )}
       </AnimatePresence>
+      <LegalLinks />
     </div>
   );
 }

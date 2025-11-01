@@ -2,6 +2,7 @@
 
 import { register } from "@/api/auth";
 import Navbar from "@/components/Auth/Navbar";
+import LegalLinks from "@/components/landingPage/LegalLinks";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import MessageCard from "@/components/ui/BannerInstruction";
 import ToastMessage from "@/components/ui/ToastMessage";
@@ -560,6 +561,7 @@ function Register() {
         <ToastMessage type={popup.type} message={popup.message} />
         <BackgroundBlur />
       </div>
+      <LegalLinks />
     </>
   );
 }

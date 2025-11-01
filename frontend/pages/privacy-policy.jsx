@@ -1,5 +1,6 @@
 "use client";
 
+import LegalLinks from "@/components/landingPage/LegalLinks";
 import Head from "next/head";
 import { useEffect } from "react";
 
@@ -273,6 +274,7 @@ export default function PrivacyPolicy() {
             Last updated: {effectiveDate}
           </p>
         </footer>
+        <LegalLinks />
       </main>
     </>
   );
