@@ -1,9 +1,11 @@
 "use client";
 import { ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import React from "react";
 
 const HeroSection = () => {
+  const router = useRouter();
   return (
     <section className="hero flexClm flex_center">
       {/* Background Image */}

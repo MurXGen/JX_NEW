@@ -26,7 +26,7 @@ export default function BottomCTA() {
             <div className="flexRow gap_12 ">
               <Sparkles size={22} className="vector" />
               <span className="flexClm gap_4">
-                <strong>Level up your trading game!</strong>
+                <strong>Ready to level-up your performance!</strong>
                 <span className="font_12">
                   Start journaling smarter with <span>JournalX.app</span> —
                   built by traders, for traders.

@@ -24,7 +24,7 @@ const faqs = [
   {
     question: "Can I connect my broker or trading platform to JournalX?",
     answer:
-      "Yes, JournalX supports integration with popular brokers and trading platforms. You can automatically sync trades, saving you time and ensuring accurate records.",
+      "Yes we are on it as we are gradually integarting and it would be available as soon as possible! JournalX supports integration with popular brokers and trading platforms. You can automatically sync trades, saving you time and ensuring accurate records.",
   },
   {
     question: "Will my trading data remain private and secure?",
