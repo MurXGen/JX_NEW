@@ -58,10 +58,10 @@ export default function AddTrade() {
   const [form, setForm] = useState({
     symbol: "",
     direction: "long",
-    quantityUSD: "",
+    quantityUSD: "1",
     leverage: "1",
-    totalQuantity: 0,
-    tradeStatus: "running",
+    totalQuantity: 1,
+    tradeStatus: "quick",
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
     tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
@@ -76,12 +76,7 @@ export default function AddTrade() {
     openTime: now,
 
     // ✅ Automatically handle close time based on tradeStatus
-    closeTime:
-      form?.tradeStatus === "quick"
-        ? now
-        : form?.tradeStatus === "running"
-        ? null
-        : now,
+    closeTime: now,
 
     // Fee Fields
     feeType: "percent",

@@ -76,12 +76,7 @@ export default function AddTrade() {
     openTime: now,
 
     // ✅ Automatically handle close time based on tradeStatus
-    closeTime:
-      form?.tradeStatus === "quick"
-        ? now
-        : form?.tradeStatus === "running"
-        ? null
-        : now,
+    closeTime: now,
 
     // Fee Fields
     feeType: "percent",
