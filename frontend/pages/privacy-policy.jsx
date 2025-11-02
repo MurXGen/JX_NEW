@@ -172,8 +172,8 @@ export default function PrivacyPolicy() {
           </p>
           <p>
             To exercise any rights, contact:{" "}
-            <a href="mailto:officialjournalx@gmail.app">
-              officialjournalx@gmail.app
+            <a href="mailto:officialjournalx@gmail.com">
+              officialjournalx@gmail.com
             </a>
             .
           </p>
@@ -248,8 +248,8 @@ export default function PrivacyPolicy() {
           </p>
           <p>
             – Email:{" "}
-            <a href="mailto:officialjournalx@gmail.app">
-              officialjournalx@gmail.app
+            <a href="mailto:officialjournalx@gmail.com">
+              officialjournalx@gmail.com
             </a>{" "}
             <br />– Phone: +91 7977960242
           </p>

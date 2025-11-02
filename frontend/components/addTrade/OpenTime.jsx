@@ -11,7 +11,7 @@ const DateTimeImageSection = ({
 }) => {
   return (
     <div className="tradeGrid">
-      {/* <span className="label">{label}</span> */}
+      <span className="label shade_50">{label}</span>
       <div className="flexClm gap_12">
         <DateTimePicker label="" value={dateValue} onChange={onDateChange} />
         <div className="imagePicker">

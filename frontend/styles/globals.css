@@ -601,6 +601,7 @@ button:disabled {
   color: var(--error);
   text-shadow: 0 0 46px var(--error);
 }
+
 .removeScrollBar {
   scrollbar-width: none;
   /* Firefox */

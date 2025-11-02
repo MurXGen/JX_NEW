@@ -125,8 +125,8 @@ export default function RefundPolicy() {
           <h2>5. Refund Process</h2>
           <p>
             To request a refund, email our support team at{" "}
-            <a href="mailto:officialjournalx@gmail.app">
-              officialjournalx@gmail.app
+            <a href="mailto:officialjournalx@gmail.com">
+              officialjournalx@gmail.com
             </a>{" "}
             with the subject line <strong>“Refund Request — JournalX”</strong>.
             Please include:
@@ -192,8 +192,8 @@ export default function RefundPolicy() {
           </p>
           <p>
             – Email:{" "}
-            <a href="mailto:officialjournalx@gmail.app">
-              officialjournalx@gmail.app
+            <a href="mailto:officialjournalx@gmail.com">
+              officialjournalx@gmail.com
             </a>
             <br />– Phone: +91 7977960242
           </p>

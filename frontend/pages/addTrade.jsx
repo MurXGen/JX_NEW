@@ -11,6 +11,7 @@ import TradeStatusGrid from "@/components/addTrade/Status";
 import TakeProfitSection from "@/components/addTrade/TP";
 import Ticker from "@/components/addTrade/Ticker";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import ModalWrapper from "@/components/ui/ModalWrapper";
 import StepWizard from "@/components/ui/StepWizard";
 import ToastMessage from "@/components/ui/ToastMessage";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -59,7 +60,7 @@ export default function AddTrade() {
     quantityUSD: "",
     leverage: "1",
     totalQuantity: 0,
-    tradeStatus: "running",
+    tradeStatus: "quick",
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
     tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
@@ -676,6 +677,23 @@ export default function AddTrade() {
     });
   }
 
+  function handleImageRemove(field, setForm) {
+    // Remove from form state
+    setForm((prev) => ({
+      ...prev,
+      [field]: null,
+      [`${field}Preview`]: "",
+      [`${field}Removed`]: true,
+    }));
+
+    // Remove from localStorage
+    try {
+      localStorage.removeItem(`newTradeImage_${field}`);
+    } catch (err) {
+      error(`Failed to remove image from localStorage for ${field}`, err);
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -718,261 +736,233 @@ export default function AddTrade() {
     }
   };
 
-  useEffect(() => {
-    document.body.style.overflow = activeGrid ? "hidden" : "auto";
-  }, [activeGrid]);
+  const [activeModal, setActiveModal] = useState(null);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {};
+  const openModal = (key) => setActiveModal(key);
+  const closeModal = () => setActiveModal(null);
 
-    if (activeGrid) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
+  const modalComponents = {
+    quantity: (
+      <QuantityGrid
+        form={form}
+        handleChange={handleChange}
+        currencySymbol={currencySymbol}
+      />
+    ),
+    entries: (
+      <EntriesSection
+        form={form}
+        setForm={setForm}
+        currencySymbol={currencySymbol}
+        formatPrice={formatPrice}
+        formatNumber={formatNumber}
+        handleAllocationBlur={handleAllocationBlur}
+      />
+    ),
+    exits: (
+      <ExitsSection
+        form={form}
+        setForm={setForm}
+        currencySymbol={currencySymbol}
+        handleExitAllocationBlur={handleExitAllocationBlur}
+        calcPriceFromPercent={calcPriceFromPercent}
+        formatPrice={formatPrice}
+        formatNumber={formatNumber}
+      />
+    ),
+    stoploss: (
+      <StopLossSection
+        form={form}
+        setForm={setForm}
+        calcPriceFromPercent={calcPriceFromPercent}
+        formatPrice={formatPrice}
+        currencySymbol={currencySymbol}
+        handleSLAllocationBlur={handleSLAllocationBlur}
+      />
+    ),
+    takeprofit: (
+      <TakeProfitSection
+        form={form}
+        setForm={setForm}
+        calcPriceFromPercent={calcPriceFromPercent}
+        formatPrice={formatPrice}
+        currencySymbol={currencySymbol}
+        handleTPAllocationBlur={handleTPAllocationBlur}
+      />
+    ),
+    opentime: (
+      <DateTimeImageSection
+        label="Open Time"
+        dateValue={form.openTime}
+        onDateChange={(date) =>
+          setForm((prev) => ({ ...prev, openTime: date }))
+        }
+        imagePreview={form.openImagePreview}
+        onImageChange={(e) => handleImageChange(e, "openImage", setForm)}
+        onRemove={() => handleImageRemove("openImage", setForm)}
+      />
+    ),
+    closetime: (
+      <DateTimeImageSection
+        label="Close Time"
+        dateValue={form.closeTime}
+        onDateChange={(date) =>
+          setForm((prev) => ({ ...prev, closeTime: date }))
+        }
+        imagePreview={form.closeImagePreview}
+        onImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
+        onRemove={() => handleImageRemove("closeImage", setForm)}
+      />
+    ),
+    rules: (
+      <ToggleSwitch
+        label="Rules"
+        value={form.rulesFollowed}
+        onToggle={() =>
+          setForm((prev) => ({
+            ...prev,
+            rulesFollowed: !prev.rulesFollowed,
+          }))
+        }
+      />
+    ),
+    reason: (
+      <ReasonSelector
+        label="Reason"
+        name="reason"
+        value={form.reason}
+        onChange={handleChange}
+      />
+    ),
+    learnings: (
+      <TextAreaField
+        label="Learnings"
+        name="learnings"
+        value={form.learnings}
+        onChange={handleChange}
+        placeholder="What did you learn from this trade?"
+      />
+    ),
+  };
 
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [activeGrid]);
+  // 🧠 Determine which modal buttons to show
+  const tradeStatus = form.tradeStatus?.toLowerCase();
 
-  const inlineEditableKeys = ["status", "opentime", "closetime", "rules"]; // these won't open modal
+  let hiddenKeys = [];
+  if (tradeStatus === "running") hiddenKeys = ["exits", "closetime"];
+  else if (tradeStatus === "closed") hiddenKeys = ["stoploss", "takeprofit"];
+  else if (tradeStatus === "quick")
+    hiddenKeys = [
+      "stoploss",
+      "takeprofit",
+      "entries",
+      "exits",
+      "opentime",
+      "closetime",
+    ];
 
-  const grids = [
-    {
-      key: "ticker",
-      content: (
-        <Ticker form={form} setForm={setForm} handleChange={handleChange} />
-      ),
-    },
-    {
-      key: "quantity",
-      content: (
-        <QuantityGrid
-          form={form}
-          handleChange={handleChange}
-          currencySymbol={currencySymbol}
-        />
-      ),
-    },
-    {
-      key: "status",
-      content: (
+  const visibleButtons = Object.keys(modalComponents).filter(
+    (key) => !hiddenKeys.includes(key)
+  );
+
+  return (
+    <div className="flexClm gap_32" style={{ paddingBottom: "100px" }}>
+      <div className="flexClm gap_4">
+        <span className="font_20">Add trade</span>
+        <span className="font_12 shade_60">Log trade in seconds</span>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flexClm gap_24">
+        {/* 1️⃣ Trade Status */}
         <TradeStatusGrid
           form={form}
           handleChange={handleChange}
           statuses={statuses}
         />
-      ),
-    },
-    {
-      key: "entries",
-      content: (
-        <EntriesSection
-          form={form}
-          setForm={setForm}
-          currencySymbol={currencySymbol}
-          formatPrice={formatPrice}
-          formatNumber={formatNumber}
-          handleAllocationBlur={handleAllocationBlur}
-        />
-      ),
-    },
-    {
-      key: "exits",
-      content: (
-        <ExitsSection
-          form={form}
-          setForm={setForm}
-          firstExitRef={firstExitRef}
-          updateExit={updateExit}
-          currencySymbol={currencySymbol}
-          handleExitAllocationBlur={handleExitAllocationBlur}
-          calcPriceFromPercent={calcPriceFromPercent}
-          formatPrice={formatPrice}
-          formatNumber={formatNumber}
-        />
-      ),
-    },
-    {
-      key: "quick",
-      content: (
-        <QuickSection
-          form={form}
-          setForm={setForm}
-          currency={currencySymbol}
-          handleChange={handleChange}
-        />
-      ),
-    },
-    {
-      key: "sl",
-      content: (
-        <StopLossSection
-          form={form}
-          setForm={setForm}
-          calcPriceFromPercent={calcPriceFromPercent}
-          formatPrice={formatPrice}
-          currencySymbol={currencySymbol}
-          handleSLAllocationBlur={handleSLAllocationBlur}
-        />
-      ),
-    },
-    {
-      key: "tp",
-      content: (
-        <TakeProfitSection
-          form={form}
-          setForm={setForm}
-          calcPriceFromPercent={calcPriceFromPercent}
-          formatPrice={formatPrice}
-          currencySymbol={currencySymbol}
-          handleTPAllocationBlur={handleTPAllocationBlur}
-        />
-      ),
-    },
-    {
-      key: "opentime",
-      content: (
-        <DateTimeImageSection
-          label="Open Time"
-          dateValue={form.openTime}
-          onDateChange={(date) =>
-            setForm((prev) => ({ ...prev, openTime: date }))
-          }
-          imagePreview={form.openImagePreview}
-          onImageChange={(e) => handleImageChange(e, "openImage", setForm)}
-          onRemove={() =>
-            setForm((prev) => ({
-              ...prev,
-              openImage: null,
-              openImagePreview: "",
-            }))
-          }
-        />
-      ),
-    },
-    {
-      key: "closetime",
-      content: (
-        <DateTimeImageSection
-          label="Close Time"
-          dateValue={form.closeTime}
-          onDateChange={(date) =>
-            setForm((prev) => ({ ...prev, closeTime: date }))
-          }
-          imagePreview={form.closeImagePreview}
-          onImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
-          onRemove={() =>
-            setForm((prev) => ({
-              ...prev,
-              closeImage: null,
-              closeImagePreview: "",
-            }))
-          }
-        />
-      ),
-    },
-    {
-      key: "rules",
-      content: (
-        <ToggleSwitch
-          label="Rules"
-          value={form.rulesFollowed}
-          onToggle={() =>
-            setForm((prev) => ({ ...prev, rulesFollowed: !prev.rulesFollowed }))
-          }
-        />
-      ),
-    },
-    {
-      key: "reasons",
-      content: (
-        <ReasonSelector
-          label="Reason"
-          name="reason"
-          value={form.reason}
-          onChange={handleChange}
-        />
-      ),
-    },
-    {
-      key: "learnings",
-      content: (
-        <TextAreaField
-          label="Learnings"
-          name="learnings"
-          value={form.learnings}
-          onChange={handleChange}
-          placeholder="What did you learn from this trade?"
-        />
-      ),
-    },
-  ];
 
-  // helper to filter grids dynamically
-  const getFilteredGrids = (status) => {
-    switch (status) {
-      case "quick":
-        return grids.filter((g) =>
-          [
-            "ticker",
-            "quantity",
-            "status",
-            "quick",
-            "opentime",
-            "closetime",
-            "reasons",
-            "learnings",
-          ].includes(g.key)
-        );
+        {/* 2️⃣ Ticker */}
+        <Ticker form={form} setForm={setForm} handleChange={handleChange} />
 
-      case "closed":
-        return grids.filter((g) =>
-          [
-            "ticker",
-            "quantity",
-            "status",
-            "entries",
-            "exits",
-            "opentime",
-            "closetime",
-            "reasons",
-            "learnings",
-          ].includes(g.key)
-        );
+        {/* 3️⃣ Conditional Sections */}
+        {tradeStatus === "quick" && (
+          <>
+            <QuickSection
+              form={form}
+              setForm={setForm}
+              currency={currencySymbol}
+              handleChange={handleChange}
+            />
 
-      case "running":
-        return grids.filter((g) =>
-          [
-            "ticker",
-            "quantity",
-            "status",
-            "entries",
-            "sl",
-            "tp",
-            "opentime",
-            "reasons",
-            "learnings",
-          ].includes(g.key)
-        );
+            {/* Show Open Image + Close Time directly */}
+            {modalComponents.opentime}
+            {modalComponents.closetime}
+          </>
+        )}
 
-      default:
-        return grids;
-    }
-  };
-
-  return (
-    <div className="flexClm gap_32">
-      <div className="flexClm gap_4">
-        <span className="font_20">Add trade</span>
-        <span className="font_12">Log trade in seconds</span>
-      </div>
-      <form onSubmit={handleSubmit}>
-        <StepWizard
-          grids={getFilteredGrids(form.tradeStatus)} // pass only required steps
-          onFinish={handleSubmit}
-        />
+        {tradeStatus === "closed" && (
+          <QuickSection
+            form={form}
+            setForm={setForm}
+            currency={currencySymbol}
+            handleChange={handleChange}
+          />
+        )}
       </form>
 
+      {/* ✅ Submit & Cancel */}
+      <div
+        className="popups_btm"
+        style={{
+          width: "98%",
+          backdropFilter: "blur(20px)",
+          bottom: "0px",
+          padding: "0 12px 12px 12px",
+        }}
+      >
+        <span className="font_12 shade_50">Choose other factors</span>
+        {/* 🔘 Bottom Buttons for opening modals */}
+        {visibleButtons.length > 0 && (
+          <div
+            className="flexRow gap_12 flexRow_scroll removeScrollBar"
+            style={{ padding: "16px 0" }}
+          >
+            {visibleButtons.map((key) => (
+              <button
+                key={key}
+                className="button_sec"
+                onClick={() => openModal(key)}
+              >
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (s) => s.toUpperCase())}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flexRow flexRow_stretch gap_4">
+          <button
+            className="button_sec"
+            style={{ width: "100%" }}
+            onClick={() => router.push("/trade")}
+          >
+            Cancel
+          </button>
+          <button
+            className="button_pri"
+            style={{ width: "100%" }}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading
+              ? "⏳ Please wait..."
+              : isEdit
+              ? "Update Trade"
+              : "Submit Trade"}
+          </button>
+        </div>
+      </div>
+
+      {/* 🔄 Toast + Loader */}
       {toast && (
         <ToastMessage
           type={toast.type}
@@ -980,38 +970,16 @@ export default function AddTrade() {
           duration={3000}
         />
       )}
-
       {loading && <FullPageLoader />}
 
-      <div
-        className="popups_btm flexRow flexRow_stretch gap_4"
-        style={{
-          width: "90%",
-          backdropFilter: "blur(20px)",
-          padding: "8px 8px",
-        }}
-      >
-        <button
-          className="button_sec"
-          style={{ width: "100%" }}
-          onClick={() => router.push("/trade")}
-        >
-          Cancel
-        </button>
-        <button
-          className="button_pri"
-          style={{ width: "100%" }}
-          onClick={handleSubmit}
-          disabled={loading} // 🔒 disabled while loading/redirecting
-        >
-          {loading
-            ? "⏳ Please wait..."
-            : isEdit
-            ? "Update Trade"
-            : "Submit Trade"}
-        </button>
-      </div>
-
+      {/* 🪟 Active Modal */}
+      {activeModal && (
+        <ModalWrapper onClose={closeModal}>
+          <div className="modal_inner flexClm gap_16">
+            {modalComponents[activeModal]}
+          </div>
+        </ModalWrapper>
+      )}
       {/* <pre
         style={{
           background: "black",
@@ -1029,7 +997,6 @@ export default function AddTrade() {
           2
         )}
       </pre> */}
-
       {/* Summary Section */}
       {/* <div style={{ marginTop: "2rem" }}>
                 <h3>Trade Setup Summary</h3>

@@ -5,6 +5,7 @@ const Ticker = ({ form, setForm }) => {
   const [storedSymbols, setStoredSymbols] = useState([]);
   const [filteredSymbols, setFilteredSymbols] = useState([]);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("tickers")) || [];
@@ -62,58 +63,91 @@ const Ticker = ({ form, setForm }) => {
   const clearInput = () => setForm((prev) => ({ ...prev, symbol: "" }));
 
   return (
-    <div className="tradeGrid flexClm gap_12">
+    <div className="tradeGrid">
       {/* Symbol Input with Clear Icon */}
-      <div className="inputLabelShift" style={{ position: "relative" }}>
-        <input
-          name="symbol"
-          value={form.symbol}
-          onChange={handleSymbolChange}
-          onBlur={handleSymbolBlur}
-          placeholder="Ticker name"
-          autoComplete="off"
-          style={{ paddingRight: "28px" }} // space for X icon
-        />
-        <label>Ticker name</label>
-
-        {/* Clear Input Icon */}
-        {form.symbol && (
-          <X
-            size={16}
-            style={{
-              position: "absolute",
-              right: 8,
-              top: "50%",
-              transform: "translateY(-50%)",
-              cursor: "pointer",
-              color: "#888",
+      <div className="flexRow gap_12" style={{ position: "relative" }}>
+        <div className="inputLabelShift flexRow gap_12">
+          <input
+            name="symbol"
+            value={form.symbol}
+            onChange={handleSymbolChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={(e) => {
+              setTimeout(() => setIsFocused(false), 150); // small delay so clicks register
+              handleSymbolBlur(e);
             }}
-            onMouseDown={(e) => {
-              e.preventDefault(); // prevent blur
-              clearInput();
-            }}
+            placeholder="Traded symbol : Nifty, Bitcoin etf.."
+            autoComplete="off"
+            style={{ paddingRight: "28px" }}
           />
-        )}
+          <label>Traded symbol</label>
+
+          {/* Clear Input Icon */}
+          {form.symbol && (
+            <X
+              size={16}
+              style={{
+                position: "absolute",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "#888",
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                clearInput();
+              }}
+            />
+          )}
+        </div>
+
+        {/* Long / Short Buttons */}
+        <div className="flexRow flexRow_stretch gap_12">
+          <div
+            className={`button_sec flexRow flex_center ${
+              form.direction === "long" ? "success" : ""
+            }`}
+            style={{ width: "100%" }}
+            onClick={() => setForm({ ...form, direction: "long" })}
+          >
+            Long <ArrowUpRight size={20} />
+          </div>
+          <div
+            className={`button_sec flexRow flex_center ${
+              form.direction === "short" ? "error" : ""
+            }`}
+            style={{ width: "100%" }}
+            onClick={() => setForm({ ...form, direction: "short" })}
+          >
+            Short <ArrowDownRight size={20} />
+          </div>
+        </div>
       </div>
 
-      {/* Chip-style suggestions */}
-      {filteredSymbols.length > 0 && (
+      {/* Show ticker suggestions only if input is focused */}
+      {isFocused && filteredSymbols.length > 0 && (
         <div
-          className="flexRow gap_8 flexRow_scroll removeScrollBar"
-          style={{ marginTop: 8 }}
+          className="flexClm gap_8 flexRow_scroll removeScrollBar"
+          style={{
+            background: "var(--white-4)",
+            borderRadius: "var(--px-12)",
+            maxHeight: "150px",
+            overflowY: "auto",
+          }}
         >
           {filteredSymbols.map((sym) => (
             <div
               key={sym}
-              className={`button_ter font_14 flexRow flex_center gap_8 ${
+              className={`font_14 pad_16 flexRow flexRow_stretch gap_8 ${
                 form.symbol === sym ? "selected" : ""
               }`}
+              style={{ cursor: "pointer" }}
               onMouseDown={() => handleSymbolSelect(sym)}
             >
               <span>{sym}</span>
               <X
                 size={12}
-                className="chart_boxBg"
                 style={{ padding: "4px" }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
@@ -125,30 +159,6 @@ const Ticker = ({ form, setForm }) => {
           ))}
         </div>
       )}
-
-      <hr width={100} color="grey" />
-
-      {/* Long / Short Buttons */}
-      <div className="flexRow flexRow_stretch gap_12" style={{ width: "100%" }}>
-        <div
-          className={`button_sec flexRow flex_center ${
-            form.direction === "long" ? "success" : ""
-          }`}
-          style={{ width: "100%" }}
-          onClick={() => setForm({ ...form, direction: "long" })}
-        >
-          Long <ArrowUpRight size={20} />
-        </div>
-        <div
-          className={`button_sec flexRow flex_center ${
-            form.direction === "short" ? "error" : ""
-          }`}
-          style={{ width: "100%" }}
-          onClick={() => setForm({ ...form, direction: "short" })}
-        >
-          Short <ArrowDownRight size={20} />
-        </div>
-      </div>
     </div>
   );
 };

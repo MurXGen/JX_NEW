@@ -48,8 +48,8 @@ export default function ContactUs() {
           </p>
           <p>
             – <strong>Email:</strong>{" "}
-            <a href="mailto:officialjournalx@gmail.app">
-              officialjournalx@gmail.app
+            <a href="mailto:officialjournalx@gmail.com">
+              officialjournalx@gmail.com
             </a>
           </p>
           <p>
@@ -74,8 +74,8 @@ export default function ContactUs() {
           </p>
           <p>
             Send your request to:{" "}
-            <a href="mailto:officialjournalx@gmail.app">
-              officialjournalx@gmail.app
+            <a href="mailto:officialjournalx@gmail.com">
+              officialjournalx@gmail.com
             </a>
           </p>
         </section>
@@ -90,8 +90,8 @@ export default function ContactUs() {
           </p>
           <p>
             – <strong>Email:</strong>{" "}
-            <a href="mailto:officialjournalx@gmail.app">
-              officialjournalx@gmail.app
+            <a href="mailto:officialjournalx@gmail.com">
+              officialjournalx@gmail.com
             </a>
             <br />– <strong>Phone:</strong> +91 7977960242
           </p>
@@ -111,8 +111,8 @@ export default function ContactUs() {
           </p>
           <p>
             – <strong>Business Email:</strong>{" "}
-            <a href="mailto:officialjournalx@gmail.app">
-              officialjournalx@gmail.app
+            <a href="mailto:officialjournalx@gmail.com">
+              officialjournalx@gmail.com
             </a>
           </p>
         </section>

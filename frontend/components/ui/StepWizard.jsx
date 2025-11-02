@@ -120,7 +120,7 @@ const StepWizard = ({ grids, onFinish }) => {
       </div> */}
 
       {/* Stepper scrollable & center active */}
-      <div className="stepper-scroll-wrapper removeScollbar" ref={stepperRef}>
+      {/* <div className="stepper-scroll-wrapper removeScollbar" ref={stepperRef}>
         <div className="stepperContainer">
           {grids.map((g, index) => (
             <div
@@ -136,7 +136,7 @@ const StepWizard = ({ grids, onFinish }) => {
             </div>
           ))}
         </div>
-        {/* Navigation */}
+ 
         <div
           className="stepNavigation flexClm flexRow_stretch flex_center gap_12"
           style={{}}
@@ -161,7 +161,7 @@ const StepWizard = ({ grids, onFinish }) => {
             </button>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Step Content */}
       <div className="stepContainer">

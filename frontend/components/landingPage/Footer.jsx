@@ -1,7 +1,7 @@
 "use client";
-import Link from "next/link";
+import { ArrowUpRight, Globe, Linkedin, Mail, Twitter } from "lucide-react";
 import Image from "next/image";
-import { Mail, Twitter, Linkedin, Globe, ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -71,8 +71,8 @@ export default function Footer() {
             <ul className="shade_50">
               <li className="flexRow flex_align_center gap_8">
                 <Mail size={16} />{" "}
-                <a href="mailto:officialjournalx@gmail.app">
-                  officialjournalx@gmail.app
+                <a href="mailto:officialjournalx@gmail.com">
+                  officialjournalx@gmail.com
                 </a>
               </li>
               <li className="flexRow flex_align_center gap_8">
