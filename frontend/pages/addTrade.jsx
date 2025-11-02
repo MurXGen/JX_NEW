@@ -54,13 +54,14 @@ export default function AddTrade() {
     );
   };
 
+  const now = new Date().toISOString();
   const [form, setForm] = useState({
     symbol: "",
     direction: "long",
     quantityUSD: "",
     leverage: "1",
     totalQuantity: 0,
-    tradeStatus: "quick",
+    tradeStatus: "running",
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
     tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
@@ -72,8 +73,24 @@ export default function AddTrade() {
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
-    openTime: getLocalDateTime(), // current local datetime
-    closeTime: null, // current local datetime
+    openTime: now,
+
+    // ✅ Automatically handle close time based on tradeStatus
+    closeTime:
+      form?.tradeStatus === "quick"
+        ? now
+        : form?.tradeStatus === "running"
+        ? null
+        : now,
+
+    // Fee Fields
+    feeType: "percent",
+    openFeeValue: "",
+    closeFeeValue: "",
+    openFeeAmount: 0,
+    closeFeeAmount: 0,
+    feeAmount: 0,
+    pnlAfterFee: 0,
 
     // Images
     openImage: null,
@@ -88,6 +105,14 @@ export default function AddTrade() {
     expectedProfit: 0,
     expectedLoss: 0,
   });
+
+  useEffect(() => {
+    if (form.tradeStatus === "quick") {
+      setForm((prev) => ({ ...prev, closeTime: new Date().toISOString() }));
+    } else if (form.tradeStatus === "running") {
+      setForm((prev) => ({ ...prev, closeTime: null }));
+    }
+  }, [form.tradeStatus]);
 
   const validateForm = (form) => {
     if (!form.symbol.trim()) return "Symbol name is required";

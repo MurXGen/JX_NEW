@@ -1,3 +1,5 @@
+"use client";
+
 import EntriesSection from "@/components/addTrade/Entries";
 import ExitsSection from "@/components/addTrade/Exits";
 import TextAreaField from "@/components/addTrade/Learnings";
@@ -10,14 +12,18 @@ import StopLossSection from "@/components/addTrade/SL";
 import TradeStatusGrid from "@/components/addTrade/Status";
 import TakeProfitSection from "@/components/addTrade/TP";
 import Ticker from "@/components/addTrade/Ticker";
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
+import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
-import ModalWrapper from "@/components/ui/ModalWrapper";
+import PlanLimitModal from "@/components/ui/PlanLimitModal";
 import StepWizard from "@/components/ui/StepWizard";
 import ToastMessage from "@/components/ui/ToastMessage";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { formatNumber } from "@/utils/formatNumbers"; //
 import { getFromIndexedDB } from "@/utils/indexedDB";
+import { canAddTrade, canUploadImage } from "@/utils/planRestrictions";
 import Cookies from "js-cookie";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 
@@ -32,11 +38,16 @@ export default function AddTrade() {
   const [loading, setLoading] = useState(false);
   const [activeGrid, setActiveGrid] = useState(null);
 
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planModalMessage, setPlanModalMessage] = useState("");
+
   const statuses = [
     { value: "running", label: "Running" },
     { value: "closed", label: "Closed" },
     { value: "quick", label: "Quick" },
   ];
+
+  const [isFormValid, setIsFormValid] = useState(false);
 
   // format local datetime for <input type="datetime-local" />
   const getLocalDateTime = (date = new Date()) => {
@@ -54,7 +65,9 @@ export default function AddTrade() {
     );
   };
 
-  const now = new Date().toISOString();
+  const now = new Date().toISOString(); // current ISO timestamp
+  const tradeStatus = "running"; // your default status
+
   const [form, setForm] = useState({
     symbol: "",
     direction: "long",
@@ -73,23 +86,16 @@ export default function AddTrade() {
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
-    openTime: now,
-
-    // ✅ Automatically handle close time based on tradeStatus
-    closeTime:
-      form?.tradeStatus === "quick"
-        ? now
-        : form?.tradeStatus === "running"
-        ? null
-        : now,
+    openTime: now, // ✅ always set
+    closeTime: tradeStatus === "running" ? null : now, // ✅ conditional
 
     // Fee Fields
-    feeType: "percent",
-    openFeeValue: "",
-    closeFeeValue: "",
-    openFeeAmount: 0,
-    closeFeeAmount: 0,
-    feeAmount: 0,
+    feeType: "percent", // one type for both open/close
+    openFeeValue: "", // user inputs open fee
+    closeFeeValue: "", // auto filled from open fee, editable
+    openFeeAmount: 0, // calculated
+    closeFeeAmount: 0, // calculated
+    feeAmount: 0, // total fees = open + close
     pnlAfterFee: 0,
 
     // Images
@@ -105,14 +111,6 @@ export default function AddTrade() {
     expectedProfit: 0,
     expectedLoss: 0,
   });
-
-  useEffect(() => {
-    if (form.tradeStatus === "quick") {
-      setForm((prev) => ({ ...prev, closeTime: new Date().toISOString() }));
-    } else if (form.tradeStatus === "running") {
-      setForm((prev) => ({ ...prev, closeTime: null }));
-    }
-  }, [form.tradeStatus]);
 
   const validateForm = (form) => {
     if (!form.symbol.trim()) return "Symbol name is required";
@@ -131,11 +129,17 @@ export default function AddTrade() {
         return "At least one entry is required";
 
       if (form.tradeStatus === "closed") {
-        // Exits required for closed trades
-        if (!form.exits || form.exits.length === 0 || !form.exits[0].price)
-          return "At least one exit is required";
+        // Check if at least one exit has a valid price or percent
+        const hasValidExit =
+          form.exits &&
+          form.exits.some(
+            (exit) =>
+              (exit.price !== "" && exit.price !== null) ||
+              (exit.percent !== "" && exit.percent !== null)
+          );
 
-        // ✅ CloseTime required for closed trades
+        if (!hasValidExit) return "At least one exit is required";
+
         if (!form.closeTime) return "Close time is required for closed trades";
       }
 
@@ -163,7 +167,7 @@ export default function AddTrade() {
     }
 
     // Duration must be positive
-    if (form.duration < 0) return "Duration should be positive";
+    // if (form.duration < 0) return "Duration should be positive";
 
     // ✅ CloseTime can’t be before OpenTime (only if both exist)
     if (form.closeTime && form.openTime) {
@@ -174,6 +178,22 @@ export default function AddTrade() {
 
     return null; // ✅ No errors
   };
+
+  useEffect(() => {
+    setLoading(true);
+    const accountId = Cookies.get("accountId");
+
+    if (!accountId) {
+      router.push("/accounts");
+    }
+    setLoading(false);
+    // else do nothing, user can continue
+  }, [router]);
+
+  useEffect(() => {
+    const error = validateForm(form);
+    setIsFormValid(!error); // true if no error, false otherwise
+  }, [form]);
 
   // 🔍 detect edit mode
   const isEdit = router.query.mode === "edit" || router.query.mode === "close";
@@ -207,9 +227,29 @@ export default function AddTrade() {
           }
         }
 
+        // Calculate fee values if they don't exist in the trade data
+        // (for backward compatibility with existing trades)
+        let feeAmount = tradeData.feeAmount || 0;
+        let pnlAfterFee = tradeData.pnlAfterFee || 0;
+
+        // If fee data exists but pnlAfterFee doesn't, calculate it
+        if (tradeData.feeType && tradeData.feeValue && !tradeData.pnlAfterFee) {
+          feeAmount =
+            tradeData.feeType === "percent"
+              ? (tradeData.totalQuantity || 0) * (tradeData.feeValue / 100)
+              : tradeData.feeValue;
+          pnlAfterFee = (tradeData.pnl || 0) - feeAmount;
+        }
+
         setForm({
           ...form,
           ...tradeData,
+          // Fee fields with fallback values
+          feeType: tradeData.feeType || "",
+          feeValue: tradeData.feeValue || "",
+          feeAmount: feeAmount,
+          pnlAfterFee: pnlAfterFee,
+
           reason: parsedReason, // ✅ fix here
           openTime: tradeData.openTime
             ? getLocalDateTime(new Date(tradeData.openTime))
@@ -262,11 +302,11 @@ export default function AddTrade() {
 
     if (avgEntry && avgTP) {
       const profitPercent = ((avgTP - avgEntry) / avgEntry) * 100;
-      expectedProfit = ((profitPercent / 100) * form.quantityUSD).toFixed(2);
+      expectedProfit = ((profitPercent / 100) * form.totalQuantity).toFixed(2);
     }
     if (avgEntry && avgSL) {
       const lossPercent = ((avgEntry - avgSL) / avgEntry) * 100;
-      expectedLoss = ((lossPercent / 100) * form.quantityUSD).toFixed(2);
+      expectedLoss = ((lossPercent / 100) * form.totalQuantity).toFixed(2);
     }
 
     // Risk-Reward Ratio
@@ -285,7 +325,7 @@ export default function AddTrade() {
           ? ((avgExit - avgEntry) / avgEntry) * 100
           : ((avgEntry - avgExit) / avgEntry) * 100;
 
-      pnl = ((pnlPercent / 100) * form.quantityUSD).toFixed(2);
+      pnl = ((pnlPercent / 100) * form.totalQuantity).toFixed(2);
     }
 
     setForm((prev) => ({
@@ -308,6 +348,7 @@ export default function AddTrade() {
     form.openTime,
     form.closeTime,
     form.quantityUSD,
+    form.totalQuantity,
     form.tradeStatus,
     form.direction,
   ]);
@@ -341,12 +382,42 @@ export default function AddTrade() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setForm((prev) => {
-      const updated = { ...prev, [name]: value };
+      let updated = { ...prev, [name]: value };
+
+      // ✅ Update totalQuantity when quantityUSD or leverage changes
       if (name === "quantityUSD" || name === "leverage") {
         updated.totalQuantity =
           (Number(updated.quantityUSD) || 0) * (Number(updated.leverage) || 0);
       }
+
+      // ✅ Clear certain fields when tradeStatus changes
+      if (name === "tradeStatus") {
+        const shouldClearFields = true; // replace with your actual condition if needed
+
+        if (shouldClearFields) {
+          updated = {
+            ...updated,
+            entries: [{ price: "", allocation: "100" }],
+            exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
+            tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
+            sls: [{ mode: "price", price: "", percent: "", allocation: "" }],
+            rulesFollowed: false,
+            avgEntryPrice: "",
+            avgExitPrice: "",
+            avgSLPrice: "",
+            avgTPPrice: "",
+            duration: 0,
+            rr: "",
+            pnl: "",
+            expectedProfit: 0,
+            expectedLoss: 0,
+            closeTime: null,
+          };
+        }
+      }
+
       return updated;
     });
   };
@@ -459,47 +530,37 @@ export default function AddTrade() {
       let exits = [...prev.exits];
       let currentVal = Number(value);
 
-      if (isNaN(currentVal) || currentVal <= 0) {
-        return prev;
-      }
+      if (isNaN(currentVal) || currentVal <= 0) return prev;
 
-      // calculate remaining allocation
       const usedOther = exits.reduce(
         (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
         0
       );
       const remaining = Math.max(0, 100 - usedOther);
 
-      // clamp allocation to remaining
       if (currentVal > remaining) currentVal = remaining;
       exits[idx].allocation = currentVal;
 
-      // calculate total allocated
       const totalAllocated = exits.reduce(
         (sum, e) => sum + Number(e.allocation || 0),
         0
       );
 
-      // if < 100 and this is last exit → add new slot
       if (totalAllocated < 100 && idx === exits.length - 1) {
-        exits.push({
-          mode: "price",
-          price: "",
-          percent: "",
-          allocation: "",
-        });
+        exits.push({ mode: "price", price: "", percent: "", allocation: "" });
       } else if (totalAllocated >= 100) {
         exits = exits.slice(0, idx + 1);
       }
 
-      // --- Calculate weighted average exit price ---
+      // --- Weighted average exit price ---
       let weightedSum = 0;
       let totalWeight = 0;
+
       exits.forEach((e) => {
         let exitPrice =
           e.mode === "percent"
             ? calcPriceFromPercent(
-                form.avgEntryPrice,
+                prev.avgEntryPrice,
                 e.percent,
                 prev.direction
               )
@@ -590,9 +651,7 @@ export default function AddTrade() {
       let tps = [...prev.tps];
       let currentVal = Number(value);
 
-      if (isNaN(currentVal) || currentVal <= 0) {
-        return prev;
-      }
+      if (isNaN(currentVal) || currentVal <= 0) return prev;
 
       const usedOther = tps.reduce(
         (sum, tp, i) => (i !== idx ? sum + Number(tp.allocation || 0) : sum),
@@ -607,6 +666,7 @@ export default function AddTrade() {
         (sum, tp) => sum + Number(tp.allocation || 0),
         0
       );
+
       if (totalAllocated < 100 && idx === tps.length - 1) {
         tps.push({ mode: "price", price: "", percent: "", allocation: "" });
       } else if (totalAllocated >= 100) {
@@ -616,15 +676,28 @@ export default function AddTrade() {
       // --- Weighted Average TP Price ---
       let weightedSum = 0;
       let totalWeight = 0;
+
+      const avgSLPriceNum = Number(prev.avgSLPrice); // Ensure it's a number
+
       tps.forEach((t) => {
         let tpPrice =
           t.mode === "percent"
             ? calcPriceFromPercent(
-                form.avgEntryPrice,
+                prev.avgEntryPrice,
                 t.percent,
                 prev.direction
               )
             : t.price;
+
+        // ✅ Enforce TP >= avgSLPrice
+        if (!isNaN(tpPrice) && avgSLPriceNum) {
+          if (prev.direction === "long" && tpPrice <= avgSLPriceNum) {
+            tpPrice = avgSLPriceNum + 0.01;
+          }
+          if (prev.direction === "short" && tpPrice >= avgSLPriceNum) {
+            tpPrice = avgSLPriceNum - 0.01;
+          }
+        }
 
         const priceNum = Number(tpPrice);
         const alloc = Number(t.allocation);
@@ -632,6 +705,15 @@ export default function AddTrade() {
         if (priceNum > 0 && alloc > 0) {
           weightedSum += priceNum * (alloc / 100);
           totalWeight += alloc / 100;
+        }
+
+        // Save back the enforced TP price
+        if (t.mode === "price") t.price = roundToTwoDecimals(tpPrice);
+        if (t.mode === "percent") {
+          // Convert back to percent
+          const percentVal =
+            ((tpPrice - prev.avgEntryPrice) / prev.avgEntryPrice) * 100;
+          t.percent = roundToTwoDecimals(percentVal);
         }
       });
 
@@ -641,6 +723,10 @@ export default function AddTrade() {
       return { ...prev, tps, avgTPPrice };
     });
   };
+
+  // Helper function for rounding
+  const roundToTwoDecimals = (val) =>
+    isNaN(val) ? "" : parseFloat(Number(val).toFixed(2));
 
   const calcPriceFromPercent = (avgEntryPrice, percent, direction = "long") => {
     const base = Number(avgEntryPrice);
@@ -668,6 +754,12 @@ export default function AddTrade() {
       reader.readAsDataURL(file);
     });
 
+  function sanitizeFileName(fileName) {
+    return fileName
+      .replace(/[^a-zA-Z0-9.\-_]/g, "_") // replace unsafe characters with underscore
+      .replace(/_+/g, "_"); // collapse multiple underscores
+  }
+
   function handleImageChange(e, field, setForm) {
     const file = e.target.files[0];
     if (!file) return;
@@ -679,11 +771,12 @@ export default function AddTrade() {
     }
 
     const previewUrl = URL.createObjectURL(file);
+    const sanitizedFileName = sanitizeFileName(file.name);
 
     // set preview & file in local state (form)
     setForm((prev) => ({
       ...prev,
-      [field]: file, // keep file in memory for immediate submit if user doesn't redirect
+      [field]: new File([file], sanitizedFileName, { type: file.type }), // sanitized file
       [`${field}Preview`]: previewUrl,
     }));
 
@@ -692,7 +785,7 @@ export default function AddTrade() {
       try {
         const payload = JSON.stringify({
           dataUrl,
-          name: file.name,
+          name: sanitizedFileName,
           type: file.type,
           ts: Date.now(),
         });
@@ -720,11 +813,78 @@ export default function AddTrade() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
 
-    const validationError = validateForm(form);
+    // 🟢 Get user data
+    const userData = await getFromIndexedDB("user-data");
+
+    // ✅ Check trade limit
+    const tradeAllowed = await canAddTrade(userData);
+    if (!tradeAllowed) {
+      setPlanModalMessage("You’ve reached your monthly trade limit!");
+      setShowPlanModal(true);
+      return;
+    }
+
+    // ✅ Calculate total file size (in MB)
+    const totalFileSize =
+      ((form.openImage?.size || 0) + (form.closeImage?.size || 0)) /
+      (1024 * 1024); // bytes → MB
+
+    // ✅ Check image upload eligibility
+    const imageAllowed = await canUploadImage(userData, totalFileSize);
+    if (!imageAllowed) {
+      setPlanModalMessage("You’ve reached your monthly image upload limit!");
+      setShowPlanModal(true);
+      return;
+    }
+
+    const totalQuantity = parseFloat(form.totalQuantity) || 0;
+    const pnl = parseFloat(form.pnl) || 0;
+
+    let openFeeAmount = 0;
+    let closeFeeAmount = 0;
+    let feeAmount = 0;
+    let pnlAfterFee = pnl;
+
+    if (form.feeType) {
+      if (form.feeType === "percent") {
+        // Always calculate open fee on total quantity
+        if (form.openFeeValue) {
+          openFeeAmount = totalQuantity * (parseFloat(form.openFeeValue) / 100);
+        }
+
+        // Close fee uses (totalQuantity + pnl)
+        if (form.closeFeeValue) {
+          closeFeeAmount =
+            (totalQuantity + pnl) * (parseFloat(form.closeFeeValue) / 100);
+        }
+      } else if (form.feeType === "currency") {
+        if (form.openFeeValue) {
+          openFeeAmount = parseFloat(form.openFeeValue);
+        }
+        if (form.closeFeeValue) {
+          closeFeeAmount = parseFloat(form.closeFeeValue);
+        }
+      }
+
+      feeAmount = openFeeAmount + closeFeeAmount;
+
+      // PnL after fees
+      pnlAfterFee = pnl ? pnl - feeAmount : -feeAmount;
+    }
+
+    const updatedForm = {
+      ...form,
+      openFeeAmount,
+      closeFeeAmount,
+      feeAmount,
+      pnlAfterFee,
+    };
+
+    const validationError = validateForm(updatedForm);
     if (validationError) {
-      setToast(null); // reset first
+      setToast(null);
       setTimeout(() => {
         setToast({ type: "error", message: validationError });
       }, 0);
@@ -735,9 +895,8 @@ export default function AddTrade() {
 
     try {
       // Save serializable form data in session/local storage
-      // keep openImage/closeImage fields as null so form JSON is serializable
       const serializable = {
-        ...form,
+        ...updatedForm,
         openImage: null,
         closeImage: null,
       };
@@ -749,7 +908,6 @@ export default function AddTrade() {
       sessionStorage.setItem("newTradeData", JSON.stringify(serializable));
       sessionStorage.setItem("isEditTrade", isEdit ? "true" : "false");
 
-      // redirect to /trade to let TradesHistory pick up and submit
       router.push({
         pathname: "/trade",
         query: { isNewTrade: "true" },
@@ -761,210 +919,299 @@ export default function AddTrade() {
     }
   };
 
-  const [activeModal, setActiveModal] = useState(null);
+  useEffect(() => {
+    document.body.style.overflow = activeGrid ? "hidden" : "auto";
+  }, [activeGrid]);
 
-  const openModal = (key) => setActiveModal(key);
-  const closeModal = () => setActiveModal(null);
+  useEffect(() => {
+    const handleKeyDown = (e) => {};
 
-  const modalComponents = {
-    quantity: (
-      <QuantityGrid
-        form={form}
-        handleChange={handleChange}
-        currencySymbol={currencySymbol}
-      />
-    ),
-    entries: (
-      <EntriesSection
-        form={form}
-        setForm={setForm}
-        currencySymbol={currencySymbol}
-        formatPrice={formatPrice}
-        formatNumber={formatNumber}
-        handleAllocationBlur={handleAllocationBlur}
-      />
-    ),
-    exits: (
-      <ExitsSection
-        form={form}
-        setForm={setForm}
-        currencySymbol={currencySymbol}
-        handleExitAllocationBlur={handleExitAllocationBlur}
-        calcPriceFromPercent={calcPriceFromPercent}
-        formatPrice={formatPrice}
-        formatNumber={formatNumber}
-      />
-    ),
-    stoploss: (
-      <StopLossSection
-        form={form}
-        setForm={setForm}
-        calcPriceFromPercent={calcPriceFromPercent}
-        formatPrice={formatPrice}
-        currencySymbol={currencySymbol}
-        handleSLAllocationBlur={handleSLAllocationBlur}
-      />
-    ),
-    takeprofit: (
-      <TakeProfitSection
-        form={form}
-        setForm={setForm}
-        calcPriceFromPercent={calcPriceFromPercent}
-        formatPrice={formatPrice}
-        currencySymbol={currencySymbol}
-        handleTPAllocationBlur={handleTPAllocationBlur}
-      />
-    ),
-    opentime: (
-      <DateTimeImageSection
-        label="Open Time"
-        dateValue={form.openTime}
-        onDateChange={(date) =>
-          setForm((prev) => ({ ...prev, openTime: date }))
-        }
-        imagePreview={form.openImagePreview}
-        onImageChange={(e) => handleImageChange(e, "openImage", setForm)}
-        onRemove={() => handleImageRemove("openImage", setForm)}
-      />
-    ),
-    closetime: (
-      <DateTimeImageSection
-        label="Close Time"
-        dateValue={form.closeTime}
-        onDateChange={(date) =>
-          setForm((prev) => ({ ...prev, closeTime: date }))
-        }
-        imagePreview={form.closeImagePreview}
-        onImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
-        onRemove={() => handleImageRemove("closeImage", setForm)}
-      />
-    ),
-    rules: (
-      <ToggleSwitch
-        label="Rules"
-        value={form.rulesFollowed}
-        onToggle={() =>
-          setForm((prev) => ({
-            ...prev,
-            rulesFollowed: !prev.rulesFollowed,
-          }))
-        }
-      />
-    ),
-    reason: (
-      <ReasonSelector
-        label="Reason"
-        name="reason"
-        value={form.reason}
-        onChange={handleChange}
-      />
-    ),
-    learnings: (
-      <TextAreaField
-        label="Learnings"
-        name="learnings"
-        value={form.learnings}
-        onChange={handleChange}
-        placeholder="What did you learn from this trade?"
-      />
-    ),
-  };
+    if (activeGrid) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
 
-  // 🧠 Determine which modal buttons to show
-  const tradeStatus = form.tradeStatus?.toLowerCase();
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeGrid]);
 
-  let hiddenKeys = [];
-  if (tradeStatus === "running") hiddenKeys = ["exits", "closetime"];
-  else if (tradeStatus === "closed") hiddenKeys = ["stoploss", "takeprofit"];
-  else if (tradeStatus === "quick")
-    hiddenKeys = [
-      "stoploss",
-      "takeprofit",
-      "entries",
-      "exits",
-      "opentime",
-      "closetime",
-    ];
-
-  const visibleButtons = Object.keys(modalComponents).filter(
-    (key) => !hiddenKeys.includes(key)
-  );
-
-  return (
-    <div className="flexClm gap_32" style={{ paddingBottom: "100px" }}>
-      <div className="flexClm gap_4">
-        <span className="font_20">Add trade</span>
-        <span className="font_12 shade_60">Log trade in seconds</span>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flexClm gap_24">
-        {/* 1️⃣ Trade Status */}
+  const grids = [
+    {
+      key: "status",
+      content: (
         <TradeStatusGrid
           form={form}
           handleChange={handleChange}
           statuses={statuses}
         />
-
-        {/* 2️⃣ Ticker */}
+      ),
+    },
+    {
+      key: "ticker",
+      content: (
         <Ticker form={form} setForm={setForm} handleChange={handleChange} />
+      ),
+    },
+    {
+      key: "quantity",
+      content: (
+        <QuantityGrid
+          form={form}
+          handleChange={handleChange}
+          currencySymbol={currencySymbol}
+        />
+      ),
+    },
+    {
+      key: "entries",
+      content: (
+        <EntriesSection
+          form={form}
+          setForm={setForm}
+          currencySymbol={currencySymbol}
+          formatPrice={formatPrice}
+          formatNumber={formatNumber}
+          handleAllocationBlur={handleAllocationBlur}
+        />
+      ),
+    },
+    {
+      key: "exits",
+      content: (
+        <ExitsSection
+          form={form}
+          setForm={setForm}
+          firstExitRef={firstExitRef}
+          updateExit={updateExit}
+          currencySymbol={currencySymbol}
+          handleExitAllocationBlur={handleExitAllocationBlur}
+          calcPriceFromPercent={calcPriceFromPercent}
+          formatPrice={formatPrice}
+          formatNumber={formatNumber}
+        />
+      ),
+    },
+    {
+      key: "net pnl",
+      content: (
+        <QuickSection
+          form={form}
+          setForm={setForm}
+          currency={currencySymbol}
+          handleChange={handleChange}
+        />
+      ),
+    },
+    {
+      key: "sl",
+      content: (
+        <StopLossSection
+          form={form}
+          setForm={setForm}
+          calcPriceFromPercent={calcPriceFromPercent}
+          formatPrice={formatPrice}
+          currencySymbol={currencySymbol}
+          handleSLAllocationBlur={handleSLAllocationBlur}
+        />
+      ),
+    },
+    {
+      key: "tp",
+      content: (
+        <TakeProfitSection
+          form={form}
+          setForm={setForm}
+          calcPriceFromPercent={calcPriceFromPercent}
+          formatPrice={formatPrice}
+          currencySymbol={currencySymbol}
+          handleTPAllocationBlur={handleTPAllocationBlur}
+        />
+      ),
+    },
+    {
+      key: "opentime",
+      content: (
+        <DateTimeImageSection
+          label="Open Time"
+          dateValue={form.openTime}
+          onDateChange={(date) =>
+            setForm((prev) => ({ ...prev, openTime: date }))
+          }
+          imagePreview={form.openImagePreview}
+          onImageChange={(e) => handleImageChange(e, "openImage", setForm)}
+          onRemove={() => handleImageRemove("openImage", setForm)}
+        />
+      ),
+    },
+    {
+      key: "closetime",
+      content: (
+        <DateTimeImageSection
+          label="Close Time"
+          dateValue={form.closeTime}
+          onDateChange={(date) =>
+            setForm((prev) => ({ ...prev, closeTime: date }))
+          }
+          imagePreview={form.closeImagePreview}
+          onImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
+          onRemove={() => handleImageRemove("closeImage", setForm)}
+        />
+      ),
+    },
 
-        {/* 3️⃣ Conditional Sections */}
-        {tradeStatus === "quick" && (
-          <>
-            <QuickSection
-              form={form}
-              setForm={setForm}
-              currency={currencySymbol}
-              handleChange={handleChange}
-            />
+    {
+      key: "rules",
+      content: (
+        <ToggleSwitch
+          label="Rules"
+          value={form.rulesFollowed}
+          onToggle={() =>
+            setForm((prev) => ({ ...prev, rulesFollowed: !prev.rulesFollowed }))
+          }
+        />
+      ),
+    },
+    {
+      key: "reasons",
+      content: (
+        <ReasonSelector
+          label="Reason"
+          name="reason"
+          value={form.reason}
+          onChange={handleChange}
+        />
+      ),
+    },
+    {
+      key: "learnings",
+      content: (
+        <TextAreaField
+          label="Learnings"
+          name="learnings"
+          value={form.learnings}
+          onChange={handleChange}
+          placeholder="What did you learn from this trade?"
+        />
+      ),
+    },
+  ];
 
-            {/* Show Open Image + Close Time directly */}
-            {modalComponents.opentime}
-            {modalComponents.closetime}
-          </>
-        )}
+  // helper to filter grids dynamically
+  const getFilteredGrids = (status) => {
+    switch (status) {
+      case "quick":
+        return grids.filter((g) =>
+          [
+            "ticker",
+            "quantity",
+            "status",
+            "net pnl",
+            "opentime",
+            "closetime",
+            "reasons",
+            "learnings",
+          ].includes(g.key)
+        );
 
-        {tradeStatus === "closed" && (
-          <QuickSection
-            form={form}
-            setForm={setForm}
-            currency={currencySymbol}
-            handleChange={handleChange}
+      case "closed":
+        return grids.filter((g) =>
+          [
+            "ticker",
+            "quantity",
+            "status",
+            "entries",
+            "exits",
+            "opentime",
+            "closetime",
+            "reasons",
+            "learnings",
+          ].includes(g.key)
+        );
+
+      case "running":
+        return grids.filter((g) =>
+          [
+            "ticker",
+            "quantity",
+            "status",
+            "entries",
+            "sl",
+            "tp",
+            "opentime",
+            "reasons",
+            "learnings",
+          ].includes(g.key)
+        );
+
+      default:
+        return grids;
+    }
+  };
+
+  return (
+    <>
+      <Head>
+        <title>JournalX | Log Trade</title>
+        <meta
+          name="description"
+          content="Easily log and analyze your trades with JournalX. Record entries, exits, and emotions to gain data-driven insights that help you improve consistency and performance as a trader."
+        />
+        <meta
+          name="keywords"
+          content="JournalX, log trade, trading journal, record trades, trading insights, trade analytics, trader performance tracker, trading log app"
+        />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:title" content="JournalX | Log Trade" />
+        <meta
+          property="og:description"
+          content="Track every trade and uncover insights that make you a better trader. Use JournalX to log trades, review performance, and grow consistently."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://journalx.app/add-trade" />
+        <meta property="og:image" content="/assets/Journalx_Banner.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="JournalX | Log Trade" />
+        <meta
+          name="twitter:description"
+          content="Log trades, analyze performance, and master your trading psychology with JournalX."
+        />
+        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
+      </Head>
+
+      <div className="flexClm gap_32">
+        <div>
+          <div className="flexClm">
+            <span className="font_20">Log trade</span>
+            <span className="font_12">Get analysis after logging trades</span>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <StepWizard
+            grids={getFilteredGrids(form.tradeStatus)} // pass only required steps
+            onFinish={handleSubmit}
+          />
+        </form>
+
+        {toast && (
+          <ToastMessage
+            type={toast.type}
+            message={toast.message}
+            duration={3000}
           />
         )}
-      </form>
 
-      {/* ✅ Submit & Cancel */}
-      <div
-        className="popups_btm"
-        style={{
-          width: "98%",
-          backdropFilter: "blur(20px)",
-          bottom: "0px",
-          padding: "0 12px 12px 12px",
-        }}
-      >
-        <span className="font_12 shade_50">Choose other factors</span>
-        {/* 🔘 Bottom Buttons for opening modals */}
-        {visibleButtons.length > 0 && (
-          <div
-            className="flexRow gap_12 flexRow_scroll removeScrollBar"
-            style={{ padding: "16px 0" }}
-          >
-            {visibleButtons.map((key) => (
-              <button
-                key={key}
-                className="button_sec"
-                onClick={() => openModal(key)}
-              >
-                {key
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (s) => s.toUpperCase())}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="flexRow flexRow_stretch gap_4">
+        {loading && <FullPageLoader />}
+
+        <GoogleBannerAd />
+
+        <div
+          className="popups_btm flexRow flexRow_stretch gap_8"
+          style={{
+            width: "90%",
+            backdropFilter: "blur(20px)",
+            padding: "8px 8px",
+          }}
+        >
           <button
             className="button_sec"
             style={{ width: "100%" }}
@@ -972,11 +1219,14 @@ export default function AddTrade() {
           >
             Cancel
           </button>
+
           <button
             className="button_pri"
-            style={{ width: "100%" }}
+            style={{
+              width: "100%",
+              opacity: loading || !isFormValid ? 0.5 : 1,
+            }}
             onClick={handleSubmit}
-            disabled={loading}
           >
             {loading
               ? "⏳ Please wait..."
@@ -985,27 +1235,16 @@ export default function AddTrade() {
               : "Submit Trade"}
           </button>
         </div>
-      </div>
 
-      {/* 🔄 Toast + Loader */}
-      {toast && (
-        <ToastMessage
-          type={toast.type}
-          message={toast.message}
-          duration={3000}
+        <PlanLimitModal
+          isOpen={showPlanModal}
+          onKeep={() => setShowPlanModal(false)}
+          onUpgrade={() => router.push("/pricing")}
         />
-      )}
-      {loading && <FullPageLoader />}
 
-      {/* 🪟 Active Modal */}
-      {activeModal && (
-        <ModalWrapper onClose={closeModal}>
-          <div className="modal_inner flexClm gap_16">
-            {modalComponents[activeModal]}
-          </div>
-        </ModalWrapper>
-      )}
-      {/* <pre
+        <BackgroundBlur />
+
+        {/* <pre
         style={{
           background: "black",
           color: "white",
@@ -1022,8 +1261,9 @@ export default function AddTrade() {
           2
         )}
       </pre> */}
-      {/* Summary Section */}
-      {/* <div style={{ marginTop: "2rem" }}>
+
+        {/* Summary Section */}
+        {/* <div style={{ marginTop: "2rem" }}>
                 <h3>Trade Setup Summary</h3>
 
                
@@ -1105,6 +1345,7 @@ export default function AddTrade() {
                     <p><strong>Learnings:</strong> {form.learnings}</p>
                 </div>
             </div> */}
-    </div>
+      </div>
+    </>
   );
 }

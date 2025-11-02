@@ -26,7 +26,7 @@ const TradePage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
 
   const today = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
+  const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
 
   const years = Array.from({ length: 15 }, (_, i) => today.getFullYear() - i);
