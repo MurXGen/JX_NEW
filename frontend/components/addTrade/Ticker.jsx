@@ -105,8 +105,8 @@ const Ticker = ({ form, setForm }) => {
         {/* Long / Short Buttons */}
         <div className="flexRow flexRow_stretch gap_12">
           <div
-            className={`button_sec flexRow flex_center ${
-              form.direction === "long" ? "success" : ""
+            className={`button_sec flexRow flex_center font_weight_600 ${
+              form.direction === "long" ? "longBg" : ""
             }`}
             style={{ width: "100%" }}
             onClick={() => setForm({ ...form, direction: "long" })}
@@ -114,8 +114,8 @@ const Ticker = ({ form, setForm }) => {
             Long <ArrowUpRight size={20} />
           </div>
           <div
-            className={`button_sec flexRow flex_center ${
-              form.direction === "short" ? "error" : ""
+            className={`button_sec flexRow flex_center font_weight_600 ${
+              form.direction === "short" ? "shortBg" : ""
             }`}
             style={{ width: "100%" }}
             onClick={() => setForm({ ...form, direction: "short" })}

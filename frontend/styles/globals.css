@@ -96,7 +96,6 @@
 
 html,
 body {
-  overflow-x: hidden !important;
   scroll-behavior: smooth; /* 🔥 enables smooth scroll for anchor jumps, etc. */
   -webkit-overflow-scrolling: touch; /* ensures smoothness on iOS */
 }
@@ -293,9 +292,8 @@ body {
 }
 
 .boxBg {
-  background: var(--base-bg);
+  background: var(--white-4);
   border-radius: var(--px-12);
-  border: 1px solid var(--white-4);
   padding: var(--px-16) var(--px-16);
 }
 
@@ -306,11 +304,24 @@ body {
   width: 200px;
 }
 
+/* Remove number input arrows in Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Remove number input arrows in Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Your existing input styling */
 input {
   padding: var(--padding-16x16);
   font-size: var(--px-12);
   border-radius: var(--px-12);
-  border: 0.5px solid var(--primary-20);
+  border: 0.5px solid var(--primary-50);
   background: var(--base-box-bg);
   outline: none;
   color: var(--base-text);
@@ -324,17 +335,14 @@ input::placeholder {
   font-family: "Poppins", sans-serif;
   color: var(--base-text);
   opacity: 0.4;
-  /* optional: makes placeholder look lighter */
 }
 
 input:hover {
-  border-color: var(--primary-50);
-  /* subtle glow */
+  border-color: var(--primary-light);
 }
 
 input:focus {
-  border-color: var(--primary-50);
-  /* subtle glow */
+  border-color: var(--primary-light);
 }
 
 .inputLabelShift {
@@ -595,6 +603,21 @@ button:disabled {
 
 .successBg {
   box-shadow: 0 0 46px var(--success);
+}
+
+.longBg {
+  background: var(--success);
+  color: white;
+  font-weight: var(--weight-600);
+  transition: 0.3s;
+  box-shadow: 0 0 12px var(--success-20);
+}
+.shortBg {
+  background: var(--error);
+  color: white;
+  font-weight: var(--weight-600);
+  transition: 0.3s;
+  box-shadow: 0 0 12px var(--error-20);
 }
 
 .error {
@@ -6094,5 +6117,50 @@ footer {
   }
   .featureCard {
     width: 100%;
+  }
+}
+
+/* for account drag  */
+@media (min-width: 0) {
+  .button_ter_icon {
+    background: var(--white-10);
+    border-radius: var(--px-4);
+    border: none;
+    color: var(--base-text);
+    padding: var(--px-8) var(--px-8) !important;
+    cursor: pointer;
+  }
+
+  .cardTitle {
+    display: flex;
+    flex-direction: row;
+    gap: var(--px-4);
+  }
+
+  .summarySection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-24);
+  }
+  .summaryCard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-24);
+  }
+
+  .cardHeader {
+    border-bottom: 1px solid var(--white-20);
+    padding-bottom: var(--px-12);
+  }
+  .cardContent {
+    margin-top: var(--px-16);
+  }
+
+  .metricValue {
+    font-size: var(--px-20);
+  }
+
+  .imageLabel {
+    font-size: var(--px-14);
   }
 }

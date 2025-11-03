@@ -11,19 +11,18 @@ const LegalLinks = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <p className="flexClm gap_4 font_14 flex_center">
-        By continuing, you agree to our
+      <div className="flexClm gap_4 font_14 flex_center">
+        <span>By continuing, you agree to our</span>
         <div className="flexRow gap_12">
           <Link href="/terms-services" className="vector">
             Terms of Service
           </Link>
-          {"|"}
-
+          <span>|</span>
           <Link href="/privacy-policy" className="vector">
             Privacy Policy
           </Link>
         </div>
-      </p>
+      </div>
     </motion.div>
   );
 };

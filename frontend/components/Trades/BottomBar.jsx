@@ -10,7 +10,7 @@ export default function BottomBar() {
   const isActive = (path) => pathname === path;
 
   const navItems = [
-    { href: "/", icon: <Home size={22} /> },
+    { href: "/dashboard", icon: <Home size={22} /> },
     { href: "/trade", icon: <ArrowUpDown size={22} /> },
     { href: "/add-trade", icon: <Plus size={24} />, special: true },
     { href: "/tradeassistant", icon: <Bot size={22} /> },

@@ -1,75 +1,69 @@
 import React from "react";
+import { Plus, Minus } from "lucide-react";
 
-const QuickSection = ({ currency, form, handleChange }) => {
+const QuickSection = ({ currency, form, handleChange, setForm }) => {
   if (form.tradeStatus !== "quick") return null;
 
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        padding: "32px 16px",
-        borderRadius: "16px",
-        background: "rgba(255,255,255,0.06)",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-      }}
-    >
-      <label
-        style={{
-          fontSize: "20px",
-          fontWeight: "600",
-          marginBottom: "12px",
-          color: "var(--text-primary, #fff)",
-        }}
-      >
-        Enter your Net P/L
-      </label>
+  const handleSignChange = (sign) => {
+    const currentValue = Number(form.pnl) || 0;
+    const newValue =
+      sign === "positive" ? Math.abs(currentValue) : -Math.abs(currentValue);
+    setForm((prev) => ({ ...prev, pnl: newValue }));
+  };
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "40px",
-          fontWeight: "700",
-          color: form.pnl >= 0 ? "#2ecc71" : "#e74c3c",
-          gap: "8px",
-          width: "100%",
-        }}
-      >
-        <span style={{ opacity: 0.8 }}>{currency}</span>
-        <input
-          type="number"
-          name="pnl"
-          value={form.pnl || ""}
-          onChange={handleChange}
-          placeholder="0.00"
-          inputMode="decimal"
-          style={{
-            border: "none",
-            background: "transparent",
-            fontSize: "48px",
-            fontWeight: "700",
-            textAlign: "center",
-            outline: "none",
-            color: form.pnl >= 0 ? "#2ecc71" : "#e74c3c",
-            width: "140px",
-          }}
-        />
+  return (
+    <div className="flexClm pad_32 chart_boxBg">
+      <label className="font_16 font_weight_600">Net P/L</label>
+
+      <div className="flexRow flexRow_stretch">
+        <div className="flexRow">
+          <span style={{ opacity: 0.8, fontSize: "40px", fontWeight: "700" }}>
+            {currency}
+          </span>
+
+          <input
+            type="number"
+            name="pnl"
+            value={form.pnl || ""}
+            onChange={handleChange}
+            placeholder="0.00"
+            inputMode="decimal"
+            style={{
+              border: "none",
+              background: "transparent",
+              fontSize: "48px",
+              fontWeight: "700",
+              textAlign: "left",
+              outline: "none",
+              color: form.pnl >= 0 ? "var(--success)" : "var(--error)",
+              width: "140px",
+            }}
+          />
+        </div>
+
+        <div className="flexRow gap_4">
+          <button
+            type="button"
+            className="button_ter flexRow gap_4"
+            title="Set Positive"
+            onClick={() => handleSignChange("positive")}
+          >
+            <Plus size={18} /> Profit
+          </button>
+          <button
+            type="button"
+            className="button_ter flexRow gap_4"
+            title="Set Negative"
+            onClick={() => handleSignChange("negative")}
+          >
+            <Minus size={18} />
+            Loss
+          </button>
+        </div>
       </div>
 
-      <p
-        style={{
-          fontSize: "14px",
-          color: "var(--text-secondary, #aaa)",
-          marginTop: "12px",
-          letterSpacing: "0.3px",
-        }}
-      >
-        Record your quick trade result instantly
+      <p className="marg_0 font_14 shade_50">
+        Quickly log just profit and loss
       </p>
     </div>
   );

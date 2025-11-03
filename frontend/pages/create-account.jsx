@@ -2,9 +2,11 @@
 
 import { childVariants, containerVariants } from "@/animations/motionVariants";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
+import Dropdown from "@/components/ui/Dropdown";
 import PlanLimitModal from "@/components/ui/PlanLimitModal";
 import SectionHeader from "@/components/ui/SectionHeader";
 import ToastMessage from "@/components/ui/ToastMessage";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { canAddAccount } from "@/utils/planRestrictions";
 import axios from "axios";
@@ -125,6 +127,15 @@ const CreateAccount = () => {
     }
   };
 
+  const currencyOptions = [
+    { value: "USD", label: `USD (${getCurrencySymbol("USD")})` },
+    { value: "INR", label: `INR (${getCurrencySymbol("INR")})` },
+    { value: "EUR", label: `EUR (${getCurrencySymbol("EUR")})` },
+    { value: "GBP", label: `GBP (${getCurrencySymbol("GBP")})` },
+    { value: "JPY", label: `JPY (${getCurrencySymbol("JPY")})` },
+    { value: "USDT", label: `USDT (${getCurrencySymbol("USDT")})` },
+  ];
+
   const handleCancel = () => {
     router.push("/accounts");
   };
@@ -169,29 +180,19 @@ const CreateAccount = () => {
           required
         />
 
-        {/* <div
-          className="currencyOptions flexRow gap_12"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {["USD", "INR", "USDT"].map((cur) => (
-            <span
-              key={cur}
-              className={`currencyText  button_ter font_12 ${
-                currency === cur ? "selected" : ""
-              }`}
-              onClick={() => setCurrency(cur)}
-              variants={childVariants}
-              style={{ width: "70px", textAlign: "center" }}
-            >
-              {cur}
-            </span>
-          ))}
-        </div> */}
+        <div className="flexClm gap_12">
+          <span className="font_14 shade_50">Journal currency</span>
+          <Dropdown
+            options={currencyOptions}
+            value={currency}
+            onChange={setCurrency}
+            placeholder="Select Currency"
+          />
+        </div>
 
         <motion.div
-          className="flexRow flexRow_stretch gap_12"
+          className="popups_btm flexRow flexRow_stretch gap_12"
+          style={{ width: "95%", padding: "0" }}
           variants={childVariants}
         >
           <button
