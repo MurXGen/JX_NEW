@@ -58,10 +58,14 @@ export default function AddTrade() {
     { value: "quick", label: "Quick" },
   ];
 
-  // helpers: format for <input type="datetime-local">
-  const getLocalDateTime = (d = new Date()) => {
-    const date = new Date(d);
+  // ==============================
+  // 🕒 Date & Time Utilities
+  // ==============================
+
+  // Format local datetime for <input type="datetime-local" />
+  const getLocalDateTime = (date = new Date()) => {
     const pad = (n) => (n < 10 ? "0" + n : n);
+
     return (
       date.getFullYear() +
       "-" +
@@ -75,33 +79,42 @@ export default function AddTrade() {
     );
   };
 
-  // initial values
-  const nowLocal = getLocalDateTime(new Date());
+  // ==============================
+  // 🧾 Form State Initialization
+  // ==============================
+  const now = new Date().toISOString();
 
   const [form, setForm] = useState({
+    // 🔹 Basic Trade Info
     symbol: "",
     direction: "long",
     quantityUSD: "1",
     leverage: "1",
     totalQuantity: 1,
-    tradeStatus: "quick", // can be "quick", "running", "closed"
+    tradeStatus: "quick", // "quick" or "running"
+
+    // 🔹 Entry / Exit / TP / SL details
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
     tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
     sls: [{ mode: "price", price: "", percent: "", allocation: "" }],
+
+    // 🔹 Other Metadata
     rulesFollowed: false,
     reason: [],
     learnings: "",
+
+    // 🔹 Average Values
     avgEntryPrice: "",
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
 
-    // store date/time in "YYYY-MM-DDTHH:mm" for datetime-local inputs
-    openTime: nowLocal,
-    closeTime: nowLocal, // initial quick -> closeTime = now
+    // 🔹 Timestamps
+    openTime: now,
+    closeTime: now, // auto-managed based on tradeStatus
 
-    // fees / images / derived...
+    // 🔹 Fees
     feeType: "percent",
     openFeeValue: "",
     closeFeeValue: "",
@@ -110,11 +123,13 @@ export default function AddTrade() {
     feeAmount: 0,
     pnlAfterFee: 0,
 
+    // 🔹 Images
     openImage: null,
     openImagePreview: "",
     closeImage: null,
     closeImagePreview: "",
 
+    // 🔹 Derived Values
     duration: 0,
     rr: "",
     pnl: "",
@@ -122,51 +137,34 @@ export default function AddTrade() {
     expectedLoss: 0,
   });
 
-  // formatted display strings for UI (human readable)
+  // ==============================
+  // 🕓 Formatted Time Display
+  // ==============================
   const [openTimeFormatted, setOpenTimeFormatted] = useState("");
   const [closeTimeFormatted, setCloseTimeFormatted] = useState("");
 
-  // Effect: react to tradeStatus changes and update closeTime accordingly
+  // ==============================
+  // 🔄 Handle Trade Status Change
+  // ==============================
   useEffect(() => {
-    const status = form.tradeStatus;
-    if (status === "quick") {
-      // quick -> closeTime = now (local datetime string)
-      const nowLocal = getLocalDateTime(new Date());
-      setForm((prev) => ({ ...prev, closeTime: nowLocal }));
-      setCloseTimeFormatted(dayjs(nowLocal).format("MMM D, YYYY • HH:mm"));
-    } else if (status === "running") {
-      // running -> no close time (use empty string for inputs)
-      setForm((prev) => ({ ...prev, closeTime: "" }));
+    if (form.tradeStatus === "quick") {
+      const now = new Date().toISOString();
+      setForm((prev) => ({ ...prev, closeTime: now }));
+      setCloseTimeFormatted(dayjs(now).format("MMM D, YYYY • HH:mm"));
+    } else if (form.tradeStatus === "running") {
+      setForm((prev) => ({ ...prev, closeTime: null }));
       setCloseTimeFormatted("");
-    } else if (status === "closed") {
-      // closed -> if closeTime is empty set to now, else keep existing
-      setForm((prev) => {
-        const ct = prev.closeTime || getLocalDateTime(new Date());
-        return { ...prev, closeTime: ct };
-      });
-      setCloseTimeFormatted(
-        dayjs(form.closeTime || new Date()).format("MMM D, YYYY • HH:mm")
-      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.tradeStatus]); // ONLY depend on tradeStatus
+  }, [form.tradeStatus]);
 
-  // Effect: keep formatted displays in sync whenever openTime/closeTime change
+  // ==============================
+  // 📅 Format Open Time Separately
+  // ==============================
   useEffect(() => {
     if (form.openTime) {
       setOpenTimeFormatted(dayjs(form.openTime).format("MMM D, YYYY • HH:mm"));
-    } else {
-      setOpenTimeFormatted("");
     }
-
-    if (form.closeTime) {
-      setCloseTimeFormatted(
-        dayjs(form.closeTime).format("MMM D, YYYY • HH:mm")
-      );
-    } else {
-      setCloseTimeFormatted("");
-    }
-  }, [form.openTime, form.closeTime]);
+  }, [form.openTime]);
 
   const validateForm = (form) => {
     if (!form.symbol.trim()) return "Symbol name is required";

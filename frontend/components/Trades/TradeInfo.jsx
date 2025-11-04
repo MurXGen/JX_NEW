@@ -257,6 +257,38 @@ const TradeInfo = ({ onClose }) => {
               </div>
             )}
 
+            {/* ✅ Normalize reason before rendering */}
+            {trade.reason?.length > 0 && (
+              <div className="notesCard marg_btm_16">
+                <div className="flexRow">
+                  {(() => {
+                    let reasons = [];
+
+                    if (Array.isArray(trade.reason)) {
+                      if (
+                        trade.reason.length === 1 &&
+                        typeof trade.reason[0] === "string"
+                      ) {
+                        try {
+                          reasons = JSON.parse(trade.reason[0]);
+                        } catch {
+                          reasons = trade.reason;
+                        }
+                      } else {
+                        reasons = trade.reason;
+                      }
+                    }
+
+                    return reasons.map((r, idx) => (
+                      <span className="tag" key={idx}>
+                        {r}
+                      </span>
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
+
             {/* PnL Section */}
             {trade.tradeStatus !== "running" && (
               <div
@@ -280,7 +312,7 @@ const TradeInfo = ({ onClose }) => {
 
             {/* Fees */}
             {trade.feeAmount > 0 && (
-              <div className="boxBg flexClm gap_12">
+              <div className="boxBg flexClm gap_12 marg_btm_16">
                 <span className="font_12 shade_50">
                   {trade.tradeStatus === "running"
                     ? "Trade Open Fees"
@@ -494,38 +526,6 @@ const TradeInfo = ({ onClose }) => {
 
             {/* Reason & Learnings */}
             <div className="notesSection">
-              {/* ✅ Normalize reason before rendering */}
-              {trade.reason?.length > 0 && (
-                <div className="notesCard">
-                  <div className="flexRow">
-                    {(() => {
-                      let reasons = [];
-
-                      if (Array.isArray(trade.reason)) {
-                        if (
-                          trade.reason.length === 1 &&
-                          typeof trade.reason[0] === "string"
-                        ) {
-                          try {
-                            reasons = JSON.parse(trade.reason[0]);
-                          } catch {
-                            reasons = trade.reason;
-                          }
-                        } else {
-                          reasons = trade.reason;
-                        }
-                      }
-
-                      return reasons.map((r, idx) => (
-                        <span className="tag" key={idx}>
-                          {r}
-                        </span>
-                      ));
-                    })()}
-                  </div>
-                </div>
-              )}
-
               {trade.learnings && (
                 <div className="notesCard">
                   <h3 className="font_16 font_weight_600 flexRow gap_8">
