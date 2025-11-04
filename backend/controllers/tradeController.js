@@ -49,22 +49,23 @@ async function uploadToB2(file, folder) {
   return key;
 }
 
+// controllers/tradeController.js
+
 exports.addTrade = async (req, res) => {
   try {
     const { body, files } = req;
-    const accountId = req.body.accountId;
     const userId = req.cookies.userId;
+    const accountId = req.body.accountId;
 
     if (!userId || !accountId) {
-      return res.status(401).json({ message: "Not authenticated" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
     }
 
-    // Build trade object
+    // --- Prepare tradeData ---
     const tradeData = {
       ...body,
-      quantityUSD: Number(body.quantityUSD),
-      leverage: Number(body.leverage),
-      totalQuantity: Number(body.totalQuantity),
       entries: JSON.parse(body.entries || "[]"),
       exits: JSON.parse(body.exits || "[]"),
       sls: JSON.parse(body.sls || "[]"),
@@ -82,6 +83,7 @@ exports.addTrade = async (req, res) => {
       accountId,
     };
 
+    // --- Handle images ---
     if (files?.openImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.openImage[0],
@@ -90,7 +92,6 @@ exports.addTrade = async (req, res) => {
       tradeData.openImageUrl = url;
       tradeData.openImageSizeKB = sizeKB;
     }
-
     if (files?.closeImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.closeImage[0],
@@ -100,18 +101,54 @@ exports.addTrade = async (req, res) => {
       tradeData.closeImageSizeKB = sizeKB;
     }
 
-    // Save trade
-    const newTrade = new Trade(tradeData);
-    await newTrade.save();
+    // --- Save Trade ---
+    const newTrade = await new Trade(tradeData).save();
 
-    // Fetch user
-    const user = await User.findById(userId);
-    const userData = await getUserData(user);
+    // --- Use Aggregation Pipeline to fetch minimal updated context ---
+    const pipeline = [
+      { $match: { _id: newTrade._id } },
+      {
+        $lookup: {
+          from: "accounts",
+          localField: "accountId",
+          foreignField: "_id",
+          as: "accountDetails",
+        },
+      },
+      {
+        $unwind: { path: "$accountDetails", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $project: {
+          _id: 1,
+          symbol: 1,
+          direction: 1,
+          openTime: 1,
+          closeTime: 1,
+          pnl: 1,
+          duration: 1,
+          entries: 1,
+          exits: 1,
+          accountId: 1,
+          accountName: "$accountDetails.name",
+          avgEntryPrice: 1,
+          avgExitPrice: 1,
+          avgTPPrice: 1,
+          avgSLPrice: 1,
+          openImageUrl: 1,
+          closeImageUrl: 1,
+          expectedProfit: 1,
+          expectedLoss: 1,
+        },
+      },
+    ];
+
+    const [newTradeData] = await Trade.aggregate(pipeline);
 
     res.status(201).json({
       success: true,
       message: "Trade added successfully",
-      userData,
+      trade: newTradeData,
     });
   } catch (err) {
     res
@@ -191,42 +228,82 @@ exports.updateTrade = async (req, res) => {
       tradeData.closeImageSizeKB = 0;
     }
 
-    // ✅ Update trade in DB
-    const trade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
+    // ✅ Update trade
+    const updatedTrade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
       new: true,
     });
 
-    // Fetch user data
-    const user = await User.findById(userId);
-    const userData = await getUserData(user);
+    // --- Use aggregation to fetch enriched minimal trade info ---
+    const pipeline = [
+      { $match: { _id: updatedTrade._id } },
+      {
+        $lookup: {
+          from: "accounts",
+          localField: "accountId",
+          foreignField: "_id",
+          as: "accountDetails",
+        },
+      },
+      {
+        $unwind: { path: "$accountDetails", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $project: {
+          _id: 1,
+          symbol: 1,
+          direction: 1,
+          openTime: 1,
+          closeTime: 1,
+          pnl: 1,
+          duration: 1,
+          entries: 1,
+          exits: 1,
+          sls: 1,
+          tps: 1,
+          accountId: 1,
+          accountName: "$accountDetails.name",
+          avgEntryPrice: 1,
+          avgExitPrice: 1,
+          avgTPPrice: 1,
+          avgSLPrice: 1,
+          expectedProfit: 1,
+          expectedLoss: 1,
+          openImageUrl: 1,
+          closeImageUrl: 1,
+        },
+      },
+    ];
+
+    const [updatedTradeData] = await Trade.aggregate(pipeline);
 
     res.json({
       success: true,
       message: "Trade updated successfully",
-      userData,
+      trade: updatedTradeData,
     });
 
-    // --- Background cleanup: delete old images if replaced or removed ---
+    // --- Background cleanup for replaced/removed images ---
     process.nextTick(async () => {
       try {
-        // Open image
         if (
           oldTrade.openImageUrl &&
-          oldTrade.openImageUrl !== trade.openImageUrl
+          oldTrade.openImageUrl !== updatedTrade.openImageUrl
         ) {
           await deleteImageFromB2(oldTrade.openImageUrl);
         }
 
-        // Close image
         if (
           oldTrade.closeImageUrl &&
-          oldTrade.closeImageUrl !== trade.closeImageUrl
+          oldTrade.closeImageUrl !== updatedTrade.closeImageUrl
         ) {
           await deleteImageFromB2(oldTrade.closeImageUrl);
         }
-      } catch (cleanupErr) {}
+      } catch (cleanupErr) {
+        console.error("Image cleanup failed:", cleanupErr.message);
+      }
     });
   } catch (err) {
+    console.error("Trade update error:", err.message);
     res.status(500).json({
       success: false,
       message: err.message || "Error updating trade",

@@ -163,12 +163,23 @@ const TradesHistory = ({
       }
 
       if (res.data?.success) {
-        const { userData, message } = res.data;
+        const { trade, message } = res.data; // now backend returns single trade
 
-        await saveToIndexedDB("user-data", userData);
+        // 🔁 Update only that trade in IndexedDB
+        const userData = (await getFromIndexedDB("user-data")) || {};
+        const allTrades = userData.trades || [];
 
-        const updatedData = await getFromIndexedDB("user-data");
-        const accountTrades = (updatedData.trades || []).filter(
+        const updatedTrades = isEdit
+          ? allTrades.map((t) => (t._id === trade._id ? trade : t))
+          : [trade, ...allTrades];
+
+        const newUserData = { ...userData, trades: updatedTrades };
+
+        await saveToIndexedDB("user-data", newUserData);
+
+        // ✅ Refresh displayed trades (no full refetch)
+        const accountId = Cookies.get("accountId");
+        const accountTrades = updatedTrades.filter(
           (t) => t.accountId === accountId
         );
 
@@ -187,15 +198,13 @@ const TradesHistory = ({
               : "Trade added successfully!"),
         });
 
-        // Cleanup
+        // cleanup + redirect
         localStorage.removeItem("newTradeImage_openImage");
         localStorage.removeItem("newTradeImage_closeImage");
         sessionStorage.removeItem("newTradeData");
         sessionStorage.removeItem("isEditTrade");
 
-        setTimeout(() => {
-          router.push("/trade");
-        }, 1200);
+        setTimeout(() => router.push("/trade"), 1200);
       } else {
         throw new Error("Upload failed");
       }
