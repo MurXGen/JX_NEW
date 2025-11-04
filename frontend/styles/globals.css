@@ -1471,10 +1471,7 @@ footer {
   }
 
   .tradeCard {
-    padding: var(--px-16);
-    transition: all 0.3s ease;
     cursor: pointer;
-    border: 1px solid transparent;
   }
 
   .positionIcon {

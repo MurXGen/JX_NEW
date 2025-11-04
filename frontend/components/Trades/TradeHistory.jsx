@@ -388,14 +388,7 @@ const TradesHistory = ({
               const headerDate = new Date(dateKey);
 
               return (
-                <div
-                  key={dateKey}
-                  className="dateGroup flexClm gap_12"
-                  style={{
-                    borderBottom: "5px solid var(--white-4)",
-                    paddingBottom: "var(--px-32)",
-                  }}
-                >
+                <div key={dateKey} className="boxBg flexClm gap_12">
                   {/* Date Header */}
                   <motion.div
                     className="dateHeader flexRow flexRow_stretch"
@@ -424,7 +417,7 @@ const TradesHistory = ({
                     {visibleTrades.map((trade, index) => (
                       <motion.div
                         key={trade._id || trade.id || index}
-                        className="tradeCard chart_boxBg"
+                        className="tradeCard boxBg pad_16"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, height: 0 }}

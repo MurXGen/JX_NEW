@@ -305,7 +305,7 @@ export default function AddTrade() {
     if (form.openTime && form.closeTime) {
       const start = new Date(form.openTime);
       const end = new Date(form.closeTime);
-      duration = ((end - start) / (1000 * 60 * 60)).toFixed(2);
+      duration = (end - start) / (1000 * 60 * 60);
     }
 
     // Expected Profit / Loss (store as USD)
@@ -314,18 +314,18 @@ export default function AddTrade() {
 
     if (avgEntry && avgTP) {
       const profitPercent = ((avgTP - avgEntry) / avgEntry) * 100;
-      expectedProfit = ((profitPercent / 100) * form.quantityUSD).toFixed(2);
+      expectedProfit = (profitPercent / 100) * form.quantityUSD;
     }
     if (avgEntry && avgSL) {
       const lossPercent = ((avgEntry - avgSL) / avgEntry) * 100;
-      expectedLoss = ((lossPercent / 100) * form.quantityUSD).toFixed(2);
+      expectedLoss = (lossPercent / 100) * form.quantityUSD;
     }
 
     // Risk-Reward Ratio
     let rr = "";
-    if (expectedLoss && expectedProfit && expectedLoss !== "0") {
+    if (expectedLoss && expectedProfit && expectedLoss !== 0) {
       const rawRR = expectedProfit / Math.abs(expectedLoss);
-      rr = `1:${Number(rawRR.toFixed(2))}`;
+      rr = `1:${rawRR}`;
     }
 
     // PnL (only for closed trades, stored as USD)
@@ -337,7 +337,7 @@ export default function AddTrade() {
           ? ((avgExit - avgEntry) / avgEntry) * 100
           : ((avgEntry - avgExit) / avgEntry) * 100;
 
-      pnl = ((pnlPercent / 100) * form.quantityUSD).toFixed(2);
+      pnl = (pnlPercent / 100) * form.quantityUSD;
     }
 
     setForm((prev) => ({
@@ -447,7 +447,7 @@ export default function AddTrade() {
       }
     });
 
-    return totalAlloc > 0 ? (weighted / totalAlloc).toFixed(2) : "";
+    return totalAlloc > 0 ? weighted / totalAlloc : "";
   };
 
   const handleAllocationBlur = (idx, value) => {
@@ -998,34 +998,36 @@ export default function AddTrade() {
     </div>
   );
 
-  const DateAndImages = ({ form, openModal }) => {
-    const openTimeDisplay = form.openTime
-      ? dayjs(form.openTime).format("MMM D, YYYY • HH:mm")
-      : "Not set";
-
-    const closeTimeDisplay =
-      form.closeTime && form.tradeStatus !== "running"
-        ? dayjs(form.closeTime).format("MMM D, YYYY • HH:mm")
-        : "Not set";
-
+  const DateAndImages = ({
+    form,
+    openModal,
+    openTimeFormatted,
+    closeTimeFormatted,
+  }) => {
     return (
       <div className="summaryBlock flexClm gap_16">
-        {/* 🟩 Open Time & Image */}
+        {/* ================= 🟩 OPEN TIME & IMAGE ================= */}
         <div className="boxBg setupCard">
+          {/* Header */}
           <div className="cardHeader">
             <div className="cardTitle">
               <span className="font_16 font_weight_600">Open Time & Image</span>
             </div>
           </div>
 
+          {/* Content */}
           <div className="cardContent">
             <div className="setupInfo">
               <div className="imageSection flexClm gap_12">
+                {/* Time */}
                 <div className="boxBg flexRow flexRow_stretch font_14">
                   <div className="flexRow gap_4 flex_center">
                     <Calendar size={14} className="icon" />
-                    <span className="timeText">{openTimeDisplay}</span>
+                    <span className="timeText">
+                      {openTimeFormatted || "Not set"}
+                    </span>
                   </div>
+
                   <button
                     className="button_ter_icon"
                     onClick={() => openModal("opentime")}
@@ -1035,6 +1037,7 @@ export default function AddTrade() {
                   </button>
                 </div>
 
+                {/* Image */}
                 {form.openImagePreview ? (
                   <div className="preview">
                     <img
@@ -1044,23 +1047,24 @@ export default function AddTrade() {
                     />
                   </div>
                 ) : (
-                  <div
+                  <button
                     className="button_sec flexRow _12"
                     style={{ maxWidth: "fit-content" }}
                     onClick={() => openModal("opentime")}
                   >
                     <Plus size={20} className="icon" />
                     <span>Add trade snapshot</span>
-                  </div>
+                  </button>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* 🟥 Close Time & Image — only show if trade is NOT running */}
+        {/* ================= 🟥 CLOSE TIME & IMAGE (if not running) ================= */}
         {form.tradeStatus !== "running" && (
           <div className="boxBg setupCard">
+            {/* Header */}
             <div className="cardHeader">
               <div className="cardTitle">
                 <span className="font_16 font_weight_600">
@@ -1069,14 +1073,19 @@ export default function AddTrade() {
               </div>
             </div>
 
+            {/* Content */}
             <div className="cardContent">
               <div className="setupInfo">
                 <div className="imageSection flexClm gap_12">
+                  {/* Time */}
                   <div className="boxBg flexRow flexRow_stretch font_14">
                     <div className="flexRow gap_4 flex_center">
                       <Calendar size={14} className="icon" />
-                      <span className="timeText">{closeTimeDisplay}</span>
+                      <span className="timeText">
+                        {closeTimeFormatted || "Not set"}
+                      </span>
                     </div>
+
                     <button
                       className="button_ter_icon"
                       onClick={() => openModal("closetime")}
@@ -1086,6 +1095,7 @@ export default function AddTrade() {
                     </button>
                   </div>
 
+                  {/* Image */}
                   {form.closeImagePreview ? (
                     <div className="preview">
                       <img
@@ -1095,14 +1105,14 @@ export default function AddTrade() {
                       />
                     </div>
                   ) : (
-                    <div
+                    <button
                       className="button_sec flexRow _12"
                       style={{ maxWidth: "fit-content" }}
                       onClick={() => openModal("closetime")}
                     >
                       <Plus size={20} className="icon" />
                       <span>Add trade snapshot</span>
-                    </div>
+                    </button>
                   )}
                 </div>
               </div>
@@ -1465,7 +1475,12 @@ export default function AddTrade() {
                   transition={{ duration: 0.4, ease: "easeInOut" }}
                 >
                   {/* 2️⃣ Trade Timeline */}
-                  <DateAndImages form={form} openModal={openModal} />
+                  <DateAndImages
+                    form={form}
+                    openModal={openModal}
+                    openTimeFormatted={openTimeFormatted}
+                    closeTimeFormatted={closeTimeFormatted}
+                  />
 
                   {/* 3️⃣ Quick Notes */}
                   <OtherFactors form={form} openModal={openModal} />

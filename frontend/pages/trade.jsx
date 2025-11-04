@@ -194,7 +194,7 @@ const TradePage = () => {
             setSelectedYear={setSelectedYear}
           />
         )}
-        <BackgroundBlur />
+        {/* <BackgroundBlur /> */}
 
         <GoogleBannerAd />
       </div>
