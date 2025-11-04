@@ -32,7 +32,7 @@ import LegalLinks from "@/components/landingPage/LegalLinks";
 function Pricing() {
   const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState("monthly");
-  const [userCountry, setUserCountry] = useState("IN");
+  const [userCountry, setUserCountry] = useState("OTHER");
   const [plans, setPlans] = useState([]);
   const [activePlan, setActivePlan] = useState(null);
   const [showPaymentSelector, setShowPaymentSelector] = useState(false);
