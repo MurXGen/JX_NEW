@@ -32,7 +32,7 @@ import LegalLinks from "@/components/landingPage/LegalLinks";
 function Pricing() {
   const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState("monthly");
-  const [userCountry, setUserCountry] = useState("OTHER");
+  const [userCountry, setUserCountry] = useState("IN");
   const [plans, setPlans] = useState([]);
   const [activePlan, setActivePlan] = useState(null);
   const [showPaymentSelector, setShowPaymentSelector] = useState(false);
@@ -51,6 +51,33 @@ function Pricing() {
   //       return;
   //     }
   //   });
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const res = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`
+            );
+            const data = await res.json();
+            const country = data.countryCode === "IN" ? "IN" : "OTHER";
+            setUserCountry(country);
+            localStorage.setItem("userCountry", country);
+          } catch {
+            setUserCountry("OTHER");
+          }
+        },
+        () => setUserCountry("OTHER")
+      );
+    } else {
+      setUserCountry("OTHER");
+    }
+  }, []);
+
+  if (userCountry === null) {
+    return <FullPageLoader />; // show loader until country is detected
+  }
 
   useEffect(() => {
     // Set landing page background
