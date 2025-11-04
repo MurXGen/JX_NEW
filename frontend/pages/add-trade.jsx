@@ -924,8 +924,6 @@ export default function AddTrade() {
 
   const [showDetails, setShowDetails] = useState(false);
 
-  if (tradeStatus !== "quick") return null;
-
   const OtherFactors = ({ form, openModal }) => (
     <div className="boxBg">
       <div className="cardHeader flexRow flexRow_stretch">
