@@ -14,7 +14,7 @@ const ExitSection = ({
     return null;
 
   const roundToTwoDecimals = (val) =>
-    isNaN(val) ? "" : parseFloat(Number(val).toFixed(2));
+    isNaN(val) ? "" : parseFloat(Number(val).toFixed(8));
 
   const enforceSLRule = (val, mode, entryPrice, minSLPrice, direction) => {
     let finalVal = val;

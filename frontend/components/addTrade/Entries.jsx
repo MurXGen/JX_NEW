@@ -113,7 +113,7 @@ const EntriesSection = ({
 
         {form.avgEntryPrice && (
           <span className="font_12 avgValue">
-            Average entry price : {formatNumber(form.avgEntryPrice, 2)}
+            Average entry price : {form.avgEntryPrice}
           </span>
         )}
       </div>
