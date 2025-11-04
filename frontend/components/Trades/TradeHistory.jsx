@@ -215,7 +215,6 @@ const TradesHistory = ({
       setLoadingNewTrade(false);
       sessionStorage.removeItem("newTradeData");
       sessionStorage.removeItem("isEditTrade");
-      window.history.replaceState(null, "", "/trade");
     }
   };
 
