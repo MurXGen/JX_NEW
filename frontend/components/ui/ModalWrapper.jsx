@@ -2,21 +2,16 @@ import React from "react";
 
 const ModalWrapper = ({ onClose, children }) => {
   return (
-    <div
-      className="modalOverlay flexCenter"
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.4)",
-        zIndex: 1000,
-        backdropFilter: "blur(6px)",
-      }}
-      onClick={onClose}
-    >
+    <div className="cm-backdrop flexCenter" onClick={onClose}>
       <div
-        className="modalContent bg_white pad_16 rounded_16 shadow_md"
+        className="cm-modal pad_16"
         onClick={(e) => e.stopPropagation()}
-        style={{ width: "90%", maxWidth: 500 }}
+        style={{
+          width: "90%",
+          maxWidth: 500,
+          margin: "16px",
+          background: "var(--white-4)",
+        }}
       >
         {children}
       </div>

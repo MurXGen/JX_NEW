@@ -63,9 +63,12 @@ const Ticker = ({ form, setForm }) => {
   const clearInput = () => setForm((prev) => ({ ...prev, symbol: "" }));
 
   return (
-    <div className="tradeGrid">
+    <div className="">
       {/* Symbol Input with Clear Icon */}
-      <div className="flexRow gap_12" style={{ position: "relative" }}>
+      <div
+        className="gridContainer flexClm gap_12"
+        style={{ position: "relative" }}
+      >
         <div className="inputLabelShift flexRow gap_12">
           <input
             name="symbol"

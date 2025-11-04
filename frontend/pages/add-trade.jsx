@@ -58,8 +58,9 @@ export default function AddTrade() {
     { value: "quick", label: "Quick" },
   ];
 
-  // format local datetime for <input type="datetime-local" />
-  const getLocalDateTime = (date = new Date()) => {
+  // helpers: format for <input type="datetime-local">
+  const getLocalDateTime = (d = new Date()) => {
+    const date = new Date(d);
     const pad = (n) => (n < 10 ? "0" + n : n);
     return (
       date.getFullYear() +
@@ -74,14 +75,16 @@ export default function AddTrade() {
     );
   };
 
-  const now = new Date().toISOString();
+  // initial values
+  const nowLocal = getLocalDateTime(new Date());
+
   const [form, setForm] = useState({
     symbol: "",
     direction: "long",
     quantityUSD: "1",
     leverage: "1",
     totalQuantity: 1,
-    tradeStatus: "quick",
+    tradeStatus: "quick", // can be "quick", "running", "closed"
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
     tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
@@ -93,12 +96,12 @@ export default function AddTrade() {
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
-    openTime: now,
 
-    // ✅ Automatically handle close time based on tradeStatus
-    closeTime: now,
+    // store date/time in "YYYY-MM-DDTHH:mm" for datetime-local inputs
+    openTime: nowLocal,
+    closeTime: nowLocal, // initial quick -> closeTime = now
 
-    // Fee Fields
+    // fees / images / derived...
     feeType: "percent",
     openFeeValue: "",
     closeFeeValue: "",
@@ -107,13 +110,11 @@ export default function AddTrade() {
     feeAmount: 0,
     pnlAfterFee: 0,
 
-    // Images
     openImage: null,
     openImagePreview: "",
     closeImage: null,
     closeImagePreview: "",
 
-    // Derived values
     duration: 0,
     rr: "",
     pnl: "",
@@ -121,26 +122,51 @@ export default function AddTrade() {
     expectedLoss: 0,
   });
 
+  // formatted display strings for UI (human readable)
   const [openTimeFormatted, setOpenTimeFormatted] = useState("");
   const [closeTimeFormatted, setCloseTimeFormatted] = useState("");
 
+  // Effect: react to tradeStatus changes and update closeTime accordingly
   useEffect(() => {
-    // When tradeStatus changes
-    if (form.tradeStatus === "quick") {
-      const now = new Date().toISOString();
-      setForm((prev) => ({ ...prev, closeTime: now }));
-      setCloseTimeFormatted(dayjs(now).format("MMM D, YYYY • HH:mm"));
-    } else if (form.tradeStatus === "running") {
-      setForm((prev) => ({ ...prev, closeTime: null }));
+    const status = form.tradeStatus;
+    if (status === "quick") {
+      // quick -> closeTime = now (local datetime string)
+      const nowLocal = getLocalDateTime(new Date());
+      setForm((prev) => ({ ...prev, closeTime: nowLocal }));
+      setCloseTimeFormatted(dayjs(nowLocal).format("MMM D, YYYY • HH:mm"));
+    } else if (status === "running") {
+      // running -> no close time (use empty string for inputs)
+      setForm((prev) => ({ ...prev, closeTime: "" }));
+      setCloseTimeFormatted("");
+    } else if (status === "closed") {
+      // closed -> if closeTime is empty set to now, else keep existing
+      setForm((prev) => {
+        const ct = prev.closeTime || getLocalDateTime(new Date());
+        return { ...prev, closeTime: ct };
+      });
+      setCloseTimeFormatted(
+        dayjs(form.closeTime || new Date()).format("MMM D, YYYY • HH:mm")
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.tradeStatus]); // ONLY depend on tradeStatus
+
+  // Effect: keep formatted displays in sync whenever openTime/closeTime change
+  useEffect(() => {
+    if (form.openTime) {
+      setOpenTimeFormatted(dayjs(form.openTime).format("MMM D, YYYY • HH:mm"));
+    } else {
+      setOpenTimeFormatted("");
+    }
+
+    if (form.closeTime) {
+      setCloseTimeFormatted(
+        dayjs(form.closeTime).format("MMM D, YYYY • HH:mm")
+      );
+    } else {
       setCloseTimeFormatted("");
     }
-  }, [form.tradeStatus, setForm]);
-
-  useEffect(() => {
-    // Format openTime separately — it’s independent
-    if (form.openTime)
-      setOpenTimeFormatted(dayjs(form.openTime).format("MMM D, YYYY • HH:mm"));
-  }, [form.openTime]);
+  }, [form.openTime, form.closeTime]);
 
   const validateForm = (form) => {
     if (!form.symbol.trim()) return "Symbol name is required";
@@ -974,107 +1000,120 @@ export default function AddTrade() {
     </div>
   );
 
-  const DateAndImages = ({ form, openModal }) => (
-    <div className="summaryBlock flexClm gap_16">
-      {/* 🟩 Open Time & Image */}
-      <div className="boxBg setupCard">
-        <div className="cardHeader">
-          <div className="cardTitle">
-            <span className="font_16 font_weight_600">Open Time & Image</span>
+  const DateAndImages = ({ form, openModal }) => {
+    const openTimeDisplay = form.openTime
+      ? dayjs(form.openTime).format("MMM D, YYYY • HH:mm")
+      : "Not set";
+
+    const closeTimeDisplay =
+      form.closeTime && form.tradeStatus !== "running"
+        ? dayjs(form.closeTime).format("MMM D, YYYY • HH:mm")
+        : "Not set";
+
+    return (
+      <div className="summaryBlock flexClm gap_16">
+        {/* 🟩 Open Time & Image */}
+        <div className="boxBg setupCard">
+          <div className="cardHeader">
+            <div className="cardTitle">
+              <span className="font_16 font_weight_600">Open Time & Image</span>
+            </div>
           </div>
-        </div>
 
-        <div className="cardContent">
-          <div className="setupInfo">
-            <div className="imageSection flexClm gap_12">
-              <div className="boxBg flexRow flexRow_stretch font_14">
-                <div className="flexRow gap_4 flex_center">
-                  <Calendar size={14} className="icon" />
-                  <span className="timeText">
-                    {openTimeFormatted || "Not set"}
-                  </span>
+          <div className="cardContent">
+            <div className="setupInfo">
+              <div className="imageSection flexClm gap_12">
+                <div className="boxBg flexRow flexRow_stretch font_14">
+                  <div className="flexRow gap_4 flex_center">
+                    <Calendar size={14} className="icon" />
+                    <span className="timeText">{openTimeDisplay}</span>
+                  </div>
+                  <button
+                    className="button_ter_icon"
+                    onClick={() => openModal("opentime")}
+                    title="Edit Open Details"
+                  >
+                    <Edit3 size={12} className="vector" />
+                  </button>
                 </div>
-                <button
-                  className="button_ter_icon"
-                  onClick={() => openModal("opentime")}
-                  title="Edit Open Details"
-                >
-                  <Edit3 size={12} className="vector" />
-                </button>
+
+                {form.openImagePreview ? (
+                  <div className="preview">
+                    <img
+                      src={form.openImagePreview}
+                      alt="Open snapshot"
+                      className="imagePreview"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="button_sec flexRow _12"
+                    style={{ maxWidth: "fit-content" }}
+                    onClick={() => openModal("opentime")}
+                  >
+                    <Plus size={20} className="icon" />
+                    <span>Add trade snapshot</span>
+                  </div>
+                )}
               </div>
-
-              {form.openImagePreview ? (
-                <div className="preview">
-                  <img
-                    src={form.openImagePreview}
-                    alt="Open snapshot"
-                    className="imagePreview"
-                  />
-                </div>
-              ) : (
-                <div
-                  className="button_sec flexRow _12"
-                  style={{ maxWidth: "fit-content" }}
-                >
-                  <Plus size={20} className="icon" />
-                  <span>Add trade snapshot</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* 🟥 Close Time & Image */}
-      <div className="boxBg setupCard">
-        <div className="cardHeader">
-          <div className="cardTitle">
-            <span className="font_16 font_weight_600">Close Time & Image</span>
-          </div>
-        </div>
-
-        <div className="cardContent">
-          <div className="setupInfo">
-            <div className="imageSection flexClm gap_12">
-              <div className="boxBg flexRow flexRow_stretch font_14">
-                <div className="flexRow gap_4 flex_center">
-                  <Calendar size={14} className="icon" />
-                  <span className="timeText">
-                    {closeTimeFormatted || "Not set"}
-                  </span>
-                </div>
-                <button
-                  className="button_ter_icon"
-                  onClick={() => openModal("closetime")}
-                  title="Edit Close Details"
-                >
-                  <Edit3 size={12} className="vector" />
-                </button>
+        {/* 🟥 Close Time & Image — only show if trade is NOT running */}
+        {form.tradeStatus !== "running" && (
+          <div className="boxBg setupCard">
+            <div className="cardHeader">
+              <div className="cardTitle">
+                <span className="font_16 font_weight_600">
+                  Close Time & Image
+                </span>
               </div>
+            </div>
 
-              {form.closeImagePreview ? (
-                <div className="preview">
-                  <img
-                    src={form.closeImagePreview}
-                    alt="Close snapshot"
-                    className="imagePreview"
-                  />
+            <div className="cardContent">
+              <div className="setupInfo">
+                <div className="imageSection flexClm gap_12">
+                  <div className="boxBg flexRow flexRow_stretch font_14">
+                    <div className="flexRow gap_4 flex_center">
+                      <Calendar size={14} className="icon" />
+                      <span className="timeText">{closeTimeDisplay}</span>
+                    </div>
+                    <button
+                      className="button_ter_icon"
+                      onClick={() => openModal("closetime")}
+                      title="Edit Close Details"
+                    >
+                      <Edit3 size={12} className="vector" />
+                    </button>
+                  </div>
+
+                  {form.closeImagePreview ? (
+                    <div className="preview">
+                      <img
+                        src={form.closeImagePreview}
+                        alt="Close snapshot"
+                        className="imagePreview"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="button_sec flexRow _12"
+                      style={{ maxWidth: "fit-content" }}
+                      onClick={() => openModal("closetime")}
+                    >
+                      <Plus size={20} className="icon" />
+                      <span>Add trade snapshot</span>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div
-                  className="button_sec flexRow _12"
-                  style={{ maxWidth: "fit-content" }}
-                >
-                  <Plus size={20} className="icon" />
-                  <span>Add trade snapshot</span>
-                </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="flexClm gap_32" style={{ paddingBottom: "100px" }}>
@@ -1124,7 +1163,7 @@ export default function AddTrade() {
           {/* ===================== 🟩 RUNNING TRADES ===================== */}
           {tradeStatus === "running" && (
             <motion.div
-              className="gridContainer"
+              className="flexClm gap_16"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
@@ -1238,10 +1277,7 @@ export default function AddTrade() {
                 </div>
               </div>
               {/* 2️⃣ Risk Management */}
-              <div
-                className="popups_btm boxBg bg_blur_20 riskCard"
-                style={{ bottom: "10%", width: "85%" }}
-              >
+              <div className="boxBg riskCard">
                 <div className="cardContent">
                   <div className="riskMetrics">
                     <div className="riskRow flexRow flexRow_stretch font_14">
@@ -1267,57 +1303,6 @@ export default function AddTrade() {
                   </div>
                 </div>
               </div>
-              {/* 3️⃣ Trade Setup */}
-              <div className="boxBg setupCard">
-                <div className="cardHeader">
-                  <div className="cardTitle">
-                    <span className="font_16 font_weight_600">
-                      Open time and image
-                    </span>
-                  </div>
-                </div>
-
-                <div className="cardContent">
-                  <div className="setupInfo">
-                    <div className="imageSection flexClm gap_12">
-                      <div className="boxBg flexRow flexRow_stretch font_14">
-                        <div className="flexRow gap_4">
-                          <Calendar size={14} className="icon" />
-                          <span className="timeText">
-                            {openTimeFormatted || "Not set"}
-                          </span>
-                        </div>
-                        <button
-                          className="button_ter_icon"
-                          onClick={() => openModal("opentime")}
-                          title="Edit Open Details"
-                        >
-                          <Edit3 size={12} className="vector" />
-                        </button>
-                      </div>
-                      {form.openImagePreview ? (
-                        <div className="preview">
-                          <img
-                            src={form.openImagePreview}
-                            alt="Trade entry"
-                            className="imagePreview"
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className="button_sec flexRow _12"
-                          style={{ maxWidth: "fit-content" }}
-                        >
-                          <Plus size={20} className="icon" />
-                          <span>Add trade snapshot</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* 4️⃣ Trading Psychology */}
-              <OtherFactors form={form} openModal={openModal} />
             </motion.div>
           )}
 
@@ -1329,11 +1314,48 @@ export default function AddTrade() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
+              {/* 2️⃣ Position Summary */}
+              <div className="boxBg positionCard">
+                <div className="cardHeader flexRow flexRow_stretch">
+                  <div className="cardTitle">
+                    <span className="font_16 font_weight_600">
+                      Set position size
+                    </span>
+                  </div>
+                  <button
+                    className="button_ter_icon"
+                    onClick={() => openModal("quantity")}
+                    title="Edit Position"
+                  >
+                    <Edit3 size={12} className="vector" />
+                  </button>
+                </div>
+
+                <div className="cardContent">
+                  <div className="positionMetrics flexRow flexRow_stretch font_14">
+                    <div className="metricBox flexClm gap_4">
+                      <span className="metricLabel">Margin</span>
+                      <span className="metricValue">
+                        {form.totalQuantity || 0}
+                      </span>
+                    </div>
+                    <div className="metricBox flexClm gap_4">
+                      <span className="metricLabel">Leverage</span>
+                      <span className="metricValue">{form.leverage || 1}x</span>
+                    </div>
+
+                    <div className="metricBox flexClm gap_4">
+                      <span className="metricLabel">Total Margin</span>
+                      <span className="metricValue">
+                        {(form.quantityUSD || 0) * (form.leverage || 1)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* 1️⃣ Trade Performance */}
-              <div
-                className="bg_blur_20 popups_btm boxBg performanceCard"
-                style={{ bottom: "10%", width: "85%" }}
-              >
+              <div className="boxBg performanceCard">
                 <div className="cardContent">
                   <div className="flexRow flexRow_stretch">
                     {/* Average Entry */}
@@ -1359,7 +1381,7 @@ export default function AddTrade() {
                         <span className="metricLabel">Average Exit</span>
                         <button
                           className="button_ter_icon flexRow gap_4"
-                          onClick={() => openModal("entries")}
+                          onClick={() => openModal("exits")}
                           title="Edit Entries"
                         >
                           <Edit3 size={14} className="vector" />
@@ -1411,52 +1433,6 @@ export default function AddTrade() {
                   </div>
                 </div>
               </div>
-
-              {/* 2️⃣ Position Summary */}
-              <div className="boxBg positionCard">
-                <div className="cardHeader flexRow flexRow_stretch">
-                  <div className="cardTitle">
-                    <span className="font_16 font_weight_600">
-                      Set position size
-                    </span>
-                  </div>
-                  <button
-                    className="button_ter_icon"
-                    onClick={() => openModal("quantity")}
-                    title="Edit Position"
-                  >
-                    <Edit3 size={12} className="vector" />
-                  </button>
-                </div>
-
-                <div className="cardContent">
-                  <div className="positionMetrics flexRow flexRow_stretch font_14">
-                    <div className="metricBox flexClm gap_4">
-                      <span className="metricLabel">Margin</span>
-                      <span className="metricValue">
-                        {form.totalQuantity || 0}
-                      </span>
-                    </div>
-                    <div className="metricBox flexClm gap_4">
-                      <span className="metricLabel">Leverage</span>
-                      <span className="metricValue">{form.leverage || 1}x</span>
-                    </div>
-
-                    <div className="metricBox flexClm gap_4">
-                      <span className="metricLabel">Total Margin</span>
-                      <span className="metricValue">
-                        {(form.quantityUSD || 0) * (form.leverage || 1)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3️⃣ Trade Timeline */}
-              <DateAndImages form={form} openModal={openModal} />
-
-              {/* 4️⃣ Trade Analysis */}
-              <OtherFactors form={form} openModal={openModal} />
             </motion.div>
           )}
 
@@ -1475,7 +1451,7 @@ export default function AddTrade() {
               ) : (
                 <>
                   <ChevronDown size={16} />
-                  Add dates, tags, & more..
+                  Add dates, tags, snaps & more..
                 </>
               )}
             </button>
@@ -1549,8 +1525,8 @@ export default function AddTrade() {
             {loading
               ? "⏳ Please wait..."
               : isEdit
-              ? "Update Trade"
-              : "Submit Trade"}
+              ? "Update log"
+              : "Submit log"}
           </button>
         </div>
       </div>

@@ -65,20 +65,23 @@ function Accounts() {
     setShowGuide(false);
     localStorage.removeItem("guide"); // clear guide flag
   };
+
   useEffect(() => {
-    const storedOrder = localStorage.getItem("accountOrder");
-    if (storedOrder && accounts.length > 0) {
-      const order = JSON.parse(storedOrder);
-      const sorted = [...accounts].sort(
-        (a, b) => order.indexOf(a._id) - order.indexOf(b._id)
-      );
-      setOrderedAccounts(sorted);
+    const savedOrder = JSON.parse(localStorage.getItem("accountOrder") || "[]");
+    if (savedOrder.length && accounts.length) {
+      // Map saved order to actual account objects when possible
+      const mapById = new Map(accounts.map((a) => [a._id, a]));
+      const reordered = savedOrder.map((id) => mapById.get(id)).filter(Boolean);
+
+      // append any accounts not present in savedOrder at the end
+      const missing = accounts.filter((a) => !savedOrder.includes(a._id));
+      setOrderedAccounts([...reordered, ...missing]);
     } else {
       setOrderedAccounts(accounts);
     }
   }, [accounts]);
 
-  // Save order to localStorage whenever it changes
+  // Helper to persist order
   useEffect(() => {
     if (orderedAccounts.length > 0) {
       const order = orderedAccounts.map((acc) => acc._id);
@@ -86,24 +89,39 @@ function Accounts() {
     }
   }, [orderedAccounts]);
 
+  // displayedAccounts remains a derived view
   const displayedAccounts = showAllAccounts
     ? orderedAccounts
     : orderedAccounts.slice(0, 2);
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const isVerified = params.get("isVerified");
 
-    if (isVerified === "yes") {
-      Cookies.set("isVerified", "yes", {
-        path: "/",
-        sameSite: "Strict",
-        expires: 3650,
-      });
+  // NEW: handler that receives the reordered visible list and merges it
+  const handleReorderVisible = (newVisibleOrder) => {
+    // If showing all, newVisibleOrder is the full order — replace completely
+    if (showAllAccounts) {
+      setOrderedAccounts(newVisibleOrder);
+      return;
     }
 
-    // Optionally clean the URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }, []);
+    // Otherwise we only displayed a prefix (slice). We'll replace that prefix
+    // with the new visible order while keeping the rest of the list.
+    const rest = orderedAccounts.slice(newVisibleOrder.length);
+    const merged = [...newVisibleOrder, ...rest];
+
+    // Safety: if some items in rest accidentally also appear in newVisibleOrder,
+    // remove duplicates keeping first appearance in merged
+    const seen = new Set();
+    const deduped = [];
+    for (const item of merged) {
+      const id = item._id ?? item; // item may be object or primitive depending on your setup
+      const key = typeof id === "string" ? id : JSON.stringify(item);
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(item);
+      }
+    }
+
+    setOrderedAccounts(deduped);
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -519,11 +537,11 @@ function Accounts() {
               <Reorder.Group
                 as="div"
                 axis="y"
-                values={orderedAccounts}
-                onReorder={setOrderedAccounts}
+                values={displayedAccounts} // <- use the rendered list
+                onReorder={handleReorderVisible} // <- merge back to full order
                 className="flexClm gap_16"
               >
-                {displayedAccounts.map((acc, index) => {
+                {displayedAccounts.map((acc) => {
                   const lastTradedAccountId = Cookies.get("accountId");
                   const isLastTraded = acc._id === lastTradedAccountId;
 

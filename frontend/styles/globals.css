@@ -893,7 +893,7 @@ textarea::placeholder {
 
 .tradeGrid .label {
   font-size: 12px;
-  margin-top: 16px;
+  /* margin-top: 16px; */
   display: inline-block;
   /* Ensure block-level width control */
   width: 100%;
@@ -6124,10 +6124,10 @@ footer {
 @media (min-width: 0) {
   .button_ter_icon {
     background: var(--white-10);
-    border-radius: var(--px-4);
+    border-radius: var(--px-12);
     border: none;
     color: var(--base-text);
-    padding: var(--px-8) var(--px-8) !important;
+    padding: var(--px-4) var(--px-4) !important;
     cursor: pointer;
   }
 
@@ -6156,8 +6156,13 @@ footer {
     margin-top: var(--px-16);
   }
 
+  .metricLabel {
+    font-size: var(--px-14);
+    color: var(--white-50);
+  }
+
   .metricValue {
-    font-size: var(--px-20);
+    font-size: var(--px-16);
   }
 
   .imageLabel {

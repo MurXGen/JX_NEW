@@ -105,7 +105,7 @@ const ExitSection = ({
   };
 
   return (
-    <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
+    <div className="tradeGrid">
       <div className="flexClm gap_32">
         {form.exits.map((exit, idx) => {
           const entryPrice = form.avgEntryPrice || form.entries[0]?.price;

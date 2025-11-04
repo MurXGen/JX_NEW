@@ -104,7 +104,7 @@ const TradePage = () => {
         <BottomBar />
         <div className="flexRow flexRow_stretch">
           <SectionHeader
-            title="Logged trades"
+            title="History"
             description="Logged trades history & calendar"
             level={2} // uses <h2>
             // showButton={accounts.length > 0}

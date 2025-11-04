@@ -133,7 +133,7 @@ const StopLossSection = ({
   };
 
   return (
-    <div className="tradeGrid" style={{ padding: "0 0 24px 0" }}>
+    <div className="tradeGrid">
       {/* <span className="label">Stop Loss</span> */}
 
       <div className="flexClm gap_32">

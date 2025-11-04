@@ -12,7 +12,7 @@ const EntriesSection = ({
     return null;
 
   return (
-    <div className="tradeGrid" style={{ padding: "0 0 32px 0" }}>
+    <div className="tradeGrid">
       {/* <span className="label">Entries</span> */}
 
       <div className="flexClm gap_32">
