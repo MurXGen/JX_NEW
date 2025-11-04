@@ -305,7 +305,7 @@ export default function AddTrade() {
     if (form.openTime && form.closeTime) {
       const start = new Date(form.openTime);
       const end = new Date(form.closeTime);
-      duration = (end - start) / (1000 * 60 * 60);
+      duration = ((end - start) / (1000 * 60 * 60)).toFixed(2);
     }
 
     // Expected Profit / Loss (store as USD)
@@ -316,6 +316,7 @@ export default function AddTrade() {
       const profitPercent = ((avgTP - avgEntry) / avgEntry) * 100;
       expectedProfit = (profitPercent / 100) * form.quantityUSD;
     }
+
     if (avgEntry && avgSL) {
       const lossPercent = ((avgEntry - avgSL) / avgEntry) * 100;
       expectedLoss = (lossPercent / 100) * form.quantityUSD;
@@ -330,7 +331,6 @@ export default function AddTrade() {
 
     // PnL (only for closed trades, stored as USD)
     let pnl = form.pnl; // keep DB value if not closed
-
     if (form.tradeStatus === "closed" && avgExit && avgEntry) {
       const pnlPercent =
         form.direction === "long"
