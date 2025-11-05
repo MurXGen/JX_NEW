@@ -945,11 +945,6 @@ export default function AddTrade() {
       "opentime",
       "closetime",
     ];
-
-  const visibleButtons = Object.keys(modalComponents).filter(
-    (key) => !hiddenKeys.includes(key)
-  );
-
   const [showDetails, setShowDetails] = useState(false);
 
   const OtherFactors = ({ form, openModal }) => (
@@ -978,7 +973,6 @@ export default function AddTrade() {
             className="button_ter_icon flexRow gap_4 font_16"
             onClick={() => openModal("reason")}
           >
-            {" "}
             {form.reason?.length
               ? form.reason.join(", ")
               : "No reasons selected"}
@@ -993,7 +987,6 @@ export default function AddTrade() {
             className="button_ter_icon flexRow gap_4 font_16"
             onClick={() => openModal("learnings")}
           >
-            {" "}
             {form.learnings || "Not added"}
             <Edit3 size={12} className="vector" />
           </button>

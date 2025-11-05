@@ -63,13 +63,22 @@ exports.addTrade = async (req, res) => {
         .json({ success: false, message: "Not authenticated" });
     }
 
-    // --- Prepare tradeData ---
+    // ✅ Parse structured fields safely
     const tradeData = {
       ...body,
       entries: JSON.parse(body.entries || "[]"),
       exits: JSON.parse(body.exits || "[]"),
       sls: JSON.parse(body.sls || "[]"),
       tps: JSON.parse(body.tps || "[]"),
+      reason: body.reason ? JSON.parse(body.reason) : [],
+      rulesFollowed:
+        body.rulesFollowed === "true" || body.rulesFollowed === true,
+      learnings: body.learnings || "",
+
+      // ✅ Numbers
+      quantityUSD: Number(body.quantityUSD || 0),
+      leverage: Number(body.leverage || 1),
+      totalQuantity: Number(body.totalQuantity || 0),
       duration: Number(body.duration || 0),
       pnl: Number(body.pnl || 0),
       expectedProfit: Number(body.expectedProfit || 0),
@@ -78,7 +87,21 @@ exports.addTrade = async (req, res) => {
       avgExitPrice: Number(body.avgExitPrice || 0),
       avgTPPrice: Number(body.avgTPPrice || 0),
       avgSLPrice: Number(body.avgSLPrice || 0),
-      reason: body.reason ? [body.reason] : [],
+
+      // ✅ Fees
+      feeType: body.feeType || "percent",
+      openFeeValue: Number(body.openFeeValue || 0),
+      closeFeeValue: Number(body.closeFeeValue || 0),
+      openFeeAmount: Number(body.openFeeAmount || 0),
+      closeFeeAmount: Number(body.closeFeeAmount || 0),
+      feeAmount: Number(body.feeAmount || 0),
+      pnlAfterFee: Number(body.pnlAfterFee || 0),
+
+      // ✅ Other
+      tradeStatus: body.tradeStatus || "quick",
+      openTime: body.openTime || new Date(),
+      closeTime: body.closeTime || null,
+
       userId,
       accountId,
     };
@@ -92,6 +115,7 @@ exports.addTrade = async (req, res) => {
       tradeData.openImageUrl = url;
       tradeData.openImageSizeKB = sizeKB;
     }
+
     if (files?.closeImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.closeImage[0],
@@ -129,16 +153,21 @@ exports.addTrade = async (req, res) => {
           duration: 1,
           entries: 1,
           exits: 1,
+          sls: 1,
+          tps: 1,
+          reason: 1,
+          rulesFollowed: 1,
+          learnings: 1,
           accountId: 1,
           accountName: "$accountDetails.name",
           avgEntryPrice: 1,
           avgExitPrice: 1,
           avgTPPrice: 1,
           avgSLPrice: 1,
-          openImageUrl: 1,
-          closeImageUrl: 1,
           expectedProfit: 1,
           expectedLoss: 1,
+          openImageUrl: 1,
+          closeImageUrl: 1,
         },
       },
     ];
@@ -151,9 +180,11 @@ exports.addTrade = async (req, res) => {
       trade: newTradeData,
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ success: false, message: err.message || "Failed to add trade" });
+    console.error("Add trade error:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message || "Failed to add trade",
+    });
   }
 };
 
@@ -161,27 +192,52 @@ exports.updateTrade = async (req, res) => {
   try {
     const tradeId = req.params.id;
     const { body = {}, files = {} } = req;
-    const accountId = Array.isArray(req.body.accountId)
-      ? req.body.accountId[0]
-      : req.body.accountId;
-
     const userId = req.cookies.userId;
+
+    if (!userId || !tradeId)
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized or missing trade ID",
+      });
 
     const oldTrade = await Trade.findById(tradeId);
     if (!oldTrade)
-      return res
-        .status(404)
-        .json({ success: false, message: "Trade not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Trade not found",
+      });
 
+    const accountId = Array.isArray(body.accountId)
+      ? body.accountId[0]
+      : body.accountId;
+
+    // ✅ Safely parse arrays
+    const parseJSON = (val, fallback = []) => {
+      try {
+        return typeof val === "string"
+          ? JSON.parse(val || "[]")
+          : val || fallback;
+      } catch {
+        return fallback;
+      }
+    };
+
+    // ✅ Structured field normalization
     const tradeData = {
       ...body,
+      entries: parseJSON(body.entries),
+      exits: parseJSON(body.exits),
+      sls: parseJSON(body.sls),
+      tps: parseJSON(body.tps),
+      reason: parseJSON(body.reason),
+      rulesFollowed:
+        body.rulesFollowed === "true" || body.rulesFollowed === true,
+      learnings: body.learnings || "",
+
+      // ✅ Numbers
       quantityUSD: Number(body.quantityUSD || 0),
       leverage: Number(body.leverage || 1),
       totalQuantity: Number(body.totalQuantity || 0),
-      entries: body.entries ? JSON.parse(body.entries) : [],
-      exits: body.exits ? JSON.parse(body.exits) : [],
-      sls: body.sls ? JSON.parse(body.sls) : [],
-      tps: body.tps ? JSON.parse(body.tps) : [],
       duration: Number(body.duration || 0),
       pnl: Number(body.pnl || 0),
       expectedProfit: Number(body.expectedProfit || 0),
@@ -190,20 +246,27 @@ exports.updateTrade = async (req, res) => {
       avgExitPrice: Number(body.avgExitPrice || 0),
       avgTPPrice: Number(body.avgTPPrice || 0),
       avgSLPrice: Number(body.avgSLPrice || 0),
-      reason: body.reason
-        ? Array.isArray(body.reason)
-          ? body.reason
-          : [body.reason]
-        : [],
+
+      // ✅ Fees
+      feeType: body.feeType || "percent",
+      openFeeValue: Number(body.openFeeValue || 0),
+      closeFeeValue: Number(body.closeFeeValue || 0),
+      openFeeAmount: Number(body.openFeeAmount || 0),
+      closeFeeAmount: Number(body.closeFeeAmount || 0),
+      feeAmount: Number(body.feeAmount || 0),
+      pnlAfterFee: Number(body.pnlAfterFee || 0),
+
+      // ✅ Time & identifiers
+      openTime: body.openTime || oldTrade.openTime,
+      closeTime: body.closeTime || null,
       userId,
       accountId,
-      closeTime: body.closeTime || null,
     };
 
     const removeOpenImage = body.removeOpenImage === "true";
     const removeCloseImage = body.removeCloseImage === "true";
 
-    // --- Handle new uploads or removals ---
+    // --- Handle image uploads ---
     if (files?.openImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.openImage[0],
@@ -233,7 +296,7 @@ exports.updateTrade = async (req, res) => {
       new: true,
     });
 
-    // --- Use aggregation to fetch enriched minimal trade info ---
+    // --- Aggregation to return minimal enriched data ---
     const pipeline = [
       { $match: { _id: updatedTrade._id } },
       {
@@ -260,6 +323,9 @@ exports.updateTrade = async (req, res) => {
           exits: 1,
           sls: 1,
           tps: 1,
+          reason: 1,
+          rulesFollowed: 1,
+          learnings: 1,
           accountId: 1,
           accountName: "$accountDetails.name",
           avgEntryPrice: 1,
@@ -282,7 +348,7 @@ exports.updateTrade = async (req, res) => {
       trade: updatedTradeData,
     });
 
-    // --- Background cleanup for replaced/removed images ---
+    // ✅ Cleanup replaced images asynchronously
     process.nextTick(async () => {
       try {
         if (
@@ -291,7 +357,6 @@ exports.updateTrade = async (req, res) => {
         ) {
           await deleteImageFromB2(oldTrade.openImageUrl);
         }
-
         if (
           oldTrade.closeImageUrl &&
           oldTrade.closeImageUrl !== updatedTrade.closeImageUrl
@@ -303,10 +368,10 @@ exports.updateTrade = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error("Trade update error:", err.message);
+    console.error("Trade update error:", err);
     res.status(500).json({
       success: false,
-      message: err.message || "Error updating trade",
+      message: err.message || "Failed to update trade",
     });
   }
 };

@@ -204,7 +204,7 @@ const TradesHistory = ({
         sessionStorage.removeItem("newTradeData");
         sessionStorage.removeItem("isEditTrade");
 
-        setTimeout(() => router.push("/trade"), 1200);
+        // setTimeout(() => router.push("/trade"), 1200);
       } else {
         throw new Error("Upload failed");
       }
