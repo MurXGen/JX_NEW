@@ -3037,17 +3037,6 @@ footer {
     font-size: var(--px-8) !important;
   }
 
-  .modalContent {
-    border: 0;
-    max-height: 100vh !important;
-    border-radius: 0;
-  }
-
-  /* FOR TRADE INFO  */
-  .modalOverlay {
-    padding: 0 !important;
-  }
-
   .imagesGrid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
