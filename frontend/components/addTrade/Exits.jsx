@@ -14,7 +14,7 @@ const ExitSection = ({
     return null;
 
   const roundToTwoDecimals = (val) =>
-    isNaN(val) ? "" : parseFloat(Number(val).toFixed(8));
+    isNaN(val) ? "" : parseFloat(Number(val).toFixed(2));
 
   const enforceSLRule = (val, mode, entryPrice, minSLPrice, direction) => {
     let finalVal = val;
@@ -106,6 +106,7 @@ const ExitSection = ({
 
   return (
     <div className="tradeGrid">
+      <span className="label">Entries</span>
       <div className="flexClm gap_32">
         {form.exits.map((exit, idx) => {
           const entryPrice = form.avgEntryPrice || form.entries[0]?.price;
@@ -274,7 +275,7 @@ const ExitSection = ({
 
         {form.avgExitPrice && (
           <span className="font_12 avgValue">
-            Average exit price: {form.avgExitPrice}
+            Average exit price: {(form.avgExitPrice, 2)}
           </span>
         )}
       </div>

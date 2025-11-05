@@ -13,7 +13,7 @@ const TakeProfitSection = ({
   if (form.tradeStatus !== "running") return null;
 
   const roundToTwoDecimals = (val) =>
-    isNaN(val) ? "" : parseFloat(Number(val).toFixed(8));
+    isNaN(val) ? "" : parseFloat(Number(val).toFixed(2));
 
   const enforceSLRule = (val, mode, entryPrice, minSLPrice, direction) => {
     let finalVal = val;
@@ -102,7 +102,7 @@ const TakeProfitSection = ({
 
   return (
     <div className="tradeGrid">
-      {/* <span className="label">Take Profits</span> */}
+      <span className="label">Take Profits</span>
 
       <div className="flexClm gap_32">
         {form.tps.map((tp, idx) => {

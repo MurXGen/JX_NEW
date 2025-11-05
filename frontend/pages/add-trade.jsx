@@ -88,9 +88,9 @@ export default function AddTrade() {
     // 🔹 Basic Trade Info
     symbol: "",
     direction: "long",
-    quantityUSD: "1",
-    leverage: "1",
-    totalQuantity: 1,
+    quantityUSD: 0,
+    leverage: 0,
+    totalQuantity: 0,
     tradeStatus: "quick", // "quick" or "running"
 
     // 🔹 Entry / Exit / TP / SL details

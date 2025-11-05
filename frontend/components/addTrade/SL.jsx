@@ -134,7 +134,7 @@ const StopLossSection = ({
 
   return (
     <div className="tradeGrid">
-      {/* <span className="label">Stop Loss</span> */}
+      <span className="label">Stop Loss</span>
 
       <div className="flexClm gap_32">
         {form.sls.map((sl, idx) => {
