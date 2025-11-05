@@ -514,8 +514,11 @@ function Accounts() {
               transition={{ duration: 0.5 }}
             >
               <FiDatabase size={48} className="vector" />
-              <div className="flexClm gap_8 text_center">
-                <span className="font_16 font_weight_600">
+              <div className="flexClm gap_8 flex_Center">
+                <span
+                  className="font_16 font_weight_600"
+                  style={{ textAlign: "center" }}
+                >
                   No journal found
                 </span>
                 <span className="font_12 shade_50">
@@ -528,7 +531,7 @@ function Accounts() {
                 disabled={loading}
               >
                 <Plus size={16} />
-                <span>Create First Account</span>
+                <span>Create First Journal</span>
               </button>
             </motion.div>
           ) : (
@@ -706,13 +709,13 @@ function Accounts() {
           )}
         </motion.div>
 
-        {accounts.length <= 0 && (
+        {/* {accounts.length <= 0 && (
           <MessageCard
             type="info"
             title="Best analysis place to learn trading by journaling"
             description="We offer analysis and education — no trading services provided."
           />
-        )}
+        )} */}
 
         <hr width="100" color="grey" />
 
