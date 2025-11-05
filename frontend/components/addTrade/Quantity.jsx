@@ -4,8 +4,8 @@ import Dropdown from "../ui/Dropdown";
 import { X } from "lucide-react";
 
 const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
-  const [showLeverage, setShowLeverage] = useState(false);
-  const [showFees, setShowFees] = useState(false);
+  const [showLeverage, setShowLeverage] = useState(true);
+  const [showFees, setShowFees] = useState(true);
   const [storedQuantities, setStoredQuantities] = useState([]);
   const [isSelecting, setIsSelecting] = useState(false);
   // Handle fee type change
@@ -154,7 +154,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
         )}
 
         {/* Leverage Checkbox */}
-        <label className="customCheckbox">
+        <label className="customCheckbox font_16">
           <input
             type="checkbox"
             checked={showLeverage}
@@ -200,7 +200,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
         </AnimatePresence>
 
         {/* Fees Checkbox */}
-        <label className="customCheckbox">
+        <label className="customCheckbox font_16">
           <input
             type="checkbox"
             checked={showFees}

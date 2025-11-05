@@ -88,9 +88,9 @@ export default function AddTrade() {
     // 🔹 Basic Trade Info
     symbol: "",
     direction: "long",
-    quantityUSD: 0,
-    leverage: 0,
-    totalQuantity: 0,
+    quantityUSD: 1,
+    leverage: 1,
+    totalQuantity: 1,
     tradeStatus: "quick", // "quick" or "running"
 
     // 🔹 Entry / Exit / TP / SL details
@@ -239,42 +239,46 @@ export default function AddTrade() {
 
       const userData = await getFromIndexedDB("user-data");
       const tradeData = userData?.trades?.find((t) => t._id === tradeId);
+      if (!tradeData) return;
 
-      if (tradeData) {
-        let parsedReason = [];
-
-        if (Array.isArray(tradeData.reason)) {
-          // If first item is a stringified JSON, parse it
-          if (
-            tradeData.reason.length === 1 &&
-            typeof tradeData.reason[0] === "string"
-          ) {
-            try {
-              parsedReason = JSON.parse(tradeData.reason[0]);
-            } catch {
-              parsedReason = tradeData.reason; // fallback
-            }
-          } else {
+      let parsedReason = [];
+      if (Array.isArray(tradeData.reason)) {
+        if (
+          tradeData.reason.length === 1 &&
+          typeof tradeData.reason[0] === "string"
+        ) {
+          try {
+            parsedReason = JSON.parse(tradeData.reason[0]);
+          } catch {
             parsedReason = tradeData.reason;
           }
+        } else {
+          parsedReason = tradeData.reason;
         }
-
-        setForm({
-          ...form,
-          ...tradeData,
-          reason: parsedReason, // ✅ fix here
-          openTime: tradeData.openTime
-            ? getLocalDateTime(new Date(tradeData.openTime))
-            : getLocalDateTime(),
-          closeTime: tradeData.closeTime
-            ? getLocalDateTime(new Date(tradeData.closeTime))
-            : getLocalDateTime(),
-          openImage: null,
-          openImagePreview: tradeData.openImageUrl || "",
-          closeImage: null,
-          closeImagePreview: tradeData.closeImageUrl || "",
-        });
       }
+
+      setForm((prev) => ({
+        ...prev,
+        ...tradeData,
+        reason: parsedReason,
+        // ✅ Keep the same timestamps as in DB (don’t shift or format new ones)
+        openTime: tradeData.openTime || prev.openTime,
+        closeTime: tradeData.closeTime || prev.closeTime,
+        openImage: null,
+        openImagePreview: tradeData.openImageUrl || "",
+        closeImage: null,
+        closeImagePreview: tradeData.closeImageUrl || "",
+      }));
+
+      // ✅ Update formatted display without reformatting timezone
+      if (tradeData.openTime)
+        setOpenTimeFormatted(
+          dayjs(tradeData.openTime).format("MMM D, YYYY • HH:mm")
+        );
+      if (tradeData.closeTime)
+        setCloseTimeFormatted(
+          dayjs(tradeData.closeTime).format("MMM D, YYYY • HH:mm")
+        );
     };
 
     prefillTrade();
