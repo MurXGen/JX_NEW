@@ -29,6 +29,14 @@ const TradePage = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
 
+  // 🟩 Automatically set current month when switching to calendar
+  useEffect(() => {
+    if (view === "calendar") {
+      setSelectedMonth(today.getMonth() + 1); // JS months are 0-based
+      setSelectedYear(today.getFullYear());
+    }
+  }, [view]);
+
   const years = Array.from({ length: 15 }, (_, i) => today.getFullYear() - i);
 
   useEffect(() => {
