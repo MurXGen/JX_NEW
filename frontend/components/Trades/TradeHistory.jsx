@@ -11,6 +11,7 @@ import { ArrowDown, ArrowUp, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation"; // for Next.js 13+ app directory
 import { useEffect, useState } from "react";
 import TradeInfo from "./TradeInfo";
+import ToastMessage from "../ui/ToastMessage";
 
 const TRADE_KEY = "__t_rd_iD";
 
@@ -544,6 +545,14 @@ const TradesHistory = ({
           </motion.div>
         )}
       </div>
+
+      {toast?.message && (
+        <ToastMessage
+          type={toast.type}
+          message={toast.message}
+          duration={2500}
+        />
+      )}
 
       {/* Trade Info Modal */}
       {showTradeModal && <TradeInfo onClose={() => setShowTradeModal(false)} />}
