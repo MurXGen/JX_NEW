@@ -2161,7 +2161,7 @@ footer {
   }
 
   .pnlIndicator {
-    font-size: var(--px-14) !important;
+    font-size: var(--px-12) !important;
   }
   .pnlIndicator.profit {
     color: var(--base-text);
@@ -6166,5 +6166,65 @@ footer {
 
   .imageLabel {
     font-size: var(--px-14);
+  }
+}
+
+.fullpageLoader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0b0c10;
+  color: #fff;
+  z-index: 9999;
+  flex-direction: column;
+}
+
+.loaderContent {
+  text-align: center;
+}
+
+.blinkingIcon {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 20px;
+  animation: blink 1.4s infinite ease-in-out;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.traderQuote {
+  font-size: 16px;
+  font-weight: 400;
+  color: #b3b3b3;
+  width: 80%;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.4;
+  animation: fadeIn 1.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

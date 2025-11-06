@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Edit } from "lucide";
+import { canAddTrade, canUploadImage } from "@/utils/planRestrictions";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -715,11 +716,10 @@ export default function AddTrade() {
     }
     return formatPrice(price);
   };
-  // AddTrade - part of component
+  // 📌 Adjust MAX_IMAGE_SIZE dynamically (fallback if plan not loaded)
+  let MAX_IMAGE_SIZE = 5 * 1024 * 1024; // default 5MB fallback
 
-  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-
-  // helper: read file as dataURL
+  // 🔹 Convert file to Data URL
   const fileToDataUrl = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -728,42 +728,144 @@ export default function AddTrade() {
       reader.readAsDataURL(file);
     });
 
-  function handleImageChange(e, field, setForm) {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    if (file.size > MAX_IMAGE_SIZE) {
-      alert("❌ Image size cannot exceed 5MB.");
-      e.target.value = ""; // reset input
+    const validationError = validateForm(form);
+    if (validationError) {
+      setToast({ type: "error", message: validationError });
       return;
     }
 
-    const previewUrl = URL.createObjectURL(file);
+    setLoading(true);
+    try {
+      const userData = await getFromIndexedDB("user-data");
+      const tradeStatus = form.status || "closed"; // can be 'closed', 'running', 'open'
 
-    // set preview & file in local state (form)
+      // ✅ Check trade limit
+      const canAdd = await canAddTrade(userData, tradeStatus);
+      if (!canAdd) {
+        setToast({
+          type: "error",
+          message:
+            tradeStatus === "running"
+              ? "Quick trade limit reached for this month."
+              : "Trade limit reached for this month.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Check image limits if images exist
+      if (form.openImage) {
+        const sizeMB = form.openImage.size / (1024 * 1024);
+        const canUpload = await canUploadImage(userData, sizeMB);
+        if (!canUpload) {
+          setToast({
+            type: "error",
+            message: "Image upload limit reached for this month.",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (form.closeImage) {
+        const sizeMB = form.closeImage.size / (1024 * 1024);
+        const canUpload = await canUploadImage(userData, sizeMB);
+        if (!canUpload) {
+          setToast({
+            type: "error",
+            message: "Image upload limit reached for this month.",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // ✅ Save serializable form data
+      const serializable = {
+        ...form,
+        openImage: null,
+        closeImage: null,
+      };
+
+      if (!serializable.closeTime) delete serializable.closeTime;
+
+      sessionStorage.setItem("newTradeData", JSON.stringify(serializable));
+      sessionStorage.setItem("isEditTrade", isEdit ? "true" : "false");
+
+      router.push({
+        pathname: "/trade",
+        query: { isNewTrade: "true" },
+      });
+    } catch (err) {
+      console.error(err);
+      setToast({ type: "error", message: "Something went wrong." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔹 Handle Image Change (with plan restriction check)
+  async function handleImageChange(e, field, setForm) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const userData = await getFromIndexedDB("user-data");
+
+    // ✅ Determine plan-based upload permission
+    const canUpload = await canUploadImage(userData, file.size / (1024 * 1024));
+    if (!canUpload) {
+      setToast({
+        type: "error",
+        message: "Image size exceeds your plan limit.",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    // ✅ Determine dynamic max size per plan
+    const rules = userData?.subscription
+      ? await import("@/utils/planRestrictions").then((m) =>
+          m.getPlanRules(userData)
+        )
+      : null;
+
+    const planMaxSize = rules?.limits?.maxImageSizeMB || 5;
+    MAX_IMAGE_SIZE = planMaxSize * 1024 * 1024;
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setToast({
+        type: "error",
+        message: "Image size exceeds your plan limit.",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    // ✅ Proceed to store
+    const previewUrl = URL.createObjectURL(file);
     setForm((prev) => ({
       ...prev,
-      [field]: file, // keep file in memory for immediate submit if user doesn't redirect
+      [field]: file,
       [`${field}Preview`]: previewUrl,
     }));
 
-    // convert to base64 and save into localStorage along with name & type
-    fileToDataUrl(file).then((dataUrl) => {
-      try {
-        const payload = JSON.stringify({
-          dataUrl,
-          name: file.name,
-          type: file.type,
-          ts: Date.now(),
-        });
-        // store per-field to avoid collisions
-        localStorage.setItem(`newTradeImage_${field}`, payload);
-      } catch (err) {}
+    const dataUrl = await fileToDataUrl(file);
+    const payload = JSON.stringify({
+      dataUrl,
+      name: file.name,
+      type: file.type,
+      ts: Date.now(),
     });
+
+    localStorage.setItem(`newTradeImage_${field}`, payload);
   }
 
+  // 🔹 Handle Image Remove (unchanged)
   function handleImageRemove(field, setForm) {
-    // Remove from form state
     setForm((prev) => ({
       ...prev,
       [field]: null,
@@ -771,55 +873,15 @@ export default function AddTrade() {
       [`${field}Removed`]: true,
     }));
 
-    // Remove from localStorage
     try {
       localStorage.removeItem(`newTradeImage_${field}`);
     } catch (err) {
-      error(`Failed to remove image from localStorage for ${field}`, err);
+      console.error(
+        `Failed to remove image from localStorage for ${field}`,
+        err
+      );
     }
   }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const validationError = validateForm(form);
-    if (validationError) {
-      setToast(null); // reset first
-      setTimeout(() => {
-        setToast({ type: "error", message: validationError });
-      }, 0);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Save serializable form data in session/local storage
-      // keep openImage/closeImage fields as null so form JSON is serializable
-      const serializable = {
-        ...form,
-        openImage: null,
-        closeImage: null,
-      };
-
-      if (!serializable.closeTime) {
-        delete serializable.closeTime;
-      }
-
-      sessionStorage.setItem("newTradeData", JSON.stringify(serializable));
-      sessionStorage.setItem("isEditTrade", isEdit ? "true" : "false");
-
-      // redirect to /trade to let TradesHistory pick up and submit
-      router.push({
-        pathname: "/trade",
-        query: { isNewTrade: "true" },
-      });
-    } catch (err) {
-      setToast({ type: "error", message: "Something went wrong." });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const [activeModal, setActiveModal] = useState(null);
 

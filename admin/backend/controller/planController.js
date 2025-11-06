@@ -1,43 +1,59 @@
 const Plan = require("../model/Plan");
 
-exports.upsertPlan = async (req, res) => {
+// ✅ Create or Update multiple plans (bulk or single)
+exports.upsertPlans = async (req, res) => {
   try {
-    let plans = req.body;
+    const plans = req.body; // expecting { pro: {...}, elite: {...}, ... }
     const results = [];
 
-    // Check if it's a single plan object (has planId property)
-    if (plans.planId) {
-      plans = { [plans.planId]: plans };
-    }
+    for (const code in plans) {
+      const planData = plans[code];
+      if (!planData) continue;
 
-    for (const planId in plans) {
-      const { name, monthly, yearly, icon } = plans[planId];
+      const {
+        name,
+        monthly,
+        yearly,
+        features,
+        restrictions,
+        isActive = true,
+      } = planData;
 
-      // Ensure monthly and yearly exist
+      // Auto-calculate INR→USDT equivalence if missing
       const monthlyWithInrUsdt = {
         ...monthly,
-        inrUsdt: monthly.inrUsdt ?? monthly.usdt * 90,
+        inrUsdt: monthly.inrUsdt ?? (monthly.usdt ? monthly.usdt * 90 : 0),
       };
       const yearlyWithInrUsdt = {
         ...yearly,
-        inrUsdt: yearly.inrUsdt ?? yearly.usdt * 90,
+        inrUsdt: yearly.inrUsdt ?? (yearly.usdt ? yearly.usdt * 90 : 0),
       };
 
-      const plan = await Plan.findOneAndUpdate(
-        { planId },
-        { name, monthly: monthlyWithInrUsdt, yearly: yearlyWithInrUsdt, icon },
-        { new: true, upsert: true }
+      const updated = await Plan.findOneAndUpdate(
+        { code },
+        {
+          name,
+          code,
+          monthly: monthlyWithInrUsdt,
+          yearly: yearlyWithInrUsdt,
+          features: features || [],
+          restrictions: restrictions || {},
+          isActive,
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
       );
 
-      results.push(plan);
+      results.push(updated);
     }
 
     res.status(200).json({ success: true, plans: results });
   } catch (err) {
+    console.error("Plan upsert error:", err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 
+// ✅ Fetch all plans
 exports.getPlans = async (req, res) => {
   try {
     const plans = await Plan.find();
@@ -47,12 +63,12 @@ exports.getPlans = async (req, res) => {
   }
 };
 
-// Delete plan
+// ✅ Delete plan by code
 exports.deletePlan = async (req, res) => {
   try {
-    const { planId } = req.params;
-    const plan = await Plan.findOneAndDelete({ planId });
-    if (!plan)
+    const { code } = req.params;
+    const deleted = await Plan.findOneAndDelete({ code });
+    if (!deleted)
       return res
         .status(404)
         .json({ success: false, message: "Plan not found" });

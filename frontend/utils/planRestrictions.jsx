@@ -1,73 +1,84 @@
 import dayjs from "dayjs";
-import Cookies from "js-cookie"; // for active account
+import Cookies from "js-cookie";
 import { getFromIndexedDB } from "./indexedDB";
 
-const PLAN_RULES = {
+// 🧩 Local Fallback Rules
+export const PLAN_RULES = {
   free: {
-    tradeLimitPerMonth: 10,
-    accountLimit: 1,
-    imageLimitPerMonth: 5,
-    maxImageSizeMB: 5,
-    tradeHistoryDays: 30,
-    aiPrompts: 0,
-    canUploadImages: true,
-    canAccessFinancialNews: false,
-    canAccessTelegramBot: false,
-    canExportTrades: true,
-    canShareTrades: true,
-    showAds: true, // show ads for free users
+    limits: {
+      tradeLimitPerMonth: 10,
+      quickTradeLimitPerMonth: 10,
+      accountLimit: 1,
+      imageLimitPerMonth: 10,
+      maxImageSizeMB: 10,
+    },
+    features: {
+      logTrades: "Up to 10 trades per month",
+      multipleAccounts: "Up to 1 account",
+      showsAds: true,
+      imageUpload: "Up to 10 images per month",
+      maxImageSize: "10 MB",
+      shareTrades: true,
+      aiAnalysis: false,
+      advancedCharts: true,
+      quickTradeLog: "Up to 10 quick trades",
+      multipleEntries: true,
+      backupData: false,
+      integration: false,
+      exportTrades: false, // ⬅️ NEW: Export feature access flag
+    },
   },
   pro: {
-    tradeLimitPerMonth: Infinity,
-    accountLimit: 2,
-    imageLimitPerMonth: 60,
-    maxImageSizeMB: 10,
-    tradeHistoryDays: 90,
-    aiPrompts: 5,
-    canUploadImages: true,
-    canAccessFinancialNews: false,
-    canAccessTelegramBot: false,
-    canExportTrades: true,
-    canShareTrades: true,
-    showAds: true,
-  },
-  elite: {
-    tradeLimitPerMonth: Infinity,
-    accountLimit: 3,
-    imageLimitPerMonth: Infinity,
-    maxImageSizeMB: 10,
-    tradeHistoryDays: Infinity,
-    aiPrompts: 5,
-    canUploadImages: true,
-    canAccessFinancialNews: true,
-    canAccessTelegramBot: true,
-    canExportTrades: true,
-    canShareTrades: true,
-    showAds: false,
+    limits: {
+      tradeLimitPerMonth: Infinity,
+      quickTradeLimitPerMonth: Infinity,
+      accountLimit: 3,
+      imageLimitPerMonth: Infinity,
+      maxImageSizeMB: 100,
+    },
+    features: {
+      logTrades: "Unlimited",
+      multipleAccounts: "Up to 3 (contact for more)",
+      showsAds: false,
+      imageUpload: "Unlimited",
+      maxImageSize: "100 MB (contact for increase)",
+      shareTrades: true,
+      aiAnalysis: true,
+      advancedCharts: true,
+      quickTradeLog: "Unlimited",
+      multipleEntries: true,
+      backupData: true,
+      integration: true,
+      exportTrades: true, // ⬅️ Pro & Master can export
+    },
   },
   master: {
-    tradeLimitPerMonth: Infinity,
-    accountLimit: 5,
-    imageLimitPerMonth: Infinity,
-    maxImageSizeMB: 10,
-    tradeHistoryDays: Infinity,
-    aiPrompts: 5,
-    canUploadImages: true,
-    canAccessFinancialNews: true,
-    canAccessTelegramBot: true,
-    canExportTrades: true,
-    canShareTrades: true,
-    showAds: false,
+    limits: {
+      tradeLimitPerMonth: Infinity,
+      quickTradeLimitPerMonth: Infinity,
+      accountLimit: 3,
+      imageLimitPerMonth: Infinity,
+      maxImageSizeMB: 100,
+    },
+    features: {
+      logTrades: "Unlimited",
+      multipleAccounts: "Up to 3 (contact for more)",
+      showsAds: false,
+      imageUpload: "Unlimited",
+      maxImageSize: "100 MB (contact for increase)",
+      shareTrades: true,
+      aiAnalysis: true,
+      advancedCharts: true,
+      quickTradeLog: "Unlimited",
+      multipleEntries: true,
+      backupData: true,
+      integration: true,
+      exportTrades: true, // ⬅️ Pro & Master can export
+    },
   },
 };
 
-// Check if ads should be shown for given user
-export const canShowAds = (userData) => {
-  const rules = getPlanRules(userData);
-  return Boolean(rules.showAds);
-};
-
-// Normalize plan names
+// 🧭 Normalize plan names and retrieve rules
 export const getPlanRules = (userData) => {
   const planId =
     userData?.subscription?.planId ||
@@ -77,13 +88,24 @@ export const getPlanRules = (userData) => {
   return PLAN_RULES[planName] || PLAN_RULES.free;
 };
 
-// Get active accountId from cookies
+// ✅ Determine if ads should be shown
+export const canShowAds = (userData) => {
+  const rules = getPlanRules(userData);
+  return rules.features.showsAds;
+};
+
+// ✅ Active account ID from cookies
 const getActiveAccountId = () => Cookies.get("accountId");
 
-// ✅ Check if user can add a trade for active account
-export const canAddTrade = async (userData) => {
+// ✅ Check if user can add a normal trade
+export const canAddTrade = async (userData, tradeStatus = "closed") => {
   const rules = getPlanRules(userData);
-  if (rules.tradeLimitPerMonth === Infinity) return true;
+  const tradeLimit =
+    tradeStatus === "running"
+      ? rules.limits.quickTradeLimitPerMonth
+      : rules.limits.tradeLimitPerMonth;
+
+  if (tradeLimit === Infinity) return true;
 
   const trades = userData.trades || [];
   const now = dayjs();
@@ -94,28 +116,36 @@ export const canAddTrade = async (userData) => {
     if (activeAccountId && t.accountId !== activeAccountId) return false;
 
     const tradeDate = dayjs(t.openTime);
-    return (
+    if (
       tradeDate.isValid() &&
       tradeDate.month() === now.month() &&
       tradeDate.year() === now.year()
-    );
+    ) {
+      if (tradeStatus === "running") {
+        return t.status === "running";
+      } else {
+        return t.status === "closed";
+      }
+    }
+    return false;
   }).length;
 
-  return tradesThisMonth < rules.tradeLimitPerMonth;
+  return tradesThisMonth < tradeLimit;
 };
 
-// ✅ Check if user can add an account (global)
+// ✅ Check if user can add an account
 export const canAddAccount = (userData, accountCount) => {
   const rules = getPlanRules(userData);
-  return accountCount < rules.accountLimit;
+  return accountCount < rules.limits.accountLimit;
 };
 
-// ✅ Check image upload eligibility for active account
+// ✅ Check if image upload is allowed
 export const canUploadImage = async (userData, newImageSizeMB) => {
   const rules = getPlanRules(userData);
-  if (!rules.canUploadImages) return false;
-  if (newImageSizeMB > rules.maxImageSizeMB) return false;
-  if (rules.imageLimitPerMonth === Infinity) return true;
+  const { maxImageSizeMB, imageLimitPerMonth } = rules.limits;
+
+  if (newImageSizeMB > maxImageSizeMB) return false;
+  if (imageLimitPerMonth === Infinity) return true;
 
   const trades = userData.trades || [];
   const now = dayjs();
@@ -137,36 +167,28 @@ export const canUploadImage = async (userData, newImageSizeMB) => {
     }
   });
 
-  return imagesThisMonth < rules.imageLimitPerMonth;
+  return imagesThisMonth < imageLimitPerMonth;
 };
 
 // ✅ Generic feature access
-export const canAccessFeature = (userData, feature) => {
+export const canAccessFeature = (userData, featureKey) => {
   const rules = getPlanRules(userData);
-  return rules[`canAccess${feature}`] || false;
+  return rules.features[featureKey] || false;
 };
 
-// ✅ Trade history limit
-export const getTradeHistoryLimit = (userData) => {
+// ✅ Check AI access
+export const canUseAI = (userData) => {
   const rules = getPlanRules(userData);
-  return rules.tradeHistoryDays;
+  return rules.features.aiAnalysis;
 };
 
+// ✅ Helpers for current user
 export const getCurrentPlanRules = async () => {
   const userData = await getFromIndexedDB("user-data");
   return getPlanRules(userData);
 };
 
-// If you need an async wrapper to check ads for the currently cached user
 export const shouldShowAdsForCurrentUser = async () => {
   const userData = await getFromIndexedDB("user-data");
   return canShowAds(userData);
-};
-
-// ✅ Check if user can use AI Assistant
-export const canUseAI = (userData) => {
-  const rules = getPlanRules(userData);
-  const aiUsed = userData?.aiPromptsUsed || 0;
-  if (rules.aiPrompts === Infinity) return true;
-  return aiUsed < rules.aiPrompts;
 };

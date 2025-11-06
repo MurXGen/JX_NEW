@@ -2,21 +2,15 @@
 
 import Dropdown from "@/components/ui/Dropdown";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
-import { getCurrentPlanRules } from "@/utils/planRestrictions";
+import { getFromIndexedDB } from "@/utils/indexedDB";
+import { canAccessFeature, getPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
-import {
-  ArrowLeft,
-  Calendar,
-  Check,
-  ChevronDown,
-  Download,
-  Info,
-} from "lucide-react";
+import { Download, ArrowLeft, Info, ArrowUp, ArrowDown } from "lucide-react";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, ArrowDown } from "lucide-react";
 import { useRouter } from "next/router";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
+import { motion, AnimatePresence } from "framer-motion";
+import { formatCurrency } from "@/utils/formatNumbers";
 
 const ExportPage = () => {
   const router = useRouter();
@@ -27,8 +21,6 @@ const ExportPage = () => {
   const [exporting, setExporting] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
   const [filteredTrades, setFilteredTrades] = useState([]);
-  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
-  const [showTimeRangeDropdown, setShowTimeRangeDropdown] = useState(false);
 
   useEffect(() => {
     loadDataAndCheckAccess();
@@ -40,8 +32,11 @@ const ExportPage = () => {
 
   const loadDataAndCheckAccess = async () => {
     try {
-      const rules = await getCurrentPlanRules();
-      const canExport = rules.canExportTrades;
+      const userData = await getFromIndexedDB("user-data");
+      const rules = getPlanRules(userData);
+
+      // ✅ Check if export feature is allowed by plan
+      const canExport = canAccessFeature(userData, "exportTrades");
       setHasAccess(canExport);
 
       if (canExport) {
@@ -49,46 +44,39 @@ const ExportPage = () => {
         setAccounts(data.accounts || []);
         setTrades(data.trades || []);
       }
-    } catch (error) {
-      error("Error loading data:", error);
+    } catch (err) {
+      console.error("Error loading data:", err);
     }
   };
 
   const filterTrades = () => {
     let filtered = [...trades];
 
-    // Filter by account
     if (selectedAccount !== "all") {
       filtered = filtered.filter(
         (trade) => trade.accountId === selectedAccount
       );
     }
 
-    // Filter by time range
     const now = dayjs();
     switch (timeRange) {
       case "today":
-        filtered = filtered.filter((trade) =>
-          dayjs(trade.openTime).isSame(now, "day")
-        );
+        filtered = filtered.filter((t) => dayjs(t.openTime).isSame(now, "day"));
         break;
       case "last_week":
-        filtered = filtered.filter((trade) =>
-          dayjs(trade.openTime).isAfter(now.subtract(1, "week"))
+        filtered = filtered.filter((t) =>
+          dayjs(t.openTime).isAfter(now.subtract(1, "week"))
         );
         break;
       case "this_month":
-        filtered = filtered.filter((trade) =>
-          dayjs(trade.openTime).isSame(now, "month")
+        filtered = filtered.filter((t) =>
+          dayjs(t.openTime).isSame(now, "month")
         );
         break;
       case "last_month":
-        filtered = filtered.filter((trade) =>
-          dayjs(trade.openTime).isSame(now.subtract(1, "month"), "month")
+        filtered = filtered.filter((t) =>
+          dayjs(t.openTime).isSame(now.subtract(1, "month"), "month")
         );
-        break;
-      case "all_time":
-        // No time filter
         break;
       default:
         break;
@@ -97,30 +85,12 @@ const ExportPage = () => {
     setFilteredTrades(filtered);
   };
 
-  const getTimeRangeLabel = () => {
-    const labels = {
-      today: "Today",
-      last_week: "Last 7 Days",
-      this_month: "This Month",
-      last_month: "Last Month",
-      all_time: "All Time",
-    };
-    return labels[timeRange] || "Select Range";
-  };
-
-  const getAccountName = (accountId) => {
-    if (accountId === "all") return "All Accounts";
-    const account = accounts.find((acc) => acc._id === accountId);
-    return account ? account.name : "Unknown Account";
-  };
-
-  const formatCurrency = (val) =>
-    val ? `$${Number(val).toFixed(2)}` : "$0.00";
-
-  const getPnlColorClass = (pnl) =>
-    pnl >= 0 ? "success" : pnl < 0 ? "error" : "shade_50";
-
   const exportToCSV = () => {
+    if (!hasAccess) {
+      alert("Upgrade to Pro or Master plan to export trades.");
+      return;
+    }
+
     if (filteredTrades.length === 0) {
       alert("No trades found for the selected filters.");
       return;
@@ -129,7 +99,6 @@ const ExportPage = () => {
     setExporting(true);
 
     try {
-      // Define CSV headers based on the fields you want to export
       const headers = [
         "Symbol",
         "Direction",
@@ -157,7 +126,6 @@ const ExportPage = () => {
         "Average SL Price",
       ];
 
-      // Convert trades to CSV rows
       const csvRows = filteredTrades.map((trade) => [
         trade.symbol || "",
         trade.direction || "",
@@ -189,55 +157,50 @@ const ExportPage = () => {
         trade.avgSLPrice || 0,
       ]);
 
-      // Combine headers and rows
       const csvContent = [headers, ...csvRows]
         .map((row) =>
           row
             .map((field) => {
-              // Escape fields that might contain commas or quotes
-              const stringField = String(field);
+              const str = String(field);
               if (
-                stringField.includes(",") ||
-                stringField.includes('"') ||
-                stringField.includes("\n")
+                str.includes(",") ||
+                str.includes('"') ||
+                str.includes("\n")
               ) {
-                return `"${stringField.replace(/"/g, '""')}"`;
+                return `"${str.replace(/"/g, '""')}"`;
               }
-              return stringField;
+              return str;
             })
             .join(",")
         )
         .join("\n");
 
-      // Create and download the file
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
 
       const timestamp = dayjs().format("YYYY-MM-DD_HH-mm-ss");
       const accountLabel =
         selectedAccount === "all"
           ? "all_accounts"
           : getAccountName(selectedAccount).toLowerCase().replace(/\s+/g, "_");
-      const timeLabel = timeRange;
 
-      link.setAttribute("href", url);
-      link.setAttribute(
-        "download",
-        `trades_${accountLabel}_${timeLabel}_${timestamp}.csv`
-      );
-      link.style.visibility = "hidden";
-
-      document.body.appendChild(link);
+      link.href = url;
+      link.download = `trades_${accountLabel}_${timeRange}_${timestamp}.csv`;
       link.click();
-      document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch (error) {
-      error("Error exporting CSV:", error);
+    } catch (err) {
+      console.error("Error exporting CSV:", err);
       alert("Error exporting data. Please try again.");
     } finally {
       setExporting(false);
     }
+  };
+
+  const getAccountName = (id) => {
+    if (id === "all") return "All Accounts";
+    const acc = accounts.find((a) => a._id === id);
+    return acc ? acc.name : "Unknown";
   };
 
   const getStats = () => {
@@ -255,6 +218,9 @@ const ExportPage = () => {
       winRate: winRate.toFixed(1),
     };
   };
+
+  const getPnlColorClass = (pnl) =>
+    pnl >= 0 ? "success" : pnl < 0 ? "error" : "shade_50";
 
   const stats = getStats();
 
@@ -280,10 +246,7 @@ const ExportPage = () => {
     );
   }
 
-  const handleBackClick = () => {
-    router.push("/accounts");
-  };
-
+  const handleBackClick = () => router.push("/accounts");
   return (
     <div className="exportPage flexClm gap_24 pad_24">
       {/* Header */}

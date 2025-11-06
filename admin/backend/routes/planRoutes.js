@@ -1,17 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const {
-  upsertPlan,
-  getPlans,
-  deletePlan,
-} = require("../controller/planController");
+const planController = require("../controller/planController");
 
-router.post("/upsert", upsertPlan);
-
-// GET /api/plans
-router.get("/", getPlans);
-
-// DELETE /api/plans/:planId
-router.delete("/:planId", deletePlan);
+// Correct usage — no parentheses
+router.post("/upsert", planController.upsertPlans);
+router.get("/", planController.getPlans);
+router.delete("/:code", planController.deletePlan);
 
 module.exports = router;

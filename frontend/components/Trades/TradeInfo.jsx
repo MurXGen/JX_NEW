@@ -561,15 +561,6 @@ const TradeInfo = ({ onClose }) => {
             {/* Full Page Loader */}
             {isDeleting && <FullPageLoader />}
 
-            {/* Toast Message */}
-            {toast.message && (
-              <ToastMessage
-                type={toast.type}
-                message={toast.message}
-                duration={3000}
-              />
-            )}
-
             {trade.tradeStatus === "running" && (
               <button
                 onClick={handleCloseTrade}
@@ -591,6 +582,14 @@ const TradeInfo = ({ onClose }) => {
           </div>
         </motion.div>
       </motion.div>
+      {/* Toast Message */}
+      {toast.message && (
+        <ToastMessage
+          type={toast.type}
+          message={toast.message}
+          duration={3000}
+        />
+      )}
     </AnimatePresence>
   );
 };

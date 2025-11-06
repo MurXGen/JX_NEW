@@ -1,4 +1,3 @@
-// components/Profile/SubscriptionStatus.jsx
 "use client";
 
 import { getFromIndexedDB } from "@/utils/indexedDB";
@@ -19,6 +18,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import FullPageLoader from "../ui/FullPageLoader";
+import { getPlanRules } from "@/utils/planRestrictions"; // ✅ Import from your synced planRules.js
 
 const SubscriptionStatus = () => {
   const router = useRouter();
@@ -27,6 +27,7 @@ const SubscriptionStatus = () => {
   const [currentPlan, setCurrentPlan] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState("");
   const [progressPercent, setProgressPercent] = useState("");
+  const [planRules, setPlanRules] = useState(null);
 
   useEffect(() => {
     loadUserData();
@@ -39,71 +40,38 @@ const SubscriptionStatus = () => {
       setUserData(data);
 
       if (data?.subscription) {
-        const { startAt, expiresAt } = data.subscription;
-        setCurrentPlan(data.subscription);
+        const { startAt, expiresAt, planId } = data.subscription;
+        const rules = getPlanRules(data);
 
+        setCurrentPlan(data.subscription);
+        setPlanRules(rules);
+
+        // Calculate progress and remaining time
         const now = new Date();
         const start = new Date(startAt);
         const expiry = new Date(expiresAt);
-
-        // Progress percentage
         const totalTime = expiry - start;
         const elapsedTime = now - start;
+
         let progress = (elapsedTime / totalTime) * 100;
-        if (progress < 0) progress = 0;
-        if (progress > 100) progress = 100;
+        progress = Math.min(100, Math.max(0, progress));
         setProgressPercent(progress);
 
-        // Time remaining in days only
-        const diffTime = expiry - now;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        const remainingText =
-          diffDays <= 0 ? "Expired" : `${diffDays} days left`;
-        setTimeRemaining(remainingText);
+        const diffDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+        setTimeRemaining(diffDays <= 0 ? "Expired" : `${diffDays} days left`);
+      } else {
+        setPlanRules(getPlanRules({ subscription: { planId: "free" } }));
       }
     } catch (error) {
+      console.error("Error loading user data:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const calculateTimeRemaining = (startDate, expiryDate) => {
-    const now = new Date();
-    const start = new Date(startDate);
-    const expiry = new Date(expiryDate);
-
-    const totalTime = expiry - start; // total subscription duration in ms
-    const elapsedTime = now - start; // time elapsed in ms
-
-    // Calculate progress percentage
-    let progress = (elapsedTime / totalTime) * 100;
-    if (progress < 0) progress = 0;
-    if (progress > 100) progress = 100;
-
-    // Calculate remaining time
-    const diffTime = expiry - now;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    let remainingText = "";
-    if (diffDays <= 0) {
-      remainingText = "Expired";
-    } else if (diffDays === 1) {
-      remainingText = "1 day left";
-    } else if (diffDays <= 7) {
-      remainingText = `${diffDays} days left`;
-    } else if (diffDays <= 30) {
-      remainingText = `${Math.ceil(diffDays / 7)} weeks left`;
-    } else {
-      remainingText = `${Math.ceil(diffDays / 30)} months left`;
-    }
-
-    return { progress, remainingText };
-  };
-
   const getPlanIcon = (planId) => {
     const baseProps = { size: 24 };
-    switch (planId) {
+    switch (planId?.toLowerCase()) {
       case "pro":
         return <Crown {...baseProps} className="plan-icon pro" />;
       case "elite":
@@ -143,19 +111,19 @@ const SubscriptionStatus = () => {
       return {
         title: "Unlock Premium Features",
         description:
-          "Start your journey to better trading with our premium plans",
+          "Start your journey to smarter trading with premium tools and unlimited logging.",
         cta: "View Plans",
         urgency: "new",
       };
     }
 
-    const planLevels = { basic: 1, pro: 2, elite: 3, master: 4 };
-    const currentLevel = planLevels[currentPlan.planId] || 1;
+    const planLevels = { free: 1, pro: 2, elite: 3, master: 4 };
+    const currentLevel = planLevels[currentPlan.planId?.toLowerCase()] || 1;
 
     if (currentLevel < 4) {
       return {
         title: "Ready for the Next Level?",
-        description: "Upgrade to unlock advanced features and higher limits",
+        description: "Upgrade to unlock AI insights, integrations, and more.",
         cta: "Upgrade Now",
         urgency: "upgrade",
       };
@@ -163,15 +131,13 @@ const SubscriptionStatus = () => {
 
     return {
       title: "Premium Member",
-      description: "You're enjoying our highest tier features",
+      description: "You’re enjoying the highest tier with full features!",
       cta: "Manage Subscription",
       urgency: "premium",
     };
   };
 
-  if (isLoading) {
-    return <FullPageLoader />;
-  }
+  if (isLoading) return <FullPageLoader />;
 
   const statusConfig = currentPlan
     ? getStatusConfig(currentPlan.status)
@@ -180,7 +146,6 @@ const SubscriptionStatus = () => {
 
   return (
     <div className="subscription-status">
-      {/* Current Plan Card */}
       <AnimatePresence mode="wait">
         {currentPlan ? (
           <motion.div
@@ -200,26 +165,20 @@ const SubscriptionStatus = () => {
                       currentPlan.planId.slice(1)}{" "}
                     Plan
                   </span>
-                  <span
-                    className="font_12"
-                    style={{ color: "var(--white-50)" }}
-                  >
+                  <span className="font_12 shade_50">
                     {currentPlan.type === "recurring"
                       ? "Auto-renewal"
                       : "One-time payment"}
                   </span>
                 </div>
               </div>
-              <div
-                className={`status-badge ${statusConfig.color}`}
-                style={{ padding: "12px" }}
-              >
+              <div className={`status-badge ${statusConfig.color}`}>
                 <statusConfig.icon size={16} />
                 <span className="font_12">{statusConfig.label}</span>
               </div>
             </div>
 
-            {/* Progress Bar for Time Remaining */}
+            {/* Progress Bar */}
             {currentPlan?.status === "active" && (
               <div className="">
                 <div className="progress-header flexRow flexRow_stretch font_12">
@@ -252,6 +211,7 @@ const SubscriptionStatus = () => {
               </div>
             )}
 
+            {/* Dates */}
             {currentPlan?.startAt && currentPlan?.expiresAt && (
               <div className="flexRow flexRow_stretch">
                 <div className="flexRow gap_12">
@@ -265,11 +225,7 @@ const SubscriptionStatus = () => {
                 </div>
                 <div
                   className="flexRow gap_12"
-                  style={{
-                    textAlign: "right",
-                    justifyContent: "end",
-                    flexDirection: "row-reverse",
-                  }}
+                  style={{ justifyContent: "flex-end" }}
                 >
                   <Clock size={16} className="vector" />
                   <div className="detail-content">
@@ -284,7 +240,29 @@ const SubscriptionStatus = () => {
               </div>
             )}
 
-            {/* Action Buttons */}
+            {/* Limits Overview */}
+            {planRules && (
+              <div className="flexRow gap_8 font_12 shade_50">
+                <div className="boxBg width100 flexRow flexRow_stretch">
+                  <b>Trade Limit:</b>{" "}
+                  {planRules.limits.tradeLimitPerMonth === Infinity
+                    ? "Unlimited"
+                    : `${planRules.limits.tradeLimitPerMonth} / month`}
+                </div>
+                <div className="boxBg width100 flexRow flexRow_stretch">
+                  <b>Account Limit:</b> {planRules.limits.accountLimit}
+                </div>
+                <div className="boxBg width100 flexRow flexRow_stretch">
+                  <b>Image Upload:</b>{" "}
+                  {planRules.limits.imageLimitPerMonth === Infinity
+                    ? "Unlimited"
+                    : `${planRules.limits.imageLimitPerMonth} / month`}{" "}
+                  ({planRules.limits.maxImageSizeMB} MB max)
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
             <div className="plan-actions flexRow gap_12">
               {currentPlan.status === "active" ? (
                 <>
@@ -294,13 +272,6 @@ const SubscriptionStatus = () => {
                   >
                     Manage
                   </button>
-                  {/* <button
-                    className="button_pri flexRow flex_center gap_12"
-                    onClick={() => router.push("/pricing")}
-                  >
-                    <TrendingUp size={14} />
-                    Upgrade
-                  </button> */}
                   <button
                     className="upgrade_btn width100 flexRow gap_8 flex_center"
                     onClick={() => router.push("/pricing")}
@@ -321,49 +292,24 @@ const SubscriptionStatus = () => {
             </div>
           </motion.div>
         ) : (
+          // No Plan UI
           <motion.div
             key="no-plan"
             className="no-subscription-card chart_boxBg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="upgrade-header text-center">
-              <div className="upgrade-icon">
-                <Crown size={32} className="vector" />
-              </div>
+            <div className="text-center">
+              <Crown size={32} className="vector" />
               <h3 className="font_18 font_weight_600">
                 {upgradeMessage.title}
               </h3>
-              <p className="font_12" style={{ color: "var(--white-50)" }}>
-                {upgradeMessage.description}
-              </p>
+              <p className="font_12 shade_50">{upgradeMessage.description}</p>
             </div>
 
-            {/* Feature Highlights */}
-            <div className="feature-highlights">
-              <div className="feature-item">
-                <Check size={16} className="success" />
-                <span className="font_12">Advanced Analytics</span>
-              </div>
-              <div className="feature-item">
-                <Check size={16} className="success" />
-                <span className="font_12">Real-time Data</span>
-              </div>
-              <div className="feature-item">
-                <Check size={16} className="success" />
-                <span className="font_12">Priority Support</span>
-              </div>
-              <div className="feature-item">
-                <Check size={16} className="success" />
-                <span className="font_12">Custom Indicators</span>
-              </div>
-            </div>
-
-            {/* CTA Button */}
             <motion.button
-              className="upgrade-cta button_pri"
+              className="button_pri width100"
               onClick={() => router.push("/pricing")}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -371,54 +317,9 @@ const SubscriptionStatus = () => {
               <Sparkles size={16} />
               {upgradeMessage.cta}
             </motion.button>
-
-            {/* Trust Indicators */}
-            <div className="trust-indicators">
-              <div className="trust-item">
-                <Shield size={14} className="vector" />
-                <span className="font_10">Secure Payment</span>
-              </div>
-              <div className="trust-item">
-                <Users size={14} className="vector" />
-                <span className="font_10">10K+ Traders</span>
-              </div>
-              <div className="trust-item">
-                <Check size={14} className="success" />
-                <span className="font_10">Cancel Anytime</span>
-              </div>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Upgrade Suggestion for Lower Tiers */}
-      {currentPlan &&
-        currentPlan.planId !== "master" &&
-        currentPlan.status === "active" && (
-          <motion.div
-            className="upgrade-suggestion"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="suggestion-content">
-              <div className="suggestion-text">
-                <span className="font_14 font_weight_600">
-                  Ready for more power?
-                </span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Upgrade to unlock premium features and better performance
-                </span>
-              </div>
-              <button
-                className="suggestion-cta button_sec"
-                onClick={() => router.push("/pricing")}
-              >
-                Explore Upgrades
-              </button>
-            </div>
-          </motion.div>
-        )}
     </div>
   );
 };

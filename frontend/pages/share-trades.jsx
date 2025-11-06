@@ -15,10 +15,11 @@ import {
   Link,
   Trophy,
   TrendingUp,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, ArrowDown } from "lucide-react";
 import { useRouter } from "next/router";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 
@@ -47,45 +48,39 @@ const ShareTrades = () => {
   const loadDataAndCheckAccess = async () => {
     try {
       const rules = await getCurrentPlanRules();
-      const canShare = rules.canShareTrades;
-      setHasAccess(canShare);
+      const canShareTrades = rules.features?.shareTrades || false;
+      setHasAccess(canShareTrades);
 
-      if (canShare) {
+      if (canShareTrades) {
         const data = await fetchAccountsAndTrades();
         setAccounts(data.accounts || []);
         setTrades(data.trades || []);
       }
-    } catch (error) {
-      error("Error loading data:", error);
+    } catch (err) {
+      console.error("Error loading data:", err);
     }
   };
 
   const filterTrades = () => {
     let filtered = [...trades];
+    const now = dayjs();
 
-    // Filter by account
     if (selectedAccount !== "all") {
-      filtered = filtered.filter(
-        (trade) => trade.accountId === selectedAccount
-      );
+      filtered = filtered.filter((t) => t.accountId === selectedAccount);
     }
 
-    // Filter by time range (max 30 days for sharing)
-    const now = dayjs();
     switch (timeRange) {
       case "today":
-        filtered = filtered.filter((trade) =>
-          dayjs(trade.openTime).isSame(now, "day")
-        );
+        filtered = filtered.filter((t) => dayjs(t.openTime).isSame(now, "day"));
         break;
       case "last_week":
-        filtered = filtered.filter((trade) =>
-          dayjs(trade.openTime).isAfter(now.subtract(1, "week"))
+        filtered = filtered.filter((t) =>
+          dayjs(t.openTime).isAfter(now.subtract(1, "week"))
         );
         break;
       case "last_30_days":
-        filtered = filtered.filter((trade) =>
-          dayjs(trade.openTime).isAfter(now.subtract(30, "day"))
+        filtered = filtered.filter((t) =>
+          dayjs(t.openTime).isAfter(now.subtract(30, "day"))
         );
         break;
       default:
@@ -102,9 +97,8 @@ const ShareTrades = () => {
     }
 
     setLoading(true);
-    setShortUrl(""); // Reset short URL
+    setShortUrl("");
     try {
-      // Prepare trade data for sharing
       const shareData = filteredTrades.map((trade) => ({
         symbol: trade.symbol,
         direction: trade.direction,
@@ -132,31 +126,25 @@ const ShareTrades = () => {
         avgSLPrice: trade.avgSLPrice,
       }));
 
-      // Create a compressed data string
       const dataString = JSON.stringify({
         trades: shareData,
         meta: {
           totalTrades: shareData.length,
-          timeRange: timeRange,
+          timeRange,
           account: getAccountName(selectedAccount),
           generatedAt: new Date().toISOString(),
           version: "1.0",
         },
       });
 
-      // Encode to base64 for URL (more efficient than JSON in URL)
       const encodedData = btoa(unescape(encodeURIComponent(dataString)));
-
-      // Create the full URL first
       const baseUrl = window.location.origin;
       const fullShareUrl = `${baseUrl}/view-trades?data=${encodedData}`;
 
       setShareUrl(fullShareUrl);
-
-      // Automatically shorten the URL
       await shortenUrl(fullShareUrl);
-    } catch (error) {
-      error("Error generating share URL:", error);
+    } catch (err) {
+      console.error("Error generating share link:", err);
       alert("Error generating share link. Please try again.");
     } finally {
       setLoading(false);
@@ -166,48 +154,17 @@ const ShareTrades = () => {
   const shortenUrl = async (longUrl) => {
     setShortening(true);
     try {
-      // Method 1: TinyURL API (Free, no auth required)
-      const shortenedUrl = await shortenWithTinyURL(longUrl);
-      setShortUrl(shortenedUrl);
-    } catch (error) {
-      error("URL shortening failed:", error);
-      // Fallback: Use the original long URL
+      const response = await fetch(
+        `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`
+      );
+      if (!response.ok) throw new Error("TinyURL failed");
+      const shortUrl = await response.text();
+      setShortUrl(shortUrl.startsWith("http") ? shortUrl : longUrl);
+    } catch (err) {
+      console.error("URL shortening failed:", err);
       setShortUrl(longUrl);
     } finally {
       setShortening(false);
-    }
-  };
-
-  const shortenWithTinyURL = async (longUrl) => {
-    try {
-      // TinyURL expects the URL as a query parameter
-      const tinyUrlApi = `https://tinyurl.com/api-create.php?url=${encodeURIComponent(
-        longUrl
-      )}`;
-
-      const response = await fetch(tinyUrlApi, {
-        method: "GET",
-        headers: {
-          Accept: "text/plain",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`TinyURL API error: ${response.status}`);
-      }
-
-      // TinyURL returns plain text, not JSON
-      const shortUrl = await response.text();
-
-      // Validate that we got a proper URL back
-      if (!shortUrl.startsWith("http")) {
-        throw new Error(`Invalid TinyURL response: ${shortUrl}`);
-      }
-
-      return shortUrl;
-    } catch (error) {
-      error("❌ TinyURL failed:", error);
-      throw error;
     }
   };
 
@@ -216,9 +173,7 @@ const ShareTrades = () => {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      error("Error copying to clipboard:", error);
-      // Fallback for older browsers
+    } catch {
       const textArea = document.createElement("textarea");
       textArea.value = url;
       document.body.appendChild(textArea);
@@ -241,38 +196,45 @@ const ShareTrades = () => {
 
   const getAccountName = (accountId) => {
     if (accountId === "all") return "All Accounts";
-    const account = accounts.find((acc) => acc._id === accountId);
-    return account ? account.name : "Unknown Account";
+    const acc = accounts.find((a) => a._id === accountId);
+    return acc ? acc.name : "Unknown Account";
   };
 
-  const getStats = (tradesData) => {
-    const totalTrades = tradesData.length;
-    const winningTrades = tradesData.filter((t) => t.pnl > 0).length;
-    const losingTrades = tradesData.filter((t) => t.pnl < 0).length;
-    const totalPnL = tradesData.reduce((sum, t) => sum + (t.pnl || 0), 0);
-    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
-    const avgPnL = totalTrades > 0 ? totalPnL / totalTrades : 0;
-
-    return {
-      totalTrades,
-      winningTrades,
-      losingTrades,
-      totalPnL,
-      winRate: winRate.toFixed(1),
-      avgPnL: avgPnL.toFixed(2),
-    };
+  const getStats = (data) => {
+    const total = data.length;
+    const win = data.filter((t) => t.pnl > 0).length;
+    const loss = data.filter((t) => t.pnl < 0).length;
+    const totalPnL = data.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const winRate = total > 0 ? (win / total) * 100 : 0;
+    return { total, win, loss, totalPnL, winRate: winRate.toFixed(1) };
   };
 
   const stats = getStats(filteredTrades);
 
   if (!hasAccess) {
     return (
-      <div className="chart_boxBg pad_16 flexClm flex_center">No access</div>
+      <div className="exportPage flexClm gap_24 pad_24">
+        <div className="flexRow flexRow_stretch">
+          <span className="font_20 font_weight_600">Share Trades</span>
+        </div>
+
+        <div className="chart_boxBg flexClm gap_16 pad_32 flex_center text_center">
+          <Share2 size={48} className="shade_50" />
+          <div className="flexClm gap_8">
+            <span className="font_16 font_weight_600">
+              Share Feature Locked
+            </span>
+            <span className="font_14 shade_50">
+              Upgrade to Pro or Master plan to share your trades with others.
+            </span>
+          </div>
+          <GoogleBannerAd adSlot="7756841757" />
+        </div>
+      </div>
     );
   }
-  const handleBackClick = () => {
-    router.push("/accounts");
-  };
+
+  const handleBackClick = () => router.push("/accounts");
 
   return (
     <div className="shareTradesPage flexClm gap_24 pad_24">

@@ -24,7 +24,7 @@ mongoose.connection.on("connected", () =>
   console.log("Mongoose connected to DB")
 );
 mongoose.connection.on("error", (err) =>
-  error("Mongoose connection error:", err)
+  console.error("Mongoose connection error:", err)
 );
 mongoose.connection.on("disconnected", () =>
   console.log("Mongoose disconnected")
@@ -36,4 +36,4 @@ app.use("/api/admin", adminUsersRoutes);
 app.use("/api/telegram", telegramRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
