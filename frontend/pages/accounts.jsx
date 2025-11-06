@@ -739,40 +739,66 @@ function Accounts() {
           <div className="gridContainer">
             {quickActions.map((action) => {
               const IconComponent = action.icon;
-              return (
-                <Link
-                  key={action.id}
-                  href={action.enabled ? action.path : "#"}
-                  style={{ textDecoration: "none" }}
+              const isExternal = action.path.startsWith("http");
+
+              const buttonContent = (
+                <motion.button
+                  className={`boxBg flexRow gap_12 pad_16 ${
+                    !action.enabled ? " disabled" : ""
+                  }`}
+                  style={{
+                    fontFamily: "Poppins",
+                    border: "var(--px-12)",
+                    cursor: action.enabled ? "pointer" : "not-allowed",
+                    width: "100%",
+                  }}
+                  whileHover={action.enabled ? { scale: 1.02 } : {}}
+                  whileTap={action.enabled ? { scale: 0.98 } : {}}
+                  disabled={!action.enabled}
                 >
-                  <motion.button
-                    className={`chart_boxBg flexRow gap_12 pad_16${
-                      !action.enabled ? "disabled" : ""
-                    }`}
-                    style={{
-                      fontFamily: "Poppins",
-                      border: "var(--px-12)",
-                      cursor: action.enabled ? "pointer" : "not-allowed",
-                      width: "100%",
-                    }}
-                    whileHover={action.enabled ? { scale: 1.02 } : {}}
-                    whileTap={action.enabled ? { scale: 0.98 } : {}}
-                    disabled={!action.enabled}
-                  >
-                    <div>
-                      <IconComponent size={12} className="vector tag" />
-                    </div>
-                    <div className="flexClm" style={{ textAlign: "left" }}>
-                      <span
-                        className="font_14"
-                        style={{ color: "var(--base-text)" }}
-                      >
-                        {action.title}
+                  <div>
+                    <IconComponent size={12} className="vector tag" />
+                  </div>
+                  <div className="flexClm gap_4" style={{ textAlign: "left" }}>
+                    <span
+                      className="font_14"
+                      style={{ color: "var(--base-text)" }}
+                    >
+                      {action.title}
+                    </span>
+                    {action.description && (
+                      <span className="font_12 shade_50">
+                        {action.description}
                       </span>
-                    </div>
-                  </motion.button>
-                </Link>
+                    )}
+                  </div>
+                </motion.button>
               );
+
+              // 🔹 Handle external vs internal links differently
+              if (isExternal) {
+                return (
+                  <a
+                    key={action.id}
+                    href={action.enabled ? action.path : "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: "none" }}
+                  >
+                    {buttonContent}
+                  </a>
+                );
+              } else {
+                return (
+                  <Link
+                    key={action.id}
+                    href={action.enabled ? action.path : "#"}
+                    style={{ textDecoration: "none" }}
+                  >
+                    {buttonContent}
+                  </Link>
+                );
+              }
             })}
           </div>
         </motion.div>
