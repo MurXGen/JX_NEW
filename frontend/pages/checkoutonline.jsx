@@ -33,7 +33,7 @@ export default function CheckoutOnline() {
   const amountParam = searchParams.get("amount");
 
   const [planDetails, setPlanDetails] = useState(null);
-  const [paymentType, setPaymentType] = useState("one-time");
+  const [paymentType, setPaymentType] = useState("recurring");
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Calculate dates
@@ -384,8 +384,8 @@ export default function CheckoutOnline() {
                   <div className="toggle-header font_12">Payment Type</div>
                   <div className="toggle-buttons">
                     <button
-                      className={`toggle-option ${
-                        paymentType === "one-time" ? "active" : ""
+                      className={`button_sec flexRow flexRow_stretch width100 ${
+                        paymentType === "one-time" ? "selected" : ""
                       }`}
                       onClick={() => setPaymentType("one-time")}
                     >
@@ -399,17 +399,17 @@ export default function CheckoutOnline() {
                         <span className="font_12">Pay once</span>
                       </div>
                       {paymentType === "one-time" && (
-                        <Check size={16} className="success" />
+                        <Check size={20} className="button_ter_icon success" />
                       )}
                     </button>
                     <button
-                      className={`toggle-option ${
-                        paymentType === "recurring" ? "active" : ""
+                      className={`button_sec flexRow flexRow_stretch width100 ${
+                        paymentType === "recurring" ? "selected" : ""
                       }`}
                       onClick={() => setPaymentType("recurring")}
                     >
                       <div
-                        className="flexClm gap_4"
+                        className=" flexClm gap_4"
                         style={{ textAlign: "left" }}
                       >
                         <span className="font_14 font_weight_600">
@@ -418,7 +418,7 @@ export default function CheckoutOnline() {
                         <span className="font_12">Never miss access</span>
                       </div>
                       {paymentType === "recurring" && (
-                        <Check size={16} className="success" />
+                        <Check size={20} className="button_ter_icon success" />
                       )}
                     </button>
                   </div>

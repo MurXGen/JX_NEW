@@ -113,27 +113,38 @@ export default function PaymentSelector({
               {billingPeriod === "monthly" ? "Monthly" : "Yearly"}
             </span>
           </div>
-          <button className="close-btn button_ter" onClick={onClose}>
+          <button
+            style={{
+              background: "none",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
         {/* Payment Methods */}
-        <div className="payment-methods flexClm gap_12">
+        <div className="payment-methods flexClm gap_24">
           {paymentMethods.map((method) => (
             <motion.button
               key={method.id}
-              className={`payment-method flexRow flexRow_stretch ${
+              className={`button_sec flexRow flexRow_stretch ${
                 selectedMethod === method.id ? "selected" : ""
               } ${!method.available ? "disabled" : ""}`}
               onClick={() => method.available && handlePayment(method.id)}
               disabled={!method.available}
               whileHover={method.available ? { scale: 1.02 } : {}}
               whileTap={method.available ? { scale: 0.98 } : {}}
-              style={{ borderLeftColor: method.color }}
+              style={{
+                border: "1px solid var(--white-20)",
+                background: "#222222",
+              }}
             >
               <div
-                className="flexClm gap_12"
+                className="flexClm gap_4"
                 style={{ textAlign: "left", color: "white" }}
               >
                 <span className="font_14 font_weight_600">{method.name}</span>
