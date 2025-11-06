@@ -63,22 +63,13 @@ exports.addTrade = async (req, res) => {
         .json({ success: false, message: "Not authenticated" });
     }
 
-    // ✅ Parse structured fields safely
+    // --- Prepare tradeData ---
     const tradeData = {
       ...body,
       entries: JSON.parse(body.entries || "[]"),
       exits: JSON.parse(body.exits || "[]"),
       sls: JSON.parse(body.sls || "[]"),
       tps: JSON.parse(body.tps || "[]"),
-      reason: body.reason ? JSON.parse(body.reason) : [],
-      rulesFollowed:
-        body.rulesFollowed === "true" || body.rulesFollowed === true,
-      learnings: body.learnings || "",
-
-      // ✅ Numbers
-      quantityUSD: Number(body.quantityUSD || 0),
-      leverage: Number(body.leverage || 1),
-      totalQuantity: Number(body.totalQuantity || 0),
       duration: Number(body.duration || 0),
       pnl: Number(body.pnl || 0),
       expectedProfit: Number(body.expectedProfit || 0),
@@ -87,21 +78,7 @@ exports.addTrade = async (req, res) => {
       avgExitPrice: Number(body.avgExitPrice || 0),
       avgTPPrice: Number(body.avgTPPrice || 0),
       avgSLPrice: Number(body.avgSLPrice || 0),
-
-      // ✅ Fees
-      feeType: body.feeType || "percent",
-      openFeeValue: Number(body.openFeeValue || 0),
-      closeFeeValue: Number(body.closeFeeValue || 0),
-      openFeeAmount: Number(body.openFeeAmount || 0),
-      closeFeeAmount: Number(body.closeFeeAmount || 0),
-      feeAmount: Number(body.feeAmount || 0),
-      pnlAfterFee: Number(body.pnlAfterFee || 0),
-
-      // ✅ Other
-      tradeStatus: body.tradeStatus || "quick",
-      openTime: body.openTime || new Date(),
-      closeTime: body.closeTime || null,
-
+      reason: body.reason ? [body.reason] : [],
       userId,
       accountId,
     };
@@ -115,7 +92,6 @@ exports.addTrade = async (req, res) => {
       tradeData.openImageUrl = url;
       tradeData.openImageSizeKB = sizeKB;
     }
-
     if (files?.closeImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.closeImage[0],
@@ -153,21 +129,16 @@ exports.addTrade = async (req, res) => {
           duration: 1,
           entries: 1,
           exits: 1,
-          sls: 1,
-          tps: 1,
-          reason: 1,
-          rulesFollowed: 1,
-          learnings: 1,
           accountId: 1,
           accountName: "$accountDetails.name",
           avgEntryPrice: 1,
           avgExitPrice: 1,
           avgTPPrice: 1,
           avgSLPrice: 1,
-          expectedProfit: 1,
-          expectedLoss: 1,
           openImageUrl: 1,
           closeImageUrl: 1,
+          expectedProfit: 1,
+          expectedLoss: 1,
         },
       },
     ];
@@ -180,11 +151,9 @@ exports.addTrade = async (req, res) => {
       trade: newTradeData,
     });
   } catch (err) {
-    console.error("Add trade error:", err);
-    res.status(500).json({
-      success: false,
-      message: err.message || "Failed to add trade",
-    });
+    res
+      .status(500)
+      .json({ success: false, message: err.message || "Failed to add trade" });
   }
 };
 
@@ -192,49 +161,30 @@ exports.updateTrade = async (req, res) => {
   try {
     const tradeId = req.params.id;
     const { body = {}, files = {} } = req;
+
+    // --- Extract and normalize accountId ---
+    const accountId = Array.isArray(req.body.accountId)
+      ? req.body.accountId[0]
+      : req.body.accountId;
+
     const userId = req.cookies.userId;
 
-    if (!userId || !tradeId)
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized or missing trade ID",
-      });
-
+    // --- Validate trade existence ---
     const oldTrade = await Trade.findById(tradeId);
-    if (!oldTrade)
+    if (!oldTrade) {
       return res.status(404).json({
         success: false,
         message: "Trade not found",
       });
+    }
 
-    const accountId = Array.isArray(body.accountId)
-      ? body.accountId[0]
-      : body.accountId;
-
-    // ✅ Safely parse arrays
-    const parseJSON = (val, fallback = []) => {
-      try {
-        return typeof val === "string"
-          ? JSON.parse(val || "[]")
-          : val || fallback;
-      } catch {
-        return fallback;
-      }
-    };
-
-    // ✅ Structured field normalization
+    // --- Parse and normalize trade data ---
     const tradeData = {
       ...body,
-      entries: parseJSON(body.entries),
-      exits: parseJSON(body.exits),
-      sls: parseJSON(body.sls),
-      tps: parseJSON(body.tps),
-      reason: parseJSON(body.reason),
-      rulesFollowed:
-        body.rulesFollowed === "true" || body.rulesFollowed === true,
-      learnings: body.learnings || "",
+      userId,
+      accountId,
 
-      // ✅ Numbers
+      // Numeric conversions
       quantityUSD: Number(body.quantityUSD || 0),
       leverage: Number(body.leverage || 1),
       totalQuantity: Number(body.totalQuantity || 0),
@@ -247,26 +197,27 @@ exports.updateTrade = async (req, res) => {
       avgTPPrice: Number(body.avgTPPrice || 0),
       avgSLPrice: Number(body.avgSLPrice || 0),
 
-      // ✅ Fees
-      feeType: body.feeType || "percent",
-      openFeeValue: Number(body.openFeeValue || 0),
-      closeFeeValue: Number(body.closeFeeValue || 0),
-      openFeeAmount: Number(body.openFeeAmount || 0),
-      closeFeeAmount: Number(body.closeFeeAmount || 0),
-      feeAmount: Number(body.feeAmount || 0),
-      pnlAfterFee: Number(body.pnlAfterFee || 0),
+      // JSON-parsed arrays
+      entries: body.entries ? JSON.parse(body.entries) : [],
+      exits: body.exits ? JSON.parse(body.exits) : [],
+      sls: body.sls ? JSON.parse(body.sls) : [],
+      tps: body.tps ? JSON.parse(body.tps) : [],
 
-      // ✅ Time & identifiers
-      openTime: body.openTime || oldTrade.openTime,
+      // Array normalization
+      reason: body.reason
+        ? Array.isArray(body.reason)
+          ? body.reason
+          : [body.reason]
+        : [],
+
+      // Optional fields
       closeTime: body.closeTime || null,
-      userId,
-      accountId,
     };
 
     const removeOpenImage = body.removeOpenImage === "true";
     const removeCloseImage = body.removeCloseImage === "true";
 
-    // --- Handle image uploads ---
+    // --- Handle image uploads / removals ---
     if (files?.openImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.openImage[0],
@@ -291,87 +242,48 @@ exports.updateTrade = async (req, res) => {
       tradeData.closeImageSizeKB = 0;
     }
 
-    // ✅ Update trade
-    const updatedTrade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
+    // --- Update trade in DB ---
+    const trade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
       new: true,
     });
 
-    // --- Aggregation to return minimal enriched data ---
-    const pipeline = [
-      { $match: { _id: updatedTrade._id } },
-      {
-        $lookup: {
-          from: "accounts",
-          localField: "accountId",
-          foreignField: "_id",
-          as: "accountDetails",
-        },
-      },
-      {
-        $unwind: { path: "$accountDetails", preserveNullAndEmptyArrays: true },
-      },
-      {
-        $project: {
-          _id: 1,
-          symbol: 1,
-          direction: 1,
-          openTime: 1,
-          closeTime: 1,
-          pnl: 1,
-          duration: 1,
-          entries: 1,
-          exits: 1,
-          sls: 1,
-          tps: 1,
-          reason: 1,
-          rulesFollowed: 1,
-          learnings: 1,
-          accountId: 1,
-          accountName: "$accountDetails.name",
-          avgEntryPrice: 1,
-          avgExitPrice: 1,
-          avgTPPrice: 1,
-          avgSLPrice: 1,
-          expectedProfit: 1,
-          expectedLoss: 1,
-          openImageUrl: 1,
-          closeImageUrl: 1,
-        },
-      },
-    ];
-
-    const [updatedTradeData] = await Trade.aggregate(pipeline);
+    // --- Fetch updated user data ---
+    const user = await User.findById(userId);
+    const userData = await getUserData(user);
 
     res.json({
       success: true,
       message: "Trade updated successfully",
-      trade: updatedTradeData,
+      userData,
     });
 
-    // ✅ Cleanup replaced images asynchronously
+    // --- Background cleanup: delete old images if replaced or removed ---
     process.nextTick(async () => {
       try {
+        // Remove old open image if replaced
         if (
           oldTrade.openImageUrl &&
-          oldTrade.openImageUrl !== updatedTrade.openImageUrl
+          oldTrade.openImageUrl !== trade.openImageUrl
         ) {
           await deleteImageFromB2(oldTrade.openImageUrl);
         }
+
+        // Remove old close image if replaced
         if (
           oldTrade.closeImageUrl &&
-          oldTrade.closeImageUrl !== updatedTrade.closeImageUrl
+          oldTrade.closeImageUrl !== trade.closeImageUrl
         ) {
           await deleteImageFromB2(oldTrade.closeImageUrl);
         }
       } catch (cleanupErr) {
-        console.error("Image cleanup failed:", cleanupErr.message);
+        console.error("Image cleanup failed:", cleanupErr);
       }
     });
   } catch (err) {
-    console.error("Trade update error:", err);
+    console.error("Error updating trade:", err);
     res.status(500).json({
       success: false,
-      message: err.message || "Failed to update trade",
+      message: err.message || "Error updating trade",
     });
   }
 };

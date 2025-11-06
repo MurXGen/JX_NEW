@@ -1,5 +1,6 @@
 "use client";
 
+import SubscriptionStatus from "@/components/Profile/SubscriptionStatus";
 import BottomBar from "@/components/Trades/BottomBar";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -10,7 +11,7 @@ import { formatCurrency } from "@/utils/formatNumbers";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { Pencil, Repeat, Trash2 } from "lucide-react";
+import { Pencil, Repeat, Share2, ShareIcon, Trash2 } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -211,32 +212,77 @@ const AccountSetting = () => {
 
       <div className="accountSetting flexClm gap_24">
         <div className="flexClm">
-          <span className="font_20">Account setting</span>
-          <span className="font_12">Manage account detail</span>
+          <span className="font_20">Journal setting</span>
+          <span className="font_12">Manage Journal detail</span>
         </div>
 
-        {/* Account Overview */}
-        <div className="chart_boxBg flexClm gap_32" style={{ padding: "16px" }}>
-          <div className="flexClm gap_8">
-            <span className="font_12">Account name</span>
-            <span className="font_16 font_600">{accountData.name}</span>
+        {/* Journal Overview */}
+        <div className="chart_boxBg flexClm pad_16 gap_12">
+          <div className="flexRow flexRow_stretch boxBg">
+            <div className="flexClm">
+              <span
+                className="font_12 font_weight_600"
+                style={{ color: "var(--primary)" }}
+              >
+                Journal name
+              </span>
+              <span className="font_24 font_weight_600">
+                {accountData.name}
+              </span>
+            </div>
+            {/* Action Buttons */}
+            <div className="flexRow gap_4">
+              <button
+                className="button_sec flexRow_cntr_mobile flexRow gap_8"
+                onClick={handleEdit}
+              >
+                <Pencil size={16} />
+              </button>
+
+              <ConfirmationModal
+                isOpen={isModalOpen}
+                title="Deactivate Journal"
+                message="Are you sure you want to deactivate this Journal? This action cannot be undone."
+                onCancel={() => setIsModalOpen(false)}
+                onConfirm={handleDeactivate}
+              />
+
+              <button
+                className="button_sec  flexRow gap_8"
+                onClick={handleSwitch}
+              >
+                <Repeat size={16} />
+              </button>
+
+              <button
+                className="button_sec   flexRow gap_8 error"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
 
-          <div className="flexRow gap_16 flexRow_stretch">
-            <div className="flexClm gap_8">
-              <span className="font_12 text-gray-400">Current Balance</span>
-              <span className="font_14 font_bold">
+          <div className="flexRow gap_16 flexRow_stretch boxBg">
+            {/* Current Balance */}
+            <div className="flexClm gap_4">
+              <span className="font_12 font_weight_600">Current Balance</span>
+              <span className="font_16 font_weight_600">
                 {formatCurrency(accountOverview.currentBalance)}
               </span>
             </div>
-            <div className="flexClm gap_8" style={{ textAlign: "center" }}>
-              <span className="font_12 text-gray-400">Initial Capital</span>
-              <span className="font_14 font_bold">
+
+            {/* Initial Capital */}
+            <div className="flexClm gap_4" style={{ textAlign: "center" }}>
+              <span className="font_12 font_weight_600">Initial Capital</span>
+              <span className="font_16 font_weight_600">
                 {formatCurrency(accountOverview.initialBalance)}
               </span>
             </div>
-            <div className="flexClm gap_8" style={{ textAlign: "right" }}>
-              <span className="font_12 text-gray-400">
+
+            {/* ROI */}
+            <div className="flexClm gap_4" style={{ textAlign: "right" }}>
+              <span className="font_12 font_weight_600">
                 ROI{" "}
                 <span
                   className={`font_12 ${
@@ -247,7 +293,7 @@ const AccountSetting = () => {
                 </span>
               </span>
               <span
-                className={`font_14 font_bold ${
+                className={`font_16 font_weight_600 ${
                   accountOverview.roiAmount >= 0 ? "success" : "error"
                 }`}
               >
@@ -257,38 +303,22 @@ const AccountSetting = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flexRow_mobile gap_12">
+        <SubscriptionStatus />
+
+        <div className="flexClm gap_12 width100">
           <button
-            className="button_sec width100 flexRow_cntr_mobile flexRow gap_8"
-            onClick={handleEdit}
+            className="button_sec flexRow gap_8 flexRow_center width100"
+            onClick={() => router.push("/share-trades")}
           >
-            <Pencil size={16} />
-            Edit Account
+            <Share2 size={16} />
+            Share trade logs
           </button>
-
-          <ConfirmationModal
-            isOpen={isModalOpen}
-            title="Deactivate Account"
-            message="Are you sure you want to deactivate this account? This action cannot be undone."
-            onCancel={() => setIsModalOpen(false)}
-            onConfirm={handleDeactivate}
-          />
-
           <button
-            className="button_sec width100 flexRow_cntr_mobile flexRow gap_8"
-            onClick={handleSwitch}
+            className="button_sec flexRow gap_8 flexRow_center width100"
+            onClick={() => router.push("/export")}
           >
-            <Repeat size={16} />
-            Switch Account
-          </button>
-
-          <button
-            className="button_sec  flexRow_cntr_mobile flexRow gap_8 error"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Trash2 size={16} />
-            <span className="IsVisible">Delete Account</span>
+            <ShareIcon size={16} />
+            Export trade logs
           </button>
         </div>
 

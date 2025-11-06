@@ -191,8 +191,7 @@ const CreateAccount = () => {
         </div>
 
         <motion.div
-          className="popups_btm flexRow flexRow_stretch gap_12"
-          style={{ width: "95%", padding: "0" }}
+          className="flexRow flexRow_stretch gap_12"
           variants={childVariants}
         >
           <button

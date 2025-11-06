@@ -37,7 +37,7 @@ const PLAN_RULES = {
     imageLimitPerMonth: Infinity,
     maxImageSizeMB: 10,
     tradeHistoryDays: Infinity,
-    aiPrompts: Infinity,
+    aiPrompts: 5,
     canUploadImages: true,
     canAccessFinancialNews: true,
     canAccessTelegramBot: true,
@@ -51,7 +51,7 @@ const PLAN_RULES = {
     imageLimitPerMonth: Infinity,
     maxImageSizeMB: 10,
     tradeHistoryDays: Infinity,
-    aiPrompts: Infinity,
+    aiPrompts: 5,
     canUploadImages: true,
     canAccessFinancialNews: true,
     canAccessTelegramBot: true,
@@ -161,4 +161,12 @@ export const getCurrentPlanRules = async () => {
 export const shouldShowAdsForCurrentUser = async () => {
   const userData = await getFromIndexedDB("user-data");
   return canShowAds(userData);
+};
+
+// ✅ Check if user can use AI Assistant
+export const canUseAI = (userData) => {
+  const rules = getPlanRules(userData);
+  const aiUsed = userData?.aiPromptsUsed || 0;
+  if (rules.aiPrompts === Infinity) return true;
+  return aiUsed < rules.aiPrompts;
 };

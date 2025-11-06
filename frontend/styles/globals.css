@@ -214,6 +214,10 @@ body {
   font-size: var(--px-24);
 }
 
+.font_32 {
+  font-size: var(--px-32);
+}
+
 .font_52 {
   font-size: var(--px-52);
 }

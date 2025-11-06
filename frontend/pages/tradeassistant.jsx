@@ -1,292 +1,228 @@
-"use client";
-
-import { getFromIndexedDB } from "@/utils/indexedDB";
+// pages/coming-soon.jsx
+import { useEffect } from "react";
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
+import { FaRobot } from "react-icons/fa";
+import { motion } from "framer-motion";
+import BottomBar from "@/components/Trades/BottomBar";
 
-import ChatResponse from "@/components/Trades/ChatResponse";
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import { AnimatePresence, motion } from "framer-motion";
-import Cookies from "js-cookie";
-import { ArrowLeft, Bot, Send, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-export default function TradeAssistant() {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [checkingAccount, setCheckingAccount] = useState(true); // ✅ new
-  const messagesEndRef = useRef(null);
-  const router = useRouter();
-
+export default function ComingSoon() {
   useEffect(() => {
-    const accountId = Cookies.get("accountId");
+    document.body.style.backgroundColor = "#000000";
+    document.body.style.color = "#ffffff";
 
-    if (!accountId) {
-      router.push("/accounts");
-    } else {
-      setCheckingAccount(false); // ✅ account exists, stop loader
-    }
-  }, [router]);
-
-  // predefined quick prompts
-  const quickPrompts = [
-    "Analyse my last trade",
-    "Summarise my trading performance",
-    "What's my win rate?",
-    "Identify my most traded symbol",
-  ];
-
-  // Scroll to bottom of messages
-  // const scrollToBottom = () => {
-  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  // };
-
-  // useEffect(() => {
-  //   scrollToBottom();
-  // }, [messages]);
-
-  const handleSubmit = async (prompt) => {
-    setLoading(true);
-
-    const finalPrompt = prompt || input;
-    if (!finalPrompt.trim()) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const userData = await getFromIndexedDB("user-data");
-      const trades = userData?.trades || [];
-
-      const res = await fetch(`${API_BASE}/api/trades/trade-chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: finalPrompt,
-          trades,
-        }),
-      });
-
-      const data = await res.json();
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: finalPrompt },
-        { role: "assistant", content: data.reply },
-      ]);
-
-      setInput("");
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "⚠️ Something went wrong. Try again." },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
-
-  const handleBackClick = () => {
-    router.push("/dashboard");
-  };
-
-  if (checkingAccount) return <FullPageLoader />; // ✅ show loader while checking
+    return () => {
+      document.body.style.backgroundColor = "";
+      document.body.style.color = "";
+    };
+  }, []);
 
   return (
     <>
-      <Head>
-        <title>JournalX | AI Trade Assistant</title>
-        <meta
-          name="description"
-          content="Get AI-powered insights into your trading performance with the JournalX Trade Assistant. Analyze your past trades, detect patterns, and make smarter trading decisions."
-        />
-        <meta
-          name="keywords"
-          content="AI trade assistant, trading analysis, journalx ai insights, trade performance analysis, trading journal ai, trading psychology, trade improvement tool, smart trading assistant"
-        />
-        <meta name="robots" content="index, follow" />
-
-        {/* Open Graph / Social Meta Tags */}
-        <meta property="og:title" content="JournalX | AI Trade Assistant" />
-        <meta
-          property="og:description"
-          content="Use JournalX AI to get in-depth trade analysis and actionable insights. Discover what’s working, fix what’s not, and level up your trading strategy."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://journalx.app/tradeAssistant" />
-        <meta property="og:image" content="/assets/Journalx_Banner.png" />
-
-        {/* Twitter Meta Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JournalX | AI Trade Assistant" />
-        <meta
-          name="twitter:description"
-          content="Get AI-powered trade analysis and performance reports. JournalX helps you understand your trading behavior and refine your strategy."
-        />
-        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
-      </Head>
-      <div className="tradeAssistantContainer">
-        {/* Header with Back Navigation */}
+      <div
+        style={{
+          height: "80vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          gap: "12px",
+          backgroundColor: "#000000",
+          color: "#fff",
+          textAlign: "center",
+          width: "350px",
+          margin: "auto",
+        }}
+      >
         <motion.div
-          className="assistantHeader"
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.8 }}
+          className="flexClm flex_center gap_8"
         >
-          <button className="button_sec flexRow" onClick={handleBackClick}>
-            <ArrowLeft size={20} />
-            <span></span>
-          </button>
-
-          <div className="headerContent">
-            <div className="aiBadge">
-              <Sparkles size={16} />
-              <span>JournalX AI Assistant</span>
-            </div>
-            <h1 className="headerTitle">Trade Intelligence</h1>
-            <p className="headerSubtitle">
-              Get insights and analysis from your trading data
-            </p>
+          <div className="flexRow gap_12">
+            <FaRobot className="font_32 vector" />
+            <h1 className="marg_0 font_32">Coming Soon</h1>
           </div>
+
+          <p className="marg_0 shade_50 font_16">
+            We’re working hard to bring something amazing to you.
+          </p>
         </motion.div>
-
-        {/* Main Content */}
-        <div className="assistantContent">
-          {/* Messages Container */}
-          <div className="messagesContainer">
-            <AnimatePresence>
-              {messages.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="welcomeSection"
-                >
-                  {/* <div className="welcomeIllustration">
-                  <div className="botIconWrapper">
-                    <Bot size={48} />
-                    <div className="pulseEffect"></div>
-                  </div>
-                </div>
-
-                <div className="welcomeText">
-                  <h2>How can I help with your trades today?</h2>
-                  <p>
-                    Ask me anything about your trading performance, patterns, or
-                    get suggestions for improvement.
-                  </p>
-                </div> */}
-
-                  {/* Quick Prompts Grid */}
-                  <div className="quickPromptsGrid">
-                    {quickPrompts.map((q, i) => (
-                      <motion.button
-                        key={i}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="quickPromptCard"
-                        onClick={() => handleSubmit(q)}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: i * 0.1 }}
-                      >
-                        <span>{q}</span>
-                        <div className="promptHoverEffect"></div>
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Messages */}
-              <div className="messagesList">
-                {messages.map((m, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    className={`messageBubble ${
-                      m.role === "user" ? "userMessage" : "assistantMessage"
-                    }`}
-                  >
-                    {m.role === "assistant" ? (
-                      <ChatResponse text={m.content} />
-                    ) : (
-                      <div className="userMessageContent">
-                        <p>{m.content}</p>
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-
-              {loading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="thinkingIndicator"
-                >
-                  <div className="thinkingAnimation">
-                    <div className="thinkingDot"></div>
-                    <div className="thinkingDot"></div>
-                    <div className="thinkingDot"></div>
-                  </div>
-                  <span>Analyzing your trades...</span>
-                </motion.div>
-              )}
-
-              <div ref={messagesEndRef} className="scrollAnchor" />
-            </AnimatePresence>
-          </div>
-
-          {/* Input Container */}
-          <motion.div
-            className="inputContainer"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
-            <div className="inputWrapper">
-              <div className="inputIcon">
-                <Bot size={20} />
-              </div>
-
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask anything about your trades..."
-                className="chatInput"
-                disabled={loading}
-              />
-
-              <motion.button
-                onClick={() => handleSubmit()}
-                disabled={loading || !input.trim()}
-                className="sendButton"
-                whileHover={{ scale: input.trim() ? 1.05 : 1 }}
-                whileTap={{ scale: input.trim() ? 0.95 : 1 }}
-              >
-                <Send size={18} />
-              </motion.button>
-            </div>
-
-            <div className="inputHint">Press Enter to send</div>
-          </motion.div>
-        </div>
       </div>
+      <BottomBar />
     </>
   );
 }
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+// import { getPlanRules } from "@/utils/planRestrictions";
+// import { motion } from "framer-motion";
+// import { RefreshCw, Sparkles } from "lucide-react";
+// import Head from "next/head";
+
+// const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+// export default function AIInsightsPage() {
+//   const [userData, setUserData] = useState(null);
+//   const [aiAnalysis, setAiAnalysis] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [refreshing, setRefreshing] = useState(false);
+//   const [canUseAI, setCanUseAI] = useState(false);
+
+//   useEffect(() => {
+//     (async () => {
+//       const storedUser = await getFromIndexedDB("user-data");
+//       setUserData(storedUser);
+//       const rules = getPlanRules(storedUser);
+//       setCanUseAI(rules.aiPrompts > 0 || rules.aiPrompts === Infinity);
+
+//       const cachedAnalysis = await getFromIndexedDB("ai-analysis");
+//       if (cachedAnalysis) {
+//         setAiAnalysis(cachedAnalysis);
+//         setLoading(false);
+//       } else {
+//         await generateAIAnalysis(storedUser);
+//       }
+//     })();
+//   }, []);
+
+//   const generateAIAnalysis = async (user) => {
+//     try {
+//       setLoading(true);
+//       const trades = user?.trades || [];
+//       if (!trades.length) {
+//         setAiAnalysis({ error: "No trades found to analyze." });
+//         setLoading(false);
+//         return;
+//       }
+
+//       const res = await fetch(`${API_BASE}/api/trades/trade-chat`, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           query:
+//             "Analyze my overall trading performance, win rate, risk management, and common patterns. Write it in a short analytical summary.",
+//           trades,
+//         }),
+//       });
+
+//       const data = await res.json();
+//       setAiAnalysis({
+//         summary: data.reply,
+//         generatedAt: new Date().toISOString(),
+//       });
+//       await saveToIndexedDB("ai-analysis", {
+//         summary: data.reply,
+//         generatedAt: new Date().toISOString(),
+//       });
+//     } catch (err) {
+//       setAiAnalysis({ error: "Failed to generate analysis. Try again later." });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleRefresh = async () => {
+//     if (!canUseAI) return;
+//     setRefreshing(true);
+//     await generateAIAnalysis(userData);
+//     setRefreshing(false);
+//   };
+
+//   // Local stats
+//   const trades = userData?.trades || [];
+//   const totalTrades = trades.length;
+//   const wins = trades.filter((t) => t.pnl > 0).length;
+//   const losses = totalTrades - wins;
+//   const winRate = totalTrades ? ((wins / totalTrades) * 100).toFixed(1) : 0;
+//   const totalPnL = trades.reduce((acc, t) => acc + (t.pnl || 0), 0);
+//   const mostTradedSymbol = trades
+//     .map((t) => t.symbol)
+//     .reduce(
+//       (a, b, i, arr) =>
+//         arr.filter((v) => v === a).length >= arr.filter((v) => v === b).length
+//           ? a
+//           : b,
+//       "-"
+//     );
+
+//   return (
+//     <>
+//       <Head>
+//         <title>JournalX | AI Trade Insights</title>
+//       </Head>
+
+//       <div className="aiInsightsContainer">
+//         {/* Header */}
+//         <div className="aiHeader flexRow flexBetween">
+//           <div className="flexRow gap_10">
+//             <Sparkles size={22} className="textPrimary" />
+//             <h1>AI Trade Insights</h1>
+//           </div>
+//           {canUseAI ? (
+//             <button
+//               className="button_prim flexRow gap_8"
+//               onClick={handleRefresh}
+//               disabled={refreshing}
+//             >
+//               <RefreshCw size={16} className={refreshing ? "spin" : ""} />
+//               {refreshing ? "Refreshing..." : "Refresh"}
+//             </button>
+//           ) : (
+//             <button
+//               className="button_sec flexRow gap_8"
+//               onClick={() => (window.location.href = "/pricing")}
+//             >
+//               Upgrade Plan
+//             </button>
+//           )}
+//         </div>
+
+//         {/* Stats */}
+//         <motion.div
+//           className="statsGrid"
+//           initial={{ opacity: 0, y: 10 }}
+//           animate={{ opacity: 1, y: 0 }}
+//           transition={{ duration: 0.4 }}
+//         >
+//           <div className="statCard">
+//             <h3>{totalTrades}</h3>
+//             <p>Total Trades</p>
+//           </div>
+//           <div className="statCard">
+//             <h3>{winRate}%</h3>
+//             <p>Win Rate</p>
+//           </div>
+//           <div className="statCard">
+//             <h3>{mostTradedSymbol}</h3>
+//             <p>Most Traded Symbol</p>
+//           </div>
+//           <div className="statCard">
+//             <h3>{totalPnL.toFixed(2)}</h3>
+//             <p>Total PnL</p>
+//           </div>
+//         </motion.div>
+
+//         {/* AI Summary */}
+//         <motion.div
+//           className="aiSummarySection"
+//           initial={{ opacity: 0 }}
+//           animate={{ opacity: 1 }}
+//           transition={{ delay: 0.3 }}
+//         >
+//           <h2>AI Analysis Summary</h2>
+//           {loading ? (
+//             <div className="loadingMessage">Analyzing your trades...</div>
+//           ) : aiAnalysis?.error ? (
+//             <p className="errorText">{aiAnalysis.error}</p>
+//           ) : (
+//             <p className="aiSummaryText">{aiAnalysis?.summary}</p>
+//           )}
+//         </motion.div>
+//       </div>
+//     </>
+//   );
+// }
