@@ -71,9 +71,10 @@ const TradesHistory = ({
   const submitNewTrade = async (formData, isEdit = false) => {
     try {
       const apiFormData = new FormData();
+
       const accountId = Cookies.get("accountId");
 
-      // --- Ensure only a single string is sent ---
+      // Ensure only a single string is sent
       if (accountId) {
         const parsed = Array.isArray(accountId)
           ? accountId[0]
@@ -84,7 +85,7 @@ const TradesHistory = ({
         apiFormData.append("accountId", parsed);
       }
 
-      // --- Append all serializable fields (skip previews & _id) ---
+      // Append all serializable fields (skip previews and _id)
       Object.entries(formData).forEach(([key, value]) => {
         if (
           key === "_id" ||
@@ -92,7 +93,6 @@ const TradesHistory = ({
           key === "closeImagePreview"
         )
           return;
-
         if (Array.isArray(value) || typeof value === "object") {
           apiFormData.append(key, JSON.stringify(value));
         } else if (value !== undefined && value !== null) {
@@ -111,9 +111,7 @@ const TradesHistory = ({
           const { dataUrl, name, type } = JSON.parse(openImagePayload);
           const file = dataUrlToFile(dataUrl, name, type);
           apiFormData.append("openImage", file);
-        } catch (err) {
-          console.error("Error parsing open image:", err);
-        }
+        } catch (err) {}
       }
 
       if (closeImagePayload) {
@@ -121,9 +119,7 @@ const TradesHistory = ({
           const { dataUrl, name, type } = JSON.parse(closeImagePayload);
           const file = dataUrlToFile(dataUrl, name, type);
           apiFormData.append("closeImage", file);
-        } catch (err) {
-          console.error("Error parsing close image:", err);
-        }
+        } catch (err) {}
       }
 
       // --- Send removal flags to backend ---
@@ -136,12 +132,12 @@ const TradesHistory = ({
         formData.closeImageRemoved ? "true" : "false"
       );
 
-      // ✅ Debug: check what’s being sent
-      // for (let pair of apiFormData.entries()) console.log(pair[0], pair[1]);
+      // ✅ Debug logs to verify what’s sent
+      for (let pair of apiFormData.entries()) {
+      }
 
       // --- Submit request ---
       let res;
-
       if (isEdit) {
         const tradeId = localStorage.getItem(TRADE_KEY);
         res = await axios.put(
@@ -150,7 +146,6 @@ const TradesHistory = ({
           { withCredentials: true }
         );
       } else {
-        // Temporary trade placeholder for UI feedback
         const tempId = `temp-${Date.now()}`;
         setDisplayedTrades((prev) => [
           {
@@ -168,14 +163,24 @@ const TradesHistory = ({
         });
       }
 
-      // --- Handle response ---
       if (res.data?.success) {
-        const { userData, message } = res.data;
+        const { trade, message } = res.data; // now backend returns single trade
 
-        await saveToIndexedDB("user-data", userData);
-        const updatedData = await getFromIndexedDB("user-data");
+        // 🔁 Update only that trade in IndexedDB
+        const userData = (await getFromIndexedDB("user-data")) || {};
+        const allTrades = userData.trades || [];
 
-        const accountTrades = (updatedData.trades || []).filter(
+        const updatedTrades = isEdit
+          ? allTrades.map((t) => (t._id === trade._id ? trade : t))
+          : [trade, ...allTrades];
+
+        const newUserData = { ...userData, trades: updatedTrades };
+
+        await saveToIndexedDB("user-data", newUserData);
+
+        // ✅ Refresh displayed trades (no full refetch)
+        const accountId = Cookies.get("accountId");
+        const accountTrades = updatedTrades.filter(
           (t) => t.accountId === accountId
         );
 
@@ -184,6 +189,7 @@ const TradesHistory = ({
         );
 
         setDisplayedTrades(sortedTrades);
+
         setToast({
           type: "success",
           message:
@@ -193,33 +199,23 @@ const TradesHistory = ({
               : "Trade added successfully!"),
         });
 
-        // --- Cleanup ---
+        // cleanup + redirect
         localStorage.removeItem("newTradeImage_openImage");
         localStorage.removeItem("newTradeImage_closeImage");
         sessionStorage.removeItem("newTradeData");
         sessionStorage.removeItem("isEditTrade");
 
-        // Redirect after success
-        setTimeout(() => {
-          router.push("/trade");
-        }, 1200);
+        // setTimeout(() => router.push("/trade"), 1200);
       } else {
         throw new Error("Upload failed");
       }
     } catch (err) {
-      // --- Error handling ---
-      console.error(err);
       setDisplayedTrades((prev) => prev.filter((trade) => !trade.loading));
-      setToast({
-        type: "error",
-        message: err.message || "Upload failed",
-      });
+      setToast({ type: "error", message: err.message || "Upload failed" });
     } finally {
-      // --- Always cleanup ---
       setLoadingNewTrade(false);
       sessionStorage.removeItem("newTradeData");
       sessionStorage.removeItem("isEditTrade");
-      window.history.replaceState(null, "", "/trade");
     }
   };
 
