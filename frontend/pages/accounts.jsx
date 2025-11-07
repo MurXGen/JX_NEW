@@ -8,251 +8,411 @@ import MessageCard from "@/components/ui/BannerInstruction";
 import BeginnerGuide from "@/components/ui/BeginnerGuide";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { getPlanRules } from "@/utils/planRestrictions";
-import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
+import { formatCurrency } from "@/utils/formatNumbers";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { getPlanRules } from "@/utils/planRestrictions";
 import axios from "axios";
-import Cookies from "js-cookie";
 import { motion, Reorder } from "framer-motion";
+import Cookies from "js-cookie";
 import {
-  ArrowUp,
   ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  CreditCard,
   Crown,
   Plus,
+  Share2,
   TrendingUp,
+  Upload,
   GripVertical,
 } from "lucide-react";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { FiDatabase } from "react-icons/fi";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function Accounts() {
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState([]);
-  const [orderedAccounts, setOrderedAccounts] = useState([]);
+  const [accountSymbols, setAccountSymbols] = useState({});
   const [currentBalances, setCurrentBalances] = useState({});
   const [tradesCount, setTradesCount] = useState({});
-  const [accountSymbols, setAccountSymbols] = useState({});
+  const [showAllAccounts, setShowAllAccounts] = useState(false);
   const [userPlan, setUserPlan] = useState(null);
   const [planUsage, setPlanUsage] = useState({});
-  const [showAllAccounts, setShowAllAccounts] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [orderedAccounts, setOrderedAccounts] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
 
-  // ✅ Handle verification cookies
+  const [showGuide, setShowGuide] = useState(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("isVerified") === "yes") {
+    const isVerified = params.get("isVerified");
+
+    if (isVerified === "yes") {
       Cookies.set("isVerified", "yes", {
         path: "/",
         sameSite: "Strict",
         expires: 3650,
       });
-      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Optionally clean the URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }, []);
+
+  // Check localStorage for guide on mount
+  useEffect(() => {
+    const guideFlag = localStorage.getItem("guide");
+    if (guideFlag === "yes") {
+      setShowGuide(true);
     }
   }, []);
 
-  // ✅ Show beginner guide if previously set
-  useEffect(() => {
-    if (localStorage.getItem("guide") === "yes") setShowGuide(true);
-  }, []);
   const handleCloseGuide = () => {
     setShowGuide(false);
-    localStorage.removeItem("guide");
+    localStorage.removeItem("guide"); // clear guide flag
   };
 
-  // ✅ Load and refresh user data once
   useEffect(() => {
-    const loadUserData = async () => {
+    const savedOrder = JSON.parse(localStorage.getItem("accountOrder") || "[]");
+    if (savedOrder.length && accounts.length) {
+      // Map saved order to actual account objects when possible
+      const mapById = new Map(accounts.map((a) => [a._id, a]));
+      const reordered = savedOrder.map((id) => mapById.get(id)).filter(Boolean);
+
+      // append any accounts not present in savedOrder at the end
+      const missing = accounts.filter((a) => !savedOrder.includes(a._id));
+      setOrderedAccounts([...reordered, ...missing]);
+    } else {
+      setOrderedAccounts(accounts);
+    }
+  }, [accounts]);
+
+  // Helper to persist order
+  useEffect(() => {
+    if (orderedAccounts.length > 0) {
+      const order = orderedAccounts.map((acc) => acc._id);
+      localStorage.setItem("accountOrder", JSON.stringify(order));
+    }
+  }, [orderedAccounts]);
+
+  // displayedAccounts remains a derived view
+  const displayedAccounts = showAllAccounts
+    ? orderedAccounts
+    : orderedAccounts.slice(0, 2);
+
+  // NEW: handler that receives the reordered visible list and merges it
+  const handleReorderVisible = (newVisibleOrder) => {
+    // If showing all, newVisibleOrder is the full order — replace completely
+    if (showAllAccounts) {
+      setOrderedAccounts(newVisibleOrder);
+      return;
+    }
+
+    // Otherwise we only displayed a prefix (slice). We'll replace that prefix
+    // with the new visible order while keeping the rest of the list.
+    const rest = orderedAccounts.slice(newVisibleOrder.length);
+    const merged = [...newVisibleOrder, ...rest];
+
+    // Safety: if some items in rest accidentally also appear in newVisibleOrder,
+    // remove duplicates keeping first appearance in merged
+    const seen = new Set();
+    const deduped = [];
+    for (const item of merged) {
+      const id = item._id ?? item; // item may be object or primitive depending on your setup
+      const key = typeof id === "string" ? id : JSON.stringify(item);
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(item);
+      }
+    }
+
+    setOrderedAccounts(deduped);
+  };
+
+  useEffect(() => {
+    const loadUser = async () => {
       setLoading(true);
+
       try {
-        const verified = Cookies.get("isVerified");
-        if (verified !== "yes") {
-          router.push("/login");
-          return;
-        }
-
-        // Handle subscription expiry before fetching
-        await handleSubscriptionExpiry();
-
-        // Fetch data from IndexedDB
         const cachedUser = await getFromIndexedDB("user-data");
-        if (cachedUser) {
-          const {
-            accounts,
-            trades,
-            currentBalances,
-            tradesCount,
-            accountSymbols,
-            userPlan,
-          } = await fetchAccountsAndTrades();
+        const hasData = cachedUser && Object.keys(cachedUser).length > 0;
 
-          setAccounts(accounts);
-          setOrderedAccounts(accounts);
-          setCurrentBalances(currentBalances);
-          setTradesCount(tradesCount);
-          setAccountSymbols(accountSymbols);
-          setUserPlan(userPlan);
+        const refreshKey = "user-refresh-info";
+        const now = new Date();
+        let refreshInfo = JSON.parse(localStorage.getItem(refreshKey)) || {
+          count: 0,
+          firstRefreshAt: null,
+        };
 
-          const planRules = getPlanRules(cachedUser);
-          setPlanUsage(calculatePlanUsage(cachedUser, planRules));
+        // Reset hourly limit if 1 hour passed
+        if (
+          !refreshInfo.firstRefreshAt ||
+          now - new Date(refreshInfo.firstRefreshAt) > 60 * 60 * 1000
+        ) {
+          refreshInfo.count = 0;
+          refreshInfo.firstRefreshAt = now;
         }
 
-        // Optionally refresh backend data (throttled)
-        await refreshUserDataThrottled();
+        // Check subscription expiration
+        let subscriptionExpired = false;
+        if (cachedUser?.subscription?.expiresAt) {
+          const expiryDate = new Date(cachedUser.subscription.expiresAt);
+          if (expiryDate < now) subscriptionExpired = true;
+        }
+
+        // Handle expired subscription
+        if (subscriptionExpired) {
+          try {
+            const res = await axios.put(
+              `${API_BASE}/api/auth/update-subscription`,
+              {
+                subscriptionType: "none",
+                subscriptionPlan: "free",
+                subscriptionStatus: "expired",
+              },
+              { withCredentials: true }
+            );
+
+            // Update IndexedDB immediately
+            if (hasData) {
+              cachedUser.subscription.status = "expired";
+              cachedUser.subscription.planId = "free";
+              cachedUser.subscription.type = "none";
+              cachedUser.subscription.startAt = null;
+              cachedUser.subscription.expiresAt = null;
+              await saveToIndexedDB("user-data", cachedUser);
+            }
+          } catch (err) {
+            // Do nothing — handled silently
+          }
+        }
+
+        const canFetch = refreshInfo.count < 10;
+
+        // Fetch fresh data if within limit
+        if (canFetch) {
+          try {
+            refreshInfo.count += 1;
+            if (!refreshInfo.firstRefreshAt) refreshInfo.firstRefreshAt = now;
+            localStorage.setItem(refreshKey, JSON.stringify(refreshInfo));
+
+            const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
+              withCredentials: true,
+            });
+            const { userData } = res.data;
+
+            if (userData) {
+              await saveToIndexedDB("user-data", userData);
+              if (userData?.plans)
+                await saveToIndexedDB("plans", userData.plans);
+              if (userData?.name)
+                localStorage.setItem("userName", userData.name);
+            }
+          } catch (err) {
+            // Do nothing — handled silently
+          }
+        }
       } catch (error) {
-        console.error("Error loading user:", error);
+        // Silent fail
       } finally {
         setLoading(false);
       }
     };
 
-    loadUserData();
-  }, [router]);
+    loadUser();
+  }, []);
 
-  // ✅ Save account order
   useEffect(() => {
-    if (orderedAccounts.length)
-      localStorage.setItem(
-        "accountOrder",
-        JSON.stringify(orderedAccounts.map((a) => a._id))
-      );
-  }, [orderedAccounts]);
+    const loadUser = async () => {
+      setLoading(true);
+      try {
+        const cachedUser = await getFromIndexedDB("user-data");
+        const hasData = cachedUser && Object.keys(cachedUser).length > 0;
 
-  // ✅ Calculate plan usage
-  const calculatePlanUsage = (userData, planRules) => {
-    const now = new Date();
-    const month = now.getMonth();
-    const year = now.getFullYear();
+        // Load user plan and calculate usage
+        if (hasData) {
+          const planRules = getPlanRules(cachedUser);
+          setUserPlan(planRules);
 
-    const accountsCount = userData.accounts?.length || 0;
-    const monthlyTrades =
-      userData.trades?.filter((t) => {
-        const d = new Date(t.openTime);
-        return d.getMonth() === month && d.getFullYear() === year;
-      }).length || 0;
-    const monthlyImages =
-      userData.trades?.reduce((c, t) => {
-        const d = new Date(t.openTime);
-        if (d.getMonth() === month && d.getFullYear() === year) {
-          if (t.openImageUrl) c++;
-          if (t.closeImageUrl) c++;
+          // Calculate current usage
+          const currentUsage = calculatePlanUsage(cachedUser, planRules);
+          setPlanUsage(currentUsage);
         }
-        return c;
+
+        // ... existing refresh logic ...
+      } catch (error) {
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
+  }, []);
+
+  const calculatePlanUsage = (userData, planRules) => {
+    const accountsCount = userData.accounts?.length || 0;
+    const tradesCount = userData.trades?.length || 0;
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    // Monthly trades
+    const monthlyTrades =
+      userData.trades?.filter((trade) => {
+        const tradeDate = new Date(trade.openTime);
+        return (
+          tradeDate.getMonth() === currentMonth &&
+          tradeDate.getFullYear() === currentYear
+        );
+      }).length || 0;
+
+    // Monthly images
+    const monthlyImages =
+      userData.trades?.reduce((count, trade) => {
+        const tradeDate = new Date(trade.openTime);
+        if (
+          tradeDate.getMonth() === currentMonth &&
+          tradeDate.getFullYear() === currentYear
+        ) {
+          if (trade.openImageUrl) count++;
+          if (trade.closeImageUrl) count++;
+        }
+        return count;
       }, 0) || 0;
 
-    const pct = (curr, lim) =>
-      lim === Infinity ? 100 : Math.min((curr / lim) * 100, 100);
-    const fmt = (val) => (val === Infinity ? "Unlimited" : val);
+    const formatLimit = (value) => (value === Infinity ? "Unlimited" : value);
+
+    const calcPercentage = (current, limit) =>
+      limit === Infinity ? 100 : Math.min((current / limit) * 100, 100);
 
     return {
       accounts: {
         current: accountsCount,
-        limit: fmt(planRules.accountLimit),
-        percentage: pct(accountsCount, planRules.accountLimit),
+        limit: formatLimit(planRules.accountLimit),
+        percentage: calcPercentage(accountsCount, planRules.accountLimit),
       },
       trades: {
         current: monthlyTrades,
-        limit: fmt(planRules.tradeLimitPerMonth),
-        percentage: pct(monthlyTrades, planRules.tradeLimitPerMonth),
+        limit: formatLimit(planRules.tradeLimitPerMonth),
+        percentage: calcPercentage(monthlyTrades, planRules.tradeLimitPerMonth),
       },
       images: {
         current: monthlyImages,
-        limit: fmt(planRules.imageLimitPerMonth),
-        percentage: pct(monthlyImages, planRules.imageLimitPerMonth),
+        limit: formatLimit(planRules.imageLimitPerMonth),
+        percentage: calcPercentage(monthlyImages, planRules.imageLimitPerMonth),
       },
     };
   };
 
-  // ✅ Handle expired subscriptions
-  const handleSubscriptionExpiry = async () => {
-    const cachedUser = await getFromIndexedDB("user-data");
-    if (!cachedUser?.subscription?.expiresAt) return;
-
-    const expired = new Date(cachedUser.subscription.expiresAt) < new Date();
-    if (!expired) return;
-
-    try {
-      await axios.put(
-        `${API_BASE}/api/auth/update-subscription`,
-        {
-          subscriptionType: "none",
-          subscriptionPlan: "free",
-          subscriptionStatus: "expired",
-        },
-        { withCredentials: true }
-      );
-
-      cachedUser.subscription = {
-        planId: "free",
-        status: "expired",
-        type: "none",
-        startAt: null,
-        expiresAt: null,
-      };
-      await saveToIndexedDB("user-data", cachedUser);
-    } catch {
-      /* silent fail */
+  useEffect(() => {
+    const verified = Cookies.get("isVerified");
+    if (verified !== "yes") {
+      router.push("/login");
+      return;
     }
-  };
 
-  // ✅ Throttled refresh (10x/hour)
-  const refreshUserDataThrottled = async () => {
-    const key = "user-refresh-info";
-    const now = new Date();
-    let info = JSON.parse(localStorage.getItem(key)) || {
-      count: 0,
-      firstRefreshAt: null,
+    const fetchAccountsAndTrades = async () => {
+      try {
+        const cachedUserData = await getFromIndexedDB("user-data");
+        const userData = cachedUserData;
+
+        if (!userData) {
+          setLoading(false);
+          return;
+        }
+
+        // 🟩 Derive active plan rules
+        const planRules = getPlanRules(userData);
+
+        // 🟩 Extract user plan info
+        if (userData.subscription?.planId) {
+          const activePlanId = userData.subscription.planId;
+          const matchedPlan =
+            userData.plans?.find((p) => p.planId === activePlanId) || null;
+
+          const planName =
+            matchedPlan?.name ||
+            activePlanId.charAt(0).toUpperCase() + activePlanId.slice(1);
+
+          // ✅ Merge rules + subscription info
+          setUserPlan({
+            ...userData.subscription,
+            planName,
+            ...planRules, // adds booleans like canExportTrades, canShareTrades, etc.
+          });
+        }
+
+        // 🟩 Process accounts & trades
+        if (userData.accounts?.length > 0) {
+          setAccounts(userData.accounts);
+          buildSymbolMap(userData.accounts);
+
+          if (userData.trades?.length > 0) {
+            const balanceMap = {};
+            const countMap = {};
+
+            userData.accounts.forEach((acc) => {
+              const starting = acc.startingBalance?.amount || 0;
+              const tradesForAcc = userData.trades.filter(
+                (t) => t.accountId === acc._id
+              );
+              const pnlSum = tradesForAcc.reduce(
+                (sum, t) => sum + (Number(t.pnl) || 0),
+                0
+              );
+
+              balanceMap[acc.name] = starting + pnlSum;
+              countMap[acc.name] = tradesForAcc.length;
+            });
+
+            setCurrentBalances(balanceMap);
+            setTradesCount(countMap);
+          } else {
+            const emptyCountMap = {};
+            userData.accounts.forEach((acc) => {
+              emptyCountMap[acc.name] = 0;
+            });
+            setTradesCount(emptyCountMap);
+          }
+        }
+      } catch (err) {
+        error("Error fetching user data:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if (
-      !info.firstRefreshAt ||
-      now - new Date(info.firstRefreshAt) > 60 * 60 * 1000
-    ) {
-      info = { count: 0, firstRefreshAt: now };
-    }
-
-    if (info.count >= 10) return;
-
-    try {
-      info.count++;
-      localStorage.setItem(key, JSON.stringify(info));
-
-      const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
-        withCredentials: true,
+    const buildSymbolMap = (accountsData) => {
+      const symbolMap = {};
+      accountsData.forEach((acc) => {
+        switch (acc.currency?.toUpperCase()) {
+          case "USD":
+            symbolMap[acc.name] = "$";
+            break;
+          case "INR":
+            symbolMap[acc.name] = "₹";
+            break;
+          case "USDT":
+            symbolMap[acc.name] = "₮";
+            break;
+          default:
+            symbolMap[acc.name] = "¤";
+        }
       });
-      const { userData } = res.data;
+      setAccountSymbols(symbolMap);
+    };
 
-      if (userData) {
-        await saveToIndexedDB("user-data", userData);
-        if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
-        if (userData?.name) localStorage.setItem("userName", userData.name);
-      }
-    } catch {
-      /* silent fail */
-    }
-  };
-
-  // ✅ Account reorder handler
-  const handleReorder = (newVisibleOrder) => {
-    const all = showAllAccounts
-      ? newVisibleOrder
-      : [...newVisibleOrder, ...orderedAccounts.slice(newVisibleOrder.length)];
-
-    const unique = [];
-    const seen = new Set();
-    for (const acc of all) {
-      if (!seen.has(acc._id)) {
-        seen.add(acc._id);
-        unique.push(acc);
-      }
-    }
-    setOrderedAccounts(unique);
-  };
+    fetchAccountsAndTrades();
+  }, [router]);
 
   const handleAccountClick = (accountId) => {
     try {
