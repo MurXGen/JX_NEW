@@ -1,22 +1,30 @@
 const Account = require("../models/Account");
 const Trade = require("../models/Trade");
 const Plan = require("../models/Plan");
-const Order = require("../models/Orders"); // ✅ Import Order model
+const Order = require("../models/Orders");
 
 async function getUserData(user) {
-  // Fetch accounts & trades for the user
+  // Step 1: Fetch all accounts belonging to this user
   const accounts = await Account.find({ userId: user._id }).lean();
-  const trades = await Trade.find({ userId: user._id }).lean();
 
-  // Fetch user orders
+  // Step 2: Extract the accountIds for filtering trades
+  const accountIds = accounts.map((acc) => acc._id);
+
+  // Step 3: Fetch trades only for those accounts
+  const trades = await Trade.find({
+    userId: user._id,
+    accountId: { $in: accountIds }, // ✅ Only include trades linked to user’s accounts
+  }).lean();
+
+  // Step 4: Fetch orders for this user
   const orders = await Order.find({ userId: user._id })
     .sort({ createdAt: -1 })
     .lean();
 
-  // Fetch all plans (or active plans if needed)
-  const plans = await Plan.find({}).lean();
+  // Step 5: Fetch all active plans
+  const plans = await Plan.find({ status: "active" }).lean();
 
-  // Return structured userData
+  // Step 6: Structure the response
   return {
     userId: user._id,
     name: user.name,
@@ -31,7 +39,7 @@ async function getUserData(user) {
     },
     accounts,
     trades,
-    orders, // ✅ Include orders here
+    orders,
     plans,
   };
 }
