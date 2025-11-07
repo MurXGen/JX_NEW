@@ -242,17 +242,17 @@ const SubscriptionStatus = () => {
 
             {/* Limits Overview */}
             {planRules && (
-              <div className="flexRow gap_8 font_12 shade_50">
-                <div className="boxBg width100 flexRow flexRow_stretch">
+              <div className="gridContainer gap_8 font_12 shade_50">
+                <div className="boxBg  flexRow flexRow_stretch">
                   <b>Trade Limit:</b>{" "}
                   {planRules.limits.tradeLimitPerMonth === Infinity
                     ? "Unlimited"
                     : `${planRules.limits.tradeLimitPerMonth} / month`}
                 </div>
-                <div className="boxBg width100 flexRow flexRow_stretch">
+                <div className="boxBg  flexRow flexRow_stretch">
                   <b>Account Limit:</b> {planRules.limits.accountLimit}
                 </div>
-                <div className="boxBg width100 flexRow flexRow_stretch">
+                <div className="boxBg  flexRow flexRow_stretch">
                   <b>Image Upload:</b>{" "}
                   {planRules.limits.imageLimitPerMonth === Infinity
                     ? "Unlimited"
