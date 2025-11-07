@@ -21,7 +21,7 @@ exports.getUserOrders = async (req, res) => {
     const { userId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      warn("⚠️ Invalid userId:", userId);
+      console.warn("⚠️ Invalid userId:", userId);
       return res
         .status(400)
         .json({ success: false, message: "Invalid userId" });

@@ -29,7 +29,7 @@ passport.use(
             googleId: profile.id,
             subscriptionPlan: "pro",
             subscriptionStatus: "active",
-            subscriptionType: "free-trial",
+            subscriptionType: "7-day trial",
             subscriptionStartAt: now,
             subscriptionExpiresAt: expiry,
             subscriptionCreatedAt: now,
