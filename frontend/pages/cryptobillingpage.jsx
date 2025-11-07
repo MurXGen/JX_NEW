@@ -420,13 +420,13 @@ export default function CryptoBillingPage() {
                     <div className="flexRow flexRow_stretch boxBg">
                       <div className="flexClm gap_4">
                         <span className="font_16 font_weight_600">
-                          Waiting for Confirmation
+                          Kindly make the payment to the below address
                         </span>
                         <span
                           className="font_12"
                           style={{ color: "var(--white-50)" }}
                         >
-                          Kindly make the payment to the above address
+                          It might take upto 10 minutes for verification.
                         </span>
                       </div>
                       <div

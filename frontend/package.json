@@ -17,6 +17,7 @@
     "canvas-confetti": "^1.9.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.18",
     "dexie": "^4.0.11",

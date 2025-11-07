@@ -17,11 +17,14 @@ import {
   TrendingUp,
   ArrowUp,
   ArrowDown,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
+import JournalXCTA from "@/components/ui/JournalXCTA";
+import UpgradeButton from "@/components/ui/UpgradeButton";
 
 const ShareTrades = () => {
   const [accounts, setAccounts] = useState([]);
@@ -220,22 +223,27 @@ const ShareTrades = () => {
 
   if (!hasAccess) {
     return (
-      <div className="exportPage flexClm gap_24 pad_24">
+      <div className="flexClm gap_24 pad_24">
         <div className="flexRow flexRow_stretch">
           <span className="font_20 font_weight_600">Share Trades</span>
         </div>
 
-        <div className="chart_boxBg flexClm gap_16 pad_32 flex_center text_center">
-          <Share2 size={48} className="shade_50" />
-          <div className="flexClm gap_8">
-            <span className="font_16 font_weight_600">
-              Share Feature Locked
-            </span>
-            <span className="font_14 shade_50">
-              Upgrade to Pro or Master plan to share your trades with others.
-            </span>
+        <div className="chart_boxBg flexClm pad_32 gap_32">
+          <div className="flexRow gap_16 align_center">
+            <Share2 size={48} className="shade_50" />
+            <div className="flexClm gap_8">
+              <span className="font_16 font_weight_600">
+                Share Feature Locked
+              </span>
+              <span className="font_14 shade_50">
+                Upgrade to Pro or Master plan to share your trades with others.
+              </span>
+            </div>
           </div>
-          <GoogleBannerAd adSlot="7756841757" />
+
+          {/* Reusable Upgrade Button */}
+
+          <UpgradeButton label="Upgrade to Pro" title="Upgrade to Pro" />
         </div>
       </div>
     );

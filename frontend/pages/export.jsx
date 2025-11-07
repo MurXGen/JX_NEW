@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/utils/formatNumbers";
+import UpgradeButton from "@/components/ui/UpgradeButton";
 
 const ExportPage = () => {
   const router = useRouter();
@@ -228,19 +229,24 @@ const ExportPage = () => {
     return (
       <div className="exportPage flexClm gap_24 pad_24">
         <div className="flexRow flexRow_stretch">
-          <span className="font_20 font_weight_600">Export journal</span>
+          <span className="font_20 font_weight_600">Export Journal</span>
         </div>
 
-        <div className="chart_boxBg flexClm gap_16 pad_32 flex_center text_center">
-          <Download size={48} className="shade_50" />
-          <div className="flexClm gap_8">
-            <span className="font_16 font_weight_600">
-              Export Feature Locked
-            </span>
-            <span className="font_14 shade_50">
-              Upgrade to Pro plan or higher to export your trade data
-            </span>
+        <div className="chart_boxBg flexClm pad_32 gap_32">
+          <div className="flexRow gap_16 align_center">
+            <Download size={48} className="shade_50" />
+            <div className="flexClm gap_8">
+              <span className="font_16 font_weight_600">
+                Export Feature Locked
+              </span>
+              <span className="font_14 shade_50">
+                Upgrade to Pro or Master plan to export your trade data.
+              </span>
+            </div>
           </div>
+
+          {/* Reusable Upgrade Button */}
+          <UpgradeButton label="Upgrade to Pro" title="Upgrade to Pro" />
         </div>
       </div>
     );

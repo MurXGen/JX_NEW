@@ -1,3 +1,4 @@
+// controllers/cryptoPaymentsCtrl.js
 const Order = require("../models/Orders");
 const Plan = require("../models/Plan");
 const User = require("../models/User");
@@ -5,10 +6,15 @@ const { sendTelegramNotification } = require("../utils/telegramNotifier");
 
 exports.createCryptoOrder = async (req, res) => {
   try {
-    const { planName, period, amount, network, currency } = req.body;
+    const { planId, period, amount, network, currency, paymentType } = req.body;
 
-    if (!planName || !period || !amount || !network)
+    if (!planId || !period || !amount || !network)
       return res.status(400).json({ message: "Missing required fields" });
+
+    // Validate period
+    if (!["monthly", "yearly", "lifetime"].includes(period)) {
+      return res.status(400).json({ message: "Invalid period" });
+    }
 
     const NETWORK_ADDRESSES = {
       erc20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
@@ -19,17 +25,32 @@ exports.createCryptoOrder = async (req, res) => {
       ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
     };
 
-    const plan = await Plan.findOne({ name: new RegExp(planName, "i") });
+    const plan = await Plan.findOne({ planId: planId });
     if (!plan) return res.status(404).json({ message: "Plan not found" });
 
+    // Validate plan-period combination
+    if (planId === "master" && period !== "lifetime") {
+      return res
+        .status(400)
+        .json({ message: "Master plan only available as lifetime" });
+    }
+
+    if (planId === "pro" && period === "lifetime") {
+      return res
+        .status(400)
+        .json({ message: "Pro plan not available as lifetime" });
+    }
+
     const cryptoOrder = new Order({
-      userId: req.cookies.userId || null,
+      userId: req.user?._id || null,
       planId: plan.planId,
       amount,
       currency: currency || "USDT",
       method: "crypto",
       status: "pending",
       period,
+      paymentType:
+        period === "lifetime" ? "lifetime" : paymentType || "one-time",
       meta: {
         planName: plan.name,
         network,
@@ -39,13 +60,13 @@ exports.createCryptoOrder = async (req, res) => {
 
     await cryptoOrder.save();
 
-    // ✅ Send Telegram notification with inline buttons
+    // Send Telegram notification
     await sendTelegramNotification({
       name: req.user?.name || "N/A",
       email: req.user?.email || "N/A",
       type: "payment",
       status: "Created",
-      details: `Plan: ${plan.name}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}`,
+      details: `Plan: ${plan.name} (${planId})\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}`,
       orderId: cryptoOrder._id,
     });
 
@@ -70,7 +91,7 @@ exports.verifyCryptoPayment = async (req, res) => {
         .json({ success: false, message: "orderId required" });
     }
 
-    // 🔹 Find order
+    // Find order
     const dbOrder = await Order.findById(orderId);
     if (!dbOrder) {
       return res
@@ -78,7 +99,7 @@ exports.verifyCryptoPayment = async (req, res) => {
         .json({ success: false, message: "Order not found" });
     }
 
-    // 🔹 Still pending or failed → polling continues
+    // Still pending or failed → polling continues
     if (dbOrder.status !== "paid") {
       return res.json({
         success: false,
@@ -87,7 +108,7 @@ exports.verifyCryptoPayment = async (req, res) => {
       });
     }
 
-    // 🔹 If already verified earlier, prevent duplicate subscription updates
+    // If already verified earlier, prevent duplicate subscription updates
     const user = await User.findById(dbOrder.userId);
     if (!user) {
       return res
@@ -107,10 +128,14 @@ exports.verifyCryptoPayment = async (req, res) => {
       });
     }
 
-    // 🔹 Update subscription
+    // Update subscription based on period
     const startDate = new Date();
     const expiryDate = new Date(startDate);
-    if (dbOrder.period === "yearly") {
+
+    if (dbOrder.period === "lifetime") {
+      // Set expiry to 100 years for lifetime plans
+      expiryDate.setFullYear(expiryDate.getFullYear() + 100);
+    } else if (dbOrder.period === "yearly") {
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
     } else {
       expiryDate.setMonth(expiryDate.getMonth() + 1);
@@ -118,14 +143,14 @@ exports.verifyCryptoPayment = async (req, res) => {
 
     user.subscriptionStatus = "active";
     user.subscriptionPlan = dbOrder.planId;
-    user.subscriptionType = "one-time";
+    user.subscriptionType = dbOrder.paymentType;
     user.subscriptionStartAt = startDate;
     user.subscriptionExpiresAt = expiryDate;
     if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
 
     await user.save();
 
-    // 🔹 Update order to mark it verified
+    // Update order to mark it verified
     dbOrder.status = "paid";
     dbOrder.updatedAt = new Date();
     await dbOrder.save();

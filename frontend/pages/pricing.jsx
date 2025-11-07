@@ -20,6 +20,7 @@ import {
   X,
   ArrowLeft,
   ChevronUp,
+  Infinity,
 } from "lucide-react";
 import PaymentSelector from "@/components/Trades/PaymentSelector";
 import { fetchPlansFromIndexedDB } from "@/utils/fetchAccountAndTrades";
@@ -43,14 +44,6 @@ function Pricing() {
   const toggleDetails = (planId) => {
     setExpandedPlan((prev) => (prev === planId ? null : planId));
   };
-
-  //   useEffect(() => {
-  //     const verified = Cookies.get("isVerified");
-  //     if (verified !== "yes") {
-  //       router.push("/login");
-  //       return;
-  //     }
-  //   });
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -76,235 +69,139 @@ function Pricing() {
   }, []);
 
   if (userCountry === null) {
-    return <FullPageLoader />; // show loader until country is detected
+    return <FullPageLoader />;
   }
 
-  useEffect(() => {
-    // Set landing page background
-    document.body.style.backgroundColor = "#020202";
-    document.body.style.color = "white";
-
-    return () => {
-      document.body.style.backgroundColor = "";
-      document.body.style.color = "";
-    };
-  }, []);
-
-  // Fetch static plans & user’s current plan
+  // Set predefined plans with new structure
   useEffect(() => {
     const staticPlans = [
       {
         name: "Pro",
         planId: "pro",
-        monthly: { inr: 149, usdt: 5 },
-        yearly: { inr: 999, usdt: 10 },
-      },
-      {
-        name: "Elite",
-        planId: "elite",
-        monthly: { inr: 499, usdt: 8 },
-        yearly: { inr: 3999, usdt: 50 },
+        description: "Advanced trading analytics",
+        monthly: { inr: 149, inrusdt: 2, usdt: 5 },
+        yearly: { inr: 1499, inrusdt: 19, usdt: 50 },
+        lifetime: null, // Pro doesn't have lifetime
       },
       {
         name: "Master",
         planId: "master",
-        monthly: { inr: 999, usdt: 15 },
-        yearly: { inr: 9999, usdt: 100 },
+        description: "Lifetime unlimited access",
+        monthly: null, // Master doesn't have monthly
+        yearly: null, // Master doesn't have yearly
+        lifetime: { inr: 9999, inrusdt: 99, usdt: 119 },
       },
     ];
 
     setPlans(staticPlans);
+  }, []);
 
-    // Load user’s active subscription from IndexedDB
+  // Load user's current plan
+  useEffect(() => {
     (async () => {
       const userData = await getFromIndexedDB("user-data");
       const planId = userData?.subscription?.planId || null;
 
       if (planId) {
-        setCurrentPlanId(planId); // user’s current subscription
-        setActivePlan(planId); // highlight it
+        setCurrentPlanId(planId);
+        setActivePlan(planId);
       }
     })();
   }, []);
 
-  // // Fetch plans from IndexedDB
-  // useEffect(() => {
-  //   // Load user data and set current plan
-  //   (async () => {
-  //     const userData = await getFromIndexedDB("user-data");
-  //     if (userData?.subscription?.planId) {
-  //       setCurrentPlanId(userData.subscription.planId);
-  //       // Optional: auto-select current plan in UI
-  //       setActivePlan(userData.subscription.planId);
-  //     } else if (plans.length >= 2) {
-  //       // fallback: select middle plan (usually Pro)
-  //       setActivePlan(plans[1].planId);
-  //     }
-  //   })();
-  // }, [plans]);
-
-  // ✅ Set predefined plans directly here instead of fetching from IndexedDB
-  useEffect(() => {
-    const staticPlans = [
-      {
-        name: "Pro",
-        planId: "pro",
-        monthly: { inr: 149, usdt: 5 },
-        yearly: { inr: 999, usdt: 10 },
-      },
-      {
-        name: "Elite",
-        planId: "elite",
-        monthly: { inr: 499, usdt: 8 },
-        yearly: { inr: 3999, usdt: 50 },
-      },
-      {
-        name: "Master",
-        planId: "master",
-        monthly: { inr: 999, usdt: 15 },
-        yearly: { inr: 9999, usdt: 100 },
-      },
-    ];
-
-    setPlans(staticPlans);
-  }, []);
-
-  // Icon mapping with premium styling
+  // Icon mapping
   const getPlanIcon = (planId) => {
     const baseProps = { size: 24 };
     switch (planId) {
       case "pro":
         return <Diamond {...baseProps} className="plan-icon pro" />;
-      case "elite":
-        return <Crown {...baseProps} className="plan-icon elite" />;
       case "master":
-        return <Rocket {...baseProps} className="plan-icon master" />;
+        return <Crown {...baseProps} className="plan-icon master" />;
       default:
         return <Star {...baseProps} className="plan-icon" />;
     }
   };
 
-  // Feature lists for each plan
+  // Feature lists for each plan based on new PLAN_RULES
   const getPlanFeatures = (planId) => {
     const featureTable = [
       {
-        title: "Trades Logging",
-        basic: "Up to 10 trades/month (ads after 10)",
+        title: "Trade Logging",
+        free: "10 trades/month",
+        pro: "Unlimited trades",
+        master: "Unlimited trades",
+      },
+      {
+        title: "Quick Trades",
+        free: "10/month",
         pro: "Unlimited",
-        elite: "Unlimited",
         master: "Unlimited",
       },
       {
         title: "Multiple Accounts",
-        basic: "1 account",
-        pro: "Up to 2 accounts",
-        elite: "Up to 3 accounts",
-        master: "Up to 5 accounts",
+        free: "1 account",
+        pro: "Up to 3 accounts",
+        master: "Up to 3 accounts",
       },
       {
         title: "Image Uploads",
-        basic: "Max 5 MB per screenshot, 10 MB per trade; up to 5 trades/month",
-        pro: "Up to 60 images/month",
-        elite: "Unlimited trade images",
-        master: "Unlimited trade images",
+        free: "10 images/month (10MB max)",
+        pro: "Unlimited (100MB max)",
+        master: "Unlimited (100MB max)",
       },
       {
         title: "Trade History",
-        basic: "Last 30 days",
-        pro: "Last 90 days",
-        elite: "All trades",
-        master: "All trades",
+        free: "30 days",
+        pro: "Full history",
+        master: "Full history",
       },
       {
-        title: "Referrals / Invites",
-        basic: "—",
-        pro: "—",
-        elite: "—",
-        master: "—",
+        title: "Export Trades",
+        free: "❌",
+        pro: "✅ CSV export",
+        master: "✅ CSV export",
       },
       {
-        title: "Financial News Feed",
-        basic: "❌",
+        title: "Share Trades",
+        free: "❌",
         pro: "❌",
-        elite: "✅",
-        master: "✅ (with priority access)",
+        master: "✅ Generate share links",
       },
       {
-        title: "Early Beta Access",
-        basic: "❌",
-        pro: "❌",
-        elite: "✅",
-        master: "✅ + premium features first",
-      },
-      {
-        title: "Priority Support",
-        basic: "❌",
-        pro: "❌",
-        elite: "Standard support",
-        master: "✅ Dedicated support",
-      },
-      {
-        title: "Multiple Entry/Exit Support",
-        basic: "✅",
-        pro: "✅",
-        elite: "✅",
-        master: "✅",
-      },
-      {
-        title: "Quick Trade Log",
-        basic: "✅",
-        pro: "✅",
-        elite: "✅",
-        master: "✅",
+        title: "AI Analysis",
+        free: "❌",
+        pro: "✅ AI trade insights",
+        master: "✅ AI trade insights",
       },
       {
         title: "Advanced Charts",
-        basic: "✅",
+        free: "✅ Basic charts",
+        pro: "✅ Advanced charts",
+        master: "✅ Advanced charts",
+      },
+      {
+        title: "Multiple Entry/Exit",
+        free: "✅",
         pro: "✅",
-        elite: "✅",
         master: "✅",
       },
       {
-        title: "Multi-device Access",
-        basic: "Only one device login",
-        pro: "Multiple devices",
-        elite: "Multiple devices",
-        master: "Multiple devices",
+        title: "Backup & Sync",
+        free: "❌",
+        pro: "✅ Cloud backup",
+        master: "✅ Cloud backup",
       },
       {
-        title: "Telegram Bot Trade Log",
-        basic: "❌",
-        pro: "❌",
-        elite: "✅",
-        master: "✅",
+        title: "Ad-free Experience",
+        free: "❌",
+        pro: "✅ No ads",
+        master: "✅ No ads",
       },
       {
-        title: "AI Chat Bot",
-        basic: "❌",
-        pro: "Up to 5 prompts",
-        elite: "✅",
-        master: "✅",
-      },
-      {
-        title: "Export / Import Trades (New)",
-        basic: "❌",
-        pro: "✅",
-        elite: "✅",
-        master: "✅",
-      },
-      {
-        title: "Share Trades (New)",
-        basic: "❌",
-        pro: "❌",
-        elite: "❌",
-        master: "✅",
-      },
-      {
-        title: "Live Price Entries",
-        basic: "❌",
-        pro: "❌",
-        elite: "✅",
-        master: "✅",
+        title: "Priority Support",
+        free: "❌",
+        pro: "✅ Standard support",
+        master: "✅ Priority support",
       },
     ];
 
@@ -313,16 +210,38 @@ function Pricing() {
       value:
         planId === "master"
           ? item.master
-          : planId === "elite"
-          ? item.elite
           : planId === "pro"
           ? item.pro
-          : item.basic,
+          : item.free,
     }));
   };
 
-  // Format price display with savings calculation
+  // Format price display
   const getPriceDisplay = (plan, period) => {
+    if (period === "lifetime") {
+      if (userCountry === "IN") {
+        return {
+          price: plan.lifetime?.inr,
+          savings: 80, // Lifetime savings percentage
+          currency: "₹",
+          period: "lifetime",
+        };
+      } else {
+        // For international users, use USDT pricing
+        const price =
+          userCountry === "INUSDT"
+            ? plan.lifetime?.inrusdt
+            : plan.lifetime?.usdt;
+        return {
+          price: price,
+          savings: 80,
+          currency: "$",
+          period: "lifetime",
+        };
+      }
+    }
+
+    // Monthly/Yearly pricing (only for Pro)
     if (userCountry === "IN") {
       const monthlyPrice = plan.monthly?.inr;
       const yearlyPrice = plan.yearly?.inr;
@@ -336,10 +255,13 @@ function Pricing() {
         price: period === "monthly" ? monthlyPrice : yearlyPrice,
         savings: period === "yearly" ? yearlySavings : 0,
         currency: "₹",
+        period: period,
       };
     } else {
-      const monthlyPrice = plan.monthly?.usdt;
-      const yearlyPrice = plan.yearly?.usdt;
+      const monthlyPrice =
+        userCountry === "INUSDT" ? plan.monthly?.inrusdt : plan.monthly?.usdt;
+      const yearlyPrice =
+        userCountry === "INUSDT" ? plan.yearly?.inrusdt : plan.yearly?.usdt;
       const yearlySavings = monthlyPrice
         ? Math.round(
             ((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100
@@ -349,7 +271,8 @@ function Pricing() {
       return {
         price: period === "monthly" ? monthlyPrice : yearlyPrice,
         savings: period === "yearly" ? yearlySavings : 0,
-        currency: "$", // <-- changed from "USDT" to "$"
+        currency: "$",
+        period: period,
       };
     }
   };
@@ -361,19 +284,36 @@ function Pricing() {
     const selectedPlan = plans.find((p) => p.planId === selectedPlanId);
     if (!selectedPlan) return;
 
-    // Determine currency and amount based on user location
-    const isIndia = userCountry === "IN";
-    const amount = isIndia
-      ? selectedPlan[billingPeriod]?.inr
-      : selectedPlan[billingPeriod]?.usdt;
+    // Determine currency and amount based on user location and billing period
+    let amount;
+    if (billingPeriod === "lifetime") {
+      if (userCountry === "IN") {
+        amount = selectedPlan.lifetime?.inr;
+      } else {
+        amount =
+          userCountry === "INUSDT"
+            ? selectedPlan.lifetime?.inrusdt
+            : selectedPlan.lifetime?.usdt;
+      }
+    } else {
+      // Monthly/Yearly (only for Pro)
+      if (userCountry === "IN") {
+        amount = selectedPlan[billingPeriod]?.inr;
+      } else {
+        amount =
+          userCountry === "INUSDT"
+            ? selectedPlan[billingPeriod]?.inrusdt
+            : selectedPlan[billingPeriod]?.usdt;
+      }
+    }
 
     if (!amount) {
       console.error("Amount not found for selected plan or billing period.");
       return;
     }
 
-    // INR flow → auto-redirect if low amount (like UPI-friendly small plans)
-    if (isIndia && amount < 450) {
+    // INR flow → auto-redirect if low amount
+    if (userCountry === "IN" && amount < 450) {
       const query = new URLSearchParams({
         planName: selectedPlan.name,
         planId: selectedPlan.planId,
@@ -388,28 +328,31 @@ function Pricing() {
 
     // Otherwise → show payment selection modal
     setShowPaymentSelector(true);
-
-    // Save selected plan to state for later reference
     setActivePlan(selectedPlanId);
+  };
+
+  // Filter plans based on billing period
+  const getFilteredPlans = () => {
+    if (billingPeriod === "lifetime") {
+      return plans.filter((plan) => plan.planId === "master");
+    } else {
+      return plans.filter((plan) => plan.planId === "pro");
+    }
   };
 
   return (
     <div className="pricing-page flexClm gap_46">
       {/* Header Section */}
-
       <div className="flexClm gap_32">
-        {/* <button className="button_sec flexRow" onClick={handleBackClick}>
-          <ArrowLeft size={20} />
-        </button> */}
         <div className="flexClm flex_center">
-          <span className="font_24 font_weight_600">Choose plan</span>
+          <span className="font_24 font_weight_600">Choose Your Plan</span>
           <span className="font_16 shade_50">
-            Increase your journaling limits
+            Upgrade to unlock advanced trading features
           </span>
         </div>
       </div>
 
-      {/* Billing Toggle */}
+      {/* Billing Toggle - Updated for 3 options */}
       <motion.div
         className="width100"
         initial={{ opacity: 0, scale: 0.9 }}
@@ -434,28 +377,53 @@ function Pricing() {
           >
             Yearly
             <span
-              className="flexRow flex_center gap_4 chart_boxBg success"
+              className="flexRow flex_center font_12 gap_4 chart_boxBg success"
               style={{
                 position: "absolute",
                 top: "-32px",
                 right: "0px",
                 left: "0px",
-                width: "150px",
+                width: "80px",
                 margin: "auto",
                 padding: "12px",
               }}
             >
-              <Percent size={12} />
-              Save upto 50%
+              Save more
+            </span>
+          </button>
+          <button
+            className={`button_sec yearly width100 ${
+              billingPeriod === "lifetime" ? "selected" : ""
+            }`}
+            style={{ position: "relative" }}
+            onClick={() => setBillingPeriod("lifetime")}
+          >
+            Lifetime
+            <span
+              className="flexRow font_12 flex_center gap_4 chart_boxBg success"
+              style={{
+                position: "absolute",
+                top: "-32px",
+                right: "0px",
+                left: "0px",
+                width: "80px",
+                margin: "auto",
+                padding: "12px",
+              }}
+            >
+              Limited time
             </span>
           </button>
         </div>
       </motion.div>
 
       {/* Plans Grid */}
-      <div className="gridContainer">
+      <div
+        className="gridContainer"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}
+      >
         <AnimatePresence>
-          {plans.map((plan, index) => {
+          {getFilteredPlans().map((plan, index) => {
             const priceInfo = getPriceDisplay(plan, billingPeriod);
             const isActive = activePlan === plan.planId;
             const isCurrent = currentPlanId === plan.planId;
@@ -468,16 +436,14 @@ function Pricing() {
                 className={`chart_boxBg pad_16 flexClm gap_24 ${
                   isActive ? "active" : ""
                 } ${plan.planId}`}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{
-                  scale: 1.03,
-                  boxShadow: "0px 8px 25px rgba(0, 255, 120, 0.1)",
+                  scale: 0.99,
                 }}
                 whileTap={{
                   scale: 0.97,
-                  boxShadow: "0px 2px 10px rgba(0, 255, 120, 0.2)",
                 }}
                 onHoverStart={() => setIsHovered(plan.planId)}
                 onHoverEnd={() => setIsHovered(null)}
@@ -498,9 +464,7 @@ function Pricing() {
                         {plan.name}
                       </span>
                       <span className="plan-description font_12">
-                        {plan.planId === "pro" && "Short term analysis"}
-                        {plan.planId === "elite" && "Long term analysis"}
-                        {plan.planId === "master" && "Unlimited access"}
+                        {plan.description}
                       </span>
                     </div>
                   </div>
@@ -515,13 +479,17 @@ function Pricing() {
                         </span>
                       </div>
                       <span className="period font_12">
-                        /{billingPeriod === "monthly" ? "month" : "year"}
+                        {priceInfo.period === "lifetime"
+                          ? "one-time"
+                          : priceInfo.period === "monthly"
+                          ? "/month"
+                          : "/year"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Show Details */}
+                {/* Savings Badge */}
                 <div className="flexRow flexRow_stretch gap_12">
                   <a
                     className="direct_tertiary flexRow gap_8 font_12"
@@ -539,7 +507,7 @@ function Pricing() {
                   </a>
                   {priceInfo.savings > 0 && (
                     <div className="success font_12">
-                      Save {priceInfo.savings}% annually
+                      Save {priceInfo.savings}%
                     </div>
                   )}
                 </div>
@@ -549,7 +517,7 @@ function Pricing() {
                   className={`flexRow gap_4 flex_center ${
                     activePlan === plan.planId ? "button_pri" : "button_sec"
                   }`}
-                  disabled={currentPlanId === plan.planId} // ✅ disables if user already owns this plan
+                  disabled={currentPlanId === plan.planId}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (currentPlanId !== plan.planId) {
@@ -559,7 +527,9 @@ function Pricing() {
                 >
                   {currentPlanId === plan.planId
                     ? "Current Plan"
-                    : "Get Started"}{" "}
+                    : billingPeriod === "lifetime"
+                    ? "Get Lifetime Access"
+                    : "Get Started"}
                   <Zap size={16} />
                 </motion.button>
 
@@ -574,13 +544,7 @@ function Pricing() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.35, ease: "easeInOut" }}
                     >
-                      {[
-                        ...features.filter(
-                          (f) => !["✅", "❌"].includes(f.value)
-                        ),
-                        ...features.filter((f) => f.value === "✅"),
-                        ...features.filter((f) => f.value === "❌"),
-                      ].map((feature, idx) => (
+                      {features.map((feature, idx) => (
                         <motion.div
                           key={idx}
                           className="flexRow flexRow_stretch"
@@ -632,7 +596,7 @@ function Pricing() {
           </div>
           <div className="trust-item">
             <Users size={20} className="vector" />
-            <span className="font_12">Helping Traders</span>
+            <span className="font_12">Trusted by Traders</span>
           </div>
         </div>
       </motion.div>
@@ -645,11 +609,10 @@ function Pricing() {
             billingPeriod={billingPeriod}
             userCountry={userCountry}
             amount={
-              userCountry === "IN"
-                ? plans.find((p) => p.planId === activePlan)?.[billingPeriod]
-                    ?.inr
-                : plans.find((p) => p.planId === activePlan)?.[billingPeriod]
-                    ?.usdt
+              getPriceDisplay(
+                plans.find((p) => p.planId === activePlan),
+                billingPeriod
+              ).price
             }
             allowUPI={true}
             onClose={() => setShowPaymentSelector(false)}

@@ -18,7 +18,7 @@ export const PLAN_RULES = {
       showsAds: true,
       imageUpload: "Up to 10 images per month",
       maxImageSize: "10 MB",
-      shareTrades: true,
+      shareTrades: false,
       aiAnalysis: false,
       advancedCharts: true,
       quickTradeLog: "Up to 10 quick trades",

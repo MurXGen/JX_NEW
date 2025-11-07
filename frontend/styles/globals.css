@@ -3337,7 +3337,7 @@ footer {
     justify-content: center;
     align-items: center;
     z-index: 999;
-    backdrop-filter: blur(40px);
+    backdrop-filter: blur(20px);
   }
 
   .cm-modal {
@@ -6227,5 +6227,44 @@ footer {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* for upgrade iframe */
+
+@media (min-width: 0) {
+  .iframe-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 10, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+  }
+
+  .iframe-modal {
+    background: #fff;
+    width: 90%;
+    max-width: 900px;
+    height: 85vh;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .pricing-iframe {
+    width: 100%;
+    height: 100%;
+    max-height: 700px;
+    min-height: 700px;
+    border: none;
+    border-top: 1px solid #eee;
   }
 }

@@ -14,6 +14,7 @@ import {
   BadgeCheck,
   Sparkles,
   Crown,
+  Infinity,
 } from "lucide-react";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -35,15 +36,20 @@ export default function CheckoutOnline() {
   const [planDetails, setPlanDetails] = useState(null);
   const [paymentType, setPaymentType] = useState("recurring");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Calculate dates
+  // Check if this is a lifetime plan
+  const isLifetime = period === "lifetime";
+
+  // Calculate dates only for monthly/yearly plans
   const startDate = new Date();
   const expiryDate = new Date();
   if (period === "monthly") {
     expiryDate.setMonth(expiryDate.getMonth() + 1);
-  } else {
+  } else if (period === "yearly") {
     expiryDate.setFullYear(expiryDate.getFullYear() + 1);
   }
+  // For lifetime, no expiry date calculation
 
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
@@ -52,7 +58,6 @@ export default function CheckoutOnline() {
       day: "numeric",
     });
   };
-  const [loading, setLoading] = useState(true); // ✅ track loader state
 
   useEffect(() => {
     const isVerified = Cookies.get("isVerified");
@@ -60,7 +65,7 @@ export default function CheckoutOnline() {
     if (!isVerified === "yes") {
       router.push("/accounts");
     } else {
-      setLoading(false); // ✅ stop loader when not redirecting
+      setLoading(false);
     }
   }, [router]);
 
@@ -78,10 +83,10 @@ export default function CheckoutOnline() {
   }, [planName]);
 
   useEffect(() => {
-    if (period === "yearly" || method === "crypto") {
+    if (period === "yearly" || method === "crypto" || isLifetime) {
       setPaymentType("one-time");
     }
-  }, [period, method]);
+  }, [period, method, isLifetime]);
 
   const formattedPrice =
     method === "crypto" ? `${amountParam} USDT` : `₹${amountParam}`;
@@ -101,13 +106,18 @@ export default function CheckoutOnline() {
     switch (planDetails?.planId) {
       case "pro":
         return <Crown size={24} className="vector" />;
-      case "elite":
-        return <Sparkles size={24} className="vector" />;
       case "master":
-        return <Zap size={24} className="vector" />;
+        return <Infinity size={24} className="vector" />;
       default:
         return <BadgeCheck size={24} className="vector" />;
     }
+  };
+
+  const getPlanPeriodText = () => {
+    if (isLifetime) {
+      return "Lifetime Access";
+    }
+    return period === "monthly" ? "Monthly Plan" : "Annual Plan";
   };
 
   const handleConfirmPay = async () => {
@@ -121,8 +131,10 @@ export default function CheckoutOnline() {
     }
 
     const payload = {
-      planId: planDetails.planId,
-      period,
+      planId: planDetails.planId, // Send planId instead of planName
+      period: period,
+      amount: amountParam,
+      paymentType: paymentType,
       userName: planDetails.name,
       userEmail: planDetails.email || "",
     };
@@ -136,41 +148,51 @@ export default function CheckoutOnline() {
       }
 
       const handleSuccess = async (orderId) => {
-        // ✅ Fetch the latest user-data from IndexedDB
         const userData = await getFromIndexedDB("user-data");
 
-        // ✅ Construct subscription object
         const now = new Date();
-        const expiry = new Date(now);
-        if (period === "yearly") expiry.setFullYear(expiry.getFullYear() + 1);
-        else expiry.setMonth(expiry.getMonth() + 1);
+        let expiry = new Date(now);
+
+        // Set expiry based on plan type
+        if (isLifetime) {
+          // Set expiry far in the future for lifetime plans
+          expiry.setFullYear(expiry.getFullYear() + 100); // 100 years = effectively lifetime
+        } else if (period === "yearly") {
+          expiry.setFullYear(expiry.getFullYear() + 1);
+        } else {
+          expiry.setMonth(expiry.getMonth() + 1);
+        }
 
         const newSubscription = {
           planId: planDetails.planId,
           status: "active",
-          type: paymentType === "recurring" ? "recurring" : "one-time",
+          type: isLifetime
+            ? "lifetime"
+            : paymentType === "recurring"
+            ? "recurring"
+            : "one-time",
           startAt: now.toISOString(),
           expiresAt: expiry.toISOString(),
           createdAt: now.toISOString(),
         };
 
-        // ✅ Store subscription inside subscription array/object
         const updatedUser = {
           ...userData,
-          subscription: newSubscription, // overwrite existing subscription
+          subscription: newSubscription,
         };
 
         await saveToIndexedDB("user-data", updatedUser);
 
-        // ✅ Redirect to success page
         router.push(
           `/subscription-success?planName=${encodeURIComponent(
             planDetails.name
-          )}&period=${period}&amount=${amountParam}&method=${paymentType}&start=${now.toISOString()}&expiry=${expiry.toISOString()}&orderId=${orderId}`
+          )}&period=${period}&amount=${amountParam}&method=${paymentType}&start=${now.toISOString()}&expiry=${expiry.toISOString()}&orderId=${
+            orderId || "lifetime"
+          }`
         );
       };
 
-      if (paymentType === "one-time") {
+      if (paymentType === "one-time" || isLifetime) {
         const createRes = await axios.post(
           `${API_BASE}/api/payments/create-order`,
           payload,
@@ -183,7 +205,9 @@ export default function CheckoutOnline() {
           amount: order.amount,
           currency: "INR",
           name: "JournalX",
-          description: "Order description",
+          description: isLifetime
+            ? "Lifetime Plan Purchase"
+            : "One-time Plan Purchase",
           order_id: order.id,
           handler: async function (response) {
             await axios.post(
@@ -264,7 +288,6 @@ export default function CheckoutOnline() {
     }
   };
 
-  // ✅ Show loader until verification is done
   if (loading) {
     return <FullPageLoader />;
   }
@@ -312,44 +335,76 @@ export default function CheckoutOnline() {
                   {planDetails.name}
                 </span>
                 <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  {period === "monthly" ? "Monthly Plan" : "Annual Plan"}
+                  {getPlanPeriodText()}
                 </span>
+                {/* {isLifetime && (
+                  <span className="font_10 success font_weight_600">
+                    🎉 One-time payment, forever access
+                  </span>
+                )} */}
               </div>
               <div className="price-tag">
                 <span className="font_20 font_weight_700">
                   {formattedPrice}
                 </span>
+                {/* {isLifetime && (
+                  <span className="font_10 success text_center">
+                    Best Value
+                  </span>
+                )} */}
               </div>
             </div>
 
-            {/* Subscription Timeline */}
-            <div className="timeline-section flexRow flexRow_stretch">
-              <div className="timeline-item">
-                <Calendar size={16} className="vector" />
-                <div className="timeline-content">
-                  <span className="font_12">Starts</span>
-                  <span className="font_14 font_weight_600">
-                    {formatDate(startDate)}
-                  </span>
+            {/* Subscription Timeline - Only show for monthly/yearly plans */}
+            {!isLifetime && (
+              <div className="timeline-section flexRow flexRow_stretch">
+                <div className="timeline-item">
+                  <Calendar size={16} className="vector" />
+                  <div className="timeline-content">
+                    <span className="font_12">Starts</span>
+                    <span className="font_14 font_weight_600">
+                      {formatDate(startDate)}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  className="timeline-item"
+                  style={{
+                    textAlign: "right",
+                    justifyContent: "end",
+                    flexDirection: "row-reverse",
+                  }}
+                >
+                  <Clock size={16} className="vector" />
+                  <div className="timeline-content">
+                    <span className="font_12">Expires</span>
+                    <span className="font_14 font_weight_600">
+                      {formatDate(expiryDate)}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div
-                className="timeline-item"
-                style={{
-                  textAlign: "right",
-                  justifyContent: "end",
-                  flexDirection: "row-reverse",
-                }}
-              >
-                <Clock size={16} className="vector" />
-                <div className="timeline-content">
-                  <span className="font_12">Expires</span>
-                  <span className="font_14 font_weight_600">
-                    {formatDate(expiryDate)}
+            )}
+
+            {/* Lifetime Plan Benefits */}
+            {/* {isLifetime && (
+              <div className="lifetime-benefits flexClm gap_12 margin_top_16">
+                <div className="flexRow gap_8 flex_center">
+                  <Infinity size={16} className="success" />
+                  <span className="font_12 success font_weight_600">
+                    Never pay again - lifetime access
                   </span>
                 </div>
+                <div className="flexRow gap_8 flex_center">
+                  <Sparkles size={16} className="warning" />
+                  <span className="font_12">All future updates included</span>
+                </div>
+                <div className="flexRow gap_8 flex_center">
+                  <Crown size={16} className="primary" />
+                  <span className="font_12">Priority support forever</span>
+                </div>
               </div>
-            </div>
+            )} */}
           </div>
 
           {/* Payment Method Selection */}
@@ -371,7 +426,7 @@ export default function CheckoutOnline() {
               </div>
             </div>
 
-            {/* Payment Type Toggle */}
+            {/* Payment Type Toggle - Only show for monthly plans */}
             <AnimatePresence>
               {period === "monthly" && method !== "crypto" && (
                 <motion.div
@@ -430,9 +485,18 @@ export default function CheckoutOnline() {
           {/* Total Amount */}
           <div className="total-section">
             <div className="total-line flexRow flexRow_stretch">
-              <span className="font_16">Total Amount</span>
+              <span className="font_16">
+                {isLifetime ? "One-time Payment" : "Total Amount"}
+              </span>
               <span className="font_20 font_weight_700">{formattedPrice}</span>
             </div>
+            {/* {isLifetime && (
+              <div className="lifetime-savings flexRow flex_center margin_top_8">
+                <span className="font_12 success">
+                  💰 Save thousands compared to yearly payments
+                </span>
+              </div>
+            )} */}
           </div>
         </motion.div>
 
@@ -444,7 +508,7 @@ export default function CheckoutOnline() {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           <motion.button
-            className="upgrade_btn"
+            className={`upgrade_btn ${isLifetime ? "lifetime-btn" : ""}`}
             onClick={handleConfirmPay}
             disabled={isProcessing}
             whileHover={{ scale: isProcessing ? 1 : 1.02 }}
@@ -468,10 +532,10 @@ export default function CheckoutOnline() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flexRow gap_4 flex_center "
+                  className="flexRow gap_4 flex_center"
                 >
-                  <Zap size={18} />
-                  Confirm & Pay
+                  {isLifetime ? <Infinity size={18} /> : <Zap size={18} />}
+                  {isLifetime ? "Get Lifetime Access" : "Confirm & Pay"}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -500,8 +564,16 @@ export default function CheckoutOnline() {
           </div>
           <div className="trust-item">
             <Check size={16} className="success" />
-            <span className="font_12">Cancel Anytime</span>
+            <span className="font_12">
+              {isLifetime ? "Lifetime Access" : "Cancel Anytime"}
+            </span>
           </div>
+          {isLifetime && (
+            <div className="trust-item">
+              <Sparkles size={16} className="warning" />
+              <span className="font_12">All Future Updates Included</span>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
