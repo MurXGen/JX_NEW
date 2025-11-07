@@ -194,19 +194,26 @@ const ShareTrades = () => {
     return labels[timeRange] || "Select Range";
   };
 
-  const getAccountName = (accountId) => {
-    if (accountId === "all") return "All Accounts";
-    const acc = accounts.find((a) => a._id === accountId);
-    return acc ? acc.name : "Unknown Account";
+  const getAccountName = (id) => {
+    if (id === "all") return "All Accounts";
+    const acc = accounts.find((a) => a._id === id);
+    return acc ? acc.name : "Unknown";
   };
 
-  const getStats = (data) => {
-    const total = data.length;
-    const win = data.filter((t) => t.pnl > 0).length;
-    const loss = data.filter((t) => t.pnl < 0).length;
-    const totalPnL = data.reduce((sum, t) => sum + (t.pnl || 0), 0);
-    const winRate = total > 0 ? (win / total) * 100 : 0;
-    return { total, win, loss, totalPnL, winRate: winRate.toFixed(1) };
+  const getStats = () => {
+    const totalTrades = filteredTrades.length;
+    const winningTrades = filteredTrades.filter((t) => t.pnl > 0).length;
+    const losingTrades = filteredTrades.filter((t) => t.pnl < 0).length;
+    const totalPnL = filteredTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+
+    return {
+      totalTrades,
+      winningTrades,
+      losingTrades,
+      totalPnL,
+      winRate: winRate.toFixed(1),
+    };
   };
 
   const stats = getStats(filteredTrades);

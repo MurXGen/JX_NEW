@@ -4032,11 +4032,12 @@ footer {
     display: flex;
     align-items: center;
     gap: var(--px-4);
-    padding: var(--px-6) var(--px-12);
+    padding: var(--px-4) var(--px-12) !important;
     border-radius: var(--px-12);
     font-size: var(--px-12);
     font-weight: var(--weight-600);
     text-transform: uppercase;
+    flex-direction: row-reverse;
   }
 
   .status-badge.success {
