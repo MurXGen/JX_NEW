@@ -25,7 +25,7 @@ export const PLAN_RULES = {
       multipleEntries: true,
       backupData: false,
       integration: false,
-      exportTrades: false, // ⬅️ NEW: Export feature access flag
+      exportTrades: false,
     },
   },
   pro: {
@@ -49,7 +49,7 @@ export const PLAN_RULES = {
       multipleEntries: true,
       backupData: true,
       integration: true,
-      exportTrades: true, // ⬅️ Pro & Master can export
+      exportTrades: true,
     },
   },
   master: {
@@ -73,7 +73,7 @@ export const PLAN_RULES = {
       multipleEntries: true,
       backupData: true,
       integration: true,
-      exportTrades: true, // ⬅️ Pro & Master can export
+      exportTrades: true,
     },
   },
 };
@@ -81,11 +81,17 @@ export const PLAN_RULES = {
 // 🧭 Normalize plan names and retrieve rules
 export const getPlanRules = (userData) => {
   const planId =
+    userData?.value?.subscription?.planId ||
     userData?.subscription?.planId ||
-    userData?.subscription?.planName ||
     "free";
-  const planName = String(planId).toLowerCase();
-  return PLAN_RULES[planName] || PLAN_RULES.free;
+
+  const normalized = typeof planId === "string" ? planId.toLowerCase() : "free";
+
+  // Match plan ID patterns
+  if (normalized.includes("pro")) return PLAN_RULES.pro;
+  if (normalized.includes("master")) return PLAN_RULES.master;
+
+  return PLAN_RULES.free;
 };
 
 // ✅ Determine if ads should be shown
@@ -99,7 +105,9 @@ const getActiveAccountId = () => Cookies.get("accountId");
 
 // ✅ Check if user can add a normal trade
 export const canAddTrade = async (userData, tradeStatus = "closed") => {
+  const user = userData?.value || userData;
   const rules = getPlanRules(userData);
+
   const tradeLimit =
     tradeStatus === "running"
       ? rules.limits.quickTradeLimitPerMonth
@@ -107,7 +115,7 @@ export const canAddTrade = async (userData, tradeStatus = "closed") => {
 
   if (tradeLimit === Infinity) return true;
 
-  const trades = userData.trades || [];
+  const trades = user?.trades || [];
   const now = dayjs();
   const activeAccountId = getActiveAccountId();
 
@@ -121,11 +129,8 @@ export const canAddTrade = async (userData, tradeStatus = "closed") => {
       tradeDate.month() === now.month() &&
       tradeDate.year() === now.year()
     ) {
-      if (tradeStatus === "running") {
-        return t.status === "running";
-      } else {
-        return t.status === "closed";
-      }
+      if (tradeStatus === "running") return t.status === "running";
+      return t.status === "closed";
     }
     return false;
   }).length;
@@ -141,15 +146,17 @@ export const canAddAccount = (userData, accountCount) => {
 
 // ✅ Check if image upload is allowed
 export const canUploadImage = async (userData, newImageSizeMB) => {
+  const user = userData?.value || userData;
   const rules = getPlanRules(userData);
   const { maxImageSizeMB, imageLimitPerMonth } = rules.limits;
 
   if (newImageSizeMB > maxImageSizeMB) return false;
   if (imageLimitPerMonth === Infinity) return true;
 
-  const trades = userData.trades || [];
+  const trades = user?.trades || [];
   const now = dayjs();
   const activeAccountId = getActiveAccountId();
+
   let imagesThisMonth = 0;
 
   trades.forEach((t) => {
@@ -182,7 +189,7 @@ export const canUseAI = (userData) => {
   return rules.features.aiAnalysis;
 };
 
-// ✅ Helpers for current user
+// ✅ Helpers for current user (from IndexedDB)
 export const getCurrentPlanRules = async () => {
   const userData = await getFromIndexedDB("user-data");
   return getPlanRules(userData);

@@ -11,6 +11,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import { formatCurrency } from "@/utils/formatNumbers";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getPlanRules } from "@/utils/planRestrictions";
+import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades"; // Your new utility
 import axios from "axios";
 import { motion, Reorder } from "framer-motion";
 import Cookies from "js-cookie";
@@ -50,100 +51,14 @@ function Accounts() {
   const [showMore, setShowMore] = useState(false);
   const [orderedAccounts, setOrderedAccounts] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
-
   const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const isVerified = params.get("isVerified");
-
-    if (isVerified === "yes") {
-      Cookies.set("isVerified", "yes", {
-        path: "/",
-        sameSite: "Strict",
-        expires: 3650,
-      });
-    }
-
-    // Optionally clean the URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }, []);
-
-  // Check localStorage for guide on mount
-  useEffect(() => {
-    const guideFlag = localStorage.getItem("guide");
-    if (guideFlag === "yes") {
-      setShowGuide(true);
-    }
-  }, []);
-
-  const handleCloseGuide = () => {
-    setShowGuide(false);
-    localStorage.removeItem("guide"); // clear guide flag
-  };
-
-  useEffect(() => {
-    const savedOrder = JSON.parse(localStorage.getItem("accountOrder") || "[]");
-    if (savedOrder.length && accounts.length) {
-      // Map saved order to actual account objects when possible
-      const mapById = new Map(accounts.map((a) => [a._id, a]));
-      const reordered = savedOrder.map((id) => mapById.get(id)).filter(Boolean);
-
-      // append any accounts not present in savedOrder at the end
-      const missing = accounts.filter((a) => !savedOrder.includes(a._id));
-      setOrderedAccounts([...reordered, ...missing]);
-    } else {
-      setOrderedAccounts(accounts);
-    }
-  }, [accounts]);
-
-  // Helper to persist order
-  useEffect(() => {
-    if (orderedAccounts.length > 0) {
-      const order = orderedAccounts.map((acc) => acc._id);
-      localStorage.setItem("accountOrder", JSON.stringify(order));
-    }
-  }, [orderedAccounts]);
-
-  // displayedAccounts remains a derived view
-  const displayedAccounts = showAllAccounts
-    ? orderedAccounts
-    : orderedAccounts.slice(0, 2);
-
-  // NEW: handler that receives the reordered visible list and merges it
-  const handleReorderVisible = (newVisibleOrder) => {
-    // If showing all, newVisibleOrder is the full order — replace completely
-    if (showAllAccounts) {
-      setOrderedAccounts(newVisibleOrder);
-      return;
-    }
-
-    // Otherwise we only displayed a prefix (slice). We'll replace that prefix
-    // with the new visible order while keeping the rest of the list.
-    const rest = orderedAccounts.slice(newVisibleOrder.length);
-    const merged = [...newVisibleOrder, ...rest];
-
-    // Safety: if some items in rest accidentally also appear in newVisibleOrder,
-    // remove duplicates keeping first appearance in merged
-    const seen = new Set();
-    const deduped = [];
-    for (const item of merged) {
-      const id = item._id ?? item; // item may be object or primitive depending on your setup
-      const key = typeof id === "string" ? id : JSON.stringify(item);
-      if (!seen.has(key)) {
-        seen.add(key);
-        deduped.push(item);
-      }
-    }
-
-    setOrderedAccounts(deduped);
-  };
-
-  useEffect(() => {
-    const loadUser = async () => {
+    const loadUserData = async () => {
       setLoading(true);
 
       try {
+        // 🟩 Refresh logic - Update user data in IndexedDB
         const cachedUser = await getFromIndexedDB("user-data");
         const hasData = cachedUser && Object.keys(cachedUser).length > 0;
 
@@ -161,40 +76,6 @@ function Accounts() {
         ) {
           refreshInfo.count = 0;
           refreshInfo.firstRefreshAt = now;
-        }
-
-        // Check subscription expiration
-        let subscriptionExpired = false;
-        if (cachedUser?.subscription?.expiresAt) {
-          const expiryDate = new Date(cachedUser.subscription.expiresAt);
-          if (expiryDate < now) subscriptionExpired = true;
-        }
-
-        // Handle expired subscription
-        if (subscriptionExpired) {
-          try {
-            const res = await axios.put(
-              `${API_BASE}/api/auth/update-subscription`,
-              {
-                subscriptionType: "none",
-                subscriptionPlan: "free",
-                subscriptionStatus: "expired",
-              },
-              { withCredentials: true }
-            );
-
-            // Update IndexedDB immediately
-            if (hasData) {
-              cachedUser.subscription.status = "expired";
-              cachedUser.subscription.planId = "free";
-              cachedUser.subscription.type = "none";
-              cachedUser.subscription.startAt = null;
-              cachedUser.subscription.expiresAt = null;
-              await saveToIndexedDB("user-data", cachedUser);
-            }
-          } catch (err) {
-            // Do nothing — handled silently
-          }
         }
 
         const canFetch = refreshInfo.count < 10;
@@ -219,45 +100,148 @@ function Accounts() {
                 localStorage.setItem("userName", userData.name);
             }
           } catch (err) {
-            // Do nothing — handled silently
+            // Silent fail - use cached data
+          }
+        }
+
+        // 🟩 Now use your utility function to get the processed data
+        const result = await fetchAccountsAndTrades();
+
+        if (result.redirectToLogin) {
+          router.push("/login");
+          return;
+        }
+
+        // Set state from utility result
+        setAccounts(result.accounts);
+        setAccountSymbols(result.accountSymbols);
+        setCurrentBalances(result.currentBalances);
+        setTradesCount(result.tradesCount);
+        setUserPlan(result.userPlan);
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [router]);
+
+  // URL verification effect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isVerified = params.get("isVerified");
+
+    if (isVerified === "yes") {
+      Cookies.set("isVerified", "yes", {
+        path: "/",
+        sameSite: "Strict",
+        expires: 3650,
+      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  // Guide effect
+  useEffect(() => {
+    const guideFlag = localStorage.getItem("guide");
+    if (guideFlag === "yes") {
+      setShowGuide(true);
+    }
+  }, []);
+
+  const handleCloseGuide = () => {
+    setShowGuide(false);
+    localStorage.removeItem("guide");
+  };
+
+  // Account ordering effects
+  useEffect(() => {
+    const savedOrder = JSON.parse(localStorage.getItem("accountOrder") || "[]");
+    if (savedOrder.length && accounts.length) {
+      const mapById = new Map(accounts.map((a) => [a._id, a]));
+      const reordered = savedOrder.map((id) => mapById.get(id)).filter(Boolean);
+      const missing = accounts.filter((a) => !savedOrder.includes(a._id));
+      setOrderedAccounts([...reordered, ...missing]);
+    } else {
+      setOrderedAccounts(accounts);
+    }
+  }, [accounts]);
+
+  useEffect(() => {
+    if (orderedAccounts.length > 0) {
+      const order = orderedAccounts.map((acc) => acc._id);
+      localStorage.setItem("accountOrder", JSON.stringify(order));
+    }
+  }, [orderedAccounts]);
+
+  const displayedAccounts = showAllAccounts
+    ? orderedAccounts
+    : orderedAccounts.slice(0, 2);
+
+  const handleReorderVisible = (newVisibleOrder) => {
+    if (showAllAccounts) {
+      setOrderedAccounts(newVisibleOrder);
+      return;
+    }
+
+    const rest = orderedAccounts.slice(newVisibleOrder.length);
+    const merged = [...newVisibleOrder, ...rest];
+
+    const seen = new Set();
+    const deduped = [];
+    for (const item of merged) {
+      const id = item._id ?? item;
+      const key = typeof id === "string" ? id : JSON.stringify(item);
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(item);
+      }
+    }
+
+    setOrderedAccounts(deduped);
+  };
+
+  // User data loading effect - Simplified using utility
+  useEffect(() => {
+    const loadUserData = async () => {
+      setLoading(true);
+
+      try {
+        // Use your utility function
+        const result = await fetchAccountsAndTrades();
+
+        if (result.redirectToLogin) {
+          router.push("/login");
+          return;
+        }
+
+        // Set state from utility result
+        setAccounts(result.accounts);
+        setAccountSymbols(result.accountSymbols);
+        setCurrentBalances(result.currentBalances);
+        setTradesCount(result.tradesCount);
+        setUserPlan(result.userPlan);
+
+        // Calculate plan usage
+        if (result.userPlan) {
+          const cachedUser = await getFromIndexedDB("user-data");
+          if (cachedUser) {
+            const planRules = getPlanRules(cachedUser);
+            const currentUsage = calculatePlanUsage(cachedUser, planRules);
+            setPlanUsage(currentUsage);
           }
         }
       } catch (error) {
-        // Silent fail
+        console.error("Error loading user data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadUser();
-  }, []);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      setLoading(true);
-      try {
-        const cachedUser = await getFromIndexedDB("user-data");
-        const hasData = cachedUser && Object.keys(cachedUser).length > 0;
-
-        // Load user plan and calculate usage
-        if (hasData) {
-          const planRules = getPlanRules(cachedUser);
-          setUserPlan(planRules);
-
-          // Calculate current usage
-          const currentUsage = calculatePlanUsage(cachedUser, planRules);
-          setPlanUsage(currentUsage);
-        }
-
-        // ... existing refresh logic ...
-      } catch (error) {
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUser();
-  }, []);
+    loadUserData();
+  }, [router]);
 
   const calculatePlanUsage = (userData, planRules) => {
     const accountsCount = userData.accounts?.length || 0;
@@ -265,7 +249,6 @@ function Accounts() {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
 
-    // Monthly trades
     const monthlyTrades =
       userData.trades?.filter((trade) => {
         const tradeDate = new Date(trade.openTime);
@@ -275,7 +258,6 @@ function Accounts() {
         );
       }).length || 0;
 
-    // Monthly images
     const monthlyImages =
       userData.trades?.reduce((count, trade) => {
         const tradeDate = new Date(trade.openTime);
@@ -313,107 +295,6 @@ function Accounts() {
     };
   };
 
-  useEffect(() => {
-    const verified = Cookies.get("isVerified");
-    if (verified !== "yes") {
-      router.push("/login");
-      return;
-    }
-
-    const fetchAccountsAndTrades = async () => {
-      try {
-        const cachedUserData = await getFromIndexedDB("user-data");
-        const userData = cachedUserData;
-
-        if (!userData) {
-          setLoading(false);
-          return;
-        }
-
-        // 🟩 Derive active plan rules
-        const planRules = getPlanRules(userData);
-
-        // 🟩 Extract user plan info
-        if (userData.subscription?.planId) {
-          const activePlanId = userData.subscription.planId;
-          const matchedPlan =
-            userData.plans?.find((p) => p.planId === activePlanId) || null;
-
-          const planName =
-            matchedPlan?.name ||
-            activePlanId.charAt(0).toUpperCase() + activePlanId.slice(1);
-
-          // ✅ Merge rules + subscription info
-          setUserPlan({
-            ...userData.subscription,
-            planName,
-            ...planRules, // adds booleans like canExportTrades, canShareTrades, etc.
-          });
-        }
-
-        // 🟩 Process accounts & trades
-        if (userData.accounts?.length > 0) {
-          setAccounts(userData.accounts);
-          buildSymbolMap(userData.accounts);
-
-          if (userData.trades?.length > 0) {
-            const balanceMap = {};
-            const countMap = {};
-
-            userData.accounts.forEach((acc) => {
-              const starting = acc.startingBalance?.amount || 0;
-              const tradesForAcc = userData.trades.filter(
-                (t) => t.accountId === acc._id
-              );
-              const pnlSum = tradesForAcc.reduce(
-                (sum, t) => sum + (Number(t.pnl) || 0),
-                0
-              );
-
-              balanceMap[acc.name] = starting + pnlSum;
-              countMap[acc.name] = tradesForAcc.length;
-            });
-
-            setCurrentBalances(balanceMap);
-            setTradesCount(countMap);
-          } else {
-            const emptyCountMap = {};
-            userData.accounts.forEach((acc) => {
-              emptyCountMap[acc.name] = 0;
-            });
-            setTradesCount(emptyCountMap);
-          }
-        }
-      } catch (err) {
-        error("Error fetching user data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const buildSymbolMap = (accountsData) => {
-      const symbolMap = {};
-      accountsData.forEach((acc) => {
-        switch (acc.currency?.toUpperCase()) {
-          case "USD":
-            symbolMap[acc.name] = "$";
-            break;
-          case "INR":
-            symbolMap[acc.name] = "₹";
-            break;
-          case "USDT":
-            symbolMap[acc.name] = "₮";
-            break;
-          default:
-            symbolMap[acc.name] = "¤";
-        }
-      });
-      setAccountSymbols(symbolMap);
-    };
-
-    fetchAccountsAndTrades();
-  }, [router]);
-
   const handleAccountClick = (accountId) => {
     try {
       Cookies.set("accountId", accountId, {
@@ -422,7 +303,9 @@ function Accounts() {
         expires: 1 / 24,
       });
       router.push("/dashboard");
-    } catch (err) {}
+    } catch (err) {
+      console.error("Error setting account cookie:", err);
+    }
   };
 
   const handleCreateAccount = async () => {
@@ -445,7 +328,6 @@ function Accounts() {
       description: "Backup or migrate your trading data",
       icon: Upload,
       path: "/export",
-      // enabled: userPlan?.canExportTrades || false,
       enabled: true,
     },
     {
@@ -454,7 +336,6 @@ function Accounts() {
       description: "Share your trading performance",
       icon: Share2,
       path: "/share-trades",
-      // enabled: userPlan?.canShareTrades || false,
       enabled: true,
     },
     {
@@ -463,19 +344,13 @@ function Accounts() {
       description: "Forex factory's market updates",
       icon: TrendingUp,
       path: "https://www.forexfactory.com/calendar",
-      // enabled: userPlan?.canAccessFinancialNews || false,
       enabled: true,
     },
   ];
 
-  // Drag and drop handlers
-  const handleDragStart = () => {
-    setIsDragging(true);
-  };
+  const handleDragStart = () => setIsDragging(true);
+  const handleDragEnd = () => setIsDragging(false);
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
   if (loading) {
     return <FullPageLoader />;
   }

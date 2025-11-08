@@ -161,10 +161,23 @@ const SubscriptionStatus = () => {
                 {getPlanIcon(currentPlan.planId)}
                 <div className="flexClm">
                   <span className="font_18 font_weight_600">
-                    {currentPlan.planId.charAt(0).toUpperCase() +
-                      currentPlan.planId.slice(1)}{" "}
+                    {(() => {
+                      const planId =
+                        currentPlan?.planId?.toLowerCase() || "free";
+                      let planName = planId;
+
+                      // remove numeric part (e.g., 'master001' → 'master')
+                      if (planId.includes("master")) planName = "master";
+                      else if (planId.includes("pro")) planName = "pro";
+                      else if (planId.includes("free")) planName = "free";
+
+                      return (
+                        planName.charAt(0).toUpperCase() + planName.slice(1)
+                      );
+                    })()}{" "}
                     Plan
                   </span>
+
                   <span className="font_12 shade_50">
                     {currentPlan.type === "recurring"
                       ? "Auto-renewal"

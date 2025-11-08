@@ -24,13 +24,16 @@ exports.createCryptoOrder = async (req, res) => {
     const plan = await Plan.findOne({ name: new RegExp(planName, "i") });
     if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-    // Determine payment type based on period
     let paymentType = "one-time";
-    if (period === "monthly") paymentType = "recurring";
+    if (period === "monthly") paymentType = "one-time";
     if (period === "lifetime") paymentType = "lifetime";
 
+    const userId = req.user?._id || req.cookies.userId;
+    if (!userId)
+      return res.status(401).json({ message: "User not authenticated" });
+
     const cryptoOrder = new Order({
-      userId: req.user?._id || req.cookies.userId || null,
+      userId,
       planId: plan.planId,
       amount,
       currency: currency || "USDT",
@@ -49,12 +52,25 @@ exports.createCryptoOrder = async (req, res) => {
 
     await cryptoOrder.save();
 
+    // 🔹 Push order reference to user's orders array
+    await User.findByIdAndUpdate(userId, {
+      $push: {
+        orders: {
+          orderId: cryptoOrder._id,
+          status: cryptoOrder.status,
+          createdAt: new Date(),
+        },
+      },
+    });
+
     await sendTelegramNotification({
       name: req.user?.name || "N/A",
       email: req.user?.email || "N/A",
       type: "payment",
       status: "Created",
-      details: `Plan: ${plan.name}\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}`,
+      details: `Plan: ${plan.name}\nPeriod: ${period}\nAmount: ${amount} ${
+        currency || "USDT"
+      }\nNetwork: ${network.toUpperCase()}`,
       orderId: cryptoOrder._id,
     });
 
@@ -101,68 +117,31 @@ exports.verifyCryptoPayment = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // If subscription already active for this order → short-circuit success
-    if (
-      user.subscriptionPlan === dbOrder.planId &&
-      user.subscriptionStatus === "active"
-    ) {
-      return res.json({
-        success: true,
-        message: "Payment already verified and subscription active",
-        orderId: dbOrder._id,
-      });
-    }
-
-    // Calculate expiry based on period
-    const startDate = new Date();
-    let expiryDate = new Date(startDate);
-
-    if (dbOrder.period === "lifetime") {
-      // Set expiry to 100 years for lifetime plans
-      expiryDate.setFullYear(expiryDate.getFullYear() + 100);
-    } else if (dbOrder.period === "yearly") {
-      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-    } else {
-      expiryDate.setMonth(expiryDate.getMonth() + 1);
-    }
-
-    // Update user subscription
-    user.subscriptionStatus = "active";
-    user.subscriptionPlan = dbOrder.planId;
-    user.subscriptionType = dbOrder.paymentType; // one-time, recurring, or lifetime
-    user.subscriptionStartAt = startDate;
-    user.subscriptionExpiresAt = expiryDate;
-    if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
+    // ✅ Activate subscription using schema method
+    user.activateSubscription({
+      _id: dbOrder._id,
+      planId: dbOrder.planId,
+      paymentType: dbOrder.paymentType,
+      period: dbOrder.period,
+      status: dbOrder.status,
+    });
 
     await user.save();
 
-    // Update order status
+    // ✅ Update order status
     dbOrder.status = "paid";
     dbOrder.updatedAt = new Date();
     await dbOrder.save();
 
-    res.json({
+    return res.json({
       success: true,
       message: "Payment verified and subscription activated",
       orderId: dbOrder._id,
-      period: dbOrder.period,
       planId: dbOrder.planId,
+      period: dbOrder.period,
     });
   } catch (err) {
     console.error("Verify payment error:", err.message);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-// Helper function to calculate expiry
-function calculateExpiry(period) {
-  const expiry = new Date();
-  if (period === "lifetime") {
-    expiry.setFullYear(expiry.getFullYear() + 100);
-  } else if (period === "yearly") {
-    expiry.setFullYear(expiry.getFullYear() + 1);
-  } else {
-    expiry.setMonth(expiry.getMonth() + 1);
-  }
-  return expiry.toISOString();
-}

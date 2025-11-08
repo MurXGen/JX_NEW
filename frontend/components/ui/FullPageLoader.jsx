@@ -2,8 +2,6 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 const FullPageLoader = () => {
-  const icons = ["/assets/jx_trans_favicon.png"];
-
   const quotes = [
     "Discipline turns losses into lessons and lessons into profit.",
     "Consistency beats intensity when mastering profitable trading habits daily.",
@@ -16,12 +14,9 @@ const FullPageLoader = () => {
     "Focus on process, not profit, results will naturally follow.",
     "Master risk management and profits will follow automatically forever after.",
   ];
-
-  const [randomIcon, setRandomIcon] = useState("");
   const [randomQuote, setRandomQuote] = useState("");
 
   useEffect(() => {
-    setRandomIcon(icons[Math.floor(Math.random() * icons.length)]);
     setRandomQuote(quotes[Math.floor(Math.random() * quotes.length)]);
   }, []);
 
@@ -31,7 +26,7 @@ const FullPageLoader = () => {
         <Image
           width={50}
           height={50}
-          src={randomIcon}
+          src="/assets/jx_trans_favicon.png"
           alt="Loader Icon"
           className="blinkingIcon"
         />
