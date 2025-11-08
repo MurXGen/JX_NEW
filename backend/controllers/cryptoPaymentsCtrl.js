@@ -6,15 +6,11 @@ const { sendTelegramNotification } = require("../utils/telegramNotifier");
 
 exports.createCryptoOrder = async (req, res) => {
   try {
-    const { planId, period, amount, network, currency, paymentType } = req.body;
+    const { planName, period, amount, network, currency, startAt, expiresAt } =
+      req.body;
 
-    if (!planId || !period || !amount || !network)
+    if (!planName || !period || !amount || !network)
       return res.status(400).json({ message: "Missing required fields" });
-
-    // Validate period
-    if (!["monthly", "yearly", "lifetime"].includes(period)) {
-      return res.status(400).json({ message: "Invalid period" });
-    }
 
     const NETWORK_ADDRESSES = {
       erc20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
@@ -25,48 +21,40 @@ exports.createCryptoOrder = async (req, res) => {
       ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
     };
 
-    const plan = await Plan.findOne({ planId: planId });
+    const plan = await Plan.findOne({ name: new RegExp(planName, "i") });
     if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-    // Validate plan-period combination
-    if (planId === "master" && period !== "lifetime") {
-      return res
-        .status(400)
-        .json({ message: "Master plan only available as lifetime" });
-    }
-
-    if (planId === "pro" && period === "lifetime") {
-      return res
-        .status(400)
-        .json({ message: "Pro plan not available as lifetime" });
-    }
+    // Determine payment type based on period
+    let paymentType = "one-time";
+    if (period === "monthly") paymentType = "recurring";
+    if (period === "lifetime") paymentType = "lifetime";
 
     const cryptoOrder = new Order({
-      userId: req.user?._id || null,
+      userId: req.user?._id || req.cookies.userId || null,
       planId: plan.planId,
       amount,
       currency: currency || "USDT",
       method: "crypto",
       status: "pending",
       period,
-      paymentType:
-        period === "lifetime" ? "lifetime" : paymentType || "one-time",
+      paymentType,
       meta: {
         planName: plan.name,
         network,
         cryptoAddress: NETWORK_ADDRESSES[network],
+        startAt: startAt || new Date().toISOString(),
+        expiresAt: expiresAt || calculateExpiry(period),
       },
     });
 
     await cryptoOrder.save();
 
-    // Send Telegram notification
     await sendTelegramNotification({
       name: req.user?.name || "N/A",
       email: req.user?.email || "N/A",
       type: "payment",
       status: "Created",
-      details: `Plan: ${plan.name} (${planId})\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}`,
+      details: `Plan: ${plan.name}\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}`,
       orderId: cryptoOrder._id,
     });
 
@@ -91,7 +79,6 @@ exports.verifyCryptoPayment = async (req, res) => {
         .json({ success: false, message: "orderId required" });
     }
 
-    // Find order
     const dbOrder = await Order.findById(orderId);
     if (!dbOrder) {
       return res
@@ -99,7 +86,6 @@ exports.verifyCryptoPayment = async (req, res) => {
         .json({ success: false, message: "Order not found" });
     }
 
-    // Still pending or failed → polling continues
     if (dbOrder.status !== "paid") {
       return res.json({
         success: false,
@@ -108,7 +94,6 @@ exports.verifyCryptoPayment = async (req, res) => {
       });
     }
 
-    // If already verified earlier, prevent duplicate subscription updates
     const user = await User.findById(dbOrder.userId);
     if (!user) {
       return res
@@ -128,9 +113,9 @@ exports.verifyCryptoPayment = async (req, res) => {
       });
     }
 
-    // Update subscription based on period
+    // Calculate expiry based on period
     const startDate = new Date();
-    const expiryDate = new Date(startDate);
+    let expiryDate = new Date(startDate);
 
     if (dbOrder.period === "lifetime") {
       // Set expiry to 100 years for lifetime plans
@@ -141,16 +126,17 @@ exports.verifyCryptoPayment = async (req, res) => {
       expiryDate.setMonth(expiryDate.getMonth() + 1);
     }
 
+    // Update user subscription
     user.subscriptionStatus = "active";
     user.subscriptionPlan = dbOrder.planId;
-    user.subscriptionType = dbOrder.paymentType;
+    user.subscriptionType = dbOrder.paymentType; // one-time, recurring, or lifetime
     user.subscriptionStartAt = startDate;
     user.subscriptionExpiresAt = expiryDate;
     if (!user.subscriptionCreatedAt) user.subscriptionCreatedAt = startDate;
 
     await user.save();
 
-    // Update order to mark it verified
+    // Update order status
     dbOrder.status = "paid";
     dbOrder.updatedAt = new Date();
     await dbOrder.save();
@@ -159,8 +145,24 @@ exports.verifyCryptoPayment = async (req, res) => {
       success: true,
       message: "Payment verified and subscription activated",
       orderId: dbOrder._id,
+      period: dbOrder.period,
+      planId: dbOrder.planId,
     });
   } catch (err) {
+    console.error("Verify payment error:", err.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// Helper function to calculate expiry
+function calculateExpiry(period) {
+  const expiry = new Date();
+  if (period === "lifetime") {
+    expiry.setFullYear(expiry.getFullYear() + 100);
+  } else if (period === "yearly") {
+    expiry.setFullYear(expiry.getFullYear() + 1);
+  } else {
+    expiry.setMonth(expiry.getMonth() + 1);
+  }
+  return expiry.toISOString();
+}

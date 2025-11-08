@@ -123,13 +123,21 @@ export default function CryptoBillingPage() {
     } catch (err) {}
   };
 
+  // In your CryptoBillingPage.jsx, update the createCryptoOrder call:
   const createCryptoOrder = async () => {
     try {
-      // Calculate start and expiry dates like Razorpay
+      // Calculate start and expiry dates
       const now = new Date();
-      const expiry = new Date(now);
-      if (period === "yearly") expiry.setFullYear(expiry.getFullYear() + 1);
-      else expiry.setMonth(expiry.getMonth() + 1);
+      let expiry = new Date(now);
+
+      // Handle lifetime plans
+      if (period === "lifetime") {
+        expiry.setFullYear(expiry.getFullYear() + 100); // 100 years for lifetime
+      } else if (period === "yearly") {
+        expiry.setFullYear(expiry.getFullYear() + 1);
+      } else {
+        expiry.setMonth(expiry.getMonth() + 1);
+      }
 
       const response = await axios.post(
         `${API_BASE}/api/crypto-payments/create-order`,
@@ -145,7 +153,7 @@ export default function CryptoBillingPage() {
         { withCredentials: true }
       );
 
-      // Store in localStorage for later verification
+      // Store in localStorage
       localStorage.setItem("cryptoOrderId", response.data.orderId);
       localStorage.setItem("cryptoPaymentStart", now.toISOString());
       localStorage.setItem("cryptoPaymentExpiry", expiry.toISOString());
