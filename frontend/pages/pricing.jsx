@@ -33,7 +33,7 @@ import LegalLinks from "@/components/landingPage/LegalLinks";
 function Pricing() {
   const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState("monthly");
-  const [userCountry, setUserCountry] = useState("IN");
+  const [userCountry, setUserCountry] = useState("OTHER");
   const [plans, setPlans] = useState([]);
   const [activePlan, setActivePlan] = useState(null);
   const [showPaymentSelector, setShowPaymentSelector] = useState(false);
@@ -45,32 +45,32 @@ function Pricing() {
     setExpandedPlan((prev) => (prev === planId ? null : planId));
   };
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          try {
-            const res = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`
-            );
-            const data = await res.json();
-            const country = data.countryCode === "IN" ? "IN" : "OTHER";
-            setUserCountry(country);
-            localStorage.setItem("userCountry", country);
-          } catch {
-            setUserCountry("OTHER");
-          }
-        },
-        () => setUserCountry("OTHER")
-      );
-    } else {
-      setUserCountry("OTHER");
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       async (pos) => {
+  //         try {
+  //           const res = await fetch(
+  //             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`
+  //           );
+  //           const data = await res.json();
+  //           const country = data.countryCode === "IN" ? "IN" : "OTHER";
+  //           setUserCountry(country);
+  //           localStorage.setItem("userCountry", country);
+  //         } catch {
+  //           setUserCountry("OTHER");
+  //         }
+  //       },
+  //       () => setUserCountry("OTHER")
+  //     );
+  //   } else {
+  //     setUserCountry("OTHER");
+  //   }
+  // }, []);
 
-  if (userCountry === null) {
-    return <FullPageLoader />;
-  }
+  // if (userCountry === null) {
+  //   return <FullPageLoader />;
+  // }
 
   // Set predefined plans with new structure
   useEffect(() => {
