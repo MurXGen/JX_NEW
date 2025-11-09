@@ -4,14 +4,17 @@ import { getFromIndexedDB } from "@/utils/indexedDB";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertCircle,
+  ArrowDown,
   Calendar,
   Check,
+  ChevronDown,
   Clock,
   Crown,
   Rocket,
   Shield,
   Sparkles,
   Star,
+  StarHalf,
   Users,
   Zap,
 } from "lucide-react";
@@ -27,6 +30,8 @@ const SubscriptionStatus = () => {
   const [currentPlan, setCurrentPlan] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState("");
   const [progressPercent, setProgressPercent] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
+
   const [planRules, setPlanRules] = useState(null);
 
   useEffect(() => {
@@ -71,16 +76,41 @@ const SubscriptionStatus = () => {
 
   const getPlanIcon = (planId) => {
     const baseProps = { size: 24 };
-    switch (planId?.toLowerCase()) {
-      case "pro":
-        return <Crown {...baseProps} className="plan-icon pro" />;
-      case "elite":
-        return <Zap {...baseProps} className="plan-icon elite" />;
-      case "master":
-        return <Rocket {...baseProps} className="plan-icon master" />;
-      default:
-        return <Star {...baseProps} className="plan-icon" />;
-    }
+    const id = planId?.toLowerCase();
+
+    if (!id)
+      return (
+        <div className="plan-icon-wrap default">
+          <StarHalf {...baseProps} className="plan-icon" />
+        </div>
+      );
+
+    if (id.includes("pro"))
+      return (
+        <div className="plan-icon-wrap pro">
+          <Crown {...baseProps} className="plan-icon" />
+        </div>
+      );
+
+    if (id.includes("master"))
+      return (
+        <div className="plan-icon-wrap master">
+          <Rocket {...baseProps} className="plan-icon" />
+        </div>
+      );
+
+    if (id.includes("free"))
+      return (
+        <div className="plan-icon-wrap free">
+          <StarHalf {...baseProps} className="plan-icon" />
+        </div>
+      );
+
+    return (
+      <div className="plan-icon-wrap default">
+        <Zap {...baseProps} className="plan-icon" />
+      </div>
+    );
   };
 
   const getStatusConfig = (status) => {
@@ -89,6 +119,7 @@ const SubscriptionStatus = () => {
         return { color: "success", label: "Active", icon: Check };
       case "expired":
         return { color: "error", label: "Expired", icon: AlertCircle };
+      case "canceled":
       case "cancelled":
         return { color: "error", label: "Cancelled", icon: AlertCircle };
       case "pending":
@@ -117,10 +148,16 @@ const SubscriptionStatus = () => {
       };
     }
 
-    const planLevels = { free: 1, pro: 2, elite: 3, master: 4 };
+    // 🟩 Define levels based on new plan IDs
+    const planLevels = {
+      free001: 1,
+      pro001: 2,
+      master001: 3,
+    };
+
     const currentLevel = planLevels[currentPlan.planId?.toLowerCase()] || 1;
 
-    if (currentLevel < 4) {
+    if (currentLevel < 3) {
       return {
         title: "Ready for the Next Level?",
         description: "Upgrade to unlock AI insights, integrations, and more.",
@@ -130,7 +167,7 @@ const SubscriptionStatus = () => {
     }
 
     return {
-      title: "Premium Member",
+      title: "Master Member",
       description: "You’re enjoying the highest tier with full features!",
       cta: "Manage Subscription",
       urgency: "premium",
@@ -150,12 +187,13 @@ const SubscriptionStatus = () => {
         {currentPlan ? (
           <motion.div
             key="active-plan"
-            className="current-plan-card chart_boxBg flexClm gap_32"
+            className="current-plan-card chart_boxBg flexClm gap_24"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
+            {/* --- Top Row (Always Visible) --- */}
             <div className="flexRow flexRow_stretch">
               <div className="flexRow gap_12">
                 {getPlanIcon(currentPlan.planId)}
@@ -165,12 +203,9 @@ const SubscriptionStatus = () => {
                       const planId =
                         currentPlan?.planId?.toLowerCase() || "free";
                       let planName = planId;
-
-                      // remove numeric part (e.g., 'master001' → 'master')
                       if (planId.includes("master")) planName = "master";
                       else if (planId.includes("pro")) planName = "pro";
                       else if (planId.includes("free")) planName = "free";
-
                       return (
                         planName.charAt(0).toUpperCase() + planName.slice(1)
                       );
@@ -185,124 +220,153 @@ const SubscriptionStatus = () => {
                   </span>
                 </div>
               </div>
-              <div className={`status-badge ${statusConfig.color}`}>
-                <statusConfig.icon size={16} />
-                <span className="font_12">{statusConfig.label}</span>
+
+              <div className="flexRow flex_center gap_8">
+                <div className={`status-badge ${statusConfig.color}`}>
+                  <statusConfig.icon size={16} />
+                  <span className="font_12">{statusConfig.label}</span>
+                </div>
+
+                {/* ▼ Toggle Arrow */}
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className="flexRow button_ter_icon flex_center"
+                  onClick={() => setShowDetails((prev) => !prev)}
+                >
+                  <ChevronDown size={20} className="vector" />
+                </motion.div>
               </div>
             </div>
 
-            {/* Progress Bar */}
-            {currentPlan?.status === "active" && (
-              <div className="">
-                <div className="progress-header flexRow flexRow_stretch font_12">
-                  <span>Subscription Timeline</span>
-                  <span
-                    className={
-                      timeRemaining === "Expired" ? "error" : "success"
-                    }
-                  >
-                    {timeRemaining}
-                  </span>
-                </div>
-                <div className="progress-bar">
-                  <div
-                    className={`progress-fill ${
-                      timeRemaining === "Expired" ? "error" : "success"
-                    }`}
-                    style={{
-                      width: `${
-                        timeRemaining === "Expired" ? 100 : progressPercent
-                      }%`,
-                      background:
-                        timeRemaining === "Expired"
-                          ? "var(--error)"
-                          : "var(--success)",
-                      transition: "width 0.3s ease",
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Dates */}
-            {currentPlan?.startAt && currentPlan?.expiresAt && (
-              <div className="flexRow flexRow_stretch">
-                <div className="flexRow gap_12">
-                  <Calendar size={16} className="vector" />
-                  <div className="detail-content">
-                    <span className="font_12">Started</span>
-                    <span className="font_14 font_weight_600">
-                      {formatDate(currentPlan.startAt)}
-                    </span>
-                  </div>
-                </div>
-                <div
-                  className="flexRow gap_12"
-                  style={{ justifyContent: "flex-end" }}
+            {/* --- Collapsible Section --- */}
+            <AnimatePresence>
+              {showDetails && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                  className="overflow-hidden flexClm gap_24"
                 >
-                  <Clock size={16} className="vector" />
-                  <div className="detail-content">
-                    <span className="font_12">
-                      {currentPlan.status === "active" ? "Expires" : "Expired"}
-                    </span>
-                    <span className="font_14 font_weight_600">
-                      {formatDate(currentPlan.expiresAt)}
-                    </span>
+                  {/* Progress Bar */}
+                  {currentPlan?.status === "active" && (
+                    <div>
+                      <div className="progress-header flexRow flexRow_stretch font_12">
+                        <span>Subscription Timeline</span>
+                        <span
+                          className={
+                            timeRemaining === "Expired" ? "error" : "success"
+                          }
+                        >
+                          {timeRemaining}
+                        </span>
+                      </div>
+                      <div className="progress-bar">
+                        <div
+                          className={`progress-fill ${
+                            timeRemaining === "Expired" ? "error" : "success"
+                          }`}
+                          style={{
+                            width: `${
+                              timeRemaining === "Expired"
+                                ? 100
+                                : progressPercent
+                            }%`,
+                            background:
+                              timeRemaining === "Expired"
+                                ? "var(--error)"
+                                : "var(--success)",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dates */}
+                  {currentPlan?.startAt && currentPlan?.expiresAt && (
+                    <div className="flexRow flexRow_stretch">
+                      <div className="flexRow gap_12">
+                        <Calendar size={16} className="vector" />
+                        <div className="detail-content">
+                          <span className="font_12">Started</span>
+                          <span className="font_14 font_weight_600">
+                            {formatDate(currentPlan.startAt)}
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        className="flexRow gap_12"
+                        style={{ justifyContent: "flex-end" }}
+                      >
+                        <Clock size={16} className="vector" />
+                        <div className="detail-content">
+                          <span className="font_12">
+                            {currentPlan.status === "active"
+                              ? "Expires"
+                              : "Expired"}
+                          </span>
+                          <span className="font_14 font_weight_600">
+                            {formatDate(currentPlan.expiresAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Limits Overview */}
+                  {planRules && (
+                    <div className="gridContainer gap_8 font_12 shade_50">
+                      <div className="boxBg flexRow flexRow_stretch">
+                        <b>Trade Limit:</b>{" "}
+                        {planRules.limits.tradeLimitPerMonth === Infinity
+                          ? "Unlimited"
+                          : `${planRules.limits.tradeLimitPerMonth} / month`}
+                      </div>
+                      <div className="boxBg flexRow flexRow_stretch">
+                        <b>Account Limit:</b> {planRules.limits.accountLimit}
+                      </div>
+                      <div className="boxBg flexRow flexRow_stretch">
+                        <b>Image Upload:</b>{" "}
+                        {planRules.limits.imageLimitPerMonth === Infinity
+                          ? "Unlimited"
+                          : `${planRules.limits.imageLimitPerMonth} / month`}{" "}
+                        ({planRules.limits.maxImageSizeMB} MB max)
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="plan-actions flexRow gap_12">
+                    {currentPlan.status === "active" ? (
+                      <>
+                        <button
+                          className="button_sec flex_center"
+                          onClick={() => router.push("/billings")}
+                        >
+                          Manage
+                        </button>
+                        <button
+                          className="upgrade_btn width100 flexRow gap_8 flex_center"
+                          onClick={() => router.push("/pricing")}
+                        >
+                          <Crown size={16} className="vector" />
+                          Upgrade Limit
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="button_pri flex_center flexRow gap_4"
+                        onClick={() => router.push("/pricing")}
+                      >
+                        <Sparkles size={16} />
+                        Renew Subscription
+                      </button>
+                    )}
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Limits Overview */}
-            {planRules && (
-              <div className="gridContainer gap_8 font_12 shade_50">
-                <div className="boxBg  flexRow flexRow_stretch">
-                  <b>Trade Limit:</b>{" "}
-                  {planRules.limits.tradeLimitPerMonth === Infinity
-                    ? "Unlimited"
-                    : `${planRules.limits.tradeLimitPerMonth} / month`}
-                </div>
-                <div className="boxBg  flexRow flexRow_stretch">
-                  <b>Account Limit:</b> {planRules.limits.accountLimit}
-                </div>
-                <div className="boxBg  flexRow flexRow_stretch">
-                  <b>Image Upload:</b>{" "}
-                  {planRules.limits.imageLimitPerMonth === Infinity
-                    ? "Unlimited"
-                    : `${planRules.limits.imageLimitPerMonth} / month`}{" "}
-                  ({planRules.limits.maxImageSizeMB} MB max)
-                </div>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="plan-actions flexRow gap_12">
-              {currentPlan.status === "active" ? (
-                <>
-                  <button
-                    className="button_sec flex_center"
-                    onClick={() => router.push("/billings")}
-                  >
-                    Manage
-                  </button>
-                  <button
-                    className="upgrade_btn width100 flexRow gap_8 flex_center"
-                    onClick={() => router.push("/pricing")}
-                  >
-                    <Crown size={16} className="vector" />
-                    Upgrade Limit
-                  </button>
-                </>
-              ) : (
-                <button
-                  className="button_pri flex_center flexRow gap_4"
-                  onClick={() => router.push("/pricing")}
-                >
-                  <Sparkles size={16} />
-                  Renew Subscription
-                </button>
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
           </motion.div>
         ) : (
           // No Plan UI

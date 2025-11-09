@@ -306,10 +306,10 @@ body {
 }
 
 .tooltip {
-  background: var(--base-box-bg);
+  background: var(--base-bg);
   backdrop-filter: blur(50px);
   box-shadow: 1px 1px 10px var(--base-bg);
-  width: 200px;
+  width: 150px;
 }
 
 /* Remove number input arrows in Chrome, Safari, Edge, Opera */
@@ -1085,7 +1085,23 @@ footer {
   }
 }
 
-/* Rules switch */
+/* dashboars */
+
+@media (min-width: 768px) {
+  .dashboardWide {
+    display: grid;
+    grid-template-columns: 59% 39%;
+    gap: 2%;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardWide {
+    display: flex;
+    flex-direction: column;
+    gap: var(--px-46);
+  }
+}
 
 /* For skeleton */
 
@@ -1610,7 +1626,6 @@ footer {
 
   .pnlSection {
     padding: var(--px-16);
-    margin-bottom: var(--px-12);
   }
 
   .pnlSection.profit {
@@ -1640,7 +1655,7 @@ footer {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: var(--px-16);
-    margin-bottom: var(--px-12);
+   
   }
 
   .detailItem {
@@ -1654,11 +1669,11 @@ footer {
   }
 
   .timeSection {
-    margin-bottom: var(--px-20);
+  
   }
 
   .imagesSection {
-    margin-bottom: var(--px-20);
+   
   }
 
   .imagesGrid {
@@ -1691,7 +1706,7 @@ footer {
     display: flex;
     flex-direction: column;
     gap: var(--px-16);
-    margin-bottom: var(--px-20);
+    
   }
 
   .tag {
@@ -1716,8 +1731,14 @@ footer {
     align-items: center;
     justify-content: space-between;
     gap: var(--px-16);
-    margin-top: var(--px-20);
+
     position: relative;
+  }
+
+  .sectionDivider {
+    border-bottom: 1px dashed var(--white-10);
+    margin: 20px 0;
+    width: 100%;
   }
 
   .timelinePoint {
@@ -2432,6 +2453,10 @@ footer {
   .tooltip-container {
     padding: var(--px-12);
     min-width: 160px;
+    background: var(--base-bg);
+    backdrop-filter: blur(50px);
+    box-shadow: 1px 1px 10px var(--base-bg);
+    width: 150px;
   }
 
   .tooltip-header {
@@ -3965,8 +3990,7 @@ footer {
 
   /* User Info Card */
   .user-info-card {
-    padding: var(--px-20);
-    margin-bottom: var(--px-20);
+    padding: var(--px-16);
   }
 
   .user-header {
@@ -3982,11 +4006,6 @@ footer {
     align-items: center;
     justify-content: center;
     border: 2px solid var(--primary-20);
-  }
-
-  /* Subscription Status */
-  .subscription-status {
-    margin-bottom: var(--px-24);
   }
 
   .subscription-loading {
@@ -4009,7 +4028,6 @@ footer {
   /* Current Plan Card */
   .current-plan-card {
     padding: var(--px-24);
-    margin-bottom: var(--px-16);
   }
 
   .plan-icon {
@@ -4026,6 +4044,36 @@ footer {
 
   .plan-icon.master {
     color: #8b5cf6;
+  }
+
+  .plan-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  /* 💫 Box shadows by plan type */
+  .plan-icon-wrap.free {
+    box-shadow: 0 0 10px 2px rgba(100, 181, 246, 0.5); /* light blue */
+    background: rgba(33, 150, 243, 0.1);
+  }
+
+  .plan-icon-wrap.pro {
+    box-shadow: 0 0 30px 2px var(--primary-20); /* gold glow */
+    background: rgba(255, 215, 0, 0.1);
+  }
+
+  .plan-icon-wrap.master {
+    box-shadow: 0 0 30px 3px rgba(138, 43, 226, 1); /* purple glow */
+    background: rgba(138, 43, 226, 0.1);
+  }
+
+  .plan-icon-wrap.default {
+    box-shadow: 0 0 30px 1px rgba(150, 150, 150, 0.3);
+    background: rgba(240, 240, 240, 0.1);
   }
 
   .status-badge {

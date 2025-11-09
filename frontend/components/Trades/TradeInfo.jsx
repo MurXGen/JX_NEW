@@ -175,7 +175,7 @@ const TradeInfo = ({ onClose }) => {
           </div>
 
           {/* Main Content */}
-          <div className="modalBody">
+          <div className="modalBody flexClm">
             {/* Images */}
             {(trade.openImageUrl || trade.closeImageUrl) && (
               <div className="imagesSection">
@@ -254,38 +254,7 @@ const TradeInfo = ({ onClose }) => {
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {/* ✅ Normalize reason before rendering */}
-            {trade.reason?.length > 0 && (
-              <div className="notesCard marg_btm_16">
-                <div className="flexRow">
-                  {(() => {
-                    let reasons = [];
-
-                    if (Array.isArray(trade.reason)) {
-                      if (
-                        trade.reason.length === 1 &&
-                        typeof trade.reason[0] === "string"
-                      ) {
-                        try {
-                          reasons = JSON.parse(trade.reason[0]);
-                        } catch {
-                          reasons = trade.reason;
-                        }
-                      } else {
-                        reasons = trade.reason;
-                      }
-                    }
-
-                    return reasons.map((r, idx) => (
-                      <span className="tag" key={idx}>
-                        {r}
-                      </span>
-                    ));
-                  })()}
-                </div>
+                <div className="sectionDivider" />
               </div>
             )}
 
@@ -309,6 +278,8 @@ const TradeInfo = ({ onClose }) => {
                 </div>
               </div>
             )}
+
+            <div className="sectionDivider" />
 
             {/* Fees */}
             {trade.feeAmount > 0 && (
@@ -341,57 +312,65 @@ const TradeInfo = ({ onClose }) => {
                 <span className="font_14">{trade.totalQuantity}</span>
               </div>
             </div>
-            {/* )} */}
+
+            <div className="sectionDivider" />
 
             {trade.tradeStatus === "closed" && (
-              <div className="detailsGrid">
-                <div className="boxBg flexClm gap_12">
-                  <span className="font_12 shade_50">Avg Entry</span>
-                  <span className="font_14">{trade.avgEntryPrice}</span>
+              <>
+                {" "}
+                <div className="detailsGrid">
+                  <div className="boxBg flexClm gap_12">
+                    <span className="font_12 shade_50">Avg Entry</span>
+                    <span className="font_14">{trade.avgEntryPrice}</span>
+                  </div>
+                  <div className="boxBg flexClm gap_12">
+                    <span className="font_12 shade_50">Avg Exit</span>
+                    <span className="font_14">{trade.avgExitPrice}</span>
+                  </div>
                 </div>
-                <div className="boxBg flexClm gap_12">
-                  <span className="font_12 shade_50">Avg Exit</span>
-                  <span className="font_14">{trade.avgExitPrice}</span>
-                </div>
-              </div>
+                <div className="sectionDivider" />
+              </>
             )}
 
             {/* Details Grid */}
             {trade.tradeStatus === "running" && (
-              <div className="detailsGrid">
-                {/* Entry Price */}
-                <div className="boxBg flexClm gap_12">
-                  <span className="font_12 shade_50">Entry</span>
-                  <span className="font_14">{trade.avgEntryPrice}</span>
-                </div>
+              <>
+                <div className="detailsGrid">
+                  {/* Entry Price */}
+                  <div className="boxBg flexClm gap_12">
+                    <span className="font_12 shade_50">Entry</span>
+                    <span className="font_14">{trade.avgEntryPrice}</span>
+                  </div>
 
-                {/* Stop Loss */}
-                <div className="boxBg flexRow gap_12">
-                  <div className="flexClm gap_4">
-                    <span className="font_12 shade_50">SL Price</span>
-                    <span className="font_14 flexRow gap_12">
-                      {trade.avgSLPrice}{" "}
-                      <span className="font_14 error">
-                        {" "}
-                        -{formatCurrency(trade.expectedLoss)}
+                  {/* Stop Loss */}
+                  <div className="boxBg flexRow gap_12">
+                    <div className="flexClm gap_4">
+                      <span className="font_12 shade_50">SL Price</span>
+                      <span className="font_14 flexRow gap_12">
+                        {trade.avgSLPrice}{" "}
+                        <span className="font_14 error">
+                          {" "}
+                          -{formatCurrency(trade.expectedLoss)}
+                        </span>
                       </span>
-                    </span>
+                    </div>
+                  </div>
+
+                  {/* Take Profit */}
+                  <div className="boxBg flexRow gap_12">
+                    <div className="flexClm gap_4">
+                      <span className="font_12 shade_50">TP Price</span>
+                      <span className="font_14 flexRow gap_12">
+                        {trade.avgTPPrice}
+                        <span className="font_14 success">
+                          +{formatCurrency(trade.expectedProfit)}
+                        </span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-
-                {/* Take Profit */}
-                <div className="boxBg flexRow gap_12">
-                  <div className="flexClm gap_4">
-                    <span className="font_12 shade_50">TP Price</span>
-                    <span className="font_14 flexRow gap_12">
-                      {trade.avgTPPrice}
-                      <span className="font_14 success">
-                        +{formatCurrency(trade.expectedProfit)}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              </div>
+                <div className="sectionDivider" />
+              </>
             )}
 
             {/* Time Section */}
@@ -522,18 +501,57 @@ const TradeInfo = ({ onClose }) => {
                   </div>
                 )}
               </div>
+              <div className="sectionDivider" />
             </div>
+
+            {/* ✅ Normalize reason before rendering */}
+            {trade.reason?.length > 0 && (
+              <>
+                <div className="notesCard">
+                  <div className="flexRow">
+                    {(() => {
+                      let reasons = [];
+
+                      if (Array.isArray(trade.reason)) {
+                        if (
+                          trade.reason.length === 1 &&
+                          typeof trade.reason[0] === "string"
+                        ) {
+                          try {
+                            reasons = JSON.parse(trade.reason[0]);
+                          } catch {
+                            reasons = trade.reason;
+                          }
+                        } else {
+                          reasons = trade.reason;
+                        }
+                      }
+
+                      return reasons.map((r, idx) => (
+                        <span className="tag" key={idx}>
+                          {r}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                </div>
+                <div className="sectionDivider" />
+              </>
+            )}
 
             {/* Reason & Learnings */}
             <div className="notesSection">
               {trade.learnings && (
-                <div className="notesCard">
-                  <h3 className="font_16 font_weight_600 flexRow gap_8">
-                    <Lightbulb size={18} />
-                    Key Learnings
-                  </h3>
-                  <p className="font_14">{trade.learnings}</p>
-                </div>
+                <>
+                  <div className="notesCard">
+                    <h3 className="font_16 font_weight_600 flexRow gap_8">
+                      <Lightbulb size={18} />
+                      Key Learnings
+                    </h3>
+                    <p className="font_14">{trade.learnings}</p>
+                  </div>
+                  <div className="sectionDivider" />
+                </>
               )}
             </div>
           </div>

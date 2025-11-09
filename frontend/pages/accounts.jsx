@@ -58,53 +58,21 @@ function Accounts() {
       setLoading(true);
 
       try {
-        // 🟩 Refresh logic - Update user data in IndexedDB
-        const cachedUser = await getFromIndexedDB("user-data");
-        const hasData = cachedUser && Object.keys(cachedUser).length > 0;
+        // 1️⃣ Fetch fresh data directly from backend
+        const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
+          withCredentials: true,
+        });
 
-        const refreshKey = "user-refresh-info";
-        const now = new Date();
-        let refreshInfo = JSON.parse(localStorage.getItem(refreshKey)) || {
-          count: 0,
-          firstRefreshAt: null,
-        };
+        const { userData } = res.data;
 
-        // Reset hourly limit if 1 hour passed
-        if (
-          !refreshInfo.firstRefreshAt ||
-          now - new Date(refreshInfo.firstRefreshAt) > 60 * 60 * 1000
-        ) {
-          refreshInfo.count = 0;
-          refreshInfo.firstRefreshAt = now;
+        // 2️⃣ Store in IndexedDB for offline usage (only once)
+        if (userData) {
+          await saveToIndexedDB("user-data", userData);
+          if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
+          if (userData?.name) localStorage.setItem("userName", userData.name);
         }
 
-        const canFetch = refreshInfo.count < 10;
-
-        // Fetch fresh data if within limit
-        if (canFetch) {
-          try {
-            refreshInfo.count += 1;
-            if (!refreshInfo.firstRefreshAt) refreshInfo.firstRefreshAt = now;
-            localStorage.setItem(refreshKey, JSON.stringify(refreshInfo));
-
-            const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
-              withCredentials: true,
-            });
-            const { userData } = res.data;
-
-            if (userData) {
-              await saveToIndexedDB("user-data", userData);
-              if (userData?.plans)
-                await saveToIndexedDB("plans", userData.plans);
-              if (userData?.name)
-                localStorage.setItem("userName", userData.name);
-            }
-          } catch (err) {
-            // Silent fail - use cached data
-          }
-        }
-
-        // 🟩 Now use your utility function to get the processed data
+        // 3️⃣ Process with your existing utility
         const result = await fetchAccountsAndTrades();
 
         if (result.redirectToLogin) {
@@ -112,14 +80,26 @@ function Accounts() {
           return;
         }
 
-        // Set state from utility result
+        // 4️⃣ Update state
         setAccounts(result.accounts);
         setAccountSymbols(result.accountSymbols);
         setCurrentBalances(result.currentBalances);
         setTradesCount(result.tradesCount);
         setUserPlan(result.userPlan);
       } catch (error) {
-        console.error("Error loading user data:", error);
+        if (error.response?.status === 429) {
+          console.warn("Rate limit reached — try again later.");
+        } else {
+          console.error("Error loading user data:", error);
+        }
+
+        // fallback to cached data if available
+        const cached = await getFromIndexedDB("user-data");
+        if (cached) {
+          const result = await fetchAccountsAndTrades();
+          setAccounts(result.accounts);
+          setUserPlan(result.userPlan);
+        }
       } finally {
         setLoading(false);
       }
@@ -350,10 +330,6 @@ function Accounts() {
 
   const handleDragStart = () => setIsDragging(true);
   const handleDragEnd = () => setIsDragging(false);
-
-  if (loading) {
-    return <FullPageLoader />;
-  }
 
   return (
     <>
@@ -807,6 +783,25 @@ function Accounts() {
         {showGuide && <BeginnerGuide onClose={handleCloseGuide} />}
         <GoogleBannerAd />
       </div>
+
+      {loading ? (
+        <motion.div
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <FullPageLoader />
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="dashboard-page">{/* content here */}</div>
+        </motion.div>
+      )}
     </>
   );
 }

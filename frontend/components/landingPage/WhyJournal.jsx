@@ -16,7 +16,7 @@ const reasons = [
       "Turn consistent analysis into compounding profits and real financial freedom.",
   },
   {
-    title: "No Main Emotion Damage",
+    title: "No More Emotion Damage",
     description:
       "Trade calmly, think clearly, and protect your edge from emotions.",
   },

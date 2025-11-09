@@ -217,17 +217,42 @@ const AccountSetting = () => {
         </div>
 
         {/* Journal Overview */}
-        <div className="chart_boxBg flexClm pad_16 gap_12">
-          <div className="flexRow flexRow_stretch boxBg">
+        <div
+          className="chart_boxBg flexClm gap_12"
+          style={{ padding: "var(--px-24)" }}
+        >
+          <div className="flexRow flexRow_stretch">
             <div className="flexClm">
-              <span
+              {/* <span
                 className="font_12 font_weight_600"
                 style={{ color: "var(--primary)" }}
               >
                 Journal name
-              </span>
-              <span className="font_24 font_weight_600">
-                {accountData.name}
+              </span> */}
+              <span className="font_14 font_weight_600 flexClm gap_12">
+                <span>
+                  {accountData.name} {/* Current Balance */}
+                </span>
+
+                <div className="flexClm">
+                  <span className="font_32 vector">
+                    {formatCurrency(accountOverview.currentBalance)}
+                  </span>
+                  {/* <span
+                    className={`flexRow font_weight_400 ${
+                      accountOverview.roiAmount >= 0 ? "success" : "error"
+                    }`}
+                  >
+                    <span
+                      className={`font_14 ${
+                        accountOverview.roiAmount >= 0 ? "success" : "error"
+                      }`}
+                    >
+                      {formatCurrency(accountOverview.roiAmount)}
+                    </span>
+                    <span>({accountOverview.roiPercentage.toFixed(2)}%)</span>
+                  </span> */}
+                </div>
               </span>
             </div>
             {/* Action Buttons */}
@@ -263,44 +288,14 @@ const AccountSetting = () => {
             </div>
           </div>
 
-          <div className="flexRow gap_16 flexRow_stretch boxBg">
-            {/* Current Balance */}
+          {/* <div className="flexRow gap_16 flexRow_stretch">
             <div className="flexClm gap_4">
-              <span className="font_12 font_weight_600">Current Balance</span>
-              <span className="font_16 font_weight_600">
-                {formatCurrency(accountOverview.currentBalance)}
-              </span>
-            </div>
-
-            {/* Initial Capital */}
-            <div className="flexClm gap_4" style={{ textAlign: "center" }}>
-              <span className="font_12 font_weight_600">Initial Capital</span>
-              <span className="font_16 font_weight_600">
+              <span className="font_12 shade_50">Initial Capital</span>
+              <span className="font_16 ">
                 {formatCurrency(accountOverview.initialBalance)}
               </span>
             </div>
-
-            {/* ROI */}
-            <div className="flexClm gap_4" style={{ textAlign: "right" }}>
-              <span className="font_12 font_weight_600">
-                ROI{" "}
-                <span
-                  className={`font_12 ${
-                    accountOverview.roiAmount >= 0 ? "success" : "error"
-                  }`}
-                >
-                  ({accountOverview.roiPercentage.toFixed(2)}%)
-                </span>
-              </span>
-              <span
-                className={`font_16 font_weight_600 ${
-                  accountOverview.roiAmount >= 0 ? "success" : "error"
-                }`}
-              >
-                {formatCurrency(accountOverview.roiAmount)}
-              </span>
-            </div>
-          </div>
+          </div> */}
         </div>
 
         <SubscriptionStatus />

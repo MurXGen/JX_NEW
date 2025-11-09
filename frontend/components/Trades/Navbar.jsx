@@ -116,7 +116,18 @@ const Navbar = () => {
             className="button_sec flexRow gap_8"
             onClick={() => router.push(`/accounts`)}
           >
-            <span>{selectedAccount.name}</span>
+            <span
+              style={{
+                maxWidth: "10ch", // limit to roughly 10 characters
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+                display: "inline-block",
+                verticalAlign: "middle",
+              }}
+            >
+              {selectedAccount.name}
+            </span>
             <Repeat size={16} />
           </div>
         )}

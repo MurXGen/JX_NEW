@@ -384,7 +384,9 @@ export default function AddTrade() {
           if (activeAccount?.currency) {
             setCurrencySymbol(getCurrencySymbol(activeAccount.currency));
           } else {
-            console.warn("⚠️ No matching account found or missing currency field.");
+            console.warn(
+              "⚠️ No matching account found or missing currency field."
+            );
           }
         } else {
         }
@@ -1505,7 +1507,6 @@ export default function AddTrade() {
 
           {/* ===================== 🟨 QUICK TRADES ===================== */}
           <div className="flexClm gap_16">
-            {/* Toggle Button */}
             <button
               className="button_sec flexRow gap_4"
               onClick={() => setShowDetails((prev) => !prev)}

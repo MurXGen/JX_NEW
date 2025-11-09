@@ -73,6 +73,8 @@ function Pricing() {
   // }
 
   // Set predefined plans with new structure
+
+  // ✅ 1. Set static plans
   useEffect(() => {
     const staticPlans = [
       {
@@ -81,30 +83,36 @@ function Pricing() {
         description: "Advanced trading analytics",
         monthly: { inr: 149, inrusdt: 2, usdt: 5 },
         yearly: { inr: 1499, inrusdt: 19, usdt: 50 },
-        lifetime: null, // Pro doesn't have lifetime
+        lifetime: null,
       },
       {
         name: "Master",
         planId: "master",
         description: "Lifetime unlimited access",
-        monthly: null, // Master doesn't have monthly
-        yearly: null, // Master doesn't have yearly
+        monthly: null,
+        yearly: null,
         lifetime: { inr: 9999, inrusdt: 99, usdt: 119 },
       },
     ];
-
     setPlans(staticPlans);
   }, []);
 
-  // Load user's current plan
+  // ✅ 2. Load user's current plan from IndexedDB
   useEffect(() => {
     (async () => {
       const userData = await getFromIndexedDB("user-data");
       const planId = userData?.subscription?.planId || null;
 
       if (planId) {
-        setCurrentPlanId(planId);
-        setActivePlan(planId);
+        // Normalize plan id (e.g. PRO001 → pro)
+        const normalizedPlan = planId.toLowerCase().includes("pro")
+          ? "pro"
+          : planId.toLowerCase().includes("master")
+          ? "master"
+          : null;
+
+        setCurrentPlanId(normalizedPlan);
+        setActivePlan(normalizedPlan);
       }
     })();
   }, []);
@@ -518,11 +526,26 @@ function Pricing() {
                     activePlan === plan.planId ? "button_pri" : "button_sec"
                   }`}
                   disabled={currentPlanId === plan.planId}
+                  whileHover={
+                    currentPlanId !== plan.planId ? { scale: 1.02, x: 4 } : {}
+                  }
+                  whileTap={
+                    currentPlanId !== plan.planId ? { scale: 0.98, x: 0 } : {}
+                  }
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (currentPlanId !== plan.planId) {
                       handleContinue(plan.planId);
                     }
+                  }}
+                  style={{
+                    opacity: currentPlanId === plan.planId ? 0.6 : 1,
+                    cursor:
+                      currentPlanId === plan.planId ? "not-allowed" : "pointer",
+                    pointerEvents:
+                      currentPlanId === plan.planId ? "none" : "auto",
+                    transition: "all 0.2s ease-in-out",
                   }}
                 >
                   {currentPlanId === plan.planId

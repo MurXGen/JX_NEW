@@ -11,6 +11,7 @@ const {
 require("../utils/passport");
 const passport = require("passport");
 const { sendTelegramNotification } = require("../utils/telegramNotifier");
+const createLimiter = require("../utils/rateLimiter");
 
 // 📌 Email/Password Registration
 router.post("/register", registerUser);
@@ -76,7 +77,8 @@ router.get(
   }
 );
 
-router.get("/user-info", userFetchGoogleAuth);
+// apply limiter only to user-info route
+router.get("/user-info", createLimiter(20), userFetchGoogleAuth);
 
 router.put("/update-subscription", updateSubscription);
 

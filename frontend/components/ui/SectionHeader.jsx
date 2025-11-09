@@ -18,7 +18,7 @@ const SectionHeader = ({
       aria-label={title}
     >
       <div className="flexClm">
-        <HeadingTag className="font_20 font_weight_600 marg_0">
+        <HeadingTag className="font_20 font_weight_400 marg_0">
           {title}
         </HeadingTag>
         <p className="font_14 shade_50 marg_0">{description}</p>
