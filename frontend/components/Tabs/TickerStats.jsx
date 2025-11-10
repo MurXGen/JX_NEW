@@ -147,240 +147,241 @@ const TickerStats = ({ trades }) => {
   }
 
   return (
-    <div className="otherStats flexClm gap_24">
-      {/* 🔹 Total Tickers & Most Traded */}
-      <div className="bestTime flexRow flexRow_stretch gap_12">
-        <div
-          className="chart_boxBg width100 flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          <span className="font_12">Total Tickers</span>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_16">{tickerStats.totalTickers}</span>
+    <div className="otherStats dashboardWide flexClm gap_24">
+      <div className="flexClm gap_24">
+        {/* 🔹 Total Tickers & Most Traded */}
+        <div className="bestTime flexRow flexRow_stretch gap_12">
+          <div
+            className="chart_boxBg width100 flexClm gap_12"
+            style={{ padding: "16px" }}
+          >
+            <span className="font_12">Total Tickers</span>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_16">{tickerStats.totalTickers}</span>
+            </div>
           </div>
-        </div>
 
-        <div
-          className="chart_boxBg width100 flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          <span className="font_12">Most Traded</span>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_16">
-              {tickerStats.mostTraded?.symbol || "N/A"}
-            </span>
-            <span className="font_12 shade_50">
-              ({tickerStats.mostTraded?.totalTrades || 0})
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 🔹 Best & Worst Performers */}
-      <div className="bestTime flexRow flexRow_stretch gap_12">
-        {/* Best Performer */}
-        <div
-          className="chart_boxBg width100 flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          <div className="flexRow gap_8">
-            <Star size={14} className="success" />
-            <span className="font_12">Best Performer</span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_16 success">
-              {tickerStats.bestPerformer?.symbol || "N/A"}
-            </span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_12 success">
-              {tickerStats.bestPerformer
-                ? formatCurrency(tickerStats.bestPerformer.totalPnL)
-                : "-"}
-            </span>
-            <span className="font_12 shade_50">
-              {tickerStats.bestPerformer
-                ? formatPercent(tickerStats.bestPerformer.winRate)
-                : ""}
-            </span>
-          </div>
-        </div>
-
-        {/* Worst Performer */}
-        <div
-          className="chart_boxBg width100 flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          <div className="flexRow gap_8">
-            <AlertTriangle size={14} className="error" />
-            <span className="font_12">Worst Performer</span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_16 error">
-              {tickerStats.worstPerformer?.symbol || "N/A"}
-            </span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_12 error">
-              {tickerStats.worstPerformer
-                ? formatCurrency(tickerStats.worstPerformer.totalPnL)
-                : "-"}
-            </span>
-            <span className="font_12 shade_50">
-              {tickerStats.worstPerformer
-                ? formatPercent(tickerStats.worstPerformer.winRate)
-                : ""}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 🔹 Highest Win Rate & Most Consistent */}
-      <div className="bestTime flexRow flexRow_stretch gap_12">
-        <div
-          className="chart_boxBg width100 flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          <div className="flexRow gap_8">
-            <TrendingUp size={14} className="success" />
-            <span className="font_12">Highest Win Rate</span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_16">
-              {tickerStats.highestWinRate?.symbol || "N/A"}
-            </span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_12 success">
-              {tickerStats.highestWinRate
-                ? formatPercent(tickerStats.highestWinRate.winRate)
-                : "-"}
-            </span>
-            <span className="font_12 shade_50">
-              {tickerStats.highestWinRate?.totalTrades || 0} trades
-            </span>
-          </div>
-        </div>
-
-        <div
-          className="chart_boxBg width100 flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          <div className="flexRow gap_8">
-            <TrendingDown size={14} className="warning" />
-            <span className="font_12">Most Consistent</span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_16">
-              {tickerStats.consistentPerformer?.symbol || "N/A"}
-            </span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <span
-              className={`font_12 ${
-                tickerStats.consistentPerformer?.totalPnL >= 0
-                  ? "success"
-                  : "error"
-              }`}
-            >
-              {tickerStats.consistentPerformer
-                ? formatCurrency(tickerStats.consistentPerformer.totalPnL)
-                : "-"}
-            </span>
-            <span className="font_12 shade_50">
-              {tickerStats.consistentPerformer?.totalTrades || 0} trades
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 🔹 Ticker Performance Summary */}
-      <div
-        className="totalTrades flexClm gap_24 chart_boxBg"
-        style={{ padding: "16px" }}
-      >
-        <span className="font_12">Performance Summary</span>
-
-        <div className="flexRow flexRow_stretch font_12">
-          <span>Symbol</span>
-          <span>PnL</span>
-          <span>Win Rate</span>
-        </div>
-
-        <div className="flexClm gap_12">
-          {tickerStats.tickers.slice(0, 10).map((ticker, index) => (
-            <div
-              key={ticker.symbol}
-              className="flexRow flexRow_stretch font_12"
-            >
-              <span
-                className={index < 3 ? "font_weight_600" : ""}
-                style={{ width: "100%" }}
-              >
-                {ticker.symbol}
+          <div
+            className="chart_boxBg width100 flexClm gap_12"
+            style={{ padding: "16px" }}
+          >
+            <span className="font_12">Most Traded</span>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_16">
+                {tickerStats.mostTraded?.symbol || "N/A"}
               </span>
-              <span
-                className={ticker.totalPnL >= 0 ? "success" : "error"}
-                style={{ width: "100%", textAlign: "center" }}
-              >
-                {formatCurrency(ticker.totalPnL)}
-              </span>
-              <span
-                className={ticker.winRate >= 50 ? "success" : "error"}
-                style={{ width: "100%", textAlign: "right" }}
-              >
-                {formatPercent(ticker.winRate)}
+              <span className="font_12 shade_50">
+                ({tickerStats.mostTraded?.totalTrades || 0})
               </span>
             </div>
-          ))}
+          </div>
         </div>
+        {/* 🔹 Best & Worst Performers */}
+        <div className="bestTime flexRow flexRow_stretch gap_12">
+          {/* Best Performer */}
+          <div
+            className="chart_boxBg width100 flexClm gap_12"
+            style={{ padding: "16px" }}
+          >
+            <div className="flexRow gap_8">
+              <Star size={14} className="success" />
+              <span className="font_12">Best Performer</span>
+            </div>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_16 success">
+                {tickerStats.bestPerformer?.symbol || "N/A"}
+              </span>
+            </div>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_12 success">
+                {tickerStats.bestPerformer
+                  ? formatCurrency(tickerStats.bestPerformer.totalPnL)
+                  : "-"}
+              </span>
+              <span className="font_12 shade_50">
+                {tickerStats.bestPerformer
+                  ? formatPercent(tickerStats.bestPerformer.winRate)
+                  : ""}
+              </span>
+            </div>
+          </div>
+
+          {/* Worst Performer */}
+          <div
+            className="chart_boxBg width100 flexClm gap_12"
+            style={{ padding: "16px" }}
+          >
+            <div className="flexRow gap_8">
+              <AlertTriangle size={14} className="error" />
+              <span className="font_12">Worst Performer</span>
+            </div>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_16 error">
+                {tickerStats.worstPerformer?.symbol || "N/A"}
+              </span>
+            </div>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_12 error">
+                {tickerStats.worstPerformer
+                  ? formatCurrency(tickerStats.worstPerformer.totalPnL)
+                  : "-"}
+              </span>
+              <span className="font_12 shade_50">
+                {tickerStats.worstPerformer
+                  ? formatPercent(tickerStats.worstPerformer.winRate)
+                  : ""}
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* 🔹 Highest Win Rate & Most Consistent */}
+        <div className="bestTime flexRow flexRow_stretch gap_12">
+          <div
+            className="chart_boxBg width100 flexClm gap_12"
+            style={{ padding: "16px" }}
+          >
+            <div className="flexRow gap_8">
+              <TrendingUp size={14} className="success" />
+              <span className="font_12">Highest Win Rate</span>
+            </div>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_16">
+                {tickerStats.highestWinRate?.symbol || "N/A"}
+              </span>
+            </div>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_12 success">
+                {tickerStats.highestWinRate
+                  ? formatPercent(tickerStats.highestWinRate.winRate)
+                  : "-"}
+              </span>
+              <span className="font_12 shade_50">
+                {tickerStats.highestWinRate?.totalTrades || 0} trades
+              </span>
+            </div>
+          </div>
+
+          <div
+            className="chart_boxBg width100 flexClm gap_12"
+            style={{ padding: "16px" }}
+          >
+            <div className="flexRow gap_8">
+              <TrendingDown size={14} className="warning" />
+              <span className="font_12">Most Consistent</span>
+            </div>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_16">
+                {tickerStats.consistentPerformer?.symbol || "N/A"}
+              </span>
+            </div>
+            <div className="flexRow flexRow_stretch">
+              <span
+                className={`font_12 ${
+                  tickerStats.consistentPerformer?.totalPnL >= 0
+                    ? "success"
+                    : "error"
+                }`}
+              >
+                {tickerStats.consistentPerformer
+                  ? formatCurrency(tickerStats.consistentPerformer.totalPnL)
+                  : "-"}
+              </span>
+              <span className="font_12 shade_50">
+                {tickerStats.consistentPerformer?.totalTrades || 0} trades
+              </span>
+            </div>
+          </div>
+        </div>{" "}
+        {/* 🔹 Trading Style Analysis */}
+        <div className="bestTime flexRow flexRow_stretch gap_12">
+          <div
+            className="chart_boxBg width100 flexClm gap_12"
+            style={{ padding: "16px" }}
+          >
+            <span className="font_12">Best Long</span>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_16">
+                {tickerStats.tickers
+                  .filter((t) => t.longTrades > 0)
+                  .sort((a, b) => b.totalPnL - a.totalPnL)[0]?.symbol || "N/A"}
+              </span>
+            </div>
+            {/* <div className="flexRow flexRow_stretch">
+              <ArrowUpRight size={14} className="success" />
+              <span className="font_12 shade_50">Long Positions</span>
+            </div> */}
+          </div>
+
+          <div
+            className="chart_boxBg width100 flexClm gap_12"
+            style={{ padding: "16px" }}
+          >
+            <span className="font_12">Best Short</span>
+            <div className="flexRow flexRow_stretch">
+              <span className="font_16">
+                {tickerStats.tickers
+                  .filter((t) => t.shortTrades > 0)
+                  .sort((a, b) => b.totalPnL - a.totalPnL)[0]?.symbol || "N/A"}
+              </span>
+            </div>
+            {/* <div className="flexRow flexRow_stretch">
+              <ArrowDownRight size={14} className="error" />
+              <span className="font_12 shade_50">Short Positions</span>
+            </div> */}
+          </div>
+        </div>
+      </div>
+      {/* 🔹 Ticker Performance Summary */}
+      <div
+        className="performanceSummary chart_boxBg"
+        style={{
+          padding: "16px",
+          background: "var(--base-bg)",
+          border: "1px solid var(--white-20)",
+          borderRadius: "12px",
+        }}
+      >
+        <span className="font_12 shade_50">Performance Summary</span>
+
+        <table className="summaryTable">
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left" }}>Symbol</th>
+              <th style={{ textAlign: "left" }}>PnL</th>
+              <th style={{ textAlign: "left" }}>Win Rate</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {tickerStats.tickers.slice(0, 10).map((ticker, index) => (
+              <tr key={ticker.symbol}>
+                <td className={index < 3 ? "font_weight_600" : ""}>
+                  {ticker.symbol}
+                </td>
+                <td
+                  className={ticker.totalPnL >= 0 ? "success" : "error"}
+                  style={{ textAlign: "left", color: "var(--success)" }}
+                >
+                  {formatCurrency(ticker.totalPnL)}
+                </td>
+                <td
+                  className={ticker.winRate >= 50 ? "success" : "error"}
+                  style={{ textAlign: "left", color: "var(--success)" }}
+                >
+                  {formatPercent(ticker.winRate)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
         {tickerStats.tickers.length > 10 && (
-          <div className="flexRow flexRow_center">
+          <div className="flexRow flexRow_center marg_top_12">
             <span className="font_12 shade_50">
               +{tickerStats.tickers.length - 10} more tickers
             </span>
           </div>
         )}
-      </div>
-
-      {/* 🔹 Trading Style Analysis */}
-      <div className="bestTime flexRow flexRow_stretch gap_12">
-        <div
-          className="chart_boxBg width100 flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          <span className="font_12">Best Long</span>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_16">
-              {tickerStats.tickers
-                .filter((t) => t.longTrades > 0)
-                .sort((a, b) => b.totalPnL - a.totalPnL)[0]?.symbol || "N/A"}
-            </span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <ArrowUpRight size={14} className="success" />
-            <span className="font_12 shade_50">Long Positions</span>
-          </div>
-        </div>
-
-        <div
-          className="chart_boxBg width100 flexClm gap_12"
-          style={{ padding: "16px" }}
-        >
-          <span className="font_12">Best Short</span>
-          <div className="flexRow flexRow_stretch">
-            <span className="font_16">
-              {tickerStats.tickers
-                .filter((t) => t.shortTrades > 0)
-                .sort((a, b) => b.totalPnL - a.totalPnL)[0]?.symbol || "N/A"}
-            </span>
-          </div>
-          <div className="flexRow flexRow_stretch">
-            <ArrowDownRight size={14} className="error" />
-            <span className="font_12 shade_50">Short Positions</span>
-          </div>
-        </div>
       </div>
     </div>
   );

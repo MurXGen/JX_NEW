@@ -62,10 +62,7 @@ export default function Overview({ stats, trades }) {
 
   return (
     <div className="overview flexClm gap_32">
-      <Timer />
-
       <div className="dashboardWide">
-        {" "}
         <div className="flexClm gap_24">
           <SectionHeader
             title="Advanced charts analysis"
@@ -320,6 +317,7 @@ export default function Overview({ stats, trades }) {
             // loading={loading}
           />
 
+          <Timer />
           {/* 🔹 Total Trades */}
           <div
             className="totalTrades flexClm gap_12 chart_boxBg"

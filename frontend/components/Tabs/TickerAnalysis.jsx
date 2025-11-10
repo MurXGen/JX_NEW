@@ -226,7 +226,7 @@ const TickerAnalysis = ({ trades }) => {
         </div>
       </div>
 
-      <div className="flexRow flexRow_stretch">
+      <div className="flexRow flexRow_stretch gap_12">
         {/* Summary Stats */}
 
         <div className="flexClm gap_16 width100 boxBg">
@@ -237,7 +237,7 @@ const TickerAnalysis = ({ trades }) => {
             {Object.keys(tickerMap).length}
           </span>
         </div>
-        <div className="flexClm gap_4 width100 boxBg">
+        <div className="flexClm gap_16 width100 boxBg">
           <span className="font_12" style={{ color: "var(--white-50)" }}>
             Total Trades
           </span>
