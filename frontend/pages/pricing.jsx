@@ -40,47 +40,29 @@ function Pricing() {
   const [isHovered, setIsHovered] = useState(null);
   const [currentPlanId, setCurrentPlanId] = useState(null);
   const [expandedPlan, setExpandedPlan] = useState(null);
+  const userHasPlan = !!currentPlanId; // true if user has any plan
+  const userHasActivePlan = currentPlanId && currentPlanId.planId !== "free";
+  const [selectedPlanId, setSelectedPlanId] = useState(null);
 
   const toggleDetails = (planId) => {
     setExpandedPlan((prev) => (prev === planId ? null : planId));
   };
 
-  // useEffect(() => {
-  //   if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition(
-  //       async (pos) => {
-  //         try {
-  //           const res = await fetch(
-  //             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`
-  //           );
-  //           const data = await res.json();
-  //           const country = data.countryCode === "IN" ? "IN" : "OTHER";
-  //           setUserCountry(country);
-  //           localStorage.setItem("userCountry", country);
-  //         } catch {
-  //           setUserCountry("OTHER");
-  //         }
-  //       },
-  //       () => setUserCountry("OTHER")
-  //     );
-  //   } else {
-  //     setUserCountry("OTHER");
-  //   }
-  // }, []);
-
-  // if (userCountry === null) {
-  //   return <FullPageLoader />;
-  // }
-
   // Set predefined plans with new structure
-
-  // ✅ 1. Set static plans
   useEffect(() => {
     const staticPlans = [
       {
+        name: "Free",
+        planId: "free",
+        description: "Basic journaling tools",
+        monthly: { inr: 0, inrusdt: 0, usdt: 0 },
+        yearly: { inr: 0, inrusdt: 0, usdt: 0 },
+        lifetime: null,
+      },
+      {
         name: "Pro",
         planId: "pro",
-        description: "Advanced trading analytics",
+        description: "Advanced insights",
         monthly: { inr: 149, inrusdt: 2, usdt: 5 },
         yearly: { inr: 1499, inrusdt: 19, usdt: 50 },
         lifetime: null,
@@ -88,12 +70,13 @@ function Pricing() {
       {
         name: "Master",
         planId: "master",
-        description: "Lifetime unlimited access",
+        description: "Lifetime access",
         monthly: null,
         yearly: null,
         lifetime: { inr: 9999, inrusdt: 99, usdt: 119 },
       },
     ];
+
     setPlans(staticPlans);
   }, []);
 
@@ -172,7 +155,7 @@ function Pricing() {
       {
         title: "Share Trades",
         free: "❌",
-        pro: "❌",
+        pro: "✅",
         master: "✅ Generate share links",
       },
       {
@@ -226,7 +209,8 @@ function Pricing() {
 
   // Format price display
   const getPriceDisplay = (plan, period) => {
-    if (period === "lifetime") {
+    if (plan.planId === "master") {
+      // Master plan only has lifetime
       if (userCountry === "IN") {
         return {
           price: plan.lifetime?.inr,
@@ -249,7 +233,7 @@ function Pricing() {
       }
     }
 
-    // Monthly/Yearly pricing (only for Pro)
+    // Pro plan - monthly/yearly pricing
     if (userCountry === "IN") {
       const monthlyPrice = plan.monthly?.inr;
       const yearlyPrice = plan.yearly?.inr;
@@ -286,15 +270,18 @@ function Pricing() {
   };
 
   // Continue button handler
-  const handleContinue = (selectedPlanId) => {
+  const handleContinue = (selectedPlanId, selectedBillingPeriod = null) => {
     if (!selectedPlanId) return;
 
     const selectedPlan = plans.find((p) => p.planId === selectedPlanId);
     if (!selectedPlan) return;
 
+    // Use provided billing period or fallback to state
+    const finalBillingPeriod = selectedBillingPeriod || billingPeriod;
+
     // Determine currency and amount based on user location and billing period
     let amount;
-    if (billingPeriod === "lifetime") {
+    if (finalBillingPeriod === "lifetime") {
       if (userCountry === "IN") {
         amount = selectedPlan.lifetime?.inr;
       } else {
@@ -306,12 +293,12 @@ function Pricing() {
     } else {
       // Monthly/Yearly (only for Pro)
       if (userCountry === "IN") {
-        amount = selectedPlan[billingPeriod]?.inr;
+        amount = selectedPlan[finalBillingPeriod]?.inr;
       } else {
         amount =
           userCountry === "INUSDT"
-            ? selectedPlan[billingPeriod]?.inrusdt
-            : selectedPlan[billingPeriod]?.usdt;
+            ? selectedPlan[finalBillingPeriod]?.inrusdt
+            : selectedPlan[finalBillingPeriod]?.usdt;
       }
     }
 
@@ -325,7 +312,7 @@ function Pricing() {
       const query = new URLSearchParams({
         planName: selectedPlan.name,
         planId: selectedPlan.planId,
-        period: billingPeriod,
+        period: finalBillingPeriod,
         method: "upi",
         amount: amount.toString(),
       }).toString();
@@ -337,15 +324,6 @@ function Pricing() {
     // Otherwise → show payment selection modal
     setShowPaymentSelector(true);
     setActivePlan(selectedPlanId);
-  };
-
-  // Filter plans based on billing period
-  const getFilteredPlans = () => {
-    if (billingPeriod === "lifetime") {
-      return plans.filter((plan) => plan.planId === "master");
-    } else {
-      return plans.filter((plan) => plan.planId === "pro");
-    }
   };
 
   return (
@@ -360,146 +338,255 @@ function Pricing() {
         </div>
       </div>
 
-      {/* Billing Toggle - Updated for 3 options */}
-      <motion.div
-        className="width100"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <div className="flexRow gap_12 width100">
-          <button
-            className={`button_sec width100 ${
-              billingPeriod === "monthly" ? "selected" : ""
-            }`}
-            onClick={() => setBillingPeriod("monthly")}
-          >
-            Monthly
-          </button>
-          <button
-            className={`button_sec yearly width100 ${
-              billingPeriod === "yearly" ? "selected" : ""
-            }`}
-            style={{ position: "relative" }}
-            onClick={() => setBillingPeriod("yearly")}
-          >
-            Yearly
-            <span
-              className="flexRow flex_center font_12 gap_4 chart_boxBg success"
-              style={{
-                position: "absolute",
-                top: "-32px",
-                right: "0px",
-                left: "0px",
-                width: "80px",
-                margin: "auto",
-                padding: "12px",
-              }}
-            >
-              Save more
-            </span>
-          </button>
-          <button
-            className={`button_sec yearly width100 ${
-              billingPeriod === "lifetime" ? "selected" : ""
-            }`}
-            style={{ position: "relative" }}
-            onClick={() => setBillingPeriod("lifetime")}
-          >
-            Lifetime
-            <span
-              className="flexRow font_12 flex_center gap_4 chart_boxBg success"
-              style={{
-                position: "absolute",
-                top: "-32px",
-                right: "0px",
-                left: "0px",
-                width: "80px",
-                margin: "auto",
-                padding: "12px",
-              }}
-            >
-              Limited time
-            </span>
-          </button>
-        </div>
-      </motion.div>
-
-      {/* Plans Grid */}
+      {/* Plans Grid - Show all plans at once */}
       <div
-        className="gridContainer"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}
+        className="gridContainer_pricing pad_32"
+        style={{
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: "12px",
+        }}
       >
         <AnimatePresence>
-          {getFilteredPlans().map((plan, index) => {
-            const priceInfo = getPriceDisplay(plan, billingPeriod);
-            const isActive = activePlan === plan.planId;
+          {plans.map((plan, index) => {
             const isCurrent = currentPlanId === plan.planId;
             const features = getPlanFeatures(plan.planId);
             const isExpanded = expandedPlan === plan.planId;
+            const isProPlan = plan.planId === "pro";
 
             return (
               <motion.div
                 key={plan.planId}
                 className={`chart_boxBg pad_16 flexClm gap_24 ${
-                  isActive ? "active" : ""
+                  isCurrent ? "active" : ""
                 } ${plan.planId}`}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{
-                  scale: 0.99,
-                }}
-                whileTap={{
-                  scale: 0.97,
+                  scale: 1.02,
+                  transition: { duration: 0.2 },
                 }}
                 onHoverStart={() => setIsHovered(plan.planId)}
                 onHoverEnd={() => setIsHovered(null)}
-                onClick={() => setActivePlan(plan.planId)}
                 style={{
-                  maxHeight: "fit-content",
-                  cursor: "pointer",
-                  borderRadius: "16px",
-                  transition: "all 0.2s ease",
+                  transform: "scale(0.9)", // ✅ makes the whole card smaller
+                  transformOrigin: "center", // ✅ ensures it scales from the middle
                 }}
+                onClick={() => setSelectedPlanId(plan.planId)}
               >
                 {/* Plan Header */}
-                <div className="flexClm gap_12 width100">
-                  <div className="flexRow gap_12">
-                    <div>{getPlanIcon(plan.planId)}</div>
-                    <div className="flexClm">
-                      <span className="font_20 font_weight_600">
-                        {plan.name}
-                      </span>
-                      <span className="plan-description font_12">
-                        {plan.description}
-                      </span>
+                <div className="flexClm gap_32 width100">
+                  <div className="flexRow flexRow_stretch">
+                    <div className="flexRow gap_12">
+                      <div>{getPlanIcon(plan.planId)}</div>
+                      <div className="flexClm">
+                        <span className="font_20 font_weight_600">
+                          {plan.name}
+                        </span>
+                        <span className="plan-description font_12 shade_50">
+                          {plan.description}
+                        </span>
+                      </div>
                     </div>
+                    {/* Current Plan Badge */}
+                    {isCurrent && (
+                      <div
+                        className="upgrade_btn"
+                        style={{
+                          position: "absolute",
+                          top: "24px",
+                          right: "24px",
+                          maxWidth: "fit-content",
+                        }}
+                      >
+                        Current Plan
+                      </div>
+                    )}
                   </div>
 
                   {/* Price Section */}
-                  <div>
-                    <div className="flexClm">
-                      <div style={{ fontSize: "32px" }}>
-                        <span>{priceInfo.currency}</span>
+                  <div className="flexRow flexRow_stretch">
+                    <div className="flexClm gap_4">
+                      <div style={{ fontSize: "32px", lineHeight: "1" }}>
+                        <span>
+                          {
+                            getPriceDisplay(
+                              plan,
+                              isProPlan ? billingPeriod : "lifetime"
+                            ).currency
+                          }
+                        </span>
                         <span className="font_weight_600">
-                          {priceInfo.price}
+                          {
+                            getPriceDisplay(
+                              plan,
+                              isProPlan ? billingPeriod : "lifetime"
+                            ).price
+                          }
                         </span>
                       </div>
-                      <span className="period font_12">
-                        {priceInfo.period === "lifetime"
-                          ? "one-time"
-                          : priceInfo.period === "monthly"
-                          ? "/month"
-                          : "/year"}
+                      <span className="period font_12 shade_50">
+                        {isProPlan
+                          ? billingPeriod === "monthly"
+                            ? "per month"
+                            : "per year"
+                          : "one-time payment"}
                       </span>
+
+                      {/* Savings Badge */}
+                      {/* {getPriceDisplay(
+                        plan,
+                        isProPlan ? billingPeriod : "lifetime"
+                      ).savings > 0 && (
+                        <div
+                          className="success font_12"
+                          style={{
+                            background: "rgba(16, 185, 129, 0.1)",
+                            padding: "4px 8px",
+                            borderRadius: "6px",
+                            width: "fit-content",
+                          }}
+                        >
+                          Save{" "}
+                          {
+                            getPriceDisplay(
+                              plan,
+                              isProPlan ? billingPeriod : "lifetime"
+                            ).savings
+                          }
+                          %
+                        </div>
+                      )} */}
                     </div>
+                    {/* Pro Plan - Billing Toggle */}
+                    {isProPlan && (
+                      <div className="flexRow gap_8">
+                        <button
+                          className={`font_12 ${
+                            billingPeriod === "monthly"
+                              ? "button_ter selected active"
+                              : "button_ter"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setBillingPeriod("monthly");
+                          }}
+                          style={{
+                            width: "100px",
+                          }}
+                        >
+                          Monthly
+                        </button>
+                        <button
+                          className={`font_12 ${
+                            billingPeriod === "yearly"
+                              ? "button_ter selected active"
+                              : "button_ter"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setBillingPeriod("yearly");
+                          }}
+                          style={{
+                            position: "relative",
+                            width: "100px",
+                          }}
+                        >
+                          Yearly
+                          <span
+                            className="success font_10 successBg"
+                            style={{
+                              position: "absolute",
+                              top: "-12px",
+                              right: "15px",
+                              background: "var(--success)",
+                              color: "white",
+                              padding: "2px 4px",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            Save 17%
+                          </span>
+                        </button>
+                      </div>
+                    )}
                   </div>
+
+                  <motion.button
+                    className={`flexRow gap_8 flex_center ${
+                      selectedPlanId === plan.planId // when the card is clicked
+                        ? "button_pri"
+                        : isProPlan
+                        ? "button_pri"
+                        : "button_sec"
+                    }`}
+                    disabled={
+                      isCurrent || (plan.planId === "free" && userHasActivePlan)
+                    }
+                    whileHover={
+                      !isCurrent &&
+                      !(plan.planId === "free" && userHasActivePlan)
+                        ? { scale: 1.02 }
+                        : {}
+                    }
+                    whileTap={
+                      !isCurrent &&
+                      !(plan.planId === "free" && userHasActivePlan)
+                        ? { scale: 0.98 }
+                        : {}
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      // 🧩 Case 1: No user plan (not logged in)
+                      if (!userHasPlan && plan.planId === "free") {
+                        window.location.href = "/login";
+                        return;
+                      }
+
+                      // 🧩 Case 2: Allow upgrade/downgrade
+                      if (
+                        !isCurrent &&
+                        !(plan.planId === "free" && userHasActivePlan)
+                      ) {
+                        handleContinue(
+                          plan.planId,
+                          isProPlan ? billingPeriod : "lifetime"
+                        );
+                      }
+                    }}
+                    style={{
+                      opacity:
+                        isCurrent ||
+                        (plan.planId === "free" && userHasActivePlan)
+                          ? 0.6
+                          : 1,
+                      cursor:
+                        isCurrent ||
+                        (plan.planId === "free" && userHasActivePlan)
+                          ? "not-allowed"
+                          : "pointer",
+                      minHeight: "44px",
+                    }}
+                  >
+                    {isCurrent
+                      ? "Current Plan"
+                      : !userHasPlan && plan.planId === "free"
+                      ? "Start Free"
+                      : plan.planId === "free" && userHasActivePlan
+                      ? "Upgraded"
+                      : isProPlan
+                      ? `Get ${
+                          billingPeriod === "monthly" ? "Monthly" : "Yearly"
+                        } Access`
+                      : "Get Lifetime Access"}
+                    <Zap size={16} />
+                  </motion.button>
                 </div>
 
-                {/* Savings Badge */}
-                <div className="flexRow flexRow_stretch gap_12">
-                  <a
+                {/* Plan Details Toggle */}
+                {/* <div className="flexRow flex_center">
+                  <button
                     className="direct_tertiary flexRow gap_8 font_12"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -512,88 +599,57 @@ function Pricing() {
                     ) : (
                       <ChevronDown size={16} />
                     )}
-                  </a>
-                  {priceInfo.savings > 0 && (
-                    <div className="success font_12">
-                      Save {priceInfo.savings}%
-                    </div>
-                  )}
-                </div>
-
-                {/* CTA Button */}
-                <motion.button
-                  className={`flexRow gap_4 flex_center ${
-                    activePlan === plan.planId ? "button_pri" : "button_sec"
-                  }`}
-                  disabled={currentPlanId === plan.planId}
-                  whileHover={
-                    currentPlanId !== plan.planId ? { scale: 1.02, x: 4 } : {}
-                  }
-                  whileTap={
-                    currentPlanId !== plan.planId ? { scale: 0.98, x: 0 } : {}
-                  }
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (currentPlanId !== plan.planId) {
-                      handleContinue(plan.planId);
-                    }
-                  }}
-                  style={{
-                    opacity: currentPlanId === plan.planId ? 0.6 : 1,
-                    cursor:
-                      currentPlanId === plan.planId ? "not-allowed" : "pointer",
-                    pointerEvents:
-                      currentPlanId === plan.planId ? "none" : "auto",
-                    transition: "all 0.2s ease-in-out",
-                  }}
-                >
-                  {currentPlanId === plan.planId
-                    ? "Current Plan"
-                    : billingPeriod === "lifetime"
-                    ? "Get Lifetime Access"
-                    : "Get Started"}
-                  <Zap size={16} />
-                </motion.button>
+                  </button>
+                </div> */}
 
                 {/* Plan Features */}
                 <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      key="features"
-                      className="flexClm gap_32"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.35, ease: "easeInOut" }}
-                    >
-                      {features.map((feature, idx) => (
-                        <motion.div
-                          key={idx}
-                          className="flexRow flexRow_stretch"
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -5 }}
-                          transition={{ duration: 0.25, delay: idx * 0.05 }}
-                        >
-                          <div className="flexRow flexRow_stretch width100 font_12">
-                            <strong>{feature.title}:</strong>
-                            <span style={{ textAlign: "right" }}>
-                              {feature.value !== "✅" && feature.value !== "❌"
-                                ? feature.value
-                                : ""}
+                  <motion.div
+                    key="features"
+                    className="flexClm gap_24"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <div className="font_12 font_weight_600 shade_50">
+                      FEATURES INCLUDED:
+                    </div>
+                    {features.map((feature, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="flexRow flexRow_stretch"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        transition={{ duration: 0.2, delay: idx * 0.03 }}
+                      >
+                        {feature.value !== "✅" && feature.value !== "❌" && (
+                          <div className="flexRow gap_12 width100">
+                            <span className="font_12">
+                              <strong>{feature.title}:</strong>
+                            </span>
+                            <span
+                              className="font_12"
+                              style={{ textAlign: "right", flex: 1 }}
+                            >
+                              {feature.value}
                             </span>
                           </div>
-                          {feature.value === "✅" && (
-                            <Check size={16} className="feature-icon success" />
-                          )}
-                          {feature.value === "❌" && (
-                            <X size={16} className="feature-icon error" />
-                          )}
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
+                        )}
+                        {(feature.value === "✅" || feature.value === "❌") && (
+                          <span className="font_12">{feature.title}</span>
+                        )}
+
+                        {feature.value === "✅" && (
+                          <Check size={16} className="success" />
+                        )}
+                        {feature.value === "❌" && (
+                          <X size={16} className="error" />
+                        )}
+                      </motion.div>
+                    ))}
+                  </motion.div>
                 </AnimatePresence>
               </motion.div>
             );

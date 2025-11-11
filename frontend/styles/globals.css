@@ -295,6 +295,12 @@ body {
   z-index: 1;
 }
 
+.chart_boxBg.active {
+  border: 1px solid var(--primary-50);
+  background: var(--primary-10);
+  box-shadow: 0 0 var(--px-24) var(--primary-10);
+}
+
 .flexRow_scroll {
   overflow: scroll;
 }
@@ -480,14 +486,13 @@ button:disabled {
 
 .direct_tertiary {
   padding: var(--px-8) 0;
-  border-bottom: 1px solid var(--primary-50);
   font-size: var(--px-12);
   color: var(--primary);
   cursor: pointer;
   max-width: fit-content;
   font-weight: var(--weight-500);
-  user-select: none;
-  -webkit-user-select: none;
+  background: none;
+  border: none;
 }
 
 .popups_top {
@@ -604,6 +609,11 @@ button:disabled {
   background: var(--primary);
   transition: 0.3s;
 }
+
+.selected.active {
+  background: var(--success);
+}
+
 .success {
   color: var(--success);
   text-shadow: 0 0 46px var(--success);
@@ -1451,6 +1461,34 @@ footer {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: var(--px-16);
+  }
+
+  .gridContainer_pricing {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--px-16);
+  }
+
+  /* 🧠 Mobile Responsive: Horizontal Scroll */
+  @media (max-width: 768px) {
+    .gridContainer_pricing {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: var(--px-16);
+      padding-bottom: 8px;
+    }
+
+    .gridContainer_pricing > * {
+      flex: 0 0 85%; /* each card takes 85% of the width */
+      scroll-snap-align: start;
+      min-width: 280px;
+    }
+
+    /* Optional: smooth scrolling */
+    .gridContainer_pricing::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .quickPromptButton:hover {
@@ -4107,7 +4145,7 @@ footer {
   }
 
   .plan-icon-wrap.master {
-    box-shadow: 0 0 30px 3px rgba(138, 43, 226, 1); /* purple glow */
+    box-shadow: 0 0 40px 10px rgba(138, 43, 226, 0.4); /* purple glow */
     background: rgba(138, 43, 226, 0.1);
   }
 
