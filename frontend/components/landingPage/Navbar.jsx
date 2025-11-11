@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/router";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const router = useRouter();
 
   return (
     <header className="navbar_container flexRow flexRow_stretch bg_blur_20">
@@ -92,7 +94,7 @@ export default function Navbar() {
               ))}
               <button
                 className="button_pri flexRow gap_4 flex_center"
-                onClick={() => setMenuOpen(false)}
+                onClick={() => router.push("/register")}
               >
                 Start Free <ArrowRight size={14} />
               </button>
