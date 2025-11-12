@@ -176,7 +176,7 @@ const AccountSetting = () => {
   return (
     <>
       <Head>
-        <title>JournalX | Account Settings</title>
+        <title>Journal Setting | JournalX</title>
         <meta
           name="description"
           content="Manage your JournalX account securely. Update your profile, manage preferences, and control your data settings for a personalized trading experience."
@@ -188,7 +188,7 @@ const AccountSetting = () => {
         <meta name="robots" content="index, follow" />
 
         {/* Open Graph / Social Media Meta Tags */}
-        <meta property="og:title" content="JournalX | Account Settings" />
+        <meta property="og:title" content="Journal Setting | JournalX" />
         <meta
           property="og:description"
           content="Keep your JournalX account secure and tailored to your needs. Manage personal info, preferences, and trading journal settings effortlessly."
@@ -202,7 +202,7 @@ const AccountSetting = () => {
 
         {/* Twitter Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JournalX | Account Settings" />
+        <meta name="twitter:title" content="Journal Setting | JournalX" />
         <meta
           name="twitter:description"
           content="Manage your JournalX account and preferences securely for the best trading journal experience."

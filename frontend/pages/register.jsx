@@ -292,7 +292,7 @@ function Register() {
   return (
     <>
       <Head>
-        <title>JournalX | Register</title>
+        <title>Register | JournalX</title>
         <meta
           name="description"
           content="Create your JournalX account to start tracking, analyzing, and improving your trading performance. Join JournalX today and take control of your trades with data-driven insights."

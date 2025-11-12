@@ -120,7 +120,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>JournalX | Trading Journal Dashboard</title>
+        <title>Powerful Dashboard | JournalX</title>
         <meta
           name="description"
           content="JournalX is your personal trading journal dashboard to track trades, analyze performance, and discover what works best in your trading strategy. Empower your trading with AI insights and analytics."

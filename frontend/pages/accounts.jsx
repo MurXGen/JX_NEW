@@ -334,14 +334,14 @@ function Accounts() {
   return (
     <>
       <Head>
-        <title>JournalX | Accounts</title>
+        <title>Accounts | JournalX</title>
         <meta
           name="description"
           content="Manage your JournalX trading accounts. Add, view, and analyze your performance across multiple portfolios in one place."
         />
         <meta name="robots" content="index, follow" />
         <meta name="author" content="JournalX" />
-        <meta property="og:title" content="JournalX | Accounts" />
+        <meta property="og:title" content="Accounts | JournalX" />
         <meta
           property="og:description"
           content="Access and manage all your JournalX accounts with a unified dashboard."

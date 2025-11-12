@@ -40,15 +40,16 @@ export default function Home() {
       <Head>
         {/* === Primary SEO Tags === */}
         <title>
-          JournalX — The Ultimate Trading Journal App for Smart Traders
+          JournalX — The Ultimate Trading Journal for Stocks, Options, Forex &
+          Crypto
         </title>
         <meta
           name="description"
-          content="JournalX is the ultimate trading journal app for stock, forex, options, and crypto traders. Log your trades, track performance, manage psychology, and improve consistency — all in one intuitive dashboard."
+          content="The all-in-one trading journal for Stocks, Options, Forex, Futures & Crypto. JournalX empowers traders to log and review trades, uncover performance insights, and sharpen their edge with advanced analytics and AI-driven tracking."
         />
         <meta
           name="keywords"
-          content="trading journal, trade tracker, stock trading journal, forex journal, crypto trade log, options trading tracker, trading performance app, JournalX"
+          content="trading journal, stock trading journal, options trading tracker, forex trade log, crypto trading journal, futures trading log, trading performance tracker, trade analytics, journalx app, ai trading journal"
         />
         <meta name="author" content="JournalX" />
         <meta
@@ -68,7 +69,7 @@ export default function Home() {
         />
         <meta
           property="og:description"
-          content="Analyze, journal, and optimize your trading strategy. JournalX helps traders improve discipline and performance through data-driven insights."
+          content="Track, analyze, and optimize your trades with JournalX. Designed for Stocks, Options, Forex, Futures & Crypto traders who want to grow consistently with data-driven insights."
         />
         <meta
           property="og:image"
@@ -86,11 +87,11 @@ export default function Home() {
         <meta name="twitter:url" content="https://journalx.app/" />
         <meta
           name="twitter:title"
-          content="JournalX — Journal & Analyze Your Trades Like a Pro"
+          content="JournalX — The Smart Trading Journal for Stocks, Options & Crypto"
         />
         <meta
           name="twitter:description"
-          content="Master your trading edge with JournalX — track trades, analyze results, and grow your consistency."
+          content="JournalX helps traders log and analyze trades across markets with AI-powered insights to improve performance and consistency."
         />
         <meta
           name="twitter:image"
@@ -122,7 +123,7 @@ export default function Home() {
               applicationCategory: "FinanceApplication",
               operatingSystem: "Web, iOS, Android",
               description:
-                "JournalX is a professional trading journal app designed for traders who want to log, analyze, and improve their trading performance across markets.",
+                "JournalX is an AI-powered trading journal app that helps traders log, analyze, and improve their performance across Stocks, Options, Forex, Futures & Crypto.",
               offers: {
                 "@type": "Offer",
                 price: "0.00",

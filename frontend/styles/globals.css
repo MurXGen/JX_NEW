@@ -5565,25 +5565,38 @@ footer {
 /* ✅ Fullscreen Mobile Menu */
 .navbar_fullscreen_menu {
   position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
   width: 100%;
-  background: var(--base-bg);
+  top: 0;
+  right: 0;
+  padding: var(--px-46) 0;
+  background: var(--white-10);
   z-index: 1200;
-  border-radius: var(--px-24);
-  background: #000000;
-  border: 0.5px solid #222222;
+  border-radius: var(--px-12);
+  overflow: hidden; /* ensures blur stays inside rounded edges */
+  box-shadow: 0 0 24px var(--base-bg);
+}
+
+/* ✅ Add glass-like blur effect */
+.navbar_fullscreen_menu::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(0, 0, 0, 0.9);
+  z-index: -1;
+  border-radius: inherit;
 }
 
 .menu_close_btn {
   position: absolute;
-  top: 24px;
-  right: 24px;
-  background: transparent;
+  top: 12px;
+  right: 12px;
+  background: var(--white-10);
   border: none;
   color: var(--white);
   cursor: pointer;
+  border-radius: var(--px-32);
 }
 
 .mobile_menu_links {

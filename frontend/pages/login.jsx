@@ -167,7 +167,7 @@ function Login() {
     <>
       {/* ✅ SEO + Meta Setup */}
       <Head>
-        <title>JournalX | Login to Your Trading Journal</title>
+        <title>Login | JournalX</title>
         <meta
           name="description"
           content="Login to JournalX to access your trading journal, performance analytics, trade history, and personalized trading insights. Stay ahead with data-driven decisions and behavioral tracking."

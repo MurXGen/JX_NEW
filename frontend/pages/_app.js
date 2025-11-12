@@ -22,17 +22,19 @@ export default function MyApp({ Component, pageProps }) {
     <>
       <Head>
         {/* Primary Meta */}
-        <title>JournalX | Smart Trading Journal & AI Performance Tracker</title>
+        <title>
+          JournalX | The Ultimate Trading Journal for Stocks, Options, Forex &
+          Crypto
+        </title>
         <meta
           name="description"
-          content="JournalX is a digital trading journal that helps traders log, analyze, and improve their trades with AI insights. Track your performance, spot patterns, and grow consistently."
+          content="The all-in-one digital trading journal for Stocks, Options, Forex, Futures & Crypto. JournalX helps traders log, analyze, and optimize every trade with smart analytics to sharpen their edge and improve consistency."
         />
         <meta
           name="keywords"
           content="trading journal, trade analytics, AI trading journal, performance tracker, stock trading log, crypto trading journal, forex journal, trade analysis, trading performance app, journalx, trading tracker, best trading journal app, trading notebook, trader diary"
         />
         <meta name="google-adsense-account" content="ca-pub-9495953709882107" />
-
         <meta name="author" content="Murthy Poothapandi Thevar" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#0d1117" />
@@ -64,11 +66,11 @@ export default function MyApp({ Component, pageProps }) {
         <meta property="og:url" content="https://journalx.app" />
         <meta
           property="og:title"
-          content="JournalX – AI Powered Trading Journal"
+          content="JournalX – Smarter Trading Journal for Stocks, Options, Forex & Crypto"
         />
         <meta
           property="og:description"
-          content="Analyze your trades like a pro. JournalX helps you discover patterns, track performance, and grow smarter with AI insights."
+          content="Track, review, and refine your trades across markets. JournalX helps you discover performance insights, identify patterns, and improve your trading discipline."
         />
         <meta property="og:image" content="/assets/JournalX_Banner.png" />
 
@@ -77,11 +79,11 @@ export default function MyApp({ Component, pageProps }) {
         <meta name="twitter:url" content="https://journalx.app" />
         <meta
           name="twitter:title"
-          content="JournalX | Smart Trading Journal & AI Tracker"
+          content="JournalX | Smart Trading Journal for Stocks, Options & Crypto"
         />
         <meta
           name="twitter:description"
-          content="Track, analyze, and improve your trades using AI-powered insights. JournalX – your intelligent trading companion."
+          content="JournalX empowers traders to log and analyze trades across multiple markets with AI-powered insights to boost performance and consistency."
         />
         <meta name="twitter:image" content="/assets/JournalX_Banner.png" />
 
@@ -89,9 +91,9 @@ export default function MyApp({ Component, pageProps }) {
         <script
           dangerouslySetInnerHTML={{
             __html: `(function () {
-              const savedTheme = localStorage.getItem('theme') || 'dark';
-              document.documentElement.classList.add(savedTheme);
-            })();`,
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.classList.add(savedTheme);
+      })();`,
           }}
         />
 
@@ -105,11 +107,11 @@ export default function MyApp({ Component, pageProps }) {
             <script
               dangerouslySetInnerHTML={{
                 __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', { send_page_view: false });
-                `,
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', { send_page_view: false });
+          `,
               }}
             />
           </>

@@ -36,7 +36,10 @@ export default function ReviewsSection() {
       itemScope
       itemType="https://schema.org/Product"
     >
-      <meta itemProp="name" content="JournalX – Smart Trading Journal" />
+      <meta
+        itemProp="name"
+        content="JournalX – Journal trades and increase profitability"
+      />
       <meta
         itemProp="description"
         content="Read how traders improved profitability, consistency, and emotional control using JournalX – the AI-powered trading journal at JournalX.app."

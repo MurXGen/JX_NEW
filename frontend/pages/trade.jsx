@@ -89,7 +89,7 @@ const TradePage = () => {
         <meta name="author" content="JournalX" />
         <meta
           property="og:title"
-          content="JournalX | Trade History & Calendar"
+          content="Trade History & Calendar | JournalX"
         />
         <meta
           property="og:description"
