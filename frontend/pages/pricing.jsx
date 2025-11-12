@@ -29,6 +29,7 @@ import { useRouter } from "next/router";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import LegalLinks from "@/components/landingPage/LegalLinks";
+import Head from "next/head";
 
 function Pricing() {
   const router = useRouter();
