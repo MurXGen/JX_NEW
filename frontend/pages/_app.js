@@ -115,22 +115,7 @@ export default function MyApp({ Component, pageProps }) {
         )}
       </Head>
 
-      {/* ✅ Animated Page Transitions */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={router.route} // ensures animation on route change
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{
-            duration: 0.4,
-            ease: "easeInOut",
-          }}
-          style={{ minHeight: "100vh" }}
-        >
-          <Component {...pageProps} />
-        </motion.div>
-      </AnimatePresence>
+      <Component {...pageProps} />
     </>
   );
 }
