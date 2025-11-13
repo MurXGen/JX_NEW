@@ -77,9 +77,21 @@ function Login() {
           expires: 3650,
         });
         localStorage.setItem("guide", "yes");
+
+        // ✅ Show success toast only
+        setPopup({
+          message: "Login successful! Redirecting to your accounts...",
+          type: "success",
+          id: Date.now(),
+        });
+
+        // ✅ Redirect after short delay
+        setTimeout(() => {
+          router.push("/accounts");
+        }, 1200);
       } else {
+        // ⚠️ Not verified – Redirect to OTP page
         Cookies.remove("isVerified");
-        // Redirect to OTP only if backend explicitly says unverified
         setPopup({
           message: "Redirecting... Please verify OTP first.",
           type: "success",
@@ -87,7 +99,6 @@ function Login() {
         });
 
         localStorage.setItem("otpUserId", userData?._id);
-
         setTimeout(() => {
           router.push({
             pathname: "/register",
@@ -99,21 +110,18 @@ function Login() {
       const status = err.response?.status;
       const message = err.response?.data?.message;
 
-      // ✅ Handle only the OTP verification case
+      // ✅ OTP verification needed
       if (
         status === 403 &&
         message?.toLowerCase().includes("verify your account")
       ) {
         const { userId } = err.response.data;
-
         setPopup({
           message: "Redirecting... Please verify OTP first.",
           type: "success",
           id: Date.now(),
         });
-
         localStorage.setItem("otpUserId", userId);
-
         setTimeout(() => {
           router.push({
             pathname: "/register",
@@ -123,7 +131,7 @@ function Login() {
         return;
       }
 
-      // ✅ All other errors (e.g., wrong password, invalid email)
+      // ❌ Invalid credentials or other error
       setPopup({
         message: message || "Invalid email or password",
         type: "error",
