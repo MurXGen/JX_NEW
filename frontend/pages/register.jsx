@@ -514,15 +514,15 @@ function Register() {
               </div>
             </div>
           )}
-        </div>
 
-        <div className="flexRow flex_center">
-          <span
-            className="direct_tertiary"
-            onClick={() => router.push("/login")}
-          >
-            Already have an account? Sign-in
-          </span>
+          <div className="flexRow flex_center">
+            <span
+              className="direct_tertiary"
+              onClick={() => router.push("/login")}
+            >
+              Already have an account? Sign-in
+            </span>
+          </div>
         </div>
 
         <div className="flexClm gap_24">
@@ -552,11 +552,11 @@ function Register() {
           </button>
         </div>
 
-        <MessageCard
+        {/* <MessageCard
           type="info"
           title="Best analysis place to learn trading by journaling"
           description="We offer analysis and education — no trading services provided."
-        />
+        /> */}
 
         <ToastMessage type={popup.type} message={popup.message} />
         <BackgroundBlur />

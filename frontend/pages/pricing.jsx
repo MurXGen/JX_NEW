@@ -159,12 +159,12 @@ function Pricing() {
         pro: "✅",
         master: "✅ Generate share links",
       },
-      {
-        title: "AI Analysis",
-        free: "❌",
-        pro: "✅ AI trade insights",
-        master: "✅ AI trade insights",
-      },
+      // {
+      //   title: "AI Analysis",
+      //   free: "❌",
+      //   pro: "✅ AI trade insights",
+      //   master: "✅ AI trade insights",
+      // },
       {
         title: "Advanced Charts",
         free: "✅ Basic charts",

@@ -145,7 +145,7 @@ const CreateAccount = () => {
       <SectionHeader
         title={isEdit ? "Edit Journal" : "Create Journal"}
         description="Journals structure logged trades"
-        level={2}
+        level={4}
         loading={loading}
       />
 

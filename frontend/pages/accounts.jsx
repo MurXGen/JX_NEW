@@ -359,7 +359,7 @@ function Accounts() {
         <SectionHeader
           title="Journals"
           description="Select you journal"
-          level={2} // uses <h2>
+          level={4} // uses <h2>
           showButton={accounts.length > 0}
           buttonLabel="Create journal"
           onButtonClick={handleCreateAccount}
@@ -367,14 +367,14 @@ function Accounts() {
         />
 
         {/* Accounts List */}
-        <motion.div
+        <div
           className="accountsList flexClm gap_16"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           {orderedAccounts.length === 0 ? (
-            <motion.div
+            <div
               className="notFound flexClm gap_16 flex_center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -400,7 +400,7 @@ function Accounts() {
                 <Plus size={16} />
                 <span>Create First Journal</span>
               </button>
-            </motion.div>
+            </div>
           ) : (
             <>
               {/* Draggable Accounts List */}
@@ -424,7 +424,7 @@ function Accounts() {
                       onDragStart={handleDragStart}
                       onDragEnd={handleDragEnd}
                     >
-                      <motion.div
+                      <div
                         className={`accountCard flexClm gap_24 chart_boxBg ${
                           isDragging ? "dragging" : ""
                         } ${isLastTraded ? "lastTraded" : ""}`}
@@ -452,14 +452,14 @@ function Accounts() {
 
                           <div className="flexRow gap_8 flex_center">
                             {/* Drag Handle */}
-                            <motion.div
+                            <div
                               className="dragHandle flexRow flex_center"
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               title="Drag to reorder"
                             >
                               <GripVertical size={16} className="shade_50" />
-                            </motion.div>
+                            </div>
 
                             <ArrowRight
                               size={18}
@@ -527,7 +527,7 @@ function Accounts() {
                             </span>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     </Reorder.Item>
                   );
                 })}
@@ -535,7 +535,7 @@ function Accounts() {
 
               {/* Show More/Less Button */}
               {orderedAccounts.length > 2 && (
-                <motion.button
+                <button
                   className="button_sec flexRow gap_8 flex_center"
                   onClick={() => setShowAllAccounts(!showAllAccounts)}
                   whileHover={{ scale: 1.05 }}
@@ -557,12 +557,12 @@ function Accounts() {
                       </span>
                     </>
                   )}
-                </motion.button>
+                </button>
               )}
 
               {/* Drag Hint */}
               {orderedAccounts.length > 1 && (
-                <motion.div
+                <div
                   className="dragHint flexRow gap_8 flex_center font_12 shade_50"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -570,11 +570,11 @@ function Accounts() {
                 >
                   <GripVertical size={12} />
                   <span>Drag to reorder journals</span>
-                </motion.div>
+                </div>
               )}
             </>
           )}
-        </motion.div>
+        </div>
 
         {/* {accounts.length <= 0 && (
           <MessageCard
@@ -587,7 +587,7 @@ function Accounts() {
         <hr width="100" color="grey" />
 
         {/* Quick Actions Section */}
-        <motion.div
+        <div
           className="flexClm gap_24"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -596,7 +596,7 @@ function Accounts() {
           <SectionHeader
             title="Quick Actions"
             description="Manage your trading data and access features"
-            level={2} // uses <h2>
+            level={4} // uses <h2>
             // showButton={accounts.length > 0}
             // buttonLabel="Create journal"
             // onButtonClick={handleCreateAccount}
@@ -609,7 +609,7 @@ function Accounts() {
               const isExternal = action.path.startsWith("http");
 
               const buttonContent = (
-                <motion.button
+                <button
                   className={`boxBg flexRow gap_12 pad_16 ${
                     !action.enabled ? " disabled" : ""
                   }`}
@@ -639,7 +639,7 @@ function Accounts() {
                       </span>
                     )}
                   </div>
-                </motion.button>
+                </button>
               );
 
               // 🔹 Handle external vs internal links differently
@@ -668,7 +668,7 @@ function Accounts() {
               }
             })}
           </div>
-        </motion.div>
+        </div>
 
         {/* <hr width="100" color="grey" /> */}
 
@@ -683,7 +683,7 @@ function Accounts() {
               loading={loading}
             />
 
-            <motion.div
+            <div
               className="pad_16 flexClm gap_24 chart_boxBg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -714,7 +714,7 @@ function Accounts() {
                     </span>
                   </div>
                   <div className="progress-bar">
-                    <motion.div
+                    <div
                       className="progress-fill"
                       style={{ backgroundColor: "var(--primary)" }}
                       initial={{ width: 0 }}
@@ -736,7 +736,7 @@ function Accounts() {
                     </span>
                   </div>
                   <div className="progress-bar">
-                    <motion.div
+                    <div
                       className="progress-fill"
                       style={{ backgroundColor: "var(--success)" }}
                       initial={{ width: 0 }}
@@ -758,7 +758,7 @@ function Accounts() {
                     </span>
                   </div>
                   <div className="progress-bar">
-                    <motion.div
+                    <div
                       className="progress-fill"
                       style={{ backgroundColor: "var(--primary-light)" }}
                       initial={{ width: 0 }}
@@ -776,7 +776,7 @@ function Accounts() {
                   Show all features <ChevronDown size={16} />
                 </a>
               </div>
-            </motion.div>
+            </div>
           </div>
         )} */}
 
@@ -785,22 +785,22 @@ function Accounts() {
       </div>
 
       {loading ? (
-        <motion.div
+        <div
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
           <FullPageLoader />
-        </motion.div>
+        </div>
       ) : (
-        <motion.div
+        <div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
         >
           <div className="dashboard-page">{/* content here */}</div>
-        </motion.div>
+        </div>
       )}
     </>
   );

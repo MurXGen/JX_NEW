@@ -22,10 +22,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 function Login() {
   const router = useRouter();
   const [turnstileToken, setTurnstileToken] = useState(null);
-
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [username, setUsername] = useState("");
-
   const [email, setEmail] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const domains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"];
@@ -81,7 +77,6 @@ function Login() {
           expires: 3650,
         });
         localStorage.setItem("guide", "yes");
-        setShowWelcome(true);
       } else {
         Cookies.remove("isVerified");
         // Redirect to OTP only if backend explicitly says unverified
@@ -265,27 +260,29 @@ function Login() {
               onSuccess={(token) => setTurnstileToken(token)}
             />
 
-            <button
-              type="submit"
-              disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
-              className="button_pri flexRow gap_12 flexRow_center flexRow_stretch"
-              onClick={(e) => {
-                e.preventDefault(); // prevent form reload
-                handleLogin(); // call login function
-              }}
-            >
-              {isLoading ? <div className="spinner"></div> : "Login"}
-              {!isLoading && <ArrowRight size={16} />}
-            </button>
-          </div>
+            <div className="flexClm">
+              <button
+                type="submit"
+                disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
+                className="button_pri flexRow gap_12 flexRow_center flexRow_stretch"
+                onClick={(e) => {
+                  e.preventDefault(); // prevent form reload
+                  handleLogin(); // call login function
+                }}
+              >
+                {isLoading ? <div className="spinner"></div> : "Login"}
+                {!isLoading && <ArrowRight size={16} />}
+              </button>
 
-          <div className="flexClm gap_8 flex_center">
-            <span
-              className="direct_tertiary"
-              onClick={() => router.push("/register")}
-            >
-              New to journaling? Sign-up
-            </span>
+              <div className="flexClm gap_8 flex_center">
+                <span
+                  className="direct_tertiary"
+                  onClick={() => router.push("/register")}
+                >
+                  New to journaling? Sign-up
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="flexClm gap_24">
@@ -325,12 +322,6 @@ function Login() {
 
           <BackgroundBlur />
         </div>
-        {showWelcome && (
-          <WelcomeModal
-            username={username}
-            onClose={() => setShowWelcome(false)}
-          />
-        )}
       </div>
       <LegalLinks />
     </>

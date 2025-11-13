@@ -601,6 +601,15 @@ button:disabled {
   }
 }
 
+.analysisCardTitle {
+  font-size: var(--px-12);
+}
+
+.analysisCardDesc {
+  font-size: var(--px-16);
+  font-weight: var(--weight-600);
+}
+
 .IsVisible {
   display: none;
 }

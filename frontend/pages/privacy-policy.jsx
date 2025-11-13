@@ -266,8 +266,7 @@ export default function PrivacyPolicy() {
         <footer>
           <p className="legalDisclaimer">
             JournalX does <span className="highlight-not">NOT</span> sell
-            personal data. We limit collection to what we need to operate the
-            service and provide optional AI analysis only when you request it.
+            personal data.
           </p>
 
           <p style={{ marginTop: 8, color: "var(--white-70)" }}>

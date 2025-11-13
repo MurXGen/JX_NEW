@@ -12,7 +12,7 @@ const TickerOverview = ({ trades }) => {
         <SectionHeader
           title="Chart Analysis"
           description="Visual Analysis of your logged trades"
-          level={2} // uses <h2>
+          level={4} // uses <h2>
           // showButton={accounts.length > 0}
           // buttonLabel="Create journal"
           // onButtonClick={handleCreateAccount}
@@ -26,7 +26,7 @@ const TickerOverview = ({ trades }) => {
         <SectionHeader
           title="Ticker Analysis"
           description="Ticker Analysis of your logged trades"
-          level={2} // uses <h2>
+          level={4} // uses <h2>
           // showButton={accounts.length > 0}
           // buttonLabel="Create journal"
           // onButtonClick={handleCreateAccount}

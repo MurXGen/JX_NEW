@@ -201,19 +201,24 @@ const TickerAnalysis = ({ trades }) => {
 
   if (!trades || trades.length === 0) {
     return (
-      <div className="flexClm gap_32 chart_boxBg pad_16">
-        <div className="section-header">
-          <span className="font_16 font_weight_600">Ticker Analysis</span>
-          <span className="font_12" style={{ color: "var(--white-50)" }}>
-            Performance by trading symbol
-          </span>
-        </div>
-        <div className="flex_center">
-          <div className="font_14 shade_50">
-            No trades available for analysis
+      <>
+        <div className="flexClm gap_32 chart_boxBg pad_16">
+          <SectionHeader
+            title="Ticker Analysis"
+            description="Performance by trading symbol"
+            level={4} // uses <h2>
+            // showButton={accounts.length > 0}
+            // buttonLabel="Create journal"
+            // onButtonClick={handleCreateAccount}
+            // loading={loading}
+          />
+          <div className="flex_center">
+            <div className="font_14 shade_50">
+              No trades available for analysis
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 

@@ -16,7 +16,7 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
         <SectionHeader
           title="Longs analysis"
           description="Analysis of logged long trades"
-          level={2} // uses <h2>
+          level={4} // uses <h2>
           // showButton={accounts.length > 0}
           // buttonLabel="Create journal"
           // onButtonClick={handleCreateAccount}
@@ -32,7 +32,7 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
         <SectionHeader
           title="Shorts analysis"
           description="Analysis of logged short trades"
-          level={2} // uses <h2>
+          level={4} // uses <h2>
           // showButton={accounts.length > 0}
           // buttonLabel="Create journal"
           // onButtonClick={handleCreateAccount}
@@ -45,7 +45,7 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
         <SectionHeader
           title="Chart Analysis"
           description="Visual analysis of logged trades"
-          level={2} // uses <h2>
+          level={4} // uses <h2>
           // showButton={accounts.length > 0}
           // buttonLabel="Create journal"
           // onButtonClick={handleCreateAccount}

@@ -3,21 +3,18 @@ import * as gtag from "@/utils/gtag";
 import Head from "next/head";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
+
   useEffect(() => {
-    const handleRouteChange = (url) => {
-      gtag.pageview(url);
-    };
+    const handleRouteChange = (url) => gtag.pageview(url);
     router.events.on("routeChangeComplete", handleRouteChange);
-    // first page load
     handleRouteChange(window.location.pathname);
-    return () => {
-      router.events.off("routeChangeComplete", handleRouteChange);
-    };
+    return () => router.events.off("routeChangeComplete", handleRouteChange);
   }, [router.events]);
+
   return (
     <>
       <Head>
@@ -118,7 +115,22 @@ export default function MyApp({ Component, pageProps }) {
         )}
       </Head>
 
-      <Component {...pageProps} />
+      {/* ✅ Animated Page Transitions */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={router.route} // ensures animation on route change
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{
+            duration: 0.4,
+            ease: "easeInOut",
+          }}
+          style={{ minHeight: "100vh" }}
+        >
+          <Component {...pageProps} />
+        </motion.div>
+      </AnimatePresence>
     </>
   );
 }

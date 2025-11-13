@@ -115,7 +115,7 @@ const MarketNews = () => {
         <SectionHeader
           title="Global Heatmap"
           description="Heatmap helps in analysing trends"
-          level={2}
+          level={4}
         />
         <div style={{ width: "100%", height: "600px", position: "relative" }}>
           {loadingGlobal && (
@@ -138,11 +138,9 @@ const MarketNews = () => {
         </div>
       </div>
 
-      <hr color="grey" width="100" />
-
       {/* Indian Heatmap */}
       <div className="flexClm gap_24">
-        <SectionHeader title="India's Heatmap" level={2} />
+        <SectionHeader title="India's Heatmap" level={4} />
         <div style={{ width: "100%", height: "600px", position: "relative" }}>
           {loadingIndia && (
             <div
@@ -164,11 +162,9 @@ const MarketNews = () => {
         </div>
       </div>
 
-      <hr color="grey" width="100" />
-
       {/* Crypto Heatmap */}
       <div className="flexClm gap_24">
-        <SectionHeader title="Crypto Heatmap" level={2} />
+        <SectionHeader title="Crypto Heatmap" level={4} />
         <div style={{ width: "100%", height: "600px", position: "relative" }}>
           {loadingCrypto && (
             <div
@@ -195,7 +191,7 @@ const MarketNews = () => {
         className="font_12"
         style={{ textAlign: "center", color: "var(--white-50)" }}
       >
-        Data provided by{" "}
+        Data provided by
         <a
           href="https://www.tradingview.com/heatmap/stock/"
           target="_blank"

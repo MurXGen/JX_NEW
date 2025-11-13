@@ -114,7 +114,7 @@ const TradePage = () => {
           <SectionHeader
             title="History"
             description="Logged trades history & calendar"
-            level={2} // uses <h2>
+            level={4} // uses <h2>
             // showButton={accounts.length > 0}
             // buttonLabel="Create journal"
             // onButtonClick={handleCreateAccount}

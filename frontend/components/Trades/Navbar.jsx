@@ -8,7 +8,6 @@ import {
   Repeat,
   ChevronDown,
   Menu,
-  ArrowUpCircle,
   Crown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -25,13 +24,16 @@ const Navbar = () => {
   const [hideAccountBox, setHideAccountBox] = useState(false);
   const [isFreePlan, setIsFreePlan] = useState(false);
 
+  // ✅ Initialize theme + user data
   useEffect(() => {
     const init = async () => {
       const name = localStorage.getItem("userName");
       if (name) setUserName(name);
 
-      const theme = document.body.getAttribute("data-theme");
-      if (theme === "dark") setDarkMode(true);
+      // Load theme from localStorage
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      document.body.setAttribute("data-theme", savedTheme);
+      setDarkMode(savedTheme === "dark");
 
       // Hide account box if on /accounts page
       const hostname = window.location.hostname;
@@ -57,34 +59,32 @@ const Navbar = () => {
       const account = fetchedAccounts.find((acc) => acc._id === accountId);
       setSelectedAccount(account || fetchedAccounts[0]);
 
-      // ✅ Check user subscription plan from IndexedDB
+      // Check subscription plan
       const userData = await getFromIndexedDB("userData");
       if (userData && userData.subscription) {
         const planId = userData.subscription.planId;
         if (planId === "free" || !planId) setIsFreePlan(true);
       } else {
-        setIsFreePlan(true); // Default to free if not found
+        setIsFreePlan(true);
       }
     };
 
     init();
   }, [router]);
 
+  // ✅ Toggle Dark Mode
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
       const newMode = !prev;
-      document.body.setAttribute("data-theme", newMode ? "light" : "dark");
+      const theme = newMode ? "dark" : "light";
+      document.body.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
       return newMode;
     });
   };
 
-  const handleClick = () => {
-    router.push("/profile");
-  };
-
-  const handleUpgradeClick = () => {
-    router.push("/pricing");
-  };
+  const handleClick = () => router.push("/profile");
+  const handleUpgradeClick = () => router.push("/pricing");
 
   return (
     <div className="navbarTrades flexRow flexRow_stretch">
@@ -108,9 +108,9 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Right Side Controls */}
+      {/* Right Controls */}
       <div className="flexRow flex_center gap_12">
-        {/* Selected Account */}
+        {/* Account Switcher */}
         {selectedAccount && !hideAccountBox && (
           <div
             className="button_sec flexRow gap_8"
@@ -118,7 +118,7 @@ const Navbar = () => {
           >
             <span
               style={{
-                maxWidth: "10ch", // limit to roughly 10 characters
+                maxWidth: "10ch",
                 overflow: "hidden",
                 whiteSpace: "nowrap",
                 textOverflow: "ellipsis",
@@ -132,7 +132,25 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* 🌟 Show Upgrade Banner for Free Users */}
+        {/* Theme Toggle */}
+        {/* <button
+          onClick={toggleDarkMode}
+          className="button_sec flex_center"
+          style={{
+            cursor: "pointer",
+            borderRadius: "50%",
+            transition: "all 0.3s ease",
+          }}
+          title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {darkMode ? (
+            <Sun size={18} className="text-yellow-400" />
+          ) : (
+            <Moon size={18} className="text-blue-400" />
+          )}
+        </button> */}
+
+        {/* Upgrade for Free Plan */}
         {isFreePlan && (
           <div
             onClick={handleUpgradeClick}

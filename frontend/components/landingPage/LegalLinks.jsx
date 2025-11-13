@@ -10,8 +10,9 @@ const LegalLinks = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
+      style={{ marginTop: "46px" }}
     >
-      <div className="flexClm gap_4 font_14 flex_center">
+      <div className="flexClm gap_4 font_12 flex_center">
         <span>By continuing, you agree to our</span>
         <div className="flexRow gap_12">
           <Link href="/terms-services" className="vector">

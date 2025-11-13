@@ -67,7 +67,7 @@ export default function Overview({ stats, trades }) {
           <SectionHeader
             title="Advanced charts analysis"
             // description="Get visual analysis of your logged trades"
-            level={2} // uses <h2>
+            level={5} // uses <h2>
             // showButton={accounts.length > 0}
             // buttonLabel="Create journal"
             // onButtonClick={handleCreateAccount}
@@ -106,7 +106,7 @@ export default function Overview({ stats, trades }) {
                 className="boxBg flexClm gap_12"
                 style={{ width: "100%", padding: "12px" }}
               >
-                <span className="font_12">Net PnL</span>
+                <span className="analysisCardTitle">Net PnL</span>
                 <span
                   className={`${
                     stats?.netPnL >= 0 ? "success" : "error"
@@ -310,7 +310,7 @@ export default function Overview({ stats, trades }) {
           <SectionHeader
             title="Overview"
             // description="Know about your logged trades"
-            level={2} // uses <h2>
+            level={5} // uses <h2>
             // showButton={accounts.length > 0}
             // buttonLabel="Create journal"
             // onButtonClick={handleCreateAccount}
@@ -324,9 +324,9 @@ export default function Overview({ stats, trades }) {
             style={{ padding: "16px 16px" }}
           >
             <div className="flexRow flexRow_stretch">
-              <span className="font_12">Total Trades</span>
+              <span className="font_12 analysisCardTitle">Total Trades</span>
               <span
-                className={`font_12 ${
+                className={`font_12 analysisCardDesc ${
                   !stats?.totalTrades || stats?.totalTrades === 0
                     ? "shade_50"
                     : ""
@@ -363,14 +363,14 @@ export default function Overview({ stats, trades }) {
 
             <div className="flexRow flexRow_stretch">
               <span
-                className={`font_12 ${
+                className={`analysisCardDesc ${
                   !stats?.winTrades || stats?.winTrades === 0 ? "shade_50" : ""
                 }`}
               >
                 Wins: {stats?.winTrades || "0"}
               </span>
               <span
-                className={`font_12 ${
+                className={`analysisCardDesc ${
                   !stats?.loseTrades || stats?.loseTrades === 0
                     ? "shade_50"
                     : ""
@@ -388,10 +388,10 @@ export default function Overview({ stats, trades }) {
               className="chart_boxBg width100 flexClm gap_12"
               style={{ padding: "16px" }}
             >
-              <span className="font_12">Best Time</span>
+              <span className="analysisCardTitle">Best Time</span>
               <div className="flexRow flexRow_stretch">
                 <span
-                  className={`font_16 ${
+                  className={`analysisCardDesc ${
                     isShade(stats?.bestTime) ? "shade_50" : ""
                   }`}
                 >
@@ -405,10 +405,10 @@ export default function Overview({ stats, trades }) {
               className="chart_boxBg width100 flexClm gap_12"
               style={{ padding: "16px" }}
             >
-              <span className="font_12">Worst Time</span>
+              <span className="analysisCardTitle">Worst Time</span>
               <div className="flexRow flexRow_stretch">
                 <span
-                  className={`font_16 ${
+                  className={`analysisCardDesc ${
                     isShade(stats?.worstTime) ? "shade_50" : ""
                   }`}
                 >
@@ -424,9 +424,9 @@ export default function Overview({ stats, trades }) {
               className="chart_boxBg width100 flexClm gap_12"
               style={{ padding: "16px" }}
             >
-              <span className="font_12">Win ratio</span>
+              <span className="analysisCardTitle">Win ratio</span>
               <span
-                className={`font_16 ${
+                className={`analysisCardDesc ${
                   !stats?.winRatio || stats?.totalTrades === 0
                     ? "shade_50"
                     : stats?.winRatio > 70
@@ -444,9 +444,9 @@ export default function Overview({ stats, trades }) {
               className="chart_boxBg width100 flexClm gap_12"
               style={{ padding: "16px" }}
             >
-              <span className="font_12">Average p/l</span>
+              <span className="analysisCardTitle">Average p/l</span>
               <span
-                className={`font_16 ${
+                className={`analysisCardDesc ${
                   stats?.totalTrades === 0 || stats?.averagePnL === undefined
                     ? "shade_50"
                     : stats?.averagePnL >= 0
@@ -465,9 +465,9 @@ export default function Overview({ stats, trades }) {
               className="chart_boxBg width100 flexClm gap_12"
               style={{ padding: "16px" }}
             >
-              <span className="font_12">Total volume</span>
+              <span className="analysisCardTitle">Total volume</span>
               <span
-                className={`font_16 flexRow gap_4 ${
+                className={`analysisCardDesc flexRow gap_4 ${
                   !stats?.totalVolume || stats?.totalVolume === 0
                     ? "shade_50"
                     : ""
@@ -482,9 +482,9 @@ export default function Overview({ stats, trades }) {
               className="chart_boxBg width100 flexClm gap_12"
               style={{ padding: "16px" }}
             >
-              <span className="font_12">Total fees</span>
+              <span className="analysisCardTitle">Total fees</span>
               <span
-                className={`font_16 flexRow gap_4 ${
+                className={`analysisCardDesc flexRow gap_4 ${
                   !stats?.totalFees || stats?.totalFees === 0 ? "shade_50" : ""
                 }`}
               >
@@ -500,9 +500,9 @@ export default function Overview({ stats, trades }) {
             style={{ padding: "16px 16px" }}
           >
             <div className="flexRow flexRow_stretch font_14">
-              <span>Streak</span>
+              <span className="analysisCardTitle">Streak</span>
               <span
-                className={`${
+                className={`analysisCardDesc ${
                   !stats?.streak || stats?.streak === "0"
                     ? "shade_50"
                     : stats?.streak.toLowerCase().includes("win")

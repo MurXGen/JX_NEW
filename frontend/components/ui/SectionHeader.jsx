@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 const SectionHeader = ({
   title,
   description,
-  level = 2, // allows <h2>, <h3>, etc. for flexibility
+  level = level, // allows <h2>, <h3>, etc. for flexibility
   showButton = false,
   buttonLabel = "",
   onButtonClick,
@@ -18,9 +18,7 @@ const SectionHeader = ({
       aria-label={title}
     >
       <div className="flexClm">
-        <HeadingTag className="font_20 font_weight_400 marg_0">
-          {title}
-        </HeadingTag>
+        <HeadingTag className="font_weight_400 marg_0">{title}</HeadingTag>
         <p className="font_14 shade_50 marg_0">{description}</p>
       </div>
 
