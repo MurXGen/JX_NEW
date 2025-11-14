@@ -58,9 +58,11 @@ const HeroSection = () => {
 
         <button
           className="cta_button flexRow gap_4"
-          onClick={() => router.push("/register")}
+          onClick={() => {
+            window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+          }}
         >
-          Try it free <ArrowRight size={20} />
+          <FcGoogle size={20} /> Try it for free
         </button>
 
         {/* Trust Indicator */}
