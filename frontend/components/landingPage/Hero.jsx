@@ -3,6 +3,9 @@ import { ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React from "react";
+import { FcGoogle } from "react-icons/fc";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const HeroSection = () => {
   const router = useRouter();
@@ -62,7 +65,7 @@ const HeroSection = () => {
             window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
           }}
         >
-          <FcGoogle size={20} /> Try it for free
+          <FcGoogle size={20} /> Sign up
         </button>
 
         {/* Trust Indicator */}
