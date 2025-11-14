@@ -3,9 +3,6 @@ import { ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React from "react";
-import { FcGoogle } from "react-icons/fc";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const HeroSection = () => {
   const router = useRouter();
@@ -62,10 +59,10 @@ const HeroSection = () => {
         <button
           className="cta_button flexRow gap_4"
           onClick={() => {
-            window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+            window.location.href = `https://journalx.app/login`;
           }}
         >
-          <FcGoogle size={20} /> Sign up
+          Try it for free
         </button>
 
         {/* Trust Indicator */}
