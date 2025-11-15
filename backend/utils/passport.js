@@ -27,9 +27,9 @@ passport.use(
             email: profile.emails[0].value,
             password: undefined, // Google signup
             googleId: profile.id,
-            subscriptionPlan: "pro",
+            subscriptionPlan: "PRO001",
             subscriptionStatus: "active",
-            subscriptionType: "7-day trial",
+            subscriptionType: "trial",
             subscriptionStartAt: now,
             subscriptionExpiresAt: expiry,
             subscriptionCreatedAt: now,

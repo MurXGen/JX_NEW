@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
     },
     subscriptionPlan: {
       type: String,
-      enum: ["free", "pro", "elite", "MASTER001", "PRO001"],
+      enum: ["free", "pro", "elite", "MASTER001", "PRO001", "trial"],
       default: "pro",
     },
     subscriptionType: {
