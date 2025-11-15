@@ -42,7 +42,7 @@ mongoose
   .catch((err) => console.error("❌ MongoDB User DB Connection Error:", err));
 
 // 🔗 Apply rate limiter to each route separately
-app.use("/api/auth", createLimiter(20), authRoutes);
+app.use("/api/auth", createLimiter(40), authRoutes);
 app.use("/api/account", createLimiter(20), accountRoutes);
 app.use("/api/trades", createLimiter(20), tradeRoutes);
 app.use(
