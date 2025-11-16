@@ -126,9 +126,8 @@ const TickerStats = ({ trades }) => {
 
   if (!trades || trades.length === 0) {
     return (
-      <div className="otherStats flexClm gap_24 pad_16">
-        <span className="font_12">Ticker Performance</span>
-        <div className="chart_boxBg flex_center pad_32">
+      <div className="otherStats flexClm gap_24">
+        <div className="chart_boxBg flex_center pad_16">
           <span className="font_12 shade_50">No trade data available</span>
         </div>
       </div>
@@ -137,9 +136,9 @@ const TickerStats = ({ trades }) => {
 
   if (!tickerStats) {
     return (
-      <div className="otherStats flexClm gap_24">
+      <div className="otherStats flexClm gap_24 pad_16">
         <span className="font_12">Ticker Performance</span>
-        <div className="chart_boxBg flex_center pad_32">
+        <div className="chart_boxBg flex_center">
           <span className="font_12">Loading ticker stats...</span>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { formatCurrency } from "@/utils/formatNumbers";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import SectionHeader from "../ui/SectionHeader";
 
 const MIN_TICKERS = 5;
 const TICKER_WINDOW = 8; // number of tickers to show per page
@@ -203,15 +204,6 @@ const TickerAnalysis = ({ trades }) => {
     return (
       <>
         <div className="flexClm gap_32 chart_boxBg pad_16">
-          <SectionHeader
-            title="Ticker Analysis"
-            description="Performance by trading symbol"
-            level={4} // uses <h2>
-            // showButton={accounts.length > 0}
-            // buttonLabel="Create journal"
-            // onButtonClick={handleCreateAccount}
-            // loading={loading}
-          />
           <div className="flex_center">
             <div className="font_14 shade_50">
               No trades available for analysis
