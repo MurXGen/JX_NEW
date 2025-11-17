@@ -137,8 +137,8 @@ export default function RefundPolicy() {
             <li>Brief description of the issue or reason for refund.</li>
           </ul>
           <p>
-            Once verified, approved refunds will be processed within{" "}
-            <strong>3–5 business days</strong> to the original payment method.
+            Once verified, approved refunds will be processed within
+            <strong>14 days</strong> to the original payment method.
           </p>
         </section>
 
