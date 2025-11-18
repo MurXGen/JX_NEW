@@ -24,7 +24,7 @@ const features = [
 const FeatureSection = () => {
   const router = useRouter();
   return (
-    <section className="feature-section">
+    <section className="feature-section mrgin_tp_100">
       <div className="feature-gradient" />
       <HeaderSection
         title="Feature Overview"

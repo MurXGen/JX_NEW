@@ -41,7 +41,7 @@ const highlightLastTwoWords = (text) => {
 
 const WhyJournalSection = () => {
   return (
-    <section className="flexClm landingBody gap_32">
+    <section className="flexClm mrgin_tp_100 landingBody gap_32">
       <HeaderSection
         title="Why Journal Your Trades?"
         subtitle="4 reasons every trader needs JournalX"

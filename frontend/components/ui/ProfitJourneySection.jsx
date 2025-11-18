@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import Confetti from "react-confetti";
+import { Plus, TrendingUp } from "lucide-react";
 
 const steps = ["Get analysis", "Find mistakes", "Know strategy", "Improve"];
 
@@ -31,9 +32,12 @@ const ProfitJourneySection = () => {
       const stepInterval = totalDuration / (steps.length + 1); // +1 for start to first step
 
       steps.forEach((_, index) => {
-        setTimeout(() => {
-          setActiveStep(index);
-        }, 1000 + (index + 1) * stepInterval); // Start after initial delay
+        setTimeout(
+          () => {
+            setActiveStep(index);
+          },
+          1000 + (index + 1) * stepInterval
+        ); // Start after initial delay
       });
 
       // Show confetti at the end
@@ -60,7 +64,7 @@ const ProfitJourneySection = () => {
         <div className="profitJourneyWrapper">
           {/* START BUTTON */}
           <motion.div
-            className="startButton"
+            className="startButton flexRow gap_12 flex_center"
             animate={
               startAnim
                 ? {
@@ -74,11 +78,11 @@ const ProfitJourneySection = () => {
                 : {}
             }
             transition={{
-              duration: 0.6,
+              duration: 0.3,
               times: [0, 0.3, 1],
             }}
           >
-            Log Trades
+            Log Trades <Plus size={20} />
           </motion.div>
 
           {/* LINE CONTAINER */}
@@ -98,7 +102,7 @@ const ProfitJourneySection = () => {
                         top: ["-190px", "90px"],
                       }
                     : {
-                        left: ["-12%", "100%"],
+                        left: ["-20%", "120%"],
                       }
                   : {}
               }
@@ -168,15 +172,15 @@ const ProfitJourneySection = () => {
 
           {/* END BUTTON */}
           <motion.div
-            className="endButton"
+            className="endButton flexRow gap_12 flex_center"
             animate={
               startAnim
                 ? {
-                    scale: [1, 1.15, 0.85],
+                    scale: [0.85, 1],
                     boxShadow: [
                       "0 4px 15px rgba(0,0,0,0.1)",
                       "0 0 30px rgba(34, 197, 94, 0.6)",
-                      "0 4px 25px rgba(34, 197, 94, 0.4)",
+                      "0 0px 25px rgba(34, 197, 94, 0.8)",
                     ],
                     backgroundColor: ["#10B981", "#059669", "#10B981"],
                   }
@@ -184,11 +188,11 @@ const ProfitJourneySection = () => {
             }
             transition={{
               duration: 0.4,
-              delay: 6,
+              delay: 5,
               times: [0, 0.5, 1],
             }}
           >
-            Get Profitable
+            Get Profitable <TrendingUp size={20} />
           </motion.div>
         </div>
       </section>
