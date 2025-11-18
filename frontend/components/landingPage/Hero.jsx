@@ -3,10 +3,21 @@
 import { ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const HeroSection = () => {
   const router = useRouter();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device on client side
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const checkScreen = () => setIsMobile(window.innerWidth <= 768);
+      checkScreen();
+      window.addEventListener("resize", checkScreen);
+      return () => window.removeEventListener("resize", checkScreen);
+    }
+  }, []);
 
   return (
     <section className="hero flexClm flex_center">
@@ -90,20 +101,26 @@ const HeroSection = () => {
           <div className="shootingGlow"></div>
         </div>
 
-        {/* Automatically picks mobile or desktop image */}
-        <picture>
-          <source
-            srcSet="/assets/hero_mob_image.svg"
-            media="(max-width: 768px)"
+        {/* Conditionally render correct image */}
+        {isMobile ? (
+          <Image
+            src="/assets/hero_mob_image.svg"
+            alt="Trading analytics dashboard mobile"
+            width={800}
+            height={600}
+            className="heroImage"
+            priority={false}
           />
+        ) : (
           <Image
             src="/assets/hero_image.svg"
             alt="Trading analytics dashboard"
             width={1200}
             height={600}
             className="heroImage"
+            priority={false}
           />
-        </picture>
+        )}
       </div>
     </section>
   );
