@@ -6416,3 +6416,240 @@ footer {
     border-top: 1px solid #eee;
   }
 }
+
+/* For Log trade animated section */
+
+@media (min-width: 0) {
+  .profitJourneySection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .profitJourneyWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+  }
+
+  @media (min-width: 769px) {
+    .profitJourneyWrapper {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+
+  /* BUTTON STYLES */
+  .startButton,
+  .endButton {
+    padding: 20px 32px;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    cursor: default;
+    user-select: none;
+    min-width: 160px;
+    position: relative;
+    z-index: 10;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .startButton {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  }
+
+  .endButton {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  }
+
+  /* LINE CONTAINER */
+  .lineContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+
+  .lineContainer.horizontal {
+    width: 100%;
+    height: 120px;
+  }
+
+  .lineContainer.vertical {
+    width: 120px;
+    height: 400px;
+  }
+
+  /* BACKGROUND LINE - Connected properly */
+  .backgroundLine {
+    position: absolute;
+    background: var(--white-20);
+    border-radius: 4px;
+    z-index: 1;
+  }
+
+  .lineContainer.horizontal .backgroundLine {
+    width: calc(100% + 20%);
+    height: 4px;
+    top: 50%;
+  }
+
+  .lineContainer.vertical .backgroundLine {
+    height: calc(100% + 300px);
+    width: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* ANIMATED GLOW LINE */
+  .glowLine {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    border-radius: 4px;
+    filter: blur(2px);
+    z-index: 2;
+    opacity: 0.8;
+  }
+
+  .lineContainer.horizontal .glowLine {
+    width: 100px;
+    height: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .lineContainer.vertical .glowLine {
+    height: 100px;
+    width: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* STEPS CONTAINER */
+  .stepsContainer {
+    position: absolute;
+    display: flex;
+    z-index: 5;
+  }
+
+  .stepsContainer.horizontal {
+    width: 100%;
+    justify-content: space-between;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    padding: 0 20px;
+  }
+
+  .stepsContainer.vertical {
+    flex-direction: column;
+    justify-content: space-between;
+    left: 0;
+    right: 0;
+    align-items: center;
+    padding: 20px 0;
+    gap: 46px;
+  }
+
+  /* STEP WRAPPER */
+  .stepWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .stepsContainer.horizontal .stepWrapper {
+    flex: 1;
+  }
+
+  .stepsContainer.vertical .stepWrapper {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* STEP DOT */
+  .stepDot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #6b7280;
+    position: relative;
+    z-index: 3;
+    border: 2px solid #374151;
+  }
+
+  .stepsContainer.horizontal .stepDot {
+    /* margin-bottom: 12px; */
+  }
+
+  .stepsContainer.vertical .stepDot {
+    /* margin-right: 12px; */
+  }
+
+  /* STEP TEXT */
+  .stepText {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+    opacity: 0.3;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    padding: 4px 8px;
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+  }
+
+  .stepsContainer.horizontal .stepText {
+    position: absolute;
+    top: -45px;
+    /* left: 50%;
+    transform: translateX(-50%); */
+  }
+
+  .stepsContainer.vertical .stepText {
+    position: absolute;
+    /* left: 35px;
+    top: 50%;
+    transform: translateY(-50%); */
+  }
+
+  @media (max-width: 768px) {
+    .profitJourneySection {
+      padding: 60px 16px;
+    }
+
+    .profitJourneyWrapper {
+      gap: 140px;
+    }
+
+    .startButton,
+    .endButton {
+      padding: 16px 24px;
+      font-size: 16px;
+      min-width: 140px;
+    }
+
+    .stepText {
+      font-size: 12px;
+    }
+
+    .stepsContainer.vertical .stepText {
+      left: 30px;
+    }
+
+    .lineContainer.vertical {
+      height: 350px;
+    }
+  }
+}

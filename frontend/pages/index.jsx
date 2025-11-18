@@ -13,6 +13,7 @@ import FeatureSection from "@/components/landingPage/Features";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import ProfitJourneySection from "@/components/ui/ProfitJourneySection";
 
 export default function Home() {
   const router = useRouter();
@@ -153,6 +154,7 @@ export default function Home() {
       <div>
         <Navbar />
         <HeroSection />
+        <ProfitJourneySection />
         <SponsorsSection />
         <WhyJournalSection />
         <ChooseJournalX />
