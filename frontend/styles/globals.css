@@ -6172,7 +6172,7 @@ footer {
   }
 
   .heroImage {
-    display: none;
+    border-top: none;
   }
 
   .shootingLine {
