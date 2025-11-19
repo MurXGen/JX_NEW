@@ -9,52 +9,52 @@ const faqs = [
   {
     question: "What is JournalX and how does it help traders?",
     answer:
-      "JournalX is a smart trading journal that tracks your performance, analyzes emotional patterns, and provides insights to improve profitability. It helps traders build discipline and consistent strategies using AI-driven analytics.",
+      "JournalX is a structured trading journal that helps traders log trades, track performance, and understand patterns. It promotes discipline and consistency by allowing you to review your setups, mistakes, and improvements over time.",
   },
   {
     question: "Is JournalX free to use?",
     answer:
-      "Yes, JournalX offers a free plan to start journaling your trades instantly. You can upgrade anytime for advanced features like analytics, insights, and funding account tracking.",
+      "Yes, JournalX includes a free plan to start logging your trades instantly. You can upgrade anytime to unlock advanced features like detailed analytics, notes, tags, and funded account tracking.",
   },
   {
     question: "How does JournalX help me pass funding accounts?",
     answer:
-      "JournalX tracks your funded account performance and provides emotional and statistical analysis to help you maintain consistency, manage drawdowns, and meet your funding goals faster.",
+      "JournalX helps you stay consistent by tracking your funded account metrics, daily drawdown, trade behavior, and performance stats so you can maintain discipline during challenges.",
   },
   {
     question: "Can I connect my broker or trading platform to JournalX?",
     answer:
-      "Yes we are on it as we are gradually integarting and it would be available as soon as possible! JournalX supports integration with popular brokers and trading platforms. You can automatically sync trades, saving you time and ensuring accurate records.",
+      "We are currently working on integrations with popular brokers and trading platforms. Once live, you will be able to sync trades automatically for accurate and faster journaling.",
   },
   {
     question: "Will my trading data remain private and secure?",
     answer:
-      "Absolutely. JournalX uses end-to-end encryption and secure servers to keep your data 100% private. Your logs and performance analytics are visible only to you.",
+      "Yes. JournalX uses secure servers and encrypted data handling. Your trade logs and journal entries remain private and are visible only to you.",
   },
   {
     question: "Does JournalX support both demo and live accounts?",
     answer:
-      "Yes, you can log both demo and live trades to analyze your performance and emotions under different trading conditions.",
+      "Yes, you can log trades from both demo and live accounts to understand your performance and behavior in different conditions.",
   },
   {
     question: "Can JournalX track my emotions and mindset?",
     answer:
-      "Yes, JournalX lets you record emotional states before and after trades, providing AI-driven insights into how mindset impacts your performance.",
+      "Yes, JournalX allows you to record your emotions, thoughts, and observations for each trade so you can identify psychological patterns that affect your consistency.",
   },
   {
     question: "How does JournalX improve my risk management?",
     answer:
-      "JournalX visualizes your risk-to-reward ratios, win/loss patterns, and position sizing behavior—helping you make data-driven decisions and reduce emotional trades.",
+      "JournalX helps you review your risk-to-reward ratios, win/loss patterns, and position sizing habits over time so you can make better decisions and avoid impulsive trades.",
   },
   {
     question: "Does JournalX work on mobile devices?",
     answer:
-      "Yes, JournalX is fully responsive and optimized for both desktop and mobile, allowing you to log and review trades anytime, anywhere.",
+      "Yes, JournalX is fully responsive and optimized for both mobile and desktop, making it easy to log and review trades anytime.",
   },
   {
     question: "Can JournalX help me build a consistent strategy?",
     answer:
-      "Definitely. JournalX tracks your historical data, highlights strengths and weaknesses, and helps you refine a trading system that aligns with your psychology and market style.",
+      "Yes. JournalX highlights your strengths and weaknesses through your trade history, helping you refine a trading system that fits your style and improves consistency over time.",
   },
 ];
 

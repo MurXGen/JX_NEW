@@ -160,7 +160,7 @@ const SubscriptionStatus = () => {
     if (currentLevel < 3) {
       return {
         title: "Ready for the Next Level?",
-        description: "Upgrade to unlock AI insights, integrations, and more.",
+        description: "Upgrade to unlock more benefits, integrations, and more.",
         cta: "Upgrade Now",
         urgency: "upgrade",
       };

@@ -44,14 +44,17 @@ export default function Home() {
           JournalX — The Ultimate Trading Journal for Stocks, Options, Forex &
           Crypto
         </title>
+
         <meta
           name="description"
-          content="The all-in-one trading journal for Stocks, Options, Forex, Futures & Crypto. JournalX empowers traders to log and review trades, uncover performance insights, and sharpen their edge with advanced analytics and AI-driven tracking."
+          content="The all-in-one trading journal for Stocks, Options, Forex, Futures & Crypto. JournalX helps traders log trades, analyze performance, track patterns, and build discipline to improve consistency and profitability."
         />
+
         <meta
           name="keywords"
-          content="trading journal, stock trading journal, options trading tracker, forex trade log, crypto trading journal, futures trading log, trading performance tracker, trade analytics, journalx app, ai trading journal"
+          content="trading journal, stock trading journal, options trading tracker, forex trade log, crypto trading journal, futures trading log, trading performance tracker, trade analytics, journalx app, trader discipline"
         />
+
         <meta name="author" content="JournalX" />
         <meta
           name="robots"
@@ -64,14 +67,16 @@ export default function Home() {
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="JournalX" />
         <meta property="og:url" content="https://journalx.app/" />
+
         <meta
           property="og:title"
           content="JournalX — Smarter Trading Journal for Serious Traders"
         />
         <meta
           property="og:description"
-          content="Track, analyze, and optimize your trades with JournalX. Designed for Stocks, Options, Forex, Futures & Crypto traders who want to grow consistently with data-driven insights."
+          content="Track, analyze, and improve your trades with JournalX. Built for Stocks, Options, Forex, Futures & Crypto traders who want consistent, disciplined performance."
         />
+
         <meta
           property="og:image"
           content="https://journalx.app/assets/Journalx_Banner.png"
@@ -85,6 +90,7 @@ export default function Home() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@journalxapp" />
         <meta name="twitter:creator" content="@journalxapp" />
+
         <meta name="twitter:url" content="https://journalx.app/" />
         <meta
           name="twitter:title"
@@ -92,7 +98,7 @@ export default function Home() {
         />
         <meta
           name="twitter:description"
-          content="JournalX helps traders log and analyze trades across markets with AI-powered insights to improve performance and consistency."
+          content="JournalX helps traders log and analyze trades across markets to build a consistent, profitable trading approach."
         />
         <meta
           name="twitter:image"
@@ -111,7 +117,7 @@ export default function Home() {
         />
         <link rel="manifest" href="/site.webmanifest" />
 
-        {/* === Schema: SaaS / Software Application === */}
+        {/* === Schema: SaaS / Software Application (AI removed) === */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -124,7 +130,7 @@ export default function Home() {
               applicationCategory: "FinanceApplication",
               operatingSystem: "Web, iOS, Android",
               description:
-                "JournalX is an AI-powered trading journal app that helps traders log, analyze, and improve their performance across Stocks, Options, Forex, Futures & Crypto.",
+                "JournalX is a trading journal app that helps traders log, organize, and analyze their trades across Stocks, Options, Forex, Futures & Crypto to improve consistency and performance.",
               offers: {
                 "@type": "Offer",
                 price: "0.00",

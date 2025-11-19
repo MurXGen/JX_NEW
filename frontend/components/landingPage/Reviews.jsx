@@ -9,21 +9,21 @@ const reviews = [
     name: "Aarav Patel",
     role: "Forex Trader, Mumbai",
     feedback:
-      "Before JournalX, I tracked my trades in Excel — messy and slow. Now I can instantly see where I went wrong, track emotions, and spot patterns that improved my consistency. My monthly PnL has grown 18%.",
+      "Before JournalX, I tracked trades in Excel — it was messy and time-consuming. With JournalX, I can clearly see my mistakes, log emotions, and review patterns that actually improved my consistency. My discipline and clarity have never been better.",
     icon: <TrendingUp size={28} />,
   },
   {
     name: "Sophia Chen",
     role: "Crypto Swing Trader, Singapore",
     feedback:
-      "I used to lose track of my trades across multiple exchanges. JournalX automatically syncs and organizes everything. The AI insights helped me identify over-trading habits — now I trade less but win more.",
+      "Journaling trades across exchanges was overwhelming. JournalX keeps everything organized, clean, and easy to review. I became much more aware of my over-trading habits and now take fewer but higher-quality trades.",
     icon: <BarChart3 size={28} />,
   },
   {
     name: "David Martinez",
     role: "Futures & Indices Trader, USA",
     feedback:
-      "Old spreadsheets gave me no clarity on performance or risk. JournalX shows my R:R, emotions, and setups visually. Risk management feels effortless — my drawdowns dropped by 30%.",
+      "Spreadsheets gave me zero clarity about performance. JournalX helps me track R:R, my emotions, and setups in a visual, structured way. My risk management improved significantly and my drawdowns reduced because I can finally see what’s working.",
     icon: <ShieldCheck size={28} />,
   },
 ];
@@ -42,7 +42,7 @@ export default function ReviewsSection() {
       />
       <meta
         itemProp="description"
-        content="Read how traders improved profitability, consistency, and emotional control using JournalX – the AI-powered trading journal at JournalX.app."
+        content="Read how traders improved profitability, consistency, and emotional control using JournalX – best trading journal at JournalX.app."
       />
       <meta itemProp="brand" content="JournalX.app" />
 

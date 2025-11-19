@@ -1,7 +1,7 @@
 {
   "name": "JournalX",
   "short_name": "JournalX",
-  "description": "AI-powered trading journal and analytics app for traders.",
+  "description": "Trading journal and best analytical tool for traders.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1d1d1d",

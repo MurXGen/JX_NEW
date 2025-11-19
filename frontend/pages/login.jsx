@@ -189,7 +189,7 @@ function Login() {
         />
         <meta
           property="og:description"
-          content="Access your AI-powered trading journal, track your trades, and improve your performance with JournalX."
+          content="Access your trading journal with more benefits and analytics, track your trades, and improve your performance with JournalX."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://journalx.app/login" />
