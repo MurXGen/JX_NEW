@@ -80,14 +80,20 @@ export const PLAN_RULES = {
 
 // 🧭 Normalize plan names and retrieve rules
 export const getPlanRules = (userData) => {
-  const planId =
-    userData?.value?.subscription?.planId ||
-    userData?.subscription?.planId ||
-    "free";
+  const subscription =
+    userData?.value?.subscription || userData?.subscription || {};
 
+  const planId = subscription.planId || "free";
+  const status = subscription.status || "none";
+
+  // 🔥 If status is NOT active → force FREE plan
+  if (status !== "active") {
+    return PLAN_RULES.free;
+  }
+
+  // If active → use actual plan
   const normalized = typeof planId === "string" ? planId.toLowerCase() : "free";
 
-  // Match plan ID patterns
   if (normalized.includes("pro")) return PLAN_RULES.pro;
   if (normalized.includes("master")) return PLAN_RULES.master;
 
