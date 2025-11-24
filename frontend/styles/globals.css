@@ -5780,6 +5780,21 @@ footer {
   padding-right: 0 !important;
 }
 
+.heroBgWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* 🔥 pushes background behind everything */
+  pointer-events: none;
+}
+.heroBg {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
 /* CTA BOTTOM */
 
 /* ===============================
@@ -6173,6 +6188,8 @@ footer {
 
   .heroImage {
     border-top: none;
+    width: 100%;
+    min-width: 375px;
   }
 
   .shootingLine {
@@ -6190,6 +6207,21 @@ footer {
 
   .heroBg {
     top: -300px;
+  }
+
+  .heroBgWrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* 🔥 pushes background behind everything */
+    pointer-events: none;
+  }
+  .heroBg {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
   }
 
   .heroContent {

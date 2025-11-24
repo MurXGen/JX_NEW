@@ -4,12 +4,17 @@ import { ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 const HeroSection = () => {
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile device on client side
+  // Track image load state
+  const [bgLoaded, setBgLoaded] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+
+  // Detect mobile device
   useEffect(() => {
     if (typeof window !== "undefined") {
       const checkScreen = () => setIsMobile(window.innerWidth <= 768);
@@ -21,15 +26,35 @@ const HeroSection = () => {
 
   return (
     <section className="hero flexClm flex_center">
-      {/* Background Image (ONLY priority image) */}
-      <Image
-        src="/assets/hero_bg.svg"
-        alt="Trading analytics dashboard background"
-        width={1200}
-        height={1000}
-        className="heroBg"
-        priority
-      />
+      {/* Background Image with fade-in */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: bgLoaded ? 1 : 0 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+        className="heroBgWrapper"
+      >
+        {isMobile ? (
+          <Image
+            src="/assets/hero_bg_mobile.png"
+            alt="Trading analytics dashboard background (mobile)"
+            width={800}
+            height={800}
+            className="heroBg"
+            priority
+            onLoadingComplete={() => setBgLoaded(true)}
+          />
+        ) : (
+          <Image
+            src="/assets/hero_bg.svg"
+            alt="Trading analytics dashboard background"
+            width={1200}
+            height={1000}
+            className="heroBg"
+            priority
+            onLoadingComplete={() => setBgLoaded(true)}
+          />
+        )}
+      </motion.div>
 
       {/* Hero Text */}
       <div
@@ -78,7 +103,6 @@ const HeroSection = () => {
           Try it for free
         </button>
 
-        {/* Trust Indicator */}
         <div className="flexRow flex_center gap_8 trust_badge">
           <Star
             size={16}
@@ -95,21 +119,26 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Hero Image Section */}
-      <div className="heroImageSec">
+      {/* Hero Image with fade-in */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: heroLoaded ? 1 : 0 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+        className="heroImageSec"
+      >
         <div className="shootingLine">
           <div className="shootingGlow"></div>
         </div>
 
-        {/* Conditionally render correct image */}
         {isMobile ? (
           <Image
-            src="/assets/hero_mob_image.svg"
+            src="/assets/hero_mob_bg.png"
             alt="Trading analytics dashboard mobile"
             width={800}
             height={600}
             className="heroImage"
             priority={false}
+            onLoadingComplete={() => setHeroLoaded(true)}
           />
         ) : (
           <Image
@@ -119,9 +148,10 @@ const HeroSection = () => {
             height={600}
             className="heroImage"
             priority={false}
+            onLoadingComplete={() => setHeroLoaded(true)}
           />
         )}
-      </div>
+      </motion.div>
     </section>
   );
 };
