@@ -184,8 +184,8 @@ export default function PaymentSelector({
               {billingPeriod === "monthly"
                 ? "Monthly"
                 : billingPeriod === "yearly"
-                ? "Yearly"
-                : "Lifetime"}
+                  ? "Yearly"
+                  : "Lifetime"}
             </span>
           </div>
           <button

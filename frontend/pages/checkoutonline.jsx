@@ -169,8 +169,8 @@ export default function CheckoutOnline() {
           type: isLifetime
             ? "lifetime"
             : paymentType === "recurring"
-            ? "recurring"
-            : "one-time",
+              ? "recurring"
+              : "one-time",
           startAt: now.toISOString(),
           expiresAt: expiry.toISOString(),
           createdAt: now.toISOString(),

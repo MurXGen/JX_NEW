@@ -92,8 +92,8 @@ function Pricing() {
         const normalizedPlan = planId.toLowerCase().includes("pro")
           ? "pro"
           : planId.toLowerCase().includes("master")
-          ? "master"
-          : null;
+            ? "master"
+            : null;
 
         setCurrentPlanId(normalizedPlan);
         setActivePlan(normalizedPlan);
@@ -203,8 +203,8 @@ function Pricing() {
         planId === "master"
           ? item.master
           : planId === "pro"
-          ? item.pro
-          : item.free,
+            ? item.pro
+            : item.free,
     }));
   };
 
@@ -637,8 +637,8 @@ function Pricing() {
                         selectedPlanId === plan.planId // when the card is clicked
                           ? "button_pri"
                           : isProPlan
-                          ? "button_pri"
-                          : "button_sec"
+                            ? "button_pri"
+                            : "button_sec"
                       }`}
                       disabled={
                         isCurrent ||
@@ -693,14 +693,16 @@ function Pricing() {
                       {isCurrent
                         ? "Current Plan"
                         : !userHasPlan && plan.planId === "free"
-                        ? "Start Free"
-                        : plan.planId === "free" && userHasActivePlan
-                        ? "Upgraded"
-                        : isProPlan
-                        ? `Get ${
-                            billingPeriod === "monthly" ? "Monthly" : "Yearly"
-                          } Access`
-                        : "Get Lifetime Access"}
+                          ? "Start Free"
+                          : plan.planId === "free" && userHasActivePlan
+                            ? "Upgraded"
+                            : isProPlan
+                              ? `Get ${
+                                  billingPeriod === "monthly"
+                                    ? "Monthly"
+                                    : "Yearly"
+                                } Access`
+                              : "Get Lifetime Access"}
                       <Zap size={16} />
                     </motion.button>
                   </div>
