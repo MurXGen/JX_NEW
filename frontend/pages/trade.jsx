@@ -93,7 +93,7 @@ const TradePage = () => {
         />
         <meta
           property="og:description"
-          content="Analyze your trades, identify mistakes, and grow consistently using JournalX’s trading journal."
+          content="Analyze your trades, identify mistakes, and grow consistently using JournalX’s AI-powered trading journal."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://journalx.app/trades" />
@@ -104,7 +104,7 @@ const TradePage = () => {
         <meta name="twitter:title" content="JournalX | Trade History" />
         <meta
           name="twitter:description"
-          content="Visualize and analyze all your trades in one place with JournalX — your trading journal."
+          content="Visualize and analyze all your trades in one place with JournalX — your AI-powered trading journal."
         />
         <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>

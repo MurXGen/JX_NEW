@@ -121,17 +121,14 @@ export default function Home() {
     <>
       <Head>
         <title>Powerful Dashboard | JournalX</title>
-
         <meta
           name="description"
-          content="JournalX is your personal trading journal dashboard to track trades, review performance, and understand what truly works in your trading strategy. Build discipline and consistency through structured journaling."
+          content="JournalX is your personal trading journal dashboard to track trades, analyze performance, and discover what works best in your trading strategy. Empower your trading with AI insights and analytics."
         />
-
         <meta
           name="keywords"
-          content="trading journal, trade analytics, trading performance tracker, forex journal, stock trading journal, crypto trading journal, journalx dashboard, trading performance improvement"
+          content="trading journal, trade analytics, trading performance tracker, AI trading insights, forex journal, stock trading journal, crypto trading analysis, journalx dashboard, trading performance improvement"
         />
-
         <meta name="robots" content="index, follow" />
 
         {/* Open Graph / Social Meta Tags */}
@@ -141,7 +138,7 @@ export default function Home() {
         />
         <meta
           property="og:description"
-          content="Track your trades, visualize your performance, and build a consistent trading approach with the JournalX dashboard."
+          content="Track your trades, visualize your performance, and get AI-driven insights — all in one smart dashboard with JournalX."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://journalx.app/" />
@@ -155,7 +152,7 @@ export default function Home() {
         />
         <meta
           name="twitter:description"
-          content="Simplify your trading journal. JournalX helps you track, analyze, and improve your trading performance with clear insights."
+          content="Simplify your trading journal. JournalX helps you track, analyze, and improve your trading performance with AI insights."
         />
         <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>

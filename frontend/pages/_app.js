@@ -3,6 +3,7 @@ import * as gtag from "@/utils/gtag";
 import Head from "next/head";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -11,36 +12,38 @@ export default function MyApp({ Component, pageProps }) {
     const handleRouteChange = (url) => gtag.pageview(url);
     router.events.on("routeChangeComplete", handleRouteChange);
     handleRouteChange(window.location.pathname);
-
     return () => router.events.off("routeChangeComplete", handleRouteChange);
   }, [router.events]);
 
   return (
     <>
       <Head>
-        {/* --- BASIC SEO --- */}
+        {/* Primary Meta */}
         <title>
-          JournalX | Ultimate Trading Journal for Stocks, Options, Forex &
+          JournalX | The Ultimate Trading Journal for Stocks, Options, Forex &
           Crypto
         </title>
         <meta
           name="description"
-          content="Smart trading journal for Stocks, Options, Forex, Crypto & Futures. Log trades, analyze performance, and improve strategy with more insights into your protitable and losing trades."
+          content="The all-in-one digital trading journal for Stocks, Options, Forex, Futures & Crypto. JournalX helps traders log, analyze, and optimize every trade with smart analytics to sharpen their edge and improve consistency."
         />
         <meta
           name="keywords"
-          content="trading journal, trade analytics, ai trading journal, crypto journal, forex journal, trade tracker"
+          content="trading journal, trade analytics, AI trading journal, performance tracker, stock trading log, crypto trading journal, forex journal, trade analysis, trading performance app, journalx, trading tracker, best trading journal app, trading notebook, trader diary"
         />
+        <meta name="google-adsense-account" content="ca-pub-9495953709882107" />
+        <meta name="author" content="Murthy Poothapandi Thevar" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#0d1117" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
 
-        {/* Faster rendering on mobile */}
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-        {/* --- ICONS --- */}
+        {/* Favicon */}
         <link rel="icon" href="/assets/JournalX_Favicon.png" />
 
-        {/* --- FONTS (Optimized using preconnect + display=swap) --- */}
+        {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -48,71 +51,70 @@ export default function MyApp({ Component, pageProps }) {
           crossOrigin="anonymous"
         />
         <link
+          href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Poppins:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&family=Comfortaa:wght@400;500;700&display=swap"
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&display=swap"
         />
 
-        {/* Remove unused fonts: Comfortaa, Bree Serif (they slow page load) */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#1d1d1d" />
 
-        {/* --- SOCIAL META --- */}
+        {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://journalx.app" />
-        <meta property="og:title" content="JournalX – Smart Trading Journal" />
+        <meta
+          property="og:title"
+          content="JournalX – Smarter Trading Journal for Stocks, Options, Forex & Crypto"
+        />
         <meta
           property="og:description"
-          content="Log trades, find patterns, and improve trading performance using JournalX."
+          content="Track, review, and refine your trades across markets. JournalX helps you discover performance insights, identify patterns, and improve your trading discipline."
         />
         <meta property="og:image" content="/assets/JournalX_Banner.png" />
 
+        {/* Twitter Meta */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JournalX – Smart Trading Journal" />
+        <meta name="twitter:url" content="https://journalx.app" />
+        <meta
+          name="twitter:title"
+          content="JournalX | Smart Trading Journal for Stocks, Options & Crypto"
+        />
         <meta
           name="twitter:description"
-          content="Analyze and optimize your trades with JournalX."
+          content="JournalX empowers traders to log and analyze trades across multiple markets with AI-powered insights to boost performance and consistency."
         />
         <meta name="twitter:image" content="/assets/JournalX_Banner.png" />
 
-        {/* --- MANIFEST --- */}
-        <link rel="manifest" href="/manifest.json" />
-
-        {/* --- THEME INITIALIZATION (non-blocking) --- */}
+        {/* Theme initialization */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              (function () {
-                try {
-                  const theme = localStorage.getItem('theme') || 'dark';
-                  document.documentElement.classList.add(theme);
-                } catch(e) {}
-              })();
-            `,
+            __html: `(function () {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.classList.add(savedTheme);
+      })();`,
           }}
         />
 
-        {/* --- GA4 (Loaded AFTER page becomes interactive) --- */}
+        {/* GA4 */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>
             <script
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
               async
-            ></script>
-
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+            />
             <script
-              id="gtag-init"
               dangerouslySetInnerHTML={{
                 __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', { send_page_view: false });
-                `,
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', { send_page_view: false });
+          `,
               }}
             />
           </>
         )}
       </Head>
 
-      {/* --- RENDER PAGE --- */}
       <Component {...pageProps} />
     </>
   );
