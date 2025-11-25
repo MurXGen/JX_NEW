@@ -6011,7 +6011,7 @@ footer {
 
 .footer_links a:hover,
 .footer_contact a:hover {
-  color: var(--primary);
+  color: var(--primary-light);
 }
 
 .footer_link_hover {
@@ -6032,7 +6032,7 @@ footer {
 }
 
 .footer_link_hover:hover {
-  color: var(--primary);
+  color: var(--primary-lighty);
 }
 
 .footer_link_hover:hover .arrow_icon {
