@@ -85,19 +85,32 @@ function Pricing() {
   useEffect(() => {
     (async () => {
       const userData = await getFromIndexedDB("user-data");
-      const planId = userData?.subscription?.planId || null;
+      const subscription = userData?.subscription;
 
-      if (planId) {
-        // Normalize plan id (e.g. PRO001 → pro)
-        const normalizedPlan = planId.toLowerCase().includes("pro")
-          ? "pro"
-          : planId.toLowerCase().includes("master")
-            ? "master"
-            : null;
+      if (!subscription) return;
 
-        setCurrentPlanId(normalizedPlan);
-        setActivePlan(normalizedPlan);
+      const planId = subscription.planId || null;
+      const expiry = subscription.expiryDate || null;
+
+      // Check if expired
+      const isExpired = expiry ? new Date(expiry).getTime() < Date.now() : true;
+
+      if (!planId || isExpired) {
+        // ❌ Do NOT set active plan if expired
+        setCurrentPlanId(null);
+        setActivePlan(null);
+        return;
       }
+
+      // Normalize plan id (e.g., PRO001 → pro)
+      const normalizedPlan = planId.toLowerCase().includes("pro")
+        ? "pro"
+        : planId.toLowerCase().includes("master")
+          ? "master"
+          : null;
+
+      setCurrentPlanId(normalizedPlan);
+      setActivePlan(normalizedPlan);
     })();
   }, []);
 
