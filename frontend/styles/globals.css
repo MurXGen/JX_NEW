@@ -478,14 +478,36 @@ input:focus {
   border: 0.5px solid var(--primary-50);
 }
 
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 button {
+  position: relative;
   font-weight: 500;
   transition-duration: 0.1s;
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* Hide button text while loading */
+button.loading {
+  color: transparent !important;
+  pointer-events: none;
+}
+
+/* Loader */
+button.loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: white;
+  border-right-color: white;
+  animation: spin 0.6s linear infinite;
 }
 
 .active_tab {

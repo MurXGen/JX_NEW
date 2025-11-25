@@ -99,12 +99,12 @@ export default function Faqs() {
               }}
             >
               {/* Question Button */}
-              <motion.button
+              <motion.a
                 onClick={() => toggleFAQ(index)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 250, damping: 18 }}
-                className="flexRow flexRow_stretch width100 pad_16"
+                className="flexRow flexRow_stretch pad_16"
                 style={{
                   color: "white",
                   border: "none",
@@ -113,6 +113,7 @@ export default function Faqs() {
                   cursor: "pointer",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  textDecoration: "none",
                 }}
               >
                 <motion.h3
@@ -135,7 +136,7 @@ export default function Faqs() {
                     <Plus size={20} strokeWidth={2} />
                   )}
                 </motion.div>
-              </motion.button>
+              </motion.a>
 
               {/* Animated Answer */}
               <AnimatePresence initial={false}>

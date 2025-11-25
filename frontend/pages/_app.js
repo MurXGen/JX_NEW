@@ -9,6 +9,21 @@ export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
+    const handleClick = (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+
+      // Only add loader if not already loading
+      if (!btn.classList.contains("loading")) {
+        btn.classList.add("loading");
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
+
+  useEffect(() => {
     const handleRouteChange = (url) => gtag.pageview(url);
     router.events.on("routeChangeComplete", handleRouteChange);
     handleRouteChange(window.location.pathname);
