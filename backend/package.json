@@ -12,6 +12,8 @@
   "type": "commonjs",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.864.0",
+    "@paddle/paddle-js": "^1.5.1",
+    "@paddle/paddle-node-sdk": "^3.4.0",
     "axios": "^1.12.2",
     "backblaze-b2": "^1.7.1",
     "bcrypt": "^5.1.1",
@@ -32,6 +34,7 @@
     "node-fetch": "^3.3.2",
     "node-telegram-bot-api": "^0.66.0",
     "openai": "^5.15.0",
+    "paddle": "^1.0.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "qrcode": "^1.5.4",

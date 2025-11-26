@@ -52,6 +52,11 @@ const userSchema = new mongoose.Schema(
       default: "one-time",
     },
 
+    // Add to your existing user schema
+    paddleCustomerId: { type: String },
+    lastBillingDate: { type: Date },
+    nextBillingDate: { type: Date },
+
     subscriptionStartAt: { type: Date },
     subscriptionExpiresAt: { type: Date },
     subscriptionCreatedAt: { type: Date },
