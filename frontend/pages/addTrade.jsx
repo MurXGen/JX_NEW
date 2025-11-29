@@ -978,8 +978,8 @@ export default function AddTrade() {
             {loading
               ? "⏳ Please wait..."
               : isEdit
-              ? "Update Trade"
-              : "Submit Trade"}
+                ? "Update Trade"
+                : "Submit Trade"}
           </button>
         </div>
       </div>
