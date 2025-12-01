@@ -9,14 +9,19 @@ import {
   ChevronDown,
   Menu,
   Crown,
+  User2Icon,
+  Plus,
+  BookTextIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import Cookies from "js-cookie";
+import { motion, AnimatePresence } from "framer-motion";
 
-const Navbar = () => {
+export default function Navbar() {
   const router = useRouter();
+
   const [darkMode, setDarkMode] = useState(false);
   const [userName, setUserName] = useState("");
   const [accounts, setAccounts] = useState([]);
@@ -24,42 +29,41 @@ const Navbar = () => {
   const [hideAccountBox, setHideAccountBox] = useState(false);
   const [isFreePlan, setIsFreePlan] = useState(false);
 
-  // ✅ Initialize theme + user data
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // ======== FETCH USER + ACCOUNT DATA (Unified) =========
   useEffect(() => {
     const init = async () => {
       const name = localStorage.getItem("userName");
       if (name) setUserName(name);
 
-      // Load theme from localStorage
+      // Theme
       const savedTheme = localStorage.getItem("theme") || "dark";
       document.body.setAttribute("data-theme", savedTheme);
       setDarkMode(savedTheme === "dark");
 
-      // Hide account box if on /accounts page
-      const hostname = window.location.hostname;
+      // Hide account box on /accounts
       const pathname = window.location.pathname;
-      if (
-        (hostname === "journalx.app" || hostname === "localhost") &&
-        pathname === "/accounts"
-      ) {
+      if (pathname === "/accounts") {
         setHideAccountBox(true);
       }
 
-      // Fetch account/trade data
-      const { redirectToLogin, accounts: fetchedAccounts } =
-        await fetchAccountsAndTrades();
-      if (redirectToLogin) {
+      // Load result via utility
+      const result = await fetchAccountsAndTrades();
+      if (result.redirectToLogin) {
         router.push("/login");
         return;
       }
-      setAccounts(fetchedAccounts);
 
-      // Selected account
+      setAccounts(result.accounts);
+
+      // Retrieve selected account via cookies
       const accountId = Cookies.get("accountId");
-      const account = fetchedAccounts.find((acc) => acc._id === accountId);
-      setSelectedAccount(account || fetchedAccounts[0]);
+      const account = result.accounts.find((acc) => acc._id === accountId);
 
-      // Check subscription plan
+      setSelectedAccount(account || result.accounts[0]);
+
+      // Subscription check
       const userData = await getFromIndexedDB("userData");
       if (userData && userData.subscription) {
         const planId = userData.subscription.planId;
@@ -72,98 +76,95 @@ const Navbar = () => {
     init();
   }, [router]);
 
-  // ✅ Toggle Dark Mode
-  const toggleDarkMode = () => {
-    setDarkMode((prev) => {
-      const newMode = !prev;
-      const theme = newMode ? "dark" : "light";
-      document.body.setAttribute("data-theme", theme);
-      localStorage.setItem("theme", theme);
-      return newMode;
-    });
+  // ======= CHANGE ACCOUNT (save cookie) ========
+  const handleAccountClick = (accountId) => {
+    try {
+      Cookies.set("accountId", accountId, {
+        path: "/",
+        sameSite: "Strict",
+        expires: 3560,
+      });
+
+      const acc = accounts.find((a) => a._id === accountId);
+      setSelectedAccount(acc);
+      setShowDropdown(false);
+
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("Error setting account cookie:", err);
+    }
   };
 
-  const handleClick = () => router.push("/profile");
+  // ======= Create Account =======
+  const handleCreateAccount = () => {
+    router.push("/create-account");
+  };
+
   const handleUpgradeClick = () => router.push("/pricing");
 
   return (
-    <div className="navbarTrades flexRow flexRow_stretch">
-      {/* Profile + Greeting */}
-      <div
-        className="flexRow gap_8 navbar_profile"
-        onClick={handleClick}
-        style={{ userSelect: "none", cursor: "pointer" }}
-      >
-        <Menu size={20} className="button_sec" />
-        <div className="flexClm">
-          <span className="font_12" style={{ color: "#ffffff80" }}>
-            Hey hi,
-          </span>
-          <span
-            className="font_16 flexRow gap_4 flex_center"
-            style={{ fontWeight: 500 }}
-          >
-            {userName || "User"} <ChevronDown size={20} className="ml-2" />
-          </span>
-        </div>
-      </div>
-
-      {/* Right Controls */}
-      <div className="flexRow flex_center gap_12">
-        {/* Account Switcher */}
-        {selectedAccount && !hideAccountBox && (
-          <div
-            className="button_sec flexRow gap_8"
-            onClick={() => router.push(`/accounts`)}
-          >
-            <span
-              style={{
-                maxWidth: "10ch",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
-                display: "inline-block",
-                verticalAlign: "middle",
-              }}
-            >
-              {selectedAccount.name}
-            </span>
-            <Repeat size={16} />
-          </div>
-        )}
-
-        {/* Theme Toggle */}
-        {/* <button
-          onClick={toggleDarkMode}
-          className="button_sec flex_center"
-          style={{
-            cursor: "pointer",
-            borderRadius: "50%",
-            transition: "all 0.3s ease",
-          }}
-          title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+    <>
+      <div className="flexRow flexRow_stretch gap_12">
+        <div
+          className="boxBg"
+          onClick={() => router.push("/profile")}
+          style={{ cursor: "pointer" }}
         >
-          {darkMode ? (
-            <Sun size={18} className="text-yellow-400" />
-          ) : (
-            <Moon size={18} className="text-blue-400" />
-          )}
-        </button> */}
+          <User2Icon size={16} />
+        </div>
 
-        {/* Upgrade for Free Plan */}
+        {/* LEFT SECTION (ACCOUNT DROPDOWN TRIGGER) */}
+        <div
+          className="boxBg width100 flexRow gap_12 flex_center"
+          onClick={() => setShowDropdown((prev) => !prev)}
+          style={{ cursor: "pointer" }}
+        >
+          {selectedAccount && !hideAccountBox && (
+            <span className="font_16">{selectedAccount.name}</span>
+          )}
+          <ChevronDown size={16} />
+        </div>
+
+        {/* Free plan Crown */}
         {isFreePlan && (
           <div
+            className="boxBg"
             onClick={handleUpgradeClick}
-            className="button_pri flexRow flex_center gap_8"
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            style={{ cursor: "pointer" }}
           >
-            <Crown size={16} />
+            <Crown size={16} className="vector" />
           </div>
         )}
       </div>
-    </div>
-  );
-};
 
-export default Navbar;
+      {/* ======= DROPDOWN ACCOUNT LIST ======= */}
+      <AnimatePresence>
+        {showDropdown && (
+          <motion.div
+            className="dropdown-nav account-dropdown"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {accounts.map((acc) => (
+              <div
+                key={acc._id}
+                className="dropdown-item"
+                onClick={() => handleAccountClick(acc._id)}
+              >
+                <BookTextIcon size={16} />
+                <span>{acc.name}</span>
+              </div>
+            ))}
+
+            <div className="dropdown-item create" onClick={handleCreateAccount}>
+              <Plus size={16} />
+              <span>Create new account</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

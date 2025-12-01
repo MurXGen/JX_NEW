@@ -353,7 +353,7 @@ function Accounts() {
       </Head>
 
       <div className="dashboard flexClm gap_32">
-        <Navbar />
+        {/* <Navbar /> */}
         <BackgroundBlur />
 
         <SectionHeader

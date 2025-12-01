@@ -894,7 +894,11 @@ export default function AddTrade() {
         <span className="font_12 shade_60">Log trade in seconds</span>
       </div>
 
-      <form onSubmit={handleSubmit} className="flexClm gap_24">
+      <form
+        onSubmit={handleSubmit}
+        className="flexClm gap_24"
+        style={{ height: "70vh", overflow: "scroll" }}
+      >
         {/* 1️⃣ Trade Status */}
         <TradeStatusGrid
           form={form}
@@ -933,12 +937,15 @@ export default function AddTrade() {
 
       {/* ✅ Submit & Cancel */}
       <div
-        className="popups_btm"
+        className=""
         style={{
-          width: "98%",
-          backdropFilter: "blur(20px)",
-          bottom: "0px",
-          padding: "0 12px 12px 12px",
+          position: "absolute",
+          bottom: "12px",
+          right: "12px",
+          left: "12px",
+          maxWidth: "1200px",
+          minWidth: "200px",
+          margin: "auto",
         }}
       >
         <span className="font_12 shade_50">Choose other factors</span>
@@ -951,7 +958,7 @@ export default function AddTrade() {
             {visibleButtons.map((key) => (
               <button
                 key={key}
-                className="button_sec"
+                className="button_ter"
                 onClick={() => openModal(key)}
               >
                 {key
@@ -962,16 +969,11 @@ export default function AddTrade() {
           </div>
         )}
         <div className="flexRow flexRow_stretch gap_4">
-          <button
-            className="button_sec"
-            style={{ width: "100%" }}
-            onClick={() => router.push("/trade")}
-          >
+          <button className="button_sec" onClick={() => router.push("/trade")}>
             Cancel
           </button>
           <button
             className="button_pri"
-            style={{ width: "100%" }}
             onClick={handleSubmit}
             disabled={loading}
           >

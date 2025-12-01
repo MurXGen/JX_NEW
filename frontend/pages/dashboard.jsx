@@ -16,6 +16,7 @@ import { X } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -72,6 +73,13 @@ export default function Home() {
   const [stats, setStats] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const { showPrompt, setShowPrompt, handleInstall } = useInstallPrompt();
+
+  const tabs = [
+    { key: "overview", label: "Overview" },
+    { key: "longshorts", label: "Long/Shorts" },
+    { key: "ticker", label: "Ticker Analysis" },
+    { key: "news", label: "Heatmaps" },
+  ];
 
   useEffect(() => {
     const loadTrades = async () => {
@@ -156,83 +164,78 @@ export default function Home() {
         />
         <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>
-
-      <div className="flexClm gap_32" style={{ width: "100%" }}>
-        <Navbar />
-        {showPrompt && (
-          <div
-            className="flexClm chart_boxBg gap_12 installPromptBox"
-            style={{
-              padding: "16px",
-              position: "fixed",
-              zIndex: 10000,
-            }}
-          >
-            <div className="flexRow flexRow_stretch gap_24">
-              <span className="flexClm gap_4">
-                <span className="vector font_14">JournalX App</span>
-                <span className="font_12 shade_50">
-                  Install JournalX for a better experience!
-                </span>
+      {showPrompt && (
+        <div
+          className="flexClm chart_boxBg gap_12 installPromptBox"
+          style={{
+            padding: "16px",
+            position: "fixed",
+            zIndex: 10000,
+          }}
+        >
+          <div className="flexRow flexRow_stretch gap_24">
+            <span className="flexClm gap_4">
+              <span className="vector font_14">JournalX App</span>
+              <span className="font_12 shade_50">
+                Install JournalX for a better experience!
               </span>
-              <div className="flexRow gap_12">
-                <button
-                  className="button_pri"
-                  style={{ width: "100px" }}
-                  onClick={handleInstall}
-                >
-                  Install App
-                </button>
-                {/* Close button */}
-                <button
-                  onClick={() => {
-                    setShowPrompt(false);
-                    localStorage.setItem("journalx_install_dismissed", "true"); // mark as dismissed
-                  }}
-                  className="button_sec flexRow flex_center"
-                  style={{
-                    position: "absolute",
-                    top: "-10px",
-                    right: "-10px",
-                    padding: "8px",
-                    borderRadius: "24px",
-                  }}
-                >
-                  <X size={14} />
-                </button>
-              </div>
+            </span>
+            <div className="flexRow gap_12">
+              <button
+                className="button_pri"
+                style={{ width: "100px" }}
+                onClick={handleInstall}
+              >
+                Install App
+              </button>
+              {/* Close button */}
+              <button
+                onClick={() => {
+                  setShowPrompt(false);
+                  localStorage.setItem("journalx_install_dismissed", "true"); // mark as dismissed
+                }}
+                className="button_sec flexRow flex_center"
+                style={{
+                  position: "absolute",
+                  top: "-10px",
+                  right: "-10px",
+                  padding: "8px",
+                  borderRadius: "24px",
+                }}
+              >
+                <X size={14} />
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
+      <div className="flexClm gap_32" style={{ width: "100%" }}>
+        <div className="flexClm gap_12">
+          <Navbar />
 
-        {/* Tabs */}
-        <div
-          className="flexRow gap_12 removeScrollBar"
-          style={{ overflowX: "scroll" }}
-        >
-          {[
-            { key: "overview", label: "Overview" },
-            { key: "longshorts", label: "Long/Shorts" },
-            { key: "ticker", label: "Ticker Analysis" },
-            { key: "news", label: "Heatmaps" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flexRow button_ter font_12 ${
-                activeTab === tab.key ? "active_tab" : ""
-              }`}
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minWidth: "120px",
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-          <BottomBar />
+          <div
+            className="flexRow gap_12 removeScrollBar"
+            style={{ overflowX: "auto", position: "relative" }}
+          >
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className="tab_button"
+              >
+                {tab.label}
+
+                {/* Animated underline */}
+                {activeTab === tab.key && (
+                  <motion.div
+                    layoutId="activeTabUnderline"
+                    className="underline"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
         {activeTab === "overview" && <Overview stats={stats} trades={trades} />}
@@ -246,7 +249,7 @@ export default function Home() {
         {activeTab === "ticker" && <TickerOverview trades={trades} />}
         {activeTab === "news" && <MarketNews />}
 
-        <BackgroundBlur />
+        <BottomBar />
       </div>
     </>
   );

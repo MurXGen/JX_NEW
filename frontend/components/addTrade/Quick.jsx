@@ -48,7 +48,7 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
             title="Set Positive"
             onClick={() => handleSignChange("positive")}
           >
-            <Plus size={18} /> Profit
+            <Plus size={18} />
           </button>
           <button
             type="button"
@@ -57,7 +57,6 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
             onClick={() => handleSignChange("negative")}
           >
             <Minus size={18} />
-            Loss
           </button>
         </div>
       </div>

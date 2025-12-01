@@ -952,6 +952,7 @@ export default function AddTrade() {
               <button
                 key={key}
                 className="button_sec"
+                style={{ minWidth: "100px", maxWidth: "300px" }}
                 onClick={() => openModal(key)}
               >
                 {key

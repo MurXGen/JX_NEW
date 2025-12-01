@@ -53,6 +53,21 @@ router.get(
         status: "success",
       });
 
+      // ✅ Auto-create default account ONLY if user does not already have one
+      const existingAccount = await Account.findOne({ userId: req.user._id });
+
+      if (!existingAccount) {
+        await Account.create({
+          userId: req.user._id,
+          name: "Main Trading Account",
+          currency: "USD",
+          startingBalance: {
+            amount: 0,
+            time: new Date(),
+          },
+        });
+      }
+
       const isVerified = "yes";
 
       // ✅ Redirect with query params
