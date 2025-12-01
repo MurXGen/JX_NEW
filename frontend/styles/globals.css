@@ -6728,3 +6728,109 @@ footer {
     }
   }
 }
+.tradeModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.tradeModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+}
+
+.closeIcon {
+  cursor: pointer;
+}
+
+.tradeCardContainer {
+  display: flex;
+  overflow-x: auto;
+  gap: 18px;
+  padding-bottom: 10px;
+}
+
+.tradeCardContainer::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tradeStackCard {
+  min-width: 350px;
+  max-width: 350px;
+  height: 60vh;
+  background: var(--base-bg);
+  border-radius: 14px;
+  padding: var(--px-16);
+  flex-shrink: 0;
+  cursor: pointer;
+  display: grid;
+  grid-template-rows: 70% 30%;
+  overflow-y: scroll;
+}
+
+.imageBox {
+  width: 100%;
+  height: 100%;
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.imageBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noImage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #444;
+}
+
+.tradeStackDetails {
+  margin-top: var(--px-16);
+  color: white;
+}
+
+.ticker {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dotPagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0 6px;
+  transition: opacity 0.3s ease;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: scale(0.8);
+  opacity: 0.5;
+}
+
+.dot.active {
+  width: 11px;
+  height: 11px;
+  background: white;
+  opacity: 1;
+  transform: scale(1);
+}

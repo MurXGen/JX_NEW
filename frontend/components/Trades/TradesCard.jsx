@@ -1,0 +1,151 @@
+"use client";
+
+import React, { useState } from "react";
+import { X, Plus, TrendingUp, TrendingDown } from "lucide-react";
+import TradeInfo from "./TradeInfo";
+
+const TRADE_KEY = "__t_rd_iD";
+
+const TradeCardModal = ({ trades, onClose, onAddNew }) => {
+  const [showTradeModal, setShowTradeModal] = useState(false);
+  const formatDateTime = (dateStr) => {
+    const date = new Date(dateStr);
+
+    const day = date.getDate();
+    const month = date.toLocaleString("default", { month: "short" });
+    const year = date.getFullYear();
+
+    const hours = date.toLocaleString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    // Day suffix (st, nd, rd, th)
+    const suffix =
+      day % 10 === 1 && day !== 11
+        ? "st"
+        : day % 10 === 2 && day !== 12
+          ? "nd"
+          : day % 10 === 3 && day !== 13
+            ? "rd"
+            : "th";
+
+    return `${day}${suffix} ${month}, ${year} | ${hours}`;
+  };
+
+  const handleTradeClick = (tradeId) => {
+    localStorage.setItem(TRADE_KEY, tradeId); // store trade ID secretly
+    setShowTradeModal(true); // open modal
+  };
+
+  return (
+    <div className="tradeModalOverlay">
+      <div className="tradeModalHeader">
+        <h3>All Trades</h3>
+
+        {/* Close Icon */}
+        <button
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+          onClick={onClose}
+        >
+          <X size={16} color="white" />
+        </button>
+      </div>
+
+      <div className="tradeCardContainer">
+        {trades.map((trade) => (
+          <div
+            key={trade._id}
+            className="tradeStackCard"
+            onClick={() => handleTradeClick(trade._id)}
+            // style={{
+            //   background:
+            //     trade.pnl >= 0 ? "var(--success-10)" : "var(--error-10)",
+            // }}
+          >
+            {/* Image Preview */}
+            <div className="imageBox">
+              {trade.closeImageUrl ? (
+                <img src={trade.closeImageUrl} alt="Trade image" />
+              ) : (
+                <div className="noImage">No Image</div>
+              )}
+            </div>
+
+            {/* Trade Info */}
+            <div className="tradeStackDetails flexClm gap_12">
+              <div className="flexRow flexRow_stretch">
+                <div className="flexClm">
+                  <span className="font_20">{trade.symbol}</span>
+                  <span className="shade_50 flexRow gap_4">
+                    {trade.direction === "long" ? (
+                      <>
+                        Long{" "}
+                        <TrendingUp size={14} className="trendUpIcon success" />
+                      </>
+                    ) : (
+                      <>
+                        Short{" "}
+                        <TrendingDown
+                          size={14}
+                          className="trendDownIcon error"
+                        />
+                      </>
+                    )}
+                  </span>
+                </div>
+                <span
+                  className={`font_20 ${trade.pnl >= 0 ? "success" : "error"}`}
+                >
+                  {trade.pnl >= 0 ? "+" : "-"}${Math.abs(trade.pnl)}
+                </span>
+              </div>
+
+              {/* Open Time */}
+              <div
+                className="flexRow flexRow_stretch gap_12 font_14 shade_50"
+                style={{
+                  paddingTop: "12px",
+                  borderTop: "1px solid var(--white-50)",
+                }}
+              >
+                {trade.openTime && (
+                  <span className="openTime">
+                    {formatDateTime(trade.openTime)}
+                  </span>
+                )}
+
+                {/* Duration only if present */}
+                {trade.duration > 0 && (
+                  <span className="duration">{trade.duration} hrs</span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Dot Pagination */}
+      <div className="dotPagination">
+        <span className="dot"></span>
+        <span className="dot active"></span> {/* middle dot active */}
+        <span className="dot"></span>
+      </div>
+
+      {/* Bottom Add Button */}
+      <div
+        className="flexRow flex_center gap_12 boxBg"
+        style={{ cursor: "pointer" }}
+        onClick={onAddNew}
+      >
+        <Plus size={16} />
+        <span>Add New</span>
+      </div>
+      {/* Trade Info Modal */}
+      {showTradeModal && <TradeInfo onClose={() => setShowTradeModal(false)} />}
+    </div>
+  );
+};
+
+export default TradeCardModal;

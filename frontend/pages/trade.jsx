@@ -9,12 +9,13 @@ import TradesHistory from "@/components/Trades/TradeHistory";
 import TradeCalendar from "@/components/Trades/TradeCalendar";
 import BottomBar from "@/components/Trades/BottomBar";
 import Navbar from "@/components/Trades/Navbar";
-import { Calendar, History } from "lucide-react";
+import { Calendar, History, Layers } from "lucide-react";
 import Dropdown from "@/components/ui/Dropdown";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import SectionHeader from "@/components/ui/SectionHeader";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
+import TradeCardModal from "@/components/Trades/TradesCard";
 
 const TradePage = () => {
   const [trades, setTrades] = useState([]);
@@ -28,6 +29,7 @@ const TradePage = () => {
   const today = new Date();
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [showCardModal, setShowCardModal] = useState(false);
 
   // 🟩 Automatically set current month when switching to calendar
   useEffect(() => {
@@ -123,6 +125,12 @@ const TradePage = () => {
           {/* Toggle Buttons */}
           <div className="view-toggle flexRow gap_12">
             <button
+              onClick={() => setShowCardModal(true)}
+              className="toggle-btn"
+            >
+              <Layers size={18} />
+            </button>
+            <button
               onClick={() => setView("history")}
               className={`toggle-btn ${view === "history" ? "active" : ""}`}
             >
@@ -206,6 +214,13 @@ const TradePage = () => {
 
         <GoogleBannerAd />
       </div>
+      {showCardModal && (
+        <TradeCardModal
+          trades={trades}
+          onClose={() => setShowCardModal(false)}
+          onAddNew={() => router.push("/add-trade")}
+        />
+      )}
     </>
   );
 };
