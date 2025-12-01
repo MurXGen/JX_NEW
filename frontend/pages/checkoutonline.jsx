@@ -38,12 +38,6 @@ export default function CheckoutOnline() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const isVerified = Cookies.get("isVerified");
-    if (isVerified === "yes") router.push("/accounts");
-    else router.push("/login");
-  }, [router]);
-
   // Check if this is a lifetime plan
   const isLifetime = period === "lifetime";
 
