@@ -5,12 +5,43 @@ import withPWAInit from "next-pwa";
 const nextConfig = {
   reactStrictMode: true,
 
+  // ------------------------------
+  // 🔐 FIX: Paddle iframe allowed via CSP
+  // (Applied only in PRODUCTION)
+  // ------------------------------
+  async headers() {
+    if (process.env.NODE_ENV === "production") {
+      return [
+        {
+          source: "/(.*)",
+          headers: [
+            {
+              key: "Content-Security-Policy",
+              value: `
+                default-src * data: blob: 'unsafe-inline' 'unsafe-eval';
+                script-src * blob: data: 'unsafe-inline' 'unsafe-eval';
+                style-src * 'unsafe-inline';
+                img-src * data: blob:;
+                connect-src *;
+                frame-src https://*.paddle.com https://buy.paddle.com *;
+                frame-ancestors 'self' https://*.paddle.com https://buy.paddle.com;
+              `.replace(/\s+/g, " "),
+            },
+          ],
+        },
+      ];
+    }
+
+    // No CSP in development → fixes 403 & frame errors
+    return [];
+  },
+
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "cdn.journalx.app",
-        pathname: "/**", // Allow all images from your CDN
+        pathname: "/**",
       },
     ],
   },
@@ -24,13 +55,15 @@ const nextConfig = {
   },
 };
 
-// ✅ Initialize next-pwa
+// ------------------------------
+// 🟩 Initialize next-pwa
+// ------------------------------
 const withPWA = withPWAInit({
   dest: "public",
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === "development", // Disable in dev
+  disable: process.env.NODE_ENV === "development",
 });
 
-// ✅ Export merged config
+// 🟩 Export merged config
 export default withPWA(nextConfig);
