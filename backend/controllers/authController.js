@@ -108,17 +108,6 @@ const registerUser = async (req, res) => {
     });
     await user.save();
 
-    // ✅ Create default account for every new user
-    await Account.create({
-      userId: user._id,
-      name: "Main Trading Account",
-      currency: "USD",
-      startingBalance: {
-        amount: 0,
-        time: new Date(),
-      },
-    });
-
     // ✅ Send OTP if not Google
     if (!googleId) {
       const otp = String(Math.floor(100000 + Math.random() * 900000));

@@ -88,7 +88,7 @@ export default function Navbar() {
       const acc = accounts.find((a) => a._id === accountId);
       setSelectedAccount(acc);
       setShowDropdown(false);
-
+      window.location.reload();
       router.push("/dashboard");
     } catch (err) {
       console.error("Error setting account cookie:", err);
