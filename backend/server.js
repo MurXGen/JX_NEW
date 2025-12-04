@@ -13,7 +13,7 @@ const accountRoutes = require("./routes/account");
 const paymentsRoutes = require("./routes/payments");
 const cryptoPaymentsRoutes = require("./routes/cryptoPayments");
 const telegramRoutes = require("./routes/telegramRoutes");
-const pricingRoutes = require("./routes/paddleRoute");
+const paddleRoute = require("./routes/paddleWebhook");
 
 // Rate limiter
 const createLimiter = require("./utils/rateLimiter");
@@ -43,6 +43,7 @@ mongoose
   .catch((err) => console.error("❌ MongoDB User DB Connection Error:", err));
 
 // 🔗 Apply rate limiter to each route separately
+app.use("/api/paddle/webhook", createLimiter(40), paddleRoute);
 app.use("/api/auth", createLimiter(40), authRoutes);
 app.use("/api/account", createLimiter(20), accountRoutes);
 app.use("/api/trades", createLimiter(20), tradeRoutes);
@@ -55,7 +56,6 @@ app.use(
 app.use("/api/payments", createLimiter(20), express.json(), paymentsRoutes);
 app.use("/api/crypto-payments", createLimiter(20), cryptoPaymentsRoutes);
 app.use("/api/telegram", createLimiter(20), telegramRoutes);
-app.use("/api/paddle", createLimiter(20), pricingRoutes);
 
 // 🤖 Telegram Bot Init
 require("./telegram");

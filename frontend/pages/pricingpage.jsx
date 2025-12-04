@@ -1,144 +1,231 @@
 // pages/pricing.js
-import { useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
 import PaddleLoader from "../components/payments/PaddleLoader";
 
 const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
 const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
 const lifetimePriceId = process.env.NEXT_PUBLIC_PADDLE_LIFETIME_PRICE_ID;
 
+// Feature lists for each plan based on new PLAN_RULES
+const getPlanFeatures = (planId) => {
+  const featureTable = [
+    {
+      title: "Trade Logging",
+      free: "10 trades/month",
+      pro: "Unlimited trades",
+      master: "Unlimited trades",
+    },
+    {
+      title: "Quick Trades",
+      free: "10/month",
+      pro: "Unlimited",
+      master: "Unlimited",
+    },
+    {
+      title: "Multiple Accounts",
+      free: "1 account",
+      pro: "Up to 3 accounts",
+      master: "Up to 3 accounts",
+    },
+    {
+      title: "Image Uploads",
+      free: "10 images/month (10MB max)",
+      pro: "Unlimited (100MB max)",
+      master: "Unlimited (100MB max)",
+    },
+    {
+      title: "Trade History",
+      free: "30 days",
+      pro: "Full history",
+      master: "Full history",
+    },
+    {
+      title: "Export Trades",
+      free: "❌",
+      pro: "✅ CSV export",
+      master: "✅ CSV export",
+    },
+    {
+      title: "Share Trades",
+      free: "❌",
+      pro: "✅",
+      master: "✅ Generate share links",
+    },
+    // {
+    //   title: "AI Analysis",
+    //   free: "❌",
+    //   pro: "✅ AI trade insights",
+    //   master: "✅ AI trade insights",
+    // },
+    {
+      title: "Advanced Charts",
+      free: "✅ Basic charts",
+      pro: "✅ Advanced charts",
+      master: "✅ Advanced charts",
+    },
+    {
+      title: "Multiple Entry/Exit",
+      free: "✅",
+      pro: "✅",
+      master: "✅",
+    },
+    {
+      title: "Backup & Sync",
+      free: "❌",
+      pro: "✅ Cloud backup",
+      master: "✅ Cloud backup",
+    },
+    {
+      title: "Ad-free Experience",
+      free: "❌",
+      pro: "✅ No ads",
+      master: "✅ No ads",
+    },
+    {
+      title: "Priority Support",
+      free: "❌",
+      pro: "✅ Standard support",
+      master: "✅ Priority support",
+    },
+  ];
+
+  return featureTable.map((item) => ({
+    title: item.title,
+    value:
+      planId === "master"
+        ? item.master
+        : planId === "pro"
+          ? item.pro
+          : item.free,
+  }));
+};
+
 export default function Pricing() {
-  // 🔍 Debug environment variables on mount
-  useEffect(() => {
-    console.log("=== Paddle Debug Info ===");
-    console.log("Monthly Price ID:", monthlyPriceId);
-    console.log("Yearly Price ID:", yearlyPriceId);
-    console.log("Lifetime Price ID:", lifetimePriceId);
-    console.log(
-      "Paddle Object:",
-      typeof window !== "undefined" ? window.Paddle : "window undefined"
-    );
-  }, []);
-
-  const openCheckout = useCallback((priceId) => {
-    console.log("⚡ Checkout button clicked with priceId:", priceId);
-
-    if (!priceId) {
-      console.error("❌ priceId is NULL or UNDEFINED");
-    }
-
-    if (typeof window === "undefined") {
-      console.error("❌ window is undefined (Server Side)");
-      alert("Window not ready.");
-      return;
-    }
-
-    if (!window.Paddle) {
-      console.error("❌ Paddle not loaded:", window.Paddle);
-      alert("Paddle not loaded yet. Refresh or try again.");
-      return;
-    }
-
-    const payload = {
+  const openCheckout = (priceId) => {
+    if (!window?.Paddle) return alert("Payment system not ready yet.");
+    window.Paddle.Checkout.open({
       items: [{ priceId, quantity: 1 }],
       settings: { displayMode: "overlay" },
-    };
-
-    console.log("🛒 Checkout Payload:", payload);
-
-    try {
-      window.Paddle.Checkout.open(payload);
-      console.log("✅ Paddle Checkout triggered");
-    } catch (err) {
-      console.error("❌ Paddle Checkout Error:", err);
-    }
-  }, []);
+    });
+  };
 
   return (
-    <div>
+    <>
       <PaddleLoader />
-      <header style={styles.header}>
-        <h1>Pricing</h1>
-        <p>
-          Simple test page — replace the priceIds in your .env with real ones.
-        </p>
-      </header>
+      <section className="pricing-page">
+        <motion.h1
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="pricing-title"
+        >
+          Choose Your Plan
+        </motion.h1>
 
-      <main style={styles.container}>
-        <div style={styles.card}>
-          <h2>Free</h2>
-          <p>$0 — Forever</p>
-          <button disabled style={styles.buttonDisabled}>
-            Current plan
-          </button>
-        </div>
+        <motion.p
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="pricing-sub"
+        >
+          Fair pricing, premium features, built for traders who want to grow.
+        </motion.p>
 
-        <div style={styles.card}>
-          <h2>Pro — Monthly</h2>
-          <p>$3.49 / month</p>
-          <button
-            style={styles.button}
+        {/* ---------------- PRICING CARDS ---------------- */}
+        <div className="pricing-grid">
+          {/* FREE */}
+          <PricingCard
+            type="free"
+            title="Free"
+            price="$0"
+            subtitle="Forever"
+            buttonText="Current Plan"
+            disabled={true}
+            features={getPlanFeatures("free")}
+          />
+
+          {/* PRO MONTHLY */}
+          <PricingCard
+            type="pro"
+            title="Pro Monthly"
+            price="$3.49"
+            subtitle="/month"
+            buttonText="Buy Monthly"
             onClick={() => openCheckout(monthlyPriceId)}
-          >
-            Buy Monthly
-          </button>
-        </div>
+            features={getPlanFeatures("pro")}
+            highlight={false}
+          />
 
-        <div style={styles.card}>
-          <h2>Pro — Yearly</h2>
-          <p>$29.99 / year</p>
-          <button
-            style={styles.button}
+          {/* PRO YEARLY */}
+          <PricingCard
+            type="pro"
+            title="Pro Yearly"
+            price="$29.99"
+            subtitle="/year"
+            buttonText="Buy Yearly"
             onClick={() => openCheckout(yearlyPriceId)}
-          >
-            Buy Yearly
-          </button>
-        </div>
+            features={getPlanFeatures("pro")}
+            highlight={true} // ⭐ Best value
+          />
 
-        <div style={styles.card}>
-          <h2>Lifetime</h2>
-          <p>$99 — one time</p>
-          <button
-            style={styles.button}
+          {/* LIFETIME */}
+          <PricingCard
+            type="lifetime"
+            title="Lifetime Access"
+            price="$99"
+            subtitle="One-time payment"
+            buttonText="Buy Lifetime"
             onClick={() => openCheckout(lifetimePriceId)}
-          >
-            Buy Lifetime
-          </button>
+            features={getPlanFeatures("lifetime")} // master renamed → lifetime
+          />
         </div>
-      </main>
-    </div>
+      </section>
+    </>
   );
 }
 
-const styles = {
-  header: { textAlign: "center", padding: "2rem 1rem" },
-  container: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-    gap: "1rem",
-    maxWidth: 1000,
-    margin: "0 auto",
-    padding: "1rem",
-  },
-  card: {
-    border: "1px solid #ddd",
-    borderRadius: 8,
-    padding: 20,
-    textAlign: "center",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
-  },
-  button: {
-    background: "#0066ff",
-    color: "white",
-    border: "none",
-    padding: "10px 14px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  buttonDisabled: {
-    background: "#e0e0e0",
-    color: "#888",
-    padding: "10px 14px",
-    borderRadius: 6,
-    border: "none",
-  },
-};
+function PricingCard({
+  type,
+  title,
+  price,
+  subtitle,
+  buttonText,
+  disabled,
+  onClick,
+  features,
+  highlight,
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
+      className={`price-card ${highlight ? "highlight-card" : ""}`}
+    >
+      {highlight && <div className="best-badge">Best Value</div>}
+
+      <h2>{title}</h2>
+      <p className="price">
+        {price}
+        <span>{subtitle}</span>
+      </p>
+
+      <button
+        className={disabled ? "btn disabled" : "btn"}
+        onClick={disabled ? null : onClick}
+      >
+        {buttonText}
+      </button>
+
+      <ul className="feature-list">
+        {features.map((f, index) => (
+          <li key={index} className="feature-item">
+            <span className="feature-title">{f.title}</span>
+            <span className="feature-value">{f.value}</span>
+          </li>
+        ))}
+      </ul>
+    </motion.div>
+  );
+}

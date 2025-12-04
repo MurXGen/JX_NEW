@@ -3,10 +3,11 @@ import Script from "next/script";
 
 export default function PaddleLoader() {
   const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
+  const isDev = process.env.NODE_ENV === "development";
 
   return (
     <>
-      {/* Debug logs before script load */}
+      {/* Debug before script */}
       <Script
         id="paddle-debug-pre"
         strategy="beforeInteractive"
@@ -18,16 +19,13 @@ export default function PaddleLoader() {
         }}
       />
 
-      {/* Load Paddle.js v2 */}
+      {/* Load Paddle.js */}
       <Script
         src="https://cdn.paddle.com/paddle/v2/paddle.js"
         strategy="afterInteractive"
         onLoad={() => {
           console.log("📦 Paddle script loaded");
-          console.log(
-            "🧪 Checking window.Paddle after script load:",
-            window.Paddle
-          );
+          console.log("🧪 Checking window.Paddle:", window.Paddle);
 
           if (!token) {
             console.error(
@@ -35,7 +33,6 @@ export default function PaddleLoader() {
             );
           }
 
-          // Paddle sometimes attaches after a short delay, so retry
           let attempts = 0;
           const maxAttempts = 10;
 
@@ -43,14 +40,18 @@ export default function PaddleLoader() {
             attempts++;
 
             if (window.Paddle) {
-              console.log("✅ Paddle object finally available:", window.Paddle);
+              console.log("✅ Paddle object available:", window.Paddle);
 
               try {
+                // 🟡 Set sandbox mode manually (instead of passing `environment`)
+                if (isDev) {
+                  window.Paddle.Environment.set("sandbox");
+                  console.log("🟨 Sandbox mode enabled");
+                }
+
+                // 🟢 Initialize Paddle
                 window.Paddle.Initialize({ token });
-                console.log(
-                  "🎉 Paddle initialized successfully with token:",
-                  token
-                );
+                console.log("🎉 Paddle initialized with token:", token);
               } catch (err) {
                 console.error("❌ Paddle initialization failed:", err);
               }
