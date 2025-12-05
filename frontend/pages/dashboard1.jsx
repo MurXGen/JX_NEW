@@ -11,9 +11,8 @@ import {
 } from "lucide-react";
 
 import Navbar from "@/components/Auth/Navbar";
-import PNLChart from "@/components/Charts/PnlChart";
 
-export default function Dashboard1(stats) {
+export default function Dashboard1() {
   const [open, setOpen] = useState(true);
 
   return (
@@ -107,10 +106,7 @@ export default function Dashboard1(stats) {
             height: "100vh",
             background: "var(--base-bg)",
           }}
-        >
-          {" "}
-          <PNLChart dailyData={stats.dailyData} />
-        </div>
+        ></div>
       </div>
     </div>
   );
