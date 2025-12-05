@@ -101,10 +101,17 @@ const getPlanFeatures = (planId) => {
 };
 
 export default function Pricing() {
-  const openCheckout = (priceId) => {
+  const openCheckout = (priceId, userId) => {
     if (!window?.Paddle) return alert("Payment system not ready yet.");
+
     window.Paddle.Checkout.open({
       items: [{ priceId, quantity: 1 }],
+      customer: {
+        id: userId,
+      },
+      customData: {
+        userId: userId,
+      },
       settings: { displayMode: "overlay" },
     });
   };

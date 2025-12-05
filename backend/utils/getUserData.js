@@ -4,28 +4,27 @@ const Plan = require("../models/Plan");
 const Order = require("../models/Orders");
 const User = require("../models/User");
 
-// 🔹 Utility: Auto-calc subscription status
+// ---------------------------------------------------------------
+// 🔹 Compute subscription status based on NEW USER MODEL
+// ---------------------------------------------------------------
 function computeSubscriptionStatus(user) {
   const now = new Date();
 
-  // No subscription
+  // No subscription ever created
   if (!user.subscriptionStartAt && !user.subscriptionExpiresAt) {
     return "none";
   }
 
-  // Trial plans
+  // Lifetime plan is always active
   if (
-    user.subscriptionType === "free-trial" ||
-    user.subscriptionType === "trial"
+    user.subscriptionType === "one-time" &&
+    user.subscriptionPlan === "lifetime"
   ) {
-    return new Date(user.subscriptionExpiresAt) > now ? "trial" : "expired";
+    return "active";
   }
 
-  // Lifetime / One-time
-  if (
-    user.subscriptionType === "lifetime" ||
-    user.subscriptionType === "one-time"
-  ) {
+  // One-time non-lifetime purchases (rare but supported)
+  if (user.subscriptionType === "one-time") {
     return "active";
   }
 
@@ -34,51 +33,58 @@ function computeSubscriptionStatus(user) {
     return new Date(user.subscriptionExpiresAt) > now ? "active" : "expired";
   }
 
+  // Default fallback
   return "none";
 }
 
+// ---------------------------------------------------------------
+// 🔹 Load everything for logged-in user
+// ---------------------------------------------------------------
 async function getUserData(user) {
-  // 🔹 Auto-update subscription status
+  // Auto-update subscription state
   const newStatus = computeSubscriptionStatus(user);
 
   if (user.subscriptionStatus !== newStatus) {
     await User.findByIdAndUpdate(user._id, { subscriptionStatus: newStatus });
-    user.subscriptionStatus = newStatus; // update local object
+    user.subscriptionStatus = newStatus;
   }
 
-  // Step 1: Fetch all accounts for this user
+  // 1️⃣ Fetch accounts
   const accounts = await Account.find({ userId: user._id }).lean();
 
-  // Step 2: Extract account IDs
+  // 2️⃣ Extract account IDs
   const accountIds = accounts.map((acc) => acc._id);
 
-  // Step 3: Fetch trades belonging to those accounts
+  // 3️⃣ Fetch trades for those accounts
   const trades = await Trade.find({
     userId: user._id,
     accountId: { $in: accountIds },
   }).lean();
 
-  // Step 4: Fetch user orders
+  // 4️⃣ Fetch user's orders
   const orders = await Order.find({ userId: user._id })
     .sort({ createdAt: -1 })
     .lean();
 
-  // Step 5: Fetch active plans
+  // 5️⃣ Active plans (pro, lifetime)
   const plans = await Plan.find({ status: "active" }).lean();
 
-  // Step 6: Structure response
+  // 6️⃣ FINAL STRUCTURED RESPONSE
   return {
     userId: user._id,
     name: user.name,
     email: user.email,
 
     subscription: {
-      planId: user.subscriptionPlan,
-      status: user.subscriptionStatus,
-      type: user.subscriptionType,
+      plan: user.subscriptionPlan, // "free", "pro", "lifetime"
+      status: user.subscriptionStatus, // "active", "expired", "canceled", "none"
+      type: user.subscriptionType, // "recurring", "one-time", "none"
       startAt: user.subscriptionStartAt,
       expiresAt: user.subscriptionExpiresAt,
       createdAt: user.subscriptionCreatedAt,
+      paddleCustomerId: user.paddleCustomerId,
+      lastBillingDate: user.lastBillingDate,
+      nextBillingDate: user.nextBillingDate,
     },
 
     accounts,

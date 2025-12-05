@@ -3,13 +3,16 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema(
   {
     name: { type: String },
+
     email: { type: String, required: true, unique: true, index: true },
+
     password: {
       type: String,
       required: function () {
         return !this.googleId;
       },
     },
+
     googleId: { type: String },
 
     feedback: [
@@ -22,49 +25,53 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date },
 
-    // 🔹 Subscription reference
+    // ----------------------------------------------------------------
+    // 🔥 Subscription System (Aligned with Paddle + Your Plans)
+    // ----------------------------------------------------------------
+
+    // Ref to full Subscription document
     subscription: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subscription",
     },
 
-    // 🔹 Quick access fields
-    subscriptionStatus: {
-      type: String,
-      enum: ["active", "expired", "canceled", "trial", "none"],
-      default: "active",
-    },
+    // HIGH-LEVEL (store lite version for quick access)
     subscriptionPlan: {
       type: String,
-      enum: ["free", "pro", "elite", "MASTER001", "PRO001", "trial"],
-      default: "pro",
-    },
-    subscriptionType: {
-      type: String,
-      enum: [
-        "one-time",
-        "recurring",
-        "none",
-        "free-trial",
-        "lifetime",
-        "trial",
-      ],
-      default: "one-time",
+      enum: ["free", "pro", "lifetime"],
+      default: "free",
     },
 
-    // Add to your existing user schema
+    subscriptionStatus: {
+      type: String,
+      enum: ["active", "expired", "canceled", "none"],
+      default: "none",
+    },
+
+    subscriptionType: {
+      type: String,
+      enum: ["recurring", "one-time", "none"],
+      default: "none",
+    },
+
+    // Paddle customer token
     paddleCustomerId: { type: String },
+
+    // Billing info for recurring plans
     lastBillingDate: { type: Date },
     nextBillingDate: { type: Date },
 
+    // Subscription timeline
     subscriptionStartAt: { type: Date },
     subscriptionExpiresAt: { type: Date },
     subscriptionCreatedAt: { type: Date },
 
-    // 🔹 Orders linked to this user
+    // ----------------------------------------------------------------
+    // Paddle Orders
+    // ----------------------------------------------------------------
     orders: [
       {
-        orderId: { type: mongoose.Schema.Types.ObjectId, ref: "Order" },
+        orderId: { type: mongoose.Schema.Types.ObjectId, ref: "PaddleOrder" },
         status: {
           type: String,
           enum: ["pending", "paid", "failed", "expired"],

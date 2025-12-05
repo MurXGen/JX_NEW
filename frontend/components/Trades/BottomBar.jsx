@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, ArrowUpDown, Plus, Crown, Settings, Menu } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, ArrowUpDown, Plus, Crown, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function BottomBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const navItems = [
@@ -26,9 +27,6 @@ export default function BottomBar() {
 
   return (
     <div className="floating-nav-container">
-      {/* Active Box */}
-
-      {/* Dropdown Items */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -54,9 +52,29 @@ export default function BottomBar() {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="active-box" onClick={() => setOpen((prev) => !prev)}>
-        {activeItem.icon}
-        <span>{activeItem.label}</span>
+
+      <div className="flexRow gap_12">
+        {/* HOME ICON CLICK → /dashboard */}
+        <div
+          className="boxBg flexRow"
+          onClick={() => router.push("/dashboard")}
+          style={{ cursor: "pointer" }}
+        >
+          <Home size={16} />
+        </div>
+
+        <div className="active-box" onClick={() => setOpen((prev) => !prev)}>
+          <span>{activeItem.label}</span>
+        </div>
+
+        {/* PLUS ICON CLICK → /add-trade */}
+        <div
+          className="boxBg flexRow"
+          onClick={() => router.push("/add-trade")}
+          style={{ cursor: "pointer" }}
+        >
+          <Plus size={16} />
+        </div>
       </div>
     </div>
   );

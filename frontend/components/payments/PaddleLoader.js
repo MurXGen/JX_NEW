@@ -1,13 +1,37 @@
 // components/PaddleLoader.js
+"use client";
+import { useEffect, useState } from "react";
 import Script from "next/script";
+import axios from "axios";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function PaddleLoader() {
   const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
   const isDev = process.env.NODE_ENV === "development";
 
+  const [user, setUser] = useState(null);
+
+  // ⬇ Load logged-in user from backend (cookie auto-included)
+  // useEffect(() => {
+  //   const loadUser = async () => {
+  //     try {
+  //       const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
+  //         withCredentials: true,
+  //       });
+  //       setUser(res.data.user);
+  //       console.log("👤 Logged-in user loaded:", res.data.user);
+  //     } catch (err) {
+  //       console.log("⚠ No logged-in user");
+  //     }
+  //   };
+
+  //   loadUser();
+  // }, []);
+
   return (
     <>
-      {/* Debug before script */}
+      {/* Debug */}
       <Script
         id="paddle-debug-pre"
         strategy="beforeInteractive"
@@ -25,13 +49,6 @@ export default function PaddleLoader() {
         strategy="afterInteractive"
         onLoad={() => {
           console.log("📦 Paddle script loaded");
-          console.log("🧪 Checking window.Paddle:", window.Paddle);
-
-          if (!token) {
-            console.error(
-              "❌ ERROR: NEXT_PUBLIC_PADDLE_CLIENT_TOKEN is missing!"
-            );
-          }
 
           let attempts = 0;
           const maxAttempts = 10;
@@ -40,18 +57,20 @@ export default function PaddleLoader() {
             attempts++;
 
             if (window.Paddle) {
-              console.log("✅ Paddle object available:", window.Paddle);
-
               try {
-                // 🟡 Set sandbox mode manually (instead of passing `environment`)
                 if (isDev) {
                   window.Paddle.Environment.set("sandbox");
                   console.log("🟨 Sandbox mode enabled");
                 }
 
-                // 🟢 Initialize Paddle
+                // Initialize Paddle
                 window.Paddle.Initialize({ token });
-                console.log("🎉 Paddle initialized with token:", token);
+                console.log("🎉 Paddle initialized");
+
+                // 🔥 Now user is available for Paddle checkout
+                if (user) {
+                  console.log("👤 User available for checkout:", user._id);
+                }
               } catch (err) {
                 console.error("❌ Paddle initialization failed:", err);
               }
@@ -60,10 +79,8 @@ export default function PaddleLoader() {
               return;
             }
 
-            console.warn(`⏳ Waiting for Paddle... attempt ${attempts}`);
-
             if (attempts >= maxAttempts) {
-              console.error("❌ Paddle did not load after maximum retries");
+              console.error("❌ Paddle did not load");
               clearInterval(waitForPaddle);
             }
           }, 200);

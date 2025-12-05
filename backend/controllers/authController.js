@@ -159,11 +159,9 @@ const loginUser = async (req, res) => {
   try {
     const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
     if (!isHuman)
-      return res
-        .status(403)
-        .json({
-          message: "Captcha verification failed. Refresh and try again",
-        });
+      return res.status(403).json({
+        message: "Captcha verification failed. Refresh and try again",
+      });
 
     if (!validateEmailCredentials(email, password, res)) return;
 
@@ -300,6 +298,7 @@ const userFetchGoogleAuth = async (req, res) => {
     res.json({
       message: "User info fetched",
       userData,
+      user,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
