@@ -174,8 +174,8 @@ const PnLAreaChart = ({ data }) => {
     overallTrend === "positive"
       ? "#22c55e"
       : overallTrend === "negative"
-      ? "#ef4444"
-      : "#6b7280";
+        ? "#ef4444"
+        : "#6b7280";
 
   if (!visibleData.length) {
     return (
@@ -188,7 +188,8 @@ const PnLAreaChart = ({ data }) => {
   }
 
   return (
-    <div className="pnl-area-chart">
+    <div className="chart_container">
+      <span className="font_12 font_weight_600">PNL Growth chart</span>
       {/* Pagination Buttons */}
       <div
         style={{

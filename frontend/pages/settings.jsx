@@ -23,12 +23,12 @@ export default function Settings() {
         />
       </Head>
       <div className="flexClm gap_24">
-        <div className="flexRow gap_8">
+        {/* <div className="flexRow gap_8">
           <button className="button_sec flexRow">
             <ArrowLeft size={20} />
           </button>
           <span className="font_16">Setting</span>
-        </div>
+        </div> */}
         <div
           className="boxBg flexRow flexRow_stretch profileCard"
           style={{ background: "var(--white-10)" }}
@@ -45,7 +45,7 @@ export default function Settings() {
             </div>
           </div>
           <div className="font_8">
-            <ChevronRight size={14} className="vector" />
+            <ChevronRight size={20} className="vector" />
           </div>
         </div>
         <div
@@ -101,44 +101,17 @@ export default function Settings() {
         </div>
         <div className="moreServices flexClm gap_12">
           <span className="font_14 shade_50">Shortcuts</span>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)", // 2 per row
-              gap: "12px",
-            }}
-          >
-            <div
-              className="flexClm gap_8 flex_center"
-              style={{
-                padding: "12px var(--px-14)",
-                background: "var(--white-4)",
-                borderRadius: "var(--px-12)",
-              }}
-            >
-              <BookIcon className="vector" size={14} />
+          <div className="gridContainer gap_24">
+            <div className="flexClm gap_8" style={{}}>
+              <BookIcon className="vector boxBg" size={20} />
               <span className="font_12">Journals</span>
             </div>
-            <div
-              className="flexClm gap_8 flex_center"
-              style={{
-                padding: "12px var(--px-14)",
-                background: "var(--white-4)",
-                borderRadius: "var(--px-12)",
-              }}
-            >
-              <Share className="vector" size={14} />
+            <div className="flexClm gap_8" style={{}}>
+              <Share className="vector boxBg" size={20} />
               <span className="font_12">Export</span>
             </div>
-            <div
-              className="flexClm gap_8 flex_center"
-              style={{
-                padding: "12px var(--px-14)",
-                background: "var(--white-4)",
-                borderRadius: "var(--px-12)",
-              }}
-            >
-              <Share2Icon size={14} className="vector" />
+            <div className="flexClm gap_8" style={{}}>
+              <Share2Icon size={20} className="vector boxBg" />
               <span className="font_12">Share</span>
             </div>
           </div>

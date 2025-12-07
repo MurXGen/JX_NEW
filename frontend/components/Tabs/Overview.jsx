@@ -63,149 +63,251 @@ export default function Overview({ stats, trades }) {
   return (
     <div className="overview flexClm gap_32">
       <div className="dashboardWide">
-        <div className="flexClm gap_24">
-          <SectionHeader
-            title="Advanced charts analysis"
-            // description="Get visual analysis of your logged trades"
-            level={5} // uses <h2>
-            // showButton={accounts.length > 0}
-            // buttonLabel="Create journal"
-            // onButtonClick={handleCreateAccount}
-            // loading={loading}
-          />
+        <div className="otherStats flexClm gap_24">
+          <Timer />
+          {/* 🔹 Total Trades */}
           <div
-            className="pnlChart chart_boxBg flexClm gap_12"
-            style={{ padding: "16px" }}
+            className="totalTrades flexClm gap_12 chart_boxBg"
+            style={{ padding: "16px 16px" }}
           >
-            {/* Header with toggle */}
             <div className="flexRow flexRow_stretch">
-              <span className="font_12">PnL Daily Chart</span>
-              <div className="view-toggle flexRow">
-                <button
-                  className={`toggle-btn ${
-                    chartType === "dailyPnLChart" ? "active" : ""
-                  }`}
-                  onClick={() => handleChartChange("dailyPnLChart")}
-                >
-                  <CandlestickChart size={16} />
-                </button>
-                <button
-                  className={`toggle-btn ${
-                    chartType === "pnlAreaChart" ? "active" : ""
-                  }`}
-                  onClick={() => handleChartChange("pnlAreaChart")}
-                >
-                  <LineChart size={16} />
-                </button>
-              </div>
+              <span className="font_12 font_12">Total Trades</span>
+              <span
+                className={`font_12 font_14 font_weight_500 ${
+                  !stats?.totalTrades || stats?.totalTrades === 0
+                    ? "shade_50"
+                    : ""
+                }`}
+              >
+                {stats?.totalTrades || "0"}
+              </span>
             </div>
 
-            {/* Stats */}
-            <div className="flexRow flexRow_stretch gap_12">
+            {/* Progress Bar */}
+            <div
+              className={`progress-bar ${
+                (!stats?.winTrades && !stats?.loseTrades) ||
+                stats?.totalTrades === 0
+                  ? "shade_50"
+                  : ""
+              }`}
+            >
               <div
-                className="boxBg flexClm gap_12"
-                style={{ width: "100%", padding: "12px" }}
+                className={`progress-win ${
+                  !stats?.winTrades || stats?.winTrades === 0 ? "shade_50" : ""
+                }`}
+                style={{ width: `${winPercent}%` }}
+              ></div>
+              <div
+                className={`progress-loss ${
+                  !stats?.loseTrades || stats?.loseTrades === 0
+                    ? "shade_50"
+                    : ""
+                }`}
+                style={{ width: `${lossPercent}%` }}
+              ></div>
+            </div>
+
+            <div className="flexRow flexRow_stretch">
+              <span
+                className={`font_12 ${
+                  !stats?.winTrades || stats?.winTrades === 0 ? "shade_50" : ""
+                }`}
               >
-                <span className="analysisCardTitle">Net PnL</span>
+                Wins: {stats?.winTrades || "0"}
+              </span>
+              <span
+                className={`font_12 ${
+                  !stats?.loseTrades || stats?.loseTrades === 0
+                    ? "shade_50"
+                    : ""
+                }`}
+              >
+                Losses: {stats?.loseTrades || "0"}
+              </span>
+            </div>
+          </div>
+
+          {/* 🔹 Best & Worst Time */}
+          <div className="bestTime flexRow flexRow_stretch gap_12">
+            {/* Best Time */}
+            <div
+              className="chart_boxBg width100 flexClm gap_12"
+              style={{ padding: "16px" }}
+            >
+              <span className="font_12">Best Time</span>
+              <div className="flexRow flexRow_stretch">
                 <span
-                  className={`${
-                    stats?.netPnL >= 0 ? "success" : "error"
-                  } stats-text`}
+                  className={`font_14 font_weight_500 ${
+                    isShade(stats?.bestTime) ? "shade_50" : ""
+                  }`}
                 >
-                  <span style={{ paddingRight: "4px" }}>
-                    {getCurrencySymbol(currencyCode)}
-                  </span>
-                  {stats?.netPnL?.toLocaleString("en-US", {
-                    maximumFractionDigits: 2,
-                  })}
+                  {stats?.bestTime ?? "Not available"}
                 </span>
               </div>
             </div>
 
-            {/* Chart Toggle */}
-            {chartType === "dailyPnLChart" ? (
-              <DailyPnLChart data={candleData} />
-            ) : (
-              <PnLAreaChart data={candleData} />
-            )}
+            {/* Worst Time */}
+            <div
+              className="chart_boxBg width100 flexClm gap_12"
+              style={{ padding: "16px" }}
+            >
+              <span className="font_12">Worst Time</span>
+              <div className="flexRow flexRow_stretch">
+                <span
+                  className={`font_14 font_weight_500 ${
+                    isShade(stats?.worstTime) ? "shade_50" : ""
+                  }`}
+                >
+                  {stats?.worstTime ?? "Not available"}
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <TagAnalysis tagAnalysis={stats?.tagAnalysis} />
+
+          {/* 🔹 Win Ratio & Average P/L */}
+          <div className="bestTime flexRow flexRow_stretch gap_12">
+            <div
+              className="chart_boxBg width100 flexClm gap_12"
+              style={{ padding: "16px" }}
+            >
+              <span className="font_12">Win ratio</span>
+              <span
+                className={`font_14 font_weight_500 ${
+                  !stats?.winRatio || stats?.totalTrades === 0
+                    ? "shade_50"
+                    : stats?.winRatio > 70
+                      ? "success"
+                      : stats?.winRatio >= 50
+                        ? "warning"
+                        : "error"
+                }`}
+              >
+                {stats?.winRatio || "0"}%
+              </span>
+            </div>
+
+            <div
+              className="chart_boxBg width100 flexClm gap_12"
+              style={{ padding: "16px" }}
+            >
+              <span className="font_12">Average p/l</span>
+              <span
+                className={`font_14 font_weight_500 ${
+                  stats?.totalTrades === 0 || stats?.averagePnL === undefined
+                    ? "shade_50"
+                    : stats?.averagePnL >= 0
+                      ? "success"
+                      : "error"
+                }`}
+              >
+                {stats?.totalTrades === 0 ? "-" : stats?.averagePnL}
+              </span>
+            </div>
           </div>
+
+          {/* 🔹 Volume & Fees */}
+          <div className="flexRow flexRow_stretch gap_12">
+            <div
+              className="chart_boxBg width100 flexClm gap_12"
+              style={{ padding: "16px" }}
+            >
+              <span className="font_12">Total volume</span>
+              <span
+                className={`font_14 font_weight_500 flexRow gap_4 ${
+                  !stats?.totalVolume || stats?.totalVolume === 0
+                    ? "shade_50"
+                    : ""
+                }`}
+              >
+                <span>{getCurrencySymbol(currencyCode)}</span>
+                {stats?.totalVolume?.toLocaleString() || "0"}
+              </span>
+            </div>
+
+            <div
+              className="chart_boxBg width100 flexClm gap_12"
+              style={{ padding: "16px" }}
+            >
+              <span className="font_12">Total fees</span>
+              <span
+                className={`font_14 font_weight_500 flexRow gap_4 ${
+                  !stats?.totalFees || stats?.totalFees === 0 ? "shade_50" : ""
+                }`}
+              >
+                <span>{getCurrencySymbol(currencyCode)}</span>
+                {stats?.totalFees?.toLocaleString() || "0"}
+              </span>
+            </div>
+          </div>
+
+          {/* 🔹 Streak & Last 10 Trades */}
           <div
-            className="pnlChart chart_boxBg flexClm gap_12"
+            className="totalTrades flexClm gap_12 chart_boxBg"
             style={{ padding: "16px 16px" }}
           >
-            <span className="font_12">Daily PnL</span>
-            <div className="flexRow flexRow_stretch gap_12">
-              {/* Max Run up */}
-              <div
-                className="boxBg flexClm gap_12"
-                style={{ width: "100%", padding: "12px" }}
+            <div className="flexRow flexRow_stretch font_14">
+              <span className="font_12">Streak</span>
+              <span
+                className={`font_14 font_weight_500 ${
+                  !stats?.streak || stats?.streak === "0"
+                    ? "shade_50"
+                    : stats?.streak.toLowerCase().includes("win")
+                      ? "success"
+                      : stats?.streak.toLowerCase().includes("breakeven") ||
+                          stats?.streak.toLowerCase().includes("break-even")
+                        ? "shade_50"
+                        : "error"
+                }`}
               >
-                <span className="font_12">Max profit</span>
-                <span
-                  className={`${
-                    stats?.maxProfit >= 0 ? "success" : "error"
-                  } stats-text`}
-                >
-                  <span style={{ paddingRight: "4px" }}>
-                    {getCurrencySymbol(currencyCode)}
-                  </span>
-                  {stats?.maxProfit?.toLocaleString("en-US", {
-                    maximumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
+                {stats?.streak || "0"}
+              </span>
+            </div>
+            <div className="streakTrades">
+              <div className="flexRow flexRow_scroll removeScrollBar gap_12">
+                {stats?.last10 && stats?.last10.length > 0 ? (
+                  stats.last10
+                    .slice()
+                    .reverse()
+                    .map((trade, idx) => {
+                      const isWin = trade.pnl > 0;
+                      const isLoss = trade.pnl < 0;
+                      const isBreakEven = trade.pnl === 0;
+                      const isLong = trade.direction === "long";
 
-              {/* Max Drawdown */}
-              <div
-                className="boxBg flexClm gap_12"
-                style={{ width: "100%", padding: "12px" }}
-              >
-                <span className="font_12">Max loss</span>
-                <span
-                  className={`${
-                    stats?.maxLoss < 0 ? "error" : "success"
-                  } stats-text`}
-                >
-                  <span style={{ paddingRight: "4px" }}>
-                    {getCurrencySymbol(currencyCode)}
-                  </span>
-                  {stats?.maxLoss?.toLocaleString("en-US", {
-                    maximumFractionDigits: 2,
-                  })}
-                </span>
+                      return (
+                        <div
+                          key={idx}
+                          className={`tradeItem flexRow flex_center font_14 gap_4 ${
+                            isWin
+                              ? "tradeWin"
+                              : isLoss
+                                ? "tradeLoss"
+                                : "tradeBrk"
+                          }`}
+                        >
+                          {isLong ? (
+                            <ArrowUpRightIcon size={16} />
+                          ) : (
+                            <ArrowDownRightIcon size={16} />
+                          )}
+                          <span>
+                            {isWin
+                              ? `+${formatNumber(trade.pnl)}`
+                              : isLoss
+                                ? `-${formatNumber(Math.abs(trade.pnl))}`
+                                : formatNumber(trade.pnl)}
+                          </span>
+                        </div>
+                      );
+                    })
+                ) : (
+                  <span className="shade_50 font_12">No trade data</span>
+                )}
               </div>
             </div>
-
-            <PNLChart dailyData={stats.dailyData} />
           </div>
-          <div
-            className="pnlChart chart_boxBg flexClm gap_12"
-            style={{ padding: "16px 16px" }}
-          >
-            <span className="font_12">Daily Volume chart</span>
 
-            <div className="flexRow flexRow_stretch gap_12">
-              <div
-                className="boxBg flexRow flexRow_center gap_8"
-                style={{ width: "100%", padding: "12px" }}
-              >
-                <div className="flexClm gap_12">
-                  <span className="font_12">Total Volume</span>
-                  <span className="flexRow gap_8">
-                    {formatCurrency(
-                      stats.totalVolume,
-                      getCurrencySymbol(currencyCode)
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <AllVolume dailyData={stats.dailyVolumeData} />
-          </div>
           <div className="greedAndFear flexRow flexRow_stretch chart_boxBg">
             <div className="gfHeader flexClm gap_12">
               <span className="font_12">Greed & Fear Index</span>
@@ -296,8 +398,8 @@ export default function Overview({ stats, trades }) {
                     gfLabel === "Fear"
                       ? "#ef4444"
                       : gfLabel === "Greed"
-                      ? "#22c55e"
-                      : "#fbbf24"
+                        ? "#22c55e"
+                        : "#fbbf24"
                   }
                 >
                   {gfLabel}
@@ -306,257 +408,134 @@ export default function Overview({ stats, trades }) {
             </div>
           </div>
         </div>
-        <div className="otherStats flexClm gap_24">
-          <SectionHeader
-            title="Overview"
-            // description="Know about your logged trades"
-            level={5} // uses <h2>
-            // showButton={accounts.length > 0}
-            // buttonLabel="Create journal"
-            // onButtonClick={handleCreateAccount}
-            // loading={loading}
-          />
-
-          <Timer />
-          {/* 🔹 Total Trades */}
+        <div className="flexClm gap_24">
           <div
-            className="totalTrades flexClm gap_12 chart_boxBg"
-            style={{ padding: "16px 16px" }}
+            className="pnlChart chart_boxBg flexClm gap_12"
+            style={{ padding: "16px" }}
           >
-            <div className="flexRow flexRow_stretch">
-              <span className="font_12 analysisCardTitle">Total Trades</span>
-              <span
-                className={`font_12 analysisCardDesc ${
-                  !stats?.totalTrades || stats?.totalTrades === 0
-                    ? "shade_50"
-                    : ""
-                }`}
-              >
-                {stats?.totalTrades || "0"}
-              </span>
-            </div>
-
-            {/* Progress Bar */}
-            <div
-              className={`progress-bar ${
-                (!stats?.winTrades && !stats?.loseTrades) ||
-                stats?.totalTrades === 0
-                  ? "shade_50"
-                  : ""
-              }`}
-            >
+            {/* Stats */}
+            {/* <div className="flexRow flexRow_stretch gap_12">
               <div
-                className={`progress-win ${
-                  !stats?.winTrades || stats?.winTrades === 0 ? "shade_50" : ""
-                }`}
-                style={{ width: `${winPercent}%` }}
-              ></div>
-              <div
-                className={`progress-loss ${
-                  !stats?.loseTrades || stats?.loseTrades === 0
-                    ? "shade_50"
-                    : ""
-                }`}
-                style={{ width: `${lossPercent}%` }}
-              ></div>
-            </div>
-
-            <div className="flexRow flexRow_stretch">
-              <span
-                className={`analysisCardDesc ${
-                  !stats?.winTrades || stats?.winTrades === 0 ? "shade_50" : ""
-                }`}
+                className="boxBg flexClm gap_12"
+                style={{ width: "100%", padding: "12px" }}
               >
-                Wins: {stats?.winTrades || "0"}
-              </span>
-              <span
-                className={`analysisCardDesc ${
-                  !stats?.loseTrades || stats?.loseTrades === 0
-                    ? "shade_50"
-                    : ""
-                }`}
-              >
-                Losses: {stats?.loseTrades || "0"}
-              </span>
-            </div>
-          </div>
-
-          {/* 🔹 Best & Worst Time */}
-          <div className="bestTime flexRow flexRow_stretch gap_12">
-            {/* Best Time */}
-            <div
-              className="chart_boxBg width100 flexClm gap_12"
-              style={{ padding: "16px" }}
-            >
-              <span className="analysisCardTitle">Best Time</span>
-              <div className="flexRow flexRow_stretch">
+                <span className="font_12">Net PnL</span>
                 <span
-                  className={`analysisCardDesc ${
-                    isShade(stats?.bestTime) ? "shade_50" : ""
-                  }`}
+                  className={`${
+                    stats?.netPnL >= 0 ? "success" : "error"
+                  } stats-text`}
                 >
-                  {stats?.bestTime ?? "Not available"}
+                  <span style={{ paddingRight: "4px" }}>
+                    {getCurrencySymbol(currencyCode)}
+                  </span>
+                  {stats?.netPnL?.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
+              </div>
+            </div> */}
+
+            {/* Header with toggle */}
+            <div className="flexRow flexRow_stretch">
+              <div className="view-toggle flexRow width100">
+                <button
+                  className={`toggle-btn flexRow gap_4 flex_center width100 ${
+                    chartType === "dailyPnLChart" ? "active" : ""
+                  }`}
+                  onClick={() => handleChartChange("dailyPnLChart")}
+                >
+                  <CandlestickChart size={16} />
+                  CandleStick
+                </button>
+                <button
+                  className={`toggle-btn flexRow gap_4 flex_center width100 ${
+                    chartType === "pnlAreaChart" ? "active" : ""
+                  }`}
+                  onClick={() => handleChartChange("pnlAreaChart")}
+                >
+                  <LineChart size={16} />
+                  Area chart
+                </button>
               </div>
             </div>
 
-            {/* Worst Time */}
-            <div
-              className="chart_boxBg width100 flexClm gap_12"
-              style={{ padding: "16px" }}
-            >
-              <span className="analysisCardTitle">Worst Time</span>
-              <div className="flexRow flexRow_stretch">
+            {/* Chart Toggle */}
+            {chartType === "dailyPnLChart" ? (
+              <DailyPnLChart data={candleData} />
+            ) : (
+              <PnLAreaChart data={candleData} />
+            )}
+          </div>
+          <div>
+            <TagAnalysis tagAnalysis={stats?.tagAnalysis} />
+          </div>
+          <div
+            className="pnlChart chart_boxBg flexClm gap_12"
+            style={{ padding: "16px 16px" }}
+          >
+            <PNLChart dailyData={stats.dailyData} />
+
+            <div className="flexRow flexRow_stretch gap_12">
+              {/* Max Run up */}
+              <div
+                className="boxBg flexClm gap_12"
+                style={{ width: "100%", padding: "12px" }}
+              >
+                <span className="font_12">Max profit</span>
                 <span
-                  className={`analysisCardDesc ${
-                    isShade(stats?.worstTime) ? "shade_50" : ""
-                  }`}
+                  className={`${
+                    stats?.maxProfit >= 0 ? "success" : "error"
+                  } stats-text`}
                 >
-                  {stats?.worstTime ?? "Not available"}
+                  <span style={{ paddingRight: "4px" }}>
+                    {getCurrencySymbol(currencyCode)}
+                  </span>
+                  {stats?.maxProfit?.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+
+              {/* Max Drawdown */}
+              <div
+                className="boxBg flexClm gap_12"
+                style={{ width: "100%", padding: "12px" }}
+              >
+                <span className="font_12">Max loss</span>
+                <span
+                  className={`${
+                    stats?.maxLoss < 0 ? "error" : "success"
+                  } stats-text`}
+                >
+                  <span style={{ paddingRight: "4px" }}>
+                    {getCurrencySymbol(currencyCode)}
+                  </span>
+                  {stats?.maxLoss?.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
               </div>
             </div>
           </div>
-
-          {/* 🔹 Win Ratio & Average P/L */}
-          <div className="bestTime flexRow flexRow_stretch gap_12">
-            <div
-              className="chart_boxBg width100 flexClm gap_12"
-              style={{ padding: "16px" }}
-            >
-              <span className="analysisCardTitle">Win ratio</span>
-              <span
-                className={`analysisCardDesc ${
-                  !stats?.winRatio || stats?.totalTrades === 0
-                    ? "shade_50"
-                    : stats?.winRatio > 70
-                    ? "success"
-                    : stats?.winRatio >= 50
-                    ? "warning"
-                    : "error"
-                }`}
-              >
-                {stats?.winRatio || "0"}%
-              </span>
-            </div>
-
-            <div
-              className="chart_boxBg width100 flexClm gap_12"
-              style={{ padding: "16px" }}
-            >
-              <span className="analysisCardTitle">Average p/l</span>
-              <span
-                className={`analysisCardDesc ${
-                  stats?.totalTrades === 0 || stats?.averagePnL === undefined
-                    ? "shade_50"
-                    : stats?.averagePnL >= 0
-                    ? "success"
-                    : "error"
-                }`}
-              >
-                {stats?.totalTrades === 0 ? "-" : stats?.averagePnL}
-              </span>
-            </div>
-          </div>
-
-          {/* 🔹 Volume & Fees */}
-          <div className="flexRow flexRow_stretch gap_12">
-            <div
-              className="chart_boxBg width100 flexClm gap_12"
-              style={{ padding: "16px" }}
-            >
-              <span className="analysisCardTitle">Total volume</span>
-              <span
-                className={`analysisCardDesc flexRow gap_4 ${
-                  !stats?.totalVolume || stats?.totalVolume === 0
-                    ? "shade_50"
-                    : ""
-                }`}
-              >
-                <span>{getCurrencySymbol(currencyCode)}</span>
-                {stats?.totalVolume?.toLocaleString() || "0"}
-              </span>
-            </div>
-
-            <div
-              className="chart_boxBg width100 flexClm gap_12"
-              style={{ padding: "16px" }}
-            >
-              <span className="analysisCardTitle">Total fees</span>
-              <span
-                className={`analysisCardDesc flexRow gap_4 ${
-                  !stats?.totalFees || stats?.totalFees === 0 ? "shade_50" : ""
-                }`}
-              >
-                <span>{getCurrencySymbol(currencyCode)}</span>
-                {stats?.totalFees?.toLocaleString() || "0"}
-              </span>
-            </div>
-          </div>
-
-          {/* 🔹 Streak & Last 10 Trades */}
           <div
-            className="totalTrades flexClm gap_12 chart_boxBg"
+            className="pnlChart chart_boxBg flexClm gap_12"
             style={{ padding: "16px 16px" }}
           >
-            <div className="flexRow flexRow_stretch font_14">
-              <span className="analysisCardTitle">Streak</span>
-              <span
-                className={`analysisCardDesc ${
-                  !stats?.streak || stats?.streak === "0"
-                    ? "shade_50"
-                    : stats?.streak.toLowerCase().includes("win")
-                    ? "success"
-                    : stats?.streak.toLowerCase().includes("breakeven") ||
-                      stats?.streak.toLowerCase().includes("break-even")
-                    ? "shade_50"
-                    : "error"
-                }`}
+            <AllVolume dailyData={stats.dailyVolumeData} />
+            <div className="flexRow flexRow_stretch gap_12">
+              <div
+                className="boxBg flexRow flexRow_center gap_8"
+                style={{ width: "100%", padding: "12px" }}
               >
-                {stats?.streak || "0"}
-              </span>
-            </div>
-            <div className="streakTrades">
-              <div className="flexRow flexRow_scroll removeScrollBar gap_12">
-                {stats?.last10 && stats?.last10.length > 0 ? (
-                  stats.last10
-                    .slice()
-                    .reverse()
-                    .map((trade, idx) => {
-                      const isWin = trade.pnl > 0;
-                      const isLoss = trade.pnl < 0;
-                      const isBreakEven = trade.pnl === 0;
-                      const isLong = trade.direction === "long";
-
-                      return (
-                        <div
-                          key={idx}
-                          className={`tradeItem flexRow flex_center font_14 gap_4 ${
-                            isWin
-                              ? "tradeWin"
-                              : isLoss
-                              ? "tradeLoss"
-                              : "tradeBrk"
-                          }`}
-                        >
-                          {isLong ? (
-                            <ArrowUpRightIcon size={16} />
-                          ) : (
-                            <ArrowDownRightIcon size={16} />
-                          )}
-                          <span>
-                            {isWin
-                              ? `+${formatNumber(trade.pnl)}`
-                              : isLoss
-                              ? `-${formatNumber(Math.abs(trade.pnl))}`
-                              : formatNumber(trade.pnl)}
-                          </span>
-                        </div>
-                      );
-                    })
-                ) : (
-                  <span className="shade_50 font_12">No trade data</span>
-                )}
+                <div className="flexClm gap_12">
+                  <span className="font_12">Total Volume</span>
+                  <span className="flexRow gap_8">
+                    {formatCurrency(
+                      stats.totalVolume,
+                      getCurrencySymbol(currencyCode)
+                    )}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

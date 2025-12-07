@@ -40,7 +40,15 @@ const Profile = () => {
   if (loading) return <FullPageLoader />;
 
   return (
-    <div className="flexClm gap_32">
+    <div
+      className="flexClm gap_32"
+      style={{
+        maxWidth: "1200px",
+        minWidth: "300px",
+        margin: "12px auto",
+        padding: "0 12px 100px 12px",
+      }}
+    >
       {/* Header */}
       <motion.div
         className="profile-header flexRow flexRow_stretch"

@@ -97,7 +97,10 @@ export default function VolumeChart({ dailyData }) {
   };
 
   return (
-    <div className="chart-container daily-volume-chart-container">
+    <div className="chart_container daily-volume-chart-container">
+      <span className="font_12 font_weight_600">
+        Weekly Long/Short volume chart
+      </span>
       {/* Navigation */}
       <div className="flexRow flexRow_stretch font_12">
         <button onClick={handlePreviousWeek} className="button_ter flexRow">

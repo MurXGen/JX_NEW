@@ -83,7 +83,7 @@ export default function VolumeChart({ dailyData }) {
     if (active && payload?.length) {
       const { day, date, longVolume, shortVolume } = payload[0].payload;
       return (
-        <div className="boxBg font_12 flexClm gap_6">
+        <div className=" font_12 flexClm gap_6">
           <div>
             {day} {date && `(${date})`}
           </div>
@@ -96,7 +96,9 @@ export default function VolumeChart({ dailyData }) {
   };
 
   return (
-    <div className="chart_container daily-volume-chart-container">
+    <div className="chart_container">
+      <span className="font_12 font_weight_600">Weekly volume chart</span>
+
       {/* Navigation */}
       <div className="flexRow flexRow_stretch font_12">
         <button onClick={handlePreviousWeek} className="button_ter flexRow">
@@ -170,7 +172,7 @@ export default function VolumeChart({ dailyData }) {
               if (active && payload?.length) {
                 const { day, date, totalVolume } = payload[0].payload;
                 return (
-                  <div className="boxBg font_12 flexClm gap_6">
+                  <div className="tooltip pad_16 font_12 flexClm">
                     <div>
                       {day} {date && `(${date})`}
                     </div>

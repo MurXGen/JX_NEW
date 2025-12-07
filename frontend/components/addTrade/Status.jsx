@@ -26,7 +26,8 @@ const TradeStatusGrid = ({ form, handleChange, statuses }) => {
           <button
             key={status.value}
             type="button"
-            className={`button_sec width100 flexRow gap_8 flex_center ${
+            style={{ padding: "12px" }}
+            className={`button_ter width100 flexRow gap_8 flex_center ${
               form.tradeStatus === status.value ? "selected" : ""
             }`}
             onClick={() =>

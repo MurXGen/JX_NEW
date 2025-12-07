@@ -245,40 +245,24 @@ const TagAnalysis = ({ tagAnalysis }) => {
       className="chart_boxBg flexClm gap_12"
       style={{ padding: "var(--px-16)" }}
     >
-      {/* Header */}
-      <div className="flexRow flexRow_stretch">
-        <div className="tag-analysis-title flexClm">
-          <span className="font_12">Tag Performance Analysis</span>
-        </div>
-
-        <div className="tag-analysis-controls flexRow gap_12">
-          <div className="view-toggle flexRow">
-            <button
-              className={`toggle-btn ${viewMode === "chart" ? "active" : ""}`}
-              onClick={() => setViewMode("chart")}
-            >
-              <BarChart3 size={16} />
-            </button>
-            <button
-              className={`toggle-btn ${viewMode === "list" ? "active" : ""}`}
-              onClick={() => setViewMode("list")}
-            >
-              <ListIcon size={16} />
-            </button>
-          </div>
-
-          {/* <select
-            className="sort-select"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+      <div className="tag-analysis-controls flexRow gap_12 width100">
+        <div className="view-toggle flexRow width100">
+          <button
+            className={`toggle-btn flexRow gap_4 flex_center width100 ${viewMode === "chart" ? "active" : ""}`}
+            onClick={() => setViewMode("chart")}
           >
-            <option value="pnl">Sort by PnL</option>
-            <option value="trades">Sort by Trades</option>
-            <option value="winRate">Sort by Win Rate</option>
-          </select> */}
+            <BarChart3 size={16} />
+            Charts
+          </button>
+          <button
+            className={`toggle-btn flexRow gap_4 flex_center width100 ${viewMode === "list" ? "active" : ""}`}
+            onClick={() => setViewMode("list")}
+          >
+            <ListIcon size={16} />
+            Analytics
+          </button>
         </div>
       </div>
-
       {/* Content */}
       <AnimatePresence mode="wait">
         <div className="tag-analysis-content">

@@ -7,7 +7,6 @@ import Head from "next/head";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import TradesHistory from "@/components/Trades/TradeHistory";
 import TradeCalendar from "@/components/Trades/TradeCalendar";
-import BottomBar from "@/components/Trades/BottomBar";
 import Navbar from "@/components/Trades/Navbar";
 import { Calendar, History, Layers } from "lucide-react";
 import Dropdown from "@/components/ui/Dropdown";
@@ -110,16 +109,7 @@ const TradePage = () => {
         />
         <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>
-      <div
-        className="flexClm gap_32"
-        style={{
-          maxWidth: "800px",
-          minWidth: "300px",
-          margin: "32px auto",
-          padding: "0 16px",
-        }}
-      >
-        <BottomBar />
+      <div className="flexClm gap_32">
         <div className="flexRow flexRow_stretch">
           <SectionHeader
             title="History"

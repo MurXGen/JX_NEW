@@ -138,6 +138,7 @@ export default function PNLChart({ dailyData }) {
 
   return (
     <div className="chart_container">
+      <span className="font_12 font_weight_600">Weekly pnl chart</span>
       {/* Navigation Header */}
       <div className="flexRow flexRow_stretch font_12">
         <button

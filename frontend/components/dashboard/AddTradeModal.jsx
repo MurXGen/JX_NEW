@@ -888,15 +888,7 @@ export default function AddTrade() {
   );
 
   return (
-    <div
-      className="flexClm gap_32"
-      style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "12px auto",
-        padding: "0 12px 100px 12px",
-      }}
-    >
+    <div className="flexClm gap_32" style={{ paddingBottom: "100px" }}>
       <div className="flexClm gap_4">
         <span className="font_20">Add trade</span>
         <span className="font_12 shade_60">Log trade in seconds</span>

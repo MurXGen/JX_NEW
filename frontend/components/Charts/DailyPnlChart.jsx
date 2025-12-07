@@ -151,8 +151,8 @@ const DailyPnlChart = ({ data }) => {
   }
 
   return (
-    <div>
-      {/* Pagination Buttons */}
+    <div className="chart_container">
+      <span className="font_12 font_weight_600">PNL Candlestick chart</span>
       <div
         style={{
           display: "flex",

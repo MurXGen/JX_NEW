@@ -210,7 +210,15 @@ const AccountSetting = () => {
         <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>
 
-      <div className="accountSetting flexClm gap_24">
+      <div
+        className="accountSetting flexClm gap_24"
+        style={{
+          maxWidth: "1200px",
+          minWidth: "300px",
+          margin: "12px auto",
+          padding: "0 12px 100px 12px",
+        }}
+      >
         <div className="flexClm">
           <span className="font_20">Journal setting</span>
           <span className="font_12">Manage Journal detail</span>

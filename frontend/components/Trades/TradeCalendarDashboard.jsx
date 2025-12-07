@@ -186,7 +186,7 @@ const TradeCalendar = ({
   return (
     <div className=" flexClm gap_24">
       {/* View Toggle */}
-      <div className="view-toggle flexRow gap_8">
+      {/* <div className="view-toggle flexRow gap_8">
         <button
           className={`toggle-btn width100 flexRow gap_8 flex_center ${
             view === "month" ? "active" : ""
@@ -206,7 +206,7 @@ const TradeCalendar = ({
           <BarChart3 size={18} />
           Yearly Overview
         </button>
-      </div>
+      </div> */}
 
       {/* Header with Navigation */}
       {view === "month" && (
@@ -233,7 +233,7 @@ const TradeCalendar = ({
         </div>
       )}
 
-      {view === "year" && (
+      {/* {view === "year" && (
         <div className="calendarHeader flexRow flexRow_stretch">
           <div className="flexClm">
             <span className="font_weight_600">{selectedYear}</span>
@@ -253,12 +253,12 @@ const TradeCalendar = ({
             </button>
           </div>
         </div>
-      )}
+      )} */}
 
-      <div className="calendarReverse flexClm gap_24">
+      <div className="calendarReverse gridContainer gap_24">
         {/* Stats Cards */}
-        <div className="statsGrid">
-          <div className="statCard">
+        <div className="gridContainer">
+          <div className="chart_boxBg pad_16 flexRow gap_12">
             <div className="statIcon total">
               <BarChart3 size={20} />
             </div>
@@ -270,7 +270,7 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="statCard">
+          <div className="chart_boxBg pad_16 flexRow gap_12">
             <div className="statIcon win">
               <TrendingUp size={20} />
             </div>
@@ -280,7 +280,7 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="statCard">
+          <div className="chart_boxBg pad_16 flexRow gap_12">
             <div className="statIcon loss">
               <TrendingDown size={20} />
             </div>
@@ -290,14 +290,14 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="statCard">
+          <div className="chart_boxBg pad_16 flexRow gap_12">
             <div className="statIcon pnl">
               <span
                 className={`pnlSymbol ${
-                  currentStats.totalPnl >= 0 ? "positive" : "negative"
+                  currentStats.totalPnl >= 0 ? "success" : "error"
                 }`}
               >
-                {currentStats.totalPnl >= 0 ? "+" : ""}
+                {currentStats.totalPnl >= 0 ? "+" : "-"}
               </span>
             </div>
             <div className="statContent">
@@ -323,7 +323,7 @@ const TradeCalendar = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="monthView"
+              className="monthView boxBg"
             >
               {/* Weekday Headers */}
               <div className="weekdayHeaders">
