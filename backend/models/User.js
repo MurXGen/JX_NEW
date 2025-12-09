@@ -25,17 +25,15 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date },
 
-    // ----------------------------------------------------------------
-    // 🔥 Subscription System (Aligned with Paddle + Your Plans)
-    // ----------------------------------------------------------------
+    //------------------------------------------------------------------
+    // 🔥 Subscription System
+    //------------------------------------------------------------------
 
-    // Ref to full Subscription document
     subscription: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subscription",
     },
 
-    // HIGH-LEVEL (store lite version for quick access)
     subscriptionPlan: {
       type: String,
       enum: ["free", "pro", "lifetime"],
@@ -50,28 +48,28 @@ const userSchema = new mongoose.Schema(
 
     subscriptionType: {
       type: String,
-      enum: ["recurring", "one-time", "none"],
+      enum: ["recurring", "one-time", "none", "lifetime"],
       default: "none",
     },
 
-    // Paddle customer token
     paddleCustomerId: { type: String },
 
-    // Billing info for recurring plans
     lastBillingDate: { type: Date },
     nextBillingDate: { type: Date },
 
-    // Subscription timeline
     subscriptionStartAt: { type: Date },
     subscriptionExpiresAt: { type: Date },
     subscriptionCreatedAt: { type: Date },
 
-    // ----------------------------------------------------------------
-    // Paddle Orders
-    // ----------------------------------------------------------------
+    //------------------------------------------------------------------
+    // Paddle/Crypto Orders
+    //------------------------------------------------------------------
     orders: [
       {
-        orderId: { type: mongoose.Schema.Types.ObjectId, ref: "PaddleOrder" },
+        orderId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "PaddleOrder",
+        },
         status: {
           type: String,
           enum: ["pending", "paid", "failed", "expired"],

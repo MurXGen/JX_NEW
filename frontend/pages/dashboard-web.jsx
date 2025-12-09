@@ -18,6 +18,7 @@ import {
   User,
   Newspaper,
   Crown,
+  Menu,
 } from "lucide-react";
 
 import { calculateStats } from "@/utils/calculateStats";
@@ -79,6 +80,8 @@ export default function Dashboard1() {
   const [accountSymbols, setAccountSymbols] = useState({});
   const [loading, setLoading] = useState(true);
   const [tradesCount, setTradesCount] = useState({});
+
+  const [userData, setUserData] = useState(null);
   // 🟩 state for trades
   const [accountTrades, setAccountTrades] = useState([]);
   const menuItems = [
@@ -88,7 +91,6 @@ export default function Dashboard1() {
     // { id: "reports", icon: <BarChartIcon size={20} />, label: "Reports" },
     { id: "share", icon: <Share2Icon size={20} />, label: "Share logs" },
     { id: "export", icon: <Share size={20} />, label: "Export logs" },
-    { id: "settings", icon: <SettingsIcon size={20} />, label: "Settings" },
   ];
 
   useEffect(() => {
@@ -123,6 +125,7 @@ export default function Dashboard1() {
         });
 
         const { userData } = userRes.data;
+        setUserData(userData);
 
         // Save locally
         if (userData) {
@@ -253,6 +256,7 @@ export default function Dashboard1() {
                 <ChevronLeft
                   size={22}
                   color="white"
+                  className="sideBar_clickables"
                   style={{ cursor: "pointer" }}
                   onClick={() => setOpen(!open)}
                 />
@@ -261,25 +265,10 @@ export default function Dashboard1() {
 
             {!open && (
               <div className="flexClm gap_8" style={{ alignItems: "center" }}>
-                {/* Show Profile Icon on collapse */}
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "rgba(255,255,255,0.2)",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginBottom: 8,
-                  }}
-                >
-                  <User size={18} color="white" />
-                </div>
-
-                <ChevronRight
+                <Menu
                   size={22}
                   color="white"
+                  className="sideBar_clickables"
                   style={{ cursor: "pointer" }}
                   onClick={() => setOpen(!open)}
                 />
@@ -300,7 +289,7 @@ export default function Dashboard1() {
             {/* SELECT ACCOUNT */}
             {open ? (
               <div
-                className="flexRow gap_4 boxBg flexRow_stretch"
+                className="flexRow gap_4 boxBg flexRow_stretch sideBar_clickables"
                 style={{ cursor: "pointer", padding: "12px 14px" }}
                 onClick={() => setShowModal(true)}
               >
@@ -315,7 +304,7 @@ export default function Dashboard1() {
               </div>
             ) : (
               <div
-                className="flexRow gap_4 flexRow_stretch"
+                className="flexRow gap_4 flexRow_stretch sideBar_clickables"
                 style={{ cursor: "pointer", padding: "12px 14px" }}
                 onClick={() => setShowModal(true)}
               >
@@ -326,7 +315,7 @@ export default function Dashboard1() {
             {/* LOG TRADE */}
             {open ? (
               <div
-                className="flexRow gap_4 boxBg flexRow_stretch"
+                className="flexRow gap_4 boxBg flexRow_stretch sideBar_clickables"
                 style={{ cursor: "pointer", padding: "12px 14px" }}
                 onClick={() => setActiveTab("logtrade")}
               >
@@ -335,7 +324,7 @@ export default function Dashboard1() {
               </div>
             ) : (
               <div
-                className="flexRow gap_4 flexRow_stretch"
+                className="flexRow gap_4 flexRow_stretch sideBar_clickables"
                 style={{ cursor: "pointer", padding: "12px 14px" }}
                 onClick={() => setActiveTab("logtrade")}
               >
@@ -352,7 +341,7 @@ export default function Dashboard1() {
                 <div
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className="sidebarItem"
+                  className="sidebarItem sideBar_clickables"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -378,14 +367,14 @@ export default function Dashboard1() {
           {/* 🔵 BOTTOM SECTION */}
           <div
             style={{
-              padding: "12px",
+              padding: "10px 8px",
               borderTop: "1px solid rgba(255,255,255,0.05)",
             }}
           >
             {/* UPGRADE CTA */}
             {open && (
               <button
-                className="upgrade_btn flexRow flexRow_stretch"
+                className="upgrade_btn flexRow flexRow_stretch sideBar_clickables"
                 onClick={() => (window.location.href = "/pricing")}
               >
                 <>
@@ -397,11 +386,16 @@ export default function Dashboard1() {
             {/* UPGRADE CTA */}
             {!open && (
               <button
-                className="upgrade_btn flexRow flexRow_stretch"
+                className="flexRow flexRow_stretch sideBar_clickables"
                 onClick={() => (window.location.href = "/pricing")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: "12px 14px",
+                }}
               >
                 <>
-                  <Crown size={18} />
+                  <Crown size={20} className="vector" />
                 </>
               </button>
             )}
@@ -409,6 +403,7 @@ export default function Dashboard1() {
             {/* 👤 PROFILE CARD */}
             {open && (
               <div
+                className="sideBar_clickables"
                 style={{
                   marginTop: "16px",
                   padding: "12px",
@@ -417,12 +412,44 @@ export default function Dashboard1() {
                   display: "flex",
                   gap: "12px",
                   alignItems: "center",
+                  cursor: "pointer",
                 }}
+                onClick={() => setActiveTab("profile")}
+              >
+                <div>
+                  <User size={16} color="white" />
+                </div>
+
+                <div className="flexClm">
+                  <span className="font_12 font_weight_600">
+                    {userData?.name || "User"}
+                  </span>
+                  <span className="font_12 shade_50">
+                    {userData?.email || "user@example.com"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Mini Profile for collapsed sidebar */}
+            {!open && userData && (
+              <div
+                className="sideBar_clickables"
+                style={{
+                  marginTop: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "4px",
+                  cursor: "pointer",
+                }}
+                onClick={() => setActiveTab("profile")}
+                title={`${userData.name || "User"}\n${userData.email || "user@example.com"}`}
               >
                 <div
                   style={{
-                    width: 40,
-                    height: 40,
+                    width: 32,
+                    height: 32,
                     borderRadius: "50%",
                     background: "rgba(255,255,255,0.2)",
                     display: "flex",
@@ -430,12 +457,7 @@ export default function Dashboard1() {
                     alignItems: "center",
                   }}
                 >
-                  <User size={20} color="white" />
-                </div>
-
-                <div className="flexClm">
-                  <span className="font_14 font_weight_600">John Doe</span>
-                  <span className="font_12">john.doe@email.com</span>
+                  <User size={16} color="white" />
                 </div>
               </div>
             )}
@@ -475,7 +497,7 @@ export default function Dashboard1() {
 
           {/* {activeTab === "reports" && <ReportsPage />} */}
 
-          {activeTab === "settings" && <Profile />}
+          {activeTab === "profile" && <Profile />}
         </div>
       </div>
 

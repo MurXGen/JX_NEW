@@ -51,6 +51,7 @@ export default function CryptoBillingPage() {
   const [verificationAttempts, setVerificationAttempts] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [planData, setPlanData] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Get plan details from URL parameters
   const planName = searchParams.get("planName");
@@ -76,13 +77,19 @@ export default function CryptoBillingPage() {
     if (!planData) return "";
     const { planName, period } = planData;
 
+    if (period === "lifetime") {
+      return "Lifetime Access";
+    }
+
+    if (planName === "Lifetime") {
+      return "Lifetime Access";
+    }
+
     switch (period) {
       case "monthly":
         return `${planName} Monthly`;
       case "yearly":
         return `${planName} Yearly`;
-      case "lifetime":
-        return "Lifetime Access";
       default:
         return `${planName} Plan`;
     }
@@ -113,7 +120,7 @@ export default function CryptoBillingPage() {
         setProcessingTime(remaining);
 
         // Verify every 60 seconds
-        if (elapsed % 60 === 0 && elapsed > 0) {
+        if (elapsed % 10 === 0 && elapsed > 0) {
           try {
             const storedOrderId = localStorage.getItem("cryptoOrderId");
             if (!storedOrderId) return;
@@ -135,6 +142,7 @@ export default function CryptoBillingPage() {
                 amount: planData?.amount || "",
                 method: "crypto",
                 orderId: storedOrderId,
+                isLifetime: planData?.period === "lifetime" ? "true" : "false",
               }).toString();
 
               router.push(`/subscription-success?${params}`);
@@ -185,29 +193,63 @@ export default function CryptoBillingPage() {
         expiry.setMonth(expiry.getMonth() + 1);
       }
 
+      // Prepare request data
+      const requestData = {
+        planName,
+        period,
+        amount,
+        network: selectedNetwork,
+        currency: "USDT",
+        startAt: now.toISOString(),
+        expiresAt: expiry.toISOString(),
+      };
+
+      console.log("Creating crypto order with data:", requestData);
+
       const response = await axios.post(
         `${API_BASE}/api/crypto-payments/create-order`,
+        requestData,
         {
-          planName,
-          period,
-          amount,
-          network: selectedNetwork,
-          currency: "USDT",
-          startAt: now.toISOString(),
-          expiresAt: expiry.toISOString(),
-        },
-        { withCredentials: true }
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Failed to create order");
+      }
 
       // Store in localStorage
       localStorage.setItem("cryptoOrderId", response.data.orderId);
       localStorage.setItem("cryptoPaymentStart", now.toISOString());
       localStorage.setItem("cryptoPaymentExpiry", expiry.toISOString());
+      localStorage.setItem(
+        "isLifetimePlan",
+        period === "lifetime" ? "true" : "false"
+      );
 
       return response.data.orderId;
     } catch (error) {
       console.error("Failed to create crypto order:", error);
-      throw new Error("Failed to create payment order");
+
+      // Show more detailed error
+      let errorMsg = "Failed to create payment order";
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        errorMsg =
+          error.response.data?.message ||
+          `Server error: ${error.response.status}`;
+        console.error("Server response:", error.response.data);
+      } else if (error.request) {
+        // The request was made but no response was received
+        errorMsg = "No response from server. Please check your connection.";
+      }
+
+      setErrorMessage(errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
@@ -215,6 +257,7 @@ export default function CryptoBillingPage() {
     setPaymentStatus("failed");
     localStorage.removeItem("cryptoPaymentInitiated");
     localStorage.removeItem("cryptoOrderId");
+    localStorage.removeItem("isLifetimePlan");
   };
 
   const handleProceedToPay = () => {
@@ -223,14 +266,16 @@ export default function CryptoBillingPage() {
       return;
     }
 
+    setErrorMessage(""); // Clear previous errors
     setShowModal(true);
     setPaymentStatus("waiting");
-    setConfirmTimer(60);
+    setConfirmTimer(10);
   };
 
   const handleVerifyPayment = async () => {
     try {
       setPaymentStatus("processing");
+      setErrorMessage("");
 
       const orderId = await createCryptoOrder();
       if (!orderId) throw new Error("Order ID not received from server");
@@ -259,6 +304,7 @@ export default function CryptoBillingPage() {
               amount: planData?.amount || "",
               method: "crypto",
               orderId: orderId,
+              isLifetime: planData?.period === "lifetime" ? "true" : "false",
             }).toString();
 
             router.push(`/subscription-success?${params}`);
@@ -278,6 +324,7 @@ export default function CryptoBillingPage() {
       );
     } catch (err) {
       console.error("Payment verification failed:", err);
+      setErrorMessage(err.message);
       setPaymentStatus("failed");
     }
   };
@@ -325,6 +372,25 @@ export default function CryptoBillingPage() {
           </div>
         </div>
 
+        {/* Error Message */}
+        {errorMessage && (
+          <motion.div
+            className="chart_boxBg error"
+            style={{
+              padding: "12px 16px",
+              background: "var(--error-10)",
+              border: "1px solid var(--error-30)",
+            }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flexRow gap_8">
+              <AlertCircle size={16} />
+              <span className="font_12">{errorMessage}</span>
+            </div>
+          </motion.div>
+        )}
+
         {/* Order Summary */}
         <motion.div
           className="chart_boxBg flexClm gap_12"
@@ -336,7 +402,12 @@ export default function CryptoBillingPage() {
           <div className="flexRow flexRow_stretch">
             <div className="flexClm gap_4">
               <span className="font_weight_600">{getPlanDisplayName()}</span>
-              <span className="font_12">{planData.period}</span>
+              <span className="font_12">
+                {planData.period === "lifetime"
+                  ? "One-time payment"
+                  : planData.period}
+                {planData.period === "lifetime" && " (Never expires)"}
+              </span>
             </div>
             <div className="detail-item flexRow flexRow_stretch"></div>
             <div className="flexClm gap_4" style={{ textAlign: "right" }}>
@@ -346,6 +417,16 @@ export default function CryptoBillingPage() {
               </span>
             </div>
           </div>
+
+          {/* Lifetime plan note */}
+          {planData.period === "lifetime" && (
+            <div className="flexRow gap_8 mt-8">
+              <Check size={16} className="success" />
+              <span className="font_12 success">
+                Lifetime plan includes all current and future features
+              </span>
+            </div>
+          )}
         </motion.div>
 
         {/* Network Selection */}
@@ -748,6 +829,21 @@ export default function CryptoBillingPage() {
                   </div>
                 )}
 
+                {/* Error Message in Modal */}
+                {errorMessage && (
+                  <div
+                    className="flexRow gap_8 mt-12 p-8"
+                    style={{
+                      background: "var(--error-10)",
+                      borderRadius: "8px",
+                      border: "1px solid var(--error-30)",
+                    }}
+                  >
+                    <AlertCircle size={16} className="error" />
+                    <span className="font_12 error">{errorMessage}</span>
+                  </div>
+                )}
+
                 {/* Close button for modal */}
                 {(paymentStatus === "waiting" ||
                   paymentStatus === "confirming") && (
@@ -757,6 +853,7 @@ export default function CryptoBillingPage() {
                     onClick={() => {
                       setShowModal(false);
                       setPaymentStatus("selecting");
+                      setErrorMessage("");
                     }}
                   >
                     Cancel
@@ -787,8 +884,8 @@ export default function CryptoBillingPage() {
                     className="font_14"
                     style={{ color: "var(--white-50)" }}
                   >
-                    We couldn't verify your payment within the expected time.
-                    Contact us if you have made the payment
+                    {errorMessage ||
+                      "We couldn't verify your payment within the expected time. Contact us if you have made the payment"}
                   </span>
                 </div>
               </div>
@@ -796,7 +893,10 @@ export default function CryptoBillingPage() {
               <div className="flexRow gap_12">
                 <button
                   className="button_sec flexRow gap_12"
-                  onClick={() => window.location.reload()}
+                  onClick={() => {
+                    setPaymentStatus("selecting");
+                    setErrorMessage("");
+                  }}
                 >
                   <RefreshCw size={16} />
                   Try Again
@@ -834,6 +934,8 @@ export default function CryptoBillingPage() {
                     style={{ color: "var(--white-50)" }}
                   >
                     Your {getPlanDisplayName()} subscription is now active.
+                    {planData.period === "lifetime" &&
+                      " You now have lifetime access!"}
                   </span>
                 </div>
               </div>

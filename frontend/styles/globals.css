@@ -660,6 +660,15 @@ button:disabled {
   background: var(--success);
 }
 
+.sideBar_clickables {
+  cursor: pointer;
+}
+
+.sideBar_clickables:hover {
+  transition: 0.3s;
+  transform: scale(1.02);
+}
+
 .success {
   color: var(--success);
   text-shadow: 0 0 46px var(--success);

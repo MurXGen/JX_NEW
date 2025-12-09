@@ -86,7 +86,7 @@ const SubscriptionStatus = () => {
       );
     }
 
-    if (id === "master") {
+    if (id === "lifetime") {
       return (
         <div className="plan-icon-wrap master">
           <Rocket {...baseProps} />
@@ -191,6 +191,13 @@ const SubscriptionStatus = () => {
                     {(() => {
                       const rawPlan =
                         currentPlan?.plan?.toLowerCase() || "free";
+
+                      // If plan is lifetime OR expiry is null, show "Lifetime"
+                      if (rawPlan === "lifetime" || !currentPlan?.expiresAt) {
+                        return "Lifetime Plan";
+                      }
+
+                      // Otherwise normal mapping
                       const planName =
                         rawPlan === "master"
                           ? "Master"
@@ -238,39 +245,37 @@ const SubscriptionStatus = () => {
                   className="overflow-hidden flexClm gap_24"
                 >
                   {/* Progress Bar */}
-                  {currentPlan?.status === "active" && (
-                    <div>
-                      <div className="progress-header flexRow flexRow_stretch font_12">
-                        <span>Subscription Timeline</span>
-                        <span
-                          className={
-                            timeRemaining === "Expired" ? "error" : "success"
-                          }
-                        >
-                          {timeRemaining}
-                        </span>
+                  {currentPlan?.status === "active" &&
+                    currentPlan.plan !== "lifetime" &&
+                    currentPlan.expiresAt && (
+                      <div>
+                        <div className="progress-header flexRow flexRow_stretch font_12">
+                          <span>Subscription Timeline</span>
+                          <span
+                            className={
+                              timeRemaining === "Expired" ? "error" : "success"
+                            }
+                          >
+                            {timeRemaining}
+                          </span>
+                        </div>
+                        <div className="progress-bar">
+                          <div
+                            className={`progress-fill ${
+                              timeRemaining === "Expired" ? "error" : "success"
+                            }`}
+                            style={{
+                              width: `${timeRemaining === "Expired" ? 100 : progressPercent}%`,
+                              background:
+                                timeRemaining === "Expired"
+                                  ? "var(--error)"
+                                  : "var(--success)",
+                              transition: "width 0.3s ease",
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div className="progress-bar">
-                        <div
-                          className={`progress-fill ${
-                            timeRemaining === "Expired" ? "error" : "success"
-                          }`}
-                          style={{
-                            width: `${
-                              timeRemaining === "Expired"
-                                ? 100
-                                : progressPercent
-                            }%`,
-                            background:
-                              timeRemaining === "Expired"
-                                ? "var(--error)"
-                                : "var(--success)",
-                            transition: "width 0.3s ease",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Dates */}
                   {currentPlan?.startAt && currentPlan?.expiresAt && (
@@ -296,7 +301,9 @@ const SubscriptionStatus = () => {
                               : "Expired"}
                           </span>
                           <span className="font_14 font_weight_600">
-                            {formatDate(currentPlan.expiresAt)}
+                            {currentPlan.expiresAt
+                              ? formatDate(currentPlan.expiresAt)
+                              : "Lifetime"}
                           </span>
                         </div>
                       </div>

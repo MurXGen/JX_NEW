@@ -1,57 +1,122 @@
-// utils/updateUserAfterCryptoPayment.js
-
 module.exports.updateUserAfterCryptoPayment = async (user, order) => {
-  if (!user || !order) return;
+  if (!user || !order) {
+    console.log("❌ Missing user or order in updateUserAfterCryptoPayment");
+    return user;
+  }
 
-  const now = new Date();
+  console.log("🚀 Running updateUserAfterCryptoPayment");
+  console.log("🔹 Incoming order:", {
+    period: order.period,
+    meta: order.meta,
+    planId: order.planId,
+    orderId: order._id,
+  });
 
-  // 🔹 Determine plan type based on period
-  const planMap = {
-    monthly: "pro",
-    yearly: "pro",
-    lifetime: "lifetime",
-  };
+  const isLifetime =
+    order.period === "lifetime" ||
+    order.meta?.isLifetime ||
+    order.planId?.toLowerCase().includes("lifetime");
 
-  const planType = planMap[order.period] || "pro";
+  console.log("🔍 isLifetime computed as:", isLifetime);
 
-  // 🔹 CRYPTO ARE ALWAYS ONE-TIME
-  const subscriptionType = "one-time";
-
-  // 🔹 Calculate expiry only for monthly/yearly
+  // ----------------------------------------------------
+  // COMPUTE EXPIRY
+  // ----------------------------------------------------
   let expiresAt = null;
 
-  if (order.period === "monthly") {
-    expiresAt = new Date();
-    expiresAt.setMonth(expiresAt.getMonth() + 1);
+  if (isLifetime) {
+    console.log("🎉 Applying LIFETIME subscription…");
+
+    user.subscriptionPlan = "lifetime";
+    user.subscriptionType = "lifetime";
+    user.subscriptionExpiresAt = null;
+
+    // mark modified
+    user.markModified("subscriptionPlan");
+    user.markModified("subscriptionType");
+    user.markModified("subscriptionExpiresAt");
+  } else {
+    console.log("📅 Applying recurring term:", order.period);
+
+    const now = new Date();
+    expiresAt = new Date(now);
+
+    if (order.period === "monthly") {
+      expiresAt.setMonth(expiresAt.getMonth() + 1);
+    }
+
+    if (order.period === "yearly") {
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    }
+
+    user.subscriptionPlan = "pro";
+    user.subscriptionType = "one-time";
+    user.subscriptionExpiresAt = expiresAt;
+
+    user.markModified("subscriptionPlan");
+    user.markModified("subscriptionType");
+    user.markModified("subscriptionExpiresAt");
   }
 
-  if (order.period === "yearly") {
-    expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-  }
-
-  // ---------------------------------------------------------------------
-  // 🔥 Update User DB
-  // ---------------------------------------------------------------------
-
-  user.subscriptionPlan = planType;
+  // COMMON FIELDS
   user.subscriptionStatus = "active";
-  user.subscriptionType = "one-time"; // crypto always
-
   user.subscriptionStartAt = new Date();
-  user.subscriptionExpiresAt = expiresAt;
   user.subscriptionCreatedAt = new Date();
-
-  // 🔹 Recurring billing fields MUST NOT exist for crypto
   user.lastBillingDate = null;
   user.nextBillingDate = null;
 
-  // 🔹 Update order status
-  user.orders = user.orders.map((o) =>
-    String(o.orderId) === String(order._id)
-      ? { ...o.toObject(), status: "paid" }
-      : o
-  );
+  // force marking these too
+  user.markModified("subscriptionStatus");
+  user.markModified("subscriptionStartAt");
+  user.markModified("subscriptionCreatedAt");
+  user.markModified("lastBillingDate");
+  user.markModified("nextBillingDate");
+
+  console.log("📦 Final subscription before order update:", {
+    subscriptionPlan: user.subscriptionPlan,
+    subscriptionType: user.subscriptionType,
+    subscriptionStatus: user.subscriptionStatus,
+    subscriptionExpiresAt: user.subscriptionExpiresAt,
+  });
+
+  // ----------------------------------------------------
+  // UPDATE USER ORDERS
+  // ----------------------------------------------------
+  console.log("🧾 BEFORE update - user.orders:", user.orders);
+
+  let matchFound = false;
+
+  user.orders = user.orders.map((o) => {
+    const userOrderId = String(o.orderId || o._id || "");
+    const incomingId = String(order._id);
+
+    console.log("🔍 Comparing:", { userOrderId, incomingId });
+
+    if (userOrderId === incomingId) {
+      console.log("✅ MATCH FOUND → Updating status to 'paid'");
+      matchFound = true;
+
+      const updatedOrder = {
+        ...(o.toObject?.() ?? o),
+        status: "paid",
+        updatedAt: new Date(),
+      };
+
+      return updatedOrder;
+    }
+
+    return o;
+  });
+
+  if (!matchFound) {
+    console.log("⚠️ No matching order found in user.orders for:", order._id);
+  }
+
+  // mark orders modified
+  user.markModified("orders");
+
+  console.log("🧾 AFTER update - user.orders:", user.orders);
+  console.log("✅ updateUserAfterCryptoPayment COMPLETED");
 
   return user;
 };
