@@ -223,15 +223,7 @@ const ShareTrades = () => {
 
   if (!hasAccess) {
     return (
-      <div
-        className="flexClm gap_24 pad_24"
-        style={{
-          maxWidth: "1200px",
-          minWidth: "300px",
-          margin: "12px auto",
-          padding: "0 12px 100px 12px",
-        }}
-      >
+      <div className="flexClm gap_24 pad_24">
         <div className="flexRow flexRow_stretch">
           <span className="font_20 font_weight_600">Share Trades</span>
         </div>
@@ -260,26 +252,12 @@ const ShareTrades = () => {
   const handleBackClick = () => router.push("/accounts");
 
   return (
-    <div
-      className="shareTradesPage flexClm gap_24 pad_24"
-      style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "12px auto",
-        padding: "0 12px 100px 12px",
-      }}
-    >
-      {/* Header */}
-      <div className="flexRow gap_8">
-        <button className="button_sec flexRow" onClick={handleBackClick}>
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flexClm">
-          <span className="font_20 font_weight_600">Share</span>
-          <span className="font_14 shade_50">
-            Showcase your trading performance
-          </span>
-        </div>
+    <div className="shareTradesPage flexClm gap_24 pad_24">
+      <div className="flexClm gap_4">
+        <span className="font_20 font_weight_600">Share Trades</span>
+        <span className="font_14 shade_50">
+          Share your link and they can see your trading performance
+        </span>
       </div>
 
       {/* Filters Section */}

@@ -23,12 +23,13 @@ export default function Settings() {
         />
       </Head>
       <div className="flexClm gap_24">
-        {/* <div className="flexRow gap_8">
-          <button className="button_sec flexRow">
-            <ArrowLeft size={20} />
-          </button>
-          <span className="font_16">Setting</span>
-        </div> */}
+        <div className="flexClm gap_4">
+          <span className="font_20 font_weight_600">Setting</span>
+          <span className="font_14 shade_50">
+            Customize your journaling experience
+          </span>
+        </div>
+
         <div
           className="boxBg flexRow flexRow_stretch profileCard"
           style={{ background: "var(--white-10)" }}
@@ -99,21 +100,10 @@ export default function Settings() {
     `}
           </style>
         </div>
-        <div className="moreServices flexClm gap_12">
+        <div>
           <span className="font_14 shade_50">Shortcuts</span>
-          <div className="gridContainer gap_24">
-            <div className="flexClm gap_8" style={{}}>
-              <BookIcon className="vector boxBg" size={20} />
-              <span className="font_12">Journals</span>
-            </div>
-            <div className="flexClm gap_8" style={{}}>
-              <Share className="vector boxBg" size={20} />
-              <span className="font_12">Export</span>
-            </div>
-            <div className="flexClm gap_8" style={{}}>
-              <Share2Icon size={20} className="vector boxBg" />
-              <span className="font_12">Share</span>
-            </div>
+          <div>
+            <span>Backup your trade logs</span>
           </div>
         </div>
       </div>

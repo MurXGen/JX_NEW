@@ -111,15 +111,13 @@ const TradePage = () => {
       </Head>
       <div className="flexClm gap_32">
         <div className="flexRow flexRow_stretch">
-          <SectionHeader
-            title="History"
-            description="Logged trades history & calendar"
-            level={4} // uses <h2>
-            // showButton={accounts.length > 0}
-            // buttonLabel="Create journal"
-            // onButtonClick={handleCreateAccount}
-            // loading={loading}
-          />
+          <div className="flexClm gap_4">
+            <span className="font_20 font_weight_600">History</span>
+            <span className="font_14 shade_50">
+              Calendar and your trade log history
+            </span>
+          </div>
+
           {/* Toggle Buttons */}
           <div className="view-toggle flexRow gap_12">
             <button

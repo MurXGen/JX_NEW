@@ -7,6 +7,10 @@ const STORE_NAME = "userData";
 const DB_VERSION = 1;
 
 const SECRET_KEY = process.env.NEXT_PUBLIC_INDEXDB;
+
+// 🔐 Toggle Encryption On/Off (set to true to enable)
+const ENCRYPTION_ENABLED = false;
+
 // Initialize DB
 export const initDB = async () => {
   try {
@@ -25,6 +29,7 @@ export const initDB = async () => {
 
 // Encrypt data
 const encryptData = (data) => {
+  if (!ENCRYPTION_ENABLED) return data; // 🔓 return raw data
   try {
     const str = JSON.stringify(data);
     return CryptoJS.AES.encrypt(str, SECRET_KEY).toString();
@@ -35,6 +40,7 @@ const encryptData = (data) => {
 
 // Decrypt data
 const decryptData = (cipherText) => {
+  if (!ENCRYPTION_ENABLED) return cipherText; // 🔓 raw data, no decrypt
   try {
     const bytes = CryptoJS.AES.decrypt(cipherText, SECRET_KEY);
     const decrypted = bytes.toString(CryptoJS.enc.Utf8);
@@ -50,10 +56,14 @@ export const saveToIndexedDB = async (key, data, expiryMs = null) => {
     const db = await initDB();
     if (!db) return;
 
+    const encryptedValue = encryptData(data);
+
     const payload = {
-      value: encryptData(data),
+      value: encryptedValue,
       expiry: expiryMs ? Date.now() + expiryMs : null,
-      integrity: CryptoJS.SHA256(JSON.stringify(data) + SECRET_KEY).toString(), // 🧩 extra integrity hash
+      integrity: ENCRYPTION_ENABLED
+        ? CryptoJS.SHA256(JSON.stringify(data) + SECRET_KEY).toString()
+        : null, // integrity disabled when encryption disabled
     };
 
     await db.put(STORE_NAME, payload, key);
@@ -71,22 +81,25 @@ export const getFromIndexedDB = async (key) => {
     const stored = await db.get(STORE_NAME, key);
     if (!stored) return null;
 
-    // check expiry
+    // expiry check
     if (stored.expiry && Date.now() > stored.expiry) {
       await db.delete(STORE_NAME, key);
       return null;
     }
 
-    // decrypt and verify integrity
     const decryptedValue = decryptData(stored.value);
-    const currentIntegrity = CryptoJS.SHA256(
-      JSON.stringify(decryptedValue) + SECRET_KEY
-    ).toString();
 
-    if (currentIntegrity !== stored.integrity) {
-      console.warn("Data integrity check failed for key:", key);
-      await db.delete(STORE_NAME, key);
-      return null;
+    // integrity only when encryption enabled
+    if (ENCRYPTION_ENABLED) {
+      const currentIntegrity = CryptoJS.SHA256(
+        JSON.stringify(decryptedValue) + SECRET_KEY
+      ).toString();
+
+      if (currentIntegrity !== stored.integrity) {
+        console.warn("Data integrity check failed for key:", key);
+        await db.delete(STORE_NAME, key);
+        return null;
+      }
     }
 
     return decryptedValue;
@@ -107,7 +120,7 @@ export const deleteFromIndexedDB = async (key) => {
   }
 };
 
-// Clear all data
+// Clear all
 export const clearIndexedDB = async () => {
   try {
     const db = await initDB();

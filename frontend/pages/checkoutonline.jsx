@@ -38,18 +38,19 @@ export default function CheckoutOnline() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check if this is a lifetime plan
+  // Lifetime plan check
   const isLifetime = period === "lifetime";
 
-  // Calculate dates only for monthly/yearly plans
+  // Date calculations
   const startDate = new Date();
   const expiryDate = new Date();
+
   if (period === "monthly") {
     expiryDate.setMonth(expiryDate.getMonth() + 1);
   } else if (period === "yearly") {
     expiryDate.setFullYear(expiryDate.getFullYear() + 1);
   }
-  // For lifetime, no expiry date calculation
+  // Lifetime handled later
 
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
@@ -59,17 +60,18 @@ export default function CheckoutOnline() {
     });
   };
 
+  // Verify user
   useEffect(() => {
     const isVerified = Cookies.get("isVerified");
 
-    if (!isVerified === "yes") {
+    if (isVerified !== "yes") {
       router.push("/accounts");
     } else {
       setLoading(false);
     }
   }, [router]);
 
-  // Fetch plan details from IndexedDB
+  // Fetch plan details
   useEffect(() => {
     (async () => {
       if (!planName) return;
@@ -78,10 +80,12 @@ export default function CheckoutOnline() {
       const match = plans.find(
         (p) => p.name?.toLowerCase() === planName?.toLowerCase()
       );
+
       setPlanDetails(match || null);
     })();
   }, [planName]);
 
+  // Set payment type
   useEffect(() => {
     if (period === "yearly" || method === "crypto" || isLifetime) {
       setPaymentType("one-time");
@@ -102,11 +106,12 @@ export default function CheckoutOnline() {
     }
   };
 
+  // FIXED: master → lifetime
   const getPlanIcon = () => {
     switch (planDetails?.planId) {
       case "pro":
         return <Crown size={24} className="vector" />;
-      case "master":
+      case "lifetime":
         return <Infinity size={24} className="vector" />;
       default:
         return <BadgeCheck size={24} className="vector" />;
@@ -114,9 +119,7 @@ export default function CheckoutOnline() {
   };
 
   const getPlanPeriodText = () => {
-    if (isLifetime) {
-      return "Lifetime Access";
-    }
+    if (isLifetime) return "Lifetime Access";
     return period === "monthly" ? "Monthly Plan" : "Annual Plan";
   };
 
@@ -131,12 +134,10 @@ export default function CheckoutOnline() {
     }
 
     const payload = {
-      planId: planDetails.planId, // Send planId instead of planName
-      period: period,
+      planId: planDetails.planId, // Correct planId
+      period,
       amount: amountParam,
-      paymentType: paymentType,
-      userName: planDetails.name,
-      userEmail: planDetails.email || "",
+      paymentType,
     };
 
     try {
@@ -149,14 +150,12 @@ export default function CheckoutOnline() {
 
       const handleSuccess = async (orderId) => {
         const userData = await getFromIndexedDB("user-data");
-
         const now = new Date();
         let expiry = new Date(now);
 
-        // Set expiry based on plan type
+        // Correct expiry logic
         if (isLifetime) {
-          // Set expiry far in the future for lifetime plans
-          expiry.setFullYear(expiry.getFullYear() + 100); // 100 years = effectively lifetime
+          expiry.setFullYear(expiry.getFullYear() + 100); // lifetime
         } else if (period === "yearly") {
           expiry.setFullYear(expiry.getFullYear() + 1);
         } else {
@@ -192,12 +191,14 @@ export default function CheckoutOnline() {
         );
       };
 
+      // One-time (yearly OR lifetime)
       if (paymentType === "one-time" || isLifetime) {
         const createRes = await axios.post(
           `${API_BASE}/api/payments/create-order`,
           payload,
           { withCredentials: true }
         );
+
         const { order, key } = createRes.data;
 
         const options = {
@@ -217,7 +218,7 @@ export default function CheckoutOnline() {
             await handleSuccess(order.id);
           },
           modal: {
-            ondismiss: function () {
+            ondismiss: () => {
               setIsProcessing(false);
               router.push(
                 `/subscription-failed?planName=${encodeURIComponent(
@@ -228,14 +229,17 @@ export default function CheckoutOnline() {
           },
         };
 
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-      } else if (paymentType === "recurring") {
+        new window.Razorpay(options).open();
+      }
+
+      // Recurring monthly
+      else if (paymentType === "recurring") {
         const createRes = await axios.post(
           `${API_BASE}/api/payments/create-subscription`,
           payload,
           { withCredentials: true }
         );
+
         const { subscription, key } = createRes.data;
 
         const options = {
@@ -250,37 +254,25 @@ export default function CheckoutOnline() {
                 response,
                 { withCredentials: true }
               );
+
               if (verifyRes.data.success) {
                 await handleSuccess();
               } else {
-                router.push(
-                  `/subscription-failed?planName=${encodeURIComponent(
-                    planDetails.name
-                  )}&period=${period}&amount=${amountParam}&method=${paymentType}`
-                );
+                router.push("/subscription-failed");
               }
             } catch (err) {
-              router.push(
-                `/subscription-failed?planName=${encodeURIComponent(
-                  planDetails.name
-                )}&period=${period}&amount=${amountParam}&method=${paymentType}`
-              );
+              router.push("/subscription-failed");
             }
           },
           modal: {
-            ondismiss: function () {
+            ondismiss: () => {
               setIsProcessing(false);
-              router.push(
-                `/subscription-failed?planName=${encodeURIComponent(
-                  planDetails.name
-                )}&period=${period}&amount=${amountParam}&method=${paymentType}`
-              );
+              router.push("/subscription-failed");
             },
           },
         };
 
-        const rzp = new window.Razorpay(options);
-        rzp.open();
+        new window.Razorpay(options).open();
       }
     } catch (err) {
       alert(err.response?.data?.message || "Payment failed");
@@ -295,7 +287,15 @@ export default function CheckoutOnline() {
   if (!planDetails) return <FullPageLoader />;
 
   return (
-    <div className="checkout-container flexClm gap_12">
+    <div
+      className="checkout-container flexClm gap_12"
+      style={{
+        maxWidth: "1200px",
+        minWidth: "300px",
+        margin: "12px auto",
+        padding: "0 12px 100px 12px",
+      }}
+    >
       {/* Header */}
       <motion.div
         className="checkout-header text-center flexClm"

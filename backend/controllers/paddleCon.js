@@ -1,69 +1,57 @@
+// controllers/paddleCtrl.js
 const User = require("../models/User");
-const Order = require("../models/PaddleOrder");
+const Plan = require("../models/Plan");
 
-// Handle Paddle Webhooks
-exports.paddleWebhookHandler = async (req, res) => {
+exports.paddleWebhook = async (req, res) => {
   try {
-    const body = JSON.parse(req.body); // since Paddle sends raw body
+    const event = req.body;
 
-    console.log("📩 Paddle Webhook Received:", body);
+    // Paddle v2 event type
+    if (event?.event_type === "payment.completed") {
+      const userId = req.cookies.userId;
+      const planCode = event.data?.items?.[0]?.price?.product_id;
+      const amount = event.data?.grand_total;
+      const currency = event.data?.currency;
 
-    const event = body.event_type;
-    const data = body.data;
+      if (!userId || !planCode) {
+        return res.status(400).json({ message: "Missing important details." });
+      }
 
-    // 1️⃣ Only handle successful transactions
-    if (event !== "transaction.completed") {
-      console.log("Ignored event:", event);
-      return res.status(200).send("Ignored");
+      // Get Plan Info (PRO001, MASTER001 etc)
+      const planData = await Plan.findOne({ planCode: planCode });
+      if (!planData) {
+        return res.status(400).json({ message: "Plan not found." });
+      }
+
+      // Update User
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+          subscriptionStatus: "active",
+          subscriptionPlan: planData.planCode,
+          subscriptionType: planData.planType, // lifetime | recurring | one-time
+          subscriptionStartAt: new Date(),
+          subscriptionExpiresAt:
+            planData.planType === "lifetime"
+              ? null
+              : new Date(Date.now() + planData.validityDays * 86400000),
+          subscriptionCreatedAt: new Date(),
+          paddleCustomerId: event.data?.customer?.id,
+          lastBillingDate: new Date(),
+          nextBillingDate:
+            planData.planType === "recurring"
+              ? new Date(Date.now() + 30 * 86400000)
+              : null,
+        },
+        { new: true }
+      );
+
+      console.log("Paddle Subscription Updated:", updatedUser.email);
     }
 
-    const userEmail = data?.customer?.email;
-    if (!userEmail) return res.status(400).send("No user email");
-
-    const user = await User.findOne({ email: userEmail });
-    if (!user) return res.status(404).send("User not found");
-
-    // 2️⃣ Determine plan type from priceId
-    const priceId = data.items?.[0]?.price?.id;
-
-    let planId = "free";
-    let period = "monthly";
-    let paymentType = "one-time";
-
-    if (priceId === process.env.PADDLE_PRICE_MONTHLY) {
-      planId = "pro";
-      period = "monthly";
-    } else if (priceId === process.env.PADDLE_PRICE_YEARLY) {
-      planId = "pro";
-      period = "yearly";
-    } else if (priceId === process.env.PADDLE_PRICE_LIFETIME) {
-      planId = "MASTER001"; // you said MASTER = lifetime
-      period = "lifetime";
-      paymentType = "lifetime";
-    }
-
-    // 3️⃣ Create order record
-    const order = await Order.create({
-      userId: user._id,
-      paddleTransactionId: data.id,
-      paddlePriceId: priceId,
-      planId,
-      paymentType,
-      period,
-      amount: data.details.totals.total,
-      currency: data.details.totals.currency,
-      status: "paid",
-    });
-
-    // 4️⃣ Activate subscription using your schema method
-    user.activateSubscription(order);
-    await user.save();
-
-    console.log("🎉 Subscription Activated for:", user.email);
-
-    res.status(200).send("OK");
+    res.status(200).json({ success: true });
   } catch (err) {
-    console.error("❌ Paddle Webhook Error:", err);
-    res.status(500).send("Webhook Error");
+    console.error("Paddle Webhook Error:", err);
+    res.status(500).json({ error: err.message });
   }
 };

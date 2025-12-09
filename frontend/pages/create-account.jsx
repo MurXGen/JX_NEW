@@ -141,7 +141,15 @@ const CreateAccount = () => {
   const handleCancel = () => router.push("/accounts");
 
   return (
-    <div className="createAccount flexClm gap_32">
+    <div
+      className="createAccount flexClm gap_32"
+      style={{
+        maxWidth: "1200px",
+        minWidth: "300px",
+        margin: "12px auto",
+        padding: "0 12px 100px 12px",
+      }}
+    >
       <SectionHeader
         title={isEdit ? "Edit Journal" : "Create Journal"}
         description="Journals structure logged trades"

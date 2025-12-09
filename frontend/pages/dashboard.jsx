@@ -74,6 +74,23 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("overview");
   const { showPrompt, setShowPrompt, handleInstall } = useInstallPrompt();
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const checkWidth = () => {
+        if (window.innerWidth > 600) {
+          router.replace("/dashboard-web");
+        } else {
+          setLoading(false); // allow mobile UI
+        }
+      };
+
+      checkWidth();
+      window.addEventListener("resize", checkWidth);
+
+      return () => window.removeEventListener("resize", checkWidth);
+    }
+  }, [router]);
+
   const tabs = [
     { key: "overview", label: "Overview" },
     { key: "longshorts", label: "Long/Shorts" },
@@ -254,7 +271,12 @@ export default function Home() {
             shortTrades={trades.filter((t) => t.direction === "short")}
           />
         )}
-        {activeTab === "ticker" && <TickerOverview trades={trades} />}
+        {activeTab === "ticker" && (
+          <>
+            <span className="font_16">Ticker analysis</span>
+            <TickerOverview trades={trades} />
+          </>
+        )}
         {activeTab === "news" && <MarketNews />}
 
         <BottomBar />

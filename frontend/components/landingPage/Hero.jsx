@@ -27,11 +27,11 @@ const HeroSection = () => {
   return (
     <section className="hero flexClm flex_center">
       {/* Background Image with fade-in */}
-      <motion.div
+      <div
         initial={{ opacity: 0 }}
         animate={{ opacity: bgLoaded ? 1 : 0 }}
         transition={{ duration: 1.2, ease: "easeOut" }}
-        className="heroBgWrapper"
+        className=""
       >
         {isMobile ? (
           <Image
@@ -54,7 +54,7 @@ const HeroSection = () => {
             onLoadingComplete={() => setBgLoaded(true)}
           />
         )}
-      </motion.div>
+      </div>
 
       {/* Hero Text */}
       <div

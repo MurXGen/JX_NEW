@@ -207,7 +207,15 @@ function Login() {
         <link rel="canonical" href="https://journalx.app/login" />
         <meta name="theme-color" content="#000000" />
       </Head>
-      <div className="login flexClm gap_32">
+      <div
+        className="login flexClm gap_32"
+        style={{
+          maxWidth: "1200px",
+          minWidth: "300px",
+          margin: "12px auto",
+          padding: "0 12px 100px 12px",
+        }}
+      >
         <Navbar />
         <div className="flexClm gap_32">
           <div className="s_tit_des flexClm">

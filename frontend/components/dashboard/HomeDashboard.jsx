@@ -16,6 +16,8 @@ import TagAnalysis from "../Charts/TagAnalysis";
 import DashboardNavbar from "./DashboardNavbar";
 import Cookies from "js-cookie";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
+import TickerAnalysis from "../Tabs/TickerAnalysis";
+import TickerOverview from "../Tabs/Tickeroverview";
 
 function TradesCard({ title, total, wins, losses }) {
   const winPercent = total ? (wins / total) * 100 : 0;
@@ -189,7 +191,7 @@ export default function HomeContent({
   };
 
   return (
-    <div className="flexClm gap_24">
+    <>
       <div className="flexClm gap_24">
         {/* Overview section starts */}
         <span className="font_16 font_weight_500">Overview</span>
@@ -281,6 +283,11 @@ export default function HomeContent({
           </div>
         </div>
 
+        <div className="flexClm gap_24">
+          <span className="font_16 font_weight_500">Ticker Analysis</span>
+          <TickerOverview trades={accountTrades} />
+        </div>
+
         {/* Volume section starts */}
 
         <div className="flexClm gap_24">
@@ -346,6 +353,6 @@ export default function HomeContent({
           <TagAnalysis tagAnalysis={stats?.tagAnalysis} />
         </div>
       </div>
-    </div>
+    </>
   );
 }

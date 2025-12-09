@@ -2,7 +2,10 @@ import dayjs from "dayjs";
 import Cookies from "js-cookie";
 import { getFromIndexedDB } from "./indexedDB";
 
-// 🧩 Local Fallback Rules
+/* -------------------------------------------------------------------------- */
+/* 🛠️ PLAN RULES (Corrected to match backend)                                   */
+/* -------------------------------------------------------------------------- */
+
 export const PLAN_RULES = {
   free: {
     limits: {
@@ -10,38 +13,39 @@ export const PLAN_RULES = {
       quickTradeLimitPerMonth: 10,
       accountLimit: 1,
       imageLimitPerMonth: 10,
-      maxImageSizeMB: 10,
+      maxImageSizeMB: 5,
     },
     features: {
-      logTrades: "Up to 10 trades per month",
-      multipleAccounts: "Up to 1 account",
+      logTrades: "Up to 10 trades monthly",
+      multipleAccounts: "1 account",
       showsAds: true,
-      imageUpload: "Up to 10 images per month",
-      maxImageSize: "10 MB",
+      imageUpload: "10 images/month",
+      maxImageSize: "5 MB",
       shareTrades: false,
       aiAnalysis: false,
-      advancedCharts: true,
-      quickTradeLog: "Up to 10 quick trades",
-      multipleEntries: true,
+      advancedCharts: false,
+      quickTradeLog: "10 quick trades",
+      multipleEntries: false,
       backupData: false,
       integration: false,
       exportTrades: false,
     },
   },
+
   pro: {
     limits: {
       tradeLimitPerMonth: Infinity,
       quickTradeLimitPerMonth: Infinity,
       accountLimit: 3,
       imageLimitPerMonth: Infinity,
-      maxImageSizeMB: 100,
+      maxImageSizeMB: 50,
     },
     features: {
       logTrades: "Unlimited",
-      multipleAccounts: "Up to 3 (contact for more)",
+      multipleAccounts: "Up to 3 accounts",
       showsAds: false,
       imageUpload: "Unlimited",
-      maxImageSize: "100 MB (contact for increase)",
+      maxImageSize: "50 MB",
       shareTrades: true,
       aiAnalysis: true,
       advancedCharts: true,
@@ -52,20 +56,21 @@ export const PLAN_RULES = {
       exportTrades: true,
     },
   },
-  master: {
+
+  lifetime: {
     limits: {
       tradeLimitPerMonth: Infinity,
       quickTradeLimitPerMonth: Infinity,
-      accountLimit: 3,
+      accountLimit: 10,
       imageLimitPerMonth: Infinity,
       maxImageSizeMB: 100,
     },
     features: {
       logTrades: "Unlimited",
-      multipleAccounts: "Up to 3 (contact for more)",
+      multipleAccounts: "Up to 10 accounts",
       showsAds: false,
       imageUpload: "Unlimited",
-      maxImageSize: "100 MB (contact for increase)",
+      maxImageSize: "100 MB",
       shareTrades: true,
       aiAnalysis: true,
       advancedCharts: true,
@@ -78,38 +83,41 @@ export const PLAN_RULES = {
   },
 };
 
-// 🧭 Normalize plan names and retrieve rules
+/* -------------------------------------------------------------------------- */
+/* 🔄 Normalize plan + status into consistent rule set                         */
+/* -------------------------------------------------------------------------- */
 export const getPlanRules = (userData) => {
   const subscription =
     userData?.value?.subscription || userData?.subscription || {};
 
-  const planId = subscription.planId || "free";
+  const plan = subscription.plan || subscription.planId || "free";
   const status = subscription.status || "none";
 
-  // 🔥 If status is NOT active → force FREE plan
-  if (status !== "active") {
-    return PLAN_RULES.free;
-  }
+  // ⛔ Not active → force FREE
+  if (status !== "active") return PLAN_RULES.free;
 
-  // If active → use actual plan
-  const normalized = typeof planId === "string" ? planId.toLowerCase() : "free";
+  const normalized = (plan || "free").toLowerCase();
 
+  if (normalized.includes("lifetime")) return PLAN_RULES.lifetime;
   if (normalized.includes("pro")) return PLAN_RULES.pro;
-  if (normalized.includes("master")) return PLAN_RULES.master;
 
   return PLAN_RULES.free;
 };
 
-// ✅ Determine if ads should be shown
+/* -------------------------------------------------------------------------- */
+/* 🎯 Feature + Limit Enforcement                                              */
+/* -------------------------------------------------------------------------- */
+
+// Ads
 export const canShowAds = (userData) => {
   const rules = getPlanRules(userData);
   return rules.features.showsAds;
 };
 
-// ✅ Active account ID from cookies
+// Cookie account id
 const getActiveAccountId = () => Cookies.get("accountId");
 
-// ✅ Check if user can add a normal trade
+// Trade limit
 export const canAddTrade = async (userData, tradeStatus = "closed") => {
   const user = userData?.value || userData;
   const rules = getPlanRules(userData);
@@ -144,13 +152,13 @@ export const canAddTrade = async (userData, tradeStatus = "closed") => {
   return tradesThisMonth < tradeLimit;
 };
 
-// ✅ Check if user can add an account
+// Account limit
 export const canAddAccount = (userData, accountCount) => {
   const rules = getPlanRules(userData);
   return accountCount < rules.limits.accountLimit;
 };
 
-// ✅ Check if image upload is allowed
+// Image upload
 export const canUploadImage = async (userData, newImageSizeMB) => {
   const user = userData?.value || userData;
   const rules = getPlanRules(userData);
@@ -183,19 +191,22 @@ export const canUploadImage = async (userData, newImageSizeMB) => {
   return imagesThisMonth < imageLimitPerMonth;
 };
 
-// ✅ Generic feature access
+// Generic feature flag
 export const canAccessFeature = (userData, featureKey) => {
   const rules = getPlanRules(userData);
   return rules.features[featureKey] || false;
 };
 
-// ✅ Check AI access
+// AI access
 export const canUseAI = (userData) => {
   const rules = getPlanRules(userData);
   return rules.features.aiAnalysis;
 };
 
-// ✅ Helpers for current user (from IndexedDB)
+/* -------------------------------------------------------------------------- */
+/* 📦 Helpers for IndexedDB                                                    */
+/* -------------------------------------------------------------------------- */
+
 export const getCurrentPlanRules = async () => {
   const userData = await getFromIndexedDB("user-data");
   return getPlanRules(userData);

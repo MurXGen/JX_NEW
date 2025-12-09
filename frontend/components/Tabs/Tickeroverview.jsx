@@ -9,30 +9,10 @@ const TickerOverview = ({ trades }) => {
   return (
     <div className="flexClm gap_24">
       <div className="flexClm gap_24">
-        <SectionHeader
-          title="Chart Analysis"
-          description="Visual Analysis of your logged trades"
-          level={4} // uses <h2>
-          // showButton={accounts.length > 0}
-          // buttonLabel="Create journal"
-          // onButtonClick={handleCreateAccount}
-          // loading={loading}
-        />
-        <TickerAnalysis trades={trades} />
-      </div>
-
-      <hr width="100" color="grey" />
-      <div className="flexClm gap_24">
-        <SectionHeader
-          title="Ticker Analysis"
-          description="Ticker Analysis of your logged trades"
-          level={4} // uses <h2>
-          // showButton={accounts.length > 0}
-          // buttonLabel="Create journal"
-          // onButtonClick={handleCreateAccount}
-          // loading={loading}
-        />
         <TickerStats trades={trades} />
+        <div className="flexClm gap_24">
+          <TickerAnalysis trades={trades} />
+        </div>
       </div>
     </div>
   );

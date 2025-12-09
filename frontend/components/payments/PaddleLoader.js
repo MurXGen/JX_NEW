@@ -10,25 +10,6 @@ export default function PaddleLoader() {
   const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
   const isDev = process.env.NODE_ENV === "development";
 
-  const [user, setUser] = useState(null);
-
-  // ⬇ Load logged-in user from backend (cookie auto-included)
-  // useEffect(() => {
-  //   const loadUser = async () => {
-  //     try {
-  //       const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
-  //         withCredentials: true,
-  //       });
-  //       setUser(res.data.user);
-  //       console.log("👤 Logged-in user loaded:", res.data.user);
-  //     } catch (err) {
-  //       console.log("⚠ No logged-in user");
-  //     }
-  //   };
-
-  //   loadUser();
-  // }, []);
-
   return (
     <>
       {/* Debug */}
@@ -66,11 +47,6 @@ export default function PaddleLoader() {
                 // Initialize Paddle
                 window.Paddle.Initialize({ token });
                 console.log("🎉 Paddle initialized");
-
-                // 🔥 Now user is available for Paddle checkout
-                if (user) {
-                  console.log("👤 User available for checkout:", user._id);
-                }
               } catch (err) {
                 console.error("❌ Paddle initialization failed:", err);
               }

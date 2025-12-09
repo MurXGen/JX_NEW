@@ -43,7 +43,7 @@ mongoose
   .catch((err) => console.error("❌ MongoDB User DB Connection Error:", err));
 
 // 🔗 Apply rate limiter to each route separately
-app.use("/api/paddle/webhook", createLimiter(40), paddleRoute);
+
 app.use("/api/auth", createLimiter(40), authRoutes);
 app.use("/api/account", createLimiter(20), accountRoutes);
 app.use("/api/trades", createLimiter(20), tradeRoutes);
@@ -56,6 +56,7 @@ app.use(
 app.use("/api/payments", createLimiter(20), express.json(), paymentsRoutes);
 app.use("/api/crypto-payments", createLimiter(20), cryptoPaymentsRoutes);
 app.use("/api/telegram", createLimiter(20), telegramRoutes);
+app.use("/api/paddle", createLimiter(40), paddleRoute);
 
 // 🤖 Telegram Bot Init
 require("./telegram");

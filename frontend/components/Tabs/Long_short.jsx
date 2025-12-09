@@ -1,69 +1,61 @@
 import OverviewSection from "@/components/Tabs/OverviewSection";
-import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
+import {
+  ArrowDownRightIcon,
+  ArrowUpRightIcon,
+  Circle,
+  Dot,
+  Plus,
+} from "lucide-react";
 import VolumeChart from "../Charts/VolumeChart";
-import { calculateStats } from "@/utils/calculateStats"; // ✅ import the utility
+import { calculateStats } from "@/utils/calculateStats";
 import SectionHeader from "../ui/SectionHeader";
 
 export default function LongShorts({ stats, longTrades, shortTrades }) {
-  // Use utility function for stats
+  // Stats
   const longStats = calculateStats(longTrades);
   const shortStats = calculateStats(shortTrades);
+
+  // ➕ Calculate PNL totals
+  const totalLongPNL = longTrades.reduce(
+    (sum, t) => sum + (Number(t.pnl) || 0),
+    0
+  );
+
+  const totalShortPNL = shortTrades.reduce(
+    (sum, t) => sum + (Number(t.pnl) || 0),
+    0
+  );
 
   return (
     <div className="flexClm gap_32">
       {/* Long Trades Section */}
       <div className="longTradesSection flexClm gap_24">
-        <SectionHeader
-          title="Longs analysis"
-          description="Analysis of logged long trades"
-          level={4} // uses <h2>
-          // showButton={accounts.length > 0}
-          // buttonLabel="Create journal"
-          // onButtonClick={handleCreateAccount}
-          // loading={loading}
-        />
+        <span className="font_16">Long trades analysis</span>
         <OverviewSection stats={longStats} trades={longTrades} />
       </div>
 
-      <hr width={100} color="grey" />
-
       {/* Short Trades Section */}
       <div className="shortTradesSection flexClm gap_24">
-        <SectionHeader
-          title="Shorts analysis"
-          description="Analysis of logged short trades"
-          level={4} // uses <h2>
-          // showButton={accounts.length > 0}
-          // buttonLabel="Create journal"
-          // onButtonClick={handleCreateAccount}
-          // loading={loading}
-        />
+        <span className="font_16">Short trades analysis</span>
         <OverviewSection stats={shortStats} trades={shortTrades} />
       </div>
-      <hr width={100} color="grey" />
+
       <div className="flexClm gap_24">
-        <SectionHeader
-          title="Chart Analysis"
-          description="Visual analysis of logged trades"
-          level={4} // uses <h2>
-          // showButton={accounts.length > 0}
-          // buttonLabel="Create journal"
-          // onButtonClick={handleCreateAccount}
-          // loading={loading}
-        />
         <div
           className="pnlChart chart_boxBg flexClm gap_12"
           style={{ padding: "16px 16px" }}
         >
-          <span className="font_12">Daily Volume chart</span>
+          {stats?.dailyVolumeData && (
+            <VolumeChart dailyData={stats.dailyVolumeData} />
+          )}
 
           <div className="flexRow flexRow_stretch gap_12">
-            {/* Total Long Volume */}
+            {/* Total Long Volume + Long PNL */}
             <div
-              className="boxBg flexRow flexRow_center gap_8"
+              className="boxBg flexClm gap_24"
               style={{ width: "100%", padding: "12px" }}
             >
-              <div className="flexClm gap_12">
+              <div className="flexClm gap_8">
                 <span className="font_12">Total Long Volume</span>
                 <span className="flexRow gap_8">
                   {(
@@ -75,14 +67,25 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
                   <ArrowUpRightIcon className="success" size={20} />
                 </span>
               </div>
+
+              <div className="flexClm gap_8">
+                <span className="font_12">Total Long PNL</span>
+                <span className="flexRow gap_8">
+                  {totalLongPNL.toLocaleString("en-US")}
+                  <Circle
+                    className={totalLongPNL >= 0 ? "success" : "error"}
+                    size={16}
+                  />
+                </span>
+              </div>
             </div>
 
-            {/* Total Short Volume */}
+            {/* Total Short Volume + Short PNL */}
             <div
-              className="boxBg flexRow flexRow_center gap_8"
+              className="boxBg flexClm gap_24"
               style={{ width: "100%", padding: "12px" }}
             >
-              <div className="flexClm gap_12">
+              <div className="flexClm gap_8">
                 <span className="font_12">Total Short Volume</span>
                 <span className="flexRow gap_8">
                   {(
@@ -94,12 +97,19 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
                   <ArrowDownRightIcon className="error" size={20} />
                 </span>
               </div>
+
+              <div className="flexClm gap_8">
+                <span className="font_12">Total Short PNL</span>
+                <span className="flexRow gap_8">
+                  {totalShortPNL.toLocaleString("en-US")}
+                  <Circle
+                    className={totalShortPNL >= 0 ? "success" : "error"}
+                    size={16}
+                  />
+                </span>
+              </div>
             </div>
           </div>
-
-          {stats && stats.dailyVolumeData && (
-            <VolumeChart dailyData={stats.dailyVolumeData} />
-          )}
         </div>
       </div>
     </div>

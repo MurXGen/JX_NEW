@@ -74,41 +74,29 @@ const SubscriptionStatus = () => {
     }
   };
 
-  const getPlanIcon = (planId) => {
+  const getPlanIcon = (plan) => {
+    const id = (plan || "").toLowerCase();
     const baseProps = { size: 24 };
-    const id = planId?.toLowerCase();
 
-    if (!id)
-      return (
-        <div className="plan-icon-wrap default">
-          <StarHalf {...baseProps} className="plan-icon" />
-        </div>
-      );
-
-    if (id.includes("pro"))
+    if (id === "pro") {
       return (
         <div className="plan-icon-wrap pro">
-          <Crown {...baseProps} className="plan-icon" />
+          <Crown {...baseProps} />
         </div>
       );
+    }
 
-    if (id.includes("master"))
+    if (id === "master") {
       return (
         <div className="plan-icon-wrap master">
-          <Rocket {...baseProps} className="plan-icon" />
+          <Rocket {...baseProps} />
         </div>
       );
-
-    if (id.includes("free"))
-      return (
-        <div className="plan-icon-wrap free">
-          <StarHalf {...baseProps} className="plan-icon" />
-        </div>
-      );
+    }
 
     return (
-      <div className="plan-icon-wrap default">
-        <Zap {...baseProps} className="plan-icon" />
+      <div className="plan-icon-wrap free">
+        <StarHalf {...baseProps} />
       </div>
     );
   };
@@ -155,7 +143,7 @@ const SubscriptionStatus = () => {
       master001: 3,
     };
 
-    const currentLevel = planLevels[currentPlan.planId?.toLowerCase()] || 1;
+    const currentLevel = planLevels[currentPlan.plan?.toLowerCase()];
 
     if (currentLevel < 3) {
       return {
@@ -196,21 +184,22 @@ const SubscriptionStatus = () => {
             {/* --- Top Row (Always Visible) --- */}
             <div className="flexRow flexRow_stretch">
               <div className="flexRow gap_12">
-                {getPlanIcon(currentPlan.planId)}
+                {getPlanIcon(currentPlan.plan)}
+
                 <div className="flexClm">
                   <span className="font_18 font_weight_600">
                     {(() => {
-                      const planId =
-                        currentPlan?.planId?.toLowerCase() || "free";
-                      let planName = planId;
-                      if (planId.includes("master")) planName = "master";
-                      else if (planId.includes("pro")) planName = "pro";
-                      else if (planId.includes("free")) planName = "free";
-                      return (
-                        planName.charAt(0).toUpperCase() + planName.slice(1)
-                      );
-                    })()}{" "}
-                    Plan
+                      const rawPlan =
+                        currentPlan?.plan?.toLowerCase() || "free";
+                      const planName =
+                        rawPlan === "master"
+                          ? "Master"
+                          : rawPlan === "pro"
+                            ? "Pro"
+                            : "Free";
+
+                      return `${planName} Plan`;
+                    })()}
                   </span>
 
                   <span className="font_12 shade_50">

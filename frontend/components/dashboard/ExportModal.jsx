@@ -227,15 +227,7 @@ const ExportPage = () => {
 
   if (!hasAccess) {
     return (
-      <div
-        className="flexClm gap_24 pad_24"
-        style={{
-          maxWidth: "1200px",
-          minWidth: "300px",
-          margin: "12px auto",
-          padding: "0 12px 100px 12px",
-        }}
-      >
+      <div className="flexClm gap_24 pad_24">
         <div className="flexRow flexRow_stretch">
           <span className="font_20 font_weight_600">Export Journal</span>
         </div>
@@ -265,26 +257,12 @@ const ExportPage = () => {
 
   const handleBackClick = () => router.push("/accounts");
   return (
-    <div
-      className="flexClm gap_24 pad_24"
-      style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "12px auto",
-        padding: "0 12px 100px 12px",
-      }}
-    >
-      {/* Header */}
-      <div className="flexRow gap_8">
-        <button className="button_sec flexRow" onClick={handleBackClick}>
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flexClm">
-          <span className="font_20 font_weight_600">Export</span>
-          <span className="font_14 shade_50">
-            Export your trading data to CSV for analysis
-          </span>
-        </div>
+    <div className="flexClm gap_24 pad_24">
+      <div className="flexClm gap_4">
+        <span className="font_20 font_weight_600">Export Trades</span>
+        <span className="font_14 shade_50">
+          Download your trade logs in CSV and see them through Excel and Sheets
+        </span>
       </div>
 
       {/* Filters Section */}

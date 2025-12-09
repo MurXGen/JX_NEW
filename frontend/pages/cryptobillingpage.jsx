@@ -44,18 +44,51 @@ export default function CryptoBillingPage() {
   const searchParams = useSearchParams();
   const [selectedNetwork, setSelectedNetwork] = useState("");
   const [copiedAddress, setCopiedAddress] = useState(false);
-  const [confirmTimer, setConfirmTimer] = useState(60); // Changed from 30 to 60 seconds
-  const [paymentStatus, setPaymentStatus] = useState("selecting"); // selecting, waiting, confirming, processing, success, failed
+  const [confirmTimer, setConfirmTimer] = useState(60);
+  const [paymentStatus, setPaymentStatus] = useState("selecting");
   const [processingTime, setProcessingTime] = useState(0);
   const [cryptoOrderId, setCryptoOrderId] = useState("");
   const [verificationAttempts, setVerificationAttempts] = useState(0);
-  const [showModal, setShowModal] = useState(false); // New state for modal
+  const [showModal, setShowModal] = useState(false);
+  const [planData, setPlanData] = useState(null);
 
+  // Get plan details from URL parameters
   const planName = searchParams.get("planName");
   const period = searchParams.get("period");
   const amount = searchParams.get("amount");
 
-  // 60-second confirmation timer (changed from 30)
+  useEffect(() => {
+    // Validate that we have the required parameters
+    if (!planName || !period || !amount) {
+      console.error("Missing plan parameters. Redirecting to pricing...");
+      router.push("/pricing");
+      return;
+    }
+
+    setPlanData({
+      planName,
+      period,
+      amount,
+    });
+  }, [planName, period, amount, router]);
+
+  const getPlanDisplayName = () => {
+    if (!planData) return "";
+    const { planName, period } = planData;
+
+    switch (period) {
+      case "monthly":
+        return `${planName} Monthly`;
+      case "yearly":
+        return `${planName} Yearly`;
+      case "lifetime":
+        return "Lifetime Access";
+      default:
+        return `${planName} Plan`;
+    }
+  };
+
+  // 60-second confirmation timer
   useEffect(() => {
     if (paymentStatus === "waiting" && confirmTimer > 0) {
       const timer = setTimeout(() => {
@@ -67,7 +100,7 @@ export default function CryptoBillingPage() {
     }
   }, [paymentStatus, confirmTimer]);
 
-  // 🕒 5-minute countdown timer + periodic verification
+  // 5-minute countdown timer + periodic verification
   useEffect(() => {
     if (paymentStatus === "processing") {
       const startTime = Date.now();
@@ -77,9 +110,9 @@ export default function CryptoBillingPage() {
       const interval = setInterval(async () => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(totalTime - elapsed, 0);
-        setProcessingTime(remaining); // store remaining seconds
+        setProcessingTime(remaining);
 
-        // ✅ Verify every 60 seconds
+        // Verify every 60 seconds
         if (elapsed % 60 === 0 && elapsed > 0) {
           try {
             const storedOrderId = localStorage.getItem("cryptoOrderId");
@@ -94,16 +127,24 @@ export default function CryptoBillingPage() {
             if (res.data.success) {
               clearInterval(interval);
               setPaymentStatus("success");
-              router.push(
-                `/subscription-success?planName=${encodeURIComponent(
-                  planName
-                )}&period=${period}&amount=${amount}&method=crypto&orderId=${storedOrderId}`
-              );
+
+              // Redirect to success page with all details
+              const params = new URLSearchParams({
+                planName: planData?.planName || "",
+                period: planData?.period || "",
+                amount: planData?.amount || "",
+                method: "crypto",
+                orderId: storedOrderId,
+              }).toString();
+
+              router.push(`/subscription-success?${params}`);
             }
-          } catch (err) {}
+          } catch (err) {
+            console.error("Verification error:", err);
+          }
         }
 
-        // ⏰ Timeout after 5 minutes
+        // Timeout after 5 minutes
         if (elapsed >= totalTime) {
           clearInterval(interval);
           handlePaymentTimeout();
@@ -113,26 +154,31 @@ export default function CryptoBillingPage() {
 
       return () => clearInterval(interval);
     }
-  }, [paymentStatus]);
+  }, [paymentStatus, planData, router]);
 
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedAddress(true);
       setTimeout(() => setCopiedAddress(false), 2000);
-    } catch (err) {}
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
   };
 
-  // In your CryptoBillingPage.jsx, update the createCryptoOrder call:
   const createCryptoOrder = async () => {
     try {
-      // Calculate start and expiry dates
+      if (!planData) {
+        throw new Error("Plan data not available");
+      }
+
+      const { planName, period, amount } = planData;
       const now = new Date();
       let expiry = new Date(now);
 
-      // Handle lifetime plans
+      // Handle different subscription periods
       if (period === "lifetime") {
-        expiry.setFullYear(expiry.getFullYear() + 100); // 100 years for lifetime
+        expiry.setFullYear(expiry.getFullYear() + 100);
       } else if (period === "yearly") {
         expiry.setFullYear(expiry.getFullYear() + 1);
       } else {
@@ -160,6 +206,7 @@ export default function CryptoBillingPage() {
 
       return response.data.orderId;
     } catch (error) {
+      console.error("Failed to create crypto order:", error);
       throw new Error("Failed to create payment order");
     }
   };
@@ -171,9 +218,14 @@ export default function CryptoBillingPage() {
   };
 
   const handleProceedToPay = () => {
+    if (!selectedNetwork) {
+      alert("Please select a network first");
+      return;
+    }
+
     setShowModal(true);
     setPaymentStatus("waiting");
-    setConfirmTimer(60); // Reset to 60 seconds
+    setConfirmTimer(60);
   };
 
   const handleVerifyPayment = async () => {
@@ -187,7 +239,7 @@ export default function CryptoBillingPage() {
       localStorage.setItem("cryptoOrderId", orderId);
       localStorage.setItem("cryptoPaymentInitiated", "true");
 
-      // ✅ Poll every 60 seconds (changed from 10s)
+      // Poll every 60 seconds
       const interval = setInterval(async () => {
         try {
           const res = await axios.post(
@@ -201,21 +253,31 @@ export default function CryptoBillingPage() {
             setPaymentStatus("success");
             setShowModal(false);
 
-            router.push(
-              `/subscription-success?planName=${encodeURIComponent(
-                planName
-              )}&period=${period}&amount=${amount}&method=crypto&orderId=${orderId}`
-            );
-          }
-        } catch (err) {}
-      }, 60000); // Changed from 10000 to 60000 (60 seconds)
+            const params = new URLSearchParams({
+              planName: planData?.planName || "",
+              period: planData?.period || "",
+              amount: planData?.amount || "",
+              method: "crypto",
+              orderId: orderId,
+            }).toString();
 
-      // ❌ Stop polling after 10 minutes
-      setTimeout(() => {
-        clearInterval(interval);
-        handlePaymentTimeout();
-      }, 10 * 60 * 1000);
+            router.push(`/subscription-success?${params}`);
+          }
+        } catch (err) {
+          console.error("Polling verification error:", err);
+        }
+      }, 60000);
+
+      // Stop polling after 10 minutes
+      setTimeout(
+        () => {
+          clearInterval(interval);
+          handlePaymentTimeout();
+        },
+        10 * 60 * 1000
+      );
     } catch (err) {
+      console.error("Payment verification failed:", err);
       setPaymentStatus("failed");
     }
   };
@@ -232,6 +294,22 @@ export default function CryptoBillingPage() {
     value: network.id,
     label: `${network.name} (${network.symbol})`,
   }));
+
+  // Show loading if plan data isn't available yet
+  if (!planData) {
+    return (
+      <div className="flexClm gap_32">
+        <div className="flexRow gap_12">
+          <button className="button_sec flexRow" onClick={handleBackClick}>
+            <ArrowLeft size={20} />
+          </button>
+          <div className="flexClm">
+            <span className="font_20">Loading...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="">
@@ -257,13 +335,15 @@ export default function CryptoBillingPage() {
         >
           <div className="flexRow flexRow_stretch">
             <div className="flexClm gap_4">
-              <span className="font_weight_600">{planName} Plan</span>
-              <span className="font_12">{period}</span>
+              <span className="font_weight_600">{getPlanDisplayName()}</span>
+              <span className="font_12">{planData.period}</span>
             </div>
             <div className="detail-item flexRow flexRow_stretch"></div>
             <div className="flexClm gap_4" style={{ textAlign: "right" }}>
               <span className="font_12">Amount</span>
-              <span className="font_weight_600 success">{amount} USDT</span>
+              <span className="font_weight_600 success">
+                {planData.amount} USDT
+              </span>
             </div>
           </div>
         </motion.div>
@@ -362,8 +442,8 @@ export default function CryptoBillingPage() {
                     <AlertCircle size={16} className="error" />
                     <span className="font_12">
                       Send exactly{" "}
-                      <u className="font_weight_600">{amount} USDT</u> excluding
-                      fees
+                      <u className="font_weight_600">{planData.amount} USDT</u>{" "}
+                      excluding fees
                     </span>
                   </div>
 
@@ -376,7 +456,7 @@ export default function CryptoBillingPage() {
 
                   <motion.button
                     className="button_pri flexRow gap_8 flex_center"
-                    onClick={handleProceedToPay} // Changed to show modal
+                    onClick={handleProceedToPay}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -525,7 +605,9 @@ export default function CryptoBillingPage() {
                         <AlertCircle size={16} className="error" />
                         <span className="font_12">
                           Send exactly{" "}
-                          <u className="font_weight_600">{amount} USDT</u>{" "}
+                          <u className="font_weight_600">
+                            {planData.amount} USDT
+                          </u>{" "}
                           excluding fees
                         </span>
                       </div>
@@ -751,8 +833,7 @@ export default function CryptoBillingPage() {
                     className="font_14"
                     style={{ color: "var(--white-50)" }}
                   >
-                    Your subscription is now active. You’ll be redirected
-                    shortly.
+                    Your {getPlanDisplayName()} subscription is now active.
                   </span>
                 </div>
               </div>
@@ -762,7 +843,6 @@ export default function CryptoBillingPage() {
                   className="button_pri flexRow gap_12"
                   onClick={() => router.push("/accounts")}
                 >
-                  <RefreshCw size={16} />
                   Go to Dashboard
                 </button>
               </div>

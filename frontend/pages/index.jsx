@@ -151,7 +151,13 @@ export default function Home() {
         />
       </Head>
 
-      <div>
+      <div
+        style={{
+          maxWidth: "1200px",
+          minWidth: "300px",
+          margin: "auto",
+        }}
+      >
         <Navbar />
         <HeroSection />
         <ProfitJourneySection />

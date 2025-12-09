@@ -117,11 +117,51 @@ function Accounts() {
       Cookies.set("isVerified", "yes", {
         path: "/",
         sameSite: "Strict",
-        expires: 3650,
+        expires: 365000,
       });
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
+
+  // User data loading effect - Simplified using utility
+  useEffect(() => {
+    const loadUserData = async () => {
+      setLoading(true);
+
+      try {
+        // Use your utility function
+        const result = await fetchAccountsAndTrades();
+
+        if (result.redirectToLogin) {
+          router.push("/login");
+          return;
+        }
+
+        // Set state from utility result
+        setAccounts(result.accounts);
+        setAccountSymbols(result.accountSymbols);
+        setCurrentBalances(result.currentBalances);
+        setTradesCount(result.tradesCount);
+        setUserPlan(result.userPlan);
+
+        // Calculate plan usage
+        if (result.userPlan) {
+          const cachedUser = await getFromIndexedDB("user-data");
+          if (cachedUser) {
+            const planRules = getPlanRules(cachedUser);
+            const currentUsage = calculatePlanUsage(cachedUser, planRules);
+            setPlanUsage(currentUsage);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [router]);
 
   // Guide effect
   useEffect(() => {
@@ -183,46 +223,6 @@ function Accounts() {
     setOrderedAccounts(deduped);
   };
 
-  // User data loading effect - Simplified using utility
-  useEffect(() => {
-    const loadUserData = async () => {
-      setLoading(true);
-
-      try {
-        // Use your utility function
-        const result = await fetchAccountsAndTrades();
-
-        if (result.redirectToLogin) {
-          router.push("/login");
-          return;
-        }
-
-        // Set state from utility result
-        setAccounts(result.accounts);
-        setAccountSymbols(result.accountSymbols);
-        setCurrentBalances(result.currentBalances);
-        setTradesCount(result.tradesCount);
-        setUserPlan(result.userPlan);
-
-        // Calculate plan usage
-        if (result.userPlan) {
-          const cachedUser = await getFromIndexedDB("user-data");
-          if (cachedUser) {
-            const planRules = getPlanRules(cachedUser);
-            const currentUsage = calculatePlanUsage(cachedUser, planRules);
-            setPlanUsage(currentUsage);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUserData();
-  }, [router]);
-
   const calculatePlanUsage = (userData, planRules) => {
     const accountsCount = userData.accounts?.length || 0;
     const tradesCount = userData.trades?.length || 0;
@@ -280,7 +280,7 @@ function Accounts() {
       Cookies.set("accountId", accountId, {
         path: "/",
         sameSite: "Strict",
-        expires: 1 / 24,
+        expires: 365,
       });
       router.push("/dashboard");
     } catch (err) {
@@ -352,7 +352,15 @@ function Accounts() {
         <link rel="canonical" href="https://journalx.app/accounts" />
       </Head>
 
-      <div className="dashboard flexClm gap_32">
+      <div
+        className="dashboard flexClm gap_32"
+        style={{
+          maxWidth: "1200px",
+          minWidth: "300px",
+          margin: "12px auto",
+          padding: "0 12px 100px 12px",
+        }}
+      >
         {/* <Navbar /> */}
         <BackgroundBlur />
 

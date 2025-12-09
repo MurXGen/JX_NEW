@@ -3,6 +3,9 @@ const Order = require("../models/Orders");
 const Plan = require("../models/Plan");
 const User = require("../models/User");
 const { sendTelegramNotification } = require("../utils/telegramNotifier");
+const {
+  updateUserAfterCryptoPayment,
+} = require("../utils/updateUserAfterCryptoPayment");
 
 exports.createCryptoOrder = async (req, res) => {
   try {
@@ -90,16 +93,18 @@ exports.verifyCryptoPayment = async (req, res) => {
     const { orderId } = req.body;
 
     if (!orderId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "orderId required" });
+      return res.status(400).json({
+        success: false,
+        message: "orderId required",
+      });
     }
 
     const dbOrder = await Order.findById(orderId);
     if (!dbOrder) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
     }
 
     if (dbOrder.status !== "paid") {
@@ -112,24 +117,17 @@ exports.verifyCryptoPayment = async (req, res) => {
 
     const user = await User.findById(dbOrder.userId);
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    // ✅ Activate subscription using schema method
-    user.activateSubscription({
-      _id: dbOrder._id,
-      planId: dbOrder.planId,
-      paymentType: dbOrder.paymentType,
-      period: dbOrder.period,
-      status: dbOrder.status,
-    });
-
+    // 🔥 Apply subscription + status update
+    await updateUserAfterCryptoPayment(user, dbOrder);
     await user.save();
 
-    // ✅ Update order status
-    dbOrder.status = "paid";
+    // 🔹 Update order timestamps
     dbOrder.updatedAt = new Date();
     await dbOrder.save();
 
@@ -142,6 +140,9 @@ exports.verifyCryptoPayment = async (req, res) => {
     });
   } catch (err) {
     console.error("Verify payment error:", err.message);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };

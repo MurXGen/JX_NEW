@@ -77,8 +77,7 @@ router.get(
   }
 );
 
-// apply limiter only to user-info route
-router.get("/user-info", createLimiter(40), userFetchGoogleAuth);
+router.get("/user-info", createLimiter(20), userFetchGoogleAuth);
 
 router.put("/update-subscription", updateSubscription);
 

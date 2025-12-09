@@ -311,7 +311,15 @@ function Register() {
         <meta property="og:url" content="https://yourdomain.com/register" />
         <meta property="og:image" content="/assets/Journalx_Banner.png" />
       </Head>
-      <div className="register flexClm gap_32">
+      <div
+        className="register flexClm gap_32"
+        style={{
+          maxWidth: "1200px",
+          minWidth: "300px",
+          margin: "12px auto",
+          padding: "0 12px 100px 12px",
+        }}
+      >
         <Navbar />
         <div className="s_tit_des flexClm">
           <span className="tit font_20">Register and start journaling !</span>
@@ -500,8 +508,8 @@ function Register() {
                   {resendLimitReached
                     ? "Resend limit reached"
                     : timer > 0
-                    ? `Resend OTP in ${timer}s`
-                    : "Resend OTP"}
+                      ? `Resend OTP in ${timer}s`
+                      : "Resend OTP"}
                 </button>
 
                 <button

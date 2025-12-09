@@ -13,6 +13,11 @@ import {
   ChevronLeft,
   ArrowRightLeft,
   PlusCircle,
+  Share2Icon,
+  Share,
+  User,
+  Newspaper,
+  Crown,
 } from "lucide-react";
 
 import { calculateStats } from "@/utils/calculateStats";
@@ -24,6 +29,14 @@ import Settings from "./settings";
 import Cookies from "js-cookie";
 import AccountSwitchModal from "@/components/dashboard/AccountSwitchModal";
 import AddTrade from "@/components/dashboard/AddTradeModal";
+import ExportPage from "@/components/dashboard/ExportModal";
+import ShareTrades from "@/components/dashboard/ShareModal";
+import { useRouter } from "next/router";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import axios from "axios";
+import { saveToIndexedDB } from "@/utils/indexedDB";
+import MarketNews from "@/components/Tabs/HeatMaps";
+import Profile from "./profile";
 
 function TradesCard({ title, total, wins, losses }) {
   const winPercent = total ? (wins / total) * 100 : 0;
@@ -55,31 +68,114 @@ function TradesCard({ title, total, wins, losses }) {
   );
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 export default function Dashboard1() {
   const [open, setOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
-
+  const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [currentBalances, setCurrentBalances] = useState({});
+  const [accountSymbols, setAccountSymbols] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [tradesCount, setTradesCount] = useState({});
   // 🟩 state for trades
   const [accountTrades, setAccountTrades] = useState([]);
   const menuItems = [
     { id: "home", icon: <HomeIcon size={20} />, label: "Home" },
     { id: "trades", icon: <TrendingUpIcon size={20} />, label: "Trades" },
+    { id: "heatmaps", icon: <Newspaper size={20} />, label: "Heatmap & News" },
     // { id: "reports", icon: <BarChartIcon size={20} />, label: "Reports" },
+    { id: "share", icon: <Share2Icon size={20} />, label: "Share logs" },
+    { id: "export", icon: <Share size={20} />, label: "Export logs" },
     { id: "settings", icon: <SettingsIcon size={20} />, label: "Settings" },
   ];
 
-  // 🟩 fetch trades from IndexedDB via util
   useEffect(() => {
-    const loadData = async () => {
-      const data = await fetchAccountsAndTrades();
-      setAccountTrades(data.trades || []);
+    if (typeof window !== "undefined") {
+      const checkWidth = () => {
+        if (window.innerWidth < 600) {
+          router.replace("/dashboard");
+        } else {
+          setLoading(false); // allow mobile UI
+        }
+      };
+
+      checkWidth();
+      window.addEventListener("resize", checkWidth);
+
+      return () => window.removeEventListener("resize", checkWidth);
+    }
+  }, [router]);
+
+  const selectedAccountId = Cookies.get("accountId");
+  const currentAccount =
+    accounts.find((a) => a._id === selectedAccountId) || accounts[0];
+
+  useEffect(() => {
+    const loadEverything = async () => {
+      setLoading(true);
+
+      try {
+        // 1️⃣ fetch user-info
+        const userRes = await axios.get(`${API_BASE}/api/auth/user-info`, {
+          withCredentials: true,
+        });
+
+        const { userData } = userRes.data;
+
+        // Save locally
+        if (userData) {
+          await saveToIndexedDB("user-data", userData);
+          if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
+          if (userData?.name) localStorage.setItem("userName", userData.name);
+        }
+
+        // 2️⃣ fetch accounts + trades
+        const result = await fetchAccountsAndTrades();
+
+        if (result.redirectToLogin) {
+          router.push("/login");
+          return;
+        }
+
+        setAccounts(result.accounts);
+        setAccountSymbols(result.accountSymbols);
+        setCurrentBalances(result.currentBalances);
+        setTradesCount(result.tradesCount);
+        setAccountTrades(result.trades || []);
+      } catch (err) {
+        console.error("Load error:", err);
+
+        // fallback to cache
+        const cachedUser = await getFromIndexedDB("user-data");
+        if (cachedUser) {
+          const result = await fetchAccountsAndTrades();
+          setAccounts(result.accounts);
+          setAccountTrades(result.trades || []);
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadData();
-  }, []);
+    loadEverything();
+  }, [router]);
 
-  // 🟧 WAIT UNTIL TRADES LOAD
-  if (!accountTrades) return null;
+  // URL verification effect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isVerified = params.get("isVerified");
+
+    if (isVerified === "yes") {
+      Cookies.set("isVerified", "yes", {
+        path: "/",
+        sameSite: "Strict",
+        expires: 365000,
+      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // 🟩 compute stats
   const stats = calculateStats(accountTrades);
@@ -100,28 +196,9 @@ export default function Dashboard1() {
     (t) => t.direction?.toLowerCase() === "short" && t.closeTime
   ).length;
 
-  const [showModal, setShowModal] = useState(false);
-  const [accounts, setAccounts] = useState([]);
-  const [currentBalances, setCurrentBalances] = useState({});
-  const [accountSymbols, setAccountSymbols] = useState({});
-
-  useEffect(() => {
-    const loadData = async () => {
-      const result = await fetchAccountsAndTrades();
-
-      if (!result.redirectToLogin) {
-        setAccounts(result.accounts);
-        setCurrentBalances(result.currentBalances);
-        setAccountSymbols(result.accountSymbols);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  const selectedAccountId = Cookies.get("accountId");
-  const currentAccount =
-    accounts.find((a) => a._id === selectedAccountId) || accounts[0];
+  if (loading) {
+    return <FullPageLoader />;
+  }
 
   return (
     <div>
@@ -132,6 +209,7 @@ export default function Dashboard1() {
           transition={{ duration: 0.25 }}
           className="sidebarContainer"
           style={{
+            position: "relative",
             background: "var(--base-bg-dark)",
             height: "100vh",
             display: "flex",
@@ -140,7 +218,21 @@ export default function Dashboard1() {
             borderRight: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          {/* 🔵 TOP SECTION (LOGO + TOGGLE) */}
+          {/* ❄️ CHRISTMAS SNOW EFFECT */}
+          <div className="snow">
+            {[...Array(25)].map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  left: Math.random() * 100 + "%",
+                  animationDuration: 2 + Math.random() * 3 + "s",
+                  animationDelay: Math.random() * 2 + "s",
+                }}
+              ></span>
+            ))}
+          </div>
+
+          {/* 🔵 TOP SECTION */}
           <div
             style={{
               padding: "12px 14px",
@@ -152,10 +244,10 @@ export default function Dashboard1() {
             {open && (
               <div className="flexRow flexRow_stretch width100">
                 <Image
-                  src="/assets/journalx_navbar.svg"
+                  src="/assets/journalx_navbar_chris.png"
                   alt="JournalX Logo"
-                  width={80}
-                  height={32}
+                  width={120}
+                  height={42}
                   priority
                 />
                 <ChevronLeft
@@ -166,13 +258,32 @@ export default function Dashboard1() {
                 />
               </div>
             )}
+
             {!open && (
-              <ChevronRight
-                size={22}
-                color="white"
-                style={{ cursor: "pointer" }}
-                onClick={() => setOpen(!open)}
-              />
+              <div className="flexClm gap_8" style={{ alignItems: "center" }}>
+                {/* Show Profile Icon on collapse */}
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.2)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: 8,
+                  }}
+                >
+                  <User size={18} color="white" />
+                </div>
+
+                <ChevronRight
+                  size={22}
+                  color="white"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setOpen(!open)}
+                />
+              </div>
             )}
           </div>
 
@@ -186,7 +297,8 @@ export default function Dashboard1() {
               flex: 1,
             }}
           >
-            {open && (
+            {/* SELECT ACCOUNT */}
+            {open ? (
               <div
                 className="flexRow gap_4 boxBg flexRow_stretch"
                 style={{ cursor: "pointer", padding: "12px 14px" }}
@@ -201,9 +313,7 @@ export default function Dashboard1() {
 
                 <ArrowRightLeft size={18} className="vector" />
               </div>
-            )}
-
-            {!open && (
+            ) : (
               <div
                 className="flexRow gap_4 flexRow_stretch"
                 style={{ cursor: "pointer", padding: "12px 14px" }}
@@ -213,19 +323,17 @@ export default function Dashboard1() {
               </div>
             )}
 
-            {open && (
+            {/* LOG TRADE */}
+            {open ? (
               <div
                 className="flexRow gap_4 boxBg flexRow_stretch"
                 style={{ cursor: "pointer", padding: "12px 14px" }}
                 onClick={() => setActiveTab("logtrade")}
               >
                 <span className="font_12">Log Trade</span>
-
                 <PlusCircle size={18} className="vector" />
               </div>
-            )}
-
-            {!open && (
+            ) : (
               <div
                 className="flexRow gap_4 flexRow_stretch"
                 style={{ cursor: "pointer", padding: "12px 14px" }}
@@ -267,38 +375,70 @@ export default function Dashboard1() {
             })}
           </div>
 
-          {/* 🔵 BOTTOM: UPGRADE CTA */}
+          {/* 🔵 BOTTOM SECTION */}
           <div
             style={{
-              padding: "16px",
+              padding: "12px",
               borderTop: "1px solid rgba(255,255,255,0.05)",
             }}
           >
-            <button
-              className="upgradeBtn"
-              style={{
-                background: "linear-gradient(90deg,#FFD056,#FFB800)",
-                color: "#473100",
-                width: "100%",
-                padding: "12px 14px",
-                borderRadius: "12px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                fontWeight: 600,
-                cursor: "pointer",
-                border: "none",
-              }}
-              onClick={() => (window.location.href = "/pricing")}
-            >
-              {open ? (
+            {/* UPGRADE CTA */}
+            {open && (
+              <button
+                className="upgrade_btn flexRow flexRow_stretch"
+                onClick={() => (window.location.href = "/pricing")}
+              >
                 <>
-                  Upgrade Plan <ArrowRight size={18} />
+                  Upgrade Plan <Crown size={18} />
                 </>
-              ) : (
-                <ArrowRight size={20} />
-              )}
-            </button>
+              </button>
+            )}
+
+            {/* UPGRADE CTA */}
+            {!open && (
+              <button
+                className="upgrade_btn flexRow flexRow_stretch"
+                onClick={() => (window.location.href = "/pricing")}
+              >
+                <>
+                  <Crown size={18} />
+                </>
+              </button>
+            )}
+
+            {/* 👤 PROFILE CARD */}
+            {open && (
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: "12px",
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.2)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <User size={20} color="white" />
+                </div>
+
+                <div className="flexClm">
+                  <span className="font_14 font_weight_600">John Doe</span>
+                  <span className="font_12">john.doe@email.com</span>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -327,9 +467,15 @@ export default function Dashboard1() {
 
           {activeTab === "logtrade" && <AddTrade />}
 
+          {activeTab === "heatmaps" && <MarketNews />}
+
+          {activeTab === "export" && <ExportPage />}
+
+          {activeTab === "share" && <ShareTrades />}
+
           {/* {activeTab === "reports" && <ReportsPage />} */}
 
-          {activeTab === "settings" && <Settings />}
+          {activeTab === "settings" && <Profile />}
         </div>
       </div>
 

@@ -241,10 +241,7 @@ const TagAnalysis = ({ tagAnalysis }) => {
   const validTags = chartData;
 
   return (
-    <div
-      className="chart_boxBg flexClm gap_12"
-      style={{ padding: "var(--px-16)" }}
-    >
+    <div className="boxBg flexClm gap_12" style={{ padding: "var(--px-16)" }}>
       <div className="tag-analysis-controls flexRow gap_12 width100">
         <div className="view-toggle flexRow width100">
           <button
