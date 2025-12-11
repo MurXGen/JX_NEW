@@ -1,24 +1,13 @@
 "use client";
 
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import dayjs from "dayjs";
-import {
-  ArrowDown,
-  ArrowUp,
-  BarChart3,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-  Target,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import JournalXCTA from "@/components/ui/JournalXCTA";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import JournalXCTA from "@/components/ui/JournalXCTA";
+import dayjs from "dayjs";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowDown, ArrowUp, RefreshCw } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 const ViewTrades = () => {
   const [sharedData, setSharedData] = useState(null);
@@ -294,7 +283,15 @@ const ViewTrades = () => {
 
   if (error || !sharedData) {
     return (
-      <div className="viewTradesPage flexClm gap_24 pad_24">
+      <div
+        className="viewTradesPage flexClm gap_24 pad_24"
+        style={{
+          maxWidth: "1200px",
+          minWidth: "300px",
+          margin: "12px auto",
+          padding: "0 12px 100px 12px",
+        }}
+      >
         <div className="chart_boxBg flexClm gap_16 pad_32 flex_center text_center">
           <div className="flexClm gap_12">
             <span className="font_16 font_weight_600 error">
@@ -326,7 +323,15 @@ const ViewTrades = () => {
     pnl >= 0 ? "success" : pnl < 0 ? "error" : "shade_50";
 
   return (
-    <div className="viewTradesPage flexClm gap_24 pad_24">
+    <div
+      className="viewTradesPage flexClm gap_24 pad_24"
+      style={{
+        maxWidth: "1200px",
+        minWidth: "300px",
+        margin: "24px auto",
+        padding: "0 12px 100px 12px",
+      }}
+    >
       {/* Header */}
 
       <div className="flexRow flexRow_stretch">
@@ -395,14 +400,14 @@ const ViewTrades = () => {
 
             {/* Calendar View */}
             <AnimatePresence mode="wait">
-              {calendarView === "month" ? (
+              {calendarView === "month" && (
                 <motion.div
                   key="month-view"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="monthView chart_boxBg pad_16"
+                  className="monthView boxBg pad_16"
                 >
                   {/* Weekday Headers */}
                   <div className="weekdayHeaders flexRow">
@@ -445,10 +450,10 @@ const ViewTrades = () => {
                           pnl > 0
                             ? "success"
                             : pnl < 0
-                            ? "error"
-                            : hasTrades
-                            ? "shade_50"
-                            : ""
+                              ? "error"
+                              : hasTrades
+                                ? "shade_50"
+                                : ""
                         } 
                         ${isToday ? "today" : ""}`}
                           onClick={() => handleDateClick(dateStr, dayTrades)}
@@ -463,8 +468,8 @@ const ViewTrades = () => {
                                   pnl > 0
                                     ? "profit"
                                     : pnl < 0
-                                    ? "loss"
-                                    : "breakeven"
+                                      ? "loss"
+                                      : "breakeven"
                                 }`}
                               >
                                 {pnl > 0 ? "+" : ""}
@@ -475,160 +480,6 @@ const ViewTrades = () => {
                         </motion.div>
                       );
                     })}
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="year-view"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="yearView chart_boxBg pad_20"
-                >
-                  <div className="yearGrid">
-                    {(showAllMonths ? months : months.slice(0, 6)) // Show first 6 months by default
-                      .map((month, idx) => {
-                        const days = buildCalendar(idx);
-                        const monthTrades = sharedData.trades.filter((t) => {
-                          const d = new Date(t.openTime);
-                          return (
-                            d.getMonth() === idx &&
-                            d.getFullYear() === selectedYear
-                          );
-                        });
-
-                        const monthMaxProfit = Math.max(
-                          ...monthTrades.map((t) => t.pnl).filter((p) => p > 0),
-                          0
-                        );
-                        const monthMaxLoss = Math.min(
-                          ...monthTrades.map((t) => t.pnl).filter((p) => p < 0),
-                          0
-                        );
-
-                        const monthPnl = monthTrades.reduce(
-                          (sum, t) => sum + (t.pnl || 0),
-                          0
-                        );
-
-                        return (
-                          <motion.div
-                            key={idx}
-                            className={`monthCell ${
-                              idx === new Date().getMonth() &&
-                              selectedYear === new Date().getFullYear()
-                                ? "currentMonth"
-                                : ""
-                            }`}
-                            whileHover={{ scale: 1.02 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <div className="monthHeader flexRow flexRow_stretch">
-                              <span className="monthName font_12 font_weight_600">
-                                {shortMonths[idx]}
-                              </span>
-                              {monthTrades.length > 0 && (
-                                <span
-                                  className={`monthPnl font_10 ${
-                                    monthPnl > 0
-                                      ? "success"
-                                      : monthPnl < 0
-                                      ? "error"
-                                      : "shade_50"
-                                  }`}
-                                >
-                                  {monthPnl > 0 ? "+" : ""}
-                                  {formatNumber(monthPnl)}
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="monthWeekdays flexRow">
-                              {["M", "T", "W", "T", "F", "S", "S"].map(
-                                (day) => (
-                                  <span
-                                    key={day}
-                                    className="weekdayInitial font_10 shade_50"
-                                  >
-                                    {day}
-                                  </span>
-                                )
-                              )}
-                            </div>
-
-                            <div className="monthDays">
-                              {days.map((d, i) => {
-                                if (!d)
-                                  return (
-                                    <div key={i} className="emptyDay"></div>
-                                  );
-
-                                const dateStr = `${selectedYear}-${String(
-                                  idx + 1
-                                ).padStart(2, "0")}-${String(d).padStart(
-                                  2,
-                                  "0"
-                                )}`;
-                                const dayTrades = tradesByDate[dateStr] || [];
-                                const hasTrades = dayTrades.length > 0;
-                                const dayPnl = dayTrades.reduce(
-                                  (sum, t) => sum + (t.pnl || 0),
-                                  0
-                                );
-
-                                let intensity = 0;
-                                let bgStyle = {};
-
-                                if (dayPnl > 0 && monthMaxProfit > 0) {
-                                  intensity = Math.min(
-                                    1,
-                                    dayPnl / monthMaxProfit
-                                  );
-                                  bgStyle = {
-                                    background: `rgba(34, 197, 94, ${
-                                      0.3 + intensity * 0.7
-                                    })`,
-                                  };
-                                } else if (dayPnl < 0 && monthMaxLoss < 0) {
-                                  intensity = Math.min(
-                                    1,
-                                    Math.abs(dayPnl) / Math.abs(monthMaxLoss)
-                                  );
-                                  bgStyle = {
-                                    background: `rgba(239, 68, 68, ${
-                                      0.3 + intensity * 0.7
-                                    })`,
-                                  };
-                                }
-
-                                return (
-                                  <div
-                                    key={i}
-                                    className={`yearDay ${
-                                      hasTrades ? "hasTrades" : ""
-                                    }`}
-                                    onClick={() =>
-                                      handleDateClick(dateStr, dayTrades)
-                                    }
-                                    style={bgStyle}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                  </div>
-
-                  {/* Show More/Less Button */}
-                  <div className="flexRow flexRow_center margin_top_16">
-                    <button
-                      className="button_ter font_12"
-                      onClick={() => setShowAllMonths(!showAllMonths)}
-                    >
-                      {showAllMonths ? "Show Less" : "Show All Months"}
-                    </button>
                   </div>
                 </motion.div>
               )}
@@ -644,7 +495,7 @@ const ViewTrades = () => {
             </span> */}
 
             <div className="flexRow gap_16">
-              <div className="chart_boxBg flexClm gap_12 pad_16 width100">
+              <div className="boxBg flexClm gap_12 pad_16 width100">
                 <span className="font_14 font_weight_600">
                   Trade Distribution
                 </span>
@@ -668,7 +519,7 @@ const ViewTrades = () => {
                 </div>
               </div>
 
-              <div className="chart_boxBg flexClm gap_12 width100 pad_16">
+              <div className="boxBg flexClm gap_12 width100 pad_16">
                 <span className="font_14 font_weight_600">
                   Strategy Analysis
                 </span>
@@ -770,8 +621,8 @@ const ViewTrades = () => {
                           trade.tradeStatus === "closed"
                             ? "success"
                             : trade.tradeStatus === "running"
-                            ? "warning"
-                            : "shade_50"
+                              ? "warning"
+                              : "shade_50"
                         }`}
                       >
                         Status : {trade.tradeStatus}

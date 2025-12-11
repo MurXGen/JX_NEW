@@ -199,6 +199,10 @@ export default function Dashboard1() {
     (t) => t.direction?.toLowerCase() === "short" && t.closeTime
   ).length;
 
+  const isProMonthly =
+    userData?.subscription?.plan === "pro" &&
+    userData?.subscription?.type === "recurring";
+
   if (loading) {
     return <FullPageLoader />;
   }
@@ -371,36 +375,35 @@ export default function Dashboard1() {
               borderTop: "1px solid rgba(255,255,255,0.05)",
             }}
           >
-            {/* UPGRADE CTA */}
-            {open && (
-              <button
-                className="upgrade_btn flexRow flexRow_stretch sideBar_clickables"
-                onClick={() => (window.location.href = "/pricing")}
-              >
-                <>
-                  Upgrade Plan <Crown size={18} />
-                </>
-              </button>
+            {/* 🔸 SHOW UPGRADE BUTTON ONLY IF USER IS ON PRO MONTHLY */}
+            {isProMonthly && (
+              <>
+                {open && (
+                  <button
+                    className="upgrade_btn flexRow flexRow_stretch sideBar_clickables"
+                    onClick={() => (window.location.href = "/pricing")}
+                  >
+                    Upgrade Plan <Crown size={18} />
+                  </button>
+                )}
+
+                {!open && (
+                  <button
+                    className="flexRow flexRow_stretch sideBar_clickables"
+                    onClick={() => (window.location.href = "/pricing")}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: "12px 14px",
+                    }}
+                  >
+                    <Crown size={20} className="vector" />
+                  </button>
+                )}
+              </>
             )}
 
-            {/* UPGRADE CTA */}
-            {!open && (
-              <button
-                className="flexRow flexRow_stretch sideBar_clickables"
-                onClick={() => (window.location.href = "/pricing")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: "12px 14px",
-                }}
-              >
-                <>
-                  <Crown size={20} className="vector" />
-                </>
-              </button>
-            )}
-
-            {/* 👤 PROFILE CARD */}
+            {/* 👤 PROFILE CARD (SHOW ALWAYS — regardless of plan or open state) */}
             {open && (
               <div
                 className="sideBar_clickables"
@@ -431,7 +434,7 @@ export default function Dashboard1() {
               </div>
             )}
 
-            {/* Mini Profile for collapsed sidebar */}
+            {/* Mini Profile (collapsed) */}
             {!open && userData && (
               <div
                 className="sideBar_clickables"

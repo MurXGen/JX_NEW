@@ -4396,6 +4396,9 @@ footer {
     color: var(--white-80, #dcdcdc);
     background-color: #020202;
     line-height: 1.8;
+    max-width: 1200px;
+    min-width: 300px;
+    margin: 24px auto;
   }
 
   .legalHeader h1 {

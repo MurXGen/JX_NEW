@@ -1,30 +1,23 @@
 "use client";
 
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 import Dropdown from "@/components/ui/Dropdown";
+import UpgradeButton from "@/components/ui/UpgradeButton";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getCurrentPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   Check,
   Copy,
   Share2,
   Sparkles,
-  Users,
-  BarChart3,
-  Link,
-  Trophy,
-  TrendingUp,
-  ArrowUp,
-  ArrowDown,
-  X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
-import JournalXCTA from "@/components/ui/JournalXCTA";
-import UpgradeButton from "@/components/ui/UpgradeButton";
+import { useEffect, useState } from "react";
 
 const ShareTrades = () => {
   const [accounts, setAccounts] = useState([]);
@@ -265,7 +258,7 @@ const ShareTrades = () => {
       style={{
         maxWidth: "1200px",
         minWidth: "300px",
-        margin: "12px auto",
+        margin: "24px auto",
         padding: "0 12px 100px 12px",
       }}
     >

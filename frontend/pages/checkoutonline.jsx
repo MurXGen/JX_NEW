@@ -1,26 +1,26 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 import { fetchPlansFromIndexedDB } from "@/utils/fetchAccountAndTrades";
-import { motion, AnimatePresence } from "framer-motion";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { loadRazorpayScript } from "@/utils/loadRazorpay";
+import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
+import Cookies from "js-cookie";
 import {
-  Check,
-  Shield,
-  Zap,
-  Calendar,
-  Clock,
   ArrowLeft,
   BadgeCheck,
-  Sparkles,
+  Calendar,
+  Check,
+  Clock,
   Crown,
   Infinity,
+  Shield,
+  Sparkles,
+  Zap,
 } from "lucide-react";
-import Cookies from "js-cookie";
-import axios from "axios";
-import { loadRazorpayScript } from "@/utils/loadRazorpay";
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -292,7 +292,7 @@ export default function CheckoutOnline() {
       style={{
         maxWidth: "1200px",
         minWidth: "300px",
-        margin: "12px auto",
+        margin: "24px auto",
         padding: "0 12px 100px 12px",
       }}
     >

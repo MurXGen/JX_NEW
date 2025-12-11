@@ -1,12 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
 import axios from "axios";
+import { motion } from "framer-motion";
 import Cookies from "js-cookie";
-import dayjs from "dayjs";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { childVariants, containerVariants } from "@/animations/motionVariants";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -146,7 +145,7 @@ const CreateAccount = () => {
       style={{
         maxWidth: "1200px",
         minWidth: "300px",
-        margin: "12px auto",
+        margin: "24px auto",
         padding: "0 12px 100px 12px",
       }}
     >
