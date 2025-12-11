@@ -35,9 +35,10 @@ import ShareTrades from "@/components/dashboard/ShareModal";
 import { useRouter } from "next/router";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import axios from "axios";
-import { saveToIndexedDB } from "@/utils/indexedDB";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import MarketNews from "@/components/Tabs/HeatMaps";
 import Profile from "./profile";
+import Pricing from "@/components/dashboard/PricingModal";
 
 function TradesCard({ title, total, wins, losses }) {
   const winPercent = total ? (wins / total) * 100 : 0;
@@ -201,7 +202,7 @@ export default function Dashboard1() {
 
   const isProMonthly =
     userData?.subscription?.plan === "pro" &&
-    userData?.subscription?.type === "recurring";
+    userData?.subscription?.type === "one-time";
 
   if (loading) {
     return <FullPageLoader />;
@@ -381,7 +382,7 @@ export default function Dashboard1() {
                 {open && (
                   <button
                     className="upgrade_btn flexRow flexRow_stretch sideBar_clickables"
-                    onClick={() => (window.location.href = "/pricing")}
+                    onClick={() => setActiveTab("pricingpage")}
                   >
                     Upgrade Plan <Crown size={18} />
                   </button>
@@ -390,7 +391,7 @@ export default function Dashboard1() {
                 {!open && (
                   <button
                     className="flexRow flexRow_stretch sideBar_clickables"
-                    onClick={() => (window.location.href = "/pricing")}
+                    onClick={() => setActiveTab("pricingpage")}
                     style={{
                       background: "none",
                       border: "none",
@@ -497,6 +498,7 @@ export default function Dashboard1() {
           {activeTab === "export" && <ExportPage />}
 
           {activeTab === "share" && <ShareTrades />}
+          {activeTab === "pricingpage" && <Pricing />}
 
           {/* {activeTab === "reports" && <ReportsPage />} */}
 

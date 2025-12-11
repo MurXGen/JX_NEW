@@ -1,6 +1,6 @@
 // pages/pricing.js
 import { motion, AnimatePresence } from "framer-motion";
-import PaddleLoader from "../components/payments/PaddleLoader";
+import PaddleLoader from "../../components/payments/PaddleLoader";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/router";
@@ -219,7 +219,7 @@ export default function Pricing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="trust-indicators"
+          className="flexRow gap_32"
         >
           <div className="trust-item">
             <Check size={16} className="text-success" />
