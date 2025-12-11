@@ -115,7 +115,15 @@ export default function SubscriptionSuccess() {
 
   if (checking) return <FullPageLoader />;
   return (
-    <div className="subscription-success">
+    <div
+      className="subscription-success"
+      style={{
+        maxWidth: "1200px",
+        minWidth: "300px",
+        margin: "24px auto",
+        padding: "0 12px 100px 12px",
+      }}
+    >
       {/* Background Celebration Effect */}
       {showConfetti && <div id="confetti-container"></div>}
 

@@ -1,844 +1,508 @@
-// components/Pricing/PricingPage.js
-"use client";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+// pages/pricing.js
+import { motion } from "framer-motion";
 import {
-  Diamond,
-  Star,
-  Zap,
   Check,
+  CreditCard,
   Crown,
-  Sparkles,
+  Lock,
   Shield,
-  Clock,
-  Users,
-  Rocket,
-  StarIcon,
-  Sparkle,
-  Percent,
-  ChevronDown,
-  X,
-  ArrowLeft,
-  ChevronUp,
-  Infinity,
+  Sparkles,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
-import PaymentSelector from "@/components/Trades/PaymentSelector";
-import { fetchPlansFromIndexedDB } from "@/utils/fetchAccountAndTrades";
-import Cookies from "js-cookie";
+import Image from "next/image";
 import { useRouter } from "next/router";
-import { getFromIndexedDB } from "@/utils/indexedDB";
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import LegalLinks from "@/components/landingPage/LegalLinks";
-import Head from "next/head";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import PaddleLoader from "../components/payments/PaddleLoader";
 
-function Pricing() {
+const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
+const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
+const lifetimePriceId = process.env.NEXT_PUBLIC_PADDLE_LIFETIME_PRICE_ID;
+
+// Simplified 4 features per plan
+const PLANS_FEATURES = {
+  free: [
+    { text: "10 trades/month", icon: "📊" },
+    { text: "Basic charts", icon: "📈" },
+    { text: "1 account", icon: "👤" },
+    { text: "30-day history", icon: "⏰" },
+  ],
+  pro: [
+    { text: "Unlimited trades", icon: "♾️" },
+    { text: "Advanced analytics", icon: "📊" },
+    { text: "3 accounts", icon: "👥" },
+    { text: "Full trade history", icon: "📚" },
+  ],
+  lifetime: [
+    { text: "Lifetime updates", icon: "⚡" },
+    { text: "All Pro features", icon: "🏆" },
+    { text: "Priority support", icon: "⭐" },
+    { text: "Early beta access", icon: "🚀" },
+  ],
+};
+
+const PLANS_CONFIG = {
+  monthly: {
+    title: "Pro Monthly",
+    price: "$3.49",
+    amount: "3.49",
+    period: "monthly",
+    planName: "Pro",
+    tagline: "Flexible monthly access",
+    popular: false,
+    paddlePriceId: monthlyPriceId,
+  },
+  yearly: {
+    title: "Pro Yearly",
+    price: "$29.99",
+    amount: "29.99",
+    period: "yearly",
+    planName: "Pro",
+    tagline: "Most popular - Save 28%",
+    popular: true,
+    savings: "28%",
+    paddlePriceId: yearlyPriceId,
+  },
+  lifetime: {
+    title: "Lifetime",
+    price: "$99",
+    amount: "99",
+    period: "lifetime",
+    planName: "Lifetime",
+    tagline: "One payment, forever access",
+    popular: false,
+    value: "Best value",
+    paddlePriceId: lifetimePriceId,
+  },
+};
+
+export default function Pricing() {
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [hoveredPlan, setHoveredPlan] = useState(null);
   const router = useRouter();
-  const [billingPeriod, setBillingPeriod] = useState("monthly");
-  const [userCountry, setUserCountry] = useState("OTHER");
-  const [plans, setPlans] = useState([]);
-  const [activePlan, setActivePlan] = useState(null);
-  const [showPaymentSelector, setShowPaymentSelector] = useState(false);
-  const [isHovered, setIsHovered] = useState(null);
-  const [currentPlanId, setCurrentPlanId] = useState(null);
-  const [expandedPlan, setExpandedPlan] = useState(null);
-  const userHasPlan = !!currentPlanId; // true if user has any plan
-  const userHasActivePlan = currentPlanId && currentPlanId.planId !== "free";
-  const [selectedPlanId, setSelectedPlanId] = useState(null);
 
-  const toggleDetails = (planId) => {
-    setExpandedPlan((prev) => (prev === planId ? null : planId));
-  };
-
-  // Set predefined plans with new structure
   useEffect(() => {
-    const staticPlans = [
-      {
-        name: "Free",
-        planId: "free",
-        description: "Basic journaling tools",
-        monthly: { inr: 0, inrusdt: 0, usdt: 0 },
-        yearly: { inr: 0, inrusdt: 0, usdt: 0 },
-        lifetime: null,
-      },
-      {
-        name: "Pro",
-        planId: "pro",
-        description: "Advanced insights",
-        monthly: { inr: 149, inrusdt: 2, usdt: 5 },
-        yearly: { inr: 1499, inrusdt: 19, usdt: 50 },
-        lifetime: null,
-      },
-      {
-        name: "Master",
-        planId: "master",
-        description: "Lifetime access",
-        monthly: null,
-        yearly: null,
-        lifetime: { inr: 9999, inrusdt: 99, usdt: 119 },
-      },
-    ];
-
-    setPlans(staticPlans);
+    setIsClient(true);
   }, []);
 
-  // ✅ 2. Load user's current plan from IndexedDB
-  useEffect(() => {
-    (async () => {
-      const userData = await getFromIndexedDB("user-data");
-      const subscription = userData?.subscription;
+  const openPaddleCheckout = (priceId) => {
+    if (!window?.Paddle) {
+      alert("Payment system is loading. Please wait a moment and try again.");
+      return;
+    }
 
-      if (!subscription) return;
-
-      const planId = subscription.planId || null;
-      const expiry = subscription.expiryDate || null;
-
-      // Check if expired
-      const isExpired = expiry ? new Date(expiry).getTime() < Date.now() : true;
-
-      if (!planId || isExpired) {
-        // ❌ Do NOT set active plan if expired
-        setCurrentPlanId(null);
-        setActivePlan(null);
-        return;
-      }
-
-      // Normalize plan id (e.g., PRO001 → pro)
-      const normalizedPlan = planId.toLowerCase().includes("pro")
-        ? "pro"
-        : planId.toLowerCase().includes("master")
-          ? "master"
-          : null;
-
-      setCurrentPlanId(normalizedPlan);
-      setActivePlan(normalizedPlan);
-    })();
-  }, []);
-
-  // Icon mapping
-  const getPlanIcon = (planId) => {
-    const baseProps = { size: 24 };
-    switch (planId) {
-      case "pro":
-        return <Diamond {...baseProps} className="plan-icon pro" />;
-      case "master":
-        return <Crown {...baseProps} className="plan-icon master" />;
-      default:
-        return <Star {...baseProps} className="plan-icon" />;
+    try {
+      window.Paddle.Checkout.open({
+        items: [{ priceId, quantity: 1 }],
+        settings: { displayMode: "overlay" },
+        successCallback: (data) => {
+          console.log("Payment successful:", data);
+          router.push(`/subscription-success?plan=${selectedPlan}`);
+        },
+      });
+    } catch (error) {
+      console.error("Error opening Paddle checkout:", error);
+      alert("Failed to open checkout. Please try again.");
     }
   };
 
-  // Feature lists for each plan based on new PLAN_RULES
-  const getPlanFeatures = (planId) => {
-    const featureTable = [
-      {
-        title: "Trade Logging",
-        free: "10 trades/month",
-        pro: "Unlimited trades",
-        master: "Unlimited trades",
-      },
-      {
-        title: "Quick Trades",
-        free: "10/month",
-        pro: "Unlimited",
-        master: "Unlimited",
-      },
-      {
-        title: "Multiple Accounts",
-        free: "1 account",
-        pro: "Up to 3 accounts",
-        master: "Up to 3 accounts",
-      },
-      {
-        title: "Image Uploads",
-        free: "10 images/month (10MB max)",
-        pro: "Unlimited (100MB max)",
-        master: "Unlimited (100MB max)",
-      },
-      {
-        title: "Trade History",
-        free: "30 days",
-        pro: "Full history",
-        master: "Full history",
-      },
-      {
-        title: "Export Trades",
-        free: "❌",
-        pro: "✅ CSV export",
-        master: "✅ CSV export",
-      },
-      {
-        title: "Share Trades",
-        free: "❌",
-        pro: "✅",
-        master: "✅ Generate share links",
-      },
-      // {
-      //   title: "AI Analysis",
-      //   free: "❌",
-      //   pro: "✅ AI trade insights",
-      //   master: "✅ AI trade insights",
-      // },
-      {
-        title: "Advanced Charts",
-        free: "✅ Basic charts",
-        pro: "✅ Advanced charts",
-        master: "✅ Advanced charts",
-      },
-      {
-        title: "Multiple Entry/Exit",
-        free: "✅",
-        pro: "✅",
-        master: "✅",
-      },
-      {
-        title: "Backup & Sync",
-        free: "❌",
-        pro: "✅ Cloud backup",
-        master: "✅ Cloud backup",
-      },
-      {
-        title: "Ad-free Experience",
-        free: "❌",
-        pro: "✅ No ads",
-        master: "✅ No ads",
-      },
-      {
-        title: "Priority Support",
-        free: "❌",
-        pro: "✅ Standard support",
-        master: "✅ Priority support",
-      },
-    ];
-
-    return featureTable.map((item) => ({
-      title: item.title,
-      value:
-        planId === "master"
-          ? item.master
-          : planId === "pro"
-            ? item.pro
-            : item.free,
-    }));
+  const handlePlanClick = (planKey) => {
+    setSelectedPlan(planKey);
+    setIsModalOpen(true);
   };
 
-  // Format price display
-  const getPriceDisplay = (plan, period) => {
-    if (plan.planId === "master") {
-      // Master plan only has lifetime
-      if (userCountry === "IN") {
-        return {
-          price: plan.lifetime?.inr,
-          savings: 80, // Lifetime savings percentage
-          currency: "₹",
-          period: "lifetime",
-        };
-      } else {
-        // For international users, use USDT pricing
-        const price =
-          userCountry === "INUSDT"
-            ? plan.lifetime?.inrusdt
-            : plan.lifetime?.usdt;
-        return {
-          price: price,
-          savings: 80,
-          currency: "$",
-          period: "lifetime",
-        };
-      }
-    }
-
-    // Pro plan - monthly/yearly pricing
-    if (userCountry === "IN") {
-      const monthlyPrice = plan.monthly?.inr;
-      const yearlyPrice = plan.yearly?.inr;
-      const yearlySavings = monthlyPrice
-        ? Math.round(
-            ((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100
-          )
-        : 0;
-
-      return {
-        price: period === "monthly" ? monthlyPrice : yearlyPrice,
-        savings: period === "yearly" ? yearlySavings : 0,
-        currency: "₹",
-        period: period,
-      };
-    } else {
-      const monthlyPrice =
-        userCountry === "INUSDT" ? plan.monthly?.inrusdt : plan.monthly?.usdt;
-      const yearlyPrice =
-        userCountry === "INUSDT" ? plan.yearly?.inrusdt : plan.yearly?.usdt;
-      const yearlySavings = monthlyPrice
-        ? Math.round(
-            ((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100
-          )
-        : 0;
-
-      return {
-        price: period === "monthly" ? monthlyPrice : yearlyPrice,
-        savings: period === "yearly" ? yearlySavings : 0,
-        currency: "$",
-        period: period,
-      };
-    }
-  };
-
-  // Continue button handler
-  const handleContinue = (selectedPlanId, selectedBillingPeriod = null) => {
-    if (!selectedPlanId) return;
-
-    const selectedPlan = plans.find((p) => p.planId === selectedPlanId);
+  const handlePaymentOptionClick = (option) => {
     if (!selectedPlan) return;
 
-    // Use provided billing period or fallback to state
-    const finalBillingPeriod = selectedBillingPeriod || billingPeriod;
+    const planConfig = PLANS_CONFIG[selectedPlan];
+    setIsModalOpen(false);
 
-    // Determine currency and amount based on user location and billing period
-    let amount;
-    if (finalBillingPeriod === "lifetime") {
-      if (userCountry === "IN") {
-        amount = selectedPlan.lifetime?.inr;
-      } else {
-        amount =
-          userCountry === "INUSDT"
-            ? selectedPlan.lifetime?.inrusdt
-            : selectedPlan.lifetime?.usdt;
-      }
-    } else {
-      // Monthly/Yearly (only for Pro)
-      if (userCountry === "IN") {
-        amount = selectedPlan[finalBillingPeriod]?.inr;
-      } else {
-        amount =
-          userCountry === "INUSDT"
-            ? selectedPlan[finalBillingPeriod]?.inrusdt
-            : selectedPlan[finalBillingPeriod]?.usdt;
-      }
+    switch (option) {
+      case "cards_paypal":
+        if (planConfig.paddlePriceId) {
+          openPaddleCheckout(planConfig.paddlePriceId);
+        }
+        break;
+      case "crypto":
+        router.push({
+          pathname: "/cryptobillingpage",
+          query: {
+            planName: planConfig.planName,
+            period: planConfig.period,
+            amount: planConfig.amount,
+          },
+        });
+        break;
+      case "binance":
+        router.push({
+          pathname: "/payments/binance",
+          query: {
+            planName: planConfig.planName,
+            period: planConfig.period,
+            amount: planConfig.amount,
+          },
+        });
+        break;
     }
-
-    if (!amount) {
-      console.error("Amount not found for selected plan or billing period.");
-      return;
-    }
-
-    // INR flow → auto-redirect if low amount
-    if (userCountry === "IN" && amount < 450) {
-      const query = new URLSearchParams({
-        planName: selectedPlan.name,
-        planId: selectedPlan.planId,
-        period: finalBillingPeriod,
-        method: "upi",
-        amount: amount.toString(),
-      }).toString();
-
-      router.push(`/checkoutonline?${query}`);
-      return;
-    }
-
-    // Otherwise → show payment selection modal
-    setShowPaymentSelector(true);
-    setActivePlan(selectedPlanId);
   };
 
   return (
     <>
-      <Head>
-        {/* === Primary SEO Tags === */}
-        <title>
-          JournalX Pricing | Affordable Trading Journal Plans for Smart Traders
-        </title>
-        <meta
-          name="description"
-          content="Get the best value trading journal plans at unbeatable prices. JournalX offers flexible pricing — $5/month, $50/year, or lifetime access for just $99. Start journaling smarter with premium support included."
-        />
-        <meta
-          name="keywords"
-          content="trading journal pricing, affordable trading journal, cheap trading journal, lifetime trading journal, JournalX plans, forex journal pricing, stock trading app subscription"
-        />
-        <meta name="author" content="JournalX" />
-        <meta
-          name="robots"
-          content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#020202" />
+      <PaddleLoader />
 
-        {/* === Open Graph / Facebook === */}
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="JournalX" />
-        <meta property="og:url" content="https://journalx.app/pricing" />
-        <meta
-          property="og:title"
-          content="JournalX Pricing — Simple, Transparent & Affordable"
-        />
-        <meta
-          property="og:description"
-          content="Unlock the full power of JournalX for just $5/month, $50/year, or lifetime access at $99. Smarter trading, unmatched value, and 24/7 support for traders."
-        />
-        <meta
-          property="og:image"
-          content="https://journalx.app/assets/Journalx_Pricing_Banner.png"
-        />
-        <meta
-          property="og:image:alt"
-          content="JournalX Pricing Plans Comparison — Monthly, Yearly, Lifetime"
-        />
-
-        {/* === Twitter === */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@journalxapp" />
-        <meta name="twitter:creator" content="@journalxapp" />
-        <meta name="twitter:url" content="https://journalx.app/pricing" />
-        <meta
-          name="twitter:title"
-          content="JournalX Pricing — Smarter Trading, Affordable Plans"
-        />
-        <meta
-          name="twitter:description"
-          content="Choose your plan: $5/month, $50/year, or $99 lifetime. JournalX delivers premium features, full analytics, and dedicated trader support."
-        />
-        <meta
-          name="twitter:image"
-          content="https://cdn.journalx.app/trades/open-images/1762951221225-Journalx_pricing_plan.png"
-        />
-
-        {/* === Canonical Link === */}
-        <link rel="canonical" href="https://journalx.app/pricing" />
-
-        {/* === Schema: Product Pricing === */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Product",
-              name: "JournalX Trading Journal",
-              image:
-                "https://cdn.journalx.app/trades/open-images/1762951221225-Journalx_pricing_plan.png",
-              description:
-                "Affordable and powerful trading journal app with $5/month, $50/year, and lifetime $99 plans. Trusted by traders worldwide for performance tracking and analysis.",
-              brand: {
-                "@type": "Brand",
-                name: "JournalX",
-              },
-              offers: [
-                {
-                  "@type": "Offer",
-                  url: "https://journalx.app/pricing",
-                  price: "5.00",
-                  priceCurrency: "USD",
-                  priceValidUntil: "2026-12-31",
-                  availability: "https://schema.org/InStock",
-                  category: "Monthly Plan",
-                },
-                {
-                  "@type": "Offer",
-                  url: "https://journalx.app/pricing",
-                  price: "50.00",
-                  priceCurrency: "USD",
-                  priceValidUntil: "2026-12-31",
-                  availability: "https://schema.org/InStock",
-                  category: "Yearly Plan",
-                },
-                {
-                  "@type": "Offer",
-                  url: "https://journalx.app/pricing",
-                  price: "99.00",
-                  priceCurrency: "USD",
-                  priceValidUntil: "2026-12-31",
-                  availability: "https://schema.org/InStock",
-                  category: "Lifetime Access",
-                },
-              ],
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: "4.9",
-                reviewCount: "320",
-              },
-            }),
-          }}
-        />
-      </Head>
-
-      <div className="pricing-page flexClm gap_46">
-        {/* Header Section */}
-        <div className="flexClm gap_32">
-          <div className="flexClm flex_center">
-            <span className="font_24 font_weight_600">Choose Your Plan</span>
-            <span className="font_16 shade_50">
-              Upgrade to unlock advanced trading features
-            </span>
-          </div>
-        </div>
-
-        {/* Plans Grid - Show all plans at once */}
-        <div
-          className="gridContainer_pricing pad_32"
-          style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: "12px",
-          }}
+      {/* Hero Section */}
+      <section className="pricing-hero">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="hero-content"
         >
-          <AnimatePresence>
-            {plans.map((plan, index) => {
-              const isCurrent = currentPlanId === plan.planId;
-              const features = getPlanFeatures(plan.planId);
-              const isExpanded = expandedPlan === plan.planId;
-              const isProPlan = plan.planId === "pro";
+          <div className="badge">
+            <Sparkles size={14} />
+            <span>TRUSTED BY 10,000+ TRADERS</span>
+          </div>
 
-              return (
-                <motion.div
-                  key={plan.planId}
-                  className={`chart_boxBg pad_16 flexClm gap_24 ${
-                    isCurrent ? "active" : ""
-                  } ${plan.planId}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{
-                    scale: 1.02,
-                    transition: { duration: 0.2 },
-                  }}
-                  onHoverStart={() => setIsHovered(plan.planId)}
-                  onHoverEnd={() => setIsHovered(null)}
-                  style={{
-                    transform: "scale(0.9)", // ✅ makes the whole card smaller
-                    transformOrigin: "center", // ✅ ensures it scales from the middle
-                  }}
-                  onClick={() => setSelectedPlanId(plan.planId)}
-                >
-                  {/* Plan Header */}
-                  <div className="flexClm gap_32 width100">
-                    <div className="flexRow flexRow_stretch">
-                      <div className="flexRow gap_12">
-                        <div>{getPlanIcon(plan.planId)}</div>
-                        <div className="flexClm">
-                          <span className="font_20 font_weight_600">
-                            {plan.name}
-                          </span>
-                          <span className="plan-description font_12 shade_50">
-                            {plan.description}
-                          </span>
-                        </div>
-                      </div>
-                      {/* Current Plan Badge */}
-                      {isCurrent && (
-                        <div
-                          className="upgrade_btn"
-                          style={{
-                            position: "absolute",
-                            top: "24px",
-                            right: "24px",
-                            maxWidth: "fit-content",
-                          }}
-                        >
-                          Current Plan
-                        </div>
-                      )}
-                    </div>
+          <h1 className="hero-title">
+            Trade Smarter.
+            <br />
+            <span className="gradient-text">Invest in Your Edge</span>
+          </h1>
 
-                    {/* Price Section */}
-                    <div className="flexRow flexRow_stretch">
-                      <div className="flexClm gap_4">
-                        <div style={{ fontSize: "32px", lineHeight: "1" }}>
-                          <span>
-                            {
-                              getPriceDisplay(
-                                plan,
-                                isProPlan ? billingPeriod : "lifetime"
-                              ).currency
-                            }
-                          </span>
-                          <span className="font_weight_600">
-                            {
-                              getPriceDisplay(
-                                plan,
-                                isProPlan ? billingPeriod : "lifetime"
-                              ).price
-                            }
-                          </span>
-                        </div>
-                        <span className="period font_12 shade_50">
-                          {isProPlan
-                            ? billingPeriod === "monthly"
-                              ? "per month"
-                              : "per year"
-                            : "one-time payment"}
-                        </span>
-
-                        {/* Savings Badge */}
-                        {/* {getPriceDisplay(
-                        plan,
-                        isProPlan ? billingPeriod : "lifetime"
-                      ).savings > 0 && (
-                        <div
-                          className="success font_12"
-                          style={{
-                            background: "rgba(16, 185, 129, 0.1)",
-                            padding: "4px 8px",
-                            borderRadius: "6px",
-                            width: "fit-content",
-                          }}
-                        >
-                          Save{" "}
-                          {
-                            getPriceDisplay(
-                              plan,
-                              isProPlan ? billingPeriod : "lifetime"
-                            ).savings
-                          }
-                          %
-                        </div>
-                      )} */}
-                      </div>
-                      {/* Pro Plan - Billing Toggle */}
-                      {isProPlan && (
-                        <div className="flexRow gap_8">
-                          <button
-                            className={`font_12 ${
-                              billingPeriod === "monthly"
-                                ? "button_ter selected active"
-                                : "button_ter"
-                            }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setBillingPeriod("monthly");
-                            }}
-                            style={{
-                              width: "100px",
-                            }}
-                          >
-                            Monthly
-                          </button>
-                          <button
-                            className={`font_12 ${
-                              billingPeriod === "yearly"
-                                ? "button_ter selected active"
-                                : "button_ter"
-                            }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setBillingPeriod("yearly");
-                            }}
-                            style={{
-                              position: "relative",
-                              width: "100px",
-                            }}
-                          >
-                            Yearly
-                            <span
-                              className="success font_10 successBg"
-                              style={{
-                                position: "absolute",
-                                top: "-12px",
-                                right: "15px",
-                                background: "var(--success)",
-                                color: "white",
-                                padding: "2px 4px",
-                                borderRadius: "4px",
-                              }}
-                            >
-                              Save 17%
-                            </span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <motion.button
-                      className={`flexRow gap_8 flex_center ${
-                        selectedPlanId === plan.planId // when the card is clicked
-                          ? "button_pri"
-                          : isProPlan
-                            ? "button_pri"
-                            : "button_sec"
-                      }`}
-                      disabled={
-                        isCurrent ||
-                        (plan.planId === "free" && userHasActivePlan)
-                      }
-                      whileHover={
-                        !isCurrent &&
-                        !(plan.planId === "free" && userHasActivePlan)
-                          ? { scale: 1.02 }
-                          : {}
-                      }
-                      whileTap={
-                        !isCurrent &&
-                        !(plan.planId === "free" && userHasActivePlan)
-                          ? { scale: 0.98 }
-                          : {}
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-
-                        // 🧩 Case 1: No user plan (not logged in)
-                        if (!userHasPlan && plan.planId === "free") {
-                          window.location.href = "/login";
-                          return;
-                        }
-
-                        // 🧩 Case 2: Allow upgrade/downgrade
-                        if (
-                          !isCurrent &&
-                          !(plan.planId === "free" && userHasActivePlan)
-                        ) {
-                          handleContinue(
-                            plan.planId,
-                            isProPlan ? billingPeriod : "lifetime"
-                          );
-                        }
-                      }}
-                      style={{
-                        opacity:
-                          isCurrent ||
-                          (plan.planId === "free" && userHasActivePlan)
-                            ? 0.6
-                            : 1,
-                        cursor:
-                          isCurrent ||
-                          (plan.planId === "free" && userHasActivePlan)
-                            ? "not-allowed"
-                            : "pointer",
-                        minHeight: "44px",
-                      }}
-                    >
-                      {isCurrent
-                        ? "Current Plan"
-                        : !userHasPlan && plan.planId === "free"
-                          ? "Start Free"
-                          : plan.planId === "free" && userHasActivePlan
-                            ? "Upgraded"
-                            : isProPlan
-                              ? `Get ${
-                                  billingPeriod === "monthly"
-                                    ? "Monthly"
-                                    : "Yearly"
-                                } Access`
-                              : "Get Lifetime Access"}
-                      <Zap size={16} />
-                    </motion.button>
-                  </div>
-
-                  {/* Plan Details Toggle */}
-                  {/* <div className="flexRow flex_center">
-                  <button
-                    className="direct_tertiary flexRow gap_8 font_12"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleDetails(plan.planId);
-                    }}
-                  >
-                    {isExpanded ? "Hide Plan Details" : "Show Plan Details"}
-                    {isExpanded ? (
-                      <ChevronUp size={16} />
-                    ) : (
-                      <ChevronDown size={16} />
-                    )}
-                  </button>
-                </div> */}
-
-                  {/* Plan Features */}
-                  <AnimatePresence>
-                    <motion.div
-                      key="features"
-                      className="flexClm gap_24"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
-                      <div className="font_12 font_weight_600 shade_50">
-                        FEATURES INCLUDED:
-                      </div>
-                      {features.map((feature, idx) => (
-                        <motion.div
-                          key={idx}
-                          className="flexRow flexRow_stretch"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -10 }}
-                          transition={{ duration: 0.2, delay: idx * 0.03 }}
-                        >
-                          {feature.value !== "✅" && feature.value !== "❌" && (
-                            <div className="flexRow gap_12 width100">
-                              <span className="font_12">
-                                <strong>{feature.title}:</strong>
-                              </span>
-                              <span
-                                className="font_12"
-                                style={{ textAlign: "right", flex: 1 }}
-                              >
-                                {feature.value}
-                              </span>
-                            </div>
-                          )}
-                          {(feature.value === "✅" ||
-                            feature.value === "❌") && (
-                            <span className="font_12">{feature.title}</span>
-                          )}
-
-                          {feature.value === "✅" && (
-                            <Check size={16} className="success" />
-                          )}
-                          {feature.value === "❌" && (
-                            <X size={16} className="error" />
-                          )}
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
+          <p className="hero-subtitle">
+            Professional tools that pay for themselves. Start free, upgrade when
+            ready.
+          </p>
+        </motion.div>
 
         {/* Trust Indicators */}
         <motion.div
-          className="trust-section"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
+          transition={{ delay: 0.3 }}
+          className="flexRow gap_32 flex_center"
         >
-          <div className="trust-items">
-            <div className="trust-item">
-              <Shield size={20} className="vector" />
-              <span className="font_12">Secure Payment</span>
-            </div>
-            <div className="trust-item">
-              <Clock size={20} className="vector" />
-              <span className="font_12">Switch anytime</span>
-            </div>
-            <div className="trust-item">
-              <Users size={20} className="vector" />
-              <span className="font_12">Trusted by Traders</span>
-            </div>
+          <div className="trust-item">
+            <Shield size={16} className="text-success" />
+            <span>Lowest pricing</span>
+          </div>
+          <div className="trust-item">
+            <Lock size={16} className="text-success" />
+            <span>Full data encrypted</span>
+          </div>
+          <div className="trust-item">
+            <Check size={16} className="text-success" />
+            <span>Cancel anytime</span>
           </div>
         </motion.div>
+      </section>
 
-        {/* Payment Selector Modal */}
-        <AnimatePresence>
-          {showPaymentSelector && activePlan && (
-            <PaymentSelector
-              planName={plans.find((p) => p.planId === activePlan)?.name}
-              billingPeriod={billingPeriod}
-              userCountry={userCountry}
-              amount={
-                getPriceDisplay(
-                  plans.find((p) => p.planId === activePlan),
-                  billingPeriod
-                ).price
-              }
-              allowUPI={true}
-              onClose={() => setShowPaymentSelector(false)}
-            />
-          )}
-        </AnimatePresence>
-        <LegalLinks />
-      </div>
+      {/* Pricing Cards */}
+      <section className="pricing-section">
+        <div className="pricing-grid">
+          {/* Free Plan */}
+          <PricingCard
+            plan="free"
+            title="Free"
+            price="$0"
+            period="Forever free"
+            features={PLANS_FEATURES.free}
+            buttonText="Start Free"
+            isCurrent={true}
+            onHover={setHoveredPlan}
+            isHovered={hoveredPlan === "free"}
+          />
+
+          {/* Monthly Plan */}
+          <PricingCard
+            plan="monthly"
+            title="Monthly"
+            price="$3.49"
+            period="per month"
+            features={PLANS_FEATURES.pro}
+            buttonText="Get Monthly"
+            highlight={false}
+            onClick={() => handlePlanClick("monthly")}
+            onHover={setHoveredPlan}
+            isHovered={hoveredPlan === "monthly"}
+          />
+
+          {/* Yearly Plan (Most Popular) */}
+          <PricingCard
+            plan="yearly"
+            title="Yearly"
+            price="$29.99"
+            period="per year"
+            features={PLANS_FEATURES.pro}
+            buttonText="Get Yearly"
+            highlight={true}
+            popular={true}
+            savings="28%"
+            onClick={() => handlePlanClick("yearly")}
+            onHover={setHoveredPlan}
+            isHovered={hoveredPlan === "yearly"}
+          />
+
+          {/* Lifetime Plan */}
+          <PricingCard
+            plan="lifetime"
+            title="Lifetime"
+            price="$99"
+            period="one-time payment"
+            features={PLANS_FEATURES.lifetime}
+            buttonText="Get Lifetime"
+            highlight={false}
+            valueBadge="Best Value"
+            onClick={() => handlePlanClick("lifetime")}
+            onHover={setHoveredPlan}
+            isHovered={hoveredPlan === "lifetime"}
+          />
+        </div>
+      </section>
+
+      {/* Payment Modal */}
+      {isClient &&
+        isModalOpen &&
+        selectedPlan &&
+        createPortal(
+          <PaymentModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            planTitle={PLANS_CONFIG[selectedPlan]?.title || ""}
+            planPrice={PLANS_CONFIG[selectedPlan]?.price || ""}
+            onPaymentOptionClick={handlePaymentOptionClick}
+          />,
+          document.body
+        )}
     </>
   );
 }
 
-export default Pricing;
+function PricingCard({
+  plan,
+  title,
+  price,
+  period,
+  features,
+  buttonText,
+  isCurrent = false,
+  highlight = false,
+  popular = false,
+  savings,
+  valueBadge,
+  onClick,
+  onHover,
+  isHovered,
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5 }}
+      whileHover={{ y: -10, transition: { duration: 0.2 } }}
+      onMouseEnter={() => onHover(plan)}
+      onMouseLeave={() => onHover(null)}
+      className={`pricing-card ${highlight ? "highlight" : ""} ${isHovered ? "hovered" : ""}`}
+    >
+      <div className="card-header">
+        <div className="flexRow flexRow_stretch">
+          <span className="card-title">{title}</span>
+          {popular && (
+            <div className="popular-badge">
+              <Crown size={14} />
+              <span>MOST POPULAR</span>
+            </div>
+          )}
+
+          {valueBadge && (
+            <div className="value-badge">
+              <TrendingUp size={14} />
+              <span>{valueBadge}</span>
+            </div>
+          )}
+
+          {savings && (
+            <div className="savings-badge">
+              <span>Save {savings}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="card-price flexRow flexRow_stretch">
+          <span className="price">{price}</span>
+          <span className="period">{period}</span>
+        </div>
+      </div>
+
+      <ul className="feature-list">
+        {features.map((feature, index) => (
+          <motion.li
+            key={index}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="feature-item"
+          >
+            <span className="feature-icon">{feature.icon}</span>
+            <span className="feature-text">{feature.text}</span>
+          </motion.li>
+        ))}
+      </ul>
+
+      <motion.button
+        className={`pricing-button ${isCurrent ? "current" : ""}`}
+        onClick={isCurrent ? null : onClick}
+        whileHover={{ scale: isCurrent ? 1 : 1.05 }}
+        whileTap={{ scale: isCurrent ? 1 : 0.95 }}
+        disabled={isCurrent}
+      >
+        {isCurrent ? (
+          <>
+            <Check size={16} />
+            <span>Current Plan</span>
+          </>
+        ) : (
+          <>
+            <Zap size={16} />
+            <span>{buttonText}</span>
+          </>
+        )}
+      </motion.button>
+    </motion.div>
+  );
+}
+
+function PaymentModal({
+  isOpen,
+  onClose,
+  planTitle,
+  planPrice,
+  onPaymentOptionClick,
+}) {
+  if (!isOpen) return null;
+
+  const paymentOptions = [
+    {
+      id: "cards_paypal",
+      title: "Cards & PayPal",
+      description: "Secure payment via Visa, Mastercard, Amex, or PayPal",
+      icon: <CreditCard size={24} />,
+      gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+    },
+    {
+      id: "crypto",
+      title: "Crypto Payment",
+      description: "Pay with USDT, Bitcoin, Ethereum on multiple networks",
+      icon: "₿",
+      gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    },
+    {
+      id: "binance",
+      title: "Binance Pay",
+      description: "Instant payment directly from your Binance account",
+      icon: "⚡",
+      gradient: "linear-gradient(135deg, #f0b90b 0%, #c27803 100%)",
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="payment-modal-overlay"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: "spring", damping: 25 }}
+        className="payment-modal-container"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Content Side (Left) */}
+        <div className="modal-content-side">
+          <div className="modal-header">
+            <button className="modal-close" onClick={onClose}>
+              ×
+            </button>
+            <h2 className="modal-title">Complete Your Purchase</h2>
+            <p className="modal-subtitle">
+              Select your preferred payment method
+            </p>
+          </div>
+
+          <div className="selected-plan-info">
+            <div className="plan-badge">
+              <span>{planTitle}</span>
+            </div>
+            <div className="plan-price-display">
+              <span className="price">{planPrice}</span>
+              <span className="plan-period">One-time payment</span>
+            </div>
+          </div>
+
+          <div className="payment-options">
+            {paymentOptions.map((option, index) => (
+              <motion.button
+                key={option.id}
+                className="button_sec payment-option-button"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onPaymentOptionClick(option.id)}
+                style={{
+                  background: option.gradient,
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                <div className="payment-option-content">
+                  <span className="payment-icon">{option.icon}</span>
+                  <div className="payment-info">
+                    <span className="payment-title">{option.title}</span>
+                    <span className="payment-desc">{option.description}</span>
+                  </div>
+                </div>
+                <span className="payment-arrow">→</span>
+              </motion.button>
+            ))}
+          </div>
+
+          <div className="security-notice">
+            <Shield size={16} />
+            <span>Secure payment · 256-bit encryption</span>
+          </div>
+        </div>
+
+        {/* Image Side (Right) */}
+        <div className="modal-image-side">
+          <div className="">
+            <div className="pad_16">
+              <h3>Unlock Your Trading Potential</h3>
+              <p>Join 10,000+ traders who trust JournalX</p>
+              <div className="benefits-list">
+                <span>
+                  <Check size={14} /> Advanced analytics
+                </span>
+                <span>
+                  <Check size={14} /> Unlimited trade logging
+                </span>
+                <span>
+                  <Check size={14} /> Priority support
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}

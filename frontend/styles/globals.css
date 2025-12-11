@@ -1,3 +1,4 @@
+/* Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
 /* Dark theme defaults */
@@ -1000,86 +1001,224 @@ textarea::placeholder {
   transition: 0.3s;
 }
 
-/* For date anmd time */
+/* Date time picker  */
 
-.dtpOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 10000;
+/* SimpleDateTimePicker.css - Only 95 lines */
+.simple-datetime {
+  width: 100%;
+  max-width: 400px;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
-.dtpModal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--base-box-bg);
-  width: 90%;
-  max-width: 500px;
-  border-radius: 12px;
+.simple-label {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.datetime-container {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  z-index: 10000;
-  border: 1px solid var(--white-20);
-  padding: 24px;
   gap: 24px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
 }
 
-.dtpHeader {
+.date-section,
+.time-section {
   display: flex;
-  justify-content: flex-end;
-}
-
-.dtpWheels {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  flex-direction: column;
   gap: 12px;
 }
 
-.wheelColumn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.arrowBtn {
-  width: 100%;
-  background: var(--white-4);
-  border: none;
-  border-radius: var(--px-4);
-  color: var(--base-text);
-}
-
-.wheelList {
-  max-height: 200px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  scroll-behavior: smooth;
-  border-radius: var(--px-12);
-}
-
-.wheelItem {
-  width: 100%;
-  padding: 16px;
-  text-align: center;
-  background: var(--white-4);
-  color: var(--base-text);
-  border: none;
-  cursor: pointer;
+.section-title {
   font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.wheelItem.isActive {
-  background: var(--primary);
-  color: var(--base-text);
-  border-radius: 6px;
+.quick-dates {
+  display: flex;
+  gap: 8px;
 }
 
-footer {
-  border-top: 1px solid var(--primary-50);
-  padding-top: var(--px-12);
+.quick-date-btn {
+  flex: 1;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.quick-date-btn:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #1f2937;
+}
+
+.quick-date-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+}
+
+.date-input-container,
+.time-input-container {
+  position: relative;
+}
+
+.date-input,
+.time-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #111827;
+  background: white;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+.date-input:focus,
+.time-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.date-format,
+.time-format {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #9ca3af;
+  background: white;
+  padding: 0 4px;
+  pointer-events: none;
+}
+
+.ampm-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ampm-btn {
+  flex: 1;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.ampm-btn:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #1f2937;
+}
+
+.ampm-btn.active {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.help-text {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  font-family: monospace;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .datetime-container {
+    padding: 16px;
+  }
+
+  .date-input,
+  .time-input {
+    font-size: 16px;
+    padding: 12px 14px;
+  }
+
+  .quick-date-btn {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .ampm-btn {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .help-text {
+    font-size: 12px;
+  }
+}
+
+/* Focus states for accessibility */
+.date-input:focus-visible,
+.time-input:focus-visible,
+.quick-date-btn:focus-visible,
+.ampm-btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Input validation styling */
+.date-input:invalid,
+.time-input:invalid {
+  border-color: #ef4444;
+}
+
+.date-input:valid,
+.time-input:valid {
+  border-color: #10b981;
+}
+
+/* Disable future date selection */
+.date-input[value^="3"] {
+  border-color: #f59e0b;
+}
+
+/* Number input styling */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="text"] {
+  -moz-appearance: textfield;
 }
 
 /* End */
@@ -6864,16 +7003,8 @@ footer {
   --radius-xl: 24px;
 }
 
-/* Reset & Base */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
   font-family: var(--font-primary);
-  background: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
 }
@@ -7007,9 +7138,6 @@ body {
 }
 
 .value-badge {
-  position: absolute;
-  top: 16px;
-  right: 16px;
   background: rgba(16, 185, 129, 0.1);
   color: var(--color-success);
   padding: 6px 12px;
@@ -7023,9 +7151,6 @@ body {
 }
 
 .savings-badge {
-  position: absolute;
-  top: 16px;
-  left: 16px;
   background: rgba(245, 158, 11, 0.1);
   color: #f59e0b;
   padding: 6px 12px;
@@ -7124,7 +7249,48 @@ body {
   box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
 }
 
-/* Payment Modal */
+/* FAQ Section */
+.faq-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-title {
+  font-family: var(--font-accent);
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.faq-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.faq-item h4 {
+  font-family: var(--font-accent);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
+.faq-item p {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Payment Modal Styles */
 .payment-modal-overlay {
   position: fixed;
   top: 0;
@@ -7136,60 +7302,72 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: 20px;
 }
 
-.payment-modal {
+.payment-modal-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
+  border-radius: 24px;
   overflow: hidden;
-  max-width: 1000px;
+  max-width: 900px;
   width: 100%;
   max-height: 90vh;
-  box-shadow: var(--shadow-xl);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 }
 
 .modal-content-side {
   padding: 40px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-image-side {
-  position: relative;
   background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+  position: relative;
   overflow: hidden;
 }
 
-.image-container {
+.image-wrapper {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
 }
 
-.image-overlay {
+.modal-image {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.image-overlay-content {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  padding: 40px 32px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  padding: 30px;
   color: white;
 }
 
-.image-overlay h3 {
+.image-overlay-content h3 {
   font-family: var(--font-accent);
   font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.image-overlay p {
+.image-overlay-content p {
   color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   font-size: 0.95rem;
 }
 
@@ -7209,8 +7387,8 @@ body {
 
 /* Modal Header */
 .modal-header {
-  margin-bottom: 32px;
   position: relative;
+  margin-bottom: 32px;
 }
 
 .modal-close {
@@ -7222,12 +7400,17 @@ body {
   color: var(--color-text-secondary);
   font-size: 1.5rem;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
 }
 
 .modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: var(--color-text);
 }
 
@@ -7236,6 +7419,7 @@ body {
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 8px;
+  line-height: 1.2;
 }
 
 .modal-subtitle {
@@ -7273,11 +7457,13 @@ body {
   font-size: 2rem;
   font-weight: 700;
   display: block;
+  line-height: 1;
 }
 
 .plan-period {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
+  margin-top: 4px;
 }
 
 /* Payment Options */
@@ -7286,6 +7472,7 @@ body {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 32px;
+  flex: 1;
 }
 
 .payment-option-button {
@@ -7296,6 +7483,9 @@ body {
   justify-content: space-between !important;
   text-align: left !important;
   transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  font-family: var(--font-primary) !important;
+  font-weight: 500 !important;
 }
 
 .payment-option-content {
@@ -7305,8 +7495,14 @@ body {
 }
 
 .payment-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 1.25rem;
 }
 
 .payment-info {
@@ -7329,11 +7525,11 @@ body {
 .payment-arrow {
   font-size: 1.25rem;
   opacity: 0.8;
+  transition: transform 0.2s;
 }
 
 .payment-option-button:hover .payment-arrow {
   transform: translateX(4px);
-  transition: transform 0.2s;
 }
 
 /* Security Notice */
@@ -7345,6 +7541,7 @@ body {
   font-size: 0.85rem;
   padding-top: 20px;
   border-top: 1px solid var(--color-border);
+  margin-top: auto;
 }
 
 /* Mobile Responsiveness */
@@ -7375,7 +7572,12 @@ body {
     padding: 24px;
   }
 
-  .payment-modal {
+  .faq-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modal Mobile Styles */
+  .payment-modal-container {
     grid-template-columns: 1fr;
     max-height: 95vh;
   }
@@ -7388,8 +7590,32 @@ body {
     padding: 24px;
   }
 
-  .faq-grid {
-    grid-template-columns: 1fr;
+  .modal-title {
+    font-size: 1.5rem;
+  }
+
+  .selected-plan-info {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .plan-price-display {
+    text-align: center;
+  }
+
+  .payment-option-button {
+    padding: 16px 20px !important;
+  }
+
+  .payment-option-content {
+    gap: 12px;
+  }
+
+  .payment-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
   }
 }
 
@@ -7402,16 +7628,20 @@ body {
     font-size: 2rem;
   }
 
-  .payment-option-button {
-    padding: 16px 20px !important;
+  .payment-modal-container {
+    border-radius: 16px;
   }
 
-  .payment-option-content {
-    gap: 12px;
+  .modal-content-side {
+    padding: 20px;
   }
 
-  .payment-icon {
+  .modal-title {
     font-size: 1.25rem;
+  }
+
+  .payment-option-button {
+    padding: 14px 16px !important;
   }
 
   .payment-title {
@@ -7423,131 +7653,18 @@ body {
   }
 }
 
-/* Animation Classes */
-.fade-in {
-  animation: fadeIn 0.6s ease-out;
-}
-
-@keyframes fadeIn {
+/* Animation for modal entry */
+@keyframes modalFadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-20px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-/* Utility Classes */
-.flex {
-  display: flex;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
-.justify-between {
-  justify-content: space-between;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
-.gap-4 {
-  gap: 1rem;
-}
-.gap-8 {
-  gap: 2rem;
-}
-
-.text-center {
-  text-align: center;
-}
-.text-left {
-  text-align: left;
-}
-.text-right {
-  text-align: right;
-}
-
-.w-full {
-  width: 100%;
-}
-.h-full {
-  height: 100%;
-}
-
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-.my-4 {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-.mt-4 {
-  margin-top: 1rem;
-}
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-/* Add to your global CSS */
-.payment-modal-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: rgba(0, 0, 0, 0.8) !important;
-  backdrop-filter: blur(10px) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 1000 !important;
-  padding: 20px !important;
-}
-
-.payment-modal {
-  background: #1a1a1a !important;
-  border-radius: 24px !important;
-  overflow: hidden !important;
-  max-width: 1000px !important;
-  width: 100% !important;
-  max-height: 90vh !important;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4) !important;
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-}
-
-.modal-content-side {
-  padding: 40px !important;
-  overflow-y: auto !important;
-}
-
-.modal-image-side {
-  position: relative !important;
-  background: linear-gradient(135deg, #0a0a0a, #1a1a1a) !important;
-  overflow: hidden !important;
-}
-
-@media (max-width: 768px) {
-  .payment-modal {
-    grid-template-columns: 1fr !important;
-    max-height: 95vh !important;
-  }
-
-  .modal-image-side {
-    display: none !important;
-  }
+.payment-modal-container {
+  animation: modalFadeIn 0.3s ease-out;
 }

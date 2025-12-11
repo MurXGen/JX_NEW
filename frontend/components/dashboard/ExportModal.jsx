@@ -330,7 +330,7 @@ const ExportPage = () => {
       {/* Export Button */}
       <div className="exportSection flexClm gap_16">
         <button
-          className="upgrade_btn flexRow flex_center gap_8 pad_16_24 font_14 font_weight_600"
+          className="button_pri flexRow flex_center gap_8 pad_16_24 font_14 font_weight_600"
           onClick={exportToCSV}
           disabled={exporting || filteredTrades.length === 0}
         >
@@ -349,6 +349,8 @@ const ExportPage = () => {
         </div>
       </div>
 
+      <hr width="100" color="grey" />
+
       {/* Preview Table */}
       {filteredTrades.length > 0 && (
         <div className="previewSection flexClm gap_16">
@@ -356,12 +358,12 @@ const ExportPage = () => {
             Preview (First 5 Trades)
           </span>
 
-          <div className="flexClm gap_12">
+          <div className="gridContainer gap_12">
             <AnimatePresence>
               {filteredTrades.slice(0, 5).map((trade, index) => (
                 <motion.div
                   key={trade._id || trade.id || index}
-                  className="chart_boxBg flexClm gap_8 pad_16"
+                  className="boxBg flexClm gap_8 pad_16"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, height: 0 }}
@@ -393,38 +395,31 @@ const ExportPage = () => {
                     </div>
 
                     {/* P&L */}
-                    <div className={`font_16 ${getPnlColorClass(trade.pnl)}`}>
+                    <div
+                      className={`font_20 font_weight_600. ${getPnlColorClass(trade.pnl)}`}
+                    >
                       {trade.pnl >= 0 ? "+" : ""}
                       {formatCurrency(trade.pnl)}
                     </div>
                   </div>
 
                   {/* Bottom Info */}
-                  <div className="flexRow flexRow_stretch justify_between font_12 shade_50">
-                    <div>Size: {formatCurrency(trade.quantityUSD)}</div>
+                  <div
+                    className="flexRow flexRow_stretch boxBg font_12 shade_50"
+                    style={{ padding: "8px 8px" }}
+                  >
+                    <div>Margin: {formatCurrency(trade.quantityUSD)}</div>
                     <div>Fees: {trade.feeAmount?.toFixed(2) || "0.00"}</div>
-                    <div
-                      className={`tag ${
-                        trade.tradeStatus === "closed"
-                          ? "success"
-                          : trade.tradeStatus === "running"
-                            ? "warning"
-                            : "shade_50"
-                      }`}
-                    >
-                      {trade.tradeStatus}
-                    </div>
                   </div>
                 </motion.div>
               ))}
-            </AnimatePresence>
+            </AnimatePresence>{" "}
+            {filteredTrades.length > 5 && (
+              <div className="flexRow flexRow_center font_12 shade_50">
+                ... and {filteredTrades.length - 5} more trades
+              </div>
+            )}
           </div>
-
-          {filteredTrades.length > 5 && (
-            <div className="flexRow flexRow_center font_12 shade_50">
-              ... and {filteredTrades.length - 5} more trades
-            </div>
-          )}
         </div>
       )}
 

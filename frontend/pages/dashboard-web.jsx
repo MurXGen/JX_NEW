@@ -153,6 +153,9 @@ export default function Dashboard1() {
 
         // fallback to cache
         const cachedUser = await getFromIndexedDB("user-data");
+
+        setUserData(cachedUser);
+
         if (cachedUser) {
           const result = await fetchAccountsAndTrades();
           setAccounts(result.accounts);
@@ -336,8 +339,6 @@ export default function Dashboard1() {
                 <PlusCircle size={18} className="vector" />
               </div>
             )}
-
-            <hr color="gray" height="0.1px" width="100%" />
 
             {menuItems.map((item) => {
               const isActive = activeTab === item.id;

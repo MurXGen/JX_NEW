@@ -1,17 +1,26 @@
 // pages/pricing.js
-import { motion, AnimatePresence } from "framer-motion";
-import PaddleLoader from "../components/payments/PaddleLoader";
+import { motion } from "framer-motion";
+import {
+  Check,
+  CreditCard,
+  Crown,
+  Lock,
+  Shield,
+  Sparkles,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/router";
-import Image from "next/image";
-import { Check, Crown, Sparkles, TrendingUp, Zap } from "lucide-react";
+import PaddleLoader from "../../components/payments/PaddleLoader";
 
 const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
 const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
 const lifetimePriceId = process.env.NEXT_PUBLIC_PADDLE_LIFETIME_PRICE_ID;
 
-// Only 4 most important features per plan (UX research shows 4 is optimal for decision making)
+// Simplified 4 features per plan
 const PLANS_FEATURES = {
   free: [
     { text: "10 trades/month", icon: "📊" },
@@ -42,6 +51,7 @@ const PLANS_CONFIG = {
     planName: "Pro",
     tagline: "Flexible monthly access",
     popular: false,
+    paddlePriceId: monthlyPriceId,
   },
   yearly: {
     title: "Pro Yearly",
@@ -52,6 +62,7 @@ const PLANS_CONFIG = {
     tagline: "Most popular - Save 28%",
     popular: true,
     savings: "28%",
+    paddlePriceId: yearlyPriceId,
   },
   lifetime: {
     title: "Lifetime",
@@ -62,35 +73,9 @@ const PLANS_CONFIG = {
     tagline: "One payment, forever access",
     popular: false,
     value: "Best value",
+    paddlePriceId: lifetimePriceId,
   },
 };
-
-const paymentOptions = [
-  {
-    id: "cards_paypal",
-    title: "Cards & PayPal",
-    description: "Secure payment via Visa, Mastercard, Amex, or PayPal",
-    icon: "💳",
-    color: "#3b82f6",
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  },
-  {
-    id: "crypto",
-    title: "Crypto",
-    description: "Pay with USDT, Bitcoin, Ethereum on multiple networks",
-    icon: "₿",
-    color: "#f59e0b",
-    gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-  },
-  {
-    id: "binance",
-    title: "Binance Pay",
-    description: "Instant payment directly from your Binance account",
-    icon: "⚡",
-    color: "#f0b90b",
-    gradient: "linear-gradient(135deg, #f0b90b 0%, #c27803 100%)",
-  },
-];
 
 export default function Pricing() {
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -103,48 +88,42 @@ export default function Pricing() {
     setIsClient(true);
   }, []);
 
-  // Debug function to check if modal should open
-  const handlePlanClick = (planKey) => {
-    console.log("Plan clicked:", planKey);
-    console.log("PLANS_CONFIG[planKey]:", PLANS_CONFIG[planKey]);
-    setSelectedPlan(planKey);
-    setIsModalOpen(true);
-    console.log("Modal should open, isModalOpen will be:", true);
-  };
-
-  const openCheckout = (priceId) => {
+  const openPaddleCheckout = (priceId) => {
     if (!window?.Paddle) {
-      alert("Payment system loading... Please try again in a moment.");
+      alert("Payment system is loading. Please wait a moment and try again.");
       return;
     }
 
-    window.Paddle.Checkout.open({
-      items: [{ priceId, quantity: 1 }],
-      customer: { email: "" }, // Will be filled by Paddle
-      settings: { displayMode: "overlay" },
-    });
+    try {
+      window.Paddle.Checkout.open({
+        items: [{ priceId, quantity: 1 }],
+        settings: { displayMode: "overlay" },
+        successCallback: (data) => {
+          console.log("Payment successful:", data);
+          router.push(`/subscription-success?plan=${selectedPlan}`);
+        },
+      });
+    } catch (error) {
+      console.error("Error opening Paddle checkout:", error);
+      alert("Failed to open checkout. Please try again.");
+    }
+  };
+
+  const handlePlanClick = (planKey) => {
+    setSelectedPlan(planKey);
+    setIsModalOpen(true);
   };
 
   const handlePaymentOptionClick = (option) => {
-    console.log("Payment option clicked:", option);
-    if (!selectedPlan) {
-      console.error("No selected plan!");
-      return;
-    }
+    if (!selectedPlan) return;
 
     const planConfig = PLANS_CONFIG[selectedPlan];
-    console.log("Plan config for payment:", planConfig);
-
-    setIsModalOpen(false); // Close modal first
+    setIsModalOpen(false);
 
     switch (option) {
       case "cards_paypal":
-        const priceId = getPriceIdForPlan(selectedPlan);
-        console.log("Price ID:", priceId);
-        if (priceId) {
-          openCheckout(priceId);
-        } else {
-          alert("Payment system not available for this plan.");
+        if (planConfig.paddlePriceId) {
+          openPaddleCheckout(planConfig.paddlePriceId);
         }
         break;
       case "crypto":
@@ -167,21 +146,6 @@ export default function Pricing() {
           },
         });
         break;
-      default:
-        console.error("Unknown payment option:", option);
-    }
-  };
-
-  const getPriceIdForPlan = (planKey) => {
-    switch (planKey) {
-      case "monthly":
-        return monthlyPriceId;
-      case "yearly":
-        return yearlyPriceId;
-      case "lifetime":
-        return lifetimePriceId;
-      default:
-        return null;
     }
   };
 
@@ -219,15 +183,15 @@ export default function Pricing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="trust-indicators"
+          className="flexRow gap_32 flex_center"
         >
           <div className="trust-item">
-            <Check size={16} className="text-success" />
-            <span>30-day money back guarantee</span>
+            <Shield size={16} className="text-success" />
+            <span>Lowest pricing</span>
           </div>
           <div className="trust-item">
-            <Check size={16} className="text-success" />
-            <span>Bank-level security</span>
+            <Lock size={16} className="text-success" />
+            <span>Full data encrypted</span>
           </div>
           <div className="trust-item">
             <Check size={16} className="text-success" />
@@ -250,7 +214,6 @@ export default function Pricing() {
             isCurrent={true}
             onHover={setHoveredPlan}
             isHovered={hoveredPlan === "free"}
-            onClick={() => console.log("Free plan clicked (disabled)")}
           />
 
           {/* Monthly Plan */}
@@ -298,59 +261,22 @@ export default function Pricing() {
             isHovered={hoveredPlan === "lifetime"}
           />
         </div>
-
-        {/* FAQ Section */}
-        {/* <div className="faq-section">
-          <h3 className="faq-title">Frequently Asked Questions</h3>
-          <div className="faq-grid">
-            <div className="faq-item">
-              <h4>Can I switch plans later?</h4>
-              <p>
-                Yes! You can upgrade or downgrade at any time. You'll only pay
-                the difference when upgrading.
-              </p>
-            </div>
-            <div className="faq-item">
-              <h4>Is there a free trial for paid plans?</h4>
-              <p>
-                The Free plan is our trial. No credit card required to start
-                using all basic features.
-              </p>
-            </div>
-            <div className="faq-item">
-              <h4>What payment methods do you accept?</h4>
-              <p>
-                Credit/debit cards, PayPal, cryptocurrency (USDT, BTC, ETH), and
-                Binance Pay.
-              </p>
-            </div>
-            <div className="faq-item">
-              <h4>Can I cancel anytime?</h4>
-              <p>
-                Absolutely. Cancel your subscription anytime, no questions
-                asked.
-              </p>
-            </div>
-          </div>
-        </div> */}
       </section>
 
       {/* Payment Modal */}
-      <AnimatePresence>
-        {isClient && isModalOpen && selectedPlan && (
+      {isClient &&
+        isModalOpen &&
+        selectedPlan &&
+        createPortal(
           <PaymentModal
             isOpen={isModalOpen}
-            onClose={() => {
-              console.log("Closing modal");
-              setIsModalOpen(false);
-            }}
+            onClose={() => setIsModalOpen(false)}
             planTitle={PLANS_CONFIG[selectedPlan]?.title || ""}
             planPrice={PLANS_CONFIG[selectedPlan]?.price || ""}
             onPaymentOptionClick={handlePaymentOptionClick}
-            paymentOptions={paymentOptions}
-          />
+          />,
+          document.body
         )}
-      </AnimatePresence>
     </>
   );
 }
@@ -371,14 +297,6 @@ function PricingCard({
   onHover,
   isHovered,
 }) {
-  // Add click handler logging
-  const handleClick = () => {
-    console.log(`PricingCard ${plan} clicked, onClick prop:`, onClick);
-    if (onClick && !isCurrent) {
-      onClick();
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -386,33 +304,35 @@ function PricingCard({
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5 }}
       whileHover={{ y: -10, transition: { duration: 0.2 } }}
-      onMouseEnter={() => onHover && onHover(plan)}
-      onMouseLeave={() => onHover && onHover(null)}
+      onMouseEnter={() => onHover(plan)}
+      onMouseLeave={() => onHover(null)}
       className={`pricing-card ${highlight ? "highlight" : ""} ${isHovered ? "hovered" : ""}`}
     >
-      {popular && (
-        <div className="popular-badge">
-          <Crown size={14} />
-          <span>MOST POPULAR</span>
-        </div>
-      )}
-
-      {valueBadge && (
-        <div className="value-badge">
-          <TrendingUp size={14} />
-          <span>{valueBadge}</span>
-        </div>
-      )}
-
-      {savings && (
-        <div className="savings-badge">
-          <span>Save {savings}</span>
-        </div>
-      )}
-
       <div className="card-header">
-        <h3 className="card-title">{title}</h3>
-        <div className="card-price">
+        <div className="flexRow flexRow_stretch">
+          <span className="card-title">{title}</span>
+          {popular && (
+            <div className="popular-badge">
+              <Crown size={14} />
+              <span>MOST POPULAR</span>
+            </div>
+          )}
+
+          {valueBadge && (
+            <div className="value-badge">
+              <TrendingUp size={14} />
+              <span>{valueBadge}</span>
+            </div>
+          )}
+
+          {savings && (
+            <div className="savings-badge">
+              <span>Save {savings}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="card-price flexRow flexRow_stretch">
           <span className="price">{price}</span>
           <span className="period">{period}</span>
         </div>
@@ -435,11 +355,10 @@ function PricingCard({
 
       <motion.button
         className={`pricing-button ${isCurrent ? "current" : ""}`}
-        onClick={handleClick}
+        onClick={isCurrent ? null : onClick}
         whileHover={{ scale: isCurrent ? 1 : 1.05 }}
         whileTap={{ scale: isCurrent ? 1 : 0.95 }}
         disabled={isCurrent}
-        style={{ cursor: isCurrent ? "default" : "pointer" }}
       >
         {isCurrent ? (
           <>
@@ -463,51 +382,53 @@ function PaymentModal({
   planTitle,
   planPrice,
   onPaymentOptionClick,
-  paymentOptions,
 }) {
-  const [isVisible, setIsVisible] = useState(isOpen);
+  if (!isOpen) return null;
 
-  useEffect(() => {
-    setIsVisible(isOpen);
-  }, [isOpen]);
+  const paymentOptions = [
+    {
+      id: "cards_paypal",
+      title: "Cards & PayPal",
+      description: "Secure payment via Visa, Mastercard, Amex, or PayPal",
+      icon: <CreditCard size={24} />,
+      gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+    },
+    {
+      id: "crypto",
+      title: "Crypto Payment",
+      description: "Pay with USDT, Bitcoin, Ethereum on multiple networks",
+      icon: "₿",
+      gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    },
+    {
+      id: "binance",
+      title: "Binance Pay",
+      description: "Instant payment directly from your Binance account",
+      icon: "⚡",
+      gradient: "linear-gradient(135deg, #f0b90b 0%, #c27803 100%)",
+    },
+  ];
 
-  if (!isVisible) return null;
-
-  return createPortal(
+  return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="payment-modal-overlay"
       onClick={onClose}
-      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", damping: 25 }}
-        className="payment-modal"
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log("Modal content clicked");
-        }}
-        style={{
-          position: "relative",
-          zIndex: 1001,
-        }}
+        className="payment-modal-container"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Content Side */}
+        {/* Content Side (Left) */}
         <div className="modal-content-side">
           <div className="modal-header">
-            <button
-              className="modal-close"
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              style={{ cursor: "pointer" }}
-            >
+            <button className="modal-close" onClick={onClose}>
               ×
             </button>
             <h2 className="modal-title">Complete Your Purchase</h2>
@@ -536,16 +457,11 @@ function PaymentModal({
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("Payment option clicked:", option.id);
-                  onPaymentOptionClick(option.id);
-                }}
+                onClick={() => onPaymentOptionClick(option.id)}
                 style={{
                   background: option.gradient,
                   color: "white",
                   border: "none",
-                  cursor: "pointer",
                 }}
               >
                 <div className="payment-option-content">
@@ -561,62 +477,40 @@ function PaymentModal({
           </div>
 
           <div className="security-notice">
-            <Check size={16} />
-            <span>Secure payment · 256-bit encryption · No card storage</span>
+            <Shield size={16} />
+            <span>Secure payment · 256-bit encryption</span>
           </div>
         </div>
 
-        {/* Image Side */}
+        {/* Image Side (Right) */}
         <div className="modal-image-side">
-          <div className="image-container">
-            {/* Replace with your actual image */}
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-                fontSize: "24px",
-                fontWeight: "bold",
-              }}
-            >
-              <div style={{ textAlign: "center", padding: "20px" }}>
-                <div style={{ fontSize: "48px", marginBottom: "20px" }}>🎯</div>
-                <div>Upgrade Your Trading Experience</div>
-              </div>
-            </div>
-            {/* Uncomment when you have the image */}
-            {/* <Image
+          <div className="image-wrapper">
+            <Image
               src="/journalx_banner.svg"
               alt="JournalX Premium Features"
-              fill
+              width={400}
+              height={400}
               priority
-              style={{ objectFit: "contain" }}
-            /> */}
-          </div>
-          <div className="image-overlay">
-            <h3>Unlock Your Trading Potential</h3>
-            <p>
-              Join 10,000+ traders who trust JournalX for their trading journey
-            </p>
-            <div className="benefits-list">
-              <span>
-                <Check size={14} /> Advanced analytics
-              </span>
-              <span>
-                <Check size={14} /> Unlimited trade logging
-              </span>
-              <span>
-                <Check size={14} /> Priority support
-              </span>
+              className="modal-image"
+            />
+            <div className="image-overlay-content">
+              <h3>Unlock Your Trading Potential</h3>
+              <p>Join 10,000+ traders who trust JournalX</p>
+              <div className="benefits-list">
+                <span>
+                  <Check size={14} /> Advanced analytics
+                </span>
+                <span>
+                  <Check size={14} /> Unlimited trade logging
+                </span>
+                <span>
+                  <Check size={14} /> Priority support
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </motion.div>
-    </motion.div>,
-    document.body
+    </motion.div>
   );
 }

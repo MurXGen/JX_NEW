@@ -61,7 +61,7 @@ export default function AddTrade() {
     quantityUSD: "",
     leverage: "1",
     totalQuantity: 0,
-    tradeStatus: "running",
+    tradeStatus: "quick",
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
     tps: [{ mode: "price", price: "", percent: "", allocation: "" }],

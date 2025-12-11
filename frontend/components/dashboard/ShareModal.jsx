@@ -323,7 +323,7 @@ const ShareTrades = () => {
       {/* Generate Share Link Section */}
       <div className="shareSection flexClm gap_16">
         <button
-          className="upgrade_btn flexRow flex_center gap_8 pad_16_24 font_14 font_weight_600"
+          className="button_pri flexRow flex_center gap_8 pad_16_24 font_14 font_weight_600"
           onClick={generateShareUrl}
           disabled={loading || filteredTrades.length === 0}
         >
@@ -437,20 +437,17 @@ const ShareTrades = () => {
       {filteredTrades.length > 0 && (
         <div className="previewSection flexClm gap_16">
           <div className="flexRow flexRow_stretch">
-            <div className="flexClm">
-              <span className="font_20 font_weight_600">Preview</span>
-              <span className="font_14 shade_50">
-                This is how it will appear to the receiver.
-              </span>
-            </div>
+            <span className="font_14 font_weight_600">
+              Preview (First 5 Trades)
+            </span>
           </div>
 
-          <div className="flexClm gap_24">
+          <div className="gridContainer gap_24">
             <AnimatePresence>
               {filteredTrades.slice(0, 5).map((trade, index) => (
                 <motion.div
                   key={trade._id || trade.id || index}
-                  className="chart_boxBg flexClm gap_12 pad_16"
+                  className="boxBg flexClm gap_12 pad_16"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, height: 0 }}
@@ -486,7 +483,7 @@ const ShareTrades = () => {
 
                     {/* P&L */}
                     <div
-                      className={`font_16 ${
+                      className={`font_20 font_weight_600 ${
                         trade.pnl >= 0 ? "success" : "error"
                       }`}
                     >
@@ -496,7 +493,10 @@ const ShareTrades = () => {
                   </div>
 
                   {/* Bottom Info */}
-                  <div className="flexRow flexRow_stretch">
+                  <div
+                    className="flexRow flexRow_stretch boxBg font_12 shade_50"
+                    style={{ padding: "8px 8px" }}
+                  >
                     <div className="font_12 shade_50">
                       <span>Size: </span>
                       <span>{trade.quantityUSD?.toFixed(2) || "0.00"}</span>
@@ -506,18 +506,6 @@ const ShareTrades = () => {
                       <span>Fees: </span>
                       <span>{trade.feeAmount?.toFixed(2) || "0.00"}</span>
                     </div>
-
-                    <span
-                      className={`font_12 ${
-                        trade.tradeStatus === "closed"
-                          ? "success"
-                          : trade.tradeStatus === "running"
-                            ? "warning"
-                            : "shade_50"
-                      }`}
-                    >
-                      Status: {trade.tradeStatus}
-                    </span>
                   </div>
                 </motion.div>
               ))}

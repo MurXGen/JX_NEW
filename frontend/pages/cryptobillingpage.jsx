@@ -360,7 +360,15 @@ export default function CryptoBillingPage() {
 
   return (
     <div className="">
-      <div className="flexClm gap_32">
+      <div
+        className="flexClm gap_32"
+        style={{
+          maxWidth: "1200px",
+          minWidth: "300px",
+          margin: "24px auto",
+          padding: "0 12px 100px 12px",
+        }}
+      >
         {/* Header */}
         <div className="flexRow gap_12">
           <button className="button_sec flexRow" onClick={handleBackClick}>

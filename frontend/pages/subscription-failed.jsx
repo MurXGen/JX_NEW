@@ -25,7 +25,15 @@ export default function SubscriptionFailed() {
   };
 
   return (
-    <div className="subscription-failed">
+    <div
+      className="subscription-failed"
+      style={{
+        maxWidth: "1200px",
+        minWidth: "300px",
+        margin: "24px auto",
+        padding: "0 12px 100px 12px",
+      }}
+    >
       <div className="flexClm gap_24">
         {/* Error Header */}
         <motion.div
