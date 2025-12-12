@@ -1019,7 +1019,7 @@ textarea::placeholder {
 /* End */
 
 .uploadBox {
-  max-width: 500px;
+  max-width: 1200px;
   padding: 24px 12px;
   border: 2px dashed var(--white-10);
   border-radius: var(--px-12);

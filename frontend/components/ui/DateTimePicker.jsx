@@ -109,6 +109,11 @@ export default function SimpleDateTimePicker({
     onChange(selected.toISOString());
   };
 
+  // Run validate once isAM is updated
+  useEffect(() => {
+    validateAndUpdate();
+  }, [isAM]);
+
   const quickDates = [
     { label: "Today", date: today },
     { label: "Yesterday", date: yesterday },
@@ -228,10 +233,7 @@ export default function SimpleDateTimePicker({
             <button
               type="button"
               className={`button_sec width100 ${isAM ? "selected" : ""}`}
-              onClick={() => {
-                setIsAM(true);
-                validateAndUpdate();
-              }}
+              onClick={() => setIsAM(true)}
             >
               AM
             </button>
@@ -239,10 +241,7 @@ export default function SimpleDateTimePicker({
             <button
               type="button"
               className={`button_sec width100 ${!isAM ? "selected" : ""}`}
-              onClick={() => {
-                setIsAM(false);
-                validateAndUpdate();
-              }}
+              onClick={() => setIsAM(false)}
             >
               PM
             </button>
