@@ -1,14 +1,27 @@
 // SimpleDateTimePicker.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function SimpleDateTimePicker({
   value,
   onChange,
   label = "Date & Time",
 }) {
-  const [dateInput, setDateInput] = useState("");
-  const [timeInput, setTimeInput] = useState("00:00:00");
+  // --- DATE FIELDS ---
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
+
+  // --- TIME FIELDS ---
+  const [hoursInput, setHoursInput] = useState("12");
+  const [minutesInput, setMinutesInput] = useState("00");
+  const [secondsInput, setSecondsInput] = useState("00");
   const [isAM, setIsAM] = useState(true);
+
+  // Refs for auto-jump
+  const monthRef = useRef(null);
+  const yearRef = useRef(null);
+  const minRef = useRef(null);
+  const secRef = useRef(null);
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -17,102 +30,83 @@ export default function SimpleDateTimePicker({
   const dayBeforeYesterday = new Date(today);
   dayBeforeYesterday.setDate(today.getDate() - 2);
 
-  // Format date to DD/MM/YYYY
-  const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+  // Format date helper
+  const formatDateParts = (date) => ({
+    d: String(date.getDate()).padStart(2, "0"),
+    m: String(date.getMonth() + 1).padStart(2, "0"),
+    y: String(date.getFullYear()),
+  });
 
-  // Initialize with current value or defaults
+  // Initialize from value
   useEffect(() => {
-    if (value) {
-      const date = new Date(value);
-      setDateInput(formatDate(date));
+    const date = value ? new Date(value) : today;
+    const { d, m, y } = formatDateParts(date);
 
-      let hours = date.getHours();
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      const seconds = String(date.getSeconds()).padStart(2, "0");
+    setDay(d);
+    setMonth(m);
+    setYear(y);
 
-      // ❌ REMOVE THIS — causes AM/PM toggles to require double click
-      // setIsAM(hours < 12);
+    let h = date.getHours();
+    const min = String(date.getMinutes()).padStart(2, "0");
+    const sec = String(date.getSeconds()).padStart(2, "0");
 
-      hours = hours % 12 || 12;
-      setTimeInput(`${String(hours).padStart(2, "0")}:${minutes}:${seconds}`);
-    } else {
-      setDateInput(formatDate(today));
-      setTimeInput("12:00:00");
-    }
+    setIsAM(h < 12);
+
+    h = h % 12 || 12;
+    setHoursInput(String(h).padStart(2, "0"));
+    setMinutesInput(min);
+    setSecondsInput(sec);
   }, [value]);
 
-  const handleDateChange = (e) => {
-    let value = e.target.value.replace(/[^0-9/]/g, "");
+  // Handle date fields
+  const handleDatePart = (e, setter, max, nextRef) => {
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.length > max) return;
 
-    // Auto-insert slashes
-    if (value.length === 2 && !value.includes("/")) {
-      value = value + "/";
-    } else if (value.length === 5 && value.split("/").length === 2) {
-      value = value + "/";
-    }
+    setter(val);
 
-    // Limit to DD/MM/YYYY format
-    if (value.length <= 10) {
-      setDateInput(value);
+    if (val.length === max && nextRef?.current) {
+      nextRef.current.focus();
     }
   };
 
-  const handleTimeChange = (e) => {
-    let value = e.target.value.replace(/[^0-9:]/g, "");
+  // Handle time fields
+  const handleTimePart = (e, setter, max, nextRef) => {
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.length > max) return;
 
-    // Auto-insert colons
-    if (value.length === 2 && !value.includes(":")) {
-      value = value + ":";
-    } else if (value.length === 5 && value.split(":").length === 2) {
-      value = value + ":";
-    }
+    setter(val);
 
-    // Limit to HH:MM:SS format
-    if (value.length <= 8) {
-      setTimeInput(value);
+    if (val.length === max && nextRef?.current) {
+      nextRef.current.focus();
     }
   };
 
-  const handleQuickDate = (date) => {
-    setDateInput(formatDate(date));
-  };
-
+  // Update final ISO value
   const validateAndUpdate = () => {
-    // Parse date
-    const dateParts = dateInput.split("/");
-    if (dateParts.length !== 3) return;
+    if (!day || !month || !year) return;
 
-    const [day, month, year] = dateParts.map(Number);
+    let h = Number(hoursInput || 0);
+    let m = Number(minutesInput || 0);
+    let s = Number(secondsInput || 0);
 
-    // Parse time
-    const timeParts = timeInput.split(":");
-    if (timeParts.length < 2) return;
-
-    let [hours, minutes, seconds = 0] = timeParts.map(Number);
-
-    // Convert 12-hour to 24-hour
+    // Convert 12h → 24h
     if (!isAM) {
-      if (hours !== 12) hours += 12;
-    } else if (hours === 12) {
-      hours = 0;
+      if (h !== 12) h += 12;
+    } else if (h === 12) {
+      h = 0;
     }
 
-    // Create date object
-    const selectedDate = new Date(
-      year,
-      month - 1,
-      day,
-      hours,
-      minutes,
-      seconds
+    const selected = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      h,
+      m,
+      s
     );
 
-    onChange(selectedDate.toISOString());
+    onChange(selected.toISOString());
   };
 
   const quickDates = [
@@ -123,73 +117,135 @@ export default function SimpleDateTimePicker({
 
   return (
     <div className="boxBg">
-      <label className="">{label}</label>
+      <label>{label}</label>
 
       <div className="gridContainer">
-        {/* Date Section */}
+        {/* DATE SECTION */}
         <div className="flexClm gap_12">
           <div className="font_12">Date</div>
 
-          <div className="flexClm gap_12">
+          <div className="flexRow gap_12">
             <input
               type="text"
-              value={dateInput}
-              onChange={handleDateChange}
-              placeholder="DD/MM/YYYY"
+              value={day}
+              placeholder="DD"
+              maxLength={2}
+              onChange={(e) => handleDatePart(e, setDay, 2, monthRef)}
               onBlur={validateAndUpdate}
-              className="font_14"
+              className="font_14 center-input"
             />
+            <span>/</span>
 
-            <div className="flexRow flexRow_stretch gap_12">
-              {quickDates.map((item) => (
+            <input
+              ref={monthRef}
+              type="text"
+              value={month}
+              placeholder="MM"
+              maxLength={2}
+              onChange={(e) => handleDatePart(e, setMonth, 2, yearRef)}
+              onBlur={validateAndUpdate}
+              className="font_14 center-input"
+            />
+            <span>/</span>
+
+            <input
+              ref={yearRef}
+              type="text"
+              value={year}
+              placeholder="YYYY"
+              maxLength={4}
+              onChange={(e) => handleDatePart(e, setYear, 4)}
+              onBlur={validateAndUpdate}
+              className="font_14 center-input"
+            />
+          </div>
+
+          <div className="flexRow gap_12 flexRow_stretch">
+            {quickDates.map((q) => {
+              const { d, m, y } = formatDateParts(q.date);
+              const isActive = d === day && m === month && y === year;
+
+              return (
                 <button
-                  key={item.label}
+                  key={q.label}
                   type="button"
-                  className={`button_sec width100 ${formatDate(item.date) === dateInput ? "active" : ""}`}
-                  onClick={() => handleQuickDate(item.date)}
+                  className={`button_sec width100 ${isActive ? "active" : ""}`}
+                  onClick={() => {
+                    setDay(d);
+                    setMonth(m);
+                    setYear(y);
+                    validateAndUpdate();
+                  }}
                 >
-                  {item.label}
+                  {q.label}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Time Section */}
+        {/* TIME SECTION */}
         <div className="flexClm gap_12">
           <div className="font_12">Time</div>
 
-          <div className="flexClm gap_12">
+          <div className="flexRow gap_12">
             <input
               type="text"
-              value={timeInput}
-              onChange={handleTimeChange}
-              placeholder="HH:MM:SS"
-              className="font_14"
+              value={hoursInput}
+              placeholder="HH"
+              maxLength={2}
+              onChange={(e) => handleTimePart(e, setHoursInput, 2, minRef)}
               onBlur={validateAndUpdate}
+              className="font_14 center-input"
             />
-            <div className="flexRow flexRow_stretch gap_12">
-              <button
-                type="button"
-                className={`button_sec width100 ${isAM ? "selected" : ""}`}
-                onClick={() => {
-                  setIsAM(true);
-                  validateAndUpdate();
-                }}
-              >
-                AM
-              </button>
-              <button
-                type="button"
-                className={`button_sec width100 ${!isAM ? "selected" : ""}`}
-                onClick={() => {
-                  setIsAM(false);
-                  validateAndUpdate();
-                }}
-              >
-                PM
-              </button>
-            </div>
+            <span>:</span>
+
+            <input
+              ref={minRef}
+              type="text"
+              value={minutesInput}
+              placeholder="MM"
+              maxLength={2}
+              onChange={(e) => handleTimePart(e, setMinutesInput, 2, secRef)}
+              onBlur={validateAndUpdate}
+              className="font_14 center-input"
+            />
+            <span>:</span>
+
+            <input
+              ref={secRef}
+              type="text"
+              value={secondsInput}
+              placeholder="SS"
+              maxLength={2}
+              onChange={(e) => handleTimePart(e, setSecondsInput, 2)}
+              onBlur={validateAndUpdate}
+              className="font_14 center-input"
+            />
+          </div>
+
+          <div className="flexRow gap_12 flexRow_stretch">
+            <button
+              type="button"
+              className={`button_sec width100 ${isAM ? "selected" : ""}`}
+              onClick={() => {
+                setIsAM(true);
+                validateAndUpdate();
+              }}
+            >
+              AM
+            </button>
+
+            <button
+              type="button"
+              className={`button_sec width100 ${!isAM ? "selected" : ""}`}
+              onClick={() => {
+                setIsAM(false);
+                validateAndUpdate();
+              }}
+            >
+              PM
+            </button>
           </div>
         </div>
       </div>
