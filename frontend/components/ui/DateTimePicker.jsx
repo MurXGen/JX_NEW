@@ -37,8 +37,12 @@ export default function SimpleDateTimePicker({
     y: String(date.getFullYear()),
   });
 
-  // Initialize from value
+  const initializedRef = useRef(false);
+
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     const date = value ? new Date(value) : today;
     const { d, m, y } = formatDateParts(date);
 
@@ -51,8 +55,8 @@ export default function SimpleDateTimePicker({
     const sec = String(date.getSeconds()).padStart(2, "0");
 
     setIsAM(h < 12);
-
     h = h % 12 || 12;
+
     setHoursInput(String(h).padStart(2, "0"));
     setMinutesInput(min);
     setSecondsInput(sec);

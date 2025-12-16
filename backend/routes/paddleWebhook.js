@@ -1,8 +1,22 @@
-// routes/paddleRoutes.js
 const express = require("express");
 const router = express.Router();
-const { paddleWebhook } = require("../controllers/paddleCon");
+const { paddleWebhook, createOrder } = require("../controllers/paddleCon");
 
-router.post("/webhook", paddleWebhook);
+// IMPORTANT: Paddle needs RAW body
+router.post(
+  "/paddle/webhook",
+  express.raw({ type: "application/json" }),
+  (req, res, next) => {
+    try {
+      req.body = JSON.parse(req.body.toString());
+    } catch {
+      req.body = {};
+    }
+    next();
+  },
+  paddleWebhook
+);
+
+router.post("/create-order", createOrder);
 
 module.exports = router;

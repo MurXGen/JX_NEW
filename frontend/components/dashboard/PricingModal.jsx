@@ -88,7 +88,7 @@ export default function Pricing() {
     setIsClient(true);
   }, []);
 
-  const openPaddleCheckout = (priceId) => {
+  const openPaddleCheckout = async (priceId) => {
     if (!window?.Paddle) {
       alert("Payment system is loading. Please wait a moment and try again.");
       return;
@@ -98,15 +98,57 @@ export default function Pricing() {
       window.Paddle.Checkout.open({
         items: [{ priceId, quantity: 1 }],
         settings: { displayMode: "overlay" },
-        successCallback: (data) => {
-          console.log("Payment successful:", data);
-          router.push(`/subscription-success?plan=${selectedPlan}`);
+
+        // Not always reliable but keep it
+        successCallback: () => {
+          console.log("⚡ Payment successCallback triggered");
+        },
+
+        closeCallback: () => {
+          console.log(
+            "🔄 Checkout closed – starting subscription verification..."
+          );
+          startSubscriptionPolling();
         },
       });
     } catch (error) {
       console.error("Error opening Paddle checkout:", error);
       alert("Failed to open checkout. Please try again.");
     }
+  };
+
+  const startSubscriptionPolling = () => {
+    let attempts = 0;
+    const maxAttempts = 12; // try for 60 seconds
+
+    const interval = setInterval(async () => {
+      attempts++;
+
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`,
+          {
+            credentials: "include",
+          }
+        );
+
+        const user = await res.json();
+
+        console.log("🔍 Checking subscription:", user.subscriptionStatus);
+
+        if (user.subscriptionStatus === "active") {
+          clearInterval(interval);
+          router.push("/dashboard");
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+
+      if (attempts >= maxAttempts) {
+        console.warn("⛔ Stopping polling – max attempts reached.");
+        clearInterval(interval);
+      }
+    }, 5000); // every 5 seconds
   };
 
   const handlePlanClick = (planKey) => {
@@ -136,16 +178,16 @@ export default function Pricing() {
           },
         });
         break;
-      case "binance":
-        router.push({
-          pathname: "/payments/binance",
-          query: {
-            planName: planConfig.planName,
-            period: planConfig.period,
-            amount: planConfig.amount,
-          },
-        });
-        break;
+      // case "binance":
+      //   router.push({
+      //     pathname: "/payments/binance",
+      //     query: {
+      //       planName: planConfig.planName,
+      //       period: planConfig.period,
+      //       amount: planConfig.amount,
+      //     },
+      //   });
+      //   break;
     }
   };
 
@@ -167,10 +209,36 @@ export default function Pricing() {
           </div>
 
           <h1 className="hero-title">
-            Lowest plan in the industry
+            Trade Smarter.
             <br />
             <span className="gradient-text">Invest in Your Edge</span>
           </h1>
+
+          <p className="hero-subtitle">
+            Professional tools that pay for themselves. Start free, upgrade when
+            ready.
+          </p>
+        </motion.div>
+
+        {/* Trust Indicators */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flexRow gap_32 flex_center"
+        >
+          <div className="trust-item">
+            <Shield size={16} className="text-success" />
+            <span>Lowest pricing</span>
+          </div>
+          <div className="trust-item">
+            <Lock size={16} className="text-success" />
+            <span>Full data encrypted</span>
+          </div>
+          <div className="trust-item">
+            <Check size={16} className="text-success" />
+            <span>Cancel anytime</span>
+          </div>
         </motion.div>
       </section>
 
@@ -374,13 +442,13 @@ function PaymentModal({
       icon: "₿",
       gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
     },
-    {
-      id: "binance",
-      title: "Binance Pay",
-      description: "Instant payment directly from your Binance account",
-      icon: "⚡",
-      gradient: "linear-gradient(135deg, #f0b90b 0%, #c27803 100%)",
-    },
+    // {
+    //   id: "binance",
+    //   title: "Binance Pay",
+    //   description: "Instant payment directly from your Binance account",
+    //   icon: "⚡",
+    //   gradient: "linear-gradient(135deg, #f0b90b 0%, #c27803 100%)",
+    // },
   ];
 
   return (
@@ -457,18 +525,10 @@ function PaymentModal({
         </div>
 
         {/* Image Side (Right) */}
-        <div className="modal-image-side">
-          <div className="image-wrapper">
-            <Image
-              src="/journalx_banner.svg"
-              alt="JournalX Premium Features"
-              width={400}
-              height={400}
-              priority
-              className="modal-image"
-            />
-            <div className="image-overlay-content">
-              <h3>Unlock Your Trading Potential</h3>
+        <div className="modal-image-side flexClm flex_center">
+          <div className="">
+            <div className="pad_32">
+              <h3 className="font_32">Unlock Your Trading Potential</h3>
               <p>Join 10,000+ traders who trust JournalX</p>
               <div className="benefits-list">
                 <span>

@@ -112,6 +112,7 @@ body {
   /* min-width: 300px;
   max-width: var(--bodyWidth); */
   margin: auto;
+  line-height: 1.6;
 }
 
 .installPromptBox {
@@ -6798,12 +6799,6 @@ textarea::placeholder {
   --radius-xl: 24px;
 }
 
-body {
-  font-family: var(--font-primary);
-  color: var(--color-text);
-  line-height: 1.6;
-}
-
 /* Hero Section */
 .pricing-hero {
   padding: 80px 24px 40px;
@@ -7121,7 +7116,7 @@ body {
 }
 
 .modal-image-side {
-  background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+  background: linear-gradient(135deg, var(--primary), var(--base-bg));
   position: relative;
   overflow: hidden;
 }
