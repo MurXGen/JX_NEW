@@ -115,6 +115,70 @@ body {
   line-height: 1.6;
 }
 
+.hero-bg {
+  position: relative;
+  height: 100%;
+  padding: 200px 0 200px 0;
+
+  background:
+    /* Vertical grid lines */
+    repeating-linear-gradient(
+      to right,
+      var(--white-10) 0px,
+      var(--white-10) 0.1px,
+      transparent 1px,
+      transparent 80px
+    ),
+    /* Horizontal grid lines */
+      repeating-linear-gradient(
+        to bottom,
+        var(--white-10) 0px,
+        var(--white-10) 1px,
+        transparent 1px,
+        transparent 80px
+      ),
+    /* Main hero gradient */
+      linear-gradient(180deg, #0a0a0a 0%, #a77d0210 60%, #0a0a0a 100%);
+
+  /* 🔥 Fade on all 4 sides */
+  /* 🔥 Very subtle fade on all 4 sides */
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 25%,
+      black 75%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black 25%,
+      black 75%,
+      transparent 100%
+    );
+
+  mask-composite: intersect;
+
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 20%,
+      black 75%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black 25%,
+      black 75%,
+      transparent 100%
+    );
+
+  -webkit-mask-composite: destination-in;
+}
+
 .installPromptBox {
   position: fixed;
   left: 50%;

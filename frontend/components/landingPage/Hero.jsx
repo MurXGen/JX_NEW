@@ -25,37 +25,7 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="hero flexClm flex_center">
-      {/* Background Image with fade-in */}
-      <div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: bgLoaded ? 1 : 0 }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-        className=""
-      >
-        {isMobile ? (
-          <Image
-            src="/assets/hero_bg_mobile.png"
-            alt="Trading analytics dashboard background (mobile)"
-            width={800}
-            height={800}
-            className="heroBg"
-            priority
-            onLoadingComplete={() => setBgLoaded(true)}
-          />
-        ) : (
-          <Image
-            src="/assets/hero_bg.svg"
-            alt="Trading analytics dashboard background"
-            width={1200}
-            height={1000}
-            className="heroBg"
-            priority
-            onLoadingComplete={() => setBgLoaded(true)}
-          />
-        )}
-      </div>
-
+    <section className="hero-bg flexClm flex_center">
       {/* Hero Text */}
       <div
         className="flexClm gap_46 flex_center heroContent"
