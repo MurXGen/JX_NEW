@@ -4,22 +4,44 @@ const PricingCard = ({ plan, isPopular = false }) => {
   const [paddle, setPaddle] = useState(null);
 
   useEffect(() => {
-    // Load Paddle.js
+    if (window.Paddle) return;
+
     const script = document.createElement("script");
     script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+    script.async = true;
+
     script.onload = () => {
-      window.Paddle.Environment.set("sandbox"); // Change to 'production' for live
+      if (!window.Paddle) {
+        console.error("❌ Paddle failed to load");
+        return;
+      }
+
+      // 🚨 DO NOT manually set environment in LIVE
+      // Paddle auto-detects environment from token
+
       window.Paddle.Initialize({
         token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
-        eventCallback: function (data) {
-          if (data.name === "checkout.completed") {
-            // Handle successful payment
-            console.log("Payment completed", data);
+
+        // 🔥 Checkout events
+        eventCallback: (event) => {
+          console.log("📩 Paddle event:", event);
+
+          if (event.name === "checkout.completed") {
+            console.log("✅ Payment completed:", event);
+
+            /**
+             * IMPORTANT:
+             * Do NOT update DB here.
+             * Use Paddle Webhooks instead (authoritative source).
+             */
           }
         },
       });
+
       setPaddle(window.Paddle);
+      console.log("🎉 Paddle initialized (LIVE-safe)");
     };
+
     document.head.appendChild(script);
 
     return () => {
@@ -27,29 +49,35 @@ const PricingCard = ({ plan, isPopular = false }) => {
     };
   }, []);
 
-  const handleSubscribe = async (priceId) => {
-    if (!paddle) return;
+  const handleSubscribe = (priceId, user) => {
+    if (!paddle) {
+      alert("Payment system not ready");
+      return;
+    }
+
+    if (!user?.email || !user?._id) {
+      alert("Please log in before purchasing");
+      return;
+    }
 
     try {
-      // For one-time purchases (lifetime)
-      if (plan.type === "lifetime") {
-        paddle.Checkout.open({
-          items: [{ priceId: priceId, quantity: 1 }],
-          customer: {
-            email: "customer@example.com", // You can pre-fill or get from user
-          },
-        });
-      } else {
-        // For subscriptions
-        paddle.Checkout.open({
-          items: [{ priceId: priceId, quantity: 1 }],
-          customer: {
-            email: "customer@example.com",
-          },
-        });
-      }
+      paddle.Checkout.open({
+        items: [{ priceId, quantity: 1 }],
+
+        customer: {
+          email: user.email, // 🔴 REQUIRED in LIVE
+        },
+
+        customData: {
+          userId: user._id, // 🔥 Used in webhook to update DB
+        },
+
+        settings: {
+          displayMode: "overlay",
+        },
+      });
     } catch (error) {
-      console.error("Error opening checkout:", error);
+      console.error("❌ Error opening checkout:", error);
     }
   };
 
