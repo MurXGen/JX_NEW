@@ -1,107 +1,117 @@
 const crypto = require("crypto");
 const User = require("../models/User");
 const Order = require("../models/Orders");
-const {
-  updateUserAfterCryptoPayment,
-} = require("../utils/updateUserAfterCryptoPayment");
 
-const PADDLE_WEBHOOK_SECRET = process.env.PADDLE_WEBHOOK_SECRET;
+// 🔐 Verify Paddle signature
+function verifyPaddleSignature(req) {
+  const signature = req.headers["paddle-signature"];
+  if (!signature) return false;
 
-exports.paddleWebhook = async (req, res) => {
+  const secret = process.env.PADDLE_WEBHOOK_SECRET;
+  const payload = req.body;
+
+  const computed = crypto
+    .createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
+
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(computed));
+}
+
+exports.handlePaddleWebhook = async (req, res) => {
   try {
-    const signature = req.headers["paddle-signature"];
-    const rawBody = JSON.stringify(req.body);
-
-    // 1️⃣ VERIFY SIGNATURE
-    const expectedSignature = crypto
-      .createHmac("sha256", PADDLE_WEBHOOK_SECRET)
-      .update(rawBody)
-      .digest("hex");
-
-    if (signature !== expectedSignature) {
-      console.log("❌ Invalid webhook signature");
-      return res.status(401).json({ message: "Invalid signature" });
+    // 1️⃣ Verify signature
+    if (!verifyPaddleSignature(req)) {
+      console.error("❌ Invalid Paddle signature");
+      return res.status(401).send("Invalid signature");
     }
 
-    const event = req.body;
+    const event = JSON.parse(req.body.toString());
+    console.log("📩 Paddle webhook:", event.event_type);
 
-    console.log("📩 Received Paddle Webhook:", event);
-
-    // --------------------------------------------------------------------
-    // 2️⃣ GET USER FROM EVENT
-    // --------------------------------------------------------------------
-    const email = event?.data?.customer?.email;
-
-    if (!email) {
-      console.log("❌ No customer email found in webhook");
-      return res.status(400).json({ message: "Missing user email" });
+    // 2️⃣ Only handle successful payments
+    if (event.event_type !== "transaction.completed") {
+      return res.status(200).send("Ignored");
     }
 
-    const user = await User.findOne({ email });
+    const data = event.data;
 
+    /**
+     * data.custom_data.userId  ← YOU sent this from frontend
+     * data.customer.email
+     * data.items[0].price.id
+     */
+
+    const userId = data.custom_data?.userId;
+    if (!userId) {
+      console.error("❌ userId missing in custom_data");
+      return res.status(400).send("Missing userId");
+    }
+
+    const user = await User.findById(userId);
     if (!user) {
-      console.log("❌ User not found:", email);
-      return res.status(404).json({ message: "User not found" });
+      console.error("❌ User not found:", userId);
+      return res.status(404).send("User not found");
     }
 
-    // --------------------------------------------------------------------
-    // 3️⃣ CREATE OR UPDATE ORDER
-    // --------------------------------------------------------------------
-    const eventData = event.data;
+    // 3️⃣ Determine plan
+    const priceId = data.items[0].price.id;
 
-    const paddleOrderId = eventData?.id;
-    const priceId = eventData?.items?.[0]?.price?.id;
-    const period =
-      eventData?.items?.[0]?.price?.billing_interval ||
-      eventData?.billing_period ||
-      "one-time";
+    let plan = "free";
+    let type = "none";
+    let expiresAt = null;
 
-    // Save order
-    let order = await Order.findOne({ paddleOrderId });
-
-    if (!order) {
-      order = await Order.create({
-        userId: user._id,
-        paddleOrderId,
-        priceId,
-        period,
-        amount: eventData?.grand_total,
-        status: "paid",
-        meta: eventData,
-      });
+    if (priceId === process.env.PADDLE_MONTHLY_PRICE_ID) {
+      plan = "pro";
+      type = "recurring";
+      expiresAt = new Date(data.billing_period?.ends_at);
     }
 
-    // --------------------------------------------------------------------
-    // 4️⃣ UPDATE USER SUBSCRIPTION
-    // --------------------------------------------------------------------
-    await updateUserAfterCryptoPayment(user, order);
-    await user.save();
+    if (priceId === process.env.PADDLE_YEARLY_PRICE_ID) {
+      plan = "pro";
+      type = "recurring";
+      expiresAt = new Date(data.billing_period?.ends_at);
+    }
 
-    console.log("🎉 User subscription updated successfully!");
+    if (priceId === process.env.PADDLE_LIFETIME_PRICE_ID) {
+      plan = "lifetime";
+      type = "lifetime";
+      expiresAt = null; // lifetime never expires
+    }
 
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("❌ Paddle Webhook Error:", err);
-    return res.status(500).json({ message: "Webhook processing failed" });
-  }
-};
-
-exports.createOrder = async (req, res) => {
-  try {
-    const { priceId, period } = req.body;
-    const userId = req.user._id;
-
+    // 4️⃣ Create Order
     const order = await Order.create({
-      userId,
-      priceId,
-      period,
-      status: "pending",
-      createdAt: new Date(),
+      userId: user._id,
+      planId: plan,
+      amount: data.totals.total / 100,
+      currency: data.currency_code,
+      period: plan === "lifetime" ? "lifetime" : "monthly",
+      paymentType: type,
+      status: "paid",
+      meta: data,
     });
 
-    return res.json({ success: true, orderId: order._id });
+    // 5️⃣ Update User
+    user.subscriptionPlan = plan;
+    user.subscriptionType = type;
+    user.subscriptionStatus = "active";
+    user.subscriptionStartAt = new Date(data.created_at);
+    user.subscriptionExpiresAt = expiresAt;
+    user.subscriptionCreatedAt = new Date();
+    user.paddleCustomerId = data.customer.id;
+
+    user.orders.push({
+      orderId: order._id,
+      status: "paid",
+    });
+
+    await user.save();
+
+    console.log("✅ User subscription updated:", user.email);
+
+    return res.status(200).json({ received: true });
   } catch (err) {
-    console.error("Create Order Error:", err);
-    return res.status(500).json({ message: "Failed to create order" });
+    console.error("❌ Paddle webhook error:", err);
+    res.status(500).send("Webhook error");
   }
 };

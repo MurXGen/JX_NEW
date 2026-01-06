@@ -30,7 +30,14 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith("/api/paddle")) {
+    next(); // raw body
+  } else {
+    express.json()(req, res, next);
+  }
+});
+
 app.use(cookieParser());
 
 // ⚡ Initialize Passport (no session required)
@@ -56,7 +63,11 @@ app.use(
 app.use("/api/payments", createLimiter(20), express.json(), paymentsRoutes);
 app.use("/api/crypto-payments", createLimiter(20), cryptoPaymentsRoutes);
 app.use("/api/telegram", createLimiter(20), telegramRoutes);
-app.use("/api/paddle", createLimiter(40), paddleRoute);
+app.use(
+  "/api/pricingpad",
+  express.raw({ type: "application/json" }),
+  paddleRoute
+);
 
 // 🤖 Telegram Bot Init
 require("./telegram");

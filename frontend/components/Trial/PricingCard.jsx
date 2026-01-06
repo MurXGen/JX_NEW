@@ -1,99 +1,62 @@
 import { useState, useEffect } from "react";
+import { getFromIndexedDB } from "@/utils/indexedDB";
 
 const PricingCard = ({ plan, isPopular = false }) => {
   const [paddle, setPaddle] = useState(null);
+  const [user, setUser] = useState(null); // ✅ store user
 
   useEffect(() => {
-    if (window.Paddle) return;
+    const loadUser = async () => {
+      const storedUser = await getFromIndexedDB("user"); // ⚠️ use correct key
+      if (storedUser?.email && storedUser?.userId) {
+        setUser(storedUser);
+      }
+    };
 
+    loadUser();
+  }, []);
+
+  useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
     script.async = true;
 
     script.onload = () => {
-      if (!window.Paddle) {
-        console.error("❌ Paddle failed to load");
-        return;
+      if (process.env.NODE_ENV === "development") {
+        window.Paddle.Environment.set("sandbox");
       }
-
-      // 🚨 DO NOT manually set environment in LIVE
-      // Paddle auto-detects environment from token
 
       window.Paddle.Initialize({
         token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
-
-        // 🔥 Checkout events
         eventCallback: (event) => {
-          console.log("📩 Paddle event:", event);
-
           if (event.name === "checkout.completed") {
-            console.log("✅ Payment completed:", event);
-
-            /**
-             * IMPORTANT:
-             * Do NOT update DB here.
-             * Use Paddle Webhooks instead (authoritative source).
-             */
+            console.log("✅ Payment completed", event);
           }
         },
       });
 
       setPaddle(window.Paddle);
-      console.log("🎉 Paddle initialized (LIVE-safe)");
     };
 
     document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
+    return () => document.head.removeChild(script);
   }, []);
 
-  const handleSubscribe = (priceId, user) => {
-    if (!paddle) {
-      alert("Payment system not ready");
-      return;
-    }
+  /* ------------------ OPEN CHECKOUT ------------------ */
+  const handleSubscribe = (priceId) => {
+    if (!paddle || !user) return;
 
-    if (!user?.email || !user?._id) {
-      alert("Please log in before purchasing");
-      return;
-    }
-
-    try {
-      paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-
-        customer: {
-          email: user.email, // 🔴 REQUIRED in LIVE
-        },
-
-        customData: {
-          userId: user._id, // 🔥 Used in webhook to update DB
-        },
-
-        settings: {
-          displayMode: "overlay",
-        },
-      });
-    } catch (error) {
-      console.error("❌ Error opening checkout:", error);
-    }
-  };
-
-  const getPriceDisplay = () => {
-    switch (plan.type) {
-      case "free":
-        return "$0";
-      case "monthly":
-        return `$${plan.priceMonthly}/month`;
-      case "yearly":
-        return `$${plan.priceYearly}/month`;
-      case "lifetime":
-        return `$${plan.priceLifetime}`;
-      default:
-        return "";
-    }
+    paddle.Checkout.open({
+      items: [{ priceId, quantity: 1 }],
+      customer: {
+        email: user.email,
+        name: user.name,
+      },
+      customData: {
+        userId: user.userId, // 🔥 REQUIRED for webhook mapping
+        planType: plan.type,
+      },
+    });
   };
 
   const getPriceId = () => {

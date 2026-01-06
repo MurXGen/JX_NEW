@@ -1,22 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { paddleWebhook, createOrder } = require("../controllers/paddleCon");
+const { handlePaddleWebhook } = require("../controllers/paddleCon");
 
-// IMPORTANT: Paddle needs RAW body
+// Paddle requires RAW body for signature verification
 router.post(
-  "/paddle/webhook",
+  "/webhook",
   express.raw({ type: "application/json" }),
-  (req, res, next) => {
-    try {
-      req.body = JSON.parse(req.body.toString());
-    } catch {
-      req.body = {};
-    }
-    next();
-  },
-  paddleWebhook
+  handlePaddleWebhook
 );
-
-router.post("/create-order", createOrder);
 
 module.exports = router;
