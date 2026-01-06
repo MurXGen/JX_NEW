@@ -1077,73 +1077,86 @@ textarea::placeholder {
 
 /* Date time picker  */
 
-.timePickerBox {
-  background: #0b1220;
-  border-radius: 14px;
-  padding: 16px;
+/* For date anmd time */
+
+.dtpOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+}
+
+.dtpModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--base-box-bg);
+  width: 90%;
+  max-width: 500px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  overflow: hidden;
+  z-index: 10000;
+  border: 1px solid var(--white-20);
+  padding: 24px;
+  gap: 24px;
 }
 
-/* Quick chips */
-.quickTimeRow {
+.dtpHeader {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.chip {
-  padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.chip:hover {
-  background: rgba(16, 185, 129, 0.25);
-}
-
-/* Rows */
-.dateRow,
-.timeRow {
+.dtpWheels {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
-/* AM PM */
-.ampmToggle {
+.wheelColumn {
   display: flex;
-  gap: 6px;
-}
-
-.ampmToggle button {
-  flex: 1;
-  padding: 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  transition: 0.2s;
-}
-
-.ampmToggle button.active {
-  background: #10b981;
-  color: #000;
-}
-
-.center-input {
-  width: 50px;
-  text-align: center;
-  padding: 6px;
-}
-
-.time-row,
-.date-row {
-  display: flex;
-  gap: 8px;
+  flex-direction: column;
   align-items: center;
+}
+
+.arrowBtn {
+  width: 100%;
+  background: var(--white-4);
+  border: none;
+  border-radius: var(--px-4);
+  color: var(--base-text);
+}
+
+.wheelList {
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  border-radius: var(--px-12);
+}
+
+.wheelItem {
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+  background: var(--white-4);
+  color: var(--base-text);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.wheelItem.isActive {
+  background: var(--primary);
+  color: var(--base-text);
+  border-radius: 6px;
+}
+
+footer {
+  border-top: 1px solid var(--primary-50);
+  padding-top: var(--px-12);
 }
 
 /* End */
@@ -3749,7 +3762,7 @@ textarea::placeholder {
 
   .feature-item {
     display: flex;
-    align-items: center;
+    align-items: start;
     gap: var(--px-8);
     margin-bottom: var(--px-8);
   }
@@ -4368,9 +4381,9 @@ textarea::placeholder {
 
   .feature-item {
     display: flex;
-    align-items: center;
+    align-items: start;
     gap: var(--px-8);
-    justify-content: center;
+    justify-content: start;
   }
 
   .upgrade-cta {
@@ -6967,9 +6980,9 @@ textarea::placeholder {
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
-  margin-bottom: 80px;
+  margin: auto;
 }
 
 /* Pricing Card */
@@ -7077,7 +7090,7 @@ textarea::placeholder {
 
 .feature-item {
   display: flex;
-  align-items: center;
+  align-items: start;
   gap: 12px;
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);

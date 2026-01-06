@@ -20,25 +20,24 @@ const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
 const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
 const lifetimePriceId = process.env.NEXT_PUBLIC_PADDLE_LIFETIME_PRICE_ID;
 
-// Simplified 4 features per plan
 const PLANS_FEATURES = {
   free: [
-    { text: "10 trades/month", icon: "📊" },
-    { text: "Basic charts", icon: "📈" },
-    { text: "1 account", icon: "👤" },
-    { text: "30-day history", icon: "⏰" },
+    { text: "10 trades/month" },
+    { text: "Basic charts" },
+    { text: "1 account" },
+    { text: "30-day history" },
   ],
   pro: [
-    { text: "Unlimited trades", icon: "♾️" },
-    { text: "Advanced analytics", icon: "📊" },
-    { text: "3 accounts", icon: "👥" },
-    { text: "Full trade history", icon: "📚" },
+    { text: "Unlimited trades" },
+    { text: "Advanced analytics" },
+    { text: "3 accounts" },
+    { text: "Full trade history" },
   ],
   lifetime: [
-    { text: "Lifetime updates", icon: "⚡" },
-    { text: "All Pro features", icon: "🏆" },
-    { text: "Priority support", icon: "⭐" },
-    { text: "Early beta access", icon: "🚀" },
+    { text: "Lifetime updates" },
+    { text: "All Pro features" },
+    { text: "Priority support" },
+    { text: "Early beta access" },
   ],
 };
 
@@ -380,20 +379,20 @@ function PricingCard({
         </div>
       </div>
 
-      <ul className="feature-list">
+      <span className="feature-list">
         {features.map((feature, index) => (
-          <motion.li
+          <motion.span
             key={index}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
             className="feature-item"
           >
-            <span className="feature-icon">{feature.icon}</span>
+            <Check size={16} className="feature-icon" />
             <span className="feature-text">{feature.text}</span>
-          </motion.li>
+          </motion.span>
         ))}
-      </ul>
+      </span>
 
       <motion.button
         className={`pricing-button ${isCurrent ? "current" : ""}`}

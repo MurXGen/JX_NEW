@@ -1,257 +1,259 @@
-// SimpleDateTimePicker.jsx
-import { useState, useEffect, useRef } from "react";
+import { X, ChevronUp, ChevronDown } from "lucide-react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 
-export default function SimpleDateTimePicker({
+export default function DateTimePicker({
+  label = "Date & Time",
   value,
   onChange,
-  label = "Date & Time",
 }) {
-  // --- DATE FIELDS ---
-  const [day, setDay] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(() =>
+    value ? new Date(value) : new Date()
+  );
+  const modalRef = useRef(null);
 
-  // --- TIME FIELDS ---
-  const [hoursInput, setHoursInput] = useState("12");
-  const [minutesInput, setMinutesInput] = useState("00");
-  const [secondsInput, setSecondsInput] = useState("00");
-  const [isAM, setIsAM] = useState(true);
+  const currentYear = new Date().getFullYear();
+  const years = useMemo(
+    () => Array.from({ length: 11 }, (_, i) => currentYear - i),
+    [currentYear]
+  );
 
-  // Refs for auto-jump
-  const monthRef = useRef(null);
-  const yearRef = useRef(null);
-  const minRef = useRef(null);
-  const secRef = useRef(null);
-
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  const dayBeforeYesterday = new Date(today);
-  dayBeforeYesterday.setDate(today.getDate() - 2);
-
-  // Format date helper
-  const formatDateParts = (date) => ({
-    d: String(date.getDate()).padStart(2, "0"),
-    m: String(date.getMonth() + 1).padStart(2, "0"),
-    y: String(date.getFullYear()),
-  });
-
-  const initializedRef = useRef(false);
-
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
-    const date = value ? new Date(value) : today;
-    const { d, m, y } = formatDateParts(date);
-
-    setDay(d);
-    setMonth(m);
-    setYear(y);
-
-    let h = date.getHours();
-    const min = String(date.getMinutes()).padStart(2, "0");
-    const sec = String(date.getSeconds()).padStart(2, "0");
-
-    setIsAM(h < 12);
-    h = h % 12 || 12;
-
-    setHoursInput(String(h).padStart(2, "0"));
-    setMinutesInput(min);
-    setSecondsInput(sec);
-  }, [value]);
-
-  // Handle date fields
-  const handleDatePart = (e, setter, max, nextRef) => {
-    let val = e.target.value.replace(/\D/g, "");
-    if (val.length > max) return;
-
-    setter(val);
-
-    if (val.length === max && nextRef?.current) {
-      nextRef.current.focus();
-    }
-  };
-
-  // Handle time fields
-  const handleTimePart = (e, setter, max, nextRef) => {
-    let val = e.target.value.replace(/\D/g, "");
-    if (val.length > max) return;
-
-    setter(val);
-
-    if (val.length === max && nextRef?.current) {
-      nextRef.current.focus();
-    }
-  };
-
-  // Update final ISO value
-  const validateAndUpdate = () => {
-    if (!day || !month || !year) return;
-
-    let h = Number(hoursInput || 0);
-    let m = Number(minutesInput || 0);
-    let s = Number(secondsInput || 0);
-
-    // Convert 12h → 24h
-    if (!isAM) {
-      if (h !== 12) h += 12;
-    } else if (h === 12) {
-      h = 0;
-    }
-
-    const selected = new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day),
-      h,
-      m,
-      s
-    );
-
-    onChange(selected.toISOString());
-  };
-
-  // Run validate once isAM is updated
-  useEffect(() => {
-    validateAndUpdate();
-  }, [isAM]);
-
-  const quickDates = [
-    { label: "Today", date: today },
-    { label: "Yesterday", date: yesterday },
-    { label: "Day before", date: dayBeforeYesterday },
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
-  return (
-    <div className="boxBg">
-      <label>{label}</label>
+  const daysInMonth = new Date(
+    draft.getFullYear(),
+    draft.getMonth() + 1,
+    0
+  ).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const hours = Array.from({ length: 12 }, (_, i) => i + 1);
+  const minutes = Array.from({ length: 60 }, (_, i) => i);
 
-      <div className="gridContainer">
-        {/* DATE SECTION */}
-        <div className="flexClm gap_12">
-          <div className="font_12">Date</div>
+  const activeDay = draft.getDate();
+  const activeMonth = draft.getMonth();
+  const activeYear = draft.getFullYear();
+  const activeH12 = ((draft.getHours() + 11) % 12) + 1;
+  const activeMin = draft.getMinutes();
+  const activePeriod = draft.getHours() >= 12 ? "PM" : "AM";
 
-          <div className="flexRow gap_12">
-            <input
-              type="text"
-              value={day}
-              placeholder="DD"
-              maxLength={2}
-              onChange={(e) => handleDatePart(e, setDay, 2, monthRef)}
-              onBlur={validateAndUpdate}
-              className="font_14 center-input"
-            />
-            <span>/</span>
+  const displayValue = useMemo(() => {
+    if (!value) return "";
+    const d = new Date(value);
+    const h12 = ((d.getHours() + 11) % 12) + 1;
+    const ampm = d.getHours() >= 12 ? "PM" : "AM";
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${d.getDate()} ${
+      months[d.getMonth()]
+    } ${d.getFullYear()} ${h12}:${mm} ${ampm}`;
+  }, [value]);
 
-            <input
-              ref={monthRef}
-              type="text"
-              value={month}
-              placeholder="MM"
-              maxLength={2}
-              onChange={(e) => handleDatePart(e, setMonth, 2, yearRef)}
-              onBlur={validateAndUpdate}
-              className="font_14 center-input"
-            />
-            <span>/</span>
+  // ✅ Date Setters
+  const setDay = (d) => setDraft((prev) => new Date(prev.setDate(d)));
+  const setMonth = (m) => {
+    const next = new Date(draft);
+    next.setMonth(m);
+    const maxDay = new Date(next.getFullYear(), m + 1, 0).getDate();
+    if (next.getDate() > maxDay) next.setDate(maxDay);
+    setDraft(next);
+  };
+  const setYear = (y) => setDraft((prev) => new Date(prev.setFullYear(y)));
 
-            <input
-              ref={yearRef}
-              type="text"
-              value={year}
-              placeholder="YYYY"
-              maxLength={4}
-              onChange={(e) => handleDatePart(e, setYear, 4)}
-              onBlur={validateAndUpdate}
-              className="font_14 center-input"
-            />
-          </div>
+  // ✅ Time Setters
+  const setHour = (h12) => {
+    const base = draft.getHours() >= 12 ? 12 : 0;
+    const h24 = (h12 % 12) + base;
+    setDraft((prev) => new Date(prev.setHours(h24)));
+  };
+  const setMinute = (m) => setDraft((prev) => new Date(prev.setMinutes(m)));
+  const setAmPm = (period) => {
+    const h = draft.getHours();
+    if (period === "AM" && h >= 12)
+      setDraft((prev) => new Date(prev.setHours(h - 12)));
+    if (period === "PM" && h < 12)
+      setDraft((prev) => new Date(prev.setHours(h + 12)));
+  };
 
-          <div className="flexRow gap_12 flexRow_stretch">
-            {quickDates.map((q) => {
-              const { d, m, y } = formatDateParts(q.date);
-              const isActive = d === day && m === month && y === year;
+  // ✅ Actions
+  const apply = () => {
+    onChange?.(new Date(draft).toISOString());
+    setOpen(false);
+  };
+  const clear = () => {
+    onChange?.(null);
+    setDraft(new Date());
+    setOpen(false);
+  };
+  const setToday = () => {
+    const today = new Date();
+    setDraft(today);
+    scrollToActive();
+  };
 
-              return (
-                <button
-                  key={q.label}
-                  type="button"
-                  className={`button_sec width100 ${isActive ? "active" : ""}`}
-                  onClick={() => {
-                    setDay(d);
-                    setMonth(m);
-                    setYear(y);
-                    validateAndUpdate();
-                  }}
-                >
-                  {q.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+  // ✅ Close on click outside or Escape
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    const onClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target))
+        setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClickOutside);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onClickOutside);
+    };
+  }, [open]);
 
-        {/* TIME SECTION */}
-        <div className="flexClm gap_12">
-          <div className="font_12">Time</div>
+  const scrollToActive = () => {
+    document.querySelectorAll(".wheelList").forEach((list) => {
+      const activeEl = list.querySelector(".isActive");
+      if (activeEl)
+        activeEl.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+  };
 
-          <div className="flexRow gap_12">
-            <input
-              type="text"
-              value={hoursInput}
-              placeholder="HH"
-              maxLength={2}
-              onChange={(e) => handleTimePart(e, setHoursInput, 2, minRef)}
-              onBlur={validateAndUpdate}
-              className="font_14 center-input"
-            />
-            <span>:</span>
+  useEffect(() => {
+    if (open) setTimeout(scrollToActive, 50);
+  }, [open, draft]);
 
-            <input
-              ref={minRef}
-              type="text"
-              value={minutesInput}
-              placeholder="MM"
-              maxLength={2}
-              onChange={(e) => handleTimePart(e, setMinutesInput, 2, secRef)}
-              onBlur={validateAndUpdate}
-              className="font_14 center-input"
-            />
-            <span>:</span>
+  // ✅ Render Wheel
+  const renderWheel = (items, active, setFn, label) => (
+    <div className="wheelColumn">
+      <button
+        type="button"
+        className="arrowBtn"
+        onClick={() => {
+          const idx = items.indexOf(active);
+          if (idx > 0) setFn(items[idx - 1]);
+        }}
+      >
+        <ChevronUp size={20} />
+      </button>
 
-            <input
-              ref={secRef}
-              type="text"
-              value={secondsInput}
-              placeholder="SS"
-              maxLength={2}
-              onChange={(e) => handleTimePart(e, setSecondsInput, 2)}
-              onBlur={validateAndUpdate}
-              className="font_14 center-input"
-            />
-          </div>
-
-          <div className="flexRow gap_12 flexRow_stretch">
-            <button
-              type="button"
-              className={`button_sec width100 ${isAM ? "selected" : ""}`}
-              onClick={() => setIsAM(true)}
-            >
-              AM
-            </button>
-
-            <button
-              type="button"
-              className={`button_sec width100 ${!isAM ? "selected" : ""}`}
-              onClick={() => setIsAM(false)}
-            >
-              PM
-            </button>
-          </div>
-        </div>
+      <div className="wheelList">
+        {items.map((item) => (
+          <button
+            type="button"
+            key={item}
+            className={`wheelItem ${item === active ? "isActive" : ""}`}
+            onClick={() => setFn(item)}
+          >
+            {isNaN(item) ? item : item.toString().padStart(2, "0")}
+          </button>
+        ))}
       </div>
+
+      <button
+        type="button"
+        className="arrowBtn"
+        onClick={() => {
+          const idx = items.indexOf(active);
+          if (idx < items.length - 1) setFn(items[idx + 1]);
+        }}
+      >
+        <ChevronDown size={20} />
+      </button>
+
+      {/* ✅ Add Label */}
+      <div className="wheelLabel">{label}</div>
+    </div>
+  );
+
+  return (
+    <div className="dtpRoot">
+      <div className="inputLabelShift">
+        <label className="dtpLabel">{label}</label>
+        <input
+          readOnly
+          className="dtpInput"
+          value={displayValue}
+          placeholder="Select date & time"
+          onClick={() => setOpen(true)}
+        />
+      </div>
+
+      {open && (
+        <>
+          <div className="dtpOverlay" />
+          <div className="dtpModal" ref={modalRef}>
+            <header className="dtpHeader">
+              <button
+                type="button"
+                className="button_ter"
+                onClick={() => setOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </header>
+
+            {/* Date Section */}
+            <div className="dtpSection">
+              <div className="dtpWheels">
+                <div className="flexClm flex_center gap_12 font_12">
+                  <div className="wheelLabel">Day</div>
+                  {renderWheel(days, activeDay, setDay)}
+                </div>
+                <div className="flexClm flex_center gap_12 font_12">
+                  <div className="wheelLabel">Month</div>
+                  {renderWheel(
+                    months.map((m) => m),
+                    months[activeMonth],
+                    (m) => setMonth(months.indexOf(m))
+                  )}
+                </div>
+                <div className="flexClm flex_center gap_12 font_12">
+                  <div className="wheelLabel">Year</div>
+                  {renderWheel(years, activeYear, setYear)}
+                </div>
+              </div>
+            </div>
+
+            {/* Time Section */}
+            <div className="dtpSection">
+              <div className="dtpWheels">
+                <div className="flexClm flex_center gap_12 font_12">
+                  <div className="wheelLabel">Hour</div>
+                  {renderWheel(hours, activeH12, setHour)}
+                </div>
+                <div className="flexClm flex_center gap_12 font_12">
+                  <div className="wheelLabel">Minute</div>
+                  {renderWheel(minutes, activeMin, setMinute)}
+                </div>
+                <div className="flexClm flex_center gap_12 font_12">
+                  {renderWheel(["AM", "PM"], activePeriod, setAmPm)}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <footer className="flexRow flexRow_stretch gap_12">
+              <button type="button" className="button_ter" onClick={setToday}>
+                Today
+              </button>
+              <button type="button" className="button_ter" onClick={clear}>
+                Clear
+              </button>
+              <button type="button" className="button_pri" onClick={apply}>
+                Apply
+              </button>
+            </footer>
+          </div>
+        </>
+      )}
     </div>
   );
 }
