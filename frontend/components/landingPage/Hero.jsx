@@ -3,13 +3,12 @@
 import { ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 const HeroSection = () => {
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
-
   // Track image load state
   const [bgLoaded, setBgLoaded] = useState(false);
   const [heroLoaded, setHeroLoaded] = useState(false);

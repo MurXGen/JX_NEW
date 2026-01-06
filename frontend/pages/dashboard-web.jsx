@@ -229,20 +229,6 @@ export default function Dashboard1() {
             borderRight: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          {/* ❄️ CHRISTMAS SNOW EFFECT */}
-          <div className="snow">
-            {[...Array(25)].map((_, i) => (
-              <span
-                key={i}
-                style={{
-                  left: Math.random() * 100 + "%",
-                  animationDuration: 2 + Math.random() * 3 + "s",
-                  animationDelay: Math.random() * 2 + "s",
-                }}
-              ></span>
-            ))}
-          </div>
-
           {/* 🔵 TOP SECTION */}
           <div
             style={{
@@ -255,7 +241,7 @@ export default function Dashboard1() {
             {open && (
               <div className="flexRow flexRow_stretch width100">
                 <Image
-                  src="/assets/journalx_navbar_chris.png"
+                  src="/assets/journalx_navbar.svg"
                   alt="JournalX Logo"
                   width={120}
                   height={42}

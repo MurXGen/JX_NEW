@@ -78,7 +78,7 @@ const ProfitJourneySection = () => {
                 : {}
             }
             transition={{
-              duration: 0.3,
+              duration: 0.15,
               times: [0, 0.3, 1],
             }}
           >

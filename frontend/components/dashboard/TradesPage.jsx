@@ -27,7 +27,8 @@ const TradePage = () => {
 
   const today = new Date();
   const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  // const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [selectedYear, setSelectedYear] = useState("");
   const [showCardModal, setShowCardModal] = useState(false);
 
   // 🟩 Automatically set current month when switching to calendar

@@ -73,8 +73,8 @@ const TickerStats = ({ trades }) => {
           ? (ticker.winTrades * Math.abs(ticker.averagePnL)) /
               (ticker.lossTrades * Math.abs(ticker.averagePnL)) || 1
           : ticker.winTrades > 0
-          ? Infinity
-          : 0;
+            ? Infinity
+            : 0;
     });
 
     // Find best and worst performers
@@ -183,7 +183,6 @@ const TickerStats = ({ trades }) => {
             style={{ padding: "16px" }}
           >
             <div className="flexRow gap_8">
-              <Star size={14} className="success" />
               <span className="font_12">Best Performer</span>
             </div>
             <div className="flexRow flexRow_stretch">
@@ -211,7 +210,6 @@ const TickerStats = ({ trades }) => {
             style={{ padding: "16px" }}
           >
             <div className="flexRow gap_8">
-              <AlertTriangle size={14} className="error" />
               <span className="font_12">Worst Performer</span>
             </div>
             <div className="flexRow flexRow_stretch">
@@ -358,13 +356,13 @@ const TickerStats = ({ trades }) => {
                   {ticker.symbol}
                 </td>
                 <td
-                  className={ticker.totalPnL >= 0 ? "success" : "error"}
+                  className={ticker.totalPnL >= 0 ? "" : ""}
                   style={{ textAlign: "left", color: "var(--success)" }}
                 >
                   {formatCurrency(ticker.totalPnL)}
                 </td>
                 <td
-                  className={ticker.winRate >= 50 ? "success" : "error"}
+                  className={ticker.winRate >= 50 ? "" : ""}
                   style={{ textAlign: "left", color: "var(--success)" }}
                 >
                   {formatPercent(ticker.winRate)}

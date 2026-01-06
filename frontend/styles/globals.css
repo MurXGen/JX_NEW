@@ -179,6 +179,15 @@ body {
   -webkit-mask-composite: destination-in;
 }
 
+.fireworks-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 600px;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .installPromptBox {
   position: fixed;
   left: 50%;
@@ -1067,6 +1076,62 @@ textarea::placeholder {
 }
 
 /* Date time picker  */
+
+.timePickerBox {
+  background: #0b1220;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Quick chips */
+.quickTimeRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chip:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+/* Rows */
+.dateRow,
+.timeRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+/* AM PM */
+.ampmToggle {
+  display: flex;
+  gap: 6px;
+}
+
+.ampmToggle button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: 0.2s;
+}
+
+.ampmToggle button.active {
+  background: #10b981;
+  color: #000;
+}
 
 .center-input {
   width: 50px;
@@ -6801,46 +6866,6 @@ textarea::placeholder {
   background: white;
   opacity: 1;
   transform: scale(1);
-}
-
-.snow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 50%; /* ❄️ Snow only falls in top 50% */
-  pointer-events: none;
-  overflow: hidden;
-
-  /* ❄️ Fade-out mask at the bottom */
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 1),
-    rgba(0, 0, 0, 0)
-  );
-}
-
-.snow span {
-  position: absolute;
-  top: -10px;
-  width: 6px;
-  height: 6px;
-  background: white;
-  opacity: 0.85;
-  border-radius: 50%;
-  animation: fall linear infinite;
-}
-
-@keyframes fall {
-  0% {
-    transform: translateY(-10px);
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateY(60vh); /* ❄️ Falls only enough to reach mid sidebar */
-    opacity: 0; /* ❄️ Disappears cleanly as it drops */
-  }
 }
 
 /* ====== PRICING PAGE STYLES ====== */
