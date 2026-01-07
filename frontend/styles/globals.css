@@ -7036,14 +7036,12 @@ footer {
 
 .pricing-card.highlight {
   border-color: var(--primary);
-  background: linear-gradient(
-    135deg,
-    rgba(59, 130, 246, 0.05),
-    rgba(29, 78, 216, 0.05)
-  );
+  background: var(--primary-10);
 }
 
 .pricing-card.hovered {
+  cursor: pointer;
+  background: var(--primary-10);
   transform: translateY(-10px);
   box-shadow: var(--shadow-lg);
 }
@@ -7118,7 +7116,6 @@ footer {
   font-size: 1rem;
 }
 
-/* Feature List */
 .feature-list {
   flex: 1;
   list-style: none;
@@ -7175,7 +7172,7 @@ footer {
 
 .pricing-button:not(.current):hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 10px 30px var(--primary-20);
 }
 
 /* FAQ Section */
@@ -7370,7 +7367,7 @@ footer {
 
 .plan-badge {
   background: var(--color-primary);
-  color: white;
+  color: var(--base-bg);
   padding: 8px 16px;
   border-radius: 100px;
   font-size: 14px;

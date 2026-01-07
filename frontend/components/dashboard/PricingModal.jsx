@@ -20,6 +20,19 @@ const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
 const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
 const lifetimePriceId = process.env.NEXT_PUBLIC_PADDLE_LIFETIME_PRICE_ID;
 
+export const getUserCurrency = () => {
+  if (typeof window === "undefined") return "USD";
+
+  const locale = navigator.language || "";
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+
+  const isIndia =
+    locale.toLowerCase().includes("in") ||
+    timezone.toLowerCase().includes("kolkata");
+
+  return isIndia ? "INR" : "USD";
+};
+
 const PLANS_FEATURES = {
   free: [
     { text: "10 trades/month" },
@@ -44,30 +57,50 @@ const PLANS_FEATURES = {
 const PLANS_CONFIG = {
   monthly: {
     title: "Pro Monthly",
-    price: "$3.49",
-    amount: "3.49",
-    period: "monthly",
+    price: {
+      USD: "$3.49",
+      INR: "₹149",
+    },
+    amount: {
+      USD: "3.49",
+      INR: "149",
+    },
+    period: "/month",
     planName: "Pro",
     tagline: "Flexible monthly access",
     popular: false,
     paddlePriceId: monthlyPriceId,
   },
+
   yearly: {
     title: "Pro Yearly",
-    price: "$29.99",
-    amount: "29.99",
-    period: "yearly",
+    price: {
+      USD: "$29.99",
+      INR: "₹1299",
+    },
+    amount: {
+      USD: "29.99",
+      INR: "1299",
+    },
+    period: "/year",
     planName: "Pro",
-    tagline: "Most popular - Save 28%",
+    tagline: "Most popular – Save 28%",
     popular: true,
     savings: "28%",
     paddlePriceId: yearlyPriceId,
   },
+
   lifetime: {
     title: "Lifetime",
-    price: "$99",
-    amount: "99",
-    period: "lifetime",
+    price: {
+      USD: "$99",
+      INR: "₹1999",
+    },
+    amount: {
+      USD: "99",
+      INR: "1999",
+    },
+    period: "one-time",
     planName: "Lifetime",
     tagline: "One payment, forever access",
     popular: false,
@@ -81,6 +114,8 @@ export default function Pricing() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [hoveredPlan, setHoveredPlan] = useState(null);
+  const currency = getUserCurrency(); // "INR" or "USD"
+
   const router = useRouter();
 
   useEffect(() => {
@@ -194,12 +229,68 @@ export default function Pricing() {
     <>
       <PaddleLoader />
 
-      <span
-        className="font_24 font-weight-600 flexRow flex_center"
-        style={{ marginTop: "32px" }}
-      >
-        Upgrade plan
-      </span>
+      {/* Hero Section */}
+      <section className="pricing-hero">
+        <div>
+          {" "}
+          <Image
+            src="/assets/journalx_navbar.svg"
+            alt="JournalX Logo"
+            width={80}
+            height={42}
+            priority
+          />
+        </div>
+        <div className="flexClm gap_4">
+          <span className="font_32 font_weight_600">
+            Upgrade to enjoy benefits
+          </span>
+          <span className="font_16 shade_50">Most affordable and trusted</span>
+        </div>
+        {/* <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="hero-content"
+        >
+          <div className="badge">
+            <Sparkles size={14} />
+            <span>TRUSTED BY 10,000+ TRADERS</span>
+          </div>
+
+          <h1 className="hero-title">
+            Trade Smarter.
+            <br />
+            <span className="gradient-text">Invest in Your Edge</span>
+          </h1>
+
+          <p className="hero-subtitle">
+            Professional tools that pay for themselves. Start free, upgrade when
+            ready.
+          </p>
+        </motion.div> */}
+
+        {/* Trust Indicators */}
+        {/* <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flexRow gap_32 flex_center"
+        >
+          <div className="trust-item">
+            <Shield size={16} className="text-success" />
+            <span>Lowest pricing</span>
+          </div>
+          <div className="trust-item">
+            <Lock size={16} className="text-success" />
+            <span>Full data encrypted</span>
+          </div>
+          <div className="trust-item">
+            <Check size={16} className="text-success" />
+            <span>Cancel anytime</span>
+          </div>
+        </motion.div> */}
+      </section>
 
       {/* Pricing Cards */}
       <section className="pricing-section">
@@ -272,8 +363,9 @@ export default function Pricing() {
           <PaymentModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            planTitle={PLANS_CONFIG[selectedPlan]?.title || ""}
-            planPrice={PLANS_CONFIG[selectedPlan]?.price || ""}
+            planTitle={PLANS_CONFIG[selectedPlan].title}
+            planPrice={PLANS_CONFIG[selectedPlan].price[currency]}
+            currency={currency}
             onPaymentOptionClick={handlePaymentOptionClick}
           />,
           document.body
