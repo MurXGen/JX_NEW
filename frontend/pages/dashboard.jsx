@@ -240,7 +240,11 @@ export default function Home() {
 
           <div
             className="flexRow gap_12 removeScrollBar"
-            style={{ overflowX: "auto", position: "relative" }}
+            style={{
+              overflowX: "auto",
+              position: "relative",
+              borderBottom: "1px solid #ffffff20",
+            }}
           >
             {tabs.map((tab) => (
               <button

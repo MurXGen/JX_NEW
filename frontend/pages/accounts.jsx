@@ -333,6 +333,10 @@ function Accounts() {
   const handleDragStart = () => setIsDragging(true);
   const handleDragEnd = () => setIsDragging(false);
 
+  if (loading) {
+    return <FullPageLoader />;
+  }
+
   return (
     <>
       <Head>
@@ -355,23 +359,26 @@ function Accounts() {
       </Head>
 
       <div
-        className="dashboard flexClm gap_32"
+        className="dashboard flexClm gap_24"
         style={{
           maxWidth: "1200px",
           minWidth: "300px",
-          margin: "12px auto",
-          padding: "0 12px 100px 12px",
+          margin: "24px auto",
+          padding: "0 12px 24px 12px",
         }}
       >
         {/* <Navbar /> */}
 
-        <div className="flexRow gap_12">
+        <div
+          className="flexRow gap_12"
+          style={{ borderBottom: "1px solid #ffffff20", padding: "0 0 24px 0" }}
+        >
           <div
             className="boxBg"
             style={{ padding: "12px 16px", cursor: "pointer" }}
             onClick={() => router.push("/profile")}
           >
-            <User2 size={14} />
+            <User2 size={16} className="vector" />
           </div>
           <div className="flexClm">
             <span className="font_16">Have a stressless day</span>
@@ -383,243 +390,243 @@ function Accounts() {
 
         <BackgroundBlur />
 
-        <SectionHeader
-          title="Journals"
-          description="Select your journal"
-          level={4} // uses <h2>
-          showButton={accounts.length > 0}
-          buttonLabel="Create journal"
-          onButtonClick={handleCreateAccount}
-          loading={loading}
-        />
-
         {/* Accounts List */}
-        {loading ? (
-          <div className="flexRow flex_center">
-            <div className="spinner"></div>
-          </div>
-        ) : (
-          <>
-            <div
-              className="accountsList flexClm gap_16"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-              {orderedAccounts.length === 0 ? (
-                <div
-                  className="notFound flexClm gap_16 flex_center"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <FiDatabase size={48} className="vector" />
-                  <div className="flexClm gap_8 flex_Center">
-                    <span
-                      className="font_16 font_weight_600"
-                      style={{ textAlign: "center" }}
+        <div className="flexClm gap_12">
+          <SectionHeader
+            title="Journals"
+            description="Select your journal"
+            level={4} // uses <h2>
+            showButton={accounts.length > 0}
+            buttonLabel="Create journal"
+            onButtonClick={handleCreateAccount}
+            loading={loading}
+          />
+          {loading ? (
+            <div className="flexRow flex_center">
+              <div className="spinner"></div>
+            </div>
+          ) : (
+            <>
+              <div
+                className="accountsList flexClm gap_16"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
+                {orderedAccounts.length === 0 ? (
+                  <div
+                    className="notFound flexClm gap_16 flex_center"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <FiDatabase size={48} className="vector" />
+                    <div className="flexClm gap_8 flex_Center">
+                      <span
+                        className="font_16 font_weight_600"
+                        style={{ textAlign: "center" }}
+                      >
+                        No journal found
+                      </span>
+                      <span className="font_12 shade_50">
+                        Create your first trading journal to get started
+                      </span>
+                    </div>
+                    <button
+                      className="button_pri flexRow flex_center gap_8"
+                      onClick={handleCreateAccount}
+                      disabled={loading}
                     >
-                      No journal found
-                    </span>
-                    <span className="font_12 shade_50">
-                      Create your first trading journal to get started
-                    </span>
+                      <Plus size={16} />
+                      <span>Create First Journal</span>
+                    </button>
                   </div>
-                  <button
-                    className="button_pri flexRow flex_center gap_8"
-                    onClick={handleCreateAccount}
-                    disabled={loading}
-                  >
-                    <Plus size={16} />
-                    <span>Create First Journal</span>
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {/* Draggable Accounts List */}
-                  <Reorder.Group
-                    as="div"
-                    axis="y"
-                    values={displayedAccounts} // <- use the rendered list
-                    onReorder={handleReorderVisible} // <- merge back to full order
-                    className="flexClm gap_16"
-                  >
-                    {displayedAccounts.map((acc) => {
-                      const lastTradedAccountId = Cookies.get("accountId");
-                      const isLastTraded = acc._id === lastTradedAccountId;
+                ) : (
+                  <>
+                    {/* Draggable Accounts List */}
+                    <Reorder.Group
+                      as="div"
+                      axis="y"
+                      values={displayedAccounts} // <- use the rendered list
+                      onReorder={handleReorderVisible} // <- merge back to full order
+                      className="flexClm gap_16"
+                    >
+                      {displayedAccounts.map((acc) => {
+                        const lastTradedAccountId = Cookies.get("accountId");
+                        const isLastTraded = acc._id === lastTradedAccountId;
 
-                      return (
-                        <Reorder.Item
-                          as="div"
-                          key={acc._id}
-                          value={acc}
-                          className="accountCardWrapper"
-                          onDragStart={handleDragStart}
-                          onDragEnd={handleDragEnd}
-                        >
-                          <div
-                            className={`accountCard flexClm gap_24 chart_boxBg ${
-                              isDragging ? "dragging" : ""
-                            } ${isLastTraded ? "lastTraded" : ""}`}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            layout
-                            onClick={() => handleAccountClick(acc._id)}
+                        return (
+                          <Reorder.Item
+                            as="div"
+                            key={acc._id}
+                            value={acc}
+                            className="accountCardWrapper"
+                            onDragStart={handleDragStart}
+                            onDragEnd={handleDragEnd}
                           >
-                            <div className="flexRow flexRow_stretch spaceBetween">
-                              <div className="flexClm">
-                                <div className="flexRow gap_8">
-                                  <span className="font_16 font_weight_600">
-                                    {acc.name}
-                                  </span>
-                                </div>
-                                <div className="flexRow gap_12 margin_top_4">
-                                  <span className="font_12 shade_50">
-                                    {tradesCount[acc.name] ?? 0} trades
-                                  </span>
-                                  {isLastTraded && (
-                                    <span className="font_12 success">
-                                      Active
+                            <div
+                              className={`accountCard flexClm gap_24 chart_boxBg ${
+                                isDragging ? "dragging" : ""
+                              } ${isLastTraded ? "lastTraded" : ""}`}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              layout
+                              onClick={() => handleAccountClick(acc._id)}
+                            >
+                              <div className="flexRow flexRow_stretch spaceBetween">
+                                <div className="flexClm">
+                                  <div className="flexRow gap_8">
+                                    <span className="font_16 font_weight_600">
+                                      {acc.name}
                                     </span>
-                                  )}
+                                  </div>
+                                  <div className="flexRow gap_12 margin_top_4">
+                                    <span className="font_12 shade_50">
+                                      {tradesCount[acc.name] ?? 0} trades
+                                    </span>
+                                    {isLastTraded && (
+                                      <span className="font_12 success">
+                                        Active
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
 
-                              <div className="flexRow gap_8 flex_center">
-                                {/* Drag Handle */}
-                                <div
-                                  className="dragHandle flexRow flex_center"
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.9 }}
-                                  title="Drag to reorder"
-                                >
-                                  <GripVertical
-                                    size={16}
-                                    className="shade_50"
+                                <div className="flexRow gap_8 flex_center">
+                                  {/* Drag Handle */}
+                                  <div
+                                    className="dragHandle flexRow flex_center"
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    title="Drag to reorder"
+                                  >
+                                    <GripVertical
+                                      size={16}
+                                      className="shade_50"
+                                    />
+                                  </div>
+
+                                  <ArrowRight
+                                    size={18}
+                                    className="vector cursor_pointer"
+                                    onClick={() => handleAccountClick(acc._id)}
                                   />
                                 </div>
-
-                                <ArrowRight
-                                  size={18}
-                                  className="vector cursor_pointer"
-                                  onClick={() => handleAccountClick(acc._id)}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="account-balances flexRow flexRow_stretch">
-                              <div className="flexRow gap_4">
-                                <span className="font_12 shade_50">
-                                  Starting
-                                </span>
-                                <span className="font_14 font_weight_600">
-                                  {formatCurrency(
-                                    acc.startingBalance.amount,
-                                    accountSymbols[acc.name]
-                                  )}
-                                </span>
                               </div>
 
-                              <div className="flexRow gap_4">
-                                <span className="font_12 shade_50">
-                                  Current
-                                </span>
-                                <span
-                                  className={`font_14 font_weight_600 ${
-                                    (currentBalances[acc.name] ??
-                                      acc.startingBalance.amount) >=
-                                    acc.startingBalance.amount
-                                      ? "success"
-                                      : "error"
-                                  }`}
-                                >
-                                  {formatCurrency(
-                                    currentBalances[acc.name] ??
+                              <div className="account-balances flexRow flexRow_stretch">
+                                <div className="flexRow gap_4">
+                                  <span className="font_12 shade_50">
+                                    Starting
+                                  </span>
+                                  <span className="font_14 font_weight_600">
+                                    {formatCurrency(
                                       acc.startingBalance.amount,
-                                    accountSymbols[acc.name]
-                                  )}
-                                </span>
+                                      accountSymbols[acc.name]
+                                    )}
+                                  </span>
+                                </div>
+
+                                <div className="flexRow gap_4">
+                                  <span className="font_12 shade_50">
+                                    Current
+                                  </span>
+                                  <span
+                                    className={`font_14 font_weight_600 ${
+                                      (currentBalances[acc.name] ??
+                                        acc.startingBalance.amount) >=
+                                      acc.startingBalance.amount
+                                        ? "success"
+                                        : "error"
+                                    }`}
+                                  >
+                                    {formatCurrency(
+                                      currentBalances[acc.name] ??
+                                        acc.startingBalance.amount,
+                                      accountSymbols[acc.name]
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Progress Bar (Optional) */}
+                              <div className="progressSection">
+                                <div className="progressBar">
+                                  <div
+                                    className="progressFill"
+                                    style={{
+                                      width: `${
+                                        ((currentBalances[acc.name] ??
+                                          acc.startingBalance.amount) /
+                                          acc.startingBalance.amount) *
+                                        100
+                                      }%`,
+                                    }}
+                                  />
+                                </div>
+                                <div className="flexRow flexRow_stretch font_12 shade_50">
+                                  <span>PnL:</span>
+                                  <span>
+                                    {formatCurrency(
+                                      (currentBalances[acc.name] ??
+                                        acc.startingBalance.amount) -
+                                        acc.startingBalance.amount,
+                                      accountSymbols[acc.name]
+                                    )}
+                                  </span>
+                                </div>
                               </div>
                             </div>
+                          </Reorder.Item>
+                        );
+                      })}
+                    </Reorder.Group>
 
-                            {/* Progress Bar (Optional) */}
-                            <div className="progressSection">
-                              <div className="progressBar">
-                                <div
-                                  className="progressFill"
-                                  style={{
-                                    width: `${
-                                      ((currentBalances[acc.name] ??
-                                        acc.startingBalance.amount) /
-                                        acc.startingBalance.amount) *
-                                      100
-                                    }%`,
-                                  }}
-                                />
-                              </div>
-                              <div className="flexRow flexRow_stretch font_12 shade_50">
-                                <span>PnL:</span>
-                                <span>
-                                  {formatCurrency(
-                                    (currentBalances[acc.name] ??
-                                      acc.startingBalance.amount) -
-                                      acc.startingBalance.amount,
-                                    accountSymbols[acc.name]
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </Reorder.Item>
-                      );
-                    })}
-                  </Reorder.Group>
+                    {/* Show More/Less Button */}
+                    {orderedAccounts.length > 2 && (
+                      <button
+                        className="button_sec flexRow gap_8 flex_center"
+                        onClick={() => setShowAllAccounts(!showAllAccounts)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        {showAllAccounts ? (
+                          <>
+                            <ChevronUp size={16} />
+                            <span>Show Less</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown size={16} />
+                            <span>
+                              Show {orderedAccounts.length - 2} more journals
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    )}
 
-                  {/* Show More/Less Button */}
-                  {orderedAccounts.length > 2 && (
-                    <button
-                      className="button_sec flexRow gap_8 flex_center"
-                      onClick={() => setShowAllAccounts(!showAllAccounts)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      {showAllAccounts ? (
-                        <>
-                          <ChevronUp size={16} />
-                          <span>Show Less</span>
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown size={16} />
-                          <span>
-                            Show {orderedAccounts.length - 2} more journals
-                          </span>
-                        </>
-                      )}
-                    </button>
-                  )}
-
-                  {/* Drag Hint */}
-                  {orderedAccounts.length > 1 && (
-                    <div
-                      className="dragHint flexRow gap_8 flex_center font_12 shade_50"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      <GripVertical size={12} />
-                      <span>Drag to reorder journals</span>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </>
-        )}
-
+                    {/* Drag Hint */}
+                    {orderedAccounts.length > 1 && (
+                      <div
+                        className="dragHint flexRow gap_8 flex_center font_12 shade_50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <GripVertical size={12} />
+                        <span>Drag to reorder journals</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
         {/* {accounts.length <= 0 && (
           <MessageCard
             type="info"

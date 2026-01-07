@@ -215,7 +215,7 @@ const AccountSetting = () => {
         style={{
           maxWidth: "1200px",
           minWidth: "300px",
-          margin: "12px auto",
+          margin: "24px auto",
           padding: "0 12px 100px 12px",
         }}
       >

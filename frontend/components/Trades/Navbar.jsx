@@ -13,12 +13,14 @@ import {
   Plus,
   BookTextIcon,
   ArrowLeft,
+  ListFilterIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import Cookies from "js-cookie";
 import { motion, AnimatePresence } from "framer-motion";
+import { ListFilter } from "lucide";
 
 export default function Navbar() {
   const router = useRouter();
@@ -105,17 +107,20 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="flexRow flexRow_stretch gap_4">
-        <div className="flexRow gap_8">
+      <div
+        className="flexRow flexRow_stretch gap_4"
+        style={{ marginTop: "8px" }}
+      >
+        <div className="flexRow gap_12">
           <div
             className="boxBg"
             onClick={() => router.push("/accounts")}
             style={{ cursor: "pointer", padding: "12px 16px" }}
           >
-            <ArrowLeft size={16} />
+            <ListFilterIcon size={16} />
           </div>
           <div className="flexClm">
-            <span className="font_16">Dashboard</span>
+            <span className="font_20">Dashboard</span>
           </div>
         </div>
 
@@ -132,7 +137,7 @@ export default function Navbar() {
         </div> */}
 
         {/* Free plan Crown */}
-        {isFreePlan && (
+        {/* {isFreePlan && (
           <div
             className="boxBg"
             onClick={handleUpgradeClick}
@@ -140,7 +145,7 @@ export default function Navbar() {
           >
             <Crown size={16} className="vector" />
           </div>
-        )}
+        )} */}
       </div>
 
       {/* ======= DROPDOWN ACCOUNT LIST ======= */}

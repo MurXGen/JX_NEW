@@ -69,8 +69,11 @@ export default function Overview({ trades }) {
       <div className="dashboardWide">
         <div className="otherStats flexClm gap_24">
           <div className="chart_boxBg flexClm gap_12">
-            <div className="flexRow flexRow_stretch gap_4 pad_16">
-              <span className="font_14">Gross P&amp;L</span>
+            <div
+              className="flexRow flexRow_stretch gap_4"
+              style={{ padding: "16px 16px 0 16px " }}
+            >
+              <span className="font_14">Net P&amp;L</span>
 
               <span className={`font_20 ${isProfit ? "success" : "error"}`}>
                 {isProfit ? "+" : ""}
