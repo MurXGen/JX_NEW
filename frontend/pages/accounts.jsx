@@ -29,6 +29,8 @@ import {
   TrendingUp,
   Upload,
   GripVertical,
+  User,
+  User2,
 } from "lucide-react";
 import Head from "next/head";
 import Link from "next/link";
@@ -362,11 +364,28 @@ function Accounts() {
         }}
       >
         {/* <Navbar /> */}
+
+        <div className="flexRow gap_12">
+          <div
+            className="boxBg"
+            style={{ padding: "12px 16px", cursor: "pointer" }}
+            onClick={() => router.push("/profile")}
+          >
+            <User2 size={14} />
+          </div>
+          <div className="flexClm">
+            <span className="font_16">Have a stressless day</span>
+            <span className="font_12 shade_50">
+              Let's make it a profitable day
+            </span>
+          </div>
+        </div>
+
         <BackgroundBlur />
 
         <SectionHeader
           title="Journals"
-          description="Select you journal"
+          description="Select your journal"
           level={4} // uses <h2>
           showButton={accounts.length > 0}
           buttonLabel="Create journal"
@@ -609,10 +628,10 @@ function Accounts() {
           />
         )} */}
 
-        <hr width="100" color="grey" />
+        {/* <hr width="100" color="grey" /> */}
 
         {/* Quick Actions Section */}
-        <div
+        {/* <div
           className="flexClm gap_24"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -693,7 +712,7 @@ function Accounts() {
               }
             })}
           </div>
-        </div>
+        </div> */}
 
         {/* <hr width="100" color="grey" /> */}
 

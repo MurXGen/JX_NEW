@@ -12,6 +12,7 @@ import {
   User2Icon,
   Plus,
   BookTextIcon,
+  ArrowLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
@@ -104,17 +105,22 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="flexRow flexRow_stretch gap_12">
-        <div
-          className="boxBg"
-          onClick={() => router.push("/profile")}
-          style={{ cursor: "pointer" }}
-        >
-          <User2Icon size={16} />
+      <div className="flexRow flexRow_stretch gap_4">
+        <div className="flexRow gap_8">
+          <div
+            className="boxBg"
+            onClick={() => router.push("/accounts")}
+            style={{ cursor: "pointer", padding: "12px 16px" }}
+          >
+            <ArrowLeft size={16} />
+          </div>
+          <div className="flexClm">
+            <span className="font_16">Dashboard</span>
+          </div>
         </div>
 
         {/* LEFT SECTION (ACCOUNT DROPDOWN TRIGGER) */}
-        <div
+        {/* <div
           className="boxBg width100 flexRow gap_12 flex_center"
           onClick={() => setShowDropdown((prev) => !prev)}
           style={{ cursor: "pointer" }}
@@ -123,14 +129,14 @@ export default function Navbar() {
             <span className="font_16">{selectedAccount.name}</span>
           )}
           <ChevronDown size={16} />
-        </div>
+        </div> */}
 
         {/* Free plan Crown */}
         {isFreePlan && (
           <div
             className="boxBg"
             onClick={handleUpgradeClick}
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", padding: "12px 16px" }}
           >
             <Crown size={16} className="vector" />
           </div>

@@ -34,7 +34,7 @@ const Profile = () => {
   };
 
   const handleBackClick = () => {
-    router.push("/dashboard");
+    router.push("/accounts");
   };
 
   if (loading) return <FullPageLoader />;

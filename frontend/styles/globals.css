@@ -982,29 +982,62 @@ textarea::placeholder {
 
 /* For bottom bar  */
 
-.icon-wrapper {
-  width: 36px;
-  height: 36px;
+.mobile-bottom-bar {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom);
+  left: 0;
+  right: 0;
+  height: 72px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  background: rgba(15, 15, 15, 0.75);
+  backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+  z-index: 50;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  color: #9ca3af;
+  font-size: 11px;
+  transition: color 0.2s ease;
+}
+
+.tab-content.active {
+  color: var(--primary);
+}
+
+.fab-wrapper {
+  position: relative;
+  top: -18px;
+}
+
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    background 0.25s,
-    color 0.25s;
-  color: var(--white-50);
+
+  color: white;
+  box-shadow: 0 10px 25px var(--primary-50);
 }
 
-.icon-wrapper.active {
-  border-radius: var(--px-8);
-}
-
-.add-btn {
-  background: var(--primary);
-  color: var(--base-text);
-  width: 44px;
-  height: 44px;
-  border-radius: var(--px-46);
-}
+/* End */
 
 .reason-boxes {
   display: flex;
@@ -6886,11 +6919,15 @@ footer {
 :root {
   --font-primary: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-accent: "Space Grotesk", "Inter", sans-serif;
-  --color-bg: #0a0a0a;
-  --color-surface: #1a1a1a;
+  --color-bg: var(--base-text);
+  --color-surface: var(--base-bg);
   --color-surface-light: #2a2a2a;
-  --color-primary: #3b82f6;
-  --color-primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  --color-primary: var(--base-text);
+  --color-primary-gradient: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary) 100%
+  );
   --color-success: #10b981;
   --color-text: #f8fafc;
   --color-text-secondary: #94a3b8;
@@ -6998,7 +7035,7 @@ footer {
 }
 
 .pricing-card.highlight {
-  border-color: var(--color-primary);
+  border-color: var(--primary);
   background: linear-gradient(
     135deg,
     rgba(59, 130, 246, 0.05),
@@ -7017,7 +7054,7 @@ footer {
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--color-primary-gradient);
+  background: var(--primary-50);
   color: white;
   padding: 8px 20px;
   border-radius: 100px;
@@ -7090,7 +7127,7 @@ footer {
 
 .feature-item {
   display: flex;
-  align-items: start;
+  align-items: center;
   gap: 12px;
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);

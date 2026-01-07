@@ -19,10 +19,14 @@ import TagAnalysis from "../Charts/TagAnalysis";
 import Timer from "../ui/Timer";
 import PnLAreaChart from "../Charts/PnLAreaChart";
 import SectionHeader from "../ui/SectionHeader";
+import { calculateStats } from "@/utils/calculateStats";
 
-export default function Overview({ stats, trades }) {
+export default function Overview({ trades }) {
   const currencyCode = localStorage.getItem("currencyCode");
+  const stats = calculateStats(trades);
 
+  const pnl = stats.netPnL || 0;
+  const isProfit = pnl >= 0;
   const [chartType, setChartType] = useState("dailyPnLChart");
 
   // Load chart preference from localStorage on mount
@@ -64,7 +68,19 @@ export default function Overview({ stats, trades }) {
     <div className="overview flexClm gap_32">
       <div className="dashboardWide">
         <div className="otherStats flexClm gap_24">
-          <Timer />
+          <div className="chart_boxBg flexClm gap_12">
+            <div className="flexRow flexRow_stretch gap_4 pad_16">
+              <span className="font_14">Gross P&amp;L</span>
+
+              <span className={`font_20 ${isProfit ? "success" : "error"}`}>
+                {isProfit ? "+" : ""}
+                {pnl.toFixed(2)}
+              </span>
+            </div>
+
+            <Timer />
+          </div>
+
           {/* 🔹 Total Trades */}
           <div
             className="totalTrades flexClm gap_12 chart_boxBg"

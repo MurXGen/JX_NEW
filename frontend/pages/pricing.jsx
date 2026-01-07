@@ -196,7 +196,23 @@ export default function Pricing() {
 
       {/* Hero Section */}
       <section className="pricing-hero">
-        <motion.div
+        <div>
+          {" "}
+          <Image
+            src="/assets/journalx_navbar.svg"
+            alt="JournalX Logo"
+            width={80}
+            height={42}
+            priority
+          />
+        </div>
+        <div className="flexClm gap_4">
+          <span className="font_32 font_weight_600">
+            Upgrade to enjoy benefits
+          </span>
+          <span className="font_16 shade_50">Most affordable and trusted</span>
+        </div>
+        {/* <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -217,10 +233,10 @@ export default function Pricing() {
             Professional tools that pay for themselves. Start free, upgrade when
             ready.
           </p>
-        </motion.div>
+        </motion.div> */}
 
         {/* Trust Indicators */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -238,7 +254,7 @@ export default function Pricing() {
             <Check size={16} className="text-success" />
             <span>Cancel anytime</span>
           </div>
-        </motion.div>
+        </motion.div> */}
       </section>
 
       {/* Pricing Cards */}
