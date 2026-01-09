@@ -117,7 +117,7 @@ const TradePage = () => {
           maxWidth: "800px",
           minWidth: "300px",
           margin: "32px auto",
-          padding: "0 16px",
+          padding: "0 16px 60px 16px",
         }}
       >
         <BottomBar />

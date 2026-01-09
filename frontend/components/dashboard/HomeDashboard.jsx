@@ -3,6 +3,7 @@ import {
   ArrowDownRightIcon,
   ArrowUp,
   ArrowUpRightIcon,
+  Timer,
 } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
 import DailyPnlChart from "../Charts/DailyPnlChart";
@@ -164,6 +165,8 @@ export default function HomeContent({
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const [openSection, setOpenSection] = useState("overview");
+  const pnl = stats.netPnL || 0;
+  const isProfit = pnl >= 0;
 
   const toggle = (name) => {
     setOpenSection(openSection === name ? null : name);
@@ -195,6 +198,17 @@ export default function HomeContent({
       <div className="flexClm gap_24">
         {/* Overview section starts */}
         <span className="font_16 font_weight_500">Overview</span>
+
+        <div className="chart_boxBg flexClm gap_12">
+          <div className="flexRow flexRow_stretch gap_4 pad_16">
+            <span className="font_14">Net P&amp;L</span>
+
+            <span className={`font_20 ${isProfit ? "success" : "error"}`}>
+              {isProfit ? "+" : ""}
+              {pnl.toFixed(2)}
+            </span>
+          </div>
+        </div>
 
         <div className="flexRow flexRow_stretch gap_24">
           <TradesCard

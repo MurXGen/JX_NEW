@@ -369,22 +369,26 @@ function Accounts() {
       >
         {/* <Navbar /> */}
 
-        <div
-          className="flexRow gap_12"
-          style={{ borderBottom: "1px solid #ffffff20", padding: "0 0 24px 0" }}
-        >
+        <div className="flexRow flexRow_stretch">
+          <div className="flexRow gap_12">
+            <div
+              className="boxBg"
+              style={{ padding: "12px 16px", cursor: "pointer" }}
+              onClick={() => router.push("/profile")}
+            >
+              <User2 size={16} />
+            </div>
+            <div className="flexClm">
+              <span className="font_20">Journals</span>
+            </div>
+          </div>
           <div
-            className="boxBg"
+            className="boxBg flexRow gap_4"
             style={{ padding: "12px 16px", cursor: "pointer" }}
             onClick={() => router.push("/profile")}
           >
-            <User2 size={16} className="vector" />
-          </div>
-          <div className="flexClm">
-            <span className="font_16">Have a stressless day</span>
-            <span className="font_12 shade_50">
-              Let's make it a profitable day
-            </span>
+            <Plus size={16} />
+            <span className="font_14">Create journal</span>
           </div>
         </div>
 
@@ -392,15 +396,6 @@ function Accounts() {
 
         {/* Accounts List */}
         <div className="flexClm gap_12">
-          <SectionHeader
-            title="Journals"
-            description="Select your journal"
-            level={4} // uses <h2>
-            showButton={accounts.length > 0}
-            buttonLabel="Create journal"
-            onButtonClick={handleCreateAccount}
-            loading={loading}
-          />
           {loading ? (
             <div className="flexRow flex_center">
               <div className="spinner"></div>
