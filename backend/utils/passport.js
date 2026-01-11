@@ -29,7 +29,7 @@ passport.use(
             googleId: profile.id,
             subscriptionPlan: "pro",
             subscriptionStatus: "active",
-            subscriptionType: "none",
+            subscriptionType: "one-time",
             subscriptionStartAt: now,
             subscriptionExpiresAt: expiry,
             subscriptionCreatedAt: now,

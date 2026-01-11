@@ -385,7 +385,7 @@ function Accounts() {
           <div
             className="boxBg flexRow gap_4"
             style={{ padding: "12px 16px", cursor: "pointer" }}
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/create-account")}
           >
             <Plus size={16} />
             <span className="font_14">Create journal</span>
