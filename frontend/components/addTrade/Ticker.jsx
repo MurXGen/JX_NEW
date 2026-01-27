@@ -21,7 +21,7 @@ const Ticker = ({ form, setForm }) => {
 
     if (upperValue.trim()) {
       const filtered = storedSymbols.filter((sym) =>
-        sym.toUpperCase().includes(upperValue)
+        sym.toUpperCase().includes(upperValue),
       );
       setFilteredSymbols(filtered);
     } else {
@@ -65,10 +65,7 @@ const Ticker = ({ form, setForm }) => {
   return (
     <div className="">
       {/* Symbol Input with Clear Icon */}
-      <div
-        className="gridContainer flexClm gap_12"
-        style={{ position: "relative" }}
-      >
+      <div className="flexRow gap_12" style={{ position: "relative" }}>
         <div className="inputLabelShift flexRow gap_12">
           <input
             name="symbol"
@@ -137,6 +134,7 @@ const Ticker = ({ form, setForm }) => {
             borderRadius: "var(--px-12)",
             maxHeight: "150px",
             overflowY: "auto",
+            marginTop: "12px",
           }}
         >
           {filteredSymbols.map((sym) => (

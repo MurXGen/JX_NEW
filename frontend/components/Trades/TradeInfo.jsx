@@ -298,22 +298,26 @@ const TradeInfo = ({ onClose }) => {
 
             {/* Trade Details Grid */}
             {/* {trade.tradeStatus === "running" && ( */}
-            <div className="quantityGrid">
-              <div className="boxBg flexClm gap_12">
-                <span className="font_12 shade_50">Quantity</span>
-                <span className="font_14">{trade.quantityUSD} USD</span>
-              </div>
-              <div className="boxBg flexClm gap_12">
-                <span className="font_12 shade_50">Leverage</span>
-                <span className="font_14">{trade.leverage}x</span>
-              </div>
-              <div className="boxBg flexClm gap_12">
-                <span className="font_12 shade_50">Total Quantity</span>
-                <span className="font_14">{trade.totalQuantity}</span>
-              </div>
-            </div>
+            {trade.quantityUSD > 0 && (
+              <>
+                <div className="quantityGrid">
+                  <div className="boxBg flexClm gap_12">
+                    <span className="font_12 shade_50">Quantity</span>
+                    <span className="font_14">{trade.quantityUSD} USD</span>
+                  </div>
 
-            <div className="sectionDivider" />
+                  <div className="boxBg flexClm gap_12">
+                    <span className="font_12 shade_50">Leverage</span>
+                    <span className="font_14">{trade.leverage}x</span>
+                  </div>
+                  <div className="boxBg flexClm gap_12">
+                    <span className="font_12 shade_50">Total Quantity</span>
+                    <span className="font_14">{trade.totalQuantity}</span>
+                  </div>
+                  <div className="sectionDivider" />
+                </div>
+              </>
+            )}
 
             {trade.tradeStatus === "closed" && (
               <>
@@ -461,7 +465,7 @@ const TradeInfo = ({ onClose }) => {
                               day: "2-digit",
                               month: "short",
                               year: "numeric",
-                            }
+                            },
                           )}
                         </span>
                         <span
@@ -474,7 +478,7 @@ const TradeInfo = ({ onClose }) => {
                               hour: "2-digit",
                               minute: "2-digit",
                               hour12: true,
-                            }
+                            },
                           )}
                         </span>
                       </div>
@@ -501,14 +505,13 @@ const TradeInfo = ({ onClose }) => {
                   </div>
                 )}
               </div>
-              <div className="sectionDivider" />
             </div>
 
             {/* ✅ Normalize reason before rendering */}
             {trade.reason?.length > 0 && (
               <>
                 <div className="notesCard">
-                  <div className="flexRow">
+                  <div className="flexRow gap_12">
                     {(() => {
                       let reasons = [];
 
@@ -534,8 +537,8 @@ const TradeInfo = ({ onClose }) => {
                       ));
                     })()}
                   </div>
+                  <div className="sectionDivider" />
                 </div>
-                <div className="sectionDivider" />
               </>
             )}
 

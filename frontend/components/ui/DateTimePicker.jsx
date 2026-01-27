@@ -8,14 +8,14 @@ export default function DateTimePicker({
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(() =>
-    value ? new Date(value) : new Date()
+    value ? new Date(value) : new Date(),
   );
   const modalRef = useRef(null);
 
   const currentYear = new Date().getFullYear();
   const years = useMemo(
     () => Array.from({ length: 11 }, (_, i) => currentYear - i),
-    [currentYear]
+    [currentYear],
   );
 
   const months = [
@@ -36,7 +36,7 @@ export default function DateTimePicker({
   const daysInMonth = new Date(
     draft.getFullYear(),
     draft.getMonth() + 1,
-    0
+    0,
   ).getDate();
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -212,7 +212,7 @@ export default function DateTimePicker({
                   {renderWheel(
                     months.map((m) => m),
                     months[activeMonth],
-                    (m) => setMonth(months.indexOf(m))
+                    (m) => setMonth(months.indexOf(m)),
                   )}
                 </div>
                 <div className="flexClm flex_center gap_12 font_12">
