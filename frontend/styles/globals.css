@@ -775,6 +775,20 @@ button:disabled {
   text-shadow: 0 0 46px var(--error);
 }
 
+.add_trade_btn_container {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 100%;
+  z-index: 10;
+}
+
+.add_trade_btn {
+  margin: var(--px-12);
+}
+
 .removeScrollBar {
   scrollbar-width: none;
   /* Firefox */

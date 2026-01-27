@@ -54,7 +54,7 @@ const TradesHistory = ({
   useEffect(() => {
     const isNewTrade = location.query?.isNewTrade === "true";
     const storedFormData = JSON.parse(
-      sessionStorage.getItem("newTradeData") || "null"
+      sessionStorage.getItem("newTradeData") || "null",
     );
     const isEdit = sessionStorage.getItem("isEditTrade") === "true";
 
@@ -69,10 +69,28 @@ const TradesHistory = ({
     }
   }, []);
 
+  const normalizeDateTime = (value) => {
+    if (!value) return null;
+
+    // If value is date-only (YYYY-MM-DD), attach current local time
+    if (!value.includes("T")) {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+
+      const localDateTime = `${value}T${pad(
+        now.getHours(),
+      )}:${pad(now.getMinutes())}`;
+
+      return new Date(localDateTime).toISOString();
+    }
+
+    // Full datetime-local → convert to UTC
+    return new Date(value).toISOString();
+  };
+
   const submitNewTrade = async (formData, isEdit = false) => {
     try {
       const apiFormData = new FormData();
-
       const accountId = Cookies.get("accountId");
 
       // Ensure only a single string is sent
@@ -80,20 +98,28 @@ const TradesHistory = ({
         const parsed = Array.isArray(accountId)
           ? accountId[0]
           : typeof accountId === "string" && accountId.includes("[")
-          ? JSON.parse(accountId)[0]
-          : accountId;
+            ? JSON.parse(accountId)[0]
+            : accountId;
 
         apiFormData.append("accountId", parsed);
       }
 
+      // ✅ Normalize datetime BEFORE appending
+      const normalizedFormData = {
+        ...formData,
+        openTime: normalizeDateTime(formData.openTime),
+        closeTime: normalizeDateTime(formData.closeTime),
+      };
+
       // Append all serializable fields (skip previews and _id)
-      Object.entries(formData).forEach(([key, value]) => {
+      Object.entries(normalizedFormData).forEach(([key, value]) => {
         if (
           key === "_id" ||
           key === "openImagePreview" ||
           key === "closeImagePreview"
         )
           return;
+
         if (Array.isArray(value) || typeof value === "object") {
           apiFormData.append(key, JSON.stringify(value));
         } else if (value !== undefined && value !== null) {
@@ -104,7 +130,7 @@ const TradesHistory = ({
       // --- Handle images from localStorage ---
       const openImagePayload = localStorage.getItem("newTradeImage_openImage");
       const closeImagePayload = localStorage.getItem(
-        "newTradeImage_closeImage"
+        "newTradeImage_closeImage",
       );
 
       if (openImagePayload) {
@@ -112,7 +138,7 @@ const TradesHistory = ({
           const { dataUrl, name, type } = JSON.parse(openImagePayload);
           const file = dataUrlToFile(dataUrl, name, type);
           apiFormData.append("openImage", file);
-        } catch (err) {}
+        } catch {}
       }
 
       if (closeImagePayload) {
@@ -120,31 +146,28 @@ const TradesHistory = ({
           const { dataUrl, name, type } = JSON.parse(closeImagePayload);
           const file = dataUrlToFile(dataUrl, name, type);
           apiFormData.append("closeImage", file);
-        } catch (err) {}
+        } catch {}
       }
 
-      // --- Send removal flags to backend ---
+      // --- Removal flags ---
       apiFormData.append(
         "removeOpenImage",
-        formData.openImageRemoved ? "true" : "false"
+        formData.openImageRemoved ? "true" : "false",
       );
       apiFormData.append(
         "removeCloseImage",
-        formData.closeImageRemoved ? "true" : "false"
+        formData.closeImageRemoved ? "true" : "false",
       );
-
-      // ✅ Debug logs to verify what’s sent
-      for (let pair of apiFormData.entries()) {
-      }
 
       // --- Submit request ---
       let res;
+
       if (isEdit) {
         const tradeId = localStorage.getItem(TRADE_KEY);
         res = await axios.put(
           `${API_BASE}/api/trades/update/${tradeId}`,
           apiFormData,
-          { withCredentials: true }
+          { withCredentials: true },
         );
       } else {
         const tempId = `temp-${Date.now()}`;
@@ -153,7 +176,7 @@ const TradesHistory = ({
             _id: tempId,
             loading: true,
             symbol: formData.symbol || "N/A",
-            openTime: new Date().toISOString(),
+            openTime: normalizedFormData.openTime, // ✅ local → UTC safe
             pnl: 0,
           },
           ...prev,
@@ -165,9 +188,8 @@ const TradesHistory = ({
       }
 
       if (res.data?.success) {
-        const { trade, message } = res.data; // now backend returns single trade
+        const { trade, message } = res.data;
 
-        // 🔁 Update only that trade in IndexedDB
         const userData = (await getFromIndexedDB("user-data")) || {};
         const allTrades = userData.trades || [];
 
@@ -175,21 +197,20 @@ const TradesHistory = ({
           ? allTrades.map((t) => (t._id === trade._id ? trade : t))
           : [trade, ...allTrades];
 
-        const newUserData = { ...userData, trades: updatedTrades };
+        await saveToIndexedDB("user-data", {
+          ...userData,
+          trades: updatedTrades,
+        });
 
-        await saveToIndexedDB("user-data", newUserData);
-
-        // ✅ Refresh displayed trades (no full refetch)
-        const accountId = Cookies.get("accountId");
         const accountTrades = updatedTrades.filter(
-          (t) => t.accountId === accountId
+          (t) => t.accountId === Cookies.get("accountId"),
         );
 
-        const sortedTrades = accountTrades.sort(
-          (a, b) => new Date(b.openTime) - new Date(a.openTime)
+        setDisplayedTrades(
+          accountTrades.sort(
+            (a, b) => new Date(b.openTime) - new Date(a.openTime),
+          ),
         );
-
-        setDisplayedTrades(sortedTrades);
 
         setToast({
           type: "success",
@@ -200,18 +221,15 @@ const TradesHistory = ({
               : "Trade added successfully!"),
         });
 
-        // cleanup + redirect
         localStorage.removeItem("newTradeImage_openImage");
         localStorage.removeItem("newTradeImage_closeImage");
         sessionStorage.removeItem("newTradeData");
         sessionStorage.removeItem("isEditTrade");
-
-        // setTimeout(() => router.push("/trade"), 1200);
       } else {
         throw new Error("Upload failed");
       }
     } catch (err) {
-      setDisplayedTrades((prev) => prev.filter((trade) => !trade.loading));
+      setDisplayedTrades((prev) => prev.filter((t) => !t.loading));
       setToast({ type: "error", message: err.message || "Upload failed" });
     } finally {
       setLoadingNewTrade(false);
@@ -233,7 +251,7 @@ const TradesHistory = ({
           if (!counts[dateKey]) {
             counts[dateKey] = 3; // show 3 trades initially
           }
-        }
+        },
       );
       setVisibleTradesCount(counts);
     }
@@ -332,7 +350,7 @@ const TradesHistory = ({
   const applyFilters = (
     month = selectedMonth,
     year = selectedYear,
-    pnlFilter = filter
+    pnlFilter = filter,
   ) => {
     let filtered = Array.isArray(trades) ? [...trades] : [];
 
@@ -460,7 +478,7 @@ const TradesHistory = ({
                                     : "N/A"}{" "}
                                   {trade.closeTime &&
                                   !isNaN(
-                                    new Date(trade.closeTime).getTime()
+                                    new Date(trade.closeTime).getTime(),
                                   ) ? (
                                     <>
                                       {" → "}
@@ -474,7 +492,7 @@ const TradesHistory = ({
                                   ) : (
                                     trade.openTime &&
                                     !isNaN(
-                                      new Date(trade.openTime).getTime()
+                                      new Date(trade.openTime).getTime(),
                                     ) && (
                                       <span className="flex">
                                         <span className="pulseDot"></span>{" "}
@@ -488,7 +506,7 @@ const TradesHistory = ({
 
                             <div
                               className={`font_16 ${getPnlColorClass(
-                                trade.pnl
+                                trade.pnl,
                               )}`}
                             >
                               {trade.pnl > 0 ? "+" : ""}

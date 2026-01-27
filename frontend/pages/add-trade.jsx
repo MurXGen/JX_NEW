@@ -944,14 +944,13 @@ export default function AddTrade() {
       </form>
 
       {/* ✅ Submit & Cancel */}
-      <div className="">
-        <span className="font_12 shade_50">Choose other factors</span>
+      <div className="add_trade_btn_container">
+        <span className="font_12 shade_50 add_trade_btn">
+          Choose other factors
+        </span>
         {/* 🔘 Bottom Buttons for opening modals */}
         {visibleButtons.length > 0 && (
-          <div
-            className="flexRow gap_12 flexRow_scroll removeScrollBar"
-            style={{ padding: "16px 0" }}
-          >
+          <div className="flexRow gap_12 flexRow_scroll removeScrollBar add_trade_btn">
             {visibleButtons.map((key) => (
               <button
                 key={key}
@@ -965,9 +964,9 @@ export default function AddTrade() {
             ))}
           </div>
         )}
-        <div className="flexRow flexRow_stretch gap_4">
+        <div className="flexRow flexRow_stretch gap_4 ">
           <button
-            className="button_pri"
+            className="button_pri add_trade_btn"
             onClick={handleSubmit}
             disabled={loading}
           >

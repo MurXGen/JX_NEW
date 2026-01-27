@@ -12,12 +12,12 @@ import TakeProfitSection from "@/components/addTrade/TP";
 import Ticker from "@/components/addTrade/Ticker";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import ModalWrapper from "@/components/ui/ModalWrapper";
-import StepWizard from "@/components/ui/StepWizard";
 import ToastMessage from "@/components/ui/ToastMessage";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { formatNumber } from "@/utils/formatNumbers"; //
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import Cookies from "js-cookie";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 
@@ -54,14 +54,15 @@ export default function AddTrade() {
     );
   };
 
-  const now = new Date().toISOString();
+  const now = getLocalDateTime(new Date());
+
   const [form, setForm] = useState({
     symbol: "",
     direction: "long",
     quantityUSD: "",
     leverage: "1",
-    totalQuantity: 0,
-    tradeStatus: "running",
+    totalQuantity: "0",
+    tradeStatus: "quick",
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
     tps: [{ mode: "price", price: "", percent: "", allocation: "" }],
@@ -74,8 +75,6 @@ export default function AddTrade() {
     avgSLPrice: "",
     avgTPPrice: "",
     openTime: now,
-
-    // ✅ Automatically handle close time based on tradeStatus
     closeTime: now,
 
     // Fee Fields
@@ -111,8 +110,6 @@ export default function AddTrade() {
 
   const validateForm = (form) => {
     if (!form.symbol.trim()) return "Symbol name is required";
-    if (!form.quantityUSD || Number(form.quantityUSD) <= 0)
-      return "Margin is required";
 
     if (form.tradeStatus === "quick") {
       if (form.pnl === "" || form.pnl === null)
@@ -172,6 +169,19 @@ export default function AddTrade() {
 
   // 🔍 detect edit mode
   const isEdit = router.query.mode === "edit" || router.query.mode === "close";
+
+  useEffect(() => {
+    if (!isEdit && form.tradeStatus === "quick") {
+      setForm((prev) => ({
+        ...prev,
+        closeTime: getLocalDateTime(new Date()),
+      }));
+    }
+
+    if (form.tradeStatus === "running") {
+      setForm((prev) => ({ ...prev, closeTime: null }));
+    }
+  }, [form.tradeStatus, isEdit]);
 
   useEffect(() => {
     const prefillTrade = async () => {
@@ -316,14 +326,14 @@ export default function AddTrade() {
           const accountId = Cookies.get("accountId"); // ✅ active account from cookies
 
           const activeAccount = cachedUser.accounts.find(
-            (acc) => acc._id === accountId
+            (acc) => acc._id === accountId,
           );
 
           if (activeAccount?.currency) {
             setCurrencySymbol(getCurrencySymbol(activeAccount.currency));
           } else {
             console.warn(
-              "⚠️ No matching account found or missing currency field."
+              "⚠️ No matching account found or missing currency field.",
             );
           }
         } else {
@@ -374,7 +384,7 @@ export default function AddTrade() {
 
       if (x.mode === "percent" && x.percent !== "") {
         price = Number(
-          calcPriceFromPercent(avgEntryPrice, x.percent, direction)
+          calcPriceFromPercent(avgEntryPrice, x.percent, direction),
         );
       } else {
         price = Number(x.price);
@@ -403,7 +413,7 @@ export default function AddTrade() {
       // calculate remaining allocation
       const usedOther = entries.reduce(
         (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
-        0
+        0,
       );
       const remaining = Math.max(0, 100 - usedOther);
 
@@ -414,7 +424,7 @@ export default function AddTrade() {
       // calculate total allocation
       const totalAllocated = entries.reduce(
         (sum, e) => sum + Number(e.allocation || 0),
-        0
+        0,
       );
 
       // if < 100 and this is last entry → add new slot
@@ -463,7 +473,7 @@ export default function AddTrade() {
       // calculate remaining allocation
       const usedOther = exits.reduce(
         (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
-        0
+        0,
       );
       const remaining = Math.max(0, 100 - usedOther);
 
@@ -474,7 +484,7 @@ export default function AddTrade() {
       // calculate total allocated
       const totalAllocated = exits.reduce(
         (sum, e) => sum + Number(e.allocation || 0),
-        0
+        0,
       );
 
       // if < 100 and this is last exit → add new slot
@@ -498,7 +508,7 @@ export default function AddTrade() {
             ? calcPriceFromPercent(
                 form.avgEntryPrice,
                 e.percent,
-                prev.direction
+                prev.direction,
               )
             : e.price;
 
@@ -529,7 +539,7 @@ export default function AddTrade() {
 
       const usedOther = sls.reduce(
         (sum, sl, i) => (i !== idx ? sum + Number(sl.allocation || 0) : sum),
-        0
+        0,
       );
       const remaining = Math.max(0, 100 - usedOther);
 
@@ -538,7 +548,7 @@ export default function AddTrade() {
 
       const totalAllocated = sls.reduce(
         (sum, sl) => sum + Number(sl.allocation || 0),
-        0
+        0,
       );
       if (totalAllocated < 100 && idx === sls.length - 1) {
         sls.push({ mode: "price", price: "", percent: "", allocation: "" });
@@ -560,7 +570,7 @@ export default function AddTrade() {
           slPrice = calcPriceFromPercent(
             form.avgEntryPrice,
             percentNum, // <-- negative keeps it below, positive adds above
-            prev.direction
+            prev.direction,
           );
         } else {
           slPrice = s.price;
@@ -593,7 +603,7 @@ export default function AddTrade() {
 
       const usedOther = tps.reduce(
         (sum, tp, i) => (i !== idx ? sum + Number(tp.allocation || 0) : sum),
-        0
+        0,
       );
       const remaining = Math.max(0, 100 - usedOther);
 
@@ -602,7 +612,7 @@ export default function AddTrade() {
 
       const totalAllocated = tps.reduce(
         (sum, tp) => sum + Number(tp.allocation || 0),
-        0
+        0,
       );
       if (totalAllocated < 100 && idx === tps.length - 1) {
         tps.push({ mode: "price", price: "", percent: "", allocation: "" });
@@ -619,7 +629,7 @@ export default function AddTrade() {
             ? calcPriceFromPercent(
                 form.avgEntryPrice,
                 t.percent,
-                prev.direction
+                prev.direction,
               )
             : t.price;
 
@@ -874,24 +884,30 @@ export default function AddTrade() {
   if (tradeStatus === "running") hiddenKeys = ["exits", "closetime"];
   else if (tradeStatus === "closed") hiddenKeys = ["stoploss", "takeprofit"];
   else if (tradeStatus === "quick")
-    hiddenKeys = [
-      "stoploss",
-      "takeprofit",
-      "entries",
-      "exits",
-      "opentime",
-      "closetime",
-    ];
+    hiddenKeys = ["stoploss", "takeprofit", "entries", "exits"];
 
   const visibleButtons = Object.keys(modalComponents).filter(
-    (key) => !hiddenKeys.includes(key)
+    (key) => !hiddenKeys.includes(key),
   );
 
   return (
-    <div className="flexClm gap_32" style={{ paddingBottom: "100px" }}>
-      <div className="flexClm gap_4">
-        <span className="font_20">Add trade</span>
-        <span className="font_12 shade_60">Log trade in seconds</span>
+    <div
+      className="flexClm gap_32"
+      style={{
+        maxWidth: "1200px",
+        minWidth: "300px",
+        margin: "24px auto",
+        padding: "0 12px 100px 12px",
+      }}
+    >
+      <div className="flexRow gap_8">
+        <button
+          className="button_sec flexRow flex-center"
+          onClick={() => router.push("/trade")}
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <span className="font_16">Add trade</span>
       </div>
 
       <form onSubmit={handleSubmit} className="flexClm gap_24">
@@ -914,10 +930,6 @@ export default function AddTrade() {
               currency={currencySymbol}
               handleChange={handleChange}
             />
-
-            {/* Show Open Image + Close Time directly */}
-            {modalComponents.opentime}
-            {modalComponents.closetime}
           </>
         )}
 
@@ -932,15 +944,7 @@ export default function AddTrade() {
       </form>
 
       {/* ✅ Submit & Cancel */}
-      <div
-        className="popups_btm"
-        style={{
-          width: "98%",
-          backdropFilter: "blur(20px)",
-          bottom: "0px",
-          padding: "0 12px 12px 12px",
-        }}
-      >
+      <div className="">
         <span className="font_12 shade_50">Choose other factors</span>
         {/* 🔘 Bottom Buttons for opening modals */}
         {visibleButtons.length > 0 && (
@@ -952,7 +956,6 @@ export default function AddTrade() {
               <button
                 key={key}
                 className="button_sec"
-                style={{ minWidth: "100px", maxWidth: "300px" }}
                 onClick={() => openModal(key)}
               >
                 {key
@@ -962,17 +965,9 @@ export default function AddTrade() {
             ))}
           </div>
         )}
-        <div className="flexRow flexRow_stretch gap_4">
-          <button
-            className="button_sec"
-            style={{ width: "100%" }}
-            onClick={() => router.push("/trade")}
-          >
-            Cancel
-          </button>
+        <div className="flexRow flexRow_stretch gap_4 add_trade_btn">
           <button
             className="button_pri"
-            style={{ width: "100%" }}
             onClick={handleSubmit}
             disabled={loading}
           >
