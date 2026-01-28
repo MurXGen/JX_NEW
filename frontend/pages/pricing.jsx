@@ -93,7 +93,7 @@ export const PLANS_CONFIG = {
   free: {
     title: "Free",
     price: currency === "INR" ? "₹0" : "$0",
-    amount: currency === "INR" ? "₹0" : "$0",
+    amount: currency === "INR" ? "0" : "0",
     currency,
     period: "monthly",
     planName: "Pro",
@@ -103,8 +103,8 @@ export const PLANS_CONFIG = {
   },
   monthly: {
     title: "Pro Monthly",
-    price: currency === "INR" ? "₹299" : "$3.49",
-    amount: currency === "INR" ? "299" : "3.49",
+    price: currency === "INR" ? "₹149" : "$3.49",
+    amount: currency === "INR" ? "3.49" : "3.49",
     currency,
     period: "monthly",
     planName: "Pro",
@@ -115,8 +115,8 @@ export const PLANS_CONFIG = {
 
   yearly: {
     title: "Pro Yearly",
-    price: currency === "INR" ? "₹2,499" : "$29.99",
-    amount: currency === "INR" ? "2499" : "29.99",
+    price: currency === "INR" ? "₹1,999" : "$29.99",
+    amount: currency === "INR" ? "29.99" : "29.99",
     currency,
     period: "yearly",
     planName: "Pro",
@@ -129,7 +129,7 @@ export const PLANS_CONFIG = {
   lifetime: {
     title: "Lifetime",
     price: currency === "INR" ? "₹7,999" : "$99",
-    amount: currency === "INR" ? "7999" : "99",
+    amount: currency === "INR" ? "99" : "99",
     currency,
     period: "lifetime",
     planName: "Lifetime",
