@@ -574,10 +574,10 @@ const TradesHistory = ({
             )}
 
             {displayedTrades.length < trades.length && (
-              <div className="upgrade-hint">
-                Showing last 30 days of trades.
+              <div className="chart_boxBg pad_16 flexClm gap_12">
+                <span className="font_14">Showing last 30 days of trades.</span>
                 <button
-                  className="upgrade-btn width100"
+                  className="upgrade_btn width100"
                   onClick={() => router.push("/pricing")}
                 >
                   Upgrade to view full history
