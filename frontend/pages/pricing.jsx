@@ -41,32 +41,96 @@ const PLANS_FEATURES = {
   ],
 };
 
-const PLANS_CONFIG = {
+const INR_PRICES = {
   monthly: {
-    title: "Pro Monthly",
-    price: "$3.49",
-    amount: "3.49",
+    price: "₹299",
+    amount: "299",
+  },
+  yearly: {
+    price: "₹2,499",
+    amount: "2499",
+  },
+  lifetime: {
+    price: "₹7,999",
+    amount: "7999",
+  },
+};
+
+const getUserCurrency = () => {
+  console.log("🌍 getUserCurrency called");
+
+  if (typeof window === "undefined") {
+    console.log("🟥 Running on server → defaulting to USD");
+    return "USD";
+  }
+
+  const locale = navigator.language || "";
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+
+  console.log("🟢 Running on client");
+  console.log("🌐 Browser locale:", locale);
+  console.log("⏰ Browser timezone:", timeZone);
+
+  if (locale.startsWith("en-IN")) {
+    console.log("🇮🇳 Detected India via locale");
+    return "INR";
+  }
+
+  if (timeZone.includes("Asia/Calcutta")) {
+    console.log("🇮🇳 Detected India via timezone");
+    return "INR";
+  }
+
+  console.log("🌎 Defaulting to USD");
+  return "USD";
+};
+
+const currency = getUserCurrency();
+
+console.log("💱 Final detected currency:", currency);
+
+export const PLANS_CONFIG = {
+  free: {
+    title: "Free",
+    price: currency === "INR" ? "₹0" : "$0",
+    amount: currency === "INR" ? "₹0" : "$0",
+    currency,
     period: "monthly",
     planName: "Pro",
     tagline: "Flexible monthly access",
     popular: false,
     paddlePriceId: monthlyPriceId,
   },
+  monthly: {
+    title: "Pro Monthly",
+    price: currency === "INR" ? "₹299" : "$3.49",
+    amount: currency === "INR" ? "299" : "3.49",
+    currency,
+    period: "monthly",
+    planName: "Pro",
+    tagline: "Flexible monthly access",
+    popular: false,
+    paddlePriceId: monthlyPriceId,
+  },
+
   yearly: {
     title: "Pro Yearly",
-    price: "$29.99",
-    amount: "29.99",
+    price: currency === "INR" ? "₹2,499" : "$29.99",
+    amount: currency === "INR" ? "2499" : "29.99",
+    currency,
     period: "yearly",
     planName: "Pro",
-    tagline: "Most popular - Save 28%",
+    tagline: "Most popular • Save 28%",
     popular: true,
     savings: "28%",
     paddlePriceId: yearlyPriceId,
   },
+
   lifetime: {
     title: "Lifetime",
-    price: "$99",
-    amount: "99",
+    price: currency === "INR" ? "₹7,999" : "$99",
+    amount: currency === "INR" ? "7999" : "99",
+    currency,
     period: "lifetime",
     planName: "Lifetime",
     tagline: "One payment, forever access",
@@ -105,7 +169,7 @@ export default function Pricing() {
 
         closeCallback: () => {
           console.log(
-            "🔄 Checkout closed – starting subscription verification..."
+            "🔄 Checkout closed – starting subscription verification...",
           );
           startSubscriptionPolling();
         },
@@ -128,7 +192,7 @@ export default function Pricing() {
           `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`,
           {
             credentials: "include",
-          }
+          },
         );
 
         const user = await res.json();
@@ -264,7 +328,7 @@ export default function Pricing() {
           <PricingCard
             plan="free"
             title="Free"
-            price="$0"
+            price={PLANS_CONFIG.free.price}
             period="Forever free"
             features={PLANS_FEATURES.free}
             buttonText="Start Free"
@@ -276,12 +340,11 @@ export default function Pricing() {
           {/* Monthly Plan */}
           <PricingCard
             plan="monthly"
-            title="Monthly"
-            price="$3.49"
-            period="per month"
+            title={PLANS_CONFIG.monthly.title}
+            price={PLANS_CONFIG.monthly.price}
+            period={PLANS_CONFIG.monthly.period}
             features={PLANS_FEATURES.pro}
             buttonText="Get Monthly"
-            highlight={false}
             onClick={() => handlePlanClick("monthly")}
             onHover={setHoveredPlan}
             isHovered={hoveredPlan === "monthly"}
@@ -290,14 +353,14 @@ export default function Pricing() {
           {/* Yearly Plan (Most Popular) */}
           <PricingCard
             plan="yearly"
-            title="Yearly"
-            price="$29.99"
-            period="per year"
+            title={PLANS_CONFIG.yearly.title}
+            price={PLANS_CONFIG.yearly.price}
+            period={PLANS_CONFIG.yearly.period}
             features={PLANS_FEATURES.pro}
             buttonText="Get Yearly"
             highlight={true}
-            popular={true}
-            savings="28%"
+            popular={PLANS_CONFIG.yearly.popular}
+            savings={PLANS_CONFIG.yearly.savings}
             onClick={() => handlePlanClick("yearly")}
             onHover={setHoveredPlan}
             isHovered={hoveredPlan === "yearly"}
@@ -306,13 +369,12 @@ export default function Pricing() {
           {/* Lifetime Plan */}
           <PricingCard
             plan="lifetime"
-            title="Lifetime"
-            price="$99"
-            period="one-time payment"
+            title={PLANS_CONFIG.lifetime.title}
+            price={PLANS_CONFIG.lifetime.price}
+            period={PLANS_CONFIG.lifetime.period}
             features={PLANS_FEATURES.lifetime}
             buttonText="Get Lifetime"
-            highlight={false}
-            valueBadge="Best Value"
+            valueBadge={PLANS_CONFIG.lifetime.value}
             onClick={() => handlePlanClick("lifetime")}
             onHover={setHoveredPlan}
             isHovered={hoveredPlan === "lifetime"}
@@ -332,7 +394,7 @@ export default function Pricing() {
             planPrice={PLANS_CONFIG[selectedPlan]?.price || ""}
             onPaymentOptionClick={handlePaymentOptionClick}
           />,
-          document.body
+          document.body,
         )}
     </>
   );

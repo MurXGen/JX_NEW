@@ -20,6 +20,14 @@ import Cookies from "js-cookie";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
+import {
+  canSubmitTrade,
+  canUploadImageThisMonth,
+  getTradesThisMonth,
+} from "@/utils/TradeMonthCount";
+import PlanLimitModal from "@/components/ui/PlanLimitModal";
+import { getPlanRules } from "@/utils/planRestrictions";
+import dayjs from "dayjs";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -31,6 +39,7 @@ export default function AddTrade() {
   const [toast, setToast] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [activeGrid, setActiveGrid] = useState(null);
+  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
 
   const statuses = [
     { value: "running", label: "Running" },
@@ -675,26 +684,37 @@ export default function AddTrade() {
       reader.readAsDataURL(file);
     });
 
-  function handleImageChange(e, field, setForm) {
-    const file = e.target.files[0];
+  async function handleImageChange(e, field, setForm) {
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    // 1️⃣ Size check (plan-independent)
     if (file.size > MAX_IMAGE_SIZE) {
       alert("❌ Image size cannot exceed 5MB.");
-      e.target.value = ""; // reset input
+      e.target.value = "";
       return;
     }
 
+    // 2️⃣ Monthly image limit check
+    const allowed = await canUploadImageThisMonth();
+
+    if (!allowed) {
+      e.target.value = ""; // reset file input
+      setShowPlanLimitModal(true);
+      return;
+    }
+
+    // 3️⃣ Preview
     const previewUrl = URL.createObjectURL(file);
 
-    // set preview & file in local state (form)
     setForm((prev) => ({
       ...prev,
-      [field]: file, // keep file in memory for immediate submit if user doesn't redirect
+      [field]: file,
       [`${field}Preview`]: previewUrl,
+      [`${field}Removed`]: false,
     }));
 
-    // convert to base64 and save into localStorage along with name & type
+    // 4️⃣ Persist to localStorage
     fileToDataUrl(file).then((dataUrl) => {
       try {
         const payload = JSON.stringify({
@@ -703,9 +723,11 @@ export default function AddTrade() {
           type: file.type,
           ts: Date.now(),
         });
-        // store per-field to avoid collisions
+
         localStorage.setItem(`newTradeImage_${field}`, payload);
-      } catch (err) {}
+      } catch {
+        // silent fail (non-blocking)
+      }
     });
   }
 
@@ -731,7 +753,7 @@ export default function AddTrade() {
 
     const validationError = validateForm(form);
     if (validationError) {
-      setToast(null); // reset first
+      setToast(null);
       setTimeout(() => {
         setToast({ type: "error", message: validationError });
       }, 0);
@@ -741,8 +763,15 @@ export default function AddTrade() {
     setLoading(true);
 
     try {
-      // Save serializable form data in session/local storage
-      // keep openImage/closeImage fields as null so form JSON is serializable
+      const tradeType = form?.tradeStatus === "quick" ? "quick" : "normal";
+
+      const allowed = await canSubmitTrade(tradeType);
+
+      if (!allowed) {
+        setShowPlanLimitModal(true);
+        return;
+      }
+
       const serializable = {
         ...form,
         openImage: null,
@@ -756,13 +785,15 @@ export default function AddTrade() {
       sessionStorage.setItem("newTradeData", JSON.stringify(serializable));
       sessionStorage.setItem("isEditTrade", isEdit ? "true" : "false");
 
-      // redirect to /trade to let TradesHistory pick up and submit
       router.push({
         pathname: "/trade",
         query: { isNewTrade: "true" },
       });
     } catch (err) {
-      setToast({ type: "error", message: "Something went wrong." });
+      setToast({
+        type: "error",
+        message: err?.message || "Something went wrong.",
+      });
     } finally {
       setLoading(false);
     }
@@ -997,6 +1028,13 @@ export default function AddTrade() {
           </div>
         </ModalWrapper>
       )}
+
+      <PlanLimitModal
+        isOpen={showPlanLimitModal}
+        onKeep={() => setShowPlanLimitModal(false)}
+        onUpgrade={() => router.push("/pricing")}
+      />
+
       {/* <pre
         style={{
           background: "black",

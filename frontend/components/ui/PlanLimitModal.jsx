@@ -72,7 +72,7 @@ const PlanLimitModal = ({ isOpen, onUpgrade, onKeep }) => {
                 className="upgrade_btn width100 flexRow gap_8 flex_center"
                 onClick={onUpgrade}
               >
-                <Crown size={16} className="vector" />
+                <Crown size={16} color="white" />
                 Upgrade Limit
               </button>
             </div>

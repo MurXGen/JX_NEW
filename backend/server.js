@@ -27,7 +27,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "x-trade-id"],
-  })
+  }),
 );
 
 app.use((req, res, next) => {
@@ -53,12 +53,12 @@ mongoose
 
 app.use("/api/auth", createLimiter(40), authRoutes);
 app.use("/api/account", createLimiter(20), accountRoutes);
-app.use("/api/trades", createLimiter(20), tradeRoutes);
+app.use("/api/trades", createLimiter(40), tradeRoutes);
 app.use(
   "/api/payments/webhook",
   createLimiter(20),
   express.raw({ type: "application/json" }),
-  paymentsRoutes
+  paymentsRoutes,
 );
 app.use("/api/payments", createLimiter(20), express.json(), paymentsRoutes);
 app.use("/api/crypto-payments", createLimiter(20), cryptoPaymentsRoutes);
@@ -66,7 +66,7 @@ app.use("/api/telegram", createLimiter(20), telegramRoutes);
 app.use(
   "/api/pricingpad",
   express.raw({ type: "application/json" }),
-  paddleRoute
+  paddleRoute,
 );
 
 // 🤖 Telegram Bot Init
