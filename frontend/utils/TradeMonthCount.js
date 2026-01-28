@@ -125,3 +125,22 @@ export const canSubmitTrade = async (tradeStatus = "normal") => {
     return true;
   }
 };
+
+export const filterTradesByHistoryLimit = (trades, userData) => {
+  if (!Array.isArray(trades)) return [];
+
+  const rules = getPlanRules(userData);
+  const historyDays = rules?.limits?.historyDays;
+
+  // Unlimited history (Pro / Lifetime)
+  if (!historyDays || historyDays === Infinity) {
+    return trades;
+  }
+
+  const cutoffDate = dayjs().subtract(historyDays, "day");
+
+  return trades.filter((trade) => {
+    if (!trade.openTime) return false;
+    return dayjs(trade.openTime).isAfter(cutoffDate);
+  });
+};

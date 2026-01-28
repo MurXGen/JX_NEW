@@ -20,19 +20,6 @@ const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
 const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
 const lifetimePriceId = process.env.NEXT_PUBLIC_PADDLE_LIFETIME_PRICE_ID;
 
-export const getUserCurrency = () => {
-  if (typeof window === "undefined") return "USD";
-
-  const locale = navigator.language || "";
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-
-  const isIndia =
-    locale.toLowerCase().includes("in") ||
-    timezone.toLowerCase().includes("kolkata");
-
-  return isIndia ? "INR" : "USD";
-};
-
 const PLANS_FEATURES = {
   free: [
     { text: "10 trades/month" },
@@ -54,18 +41,72 @@ const PLANS_FEATURES = {
   ],
 };
 
-const PLANS_CONFIG = {
+const INR_PRICES = {
+  monthly: {
+    price: "₹299",
+    amount: "299",
+  },
+  yearly: {
+    price: "₹2,499",
+    amount: "2499",
+  },
+  lifetime: {
+    price: "₹7,999",
+    amount: "7999",
+  },
+};
+
+const getUserCurrency = () => {
+  console.log("🌍 getUserCurrency called");
+
+  if (typeof window === "undefined") {
+    console.log("🟥 Running on server → defaulting to USD");
+    return "USD";
+  }
+
+  const locale = navigator.language || "";
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+
+  console.log("🟢 Running on client");
+  console.log("🌐 Browser locale:", locale);
+  console.log("⏰ Browser timezone:", timeZone);
+
+  if (locale.startsWith("en-IN")) {
+    console.log("🇮🇳 Detected India via locale");
+    return "INR";
+  }
+
+  if (timeZone.includes("Asia/Calcutta")) {
+    console.log("🇮🇳 Detected India via timezone");
+    return "INR";
+  }
+
+  console.log("🌎 Defaulting to USD");
+  return "USD";
+};
+
+const currency = getUserCurrency();
+
+console.log("💱 Final detected currency:", currency);
+
+export const PLANS_CONFIG = {
+  free: {
+    title: "Free",
+    price: currency === "INR" ? "₹0" : "$0",
+    amount: currency === "INR" ? "₹0" : "$0",
+    currency,
+    period: "monthly",
+    planName: "Pro",
+    tagline: "Flexible monthly access",
+    popular: false,
+    paddlePriceId: monthlyPriceId,
+  },
   monthly: {
     title: "Pro Monthly",
-    price: {
-      USD: "$3.49",
-      INR: "₹149",
-    },
-    amount: {
-      USD: "3.49",
-      INR: "149",
-    },
-    period: "/month",
+    price: currency === "INR" ? "₹299" : "$3.49",
+    amount: currency === "INR" ? "299" : "3.49",
+    currency,
+    period: "monthly",
     planName: "Pro",
     tagline: "Flexible monthly access",
     popular: false,
@@ -74,17 +115,12 @@ const PLANS_CONFIG = {
 
   yearly: {
     title: "Pro Yearly",
-    price: {
-      USD: "$29.99",
-      INR: "₹1299",
-    },
-    amount: {
-      USD: "29.99",
-      INR: "1299",
-    },
-    period: "/year",
+    price: currency === "INR" ? "₹2,499" : "$29.99",
+    amount: currency === "INR" ? "2499" : "29.99",
+    currency,
+    period: "yearly",
     planName: "Pro",
-    tagline: "Most popular – Save 28%",
+    tagline: "Most popular • Save 28%",
     popular: true,
     savings: "28%",
     paddlePriceId: yearlyPriceId,
@@ -92,15 +128,10 @@ const PLANS_CONFIG = {
 
   lifetime: {
     title: "Lifetime",
-    price: {
-      USD: "$99",
-      INR: "₹1999",
-    },
-    amount: {
-      USD: "99",
-      INR: "1999",
-    },
-    period: "one-time",
+    price: currency === "INR" ? "₹7,999" : "$99",
+    amount: currency === "INR" ? "7999" : "99",
+    currency,
+    period: "lifetime",
     planName: "Lifetime",
     tagline: "One payment, forever access",
     popular: false,
@@ -114,8 +145,6 @@ export default function Pricing() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [hoveredPlan, setHoveredPlan] = useState(null);
-  const currency = getUserCurrency(); // "INR" or "USD"
-
   const router = useRouter();
 
   useEffect(() => {
@@ -140,7 +169,7 @@ export default function Pricing() {
 
         closeCallback: () => {
           console.log(
-            "🔄 Checkout closed – starting subscription verification..."
+            "🔄 Checkout closed – starting subscription verification...",
           );
           startSubscriptionPolling();
         },
@@ -163,7 +192,7 @@ export default function Pricing() {
           `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`,
           {
             credentials: "include",
-          }
+          },
         );
 
         const user = await res.json();
@@ -299,7 +328,7 @@ export default function Pricing() {
           <PricingCard
             plan="free"
             title="Free"
-            price="$0"
+            price={PLANS_CONFIG.free.price}
             period="Forever free"
             features={PLANS_FEATURES.free}
             buttonText="Start Free"
@@ -311,12 +340,11 @@ export default function Pricing() {
           {/* Monthly Plan */}
           <PricingCard
             plan="monthly"
-            title="Monthly"
-            price="$3.49"
-            period="per month"
+            title={PLANS_CONFIG.monthly.title}
+            price={PLANS_CONFIG.monthly.price}
+            period={PLANS_CONFIG.monthly.period}
             features={PLANS_FEATURES.pro}
             buttonText="Get Monthly"
-            highlight={false}
             onClick={() => handlePlanClick("monthly")}
             onHover={setHoveredPlan}
             isHovered={hoveredPlan === "monthly"}
@@ -325,14 +353,14 @@ export default function Pricing() {
           {/* Yearly Plan (Most Popular) */}
           <PricingCard
             plan="yearly"
-            title="Yearly"
-            price="$29.99"
-            period="per year"
+            title={PLANS_CONFIG.yearly.title}
+            price={PLANS_CONFIG.yearly.price}
+            period={PLANS_CONFIG.yearly.period}
             features={PLANS_FEATURES.pro}
             buttonText="Get Yearly"
             highlight={true}
-            popular={true}
-            savings="28%"
+            popular={PLANS_CONFIG.yearly.popular}
+            savings={PLANS_CONFIG.yearly.savings}
             onClick={() => handlePlanClick("yearly")}
             onHover={setHoveredPlan}
             isHovered={hoveredPlan === "yearly"}
@@ -341,13 +369,12 @@ export default function Pricing() {
           {/* Lifetime Plan */}
           <PricingCard
             plan="lifetime"
-            title="Lifetime"
-            price="$99"
-            period="one-time payment"
+            title={PLANS_CONFIG.lifetime.title}
+            price={PLANS_CONFIG.lifetime.price}
+            period={PLANS_CONFIG.lifetime.period}
             features={PLANS_FEATURES.lifetime}
             buttonText="Get Lifetime"
-            highlight={false}
-            valueBadge="Best Value"
+            valueBadge={PLANS_CONFIG.lifetime.value}
             onClick={() => handlePlanClick("lifetime")}
             onHover={setHoveredPlan}
             isHovered={hoveredPlan === "lifetime"}
@@ -363,12 +390,11 @@ export default function Pricing() {
           <PaymentModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            planTitle={PLANS_CONFIG[selectedPlan].title}
-            planPrice={PLANS_CONFIG[selectedPlan].price[currency]}
-            currency={currency}
+            planTitle={PLANS_CONFIG[selectedPlan]?.title || ""}
+            planPrice={PLANS_CONFIG[selectedPlan]?.price || ""}
             onPaymentOptionClick={handlePaymentOptionClick}
           />,
-          document.body
+          document.body,
         )}
     </>
   );

@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"; // for Next.js 13+ app directory
 import { useEffect, useState } from "react";
 import TradeInfo from "./TradeInfo";
 import ToastMessage from "../ui/ToastMessage";
+import { filterTradesByHistoryLimit } from "@/utils/TradeMonthCount";
 
 const TRADE_KEY = "__t_rd_iD";
 
@@ -37,6 +38,18 @@ const TradesHistory = ({
   const [visibleTradesCount, setVisibleTradesCount] = useState({});
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [visibleDateCount, setVisibleDateCount] = useState(5);
+
+  useEffect(() => {
+    const applyHistoryLimit = async () => {
+      const userData = await getFromIndexedDB("user-data");
+
+      const filteredTrades = filterTradesByHistoryLimit(trades, userData);
+
+      setDisplayedTrades(filteredTrades);
+    };
+
+    applyHistoryLimit();
+  }, [trades]);
 
   // helper: convert dataURL to File
   function dataUrlToFile(dataUrl, filename, mimeType) {
@@ -558,6 +571,18 @@ const TradesHistory = ({
               >
                 <ArrowDown size={16} /> Load More Dates
               </motion.button>
+            )}
+
+            {displayedTrades.length < trades.length && (
+              <div className="upgrade-hint">
+                Showing last 30 days of trades.
+                <button
+                  className="upgrade-btn width100"
+                  onClick={() => router.push("/pricing")}
+                >
+                  Upgrade to view full history
+                </button>
+              </div>
             )}
           </div>
         ) : (
