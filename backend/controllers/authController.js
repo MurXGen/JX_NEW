@@ -10,6 +10,11 @@ const getUserData = require("../utils/getUserData");
 const axios = require("axios");
 const { sendTelegramNotification } = require("../utils/telegramNotifier");
 
+const detectCurrencyFromTimezone = (timezone) => {
+  if (!timezone) return "USD";
+  return timezone.includes("Asia/Kolkata") ? "INR" : "USD";
+};
+
 const SALT_ROUNDS = 10;
 
 async function verifyTurnstileToken(token, ip) {
@@ -23,7 +28,7 @@ async function verifyTurnstileToken(token, ip) {
         response: token,
         remoteip: ip || "",
       }).toString(),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } },
     );
 
     return response.data.success === true;
@@ -59,7 +64,8 @@ const validateEmailCredentials = (email, password, res) => {
 
 // 🔹 REGISTER USER
 const registerUser = async (req, res) => {
-  const { name, email, password, googleId, turnstileToken } = req.body;
+  const { name, email, password, googleId, turnstileToken, timezone } =
+    req.body;
 
   try {
     // ✅ Verify Cloudflare Turnstile
@@ -108,6 +114,31 @@ const registerUser = async (req, res) => {
     });
     await user.save();
 
+    const isIndiaTimezone = (tz = "") =>
+      tz.toLowerCase().includes("asia/kolkata") ||
+      tz.toLowerCase().includes("asia/calcutta");
+
+    const currency = isIndiaTimezone(timezone) ? "INR" : "USD";
+
+    const defaultAccount = new Account({
+      userId: user._id,
+      name: "Default Journal",
+      currency,
+      startingBalance: {
+        amount: 0,
+        time: new Date(),
+      },
+    });
+
+    await defaultAccount.save();
+
+    // ✅ Set accountId cookie
+    res.cookie("accountId", defaultAccount._id.toString(), {
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
+      maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
+    });
+
     // ✅ Send OTP if not Google
     if (!googleId) {
       const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -133,10 +164,12 @@ const registerUser = async (req, res) => {
 
     return res.status(201).json({
       message: googleId
-        ? "Registered via Google. Free plan activated."
+        ? "Registered via Google. Default journal created."
         : "Registered. Check email for OTP.",
       userId: user._id,
       isVerified: false,
+      defaultAccountId: defaultAccount._id,
+      currency,
     });
   } catch (err) {
     console.error("Register Error:", err.message);
@@ -326,7 +359,7 @@ const updateSubscription = async (req, res) => {
         subscriptionStartAt: null,
         subscriptionExpiresAt: null,
       },
-      { new: true }
+      { new: true },
     ).lean();
 
     if (!user) {

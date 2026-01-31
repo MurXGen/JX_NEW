@@ -138,9 +138,17 @@ function Register() {
       return;
     }
 
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     setIsLoading(true);
     try {
-      const res = await register({ name, email, password, turnstileToken });
+      const res = await register({
+        name,
+        email,
+        password,
+        turnstileToken,
+        timezone,
+      });
 
       if (res.data.isVerified === false) {
         setPopup(null);
@@ -408,7 +416,7 @@ function Register() {
                   </button>
                   {password &&
                     !/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(
-                      password
+                      password,
                     ) && (
                       <span className="font_12 error">
                         Password: 8–15 chars, letters, numbers & 1 special
