@@ -87,7 +87,7 @@ export default function Dashboard1() {
   const [accountTrades, setAccountTrades] = useState([]);
   const menuItems = [
     { id: "home", icon: <HomeIcon size={20} />, label: "Home" },
-    { id: "trades", icon: <TrendingUpIcon size={20} />, label: "Trades" },
+    { id: "trades", icon: <TrendingUpIcon size={20} />, label: "History" },
     { id: "heatmaps", icon: <Newspaper size={20} />, label: "Heatmap & News" },
     // { id: "reports", icon: <BarChartIcon size={20} />, label: "Reports" },
     { id: "share", icon: <Share2Icon size={20} />, label: "Share logs" },
@@ -196,11 +196,11 @@ export default function Dashboard1() {
   const candleData = processPnLCandles(accountTrades);
 
   const longTrades = accountTrades.filter(
-    (t) => t.direction?.toLowerCase() === "long" && t.closeTime
+    (t) => t.direction?.toLowerCase() === "long" && t.closeTime,
   ).length;
 
   const shortTrades = accountTrades.filter(
-    (t) => t.direction?.toLowerCase() === "short" && t.closeTime
+    (t) => t.direction?.toLowerCase() === "short" && t.closeTime,
   ).length;
 
   const isProMonthly =
@@ -309,12 +309,15 @@ export default function Dashboard1() {
             {/* LOG TRADE */}
             {open ? (
               <div
-                className="flexRow gap_4 boxBg flexRow_stretch sideBar_clickables"
-                style={{ cursor: "pointer", padding: "12px 14px" }}
+                className="flexRow gap_4 flexRow_stretch sideBar_clickables button_sec font_weight_600"
+                style={{
+                  cursor: "pointer",
+                  background: "var(--primary)",
+                }}
                 onClick={() => setActiveTab("logtrade")}
               >
-                <span className="font_12">Log Trade</span>
-                <PlusCircle size={18} className="vector" />
+                <span className="font_12">Add Trade</span>
+                <PlusCircle size={18} color="white" />
               </div>
             ) : (
               <div
@@ -325,6 +328,8 @@ export default function Dashboard1() {
                 <PlusCircle size={18} className="vector" />
               </div>
             )}
+
+            <hr width={100} color="grey" />
 
             {menuItems.map((item) => {
               const isActive = activeTab === item.id;
