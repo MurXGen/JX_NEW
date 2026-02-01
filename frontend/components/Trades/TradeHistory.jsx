@@ -7,7 +7,13 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import Cookies from "js-cookie";
-import { ArrowDown, ArrowUp, TrendingUp } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import { useRouter } from "next/navigation"; // for Next.js 13+ app directory
 import { useEffect, useState } from "react";
 import TradeInfo from "./TradeInfo";
@@ -429,7 +435,7 @@ const TradesHistory = ({
                 const headerDate = new Date(dateKey);
 
                 return (
-                  <div key={dateKey} className="boxBg flexClm gap_12">
+                  <div key={dateKey} className="tradeCards flexClm">
                     {/* Date Header */}
                     <motion.div
                       className="dateHeader flexRow flexRow_stretch"
@@ -458,7 +464,7 @@ const TradesHistory = ({
                       {visibleTrades.map((trade, index) => (
                         <motion.div
                           key={trade._id || trade.id || index}
-                          className="tradeCard boxBg pad_16"
+                          className="tradeCard"
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, height: 0 }}
@@ -474,9 +480,9 @@ const TradesHistory = ({
                                 }`}
                               >
                                 {trade.direction?.toLowerCase() === "long" ? (
-                                  <ArrowUp size={16} />
+                                  <TrendingUp size={16} />
                                 ) : (
-                                  <ArrowDown size={16} />
+                                  <TrendingDown size={16} />
                                 )}
                               </div>
 
@@ -533,7 +539,7 @@ const TradesHistory = ({
                     {/* Load More Trades Button */}
                     {hasMoreTrades && (
                       <motion.button
-                        className="button_ter flexRow flex_center gap_4"
+                        className="loadMoretrade"
                         onClick={() =>
                           expandedDates[dateKey]
                             ? collapseTrades(dateKey)
@@ -545,13 +551,17 @@ const TradesHistory = ({
                       >
                         {expandedDates[dateKey] ? (
                           <>
-                            Show less <ArrowUp size={16} />
+                            <span className="loadMoreTrade_Text">
+                              Show less <ArrowUp size={16} />
+                            </span>
                           </>
                         ) : (
                           <>
-                            <ArrowDown size={16} /> Show all (
-                            {tradesForDay.length - visibleTrades.length}{" "}
-                            remaining)
+                            <span className="loadMoreTrade_Text">
+                              <ChevronDown size={16} /> Show all (
+                              {tradesForDay.length - visibleTrades.length}{" "}
+                              remaining)
+                            </span>
                           </>
                         )}
                       </motion.button>

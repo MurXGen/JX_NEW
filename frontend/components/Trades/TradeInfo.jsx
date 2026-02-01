@@ -189,9 +189,6 @@ const TradeInfo = ({ onClose }) => {
                           display: "inline-block",
                         }}
                       >
-                        {!trade.openImageLoaded && (
-                          <div className="spinner"></div>
-                        )}
                         <Image
                           src={trade.openImageUrl}
                           alt="Open trade"
@@ -225,9 +222,6 @@ const TradeInfo = ({ onClose }) => {
                           display: "inline-block",
                         }}
                       >
-                        {!trade.closeImageLoaded && (
-                          <div className="spinner"></div>
-                        )}
                         <Image
                           src={trade.closeImageUrl}
                           alt="Close trade"
@@ -296,9 +290,7 @@ const TradeInfo = ({ onClose }) => {
               </div>
             )}
 
-            {/* Trade Details Grid */}
-            {/* {trade.tradeStatus === "running" && ( */}
-            {trade.quantityUSD > 0 && (
+            {trade.quantityUSD >= 0 && (
               <>
                 <div className="quantityGrid">
                   <div className="boxBg flexClm gap_12">
@@ -511,7 +503,8 @@ const TradeInfo = ({ onClose }) => {
             {trade.reason?.length > 0 && (
               <>
                 <div className="notesCard">
-                  <div className="flexRow gap_12">
+                  <div className="sectionDivider" />
+                  <div className="flexRow gap_12" style={{ flexWrap: "wrap" }}>
                     {(() => {
                       let reasons = [];
 
@@ -543,18 +536,27 @@ const TradeInfo = ({ onClose }) => {
             )}
 
             {/* Reason & Learnings */}
-            <div className="notesSection">
+            <div style={{ width: "100%", overflow: "hidden" }}>
               {trade.learnings && (
-                <>
-                  <div className="notesCard">
-                    <h3 className="font_16 font_weight_600 flexRow gap_8">
-                      <Lightbulb size={18} />
-                      Key Learnings
-                    </h3>
-                    <p className="font_14">{trade.learnings}</p>
-                  </div>
-                  <div className="sectionDivider" />
-                </>
+                <div style={{ width: "100%" }}>
+                  <h3 className="font_16 font_weight_600 flexRow gap_8">
+                    <Lightbulb size={18} />
+                    Key Learnings
+                  </h3>
+
+                  <span
+                    className="font_14"
+                    style={{
+                      display: "inline-block",
+                      width: "100%",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {trade.learnings}
+                  </span>
+                </div>
               )}
             </div>
           </div>

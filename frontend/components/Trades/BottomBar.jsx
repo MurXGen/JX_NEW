@@ -43,7 +43,7 @@ export default function BottomBar() {
               className={`tab-content ${active ? "active" : ""}`}
             >
               <Icon size={22} />
-              <span>{label}</span>
+              {/* <span className="font_8 shade_50">{label}</span> */}
             </motion.div>
           </Link>
         );
