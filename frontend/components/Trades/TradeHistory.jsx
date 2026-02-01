@@ -177,22 +177,19 @@ const TradesHistory = ({
 
       if (isEdit) {
         const tradeId = localStorage.getItem(TRADE_KEY);
-
         res = await axios.put(
           `${API_BASE}/api/trades/update/${tradeId}`,
           apiFormData,
           { withCredentials: true },
         );
       } else {
-        // 🔄 Optimistic loading row (TEMP ONLY)
         const tempId = `temp-${Date.now()}`;
-
         setDisplayedTrades((prev) => [
           {
             _id: tempId,
             loading: true,
             symbol: formData.symbol || "N/A",
-            openTime: normalizedFormData.openTime, // safe UTC
+            openTime: normalizedFormData.openTime, // ✅ local → UTC safe
             pnl: 0,
           },
           ...prev,
@@ -206,7 +203,6 @@ const TradesHistory = ({
       if (res.data?.success) {
         const { trade, message } = res.data;
 
-        // 📦 Update IndexedDB ONLY
         const userData = (await getFromIndexedDB("user-data")) || {};
         const allTrades = userData.trades || [];
 
@@ -219,9 +215,15 @@ const TradesHistory = ({
           trades: updatedTrades,
         });
 
-        // ❌ DO NOT setDisplayedTrades here
-        // ❌ DO NOT sort or filter here
-        // ✅ History limit effect will take over
+        const accountTrades = updatedTrades.filter(
+          (t) => t.accountId === Cookies.get("accountId"),
+        );
+
+        setDisplayedTrades(
+          accountTrades.sort(
+            (a, b) => new Date(b.openTime) - new Date(a.openTime),
+          ),
+        );
 
         setToast({
           type: "success",
@@ -232,7 +234,6 @@ const TradesHistory = ({
               : "Trade added successfully!"),
         });
 
-        // cleanup
         localStorage.removeItem("newTradeImage_openImage");
         localStorage.removeItem("newTradeImage_closeImage");
         sessionStorage.removeItem("newTradeData");
@@ -241,13 +242,8 @@ const TradesHistory = ({
         throw new Error("Upload failed");
       }
     } catch (err) {
-      // remove only optimistic loading rows
       setDisplayedTrades((prev) => prev.filter((t) => !t.loading));
-
-      setToast({
-        type: "error",
-        message: err.message || "Upload failed",
-      });
+      setToast({ type: "error", message: err.message || "Upload failed" });
     } finally {
       setLoadingNewTrade(false);
       sessionStorage.removeItem("newTradeData");
