@@ -9,7 +9,7 @@ import TradesHistory from "@/components/Trades/TradeHistory";
 import TradeCalendar from "@/components/Trades/TradeCalendar";
 import BottomBar from "@/components/Trades/BottomBar";
 import Navbar from "@/components/Trades/Navbar";
-import { Calendar, History, Layers } from "lucide-react";
+import { Calendar, History, Home, Layers, ListFilterIcon } from "lucide-react";
 import Dropdown from "@/components/ui/Dropdown";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
@@ -56,12 +56,12 @@ const TradePage = () => {
       const userData = await getFromIndexedDB("user-data");
       if (userData) {
         const accountTrades = (userData.trades || []).filter(
-          (trade) => trade.accountId === accountId
+          (trade) => trade.accountId === accountId,
         );
 
         // Sort by openTime (newest first)
         const sorted = accountTrades.sort(
-          (a, b) => new Date(b.openTime) - new Date(a.openTime)
+          (a, b) => new Date(b.openTime) - new Date(a.openTime),
         );
 
         setTrades(sorted);
@@ -121,16 +121,13 @@ const TradePage = () => {
         }}
       >
         <BottomBar />
+
         <div className="flexRow flexRow_stretch">
-          <SectionHeader
-            title="History"
-            description="Logged trades history & calendar"
-            level={4} // uses <h2>
-            // showButton={accounts.length > 0}
-            // buttonLabel="Create journal"
-            // onButtonClick={handleCreateAccount}
-            // loading={loading}
-          />
+          <div className="flexRow gap_12">
+            <div className="flexClm">
+              <span className="font_20">History</span>
+            </div>
+          </div>
           {/* Toggle Buttons */}
           <div className="view-toggle flexRow gap_12">
             <button

@@ -70,7 +70,7 @@ export default function AddTrade() {
     direction: "long",
     quantityUSD: "",
     leverage: "1",
-    totalQuantity: "0",
+    totalQuantity: "",
     tradeStatus: "quick",
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],

@@ -291,7 +291,7 @@ const TradeInfo = ({ onClose }) => {
             )}
 
             {trade.quantityUSD >= 0 && (
-              <>
+              <div>
                 <div className="quantityGrid">
                   <div className="boxBg flexClm gap_12">
                     <span className="font_12 shade_50">Quantity</span>
@@ -306,9 +306,9 @@ const TradeInfo = ({ onClose }) => {
                     <span className="font_12 shade_50">Total Quantity</span>
                     <span className="font_14">{trade.totalQuantity}</span>
                   </div>
-                  <div className="sectionDivider" />
                 </div>
-              </>
+                <div className="sectionDivider" />
+              </div>
             )}
 
             {trade.tradeStatus === "closed" && (

@@ -45,7 +45,7 @@ function useInstallPrompt() {
     return () =>
       window.removeEventListener(
         "beforeinstallprompt",
-        handleBeforeInstallPrompt
+        handleBeforeInstallPrompt,
       );
   }, []);
 
@@ -112,14 +112,14 @@ export default function Home() {
 
       if (userData) {
         const account = (userData.accounts || []).find(
-          (acc) => acc._id === accountId
+          (acc) => acc._id === accountId,
         );
         if (account?.currency) {
           localStorage.setItem("currencyCode", account.currency);
         }
 
         const accountTrades = (userData.trades || []).filter(
-          (trade) => trade.accountId === accountId
+          (trade) => trade.accountId === accountId,
         );
         setTrades(accountTrades);
 

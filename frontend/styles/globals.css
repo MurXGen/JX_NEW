@@ -1686,9 +1686,21 @@ footer {
 
     .modalContent {
       max-width: 100% !important;
+      min-height: 810px !important;
       max-height: 810px !important;
       border-radius: 0 !important;
       border: none !important;
+    }
+
+    .modalActions {
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+    }
+
+    .modalBody {
+      min-height: 80vh;
     }
 
     .tradeImage {
@@ -6880,7 +6892,8 @@ footer {
 }
 
 .tradeCard {
-  padding: var(--px-12);
+  padding: var(--px-16) var(--px-12);
+  border-bottom: 1px solid var(--white-10);
 }
 
 .tradeCardContainer::-webkit-scrollbar {
@@ -6898,6 +6911,7 @@ footer {
   gap: var(--px-8);
   cursor: pointer;
   transition: 0.3s;
+  padding: var(--px-12);
 }
 
 .loadMoretrade:hover {

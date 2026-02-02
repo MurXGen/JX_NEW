@@ -55,7 +55,7 @@ const AccountSetting = () => {
       }
 
       const account = (userData.accounts || []).find(
-        (acc) => acc._id === accountId
+        (acc) => acc._id === accountId,
       );
 
       if (!account) {
@@ -70,7 +70,7 @@ const AccountSetting = () => {
       }
 
       const accountTrades = (userData.trades || []).filter(
-        (trade) => trade.accountId === accountId
+        (trade) => trade.accountId === accountId,
       );
 
       let netPnL = 0;
@@ -145,7 +145,7 @@ const AccountSetting = () => {
     } catch (error) {
       setAlertType("error");
       setAlertMessage(
-        error.response?.data?.message || "Failed to deactivate account"
+        error.response?.data?.message || "Failed to deactivate account",
       );
 
       if (error.response) {
@@ -219,9 +219,10 @@ const AccountSetting = () => {
           padding: "0 12px 100px 12px",
         }}
       >
-        <div className="flexClm">
-          <span className="font_20">Journal setting</span>
-          <span className="font_12">Manage Journal detail</span>
+        <div className="flexRow gap_12">
+          <div className="flexClm">
+            <span className="font_20">Journal setting</span>
+          </div>
         </div>
 
         {/* Journal Overview */}

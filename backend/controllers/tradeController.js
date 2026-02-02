@@ -110,7 +110,7 @@ exports.addTrade = async (req, res) => {
     if (files?.openImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.openImage[0],
-        "open-images"
+        "open-images",
       );
       tradeData.openImageUrl = url;
       tradeData.openImageSizeKB = sizeKB;
@@ -119,7 +119,7 @@ exports.addTrade = async (req, res) => {
     if (files?.closeImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.closeImage[0],
-        "close-images"
+        "close-images",
       );
       tradeData.closeImageUrl = url;
       tradeData.closeImageSizeKB = sizeKB;
@@ -150,6 +150,9 @@ exports.addTrade = async (req, res) => {
           openTime: 1,
           closeTime: 1,
           pnl: 1,
+          quantityUSD: 1,
+          leverage: 1,
+          totalQuantity: 1,
           duration: 1,
           entries: 1,
           exits: 1,
@@ -272,7 +275,7 @@ exports.updateTrade = async (req, res) => {
     if (files?.openImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.openImage[0],
-        "open-images"
+        "open-images",
       );
       tradeData.openImageUrl = url;
       tradeData.openImageSizeKB = sizeKB;
@@ -284,7 +287,7 @@ exports.updateTrade = async (req, res) => {
     if (files?.closeImage?.[0]) {
       const { url, sizeKB } = await handleUpload(
         files.closeImage[0],
-        "close-images"
+        "close-images",
       );
       tradeData.closeImageUrl = url;
       tradeData.closeImageSizeKB = sizeKB;
@@ -317,6 +320,9 @@ exports.updateTrade = async (req, res) => {
           _id: 1,
           symbol: 1,
           direction: 1,
+          quantityUSD: 1,
+          leverage: 1,
+          totalQuantity: 1,
           openTime: 1,
           closeTime: 1,
           pnl: 1,
@@ -439,7 +445,7 @@ Each trade contains:
       {
         role: "user",
         content: `User question: "${query}". Analyze based on these trades: ${JSON.stringify(
-          limitedTrades
+          limitedTrades,
         )}`,
       },
     ];
