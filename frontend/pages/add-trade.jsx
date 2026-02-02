@@ -28,6 +28,7 @@ import {
 import PlanLimitModal from "@/components/ui/PlanLimitModal";
 import { getPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
+import TradeImagesSection from "@/components/addTrade/TradeImage";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -853,6 +854,16 @@ export default function AddTrade() {
         handleTPAllocationBlur={handleTPAllocationBlur}
       />
     ),
+    tradeImage: (
+      <TradeImagesSection
+        openImagePreview={form.openImagePreview}
+        closeImagePreview={form.closeImagePreview}
+        onOpenImageChange={(e) => handleImageChange(e, "openImage", setForm)}
+        onCloseImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
+        onRemoveOpenImage={() => handleImageRemove("openImage", setForm)}
+        onRemoveCloseImage={() => handleImageRemove("closeImage", setForm)}
+      />
+    ),
     opentime: (
       <DateTimeImageSection
         label="Open Time"
@@ -860,9 +871,6 @@ export default function AddTrade() {
         onDateChange={(date) =>
           setForm((prev) => ({ ...prev, openTime: date }))
         }
-        imagePreview={form.openImagePreview}
-        onImageChange={(e) => handleImageChange(e, "openImage", setForm)}
-        onRemove={() => handleImageRemove("openImage", setForm)}
       />
     ),
     closetime: (
@@ -872,9 +880,6 @@ export default function AddTrade() {
         onDateChange={(date) =>
           setForm((prev) => ({ ...prev, closeTime: date }))
         }
-        imagePreview={form.closeImagePreview}
-        onImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
-        onRemove={() => handleImageRemove("closeImage", setForm)}
       />
     ),
     rules: (
@@ -986,6 +991,7 @@ export default function AddTrade() {
               <button
                 key={key}
                 className="button_sec"
+                style={{ minWidth: "fit-content" }}
                 onClick={() => openModal(key)}
               >
                 {key

@@ -1692,17 +1692,6 @@ footer {
       border: none !important;
     }
 
-    .modalActions {
-      position: absolute !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-    }
-
-    .modalBody {
-      min-height: 80vh;
-    }
-
     .tradeImage {
       width: 100%;
       height: 200px !important;
@@ -7680,4 +7669,175 @@ footer {
 
 .payment-modal-container {
   animation: modalFadeIn 0.3s ease-out;
+}
+
+.dtp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.month-year {
+  font-size: var(--px-14);
+  font-weight: var(--weight-600);
+  letter-spacing: 0.3px;
+}
+
+.nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary-10);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:hover {
+  background: var(--primary-20);
+}
+
+/* ===============================
+   Date Slider
+================================ */
+.date-slider {
+  display: flex;
+  gap: var(--px-8);
+  overflow-x: auto;
+  padding: var(--px-12) 0;
+  margin-bottom: var(--px-12);
+  scrollbar-width: none;
+}
+
+.date-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.date-btn {
+  min-width: 48px;
+  height: 58px;
+  border-radius: 10px;
+  background: var(--primary-10);
+  border: 1px solid var(--primary-20);
+  color: var(--base-text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.date-btn::before {
+  content: attr(data-day);
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.date-btn.today {
+  border-color: var(--primary);
+}
+
+.date-btn.active {
+  background: var(--primary);
+  color: var(--base-text);
+  border-color: var(--primary);
+}
+
+/* ===============================
+   Time Selector
+================================ */
+.time-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.time-col {
+  flex: 1;
+}
+
+.time-label {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.time-scroll {
+  height: 120px; /* 3 rows visible */
+  overflow-y: auto;
+  background: var(--base-bg);
+  border-radius: var(--px-12);
+  scrollbar-width: none;
+}
+
+.time-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.time-btn {
+  width: 100%;
+  height: 40px;
+  background: var(--primary-10);
+  border: 1px solid var(--primary-10);
+  color: var(--base-text);
+  font-size: var(--px-12);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.time-btn:hover {
+  background: var(--primary-50);
+}
+
+.time-btn.active {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ===============================
+   Footer Buttons
+================================ */
+.dtp-footer {
+  display: flex;
+  gap: var(--px-8);
+  margin-top: var(--px-8);
+}
+
+.btn {
+  flex: 1;
+  height: 36px;
+  border-radius: var(--px-12);
+  border: none;
+  font-size: var(--px-12);
+  cursor: pointer;
+}
+
+.btn.clear {
+  background: var(--base-bg);
+  color: var(--base-text);
+  border: 1px solid var(--primary-50);
+}
+
+.btn.now {
+  background: var(--base-bg);
+  color: var(--base-text);
+  border: 1px solid var(--primary-50);
+}
+
+.btn.submit {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn:hover {
+  opacity: 0.9;
 }
