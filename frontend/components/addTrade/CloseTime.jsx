@@ -1,21 +1,17 @@
 import { X, Upload } from "lucide-react";
+import DateTimePicker from "../ui/DateTimePicker";
 
-const DateTimeImageSection = ({
-  label,
-  dateValue,
-  onDateChange,
-  imagePreview,
-  onImageChange,
-  onRemove,
-}) => {
+const CloseTime = ({ label, dateValue, onDateChange, onClose }) => {
   return (
-    <div className="tradeGrid">
-      {/* <span className="label">{label}</span> */}
-      <div className="flexClm gap_12">
-        <DateTimePicker label="" value={dateValue} onChange={onDateChange} />
-      </div>
-    </div>
+    <>
+      <DateTimePicker
+        label=""
+        value={dateValue}
+        onChange={onDateChange}
+        onClose={onClose}
+      />
+    </>
   );
 };
 
-export default DateTimeImageSection;
+export default CloseTime;

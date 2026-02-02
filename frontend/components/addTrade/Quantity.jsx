@@ -4,8 +4,8 @@ import Dropdown from "../ui/Dropdown";
 import { X } from "lucide-react";
 
 const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
-  const [showLeverage, setShowLeverage] = useState(true);
-  const [showFees, setShowFees] = useState(true);
+  const [showLeverage, setShowLeverage] = useState(false);
+  const [showFees, setShowFees] = useState(false);
   const [storedQuantities, setStoredQuantities] = useState([]);
   const [isSelecting, setIsSelecting] = useState(false);
   // Handle fee type change

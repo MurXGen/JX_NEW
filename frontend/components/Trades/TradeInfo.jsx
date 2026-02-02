@@ -108,6 +108,25 @@ const TradeInfo = ({ onClose }) => {
   const isLoss = trade.pnl < 0;
   const isBreakeven = trade.pnl === 0;
 
+  const ImagePlaceholder = ({ label }) => (
+    <div className="imageContainer">
+      <span className="font_12 shade_50">{label}</span>
+
+      <div
+        className="notFound shade_50"
+        style={{
+          background: "var(--primary-10)",
+          border: "1px dashed var(--primary-50)",
+          color: "var(--shade-50)",
+          fontSize: 12,
+          cursor: "not-allowed",
+        }}
+      >
+        Not uploaded
+      </div>
+    </div>
+  );
+
   return (
     <AnimatePresence>
       <motion.div
@@ -177,80 +196,75 @@ const TradeInfo = ({ onClose }) => {
           {/* Main Content */}
           <div className="modalBody flexClm">
             {/* Images */}
-            {(trade.openImageUrl || trade.closeImageUrl) && (
-              <div className="imagesSection">
-                <div className="imagesGrid">
-                  {trade.openImageUrl && (
-                    <div className="imageContainer">
-                      <span className="font_12 shade_50">Open Image</span>
-                      <div
-                        style={{
-                          position: "relative",
-                          display: "inline-block",
-                        }}
-                      >
-                        <Image
-                          src={trade.openImageUrl}
-                          alt="Open trade"
-                          width={400}
-                          height={300}
-                          priority
-                          placeholder="blur"
-                          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAA..."
-                          className="tradeImage fadeInImage"
-                          data-loaded={trade.openImageLoaded ? "true" : "false"}
-                          onLoadingComplete={() =>
-                            setTrade((prev) => ({
-                              ...prev,
-                              openImageLoaded: true,
-                            }))
-                          }
-                          onClick={() =>
-                            window.open(trade.openImageUrl, "_blank")
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
+            <div className="imagesSection">
+              <div className="imagesGrid">
+                {/* OPEN IMAGE */}
+                {trade.openImageUrl ? (
+                  <div className="imageContainer">
+                    <span className="font_12 shade_50">Open Image</span>
 
-                  {trade.closeImageUrl && (
-                    <div className="imageContainer">
-                      <span className="font_12 shade_50">Close Image</span>
-                      <div
-                        style={{
-                          position: "relative",
-                          display: "inline-block",
-                        }}
-                      >
-                        <Image
-                          src={trade.closeImageUrl}
-                          alt="Close trade"
-                          width={400}
-                          height={300}
-                          priority
-                          placeholder="blur"
-                          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAA..."
-                          className="tradeImage fadeInImage"
-                          data-loaded={
-                            trade.closeImageLoaded ? "true" : "false"
-                          }
-                          onLoadingComplete={() =>
-                            setTrade((prev) => ({
-                              ...prev,
-                              closeImageLoaded: true,
-                            }))
-                          }
-                          onClick={() =>
-                            window.open(trade.closeImageUrl, "_blank")
-                          }
-                        />
-                      </div>
+                    <div
+                      style={{ position: "relative", display: "inline-block" }}
+                    >
+                      <Image
+                        src={trade.openImageUrl}
+                        alt="Open trade"
+                        width={400}
+                        height={300}
+                        priority
+                        className="tradeImage fadeInImage"
+                        data-loaded={trade.openImageLoaded ? "true" : "false"}
+                        onLoadingComplete={() =>
+                          setTrade((prev) => ({
+                            ...prev,
+                            openImageLoaded: true,
+                          }))
+                        }
+                        onClick={() =>
+                          window.open(trade.openImageUrl, "_blank")
+                        }
+                      />
                     </div>
-                  )}
-                </div>
-                <div className="sectionDivider" />
+                  </div>
+                ) : (
+                  <ImagePlaceholder label="Open Image" />
+                )}
+
+                {/* CLOSE IMAGE */}
+                {trade.closeImageUrl ? (
+                  <div className="imageContainer">
+                    <span className="font_12 shade_50">Close Image</span>
+
+                    <div
+                      style={{ position: "relative", display: "inline-block" }}
+                    >
+                      <Image
+                        src={trade.closeImageUrl}
+                        alt="Close trade"
+                        width={400}
+                        height={300}
+                        priority
+                        className="tradeImage fadeInImage"
+                        data-loaded={trade.closeImageLoaded ? "true" : "false"}
+                        onLoadingComplete={() =>
+                          setTrade((prev) => ({
+                            ...prev,
+                            closeImageLoaded: true,
+                          }))
+                        }
+                        onClick={() =>
+                          window.open(trade.closeImageUrl, "_blank")
+                        }
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <ImagePlaceholder label="Close Image" />
+                )}
               </div>
-            )}
+
+              <div className="sectionDivider" />
+            </div>
 
             {/* PnL Section */}
             {trade.tradeStatus !== "running" && (

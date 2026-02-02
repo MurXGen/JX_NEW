@@ -1,19 +1,17 @@
 import { X, Upload } from "lucide-react";
 import DateTimePicker from "../ui/DateTimePicker";
 
-const DateTimeImageSection = ({
-  label,
-  dateValue,
-  onDateChange,
-  imagePreview,
-  onImageChange,
-  onRemove,
-}) => {
+const OpenTime = ({ label, dateValue, onDateChange, onClose }) => {
   return (
     <>
-      <DateTimePicker label="" value={dateValue} onChange={onDateChange} />
+      <DateTimePicker
+        label=""
+        value={dateValue}
+        onChange={onDateChange}
+        onClose={onClose}
+      />
     </>
   );
 };
 
-export default DateTimeImageSection;
+export default OpenTime;

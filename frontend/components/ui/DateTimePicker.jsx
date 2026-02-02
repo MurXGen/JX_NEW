@@ -23,6 +23,24 @@ export default function DateTimePicker({ value, onChange, onClose }) {
   ];
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
+  const previewDate = new Date(
+    currentYear,
+    currentMonth,
+    date.getDate(),
+    time.hour,
+    time.minute,
+  );
+
+  const previewText = previewDate.toLocaleString(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
   // Update time when date changes
   useEffect(() => {
     if (value) {
@@ -62,10 +80,16 @@ export default function DateTimePicker({ value, onChange, onClose }) {
   };
 
   const handleClear = () => {
-    onChange?.(null);
     const now = new Date();
+
+    // Set date to today
     setDate(now);
-    setTime({ hour: now.getHours(), minute: now.getMinutes() });
+
+    // Set time to 00:00
+    setTime({ hour: 0, minute: 0 });
+
+    // Optional: reflect cleared state upstream
+    onChange?.(null);
   };
 
   const handleNow = () => {
@@ -134,6 +158,23 @@ export default function DateTimePicker({ value, onChange, onClose }) {
         </div>
       </div>
 
+      {/* Preview */}
+      <div
+        className="dtp-preview"
+        style={{
+          marginTop: "12px",
+          padding: "10px 12px",
+          borderRadius: "8px",
+          background: "var(--base-10)",
+          textAlign: "center",
+          fontSize: "14px",
+          fontWeight: 500,
+          color: "var(--base-text)",
+        }}
+      >
+        {previewText}
+      </div>
+
       {/* Footer */}
       <div className="dtp-footer">
         <button onClick={handleClear} className="btn clear">
@@ -143,7 +184,7 @@ export default function DateTimePicker({ value, onChange, onClose }) {
           Now
         </button>
         <button onClick={handleSubmit} className="btn submit">
-          Set Time
+          Set
         </button>
       </div>
     </div>

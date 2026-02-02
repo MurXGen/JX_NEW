@@ -10,6 +10,7 @@ const ModalWrapper = ({ onClose, children }) => {
         position: "fixed",
         inset: 0,
         zIndex: 9999,
+        overflow: "visible",
       }}
     >
       <div
@@ -22,6 +23,7 @@ const ModalWrapper = ({ onClose, children }) => {
           background: "var(--base-bg)",
           position: "relative", // 🔑 for close button positioning
           borderRadius: "12px",
+          overflow: "visible",
         }}
       >
         {/* ❌ Close Icon */}
@@ -30,25 +32,21 @@ const ModalWrapper = ({ onClose, children }) => {
           aria-label="Close modal"
           style={{
             position: "absolute",
-            top: "12px",
-            right: "12px",
+            bottom: "-52px",
+            left: "50%",
+            transform: "translateX(-50%)",
             border: "none",
-            background: "transparent",
+            background: "var(--primary-10)",
             cursor: "pointer",
-            padding: "6px",
             borderRadius: "50%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "var(--text-70)",
-            zIndex: "10000",
+            color: "var(--base-text)",
+            zIndex: 10000,
+            width: "36px",
+            height: "36px",
           }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = "var(--hover-bg)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "transparent")
-          }
         >
           <X size={18} />
         </button>

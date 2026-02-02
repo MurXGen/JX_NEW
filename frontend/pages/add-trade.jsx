@@ -1,7 +1,8 @@
 import EntriesSection from "@/components/addTrade/Entries";
 import ExitsSection from "@/components/addTrade/Exits";
 import TextAreaField from "@/components/addTrade/Learnings";
-import DateTimeImageSection from "@/components/addTrade/OpenTime";
+import OpenTime from "@/components/addTrade/OpenTime";
+import CloseTime from "@/components/addTrade/CloseTime";
 import QuantityGrid from "@/components/addTrade/Quantity";
 import QuickSection from "@/components/addTrade/Quick";
 import ReasonSelector from "@/components/addTrade/Reasons";
@@ -29,6 +30,7 @@ import PlanLimitModal from "@/components/ui/PlanLimitModal";
 import { getPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
 import TradeImagesSection from "@/components/addTrade/TradeImage";
+import DateTimePicker from "@/components/ui/DateTimePicker";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -865,21 +867,23 @@ export default function AddTrade() {
       />
     ),
     opentime: (
-      <DateTimeImageSection
+      <OpenTime
         label="Open Time"
         dateValue={form.openTime}
         onDateChange={(date) =>
           setForm((prev) => ({ ...prev, openTime: date }))
         }
+        onClose={closeModal}
       />
     ),
     closetime: (
-      <DateTimeImageSection
+      <CloseTime
         label="Close Time"
         dateValue={form.closeTime}
         onDateChange={(date) =>
           setForm((prev) => ({ ...prev, closeTime: date }))
         }
+        onClose={closeModal}
       />
     ),
     rules: (
@@ -1055,7 +1059,7 @@ export default function AddTrade() {
             avgEntryPrice: form.avgEntryPrice,
           },
           null,
-          2
+          2,
         )}
       </pre> */}
       {/* Summary Section */}
