@@ -171,8 +171,8 @@ body {
     linear-gradient(
       to right,
       transparent 0%,
-      black 25%,
-      black 75%,
+      black 5%,
+      black 90%,
       transparent 100%
     );
 
