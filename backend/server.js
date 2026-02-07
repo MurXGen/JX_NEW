@@ -14,6 +14,7 @@ const paymentsRoutes = require("./routes/payments");
 const cryptoPaymentsRoutes = require("./routes/cryptoPayments");
 const telegramRoutes = require("./routes/telegramRoutes");
 const paddleRoute = require("./routes/paddleWebhook");
+const thebookxpayments = require("./routes/thebookxpayments");
 
 // Rate limiter
 const createLimiter = require("./utils/rateLimiter");
@@ -68,6 +69,7 @@ app.use(
   express.raw({ type: "application/json" }),
   paddleRoute,
 );
+app.use("/api/thebooks/payments", thebookxpayments);
 
 // 🤖 Telegram Bot Init
 require("./telegram");
