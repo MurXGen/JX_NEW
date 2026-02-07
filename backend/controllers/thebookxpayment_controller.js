@@ -22,7 +22,7 @@ exports.createOrder = async (req, res) => {
       amount: amount * 100, // paise
       redirectUrl: "https://thebookx.in/payment-success",
       redirectMode: "POST",
-      callbackUrl: "https://api.journalx.com/api/payments/webhook",
+      callbackUrl: "https://api.journalx.app/api/payments/webhook",
       paymentInstrument: {
         type: "PAY_PAGE",
       },
