@@ -1,11 +1,11 @@
-import crypto from "crypto";
-import axios from "axios";
+const crypto = require("crypto");
+const axios = require("axios");
 
 const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
 const SALT_KEY = process.env.PHONEPE_SALT_KEY;
 const SALT_INDEX = process.env.PHONEPE_SALT_INDEX;
 
-export const createOrder = async (req, res) => {
+exports.createOrder = async (req, res) => {
   try {
     const { amount, city, pincode, address, cartItems } = req.body;
 
