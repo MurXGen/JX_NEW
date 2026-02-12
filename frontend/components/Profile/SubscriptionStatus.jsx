@@ -30,7 +30,7 @@ const SubscriptionStatus = () => {
   const [currentPlan, setCurrentPlan] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState("");
   const [progressPercent, setProgressPercent] = useState("");
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(true);
 
   const [planRules, setPlanRules] = useState(null);
 

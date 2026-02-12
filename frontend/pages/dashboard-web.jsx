@@ -41,6 +41,7 @@ import MarketNews from "@/components/Tabs/HeatMaps";
 import Profile from "./profile";
 import Pricing from "@/components/dashboard/PricingModal";
 import AccountSetting from "./accountSetting";
+import JournalSetting from "@/components/dashboard/JournalSetting";
 
 function TradesCard({ title, total, wins, losses }) {
   const winPercent = total ? (wins / total) * 100 : 0;
@@ -499,7 +500,7 @@ export default function Dashboard1() {
           {activeTab === "share" && <ShareTrades />}
           {activeTab === "pricingpage" && <Pricing />}
 
-          {activeTab === "accountSetting" && <AccountSetting />}
+          {activeTab === "accountSetting" && <JournalSetting />}
 
           {/* {activeTab === "reports" && <ReportsPage />} */}
 
