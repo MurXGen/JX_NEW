@@ -54,6 +54,7 @@ export default function Navbar() {
         <button
           className="button_pri flexRow gap_4 flex_center"
           onClick={() => router.push("/register")}
+          style={{ padding: "8px 12px", borderRadius: "32px" }}
         >
           Start Free <ArrowRight size={14} />
         </button>
@@ -74,14 +75,7 @@ export default function Navbar() {
             exit={{ y: "-100%" }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <button
-              className="menu_close_btn"
-              onClick={() => setMenuOpen(false)}
-            >
-              <X size={30} />
-            </button>
-
-            <div className="mobile_menu_links flexClm gap_24 font_18 font_weight_500">
+            <div className="mobile_menu_links flexClm gap_24 font_14 font_weight_500">
               {["Dashboard", "Pricing", "About Us", "Features"].map((item) => (
                 <Link
                   key={item}
@@ -92,12 +86,12 @@ export default function Navbar() {
                   {item}
                 </Link>
               ))}
-              <button
+              {/* <button
                 className="button_pri flexRow gap_4 flex_center"
                 onClick={() => router.push("/register")}
               >
                 Start Free <ArrowRight size={14} />
-              </button>
+              </button> */}
             </div>
           </motion.div>
         )}

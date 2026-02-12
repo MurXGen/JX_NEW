@@ -118,7 +118,7 @@ body {
 .hero-bg {
   position: relative;
   height: 100%;
-  padding: 200px 0 200px 0;
+  padding: 100px 0 200px 0;
 
   background:
     /* Vertical grid lines */
@@ -164,7 +164,7 @@ body {
     linear-gradient(
       to bottom,
       transparent 0%,
-      black 20%,
+      black 10%,
       black 75%,
       transparent 100%
     ),
@@ -1282,6 +1282,10 @@ footer {
 /* dashboars */
 
 @media (min-width: 768px) {
+  .mobile-bottom-bar {
+    display: none;
+  }
+
   .dashboardWide {
     display: grid;
     grid-template-columns: 59% 39%;
@@ -5708,19 +5712,17 @@ footer {
    🧭 Navbar Styles
 ==================================*/
 .navbar_container {
-  background: var(--white-4);
+  /* background: var(--white-4); */
   border-radius: var(--px-12);
   padding: var(--px-12) var(--px-24);
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
+  width: 90%;
   z-index: 1000;
   backdrop-filter: blur(20px);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin: auto;
+  padding-top: var(--px-24);
 }
 
 .navbar_links {
@@ -5762,14 +5764,12 @@ footer {
 .navbar_fullscreen_menu {
   position: fixed;
   width: 100%;
-  top: 0;
+  top: 80px;
   right: 0;
-  padding: var(--px-46) 0;
+  padding: var(--px-12) 0;
   background: var(--white-10);
   z-index: 1200;
-  border-radius: var(--px-12);
-  overflow: hidden; /* ensures blur stays inside rounded edges */
-  box-shadow: 0 0 24px var(--base-bg);
+  border-top: 1px solid var(--white-10);
 }
 
 /* ✅ Add glass-like blur effect */
@@ -5785,9 +5785,6 @@ footer {
 }
 
 .menu_close_btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   background: var(--white-10);
   border: none;
   color: var(--white);
@@ -5796,18 +5793,13 @@ footer {
 }
 
 .mobile_menu_links {
-  text-align: center;
+  width: 100%;
 }
 
 .mobile_nav_link {
-  font-size: var(--px-16);
+  font-size: var(--px-12);
   color: var(--white);
   transition: all 0.3s ease;
-}
-
-.mobile_nav_link:hover {
-  color: var(--primary-light);
-  transform: scale(1.05);
 }
 
 .button_pri:hover {
@@ -5869,7 +5861,6 @@ footer {
 
 .heroImageSec {
   position: relative;
-  margin-top: 100px;
 }
 
 .heroImage {
@@ -5931,6 +5922,7 @@ footer {
 
 .heroContent {
   margin: 24px;
+  z-index: 100;
 }
 
 .heroBg {
@@ -6410,13 +6402,8 @@ footer {
 
   .navbar_link {
     transition: 0.3s;
-    padding: var(--px-12);
+    padding: var(--px-12) var(--px-24);
     border-radius: var(--px-12);
-  }
-
-  .navbar_link:hover {
-    background: var(--primary-10);
-    padding: var(--px-12);
   }
 }
 
