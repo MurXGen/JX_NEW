@@ -19,6 +19,7 @@ import {
   Newspaper,
   Crown,
   Menu,
+  LucideSettings,
 } from "lucide-react";
 
 import { calculateStats } from "@/utils/calculateStats";
@@ -39,6 +40,7 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import MarketNews from "@/components/Tabs/HeatMaps";
 import Profile from "./profile";
 import Pricing from "@/components/dashboard/PricingModal";
+import AccountSetting from "./accountSetting";
 
 function TradesCard({ title, total, wins, losses }) {
   const winPercent = total ? (wins / total) * 100 : 0;
@@ -92,6 +94,11 @@ export default function Dashboard1() {
     // { id: "reports", icon: <BarChartIcon size={20} />, label: "Reports" },
     { id: "share", icon: <Share2Icon size={20} />, label: "Share logs" },
     { id: "export", icon: <Share size={20} />, label: "Export logs" },
+    {
+      id: "accountSetting",
+      icon: <LucideSettings size={20} />,
+      label: "Journal setting",
+    },
   ];
 
   useEffect(() => {
@@ -491,6 +498,8 @@ export default function Dashboard1() {
 
           {activeTab === "share" && <ShareTrades />}
           {activeTab === "pricingpage" && <Pricing />}
+
+          {activeTab === "accountSetting" && <AccountSetting />}
 
           {/* {activeTab === "reports" && <ReportsPage />} */}
 
