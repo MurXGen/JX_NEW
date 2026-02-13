@@ -5806,16 +5806,34 @@ footer {
   background: var(--primary);
   color: white;
   border: none;
-  padding: var(--px-24) var(--px-46) !important;
-  border-radius: var(--px-46);
-  font-size: var(--px-16);
+  padding: var(--px-16) var(--px-46) !important;
+  border-radius: var(--px-32);
+  font-size: var(--px-14);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 0 16px var(--primary-50);
-  text-transform: uppercase;
-  margin-top: 8px;
   font-weight: 600;
+  font-family: var(--ff-Pop);
+}
+
+.cta_button_sec {
+  background: var(--white-10);
+  color: white;
+  border: 1px solid var(--white-20);
+  padding: var(--px-16) var(--px-46) !important;
+  border-radius: var(--px-32);
+  font-size: var(--px-14);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  font-weight: 600;
+  font-family: var(--ff-Pop);
+}
+
+.cta_button_sec:hover {
+  box-shadow: 0 0 32px var(--white-20);
 }
 
 .cta_button:hover {
@@ -5839,6 +5857,9 @@ footer {
 }
 
 .heroImageSec {
+  perspective: 1400px;
+  transform-style: preserve-3d;
+  will-change: transform;
   position: relative;
 }
 
@@ -5897,6 +5918,28 @@ footer {
   box-shadow: 0 0 0 0 var(--primary-light);
   transform: translateY(-50%);
   animation: shootingMove 3s linear infinite;
+}
+
+.wordWrapper {
+  display: inline-block;
+  position: relative;
+}
+
+.animatedWord {
+  display: inline-block;
+  color: var(--primary);
+  animation: wordSlide 0.6s ease forwards;
+}
+
+@keyframes wordSlide {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0%);
+    opacity: 1;
+  }
 }
 
 .heroContent {
@@ -6359,7 +6402,7 @@ footer {
   }
 
   .heroContent {
-    width: 200px;
+    width: 80%;
     margin: 24px;
   }
 
