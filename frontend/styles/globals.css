@@ -115,13 +115,26 @@ body {
   line-height: 1.6;
 }
 
-.hero-bg {
+.hero {
   position: relative;
-  height: 100%;
-  padding: 100px 0 200px 0;
+  z-index: 1;
+}
+
+.hero-bg {
+  padding-top: 84px;
+}
+
+.hero-bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 900px; /* hero height only */
+
+  pointer-events: none;
+  z-index: -2;
 
   background:
-    /* Vertical grid lines */
     repeating-linear-gradient(
       to right,
       var(--white-10) 0px,
@@ -129,54 +142,20 @@ body {
       transparent 1px,
       transparent 80px
     ),
-    /* Horizontal grid lines */
-      repeating-linear-gradient(
-        to bottom,
-        var(--white-10) 0px,
-        var(--white-10) 1px,
-        transparent 1px,
-        transparent 80px
-      ),
-    /* Main hero gradient */
-      linear-gradient(180deg, #0a0a0a 0%, #a77d0210 60%, #0a0a0a 100%);
-
-  /* 🔥 Fade on all 4 sides */
-  /* 🔥 Very subtle fade on all 4 sides */
-  mask-image:
-    linear-gradient(
+    repeating-linear-gradient(
       to bottom,
-      transparent 0%,
-      black 25%,
-      black 75%,
-      transparent 100%
+      var(--white-10) 0px,
+      var(--white-10) 1px,
+      transparent 1px,
+      transparent 80px
     ),
-    linear-gradient(
-      to right,
-      transparent 0%,
-      black 25%,
-      black 75%,
-      transparent 100%
-    );
+    linear-gradient(180deg, #0a0a0a 0%, #a77d0210 60%, #0a0a0a 100%);
+
+  mask-image:
+    linear-gradient(to bottom, transparent, black 20%, black 80%, transparent),
+    linear-gradient(to right, transparent, black 20%, black 80%, transparent);
 
   mask-composite: intersect;
-
-  -webkit-mask-image:
-    linear-gradient(
-      to bottom,
-      transparent 0%,
-      black 10%,
-      black 75%,
-      transparent 100%
-    ),
-    linear-gradient(
-      to right,
-      transparent 0%,
-      black 5%,
-      black 90%,
-      transparent 100%
-    );
-
-  -webkit-mask-composite: destination-in;
 }
 
 .fireworks-canvas {
@@ -5922,7 +5901,7 @@ footer {
 
 .heroContent {
   margin: 24px;
-  z-index: 100;
+  z-index: -1;
 }
 
 .heroBg {
