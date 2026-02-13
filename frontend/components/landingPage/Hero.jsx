@@ -40,17 +40,7 @@ const HeroSection = () => {
                 textAlign: "center",
               }}
             >
-              Journal trades like
-              <br />
-              <strong
-                className="vector"
-                style={{
-                  color: "var(--primary-light)",
-                  textShadow: "0px 0px 16px var(--primary)",
-                }}
-              >
-                never before
-              </strong>
+              Stop guessing. Start journaling. Trade smarter in seconds
             </h1>
 
             <p
@@ -60,8 +50,9 @@ const HeroSection = () => {
                 textAlign: "center",
               }}
             >
-              Track your trades, analyze your performance, and master your
-              emotions.
+              Log trades in under 10 seconds, get instant analytics,
+              candlesticks, tag-based insights and a dashboard that shows what
+              really works — not opinions. Free 7-day Pro trial on signup
             </p>
           </div>
 
