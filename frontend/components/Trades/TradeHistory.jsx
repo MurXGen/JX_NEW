@@ -9,8 +9,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
   ArrowDown,
+  ArrowDownIcon,
   ArrowUp,
+  ArrowUpIcon,
   ChevronDown,
+  LucideSquareStack,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
@@ -19,6 +22,7 @@ import { useEffect, useState } from "react";
 import TradeInfo from "./TradeInfo";
 import ToastMessage from "../ui/ToastMessage";
 import { filterTradesByHistoryLimit } from "@/utils/TradeMonthCount";
+import LockedTradesPreview from "./LockedTradesPreview";
 
 const TRADE_KEY = "__t_rd_iD";
 
@@ -43,7 +47,7 @@ const TradesHistory = ({
   const [expandedDates, setExpandedDates] = useState({});
   const [visibleTradesCount, setVisibleTradesCount] = useState({});
   const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const [visibleDateCount, setVisibleDateCount] = useState(5);
+  const [visibleDateCount, setVisibleDateCount] = useState(10);
 
   useEffect(() => {
     const applyHistoryLimit = async () => {
@@ -407,6 +411,33 @@ const TradesHistory = ({
 
   const groupedTrades = groupTradesByDate(displayedTrades);
 
+  const getDaysAgoText = (date) => {
+    const today = new Date();
+
+    // Remove time for accurate day comparison
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+
+    const startOfGiven = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+    );
+
+    const diffInMs = startOfToday - startOfGiven;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) return "Today";
+    if (diffInDays === 1) return "Yesterday";
+    if (diffInDays > 1) return `${diffInDays} days ago`;
+
+    // Future dates
+    return `in ${Math.abs(diffInDays)} days`;
+  };
+
   return (
     <div
       style={
@@ -443,98 +474,109 @@ const TradesHistory = ({
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="flexRow gap_12">
-                        <span className="dayPart">
-                          {headerDate.toLocaleDateString("en-US", {
-                            weekday: "short",
-                          })}
-                        </span>
-                        <span className="datePart">
-                          {headerDate.toLocaleDateString("en-US", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                      <div className="flexRow flexRow_stretch width100">
+                        <div className="flexRow gap_8">
+                          <span className="dayPart">
+                            {headerDate.toLocaleDateString("en-US", {
+                              weekday: "short",
+                            })}
+                          </span>
+
+                          {"|"}
+
+                          <span className="datePart">
+                            {headerDate.toLocaleDateString("en-US", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </div>
+
+                        <span className="daysAgo">
+                          {getDaysAgoText(headerDate)}
                         </span>
                       </div>
                     </motion.div>
 
                     {/* Trades List */}
-                    <AnimatePresence>
-                      {visibleTrades.map((trade, index) => (
-                        <motion.div
-                          key={trade._id || trade.id || index}
-                          className="tradeCard"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.05 }}
-                          onClick={() => handleTradeClick(trade._id)}
-                          whileHover={{ y: -2 }}
-                        >
-                          <div className="flexRow flexRow_stretch">
-                            <div className="flexRow gap_12">
-                              <div
-                                className={`positionIcon ${
-                                  trade.direction?.toLowerCase() || "long"
-                                }`}
-                              >
-                                {trade.direction?.toLowerCase() === "long" ? (
-                                  <TrendingUp size={16} />
-                                ) : (
-                                  <TrendingDown size={16} />
-                                )}
-                              </div>
-
-                              <div className="flexClm">
-                                <span className="font_14">
-                                  {trade.symbol || "N/A"}
-                                </span>
-                                <span className="font_12 shade_50 gap_8">
-                                  {trade.openTime &&
-                                  !isNaN(new Date(trade.openTime).getTime())
-                                    ? formatTime(trade.openTime)
-                                    : "N/A"}{" "}
-                                  {trade.closeTime &&
-                                  !isNaN(
-                                    new Date(trade.closeTime).getTime(),
-                                  ) ? (
-                                    <>
-                                      {" → "}
-                                      {formatTime(trade.closeTime)}
-                                      {trade.duration > 0 && (
-                                        <span style={{ paddingLeft: "4px" }}>
-                                          | {trade.duration}hr
-                                        </span>
-                                      )}
-                                    </>
+                    <div className="flexClm gap_12">
+                      <AnimatePresence>
+                        {visibleTrades.map((trade, index) => (
+                          <motion.div
+                            key={trade._id || trade.id || index}
+                            className="tradeCard"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                            onClick={() => handleTradeClick(trade._id)}
+                            whileHover={{ y: -2 }}
+                          >
+                            <div className="flexRow flexRow_stretch">
+                              <div className="flexRow gap_12">
+                                <div
+                                  className={`positionIcon ${
+                                    trade.direction?.toLowerCase() || "long"
+                                  }`}
+                                >
+                                  {trade.direction?.toLowerCase() === "long" ? (
+                                    <ArrowUpIcon size={20} />
                                   ) : (
-                                    trade.openTime &&
-                                    !isNaN(
-                                      new Date(trade.openTime).getTime(),
-                                    ) && (
-                                      <span className="flex">
-                                        <span className="pulseDot"></span>{" "}
-                                        Active
-                                      </span>
-                                    )
+                                    <ArrowDownIcon size={20} />
                                   )}
-                                </span>
+                                </div>
+
+                                <div className="flexClm">
+                                  <span className="font_16 font_weight_600">
+                                    {trade.symbol || "N/A"}
+                                  </span>
+                                  <span className="font_14 gap_8">
+                                    {trade.openTime &&
+                                    !isNaN(new Date(trade.openTime).getTime())
+                                      ? formatTime(trade.openTime)
+                                      : "N/A"}{" "}
+                                    {trade.closeTime &&
+                                    !isNaN(
+                                      new Date(trade.closeTime).getTime(),
+                                    ) ? (
+                                      <>
+                                        {" → "}
+                                        {formatTime(trade.closeTime)}
+                                        {trade.duration > 0 && (
+                                          <span style={{ paddingLeft: "4px" }}>
+                                            | {trade.duration}hr
+                                          </span>
+                                        )}
+                                      </>
+                                    ) : (
+                                      trade.openTime &&
+                                      !isNaN(
+                                        new Date(trade.openTime).getTime(),
+                                      ) && (
+                                        <span className="flex">
+                                          <span className="pulseDot"></span>{" "}
+                                          Active
+                                        </span>
+                                      )
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div
+                                className={`font_16 ${getPnlColorClass(
+                                  trade.pnl,
+                                )}`}
+                              >
+                                {trade.pnl > 0 ? "+" : ""}
+                                {formatCurrency(trade.pnl)}
                               </div>
                             </div>
-
-                            <div
-                              className={`font_16 ${getPnlColorClass(
-                                trade.pnl,
-                              )}`}
-                            >
-                              {trade.pnl > 0 ? "+" : ""}
-                              {formatCurrency(trade.pnl)}
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
 
                     {/* Load More Trades Button */}
                     {hasMoreTrades && (
@@ -557,7 +599,7 @@ const TradesHistory = ({
                           </>
                         ) : (
                           <>
-                            <span className="loadMoreTrade_Text">
+                            <span className="tertiary-btn flexRow gap_4">
                               <ChevronDown size={16} /> Show all (
                               {tradesForDay.length - visibleTrades.length}{" "}
                               remaining)
@@ -572,28 +614,20 @@ const TradesHistory = ({
 
             {/* Load More Dates Button */}
             {Object.keys(groupedTrades).length > visibleDateCount && (
-              <motion.button
-                className="button_ter flexRow flex_center gap_4"
-                onClick={() => setVisibleDateCount(visibleDateCount + 5)}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ArrowDown size={16} /> Load More Dates
-              </motion.button>
-            )}
-
-            {displayedTrades.length < trades.length && (
-              <div className="chart_boxBg pad_16 flexClm gap_12">
-                <span className="font_14">Showing last 30 days of trades.</span>
-                <button
-                  className="upgrade_btn width100"
-                  onClick={() => router.push("/pricing")}
+              <div className="flexRow flex_center">
+                <motion.button
+                  className="btn flexRow flex_center  gap_4"
+                  onClick={() => setVisibleDateCount(visibleDateCount + 5)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  Upgrade to view full history
-                </button>
+                  <ArrowDown size={16} /> Load More Dates
+                </motion.button>
               </div>
             )}
+
+            {displayedTrades.length < trades.length && <LockedTradesPreview />}
           </div>
         ) : (
           <motion.div className="notFound" variants={childVariants}>

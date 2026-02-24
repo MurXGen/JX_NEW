@@ -1,78 +1,58 @@
 "use client";
 
-import LongShorts from "@/components/Tabs/Long_short";
-import MarketNews from "@/components/Tabs/HeatMaps";
-import Overview from "@/components/Tabs/Overview";
-import TickerOverview from "@/components/Tabs/Tickeroverview";
-import TickerAnalysis from "@/components/Tabs/Tickeroverview";
-import BottomBar from "@/components/Trades/BottomBar";
-import Navbar from "@/components/Trades/Navbar";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import FullPageLoader from "@/components/ui/FullPageLoader";
+import { useEffect, useState, useMemo } from "react";
+import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { calculateStats } from "@/utils/calculateStats";
-import { getFromIndexedDB } from "@/utils/indexedDB";
+import {
+  ArrowUpRight,
+  ChevronDown,
+  Circle,
+  Menu,
+  MenuIcon,
+  PieChart,
+  Settings,
+  Smile,
+  SwitchCamera,
+  SwitchCameraIcon,
+  TrendingDown,
+  TrendingUp,
+  User,
+} from "lucide-react";
+import HeroCards from "@/components/dashboardMobile/HeroCards";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
 import Cookies from "js-cookie";
-import { X } from "lucide-react";
-import Head from "next/head";
+import AllTradeStats from "@/components/dashboardMobile/AllTradesStats";
+import AllLongShortStats from "@/components/dashboardMobile/AllLongShortStats";
+import AllTickerStats from "@/components/dashboardMobile/AllTickerStats";
+import DailyPnlChart from "@/components/Charts/DailyPnlChart";
+import { processPnLCandles } from "@/utils/processPnLCandles";
+import PnLAreaChart from "@/components/Charts/PnLAreaChart";
+import PNLChart from "@/components/Charts/PnlChart";
+import TagAnalysis from "@/components/Charts/TagAnalysis";
+import TagPerformance from "@/components/Charts/TagPerformance";
+import LongShortVolumes from "@/components/Charts/LongShortVolumes";
+import VolumeChart from "@/components/Charts/AllVolume";
+import TickerAnalysis from "@/components/Tabs/TickerAnalysis";
+import BottomBar from "@/components/Trades/BottomBar";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { FcSwitchCamera } from "react-icons/fc";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
-function useInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showPrompt, setShowPrompt] = useState(false);
-
-  useEffect(() => {
-    const dismissed =
-      localStorage.getItem("journalx_install_dismissed") === "true";
-
-    const isInstalled =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone ||
-      localStorage.getItem("journalx_installed") === "true" ||
-      dismissed;
-
-    if (isInstalled) return;
-
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowPrompt(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () =>
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt,
-      );
-  }, []);
-
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const choiceResult = await deferredPrompt.userChoice;
-
-    if (choiceResult.outcome === "accepted") {
-      localStorage.setItem("journalx_installed", "true");
-    }
-
-    setShowPrompt(false);
-    setDeferredPrompt(null);
-  };
-
-  return { showPrompt, handleInstall, setShowPrompt };
-}
-
-export default function Home() {
+export default function DashboardMobile() {
   const router = useRouter();
+  const [accounts, setAccounts] = useState([]);
   const [trades, setTrades] = useState([]);
+  const [userPlan, setUserPlan] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview");
-  const { showPrompt, setShowPrompt, handleInstall } = useInstallPrompt();
+
+  const [activeTab, setActiveTab] = useState("Overview");
+  const tabs = ["Overview", "Buy/sell", "Ticker"];
+
+  const primaryCurrency = accounts.length > 0 ? accounts[0].currency : "usd";
+
+  const currencySymbol = getCurrencySymbol(primaryCurrency);
+
+  const selectedAccountId = Cookies.get("accountId");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -91,52 +71,57 @@ export default function Home() {
     }
   }, [router]);
 
-  const tabs = [
-    { key: "overview", label: "Overview" },
-    { key: "longshorts", label: "Long/Shorts" },
-    { key: "ticker", label: "Ticker Analysis" },
-    { key: "news", label: "Heatmaps" },
-  ];
+  const selectedAccount = useMemo(() => {
+    if (!selectedAccountId) return null;
+    return accounts.find((acc) => acc._id === selectedAccountId) || null;
+  }, [accounts, selectedAccountId]);
+
+  const selectedTrades = useMemo(() => {
+    if (!selectedAccount) return [];
+    return trades.filter((t) => t.accountId === selectedAccount._id);
+  }, [trades, selectedAccount]);
 
   useEffect(() => {
-    const loadTrades = async () => {
-      const accountId = Cookies.get("accountId");
+    const loadData = async () => {
+      const data = await fetchAccountsAndTrades();
 
-      if (!accountId) {
-        router.push("/accounts");
-      } else {
-        setLoading(false); // account exists, stop loader
+      if (data?.redirectToLogin) {
+        window.location.href = "/login";
+        return;
       }
 
-      const userData = await getFromIndexedDB("user-data");
-
-      if (userData) {
-        const account = (userData.accounts || []).find(
-          (acc) => acc._id === accountId,
-        );
-        if (account?.currency) {
-          localStorage.setItem("currencyCode", account.currency);
-        }
-
-        const accountTrades = (userData.trades || []).filter(
-          (trade) => trade.accountId === accountId,
-        );
-        setTrades(accountTrades);
-
-        const computedStats = calculateStats(accountTrades);
-        setStats(computedStats);
-
-        if (accountTrades.length > 0) {
-          const currencyFromLS = localStorage.getItem("currencyCode");
-          calculateStats(accountTrades, currencyFromLS);
-        }
-      }
+      setAccounts(data.accounts || []);
+      setTrades(data.trades || []);
+      setUserPlan(data.userPlan || null);
 
       setLoading(false);
     };
 
-    loadTrades();
-  }, [router]);
+    loadData();
+  }, []);
+
+  const stats = useMemo(() => {
+    return calculateStats(selectedTrades);
+  }, [selectedTrades]);
+
+  const totalBalance = useMemo(() => {
+    if (!selectedAccount) return 0;
+
+    const starting = selectedAccount.startingBalance?.amount || 0;
+
+    const pnlSum = selectedTrades.reduce(
+      (sum, t) => sum + (Number(t.pnl) || 0),
+      0,
+    );
+
+    return starting + pnlSum;
+  }, [selectedAccount, selectedTrades]);
+
+  const candleData = processPnLCandles(trades);
+
+  const handleEdit = () => {
+    router.push("/create-account?mode=edit");
+  };
 
   if (loading) {
     return <FullPageLoader />;
@@ -144,146 +129,104 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>Powerful Dashboard | JournalX</title>
-        <meta
-          name="description"
-          content="JournalX is your personal trading journal dashboard to track trades, analyze performance, and discover what works best in your trading strategy. Empower your trading with AI insights and analytics."
-        />
-        <meta
-          name="keywords"
-          content="trading journal, trade analytics, trading performance tracker, AI trading insights, forex journal, stock trading journal, crypto trading analysis, journalx dashboard, trading performance improvement"
-        />
-        <meta name="robots" content="index, follow" />
+      <div className="flexClm dashboard pad_16 gap_32">
+        <div className="mob-header flexRow flexRow_stretch">
+          <button className="btn" onClick={() => router.push("/accounts")}>
+            <MenuIcon size={24} />
+          </button>
 
-        {/* Open Graph / Social Meta Tags */}
-        <meta
-          property="og:title"
-          content="JournalX | Trading Journal Dashboard"
-        />
-        <meta
-          property="og:description"
-          content="Track your trades, visualize your performance, and get AI-driven insights — all in one smart dashboard with JournalX."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://journalx.app/" />
-        <meta property="og:image" content="/assets/Journalx_Banner.png" />
-
-        {/* Twitter Meta Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content="JournalX | Trading Journal Dashboard"
-        />
-        <meta
-          name="twitter:description"
-          content="Simplify your trading journal. JournalX helps you track, analyze, and improve your trading performance with AI insights."
-        />
-        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
-      </Head>
-      {showPrompt && (
-        <div
-          className="flexClm chart_boxBg gap_12 installPromptBox"
-          style={{
-            padding: "16px",
-            position: "fixed",
-            zIndex: 10000,
-          }}
-        >
-          <div className="flexRow flexRow_stretch gap_24">
-            <span className="flexClm gap_4">
-              <span className="vector font_14">JournalX App</span>
-              <span className="font_12 shade_50">
-                Install JournalX for a better experience!
-              </span>
+          <div className="flexClm flex_center">
+            <span className="font_16 font_weight_600">
+              {selectedAccount && <span>{selectedAccount.name}</span>}
             </span>
-            <div className="flexRow gap_12">
-              <button
-                className="button_pri"
-                style={{ width: "100px" }}
-                onClick={handleInstall}
-              >
-                Install App
-              </button>
-              {/* Close button */}
-              <button
-                onClick={() => {
-                  setShowPrompt(false);
-                  localStorage.setItem("journalx_install_dismissed", "true"); // mark as dismissed
-                }}
-                className="button_sec flexRow flex_center"
-                style={{
-                  position: "absolute",
-                  top: "-10px",
-                  right: "-10px",
-                  padding: "8px",
-                  borderRadius: "24px",
-                }}
-              >
-                <X size={14} />
-              </button>
-            </div>
+            <span className="font_14" style={{ color: "var(--black-50)" }}>
+              Journal Dashboard
+            </span>
           </div>
-        </div>
-      )}
-      <div
-        className="flexClm gap_32"
-        style={{
-          maxWidth: "1200px",
-          minWidth: "300px",
-          margin: "12px auto",
-          padding: "0 12px 100px 12px",
-        }}
-      >
-        <div className="flexClm gap_12">
-          <Navbar />
-
-          <div
-            className="flexRow gap_12 removeScrollBar"
-            style={{
-              overflowX: "auto",
-              position: "relative",
-              borderBottom: "1px solid #ffffff20",
-            }}
+          <button
+            className="btn"
+            onClick={() => router.push("/journal-setting")}
           >
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className="tab_button"
-              >
-                {tab.label}
-
-                {/* Animated underline */}
-                {activeTab === tab.key && (
-                  <motion.div
-                    layoutId="activeTabUnderline"
-                    className="underline"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
+            <Settings size={24} />
+          </button>
         </div>
 
-        {activeTab === "overview" && <Overview stats={stats} trades={trades} />}
-        {activeTab === "longshorts" && (
-          <LongShorts
-            stats={stats}
-            longTrades={trades.filter((t) => t.direction === "long")}
-            shortTrades={trades.filter((t) => t.direction === "short")}
-          />
-        )}
-        {activeTab === "ticker" && (
-          <>
-            <span className="font_16">Ticker analysis</span>
-            <TickerOverview trades={trades} />
-          </>
-        )}
-        {activeTab === "news" && <MarketNews />}
+        {/* Stats */}
+        <HeroCards
+          balance={totalBalance}
+          netPnL={stats.netPnL}
+          winTrades={stats.winTrades}
+          loseTrades={stats.loseTrades}
+          maxProfit={stats.maxProfit}
+          maxLoss={stats.maxLoss}
+          currencySymbol={currencySymbol}
+        />
+
+        {/* Tabs */}
+        <div className="mobile-tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              className={`tab-item ${activeTab === tab ? "active" : ""}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
         <BottomBar />
+
+        {activeTab === "Overview" && (
+          <>
+            <AllTradeStats
+              stats={stats}
+              trades={selectedTrades}
+              currencySymbol={currencySymbol}
+            />
+
+            <div className="">
+              <TagPerformance
+                tagAnalysis={stats.tagAnalysis}
+                currencySymbol={currencySymbol}
+              />
+            </div>
+            <div className="">
+              <PNLChart dailyData={stats.dailyData} />
+            </div>
+            <div className="">
+              <DailyPnlChart data={candleData} />
+            </div>
+            <div className="">
+              <PnLAreaChart data={candleData} />
+            </div>
+
+            <div className="">
+              <VolumeChart dailyData={stats.dailyVolumeData} />
+            </div>
+          </>
+        )}
+
+        {activeTab === "Buy/sell" && (
+          <>
+            <AllLongShortStats
+              trades={selectedTrades}
+              currencySymbol={currencySymbol}
+            />
+            <div className="">
+              <LongShortVolumes dailyData={stats.dailyVolumeData} />
+            </div>
+          </>
+        )}
+
+        {activeTab === "Ticker" && (
+          <>
+            <AllTickerStats trades={trades} currencySymbol={currencySymbol} />
+            <div className="">
+              <TickerAnalysis trades={trades} />
+            </div>
+          </>
+        )}
       </div>
     </>
   );

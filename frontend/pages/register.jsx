@@ -322,69 +322,93 @@ function Register() {
       <div
         className="register flexClm gap_32"
         style={{
-          maxWidth: "1200px",
+          maxWidth: "800px",
           minWidth: "300px",
-          margin: "12px auto",
+          margin: "32px auto",
           padding: "0 12px 100px 12px",
         }}
       >
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="s_tit_des flexClm">
-          <span className="tit font_20">Register and start journaling !</span>
-          <span className="des font_14 shade_50">
-            Your discipline starts here
+          <span className="font_24 font_weight_600">Create new account</span>
+          <span className="desc font_14">
+            Explore the ease of journaling by creating your account
           </span>
         </div>
 
         <div className="container">
           {step === "enter-email" && (
-            <div className="flexClm gap_24">
-              <div key="email-step" className="flexClm gap_24">
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Name"
-                  type="text"
-                />
-
-                <div className="suggestionInput flexClm">
+            <div className="flexClm gap_8">
+              <div className="flexClm gap_24">
+                <div key="email-step" className="flexClm gap_24">
                   <input
-                    value={email}
-                    onChange={handleChange}
-                    placeholder="Email Address"
-                    type="email"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Name"
+                    type="text"
                   />
-                  {/* Email Validation */}
-                  {email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
-                    <span className="font_12 error">
-                      Enter a valid email (must include @ and .com)
-                    </span>
-                  )}
 
-                  {suggestions.length > 0 && (
-                    <div className="suggestionBox flexClm gap_12">
-                      {suggestions.map((s, i) => (
-                        <span
-                          key={i}
-                          className="suggestion"
-                          onClick={() => handleSelect(s)}
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="suggestionInput flexClm">
+                    <input
+                      value={email}
+                      onChange={handleChange}
+                      placeholder="Email Address"
+                      type="email"
+                    />
+                    {/* Email Validation */}
+                    {email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+                      <span className="font_12 error">
+                        Enter a valid email (must include @ and .com)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flexClm gap_8 flex_center">
+                  <button
+                    className="primary-btn flexRow flexRow_stretch width100"
+                    onClick={() => setStep("set-password")}
+                    disabled={
+                      !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+                    }
+                  >
+                    Next <ArrowRight size={16} />
+                  </button>
                 </div>
               </div>
+              <div className="flexClm gap_24">
+                <div>
+                  <button
+                    className="tertiary-btn"
+                    onClick={() => router.push("/login")}
+                  >
+                    Already have an account? Login here
+                  </button>
+                </div>
+                <div className="flexClm gap_24">
+                  <div
+                    className="flexRow gap_12 flex_center"
+                    style={{ color: "var(--black-50)", opacity: "0.5" }}
+                  >
+                    <hr width="100%"></hr>
+                    <span
+                      className="font_12"
+                      style={{ color: "var(--black-50)" }}
+                    >
+                      or
+                    </span>
+                    <hr width="100%"></hr>
+                  </div>
 
-              <div className="flexClm gap_8 flex_center">
-                <button
-                  className="button_pri flexRow flexRow_stretch"
-                  onClick={() => setStep("set-password")}
-                  disabled={!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
-                >
-                  Next <ArrowRight size={16} />
-                </button>
+                  <button
+                    onClick={() => {
+                      window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+                    }}
+                    className="primary-btn secondary-btn flexRow gap_8 items-center justify-center"
+                  >
+                    <FcGoogle size={20} /> Continue with Google
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -467,15 +491,16 @@ function Register() {
               <div className="flexClm gap_8">
                 <div className="flexRow flexRow_stretch gap_12">
                   <button
-                    className="button_sec flexRow"
+                    className="primary-btn width100 secondary-btn flexRow gap_12  flex_center"
                     onClick={() => setStep("enter-email")}
                     disabled={isLoading}
                   >
                     <ArrowLeft size={20} />
+                    Back
                   </button>
 
                   <button
-                    className="button_pri flexRow flexRow_stretch"
+                    className="primary-btn width100 flexRow  gap_12 flex_center"
                     onClick={handleRegister}
                     disabled={isLoading || !turnstileToken} // ✅ disable until captcha success
                   >
@@ -483,7 +508,7 @@ function Register() {
                       <div className="spinner"></div>
                     ) : (
                       <>
-                        Register <ArrowRight size={16} />
+                        Register <ArrowRight size={20} />
                       </>
                     )}
                   </button>
@@ -530,42 +555,6 @@ function Register() {
               </div>
             </div>
           )}
-
-          <div className="flexRow flex_center">
-            <span
-              className="direct_tertiary"
-              onClick={() => router.push("/login")}
-            >
-              Already have an account? Sign-in
-            </span>
-          </div>
-        </div>
-
-        <div className="flexClm gap_24">
-          <div className="flexRow flex_center" style={{ position: "relative" }}>
-            <hr width="15%"></hr>
-            <span
-              className="font_12"
-              style={{
-                position: "absolute",
-                top: "-12px",
-                background: "#1d1d1d",
-                padding: "12px",
-                cursor: "default",
-              }}
-            >
-              or
-            </span>
-          </div>
-
-          <button
-            onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
-            }}
-            className="button_sec flexRow flex_center gap_8"
-          >
-            <FcGoogle size={20} /> Sign up with Google
-          </button>
         </div>
 
         {/* <MessageCard

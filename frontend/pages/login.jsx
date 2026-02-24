@@ -58,7 +58,7 @@ function Login() {
       const res = await axios.post(
         `${API_BASE}/api/auth/login`,
         { email, password, turnstileToken },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       const { userData, isVerified } = res.data;
@@ -210,22 +210,22 @@ function Login() {
       <div
         className="login flexClm gap_32"
         style={{
-          maxWidth: "1200px",
+          maxWidth: "800px",
           minWidth: "300px",
-          margin: "12px auto",
+          margin: "32px auto",
           padding: "0 12px 100px 12px",
         }}
       >
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="flexClm gap_32">
           <div className="s_tit_des flexClm">
-            <span className="tit font_20">Welcome Back !</span>
-            <span className="des font_14 shade_50">
-              Continue logging and getting insights
+            <span className="font_24 font_weight_600">Login to continue</span>
+            <span className="font_14 desc">
+              Login to your account to access your trades data
             </span>
           </div>
           <div className="flexClm gap_24">
-            <div className="suggestionInput flexClm">
+            <div className="flexClm">
               <input
                 value={email}
                 onChange={handleChange}
@@ -233,21 +233,7 @@ function Login() {
                 type="email"
                 onKeyDown={handleKeyDown}
               />
-              {suggestions.length > 0 && (
-                <div className="suggestionBox flexClm gap_12">
-                  {suggestions.map((s, i) => (
-                    <span
-                      key={i}
-                      className="suggestion"
-                      onClick={() => handleSelect(s)}
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
-
             <div className="passwordWrap flexClm">
               <input
                 value={password}
@@ -270,55 +256,45 @@ function Login() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-
             <Turnstile
               siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
               onSuccess={(token) => setTurnstileToken(token)}
             />
-
-            <div className="flexClm">
+            <div className="flexClm gap_12">
               <button
                 type="submit"
                 disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
-                className="button_pri flexRow gap_12 flexRow_center flexRow_stretch"
+                className="primary-btn flexRow gap_12 flexRow_center flexRow_stretch"
                 onClick={(e) => {
                   e.preventDefault(); // prevent form reload
                   handleLogin(); // call login function
                 }}
               >
                 {isLoading ? <div className="spinner"></div> : "Login"}
-                {!isLoading && <ArrowRight size={16} />}
+                {!isLoading && <ArrowRight size={20} />}
               </button>
+            </div>
 
-              <div className="flexClm gap_8 flex_center">
-                <span
-                  className="direct_tertiary"
-                  onClick={() => router.push("/register")}
-                >
-                  New to journaling? Sign-up
-                </span>
-              </div>
+            <div>
+              <button
+                className="tertiary-btn"
+                onClick={() => router.push("/register")}
+              >
+                Don't have an account? Register here
+              </button>
             </div>
           </div>
 
           <div className="flexClm gap_24">
             <div
-              className="flexRow flex_center"
-              style={{ position: "relative" }}
+              className="flexRow gap_12 flex_center"
+              style={{ color: "var(--black-50)", opacity: "0.5" }}
             >
-              <hr width="15%"></hr>
-              <span
-                className="font_12"
-                style={{
-                  position: "absolute",
-                  top: "-12px",
-                  background: "#1d1d1d",
-                  padding: "12px",
-                  cursor: "default",
-                }}
-              >
+              <hr width="100%"></hr>
+              <span className="font_12" style={{ color: "var(--black-50)" }}>
                 or
               </span>
+              <hr width="100%"></hr>
             </div>
 
             <button
@@ -326,9 +302,9 @@ function Login() {
                 // Redirect to your backend Google OAuth endpoint
                 window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
               }}
-              className="button_sec flexRow flex_center gap_8 items-center justify-center px-4 py-2 border rounded shadow hover:bg-gray-100 transition"
+              className="primary-btn secondary-btn flexRow gap_8 items-center justify-center"
             >
-              <FcGoogle size={20} /> Sign in with Google
+              <FcGoogle size={20} /> Continue with Google
             </button>
           </div>
 

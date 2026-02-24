@@ -13,13 +13,13 @@ const EntriesSection = ({
 
   return (
     <div className="tradeGrid">
-      <span className="label">Entries</span>
+      <span className="label">Set entries</span>
 
       <div className="flexClm gap_32">
         {form.entries.map((entry, idx) => {
           const usedAllocation = form.entries.reduce(
             (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
-            0
+            0,
           );
           const remaining = Math.max(0, 100 - usedAllocation);
           const allocatedValue =
@@ -62,26 +62,26 @@ const EntriesSection = ({
             <div key={idx} className="flexRow flexRow_stretch gap_12">
               {/* Entry Price Input */}
               <div className="flexClm" style={{ flex: "1" }}>
-                <div className="inputLabelShift">
-                  <input
-                    type="number"
-                    step="any"
-                    name={`entryPrice_${idx}`}
-                    value={entry.price}
-                    placeholder="Entry Price"
-                    min="0"
-                    onChange={handlePriceChange}
-                  />
-                  <label>Entry Price</label>
-                </div>
+                <label className="font_14 black-text">Entry price</label>
+                <input
+                  type="number"
+                  step="any"
+                  name={`entryPrice_${idx}`}
+                  value={entry.price}
+                  placeholder="Entry Price"
+                  min="0"
+                  onChange={handlePriceChange}
+                />
               </div>
 
               {/* Allocation Input */}
               <div className="flexClm" style={{ flex: "1" }}>
-                <div className="inputLabelShift">
+                <label className="font_14 black-text">Allocation %</label>
+                <div className="flexRow" style={{ flex: "1" }}>
                   <input
                     type="number"
                     name={`allocation_${idx}`}
+                    style={{ flex: "1" }}
                     placeholder="Allocation %"
                     value={entry.allocation}
                     min="0"
@@ -90,7 +90,6 @@ const EntriesSection = ({
                     onChange={handleAllocationChange}
                     onBlur={(e) => handleAllocationBlur(idx, e.target.value)}
                   />
-                  <label>Allocation %</label>
                 </div>
 
                 {/* Allocation Info */}

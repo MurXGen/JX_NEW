@@ -16,8 +16,8 @@ export const calculateStats = (accountTrades = []) => {
       dailyVolumeData: [],
       last10: [],
       greedFear: { value: 50, label: "Neutral" },
-      bestTime: "Not available",
-      worstTime: "Not available",
+      bestTime: "N/A",
+      worstTime: "N/A",
       winRatio: 0,
       averagePnL: 0,
       totalVolume: 0,
@@ -31,7 +31,7 @@ export const calculateStats = (accountTrades = []) => {
   const netPnL = pnlValues.reduce((sum, p) => sum + p, 0);
   const totalFees = closedTrades.reduce(
     (sum, t) => sum + (t.feeAmount || 0),
-    0
+    0,
   );
   const maxProfit = Math.max(...pnlValues.filter((p) => p > 0), 0);
   const maxLoss = Math.min(...pnlValues.filter((p) => p < 0), 0);
@@ -60,37 +60,45 @@ export const calculateStats = (accountTrades = []) => {
   const winRatio = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
   const averagePnL = totalTrades > 0 ? netPnL / totalTrades : 0;
 
-  // Best/Worst Time calculation
+  // Best/Worst Time calculation with formatted time labels
   const timeRanges = [
-    { label: "Night", start: 0, end: 6 },
-    { label: "Morning", start: 6, end: 12 },
-    { label: "Afternoon", start: 12, end: 18 },
-    { label: "Evening", start: 18, end: 24 },
+    { label: "00AM-06AM", start: 0, end: 6 },
+    { label: "06AM-12PM", start: 6, end: 12 },
+    { label: "12PM-06PM", start: 12, end: 18 },
+    { label: "06PM-12AM", start: 18, end: 24 },
   ];
 
-  const pnlByTimeRange = { Night: 0, Morning: 0, Afternoon: 0, Evening: 0 };
+  const pnlByTimeRange = {
+    "00AM-06AM": 0,
+    "06AM-12PM": 0,
+    "12PM-06PM": 0,
+    "06PM-12AM": 0,
+  };
+
   closedTrades.forEach((trade) => {
     const hour = new Date(trade.closeTime).getHours();
     const range = timeRanges.find((r) => hour >= r.start && hour < r.end);
-    if (range) pnlByTimeRange[range.label] += trade.pnl || 0;
+    if (range) {
+      pnlByTimeRange[range.label] += trade.pnl || 0;
+    }
   });
 
   const bestEntry = Object.entries(pnlByTimeRange).reduce(
     (a, b) => (b[1] > a[1] ? b : a),
-    ["Not available", 0]
+    ["N/A", 0],
   );
   const worstEntry = Object.entries(pnlByTimeRange).reduce(
     (a, b) => (b[1] < a[1] ? b : a),
-    ["Not available", 0]
+    ["N/A", 0],
   );
 
-  const bestTime = bestEntry[1] > 0 ? bestEntry[0] : "Not available";
-  const worstTime = worstEntry[1] < 0 ? worstEntry[0] : "Not available";
+  const bestTime = bestEntry[1] > 0 ? bestEntry[0] : "N/A";
+  const worstTime = worstEntry[1] < 0 ? worstEntry[0] : "N/A";
 
   // Total volume & daily aggregations
   const totalVolume = closedTrades.reduce(
     (sum, t) => sum + (t.totalQuantity || 0),
-    0
+    0,
   );
 
   const dailyPnL = {};
@@ -169,7 +177,7 @@ export const calculateStats = (accountTrades = []) => {
   });
 
   const sortedTagAnalysis = Object.values(tagAnalysis).sort(
-    (a, b) => b.totalPnL - a.totalPnL
+    (a, b) => b.totalPnL - a.totalPnL,
   );
 
   return {
@@ -192,5 +200,92 @@ export const calculateStats = (accountTrades = []) => {
     totalVolume,
     totalFees,
     tagAnalysis: sortedTagAnalysis,
+  };
+};
+
+export const calculateTickerStats = (closedTrades) => {
+  if (!closedTrades.length) {
+    return {
+      totalTickers: 0,
+      mostTraded: "-",
+      bestPerformer: "-",
+      worstPerformer: "-",
+      highestWinRate: "-",
+      bestLong: null,
+      bestShort: null,
+      worstLong: null,
+      worstShort: null,
+    };
+  }
+
+  const tickerMap = {};
+
+  let bestLong = null;
+  let bestShort = null;
+  let worstLong = null;
+  let worstShort = null;
+
+  closedTrades.forEach((trade) => {
+    const { ticker, pnl, direction } = trade;
+    if (!ticker) return;
+
+    // Initialize ticker
+    if (!tickerMap[ticker]) {
+      tickerMap[ticker] = {
+        trades: 0,
+        totalPnl: 0,
+        wins: 0,
+      };
+    }
+
+    tickerMap[ticker].trades += 1;
+    tickerMap[ticker].totalPnl += pnl || 0;
+    if (pnl > 0) tickerMap[ticker].wins += 1;
+
+    // Track best/worst by direction
+    if (direction === "long") {
+      if (!bestLong || pnl > bestLong.pnl) bestLong = trade;
+      if (!worstLong || pnl < worstLong.pnl) worstLong = trade;
+    }
+
+    if (direction === "short") {
+      if (!bestShort || pnl > bestShort.pnl) bestShort = trade;
+      if (!worstShort || pnl < worstShort.pnl) worstShort = trade;
+    }
+  });
+
+  const tickers = Object.entries(tickerMap);
+
+  const totalTickers = tickers.length;
+
+  const mostTraded = tickers.reduce((a, b) =>
+    b[1].trades > a[1].trades ? b : a,
+  )[0];
+
+  const bestPerformer = tickers.reduce((a, b) =>
+    b[1].totalPnl > a[1].totalPnl ? b : a,
+  )[0];
+
+  const worstPerformer = tickers.reduce((a, b) =>
+    b[1].totalPnl < a[1].totalPnl ? b : a,
+  )[0];
+
+  const highestWinRate = tickers
+    .map(([ticker, data]) => ({
+      ticker,
+      winRate: data.trades > 0 ? data.wins / data.trades : 0,
+    }))
+    .reduce((a, b) => (b.winRate > a.winRate ? b : a)).ticker;
+
+  return {
+    totalTickers,
+    mostTraded,
+    bestPerformer,
+    worstPerformer,
+    highestWinRate,
+    bestLong,
+    bestShort,
+    worstLong,
+    worstShort,
   };
 };

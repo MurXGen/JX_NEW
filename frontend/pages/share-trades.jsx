@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   ArrowUp,
   Check,
+  ChevronLeft,
   Copy,
   Share2,
   Sparkles,
@@ -71,12 +72,12 @@ const ShareTrades = () => {
         break;
       case "last_week":
         filtered = filtered.filter((t) =>
-          dayjs(t.openTime).isAfter(now.subtract(1, "week"))
+          dayjs(t.openTime).isAfter(now.subtract(1, "week")),
         );
         break;
       case "last_30_days":
         filtered = filtered.filter((t) =>
-          dayjs(t.openTime).isAfter(now.subtract(30, "day"))
+          dayjs(t.openTime).isAfter(now.subtract(30, "day")),
         );
         break;
       default:
@@ -151,7 +152,7 @@ const ShareTrades = () => {
     setShortening(true);
     try {
       const response = await fetch(
-        `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`
+        `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`,
       );
       if (!response.ok) throw new Error("TinyURL failed");
       const shortUrl = await response.text();
@@ -225,18 +226,25 @@ const ShareTrades = () => {
           padding: "0 12px 100px 12px",
         }}
       >
-        <div className="flexRow flexRow_stretch">
-          <span className="font_20 font_weight_600">Share Trades</span>
+        <div className="flexRow gap_8">
+          <div
+            className="btn flexRow gap_4"
+            onClick={() => router.push("/profile")}
+            style={{ cursor: "pointer" }}
+          >
+            <ChevronLeft size={20} />
+            <span className="font_20">Share trade</span>
+          </div>
         </div>
 
-        <div className="chart_boxBg flexClm pad_32 gap_32">
+        <div className="stats-card radius_12 flexClm pad_32 gap_32">
           <div className="flexRow gap_16 align_center">
-            <Share2 size={48} className="shade_50" />
+            <Share2 size={48} className="boxBg" />
             <div className="flexClm gap_8">
               <span className="font_16 font_weight_600">
                 Share Feature Locked
               </span>
-              <span className="font_14 shade_50">
+              <span className="font_14">
                 Upgrade to Pro or Master plan to share your trades with others.
               </span>
             </div>

@@ -4,7 +4,6 @@ import { ArrowUpRight, ArrowDownRight, X } from "lucide-react";
 const Ticker = ({ form, setForm }) => {
   const [storedSymbols, setStoredSymbols] = useState([]);
   const [filteredSymbols, setFilteredSymbols] = useState([]);
-  const [isSelecting, setIsSelecting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
@@ -13,29 +12,29 @@ const Ticker = ({ form, setForm }) => {
     setFilteredSymbols(saved);
   }, []);
 
+  // 🔎 Handle typing
   const handleSymbolChange = (e) => {
     const upperValue = e.target.value.toUpperCase();
     setForm((prev) => ({ ...prev, symbol: upperValue }));
 
-    if (isSelecting) return;
-
-    if (upperValue.trim()) {
+    if (upperValue.trim() === "") {
+      // Show default suggestions when empty
+      setFilteredSymbols(storedSymbols);
+    } else {
       const filtered = storedSymbols.filter((sym) =>
         sym.toUpperCase().includes(upperValue),
       );
       setFilteredSymbols(filtered);
-    } else {
-      setFilteredSymbols(storedSymbols);
     }
   };
 
+  // 💾 Save on blur
   const handleSymbolBlur = () => {
-    if (isSelecting) return;
-
     const trimmed = form.symbol.trim();
     if (!trimmed) return;
 
     const saved = JSON.parse(localStorage.getItem("tickers")) || [];
+
     if (!saved.includes(trimmed)) {
       const updated = [trimmed, ...saved].slice(0, 10);
       localStorage.setItem("tickers", JSON.stringify(updated));
@@ -44,29 +43,44 @@ const Ticker = ({ form, setForm }) => {
     }
   };
 
+  // ✅ Select from dropdown
   const handleSymbolSelect = (symbol) => {
-    setIsSelecting(true);
     setForm((prev) => ({ ...prev, symbol }));
-    setFilteredSymbols([]);
-    setTimeout(() => setIsSelecting(false), 200);
+    setFilteredSymbols(storedSymbols);
+    setIsFocused(false);
   };
 
+  // ❌ Remove saved ticker
   const removeSymbol = (symbol) => {
     const updated = storedSymbols.filter((s) => s !== symbol);
     localStorage.setItem("tickers", JSON.stringify(updated));
     setStoredSymbols(updated);
-    setFilteredSymbols(updated);
-    if (form.symbol === symbol) setForm((prev) => ({ ...prev, symbol: "" }));
+
+    // Refresh suggestions if focused
+    if (isFocused) {
+      setFilteredSymbols(updated);
+    }
+
+    if (form.symbol === symbol) {
+      setForm((prev) => ({ ...prev, symbol: "" }));
+    }
   };
 
-  // 🟢 Clear input function
-  const clearInput = () => setForm((prev) => ({ ...prev, symbol: "" }));
+  // 🟢 Clear input
+  const clearInput = () => {
+    setForm((prev) => ({ ...prev, symbol: "" }));
+    setFilteredSymbols(storedSymbols); // show suggestions again
+  };
 
   return (
     <div className="">
       {/* Symbol Input with Clear Icon */}
-      <div className="flexRow gap_12" style={{ position: "relative" }}>
-        <div className="inputLabelShift flexRow gap_12">
+      <div className="flexClm gap_24" style={{ position: "relative" }}>
+        <div
+          className="addTradeContainer width100"
+          style={{ position: "relative" }}
+        >
+          <label className="font_14">Traded ticker</label>
           <input
             name="symbol"
             value={form.symbol}
@@ -76,12 +90,10 @@ const Ticker = ({ form, setForm }) => {
               setTimeout(() => setIsFocused(false), 150); // small delay so clicks register
               handleSymbolBlur(e);
             }}
-            placeholder="Traded symbol : Nifty, Bitcoin etf.."
+            placeholder=""
             autoComplete="off"
             style={{ paddingRight: "28px" }}
           />
-          <label>Traded symbol</label>
-
           {/* Clear Input Icon */}
           {form.symbol && (
             <X
@@ -89,10 +101,10 @@ const Ticker = ({ form, setForm }) => {
               style={{
                 position: "absolute",
                 right: 8,
-                top: "50%",
+                top: "70%",
                 transform: "translateY(-50%)",
                 cursor: "pointer",
-                color: "#888",
+                color: "var(--black)",
               }}
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -102,64 +114,91 @@ const Ticker = ({ form, setForm }) => {
           )}
         </div>
 
-        {/* Long / Short Buttons */}
-        <div className="flexRow flexRow_stretch gap_12">
+        {/* Show ticker suggestions only if input is focused */}
+        {isFocused && (
           <div
-            className={`button_sec flexRow flex_center font_weight_600 ${
-              form.direction === "long" ? "longBg" : ""
-            }`}
-            style={{ width: "100%" }}
-            onClick={() => setForm({ ...form, direction: "long" })}
+            className="flexRow gap_8 stats-card radius-12"
+            style={{
+              flexWrap: "wrap",
+              boxShadow: "1px 1px 12px rgba(0,0,0,0.2)",
+              padding: "8px",
+              position: "absolute",
+              top: "80px",
+              left: "0",
+              right: "0",
+            }}
           >
-            Long <ArrowUpRight size={20} />
+            {filteredSymbols.length > 0 ? (
+              filteredSymbols.map((sym) => (
+                <button
+                  key={sym}
+                  type="button"
+                  className={`font_14 pad_16 flexRow flexRow_stretch btn gap_8 ${
+                    form.symbol === sym ? "now" : ""
+                  }`}
+                  style={{ cursor: "pointer" }}
+                  onMouseDown={() => handleSymbolSelect(sym)}
+                >
+                  <span>{sym}</span>
+                  <X
+                    size={12}
+                    style={{ padding: "4px" }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      removeSymbol(sym);
+                    }}
+                  />
+                </button>
+              ))
+            ) : (
+              <div
+                className="font_14"
+                style={{
+                  padding: "12px",
+                  width: "100%",
+                  textAlign: "center",
+                  opacity: 0.6,
+                }}
+              >
+                No traded ticker name found
+              </div>
+            )}
           </div>
-          <div
-            className={`button_sec flexRow flex_center font_weight_600 ${
-              form.direction === "short" ? "shortBg" : ""
-            }`}
-            style={{ width: "100%" }}
-            onClick={() => setForm({ ...form, direction: "short" })}
-          >
-            Short <ArrowDownRight size={20} />
+        )}
+
+        <div className="addTradeContainer width100">
+          <label>Direction</label>
+
+          <div className="flexRow flexRow_stretch gap_12 width100">
+            <button
+              type="button"
+              className={`primary-btn secondary-btn width100 flexRow flex_center font_weight_600 direction-btn ${
+                form.direction === "long" ? "longBg active" : ""
+              }`}
+              onClick={() => setForm({ ...form, direction: "long" })}
+            >
+              Long
+              <span className="arrow-wrapper">
+                <ArrowUpRight size={20} className="arrow-icon long-arrow" />
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={`primary-btn secondary-btn width100 flexRow flex_center font_weight_600 direction-btn ${
+                form.direction === "short" ? "shortBg active" : ""
+              }`}
+              onClick={() => setForm({ ...form, direction: "short" })}
+            >
+              Short
+              <span className="arrow-wrapper">
+                <ArrowDownRight size={20} className="arrow-icon short-arrow" />
+              </span>
+            </button>
           </div>
         </div>
       </div>
-
-      {/* Show ticker suggestions only if input is focused */}
-      {isFocused && filteredSymbols.length > 0 && (
-        <div
-          className="flexClm gap_8 flexRow_scroll removeScrollBar"
-          style={{
-            background: "var(--white-4)",
-            borderRadius: "var(--px-12)",
-            maxHeight: "150px",
-            overflowY: "auto",
-            marginTop: "12px",
-          }}
-        >
-          {filteredSymbols.map((sym) => (
-            <div
-              key={sym}
-              className={`font_14 pad_16 flexRow flexRow_stretch gap_8 ${
-                form.symbol === sym ? "selected" : ""
-              }`}
-              style={{ cursor: "pointer" }}
-              onMouseDown={() => handleSymbolSelect(sym)}
-            >
-              <span>{sym}</span>
-              <X
-                size={12}
-                style={{ padding: "4px" }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  removeSymbol(sym);
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

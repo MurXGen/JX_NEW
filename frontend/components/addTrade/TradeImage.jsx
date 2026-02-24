@@ -8,7 +8,7 @@ const ImageBox = ({ label, imagePreview, onChange, onRemove }) => {
           <img src={imagePreview} alt={`${label} Preview`} />
           <button
             type="button"
-            className="removeBtn flexRow flex_center button_ter"
+            className="removeBtn flexRow flex_center btn"
             onClick={onRemove}
             aria-label={`Remove ${label} image`}
           >
@@ -22,7 +22,7 @@ const ImageBox = ({ label, imagePreview, onChange, onRemove }) => {
             <div className="iconCircle">
               <Upload size={20} />
             </div>
-            <div className="gap_8 flexClm flex_center">
+            <div className="gap_4 flexClm flex_center">
               <span className="title font_14">Upload {label} Chart</span>
               <span className="subtitle font_12">PNG, JPG up to 5MB</span>
             </div>

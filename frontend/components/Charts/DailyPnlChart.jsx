@@ -94,7 +94,7 @@ const DailyPnlChart = ({ data }) => {
   const handleNext = () => {
     const newIndex = Math.min(
       currentIndex + CANDLE_WINDOW,
-      Math.max(processedData.length - CANDLE_WINDOW, 0)
+      Math.max(processedData.length - CANDLE_WINDOW, 0),
     );
     setCurrentIndex(newIndex);
     setVisibleData(processedData.slice(newIndex, newIndex + CANDLE_WINDOW));
@@ -147,34 +147,35 @@ const DailyPnlChart = ({ data }) => {
   };
 
   if (!visibleData.length) {
-    return <div>No trades logged yet.</div>;
+    return <div className="font_14">No trades logged yet.</div>;
   }
 
   return (
-    <div className="chart_container">
-      <span className="font_12 font_weight_600">PNL Candlestick chart</span>
+    <div className="chart_container radius-12 stats-card">
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
           marginBottom: "8px",
         }}
+        className="flexRow flexRow_stretch"
       >
-        <button
-          onClick={handlePrev}
-          className="button_ter flexRow"
-          disabled={currentIndex === 0}
-        >
-          <ChevronLeft size={16} />
-        </button>
+        <span className="card-value">PNL Candlestick chart</span>
+        <div className="flexRow gap_12 flexRow_stretch">
+          <button
+            onClick={handlePrev}
+            className="btn flexRow"
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft size={16} />
+          </button>
 
-        <button
-          onClick={handleNext}
-          className="button_ter flexRow"
-          disabled={currentIndex + CANDLE_WINDOW >= processedData.length}
-        >
-          <ChevronRight size={16} />
-        </button>
+          <button
+            onClick={handleNext}
+            className="btn flexRow"
+            disabled={currentIndex + CANDLE_WINDOW >= processedData.length}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Chart */}
@@ -219,14 +220,14 @@ const DailyPnlChart = ({ data }) => {
 
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 12, fill: "#ccc" }}
+              tick={{ fontSize: 12, fill: "var(--black)" }}
               tickFormatter={formatXAxisDate}
               axisLine={false}
               tickLine={false}
             />
 
             <YAxis
-              tick={{ fontSize: 12, fill: "#ccc" }}
+              tick={{ fontSize: 12, fill: "var(--black)" }}
               tickFormatter={(value) => formatCurrency(value)}
             />
             <Tooltip

@@ -9,7 +9,14 @@ import { getFromIndexedDB } from "@/utils/indexedDB";
 import { canAccessFeature, getPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, ArrowLeft, ArrowUp, Download, Info } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  ChevronLeft,
+  Download,
+  Info,
+} from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -55,7 +62,7 @@ const ExportPage = () => {
 
     if (selectedAccount !== "all") {
       filtered = filtered.filter(
-        (trade) => trade.accountId === selectedAccount
+        (trade) => trade.accountId === selectedAccount,
       );
     }
 
@@ -66,17 +73,17 @@ const ExportPage = () => {
         break;
       case "last_week":
         filtered = filtered.filter((t) =>
-          dayjs(t.openTime).isAfter(now.subtract(1, "week"))
+          dayjs(t.openTime).isAfter(now.subtract(1, "week")),
         );
         break;
       case "this_month":
         filtered = filtered.filter((t) =>
-          dayjs(t.openTime).isSame(now, "month")
+          dayjs(t.openTime).isSame(now, "month"),
         );
         break;
       case "last_month":
         filtered = filtered.filter((t) =>
-          dayjs(t.openTime).isSame(now.subtract(1, "month"), "month")
+          dayjs(t.openTime).isSame(now.subtract(1, "month"), "month"),
         );
         break;
       default:
@@ -172,7 +179,7 @@ const ExportPage = () => {
               }
               return str;
             })
-            .join(",")
+            .join(","),
         )
         .join("\n");
 
@@ -236,21 +243,28 @@ const ExportPage = () => {
           padding: "0 12px 100px 12px",
         }}
       >
-        <div className="flexRow flexRow_stretch">
-          <span className="font_20 font_weight_600">Export Journal</span>
+        <div className="flexRow gap_8">
+          <div
+            className="btn flexRow gap_4"
+            onClick={() => router.push("/profile")}
+            style={{ cursor: "pointer" }}
+          >
+            <ChevronLeft size={20} />
+            <span className="font_20">Export trades data</span>
+          </div>
         </div>
 
-        <div className="chart_boxBg flexClm pad_32 gap_32">
+        <div className="stats-card radius-12 flexClm pad_32 gap_32">
           <div className="flexRow gap_16 align_center">
-            <div>
-              <Download size={48} className="shade_50" />
+            <div className="boxBg">
+              <Download size={48} />
             </div>
 
             <div className="flexClm gap_8">
               <span className="font_16 font_weight_600">
                 Export Feature Locked
               </span>
-              <span className="font_14 shade_50">
+              <span className="font_14">
                 Upgrade to Pro or Master plan to export your trade data.
               </span>
             </div>

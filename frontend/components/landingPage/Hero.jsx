@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import useInstallPrompt from "@/api/useInstallPrompt";
 
 const HeroSection = () => {
   const router = useRouter();
@@ -12,7 +13,7 @@ const HeroSection = () => {
   // Track image load state
   const [bgLoaded, setBgLoaded] = useState(false);
   const [heroLoaded, setHeroLoaded] = useState(false);
-
+  const { showPrompt, handleInstall } = useInstallPrompt();
   const words = ["winning", "refining", "journaling", "improving"];
 
   const [index, setIndex] = useState(0);
@@ -110,14 +111,18 @@ const HeroSection = () => {
             >
               Start 7-Day Pro — It’s Free
             </button>
-            {/* <button
+            <button
               className="cta_button_sec flexRow gap_4"
               onClick={() => {
-                window.location.href = `https://journalx.app/login`;
+                if (showPrompt) {
+                  handleInstall(); // 🔥 install PWA
+                } else {
+                  window.location.href = "https://journalx.app/login";
+                }
               }}
             >
-              Sample journal
-            </button> */}
+              Download app
+            </button>
           </div>
 
           <div className="flexRow flex_center gap_8 trust_badge">

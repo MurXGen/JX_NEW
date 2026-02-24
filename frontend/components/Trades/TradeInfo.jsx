@@ -110,18 +110,9 @@ const TradeInfo = ({ onClose }) => {
 
   const ImagePlaceholder = ({ label }) => (
     <div className="imageContainer">
-      <span className="font_12 shade_50">{label}</span>
+      <span className="font_14 black-text">{label}</span>
 
-      <div
-        className="notFound shade_50"
-        style={{
-          background: "var(--primary-10)",
-          border: "1px dashed var(--primary-50)",
-          color: "var(--shade-50)",
-          fontSize: 12,
-          cursor: "not-allowed",
-        }}
-      >
+      <div className="notFound" style={{}}>
         Not uploaded
       </div>
     </div>
@@ -169,25 +160,25 @@ const TradeInfo = ({ onClose }) => {
                 {trade.tradeStatus === "running" && (
                   <>
                     <PlayCircle size={16} className="statusIcon" />
-                    <span>Active</span>
+                    <span className="black-text">Active</span>
                   </>
                 )}
                 {trade.tradeStatus === "closed" && (
                   <>
                     <CheckCircle size={16} className="statusIcon" />
-                    <span>Closed</span>
+                    <span className="black-text">Closed</span>
                   </>
                 )}
                 {trade.tradeStatus === "quick" && (
                   <>
                     <Zap size={16} className="statusIcon" />
-                    <span>Quick</span>
+                    <span className="black-text">Quick</span>
                   </>
                 )}
               </div>
 
               {/* Close Button */}
-              <button className="closeBtn button_ter flexRow" onClick={onClose}>
+              <button className="closeBtn btn flexRow" onClick={onClose}>
                 <X className="crossIcon" size={24} />
               </button>
             </div>
@@ -201,7 +192,7 @@ const TradeInfo = ({ onClose }) => {
                 {/* OPEN IMAGE */}
                 {trade.openImageUrl ? (
                   <div className="imageContainer">
-                    <span className="font_12 shade_50">Open Image</span>
+                    <span className="font_14 black-text">Open Image</span>
 
                     <div
                       style={{ position: "relative", display: "inline-block" }}
@@ -233,7 +224,7 @@ const TradeInfo = ({ onClose }) => {
                 {/* CLOSE IMAGE */}
                 {trade.closeImageUrl ? (
                   <div className="imageContainer">
-                    <span className="font_12 shade_50">Close Image</span>
+                    <span className="font_14 black-text">Close Image</span>
 
                     <div
                       style={{ position: "relative", display: "inline-block" }}
@@ -269,7 +260,7 @@ const TradeInfo = ({ onClose }) => {
             {/* PnL Section */}
             {trade.tradeStatus !== "running" && (
               <div
-                className={`pnlSection chart_boxBg ${
+                className={`pnlSection stats-card radius-12 ${
                   isProfit ? "profit" : isLoss ? "loss" : "breakeven"
                 }`}
               >
@@ -290,8 +281,8 @@ const TradeInfo = ({ onClose }) => {
             <div className="sectionDivider" />
 
             {/* Fees */}
-            {trade.feeAmount > 0 && (
-              <div className="boxBg flexClm gap_12 marg_btm_16">
+            {/* {trade.feeAmount > 0 && (
+              <div className="stats-card radius-12 flexClm gap_12 marg_btm_16">
                 <span className="font_12 shade_50">
                   {trade.tradeStatus === "running"
                     ? "Trade Open Fees"
@@ -302,23 +293,23 @@ const TradeInfo = ({ onClose }) => {
                   {trade.feeAmount.toFixed(2)}
                 </span>
               </div>
-            )}
+            )} */}
 
             {trade.quantityUSD >= 0 && (
               <div>
                 <div className="quantityGrid">
-                  <div className="boxBg flexClm gap_12">
-                    <span className="font_12 shade_50">Quantity</span>
-                    <span className="font_14">{trade.quantityUSD} USD</span>
+                  <div className="stats-card radius-12 flexClm gap_12">
+                    <span className="card-label">Quantity</span>
+                    <span className="card-value">{trade.quantityUSD} USD</span>
                   </div>
 
-                  <div className="boxBg flexClm gap_12">
-                    <span className="font_12 shade_50">Leverage</span>
-                    <span className="font_14">{trade.leverage}x</span>
+                  <div className="stats-card radius-12 flexClm gap_12">
+                    <span className="card-label">Leverage</span>
+                    <span className="card-value">{trade.leverage}x</span>
                   </div>
-                  <div className="boxBg flexClm gap_12">
-                    <span className="font_12 shade_50">Total Quantity</span>
-                    <span className="font_14">{trade.totalQuantity}</span>
+                  <div className="stats-card radius-12 flexClm gap_12">
+                    <span className="card-label">Total Quantity</span>
+                    <span className="card-value">{trade.totalQuantity}</span>
                   </div>
                 </div>
                 <div className="sectionDivider" />
@@ -329,13 +320,13 @@ const TradeInfo = ({ onClose }) => {
               <>
                 {" "}
                 <div className="detailsGrid">
-                  <div className="boxBg flexClm gap_12">
-                    <span className="font_12 shade_50">Avg Entry</span>
-                    <span className="font_14">{trade.avgEntryPrice}</span>
+                  <div className="stats-card radius-12 flexClm gap_12">
+                    <span className="card-label">Avg Entry</span>
+                    <span className="card-value">{trade.avgEntryPrice}</span>
                   </div>
-                  <div className="boxBg flexClm gap_12">
-                    <span className="font_12 shade_50">Avg Exit</span>
-                    <span className="font_14">{trade.avgExitPrice}</span>
+                  <div className="stats-card radius-12 flexClm gap_12">
+                    <span className="card-label">Avg Exit</span>
+                    <span className="card-value">{trade.avgExitPrice}</span>
                   </div>
                 </div>
                 <div className="sectionDivider" />
@@ -347,7 +338,7 @@ const TradeInfo = ({ onClose }) => {
               <>
                 <div className="detailsGrid">
                   {/* Entry Price */}
-                  <div className="boxBg flexClm gap_12">
+                  <div className="stats-card radius-12 flexClm gap_12">
                     <span className="font_12 shade_50">Entry</span>
                     <span className="font_14">{trade.avgEntryPrice}</span>
                   </div>
@@ -394,7 +385,7 @@ const TradeInfo = ({ onClose }) => {
                         <CircleDot size={14} />
                       </div>
                     </div>
-                    <div>
+                    <div className="flexClm">
                       <span className="tradeInfoDate flexRow gap_4">
                         {new Date(trade.openTime).toLocaleDateString("en-US", {
                           day: "2-digit",
@@ -460,7 +451,7 @@ const TradeInfo = ({ onClose }) => {
                           <X size={14} />
                         </div>
                       </div>
-                      <div>
+                      <div className="flexClm">
                         <span
                           className="tradeInfoDate flexRow gap_4"
                           style={{ justifyContent: "flex-end" }}
@@ -553,7 +544,7 @@ const TradeInfo = ({ onClose }) => {
             <div style={{ width: "100%", overflow: "hidden" }}>
               {trade.learnings && (
                 <div style={{ width: "100%" }}>
-                  <h3 className="font_16 font_weight_600 flexRow gap_8">
+                  <h3 className="font_16 font_weight_600 black-text flexRow gap_8">
                     <Lightbulb size={18} />
                     Key Learnings
                   </h3>
@@ -580,8 +571,7 @@ const TradeInfo = ({ onClose }) => {
             {/* Delete Button */}
             <button
               onClick={() => setIsConfirmOpen(true)}
-              className="button_sec error"
-              style={{ background: "var(--base-bg)" }}
+              className="btn error"
             >
               <Trash2 size={16} />
             </button>
@@ -601,7 +591,7 @@ const TradeInfo = ({ onClose }) => {
             {trade.tradeStatus === "running" && (
               <button
                 onClick={handleCloseTrade}
-                className="button_sec flexRow gap_4 width100 flex_center"
+                className="btn flexRow gap_4 width100 flex_center"
                 disabled={deleting}
               >
                 <Clock size={18} />
@@ -610,7 +600,7 @@ const TradeInfo = ({ onClose }) => {
             )}
             <button
               onClick={handleEdit}
-              className="button_pri flexRow gap_4 width100 flex_center"
+              className="btn flexRow gap_4 width100 flex_center"
               disabled={deleting}
             >
               <Edit3 size={18} />

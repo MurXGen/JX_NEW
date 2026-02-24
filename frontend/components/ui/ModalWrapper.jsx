@@ -16,10 +16,10 @@ const ModalWrapper = ({ onClose, children }) => {
         className="cm-modal pad_16 removeScrollbar"
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "90%",
+          width: "100%",
           maxWidth: 500,
           margin: "16px",
-          background: "var(--base-bg)",
+          background: "var(--white)",
           position: "relative", // 🔑 for close button positioning
           borderRadius: "12px",
         }}
@@ -30,7 +30,7 @@ const ModalWrapper = ({ onClose, children }) => {
           aria-label="Close modal"
           style={{
             position: "fixed",
-            bottom: "46px",
+            bottom: "8%",
             left: "50%",
             transform: "translateX(-50%)",
             border: "none",

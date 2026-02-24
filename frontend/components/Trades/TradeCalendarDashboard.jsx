@@ -70,7 +70,7 @@ const TradeCalendar = ({
   const yearlyTrades = useMemo(() => {
     if (!selectedYear) return [];
     return trades.filter(
-      (trade) => new Date(trade.closeTime).getFullYear() === selectedYear
+      (trade) => new Date(trade.closeTime).getFullYear() === selectedYear,
     );
   }, [trades, selectedYear]);
 
@@ -186,9 +186,9 @@ const TradeCalendar = ({
   return (
     <div className=" flexClm gap_24">
       {/* View Toggle */}
-      {/* <div className="view-toggle flexRow gap_8">
+      <div className="view-toggle flexRow gap_8">
         <button
-          className={`toggle-btn width100 flexRow gap_8 flex_center ${
+          className={`btn width100 flexRow gap_8 flex_center ${
             view === "month" ? "active" : ""
           }`}
           onClick={() => setView("month")}
@@ -198,7 +198,7 @@ const TradeCalendar = ({
         </button>
 
         <button
-          className={`toggle-btn width100 flexRow gap_8 flex_center ${
+          className={`btn width100 flexRow gap_8 flex_center ${
             view === "year" ? "active" : ""
           }`}
           onClick={() => setView("year")}
@@ -206,7 +206,7 @@ const TradeCalendar = ({
           <BarChart3 size={18} />
           Yearly Overview
         </button>
-      </div> */}
+      </div>
 
       {/* Header with Navigation */}
       {view === "month" && (
@@ -219,33 +219,33 @@ const TradeCalendar = ({
                   })}`
                 : "All Months"}
             </span>
-            <span className="font_12">Overview</span>
+            <span className="card_label font_14">Overview</span>
           </div>
 
           <div className="flexRow gap_8">
-            <button className="navButton" onClick={() => navigateMonth("prev")}>
+            <button className="btn" onClick={() => navigateMonth("prev")}>
               <ChevronLeft size={16} />
             </button>
-            <button className="navButton" onClick={() => navigateMonth("next")}>
+            <button className="btn" onClick={() => navigateMonth("next")}>
               <ChevronRight size={16} />
             </button>
           </div>
         </div>
       )}
 
-      {/* {view === "year" && (
+      {view === "year" && (
         <div className="calendarHeader flexRow flexRow_stretch">
           <div className="flexClm">
             <span className="font_weight_600">{selectedYear}</span>
-            <span className="font_12">Overview</span>
+            <span className="font_14">Overview</span>
           </div>
 
           <div className="flexRow gap_8">
-            <button className="navButton" onClick={() => navigateYear("prev")}>
+            <button className="btn" onClick={() => navigateYear("prev")}>
               <ChevronLeft size={16} />
             </button>
             <button
-              className="navButton"
+              className="btn"
               onClick={() => navigateYear("next")}
               disabled={selectedYear === currentYear}
             >
@@ -253,12 +253,12 @@ const TradeCalendar = ({
             </button>
           </div>
         </div>
-      )} */}
+      )}
 
-      <div className="calendarReverse gridContainer gap_24">
+      <div className="calendarReverse flexRow flexRow_stretch gap_24">
         {/* Stats Cards */}
-        <div className="gridContainer">
-          <div className="chart_boxBg pad_16 flexRow gap_12">
+        <div className="statsGrid width100">
+          <div className="statCard radius-12 flexRow gap_12">
             <div className="statIcon total">
               <BarChart3 size={20} />
             </div>
@@ -270,7 +270,7 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="chart_boxBg pad_16 flexRow gap_12">
+          <div className="statCard radius-12 flexRow gap_12">
             <div className="statIcon win">
               <TrendingUp size={20} />
             </div>
@@ -280,7 +280,7 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="chart_boxBg pad_16 flexRow gap_12">
+          <div className="statCard radius-12 flexRow gap_12">
             <div className="statIcon loss">
               <TrendingDown size={20} />
             </div>
@@ -290,14 +290,14 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="chart_boxBg pad_16 flexRow gap_12">
+          <div className="statCard radius-12 flexRow gap_12">
             <div className="statIcon pnl">
               <span
                 className={`pnlSymbol ${
-                  currentStats.totalPnl >= 0 ? "success" : "error"
+                  currentStats.totalPnl >= 0 ? "positive" : "negative"
                 }`}
               >
-                {currentStats.totalPnl >= 0 ? "+" : "-"}
+                {currentStats.totalPnl >= 0 ? "+" : ""}
               </span>
             </div>
             <div className="statContent">
@@ -323,12 +323,15 @@ const TradeCalendar = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="monthView boxBg"
+              className="monthView width100"
             >
               {/* Weekday Headers */}
               <div className="weekdayHeaders">
                 {weekdays.map((day) => (
-                  <div key={day} className="weekdayHeader">
+                  <div
+                    key={day}
+                    className="card-label font_14 flex_center flexRow"
+                  >
                     {day.substring(0, 1)}
                   </div>
                 ))}
@@ -340,12 +343,12 @@ const TradeCalendar = ({
                   if (!day) return <div key={i} className="emptyDay"></div>;
 
                   const dateStr = `${selectedYear}-${String(
-                    selectedMonth
+                    selectedMonth,
                   ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                   const dayTrades = tradesByDate[dateStr] || [];
                   const pnl = dayTrades.reduce(
                     (sum, t) => sum + (t.pnl || 0),
-                    0
+                    0,
                   );
                   const hasTrades = dayTrades.length > 0;
 
@@ -395,7 +398,7 @@ const TradeCalendar = ({
               </div>
             </motion.div>
           ) : (
-            <div className="flexClm gap_12">
+            <div className="flexClm gap_12 width100">
               <motion.div
                 key="year-view"
                 initial={{ opacity: 0, y: 20 }}
@@ -407,15 +410,42 @@ const TradeCalendar = ({
                 <div className="yearGrid">
                   {(showAllMonths
                     ? months
-                    : months.slice(
-                        Math.max(0, selectedMonth - 3), // previous 2 months
-                        selectedMonth // current month index is inclusive
-                      )
+                    : (() => {
+                        const currentDate = new Date();
+                        const currentMonth = currentDate.getMonth();
+                        const currentYear = currentDate.getFullYear();
+
+                        // If it's a new year (January) and we're viewing a different year
+                        if (selectedYear !== currentYear) {
+                          // Show only January for other years
+                          return months.slice(0, 1);
+                        }
+
+                        // For current year: show current month and previous month
+                        // Calculate start month (ensure we don't go below 0)
+                        const startMonth = Math.max(0, currentMonth - 1);
+                        // Show from startMonth to currentMonth (inclusive)
+                        return months.slice(startMonth, currentMonth + 1);
+                      })()
                   ).map((month, idxOffset) => {
-                    // Adjust index if slicing
-                    const idx = showAllMonths
-                      ? idxOffset
-                      : selectedMonth - 3 + idxOffset;
+                    // Adjust index based on whether we're showing all months or sliced
+                    let idx;
+                    if (showAllMonths) {
+                      idx = idxOffset;
+                    } else {
+                      const currentDate = new Date();
+                      const currentMonth = currentDate.getMonth();
+                      const currentYear = currentDate.getFullYear();
+
+                      if (selectedYear !== currentYear) {
+                        // For other years, idxOffset is the month index (0 for January)
+                        idx = idxOffset;
+                      } else {
+                        // For current year: startMonth = currentMonth - 1
+                        const startMonth = Math.max(0, currentMonth - 1);
+                        idx = startMonth + idxOffset;
+                      }
+                    }
 
                     const days = buildCalendar(idx);
                     const monthTrades = trades.filter((t) => {
@@ -427,16 +457,16 @@ const TradeCalendar = ({
 
                     const monthMaxProfit = Math.max(
                       ...monthTrades.map((t) => t.pnl).filter((p) => p > 0),
-                      0
+                      0,
                     );
                     const monthMaxLoss = Math.min(
                       ...monthTrades.map((t) => t.pnl).filter((p) => p < 0),
-                      0
+                      0,
                     );
 
                     const monthPnl = monthTrades.reduce(
                       (sum, t) => sum + (t.pnl || 0),
-                      0
+                      0,
                     );
 
                     return (
@@ -483,13 +513,13 @@ const TradeCalendar = ({
                               return <div key={i} className="emptyDay"></div>;
 
                             const dateStr = `${selectedYear}-${String(
-                              idx + 1
+                              idx + 1,
                             ).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
                             const dayTrades = tradesByDate[dateStr] || [];
                             const hasTrades = dayTrades.length > 0;
                             const dayPnl = dayTrades.reduce(
                               (sum, t) => sum + (t.pnl || 0),
-                              0
+                              0,
                             );
 
                             let intensity = 0;
@@ -506,7 +536,7 @@ const TradeCalendar = ({
                             } else if (dayPnl < 0 && monthMaxLoss < 0) {
                               intensity = Math.min(
                                 1,
-                                Math.abs(dayPnl) / Math.abs(monthMaxLoss)
+                                Math.abs(dayPnl) / Math.abs(monthMaxLoss),
                               );
                               bgStyle = {
                                 background: `rgba(239, 68, 68, ${
@@ -546,18 +576,18 @@ const TradeCalendar = ({
                 {/* See More / See Less Button */}
                 {!showAllMonths && (
                   <button
-                    className="button_ter width100"
+                    className=" primary-btn secondary-btn width100"
                     onClick={() => setShowAllMonths(true)}
                   >
-                    Show all months
+                    Show full year
                   </button>
                 )}
                 {showAllMonths && (
                   <button
-                    className="button_ter width100"
+                    className="primary-btn secondary-btn width100"
                     onClick={() => setShowAllMonths(false)}
                   >
-                    Show less
+                    Hide full year
                   </button>
                 )}
               </div>

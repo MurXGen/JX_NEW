@@ -82,7 +82,7 @@ const TickerAnalysis = ({ trades }) => {
     const startIndex = 0;
     setCurrentIndex(startIndex);
     setVisibleData(
-      realTickerData.slice(startIndex, startIndex + TICKER_WINDOW)
+      realTickerData.slice(startIndex, startIndex + TICKER_WINDOW),
     );
   }, [realTickerData]);
 
@@ -96,7 +96,7 @@ const TickerAnalysis = ({ trades }) => {
   const handleNext = () => {
     const newIndex = Math.min(
       currentIndex + TICKER_WINDOW,
-      Math.max(processedData.length - TICKER_WINDOW, 0)
+      Math.max(processedData.length - TICKER_WINDOW, 0),
     );
     setCurrentIndex(newIndex);
     setVisibleData(processedData.slice(newIndex, newIndex + TICKER_WINDOW));
@@ -168,8 +168,8 @@ const TickerAnalysis = ({ trades }) => {
   }
 
   return (
-    <div className="flexClm gap_16 boxBg pad_16">
-      <span className="font_12 font_weight_600">Ticker analysis</span>
+    <div className="stats-card chart_container radius-12">
+      <span className="card-value">Ticker analysis</span>
       {/* <div className="flexRow flexRow_stretch gap_12"> */}
       {/* Summary Stats */}
       {/* <div className="flexClm gap_8 width100 boxBg pad_12">
@@ -241,14 +241,12 @@ const TickerAnalysis = ({ trades }) => {
 
             <XAxis
               dataKey="symbol"
-              axisLine={false}
-              tickLine={false}
               tick={({ x, y, payload }) => (
                 <text
                   x={x}
                   y={y + 16}
                   textAnchor="middle"
-                  fill="var(--base-text)" // ← CSS variable
+                  fill="var(--black)" // ← CSS variable
                   fontSize={12}
                 >
                   {payload.value}

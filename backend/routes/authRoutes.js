@@ -26,7 +26,7 @@ router.post("/resend-otp", resendOtp);
 // 📌 Trigger Google OAuth flow
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  passport.authenticate("google", { scope: ["profile", "email"] }),
 );
 
 router.get(
@@ -74,10 +74,10 @@ router.get(
 
       res.redirect(`${process.env.CLIENT_URL}/login?error=google_auth_failed`);
     }
-  }
+  },
 );
 
-router.get("/user-info", createLimiter(20), userFetchGoogleAuth);
+router.get("/user-info", createLimiter(22), userFetchGoogleAuth);
 
 router.put("/update-subscription", updateSubscription);
 

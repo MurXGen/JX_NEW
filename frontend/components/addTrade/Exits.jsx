@@ -34,7 +34,7 @@ const ExitSection = ({
       let exitPriceFromPercent = calcPriceFromPercent(
         entryPrice,
         finalVal,
-        direction
+        direction,
       );
       if (minSLPrice !== null) {
         if (direction === "long" && exitPriceFromPercent <= minSLPrice) {
@@ -61,7 +61,7 @@ const ExitSection = ({
     };
 
     return (
-      <div style={{ padding: "24px", overflow: "hidden" }}>
+      <div style={{ padding: "24px 12px", overflow: "hidden" }}>
         <Slider
           min={0}
           max={max || 100}
@@ -70,7 +70,7 @@ const ExitSection = ({
             const snapped = snapValue(val);
             onChange(snapped);
           }}
-          marks={{ 25: "25%", 50: "50%", 75: "75%", 100: "100%" }}
+          marks={{ 0: "0%", 25: "25%", 50: "50%", 75: "75%", 100: "100%" }}
           step={1}
           trackStyle={{ backgroundColor: "var(--primary)", height: "6px" }}
           handleStyle={{
@@ -83,7 +83,7 @@ const ExitSection = ({
             width: "16px",
             height: "16px",
             borderRadius: "50%",
-            backgroundColor: "var(--white-80)",
+            backgroundColor: "var(--black-10)",
             border: "2px solid var(--white-80)",
             top: "-6px", // center dots
           }}
@@ -106,7 +106,7 @@ const ExitSection = ({
 
   return (
     <div className="tradeGrid">
-      <span className="label">Entries</span>
+      <span className="label">Set exits</span>
       <div className="flexClm gap_32">
         {form.exits.map((exit, idx) => {
           const entryPrice = form.avgEntryPrice || form.entries[0]?.price;
@@ -115,7 +115,7 @@ const ExitSection = ({
             .map((sl) =>
               sl.mode === "percent"
                 ? calcPriceFromPercent(entryPrice, sl.percent, form.direction)
-                : sl.price
+                : sl.price,
             )
             .filter((p) => !!p && !isNaN(p));
 
@@ -123,7 +123,7 @@ const ExitSection = ({
 
           const usedOther = form.exits.reduce(
             (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
-            0
+            0,
           );
           const remaining = Math.max(0, 100 - usedOther);
 
@@ -135,67 +135,77 @@ const ExitSection = ({
           return (
             <div key={idx} className="flexClm gap_32">
               {/* Price / Percent Input */}
-              <div className="flexRow flexRow_stretch gap_4">
-                <div className="inputLabelShift">
+              <div className="flexRow flexRow_stretch gap_24">
+                <div className="width100" style={{ flex: "1" }}>
                   {exit.mode === "price" ? (
-                    <div className="inputLabelShift">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0"
-                        placeholder="Exit Price"
-                        value={exit.price ?? ""}
-                        onChange={(e) => {
-                          let val = Math.abs(Number(e.target.value));
-                          const exits = [...form.exits];
-                          exits[idx].price = isNaN(val) ? "" : val;
-                          setForm({ ...form, exits });
-                        }}
-                        onBlur={(e) => {
-                          let val = Math.abs(Number(e.target.value));
-                          const exits = [...form.exits];
-                          val = enforceSLRule(
-                            val,
-                            "price",
-                            entryPrice,
-                            minSLPrice,
-                            form.direction
-                          );
-                          exits[idx].price = val;
-                          setForm({ ...form, exits });
-                        }}
-                      />
-                      <label>Exit Price</label>
+                    <div className="flexClm width100" style={{ flex: "1" }}>
+                      <label className="font_14 black-text">Exit price</label>
+                      <div className="flexRow" style={{ flex: "1" }}>
+                        <input
+                          type="number"
+                          step="any"
+                          min="0"
+                          placeholder="Exit Price"
+                          value={exit.price ?? ""}
+                          onChange={(e) => {
+                            let val = Math.abs(Number(e.target.value));
+                            const exits = [...form.exits];
+                            exits[idx].price = isNaN(val) ? "" : val;
+                            setForm({ ...form, exits });
+                          }}
+                          onBlur={(e) => {
+                            let val = Math.abs(Number(e.target.value));
+                            const exits = [...form.exits];
+                            val = enforceSLRule(
+                              val,
+                              "price",
+                              entryPrice,
+                              minSLPrice,
+                              form.direction,
+                            );
+                            exits[idx].price = val;
+                            setForm({ ...form, exits });
+                          }}
+                          style={{ flex: "1" }}
+                        />
+                      </div>
                     </div>
                   ) : (
-                    <div className="inputLabelShift">
-                      <input
-                        type="number"
-                        step="any"
-                        placeholder="Exit %"
-                        value={exit.percent ?? ""}
-                        onChange={(e) => {
-                          let val = Number(e.target.value);
-                          const exits = [...form.exits];
-                          exits[idx].percent = isNaN(val) ? "" : val;
-                          setForm({ ...form, exits });
-                        }}
-                        onBlur={(e) => {
-                          let val = Number(e.target.value);
-                          const exits = [...form.exits];
-                          val = enforceSLRule(
-                            val,
-                            "percent",
-                            entryPrice,
-                            minSLPrice,
-                            form.direction
-                          );
-                          exits[idx].percent = val;
-                          setForm({ ...form, exits });
-                        }}
-                      />
-                      <label>Exit %</label>
-                      <div className="font_12" style={{ position: "relative" }}>
+                    <div className="flexClm width100" style={{ flex: "1" }}>
+                      <label className="font_14 black-text">Exit %</label>
+                      <div className="flexRow" style={{ flex: "1" }}>
+                        <input
+                          type="number"
+                          step="any"
+                          placeholder="Exit %"
+                          value={exit.percent ?? ""}
+                          onChange={(e) => {
+                            let val = Number(e.target.value);
+                            const exits = [...form.exits];
+                            exits[idx].percent = isNaN(val) ? "" : val;
+                            setForm({ ...form, exits });
+                          }}
+                          onBlur={(e) => {
+                            let val = Number(e.target.value);
+                            const exits = [...form.exits];
+                            val = enforceSLRule(
+                              val,
+                              "percent",
+                              entryPrice,
+                              minSLPrice,
+                              form.direction,
+                            );
+                            exits[idx].percent = val;
+                            setForm({ ...form, exits });
+                          }}
+                          style={{ flex: "1" }}
+                        />
+                      </div>
+
+                      <div
+                        className="font_12 black-text"
+                        style={{ position: "relative" }}
+                      >
                         <span
                           style={{
                             position: "absolute",
@@ -212,38 +222,41 @@ const ExitSection = ({
                 </div>
 
                 {/* Mode Toggle */}
-                <div className="flexRow gap_4">
-                  <button
-                    type="button"
-                    className={`button_sec icon-wrapper ${
-                      exit.mode === "price" ? "active" : ""
-                    }`}
-                    onClick={() => {
-                      const exits = [...form.exits];
-                      exits[idx].mode = "price";
-                      setForm({ ...form, exits });
-                    }}
-                  >
-                    {currencySymbol}
-                  </button>
-                  <button
-                    type="button"
-                    className={`button_sec icon-wrapper ${
-                      exit.mode === "percent" ? "active" : ""
-                    }`}
-                    onClick={() => {
-                      const exits = [...form.exits];
-                      exits[idx].mode = "percent";
-                      setForm({ ...form, exits });
-                    }}
-                  >
-                    %
-                  </button>
+                <div className="flexClm" style={{ width: "100px" }}>
+                  <div className="flexRow gap_4">
+                    <button
+                      type="button"
+                      className={`primary-btn secondary-btn width100 flex_center flexRow icon-wrapper ${
+                        exit.mode === "price" ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        const exits = [...form.exits];
+                        exits[idx].mode = "price";
+                        setForm({ ...form, exits });
+                      }}
+                    >
+                      {currencySymbol}
+                    </button>
+                    <button
+                      type="button"
+                      className={`primary-btn secondary-btn width100 flex_center flexRow icon-wrapper ${
+                        exit.mode === "percent" ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        const exits = [...form.exits];
+                        exits[idx].mode = "percent";
+                        setForm({ ...form, exits });
+                      }}
+                    >
+                      %
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Allocation Input */}
-              <div className="inputLabelShift">
+              <div className="flexClm gap_4">
+                <label className="font_14 black-text">Allocation %</label>
                 <input
                   type="number"
                   min="0"
@@ -260,14 +273,13 @@ const ExitSection = ({
                   }}
                   onBlur={(e) => handleExitAllocationBlur(idx, e.target.value)}
                 />
-                <label>Allocation %</label>
 
                 {/* Slider */}
-                <AllocationSlider
+                {/* <AllocationSlider
                   value={exit.allocation ?? 0}
                   max={remaining}
                   onChange={(val) => handleExitAllocationBlur(idx, val)}
-                />
+                /> */}
               </div>
             </div>
           );
@@ -275,7 +287,7 @@ const ExitSection = ({
 
         {form.avgExitPrice && (
           <span className="font_12 avgValue">
-            Average exit price: {(form.avgExitPrice, 2)}
+            Average exit price: {form.avgExitPrice}
           </span>
         )}
       </div>

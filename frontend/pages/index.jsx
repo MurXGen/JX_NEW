@@ -14,6 +14,8 @@ import { useRouter } from "next/router";
 import Cookies from "js-cookie";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import ProfitJourneySection from "@/components/landingPage/ProfitJourneySection";
+import AchievementsSection from "@/components/landingPage/AchievementsSection";
+import BentoGrid from "@/components/landingPage/BentoGrid";
 
 export default function Home() {
   const router = useRouter();
@@ -162,8 +164,10 @@ export default function Home() {
         <HeroSection />
         <ProfitJourneySection />
         <SponsorsSection />
+        {/* <BentoGrid /> */}
         <WhyJournalSection />
         <ChooseJournalX />
+        <AchievementsSection />
         <FeatureSection />
         <ReviewsSection />
         <Faqs />

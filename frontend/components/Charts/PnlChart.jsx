@@ -57,7 +57,7 @@ export default function PNLChart({ dailyData }) {
             utcEnd: utcEnd.getTime(),
           },
         ];
-      })
+      }),
     );
 
     // Process each trade
@@ -92,7 +92,7 @@ export default function PNLChart({ dailyData }) {
     const formatOptions = { day: "numeric", month: "short" };
     const startFormatted = startOfWeek.toLocaleDateString(
       "en-US",
-      formatOptions
+      formatOptions,
     );
     const endFormatted = endOfWeek.toLocaleDateString("en-US", formatOptions);
 
@@ -137,22 +137,23 @@ export default function PNLChart({ dailyData }) {
   };
 
   return (
-    <div className="chart_container">
-      <span className="font_12 font_weight_600">Weekly pnl chart</span>
+    <div className="chart_container stats-card radius-12">
+      <span className="card-value">Weekly pnl chart</span>
       {/* Navigation Header */}
       <div className="flexRow flexRow_stretch font_12">
         <button
           onClick={handlePreviousWeek}
-          className="button_ter flexRow"
+          className="btn flexRow"
           aria-label="Previous week"
+          style={{ minWidth: "fit-content", maxWidth: "fit-content" }}
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={14} color="black" />
         </button>
 
         <div className="flexRow gap_12">
-          <span>{weekRange}</span>
+          <span className="card-value">{weekRange}</span>
           {weekOffset !== 0 && (
-            <button onClick={handleCurrentWeek} className="button_ter">
+            <button onClick={handleCurrentWeek} className="btn">
               Current Week
             </button>
           )}
@@ -160,10 +161,11 @@ export default function PNLChart({ dailyData }) {
 
         <button
           onClick={handleNextWeek}
-          className="button_ter flexRow"
+          className="btn flexRow"
           aria-label="Next week"
+          style={{ minWidth: "fit-content", maxWidth: "fit-content" }}
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={14} color="black" />
         </button>
       </div>
 
@@ -203,7 +205,7 @@ export default function PNLChart({ dailyData }) {
                   textAnchor="middle"
                   className={isToday ? "" : "shade_50"}
                   fontSize={12}
-                  fill={isToday ? "#fff" : "#888"} // fallback if shade_50 not applied
+                  fill={isToday ? "var(--black)" : "var(--black-50)"} // fallback if shade_50 not applied
                 >
                   {payload.value}
                 </text>

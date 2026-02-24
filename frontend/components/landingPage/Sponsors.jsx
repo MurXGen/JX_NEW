@@ -22,7 +22,7 @@ const SponsorsSection = () => {
   ];
 
   return (
-    <section className="mrgin_tp_100 landingBody flex_center flexClm gap_32">
+    <section className="landingBody flex_center flexClm gap_32">
       <HeaderSection
         title="Journal What You Trade"
         subtitle="Track different market trades with JournalX"

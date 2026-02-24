@@ -11,14 +11,21 @@ import { formatCurrency } from "@/utils/formatNumbers";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { Pencil, Repeat, Share2, ShareIcon, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  Pencil,
+  Repeat,
+  Share2,
+  ShareIcon,
+  Trash2,
+} from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-const JournalSetting = () => {
+const AccountSetting = () => {
   const router = useRouter();
   const [accountData, setAccountData] = useState(null);
   const [stats, setStats] = useState(null);
@@ -211,103 +218,105 @@ const JournalSetting = () => {
       </Head>
 
       <div
-        className="accountSetting flexClm gap_24"
+        className="accountSetting flexClm gap_24 pad_16"
         style={{
-          maxWidth: "1200px",
           minWidth: "300px",
-          margin: "24px auto",
-          padding: "0 12px 100px 12px",
         }}
       >
-        <div className="flexRow gap_12">
-          <div className="flexClm">
-            <span className="font_20">Journal setting</span>
-          </div>
+        <div className="flexRow gap_4" style={{ cursor: "pointer" }}>
+          <span className="font_20">Journal setting</span>
         </div>
-
         {/* Journal Overview */}
-        <div
-          className="chart_boxBg flexClm gap_12"
-          style={{ padding: "var(--px-24)" }}
-        >
-          <div className="flexRow flexRow_stretch">
-            <div className="flexClm">
-              {/* <span
-                className="font_12 font_weight_600"
-                style={{ color: "var(--primary)" }}
-              >
-                Journal name
-              </span> */}
-              <span className="font_14 font_weight_600 flexClm gap_12">
-                <span>
-                  {accountData.name} {/* Current Balance */}
+        <div className="flexClm gap_12">
+          <div className="flexClm gap_24">
+            <div className="stats-card radius-12 flexRow flexRow_stretch">
+              <div className="">
+                <span className="font_14">Journal name</span>
+                <span className="font_24 font_weight_600 flexClm gap_12">
+                  <div className="flexRow  flexRow_stretch ">
+                    <span>{accountData.name}</span>
+                  </div>
                 </span>
-
-                <div className="flexClm">
-                  <span className="font_32 vector">
-                    {formatCurrency(accountOverview.currentBalance)}
-                  </span>
-                  {/* <span
-                    className={`flexRow font_weight_400 ${
-                      accountOverview.roiAmount >= 0 ? "success" : "error"
-                    }`}
-                  >
-                    <span
-                      className={`font_14 ${
-                        accountOverview.roiAmount >= 0 ? "success" : "error"
-                      }`}
-                    >
-                      {formatCurrency(accountOverview.roiAmount)}
+              </div>
+              <div className="" style={{ textAlign: "right" }}>
+                <span className="font_14">Balance</span>
+                <span className="font_24 font_weight_600 flexClm gap_12">
+                  <div className="flexRow  flexRow_stretch ">
+                    <span>
+                      {formatCurrency(accountOverview.currentBalance)}
                     </span>
-                    <span>({accountOverview.roiPercentage.toFixed(2)}%)</span>
-                  </span> */}
-                </div>
-              </span>
+                  </div>
+                </span>
+              </div>
             </div>
-            {/* Action Buttons */}
-            <div className="flexRow gap_4">
-              <button
-                className="button_sec flexRow_cntr_mobile flexRow gap_8"
-                onClick={handleEdit}
-              >
-                <Pencil size={16} />
-              </button>
 
-              <ConfirmationModal
-                isOpen={isModalOpen}
-                title="Deactivate Journal"
-                message="Are you sure you want to deactivate this Journal? This action cannot be undone."
-                onCancel={() => setIsModalOpen(false)}
-                onConfirm={handleDeactivate}
-              />
+            <div className="flexClm">
+              <div className="flexRow gap_16 flexRow_stretch">
+                <div className="stats-card gap_4 radius-12">
+                  <span className="card-label">Initial Capital</span>
+                  <span className="carf-value ">
+                    {formatCurrency(accountOverview.initialBalance)}
+                  </span>
+                </div>
+                <div className="stats-card gap_4 radius-12">
+                  <span className="card-label">ROI %</span>
+                  <div className="carf-value flexRow gap_12">
+                    <span>{formatCurrency(accountOverview.roiAmount)}</span>
 
-              <button
-                className="button_sec  flexRow gap_8"
-                onClick={handleSwitch}
-              >
-                <Repeat size={16} />
-              </button>
-
-              <button
-                className="button_sec   flexRow gap_8 error"
-                onClick={() => setIsModalOpen(true)}
-              >
-                <Trash2 size={16} />
-              </button>
+                    <span>({accountOverview.roiPercentage.toFixed(2)}%)</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+        {/* Action Buttons */}
+        <div className="flexClm gap_12">
+          <button
+            className="secondary-btn primary-btn flexRow gap_8"
+            onClick={handleEdit}
+          >
+            <Pencil size={16} />
+            Edit journal details
+          </button>
+          <button
+            className="secondary-btn primary-btn flexRow gap_8"
+            onClick={handleSwitch}
+          >
+            <Repeat size={16} /> Switch journal
+          </button>
+          <button
+            className="secondary-btn primary-btn flexRow gap_8 flexRow_center width100"
+            onClick={() => router.push("/share-trades")}
+          >
+            <Share2 size={16} />
+            Share trade logs
+          </button>
+          <button
+            className="secondary-btn primary-btn flexRow gap_8 flexRow_center width100"
+            onClick={() => router.push("/export")}
+          >
+            <ShareIcon size={16} />
+            Export trade logs
+          </button>
 
-          {/* <div className="flexRow gap_16 flexRow_stretch">
-            <div className="flexClm gap_4">
-              <span className="font_12 shade_50">Initial Capital</span>
-              <span className="font_16 ">
-                {formatCurrency(accountOverview.initialBalance)}
-              </span>
-            </div>
-          </div> */}
+          <button
+            className="secondary-btn primary-btn flexRow gap_8 "
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Trash2 size={16} />
+            Delete
+          </button>
         </div>
 
-        <SubscriptionStatus />
+        <ConfirmationModal
+          isOpen={isModalOpen}
+          title="Deactivate Journal"
+          message="Are you sure you want to deactivate this Journal? This action cannot be undone."
+          onCancel={() => setIsModalOpen(false)}
+          onConfirm={handleDeactivate}
+        />
+
         <ToastMessage
           key={toastKey}
           type={alertType}
@@ -319,4 +328,4 @@ const JournalSetting = () => {
   );
 };
 
-export default JournalSetting;
+export default AccountSetting;

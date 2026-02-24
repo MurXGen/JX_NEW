@@ -91,9 +91,10 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
 
   return (
     <div className="tradeGrid">
+      <label className="label">Set margin</label>
       <div className="flexClm gap_12">
         {/* Margin Input */}
-        <div className="inputLabelShift" style={{ position: "relative" }}>
+        <div className=" flexRow width100" style={{ position: "relative" }}>
           <input
             type="number"
             name="quantityUSD"
@@ -102,8 +103,8 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
             onChange={handleNonNegativeChange}
             onBlur={handleQuantityBlur}
             min="0"
+            style={{ flex: "1" }}
           />
-          <label>Margin</label>
 
           {/* Clear input icon */}
           {form.quantityUSD && (
@@ -176,7 +177,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
               style={{ padding: "12px 0" }}
             >
               <div className="flexRow flexRow_stretch gap_12">
-                <div className="inputLabelShift">
+                <div className="flexRow" style={{ flex: "1" }}>
                   <input
                     type="number"
                     name="leverage"
@@ -184,8 +185,9 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
                     onChange={handleNonNegativeChange}
                     placeholder="Leverage"
                     min="0"
+                    style={{ flex: "1" }}
                   />
-                  <label>Leverage</label>
+                  {/* <label>Leverage</label> */}
                 </div>
 
                 {/* Show total value if leverage entered */}
@@ -200,17 +202,17 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
         </AnimatePresence>
 
         {/* Fees Checkbox */}
-        <label className="customCheckbox font_16">
+        {/* <label className="customCheckbox font_16">
           <input
             type="checkbox"
             checked={showFees}
             onChange={(e) => setShowFees(e.target.checked)}
           />
           Show Fees
-        </label>
+        </label> */}
 
         {/* Fees Section */}
-        <AnimatePresence>
+        {/* <AnimatePresence>
           {showFees && (
             <motion.div
               initial="hidden"
@@ -221,7 +223,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
               className="flexRow flexRow_stretch gap_12"
               style={{ padding: "12px 0" }}
             >
-              <div className="inputLabelShift">
+              <div style={{ flex: "1" }}>
                 <input
                   type="number"
                   name="openFeeValue"
@@ -230,7 +232,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
                   onChange={(e) => {
                     handleNonNegativeChange(e);
 
-                    // auto-set close fee if empty
+               
                     if (!form.closeFeeValue) {
                       handleChange({
                         target: {
@@ -243,14 +245,14 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
                   min="0"
                   step={form.feeType === "percent" ? "0.01" : "0.000001"}
                 />
-                <label>
+                <label className="font_12 black-text">
                   {form.feeType === "percent"
                     ? "Open Fee %"
                     : `Open Fee (${currencySymbol})`}
                 </label>
               </div>
 
-              <div className="inputLabelShift">
+              <div className="" style={{ flex: "1" }}>
                 <input
                   type="number"
                   name="closeFeeValue"
@@ -260,14 +262,14 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
                   min="0"
                   step={form.feeType === "percent" ? "0.01" : "0.000001"}
                 />
-                <label>
+                <label className="font_12 black-text">
                   {form.feeType === "percent"
                     ? "Close Fee %"
                     : `Close Fee (${currencySymbol})`}
                 </label>
               </div>
 
-              <div className="inputLabelShift">
+              <div className="" style={{ flex: "1" }}>
                 <Dropdown
                   value={form.feeType}
                   onChange={(val) =>
@@ -280,7 +282,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
                 />
               </div>
 
-              {/* Fee Display */}
+          
               {form.feeValue && form.feeType && (
                 <div className="flexRow flex_center font_12 avgValue">
                   <span>
@@ -290,7 +292,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
               )}
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
       </div>
 
       {/* --- Checkbox Styling --- */}

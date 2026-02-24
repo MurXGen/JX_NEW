@@ -6,20 +6,30 @@ import { motion } from "framer-motion";
 const LegalLinks = () => {
   return (
     <motion.div
-      className="flexClm flex_center gap_8"
+      className="LegalLinks"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      style={{ marginTop: "46px" }}
     >
-      <div className="flexClm gap_4 font_12 flex_center">
+      <div
+        className="flexClm gap_4 flex_center black-text"
+        style={{ fontSize: "10px" }}
+      >
         <span>By continuing, you agree to our</span>
         <div className="flexRow gap_12">
-          <Link href="/terms-services" className="vector">
+          <Link
+            href="/terms-services"
+            className="tertiary-btn "
+            style={{ fontSize: "10px" }}
+          >
             Terms of Service
           </Link>
           <span>|</span>
-          <Link href="/privacy-policy" className="vector">
+          <Link
+            href="/privacy-policy"
+            className="tertiary-btn "
+            style={{ fontSize: "10px" }}
+          >
             Privacy Policy
           </Link>
         </div>

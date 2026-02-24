@@ -1,7 +1,8 @@
 import EntriesSection from "@/components/addTrade/Entries";
 import ExitsSection from "@/components/addTrade/Exits";
 import TextAreaField from "@/components/addTrade/Learnings";
-import DateTimeImageSection from "@/components/addTrade/OpenTime";
+import OpenTime from "@/components/addTrade/OpenTime";
+import CloseTime from "@/components/addTrade/CloseTime";
 import QuantityGrid from "@/components/addTrade/Quantity";
 import QuickSection from "@/components/addTrade/Quick";
 import ReasonSelector from "@/components/addTrade/Reasons";
@@ -17,7 +18,19 @@ import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { formatNumber } from "@/utils/formatNumbers"; //
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import Cookies from "js-cookie";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  Brain,
+  Camera,
+  ChevronLeft,
+  Clock,
+  DollarSign,
+  List,
+  LogIn,
+  LogOut,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -28,11 +41,28 @@ import {
 import PlanLimitModal from "@/components/ui/PlanLimitModal";
 import { getPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
+import TradeImagesSection from "@/components/addTrade/TradeImage";
+import DateTimePicker from "@/components/ui/DateTimePicker";
+import { FcQuestions } from "react-icons/fc";
+import {
+  FiCheck,
+  FiCheckCircle,
+  FiClock,
+  FiDollarSign,
+  FiHelpCircle,
+  FiImage,
+  FiList,
+  FiLogIn,
+  FiLogOut,
+  FiTarget,
+  FiTrendingUp,
+} from "react-icons/fi";
+import RulesManager from "@/components/addTrade/Rules";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-export default function AddTrade() {
+export default function AddTradeWebPage() {
   const router = useRouter();
   const firstExitRef = useRef(null);
   const [currencySymbol, setCurrencySymbol] = useState("$");
@@ -42,8 +72,8 @@ export default function AddTrade() {
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
 
   const statuses = [
-    { value: "running", label: "Running" },
-    { value: "closed", label: "Closed" },
+    // { value: "running", label: "Running" },
+    { value: "closed", label: "Log with entries" },
     { value: "quick", label: "Quick" },
   ];
 
@@ -70,7 +100,7 @@ export default function AddTrade() {
     direction: "long",
     quantityUSD: "",
     leverage: "1",
-    totalQuantity: "0",
+    totalQuantity: "",
     tradeStatus: "quick",
     entries: [{ price: "", allocation: "100" }],
     exits: [{ mode: "price", price: "", percent: "", allocation: "" }],
@@ -853,38 +883,42 @@ export default function AddTrade() {
         handleTPAllocationBlur={handleTPAllocationBlur}
       />
     ),
+    tradeImage: (
+      <TradeImagesSection
+        openImagePreview={form.openImagePreview}
+        closeImagePreview={form.closeImagePreview}
+        onOpenImageChange={(e) => handleImageChange(e, "openImage", setForm)}
+        onCloseImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
+        onRemoveOpenImage={() => handleImageRemove("openImage", setForm)}
+        onRemoveCloseImage={() => handleImageRemove("closeImage", setForm)}
+      />
+    ),
     opentime: (
-      <DateTimeImageSection
+      <OpenTime
         label="Open Time"
         dateValue={form.openTime}
         onDateChange={(date) =>
           setForm((prev) => ({ ...prev, openTime: date }))
         }
-        imagePreview={form.openImagePreview}
-        onImageChange={(e) => handleImageChange(e, "openImage", setForm)}
-        onRemove={() => handleImageRemove("openImage", setForm)}
+        onClose={closeModal}
       />
     ),
     closetime: (
-      <DateTimeImageSection
+      <CloseTime
         label="Close Time"
         dateValue={form.closeTime}
         onDateChange={(date) =>
           setForm((prev) => ({ ...prev, closeTime: date }))
         }
-        imagePreview={form.closeImagePreview}
-        onImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
-        onRemove={() => handleImageRemove("closeImage", setForm)}
+        onClose={closeModal}
       />
     ),
     rules: (
-      <ToggleSwitch
-        label="Rules"
-        value={form.rulesFollowed}
-        onToggle={() =>
+      <RulesManager
+        onRulesStatusChange={(status) =>
           setForm((prev) => ({
             ...prev,
-            rulesFollowed: !prev.rulesFollowed,
+            rulesFollowed: status,
           }))
         }
       />
@@ -907,7 +941,6 @@ export default function AddTrade() {
       />
     ),
   };
-
   // 🧠 Determine which modal buttons to show
   const tradeStatus = form.tradeStatus?.toLowerCase();
 
@@ -917,28 +950,76 @@ export default function AddTrade() {
   else if (tradeStatus === "quick")
     hiddenKeys = ["stoploss", "takeprofit", "entries", "exits"];
 
+  // ✅ FIRST define visibleButtons
   const visibleButtons = Object.keys(modalComponents).filter(
     (key) => !hiddenKeys.includes(key),
   );
 
+  // ✅ THEN define recommended fields
+  const recommendedFields = ["tradeimage", "opentime", "closetime"];
+
+  // ✅ THEN split them
+  const recommendedButtons = visibleButtons.filter((key) =>
+    recommendedFields.includes(key.toLowerCase()),
+  );
+
+  const optionalButtons = visibleButtons.filter(
+    (key) => !recommendedFields.includes(key.toLowerCase()),
+  );
+
+  const modalIcons = {
+    quantity: FiDollarSign,
+    rules: FiList,
+    reason: FiHelpCircle,
+    learnings: Brain, // keeping lucide if you prefer
+    tradeimage: FiImage,
+    opentime: FiClock,
+    closetime: FiClock,
+    stoploss: FiTarget,
+    takeprofit: FiTrendingUp,
+    entries: FiLogIn,
+    exits: FiLogOut,
+  };
+
+  const isFieldCompleted = (key) => {
+    switch (key.toLowerCase()) {
+      case "tradeimage":
+        return form.openImage || form.closeImage;
+
+      case "opentime":
+        return !!form.openTime;
+
+      case "closetime":
+        return !!form.closeTime;
+
+      case "quantity":
+        return !!form.totalQuantity;
+
+      case "rules":
+        return form.rulesFollowed === true;
+
+      case "reason":
+        return form.reason && form.reason.length > 0;
+
+      case "learnings":
+        return !!form.learnings?.trim();
+
+      default:
+        return false;
+    }
+  };
+
   return (
     <div
-      className="flexClm gap_32"
+      className="flexClm gap_32 pad_16"
       style={{
-        maxWidth: "1200px",
         minWidth: "300px",
-        margin: "24px auto",
-        padding: "0 12px 100px 12px",
       }}
     >
       <div className="flexRow gap_8">
-        <button
-          className="button_sec flexRow flex-center"
-          onClick={() => router.push("/trade")}
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <span className="font_16">Add trade</span>
+        <div className="flexRow gap_4" style={{ cursor: "pointer" }}>
+          <span className="font_20">Log trade</span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="flexClm gap_24">
@@ -974,40 +1055,89 @@ export default function AddTrade() {
         )}
       </form>
 
-      {/* ✅ Submit & Cancel */}
-      <div className="add_trade_btn_container">
-        <span className="font_12 shade_50 add_trade_btn">
-          Choose other factors
-        </span>
-        {/* 🔘 Bottom Buttons for opening modals */}
-        {visibleButtons.length > 0 && (
-          <div className="flexRow gap_12 flexRow_scroll removeScrollBar add_trade_btn">
-            {visibleButtons.map((key) => (
-              <button
-                key={key}
-                className="button_sec"
-                onClick={() => openModal(key)}
-              >
-                {key
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (s) => s.toUpperCase())}
-              </button>
-            ))}
+      <div className="flexClm gap_24">
+        {/* 🔵 Recommended Section */}
+        {recommendedButtons.length > 0 && (
+          <div className="listSection">
+            <label>Recommended</label>
+
+            <div className="flexRow gap_12" style={{ flexWrap: "wrap" }}>
+              {recommendedButtons.map((key) => {
+                const Icon = modalIcons[key.toLowerCase()];
+                const completed = isFieldCompleted(key);
+
+                return (
+                  <button
+                    key={key}
+                    className={`primary-btn secondary-btn flexRow gap_8 ${
+                      completed ? "completed-btn" : ""
+                    }`}
+                    style={{ minWidth: "fit-content", alignItems: "center" }}
+                    onClick={() => openModal(key)}
+                  >
+                    {Icon && <Icon size={16} />}
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (s) => s.toUpperCase())}
+
+                    {completed && (
+                      <FiCheckCircle size={20} className="tick-icon" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
-        <div className="flexRow flexRow_stretch gap_4 ">
-          <button
-            className="button_pri add_trade_btn"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading
-              ? "⏳ Please wait..."
-              : isEdit
-                ? "Update Trade"
-                : "Submit Trade"}
-          </button>
-        </div>
+
+        {/* ⚪ Optional Section */}
+        {optionalButtons.length > 0 && (
+          <div className="listSection">
+            <label>Optional</label>
+
+            <div className="flexRow gap_12" style={{ flexWrap: "wrap" }}>
+              {optionalButtons.map((key) => {
+                const Icon = modalIcons[key.toLowerCase()];
+                const completed = isFieldCompleted(key);
+
+                return (
+                  <button
+                    key={key}
+                    className={`primary-btn secondary-btn flexRow gap_8 ${
+                      completed ? "completed-btn" : ""
+                    }`}
+                    style={{ minWidth: "fit-content", alignItems: "center" }}
+                    onClick={() => openModal(key)}
+                  >
+                    {Icon && <Icon size={16} />}
+
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (s) => s.toUpperCase())}
+
+                    {completed && (
+                      <FiCheckCircle size={20} className="tick-icon" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flexRow flexRow_stretch gap_4 ">
+        <button
+          className="primary-btn width100"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading
+            ? "⏳ Please wait..."
+            : isEdit
+              ? "Update Trade"
+              : "Submit Trade"}
+        </button>
       </div>
 
       {/* 🔄 Toast + Loader */}
@@ -1049,7 +1179,7 @@ export default function AddTrade() {
             avgEntryPrice: form.avgEntryPrice,
           },
           null,
-          2
+          2,
         )}
       </pre> */}
       {/* Summary Section */}

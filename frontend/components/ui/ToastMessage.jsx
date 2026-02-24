@@ -51,7 +51,7 @@ const ToastMessage = ({ type = "success", message = "", duration = 3000 }) => {
 
   return (
     <div
-      className={`popups_top ${type} flexRow gap_12`}
+      className={`toastMessage ${type} flexRow gap_12`}
       style={{ position: "absolute" }}
     >
       {type === "success" ? (
@@ -62,7 +62,7 @@ const ToastMessage = ({ type = "success", message = "", duration = 3000 }) => {
       <span className="text">{message}</span>
 
       {/* Progress bar */}
-      <div
+      {/* <div
         style={{
           position: "absolute",
           bottom: 0,
@@ -72,7 +72,7 @@ const ToastMessage = ({ type = "success", message = "", duration = 3000 }) => {
           width: `${progress}%`,
           transition: "width 0.1s linear",
         }}
-      />
+      /> */}
     </div>
   );
 };

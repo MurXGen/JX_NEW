@@ -12,8 +12,8 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
   };
 
   return (
-    <div className="flexClm pad_32 chart_boxBg">
-      <label className="font_16 font_weight_600">Net P/L</label>
+    <div className="flexClm stats-card addTradeContainer radius-12">
+      <label className="font_14">Net P/L</label>
 
       <div className="flexRow flexRow_stretch">
         <div className="flexRow">
@@ -28,6 +28,7 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
             onChange={handleChange}
             placeholder="0.00"
             inputMode="decimal"
+            className="quickPnl"
             style={{
               border: "none",
               background: "transparent",
@@ -36,7 +37,7 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
               textAlign: "left",
               outline: "none",
               color: form.pnl >= 0 ? "var(--success)" : "var(--error)",
-              width: "140px",
+              width: "180px",
             }}
           />
         </div>
@@ -44,7 +45,7 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
         <div className="flexRow gap_4">
           <button
             type="button"
-            className="button_ter flexRow gap_4"
+            className="btn flexRow gap_4"
             title="Set Positive"
             onClick={() => handleSignChange("positive")}
           >
@@ -52,7 +53,7 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
           </button>
           <button
             type="button"
-            className="button_ter flexRow gap_4"
+            className="btn flexRow gap_4"
             title="Set Negative"
             onClick={() => handleSignChange("negative")}
           >
@@ -60,10 +61,6 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
           </button>
         </div>
       </div>
-
-      <p className="marg_0 font_14 shade_50">
-        Quickly log just profit and loss
-      </p>
     </div>
   );
 };

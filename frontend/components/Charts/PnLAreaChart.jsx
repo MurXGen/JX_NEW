@@ -120,7 +120,7 @@ const PnLAreaChart = ({ data }) => {
   const handleNext = () => {
     const newIndex = Math.min(
       currentIndex + CHART_WINDOW,
-      Math.max(processedData.length - CHART_WINDOW, 0)
+      Math.max(processedData.length - CHART_WINDOW, 0),
     );
     setCurrentIndex(newIndex);
     setVisibleData(processedData.slice(newIndex, newIndex + CHART_WINDOW));
@@ -188,31 +188,28 @@ const PnLAreaChart = ({ data }) => {
   }
 
   return (
-    <div className="chart_container">
-      <span className="font_12 font_weight_600">PNL Growth chart</span>
-      {/* Pagination Buttons */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "8px",
-        }}
-      >
-        <button
-          onClick={handlePrev}
-          className="button_ter flexRow"
-          disabled={currentIndex === 0}
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <button
-          onClick={handleNext}
-          className="button_ter flexRow"
-          disabled={currentIndex + CHART_WINDOW >= processedData.length}
-        >
-          <ChevronRight size={16} />
-        </button>
+    <div className="chart_container radius-12 stats-card">
+      <div className="flexRow flexRow_stretch">
+        <span className="card-value">PNL Growth chart</span>
+        <div className="flexRow gap_12">
+          <button
+            onClick={handlePrev}
+            className="btn flexRow"
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={handleNext}
+            className="btn flexRow"
+            disabled={currentIndex + CHART_WINDOW >= processedData.length}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
       </div>
+
+      {/* Pagination Buttons */}
 
       {/* Chart Container */}
       <div className="chart_container">
@@ -269,17 +266,17 @@ const PnLAreaChart = ({ data }) => {
 
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 12, fill: "#ccc" }}
+              tick={{ fontSize: 12, fill: "var(--black)" }}
               tickFormatter={formatXAxisDate}
-              axisLine={false}
-              tickLine={false}
+              // axisLine={false}
+              // tickLine={false}
             />
 
             <YAxis
-              tick={{ fontSize: 12, fill: "#ccc" }}
+              tick={{ fontSize: 12, fill: "var(--black)" }}
               tickFormatter={(value) => formatCurrency(value)}
-              axisLine={false}
-              tickLine={false}
+              // axisLine={false}
+              // tickLine={false}
               width={60}
             />
 

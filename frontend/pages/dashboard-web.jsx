@@ -1,47 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import {
-  Home as HomeIcon,
-  TrendingUp as TrendingUpIcon,
-  Settings as SettingsIcon,
-  Menu as MenuIcon,
   ArrowRight,
-  ChevronRight,
-  ChevronLeft,
   ArrowRightLeft,
-  PlusCircle,
-  Share2Icon,
-  Share,
-  User,
-  Newspaper,
+  ChevronLeft,
   Crown,
-  Menu,
+  Home as HomeIcon,
   LucideSettings,
+  Menu,
+  Newspaper,
+  PlusCircle,
+  Share,
+  Share2Icon,
+  TrendingUp as TrendingUpIcon,
+  User,
 } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
-import { calculateStats } from "@/utils/calculateStats";
-import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
-import { processPnLCandles } from "@/utils/processPnLCandles";
-import HomeContent from "@/components/dashboard/HomeDashboard";
-import TradePage from "@/components/dashboard/TradesPage";
-import Settings from "./settings";
-import Cookies from "js-cookie";
 import AccountSwitchModal from "@/components/dashboard/AccountSwitchModal";
 import AddTrade from "@/components/dashboard/AddTradeModal";
 import ExportPage from "@/components/dashboard/ExportModal";
-import ShareTrades from "@/components/dashboard/ShareModal";
-import { useRouter } from "next/router";
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import axios from "axios";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
-import MarketNews from "@/components/Tabs/HeatMaps";
-import Profile from "./profile";
-import Pricing from "@/components/dashboard/PricingModal";
-import AccountSetting from "./accountSetting";
+import HomeContent from "@/components/dashboard/HomeDashboard";
 import JournalSetting from "@/components/dashboard/JournalSetting";
+import Pricing from "@/components/dashboard/PricingModal";
+import ShareTrades from "@/components/dashboard/ShareModal";
+import TradePage from "@/components/dashboard/TradesPage";
+import MarketNews from "@/components/Tabs/MarketNews";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import { calculateStats } from "@/utils/calculateStats";
+import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { processPnLCandles } from "@/utils/processPnLCandles";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { useRouter } from "next/router";
+import Profile from "./profile";
+import AddTradePage from "./add-trade";
+import EventsPage from "./events";
+import TradesPage from "./trade";
+import DashboardMobile from "./dashboard";
+import TradesWebPage from "@/components/dashboard/TradesPage";
+import AddTradeWebPage from "@/components/dashboard/AddTradeModal";
+import EventsWebPage from "@/components/dashboard/HeatMap";
 
 function TradesCard({ title, total, wins, losses }) {
   const winPercent = total ? (wins / total) * 100 : 0;
@@ -211,6 +213,8 @@ export default function Dashboard1() {
     (t) => t.direction?.toLowerCase() === "short" && t.closeTime,
   ).length;
 
+  const isFree = userData?.subscription?.plan === "free";
+
   const isProMonthly =
     userData?.subscription?.plan === "pro" &&
     userData?.subscription?.type === "one-time";
@@ -229,7 +233,7 @@ export default function Dashboard1() {
           className="sidebarContainer"
           style={{
             position: "relative",
-            background: "var(--base-bg-dark)",
+            background: "var(--white)",
             height: "100vh",
             display: "flex",
             flexDirection: "column",
@@ -257,9 +261,8 @@ export default function Dashboard1() {
                 />
                 <ChevronLeft
                   size={22}
-                  color="white"
                   className="sideBar_clickables"
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", color: "var(--black)" }}
                   onClick={() => setOpen(!open)}
                 />
               </div>
@@ -296,7 +299,7 @@ export default function Dashboard1() {
                 onClick={() => setShowModal(true)}
               >
                 <div className="flexClm gap_4">
-                  <span className="font_8">Journals</span>
+                  <span className="font_14 black_text">Journals</span>
                   <span className="font_14 font_weight_600">
                     {currentAccount?.name || "Select Account"}
                   </span>
@@ -317,15 +320,14 @@ export default function Dashboard1() {
             {/* LOG TRADE */}
             {open ? (
               <div
-                className="flexRow gap_4 flexRow_stretch sideBar_clickables button_sec font_weight_600"
+                className="flexRow gap_4 flexRow_stretch sideBar_clickables primary-btn font_weight_600"
                 style={{
                   cursor: "pointer",
-                  background: "var(--primary)",
                 }}
                 onClick={() => setActiveTab("logtrade")}
               >
-                <span className="font_12">Add Trade</span>
-                <PlusCircle size={18} color="white" />
+                <span className="font_12">Log a Trade</span>
+                <ArrowRight size={18} color="white" />
               </div>
             ) : (
               <div
@@ -346,7 +348,7 @@ export default function Dashboard1() {
                 <div
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className="sidebarItem sideBar_clickables"
+                  className={`sidebarItem ${isActive ? "active" : ""}`}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -354,11 +356,8 @@ export default function Dashboard1() {
                     padding: "12px 14px",
                     cursor: "pointer",
                     borderRadius: "10px",
-                    background: isActive
-                      ? "rgba(255,255,255,0.10)"
-                      : "transparent",
                     transition: "all 0.2s ease",
-                    color: "white",
+                    color: "var(--black)",
                   }}
                 >
                   <div className="vector flexRow">{item.icon}</div>
@@ -373,11 +372,11 @@ export default function Dashboard1() {
           <div
             style={{
               padding: "10px 8px",
-              borderTop: "1px solid rgba(255,255,255,0.05)",
+              borderTop: "1px solid rgba(0,0,0,0.5)",
             }}
           >
             {/* 🔸 SHOW UPGRADE BUTTON ONLY IF USER IS ON PRO MONTHLY */}
-            {isProMonthly && (
+            {!isProMonthly && (
               <>
                 {open && (
                   <button
@@ -411,24 +410,24 @@ export default function Dashboard1() {
                 style={{
                   marginTop: "16px",
                   padding: "12px",
-                  background: "rgba(255,255,255,0.05)",
                   borderRadius: "12px",
                   display: "flex",
                   gap: "12px",
                   alignItems: "center",
                   cursor: "pointer",
+                  background: "var(--black-10)",
                 }}
                 onClick={() => setActiveTab("profile")}
               >
                 <div>
-                  <User size={16} color="white" />
+                  <User size={24} style={{ color: "var(--black)" }} />
                 </div>
 
                 <div className="flexClm">
-                  <span className="font_12 font_weight_600">
+                  <span className="font_14 font_weight_600">
                     {userData?.name || "User"}
                   </span>
-                  <span className="font_12 shade_50">
+                  <span className="font_12 black-text">
                     {userData?.email || "user@example.com"}
                   </span>
                 </div>
@@ -461,7 +460,7 @@ export default function Dashboard1() {
                     alignItems: "center",
                   }}
                 >
-                  <User size={16} color="white" />
+                  <User size={24} />
                 </div>
               </div>
             )}
@@ -470,30 +469,24 @@ export default function Dashboard1() {
 
         {/* RIGHT CONTENT */}
         <div
+          className="stats-card"
           style={{
             flex: 1,
             padding: "24px",
             overflowY: "auto",
-            background: "var(--base-bg)",
+            borderRadius: "12px",
+            margin: "12px",
+            background: "var(--white)",
+            padding: "0",
           }}
         >
-          {activeTab === "home" && (
-            <HomeContent
-              trades={accountTrades}
-              stats={stats}
-              accountTrades={accountTrades}
-              dailyData={dailyData}
-              candleData={candleData}
-              longTrades={longTrades}
-              shortTrades={shortTrades}
-            />
-          )}
+          {activeTab === "home" && <HomeContent />}
 
-          {activeTab === "trades" && <TradePage trades={accountTrades} />}
+          {activeTab === "trades" && <TradesWebPage trades={accountTrades} />}
 
-          {activeTab === "logtrade" && <AddTrade />}
+          {activeTab === "logtrade" && <AddTradeWebPage />}
 
-          {activeTab === "heatmaps" && <MarketNews />}
+          {activeTab === "heatmaps" && <EventsWebPage />}
 
           {activeTab === "export" && <ExportPage />}
 
@@ -504,7 +497,7 @@ export default function Dashboard1() {
 
           {/* {activeTab === "reports" && <ReportsPage />} */}
 
-          {activeTab === "profile" && <Profile />}
+          {activeTab === "profile" && <ProfileWeb />}
         </div>
       </div>
 

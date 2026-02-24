@@ -1,36 +1,30 @@
+"use client";
+
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 const FullPageLoader = () => {
-  const quotes = [
-    "Discipline turns losses into lessons and lessons into profit.",
-    "Consistency beats intensity when mastering profitable trading habits daily.",
-    "Emotions destroy profits faster than bad trades ever will.",
-    "Plan your trades, trade your plan with calm focus.",
-    "Patience creates opportunities where others rush and lose money.",
-    "Every loss teaches precision, every gain teaches patience again.",
-    "Trade less, think more, and manage your risks first.",
-    "Profitability grows when ego shrinks and patience takes control.",
-    "Focus on process, not profit, results will naturally follow.",
-    "Master risk management and profits will follow automatically forever after.",
-  ];
-  const [randomQuote, setRandomQuote] = useState("");
-
-  useEffect(() => {
-    setRandomQuote(quotes[Math.floor(Math.random() * quotes.length)]);
-  }, []);
-
   return (
-    <div className="fullpageLoader">
+    <div
+      className="fullpageLoader"
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--background, #fff)",
+        zIndex: 9999,
+      }}
+    >
       <div className="loaderContent">
         <Image
-          width={50}
-          height={50}
-          src="/assets/jx_trans_favicon.png"
-          alt="Loader Icon"
-          className="blinkingIcon"
+          src="/assets/stock-market.gif"
+          alt="Loading..."
+          width={120}
+          height={120}
+          priority
         />
-        <p className="traderQuote">{randomQuote}</p>
       </div>
     </div>
   );

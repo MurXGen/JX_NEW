@@ -1,25 +1,29 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
 import Head from "next/head";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import TradesHistory from "@/components/Trades/TradeHistory";
 import TradeCalendar from "@/components/Trades/TradeCalendar";
+import BottomBar from "@/components/Trades/BottomBar";
 import Navbar from "@/components/Trades/Navbar";
-import { Calendar, History, Layers } from "lucide-react";
+import { Calendar, History, Home, Layers, ListFilterIcon } from "lucide-react";
 import Dropdown from "@/components/ui/Dropdown";
 import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import SectionHeader from "@/components/ui/SectionHeader";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 import TradeCardModal from "@/components/Trades/TradesCard";
+import HeroCards from "@/components/dashboardMobile/HeroCards";
+import { calculateStats } from "@/utils/calculateStats";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
+import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 
-const TradePage = () => {
+const TradesWebPage = () => {
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("history");
 
   const router = useRouter();
 
@@ -30,14 +34,75 @@ const TradePage = () => {
   // const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [selectedYear, setSelectedYear] = useState("");
   const [showCardModal, setShowCardModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("history");
+  const [accounts, setAccounts] = useState([]);
+  const [userPlan, setUserPlan] = useState(null);
+
+  const primaryCurrency = accounts.length > 0 ? accounts[0].currency : "usd";
+
+  const currencySymbol = getCurrencySymbol(primaryCurrency);
+
+  const selectedAccountId = Cookies.get("accountId");
+
+  const selectedAccount = useMemo(() => {
+    if (!selectedAccountId) return null;
+    return accounts.find((acc) => acc._id === selectedAccountId) || null;
+  }, [accounts, selectedAccountId]);
+
+  const selectedTrades = useMemo(() => {
+    if (!selectedAccount) return [];
+    return trades.filter((t) => t.accountId === selectedAccount._id);
+  }, [trades, selectedAccount]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchAccountsAndTrades();
+
+      if (data?.redirectToLogin) {
+        window.location.href = "/login";
+        return;
+      }
+
+      setAccounts(data.accounts || []);
+      setTrades(data.trades || []);
+      setUserPlan(data.userPlan || null);
+
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
+
+  const stats = useMemo(() => {
+    return calculateStats(selectedTrades);
+  }, [selectedTrades]);
+
+  const totalBalance = useMemo(() => {
+    if (!selectedAccount) return 0;
+
+    const starting = selectedAccount.startingBalance?.amount || 0;
+
+    const pnlSum = selectedTrades.reduce(
+      (sum, t) => sum + (Number(t.pnl) || 0),
+      0,
+    );
+
+    return starting + pnlSum;
+  }, [selectedAccount, selectedTrades]);
+
+  const tabs = [
+    { label: "History", value: "history", icon: <History size={18} /> },
+    { label: "Calendar", value: "calendar", icon: <Calendar size={18} /> },
+    { label: "Cards", value: "showCardModal", icon: <Layers size={18} /> },
+  ];
 
   // 🟩 Automatically set current month when switching to calendar
   useEffect(() => {
-    if (view === "calendar") {
+    if (activeTab === "calendar") {
       setSelectedMonth(today.getMonth() + 1); // JS months are 0-based
       setSelectedYear(today.getFullYear());
     }
-  }, [view]);
+  }, [activeTab]);
 
   const years = Array.from({ length: 15 }, (_, i) => today.getFullYear() - i);
 
@@ -55,12 +120,12 @@ const TradePage = () => {
       const userData = await getFromIndexedDB("user-data");
       if (userData) {
         const accountTrades = (userData.trades || []).filter(
-          (trade) => trade.accountId === accountId
+          (trade) => trade.accountId === accountId,
         );
 
         // Sort by openTime (newest first)
         const sorted = accountTrades.sort(
-          (a, b) => new Date(b.openTime) - new Date(a.openTime)
+          (a, b) => new Date(b.openTime) - new Date(a.openTime),
         );
 
         setTrades(sorted);
@@ -75,7 +140,7 @@ const TradePage = () => {
   if (loading) return <FullPageLoader />;
 
   return (
-    <>
+    <div className="flexClm gap_32 pad_16">
       {/* ✅ SEO + Meta Tags */}
       <Head>
         <title>JournalX | Trade History & Calendar</title>
@@ -110,76 +175,41 @@ const TradePage = () => {
         />
         <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>
-      <div className="flexClm gap_32">
-        <div className="flexRow flexRow_stretch">
-          <div className="flexClm gap_4">
-            <span className="font_20 font_weight_600">History</span>
-            <span className="font_14 shade_50">
-              Calendar and your trade log history
-            </span>
-          </div>
 
-          {/* Toggle Buttons */}
-          <div className="view-toggle flexRow gap_12">
-            <button
-              onClick={() => setShowCardModal(true)}
-              className="toggle-btn"
-            >
-              <Layers size={18} />
-            </button>
-            <button
-              onClick={() => setView("history")}
-              className={`toggle-btn ${view === "history" ? "active" : ""}`}
-            >
-              <History size={18} />
-            </button>
-
-            <button
-              onClick={() => setView("calendar")}
-              className={`toggle-btn ${view === "calendar" ? "active" : ""}`}
-            >
-              <Calendar size={18} />
-            </button>
+      <div
+        className="flexRow flexRow_stretch"
+        style={{ minWidth: "300px", maxWidth: "800px" }}
+      >
+        <div className="flexRow gap_12">
+          <div className="flexClm">
+            <span className="font_24 font_weight_600">Trades</span>
           </div>
         </div>
+      </div>
 
-        <div className="flexRow flexRow_stretch">
-          {/* Global Month/Year Selectors */}
-          <div className="flexRow gap_12">
-            {/* Month Selector */}
-            <Dropdown
-              value={selectedMonth}
-              onChange={(val) => setSelectedMonth(val)}
-              placeholder={view === "history" ? "All Months" : "Select Month"}
-              options={[
-                ...(view === "history"
-                  ? [{ value: "", label: "All" }] // ✅ only show in history
-                  : []),
-                ...Array.from({ length: 12 }, (_, i) => ({
-                  value: i + 1,
-                  label: new Date(0, i).toLocaleString("default", {
-                    month: "long",
-                  }),
-                })),
-              ]}
-            />
+      <div
+        className="flexClm gap_32"
+        style={{
+          minWidth: "300px",
+        }}
+      >
+        <BottomBar />
 
-            {/* Year Selector */}
-            <Dropdown
-              value={selectedYear}
-              onChange={(val) => setSelectedYear(val)}
-              placeholder={view === "history" ? "All Years" : "Select Year"}
-              options={[
-                ...(view === "history"
-                  ? [{ value: "", label: "All" }] // ✅ only show in history
-                  : []),
-                ...years.map((year) => ({ value: year, label: year })),
-              ]}
-            />
-          </div>
+        {/* Tabs */}
+        <div className="mobile-tabs" style={{ margin: "0" }}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              className={`tab-item ${activeTab === tab.value ? "active" : ""}`}
+              onClick={() => setActiveTab(tab.value)}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
         </div>
 
-        {view === "history" && (
+        {activeTab === "history" && (
           <TradesHistory
             trades={trades}
             location={router}
@@ -193,12 +223,12 @@ const TradePage = () => {
           />
         )}
 
-        {view === "calendar" && (
+        {activeTab === "calendar" && (
           <TradeCalendar
             trades={trades}
             onDateSelect={(dateKey) => {
               setSelectedDate(new Date(dateKey));
-              setView("history");
+              setActiveTab("history");
             }}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
@@ -207,19 +237,20 @@ const TradePage = () => {
             setSelectedYear={setSelectedYear}
           />
         )}
+
+        {activeTab === "showCardModal" && (
+          <TradeCardModal
+            trades={trades}
+            onClose={() => setShowCardModal(false)}
+            onAddNew={() => router.push("/add-trade")}
+          />
+        )}
         {/* <BackgroundBlur /> */}
 
         <GoogleBannerAd />
       </div>
-      {showCardModal && (
-        <TradeCardModal
-          trades={trades}
-          onClose={() => setShowCardModal(false)}
-          onAddNew={() => router.push("/add-trade")}
-        />
-      )}
-    </>
+    </div>
   );
 };
 
-export default TradePage;
+export default TradesWebPage;

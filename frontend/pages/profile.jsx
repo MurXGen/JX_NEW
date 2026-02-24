@@ -4,10 +4,26 @@ import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
-import { ArrowLeft, FileText, LogOut, Phone, Shield, User } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  FileText,
+  LogOut,
+  LogOutIcon,
+  Pencil,
+  Phone,
+  Repeat,
+  Share2,
+  ShareIcon,
+  Shield,
+  Trash2,
+  User,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
+import BottomBar from "@/components/Trades/BottomBar";
+import Image from "next/image";
 
 const Profile = () => {
   const router = useRouter();
@@ -56,33 +72,13 @@ const Profile = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="flexRow gap_8">
-          <button className="button_sec flexRow" onClick={handleBackClick}>
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flexClm">
-            <span className="font_20">Profile</span>
-            <span className="font_12">
-              Manage your account and subscription
-            </span>
-          </div>
-        </div>
-
-        {/* Simple Mode Toggle */}
-        {/* <div className="simple-mode-toggle boxBg">
-          <div className="flexRow gap_8 width100">
-            <span className="font_12">Simple Mode</span>
-            <div
-              className="toggle_switch"
-              onClick={() => setSimpleMode(!simpleMode)}
-            >
-              <div
-                className="toggle_slider"
-                style={{ left: simpleMode ? "22px" : "2px" }}
-              ></div>
+        <div className="flexRow flexRow_stretch">
+          <div className="flexRow gap_12">
+            <div className="flexClm">
+              <span className="font_24 font_weight_600">Profile</span>
             </div>
           </div>
-        </div> */}
+        </div>
       </motion.div>
 
       {/* User Info & Subscription */}
@@ -93,24 +89,64 @@ const Profile = () => {
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         {/* User Info Card */}
-        <div className="user-info-card chart_boxBg">
+        <div className="stats-card radius-12">
           <div className="user-header flexRow gap_8">
-            <div className="user-avatar">
-              <User size={24} />
-            </div>
+            <Image
+              src="/assets/profile.gif"
+              alt="Profile"
+              width={50}
+              height={50}
+              style={{
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+              priority
+            />
+
             <div className="user-details flexClm">
               <span className="font_16 font_weight_600">
-                {userData?.name || "User"}
+                {userData?.name || "Trading Hero"}
               </span>
-              <span className="font_12" style={{ color: "var(--white-50)" }}>
-                {userData?.email || "user@example.com"}
+              <span className="font_14">
+                {userData?.email || "...@gmail.com"}
               </span>
             </div>
           </div>
         </div>
-
         {/* Subscription Status */}
         <SubscriptionStatus />
+
+        {/* Action Buttons */}
+        <div className="flexClm gap_12">
+          <button
+            className="secondary-btn primary-btn flexRow gap_8"
+            onClick={() => router.push("/accounts")}
+          >
+            <Repeat size={16} /> Switch journal
+          </button>
+          <button
+            className="secondary-btn primary-btn flexRow gap_8 flexRow_center width100"
+            onClick={() => router.push("/share-trades")}
+          >
+            <Share2 size={16} />
+            Share trade logs
+          </button>
+          <button
+            className="secondary-btn primary-btn flexRow gap_8 flexRow_center width100"
+            onClick={() => router.push("/export")}
+          >
+            <ShareIcon size={16} />
+            Export trade logs
+          </button>
+
+          <button
+            className="secondary-btn primary-btn flexRow gap_8 "
+            onClick={handleLogout}
+          >
+            <LogOutIcon size={16} />
+            Logout
+          </button>
+        </div>
 
         {/* Quick Actions */}
         {/* <div className="quick-actions-section">
@@ -150,7 +186,7 @@ const Profile = () => {
         </div> */}
 
         {/* Legal & Support Section */}
-        <div className="flexClm gap_12 width100">
+        {/* <div className="flexClm gap_12 width100">
           <button
             className="button_sec flexRow gap_8 flexRow_center width100"
             onClick={() => router.push("/terms-services")}
@@ -186,10 +222,10 @@ const Profile = () => {
             <LogOut size={16} />
             Logout
           </button>
-        </div>
+        </div> */}
       </motion.div>
 
-      <BackgroundBlur />
+      <BottomBar />
     </div>
   );
 };

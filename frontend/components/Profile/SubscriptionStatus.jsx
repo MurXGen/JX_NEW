@@ -30,7 +30,7 @@ const SubscriptionStatus = () => {
   const [currentPlan, setCurrentPlan] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState("");
   const [progressPercent, setProgressPercent] = useState("");
-  const [showDetails, setShowDetails] = useState(true);
+  const [showDetails, setShowDetails] = useState(false);
 
   const [planRules, setPlanRules] = useState(null);
 
@@ -175,7 +175,7 @@ const SubscriptionStatus = () => {
         {currentPlan ? (
           <motion.div
             key="active-plan"
-            className="current-plan-card chart_boxBg flexClm gap_24"
+            className="current-plan-card stats-card radius-12 flexClm gap_24"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -187,7 +187,7 @@ const SubscriptionStatus = () => {
                 {getPlanIcon(currentPlan.plan)}
 
                 <div className="flexClm">
-                  <span className="font_18 font_weight_600">
+                  <span className="font_16 font_weight_600">
                     {(() => {
                       const rawPlan =
                         currentPlan?.plan?.toLowerCase() || "free";
@@ -209,7 +209,7 @@ const SubscriptionStatus = () => {
                     })()}
                   </span>
 
-                  <span className="font_12 shade_50">
+                  <span className="font_14">
                     {currentPlan.type === "recurring"
                       ? "Auto-renewal"
                       : "One-time payment"}
@@ -219,19 +219,48 @@ const SubscriptionStatus = () => {
 
               <div className="flexRow flex_center gap_8">
                 <div className={`status-badge ${statusConfig.color}`}>
-                  <statusConfig.icon size={16} />
+                  <statusConfig.icon size={16} color="white" />
                   <span className="font_12">{statusConfig.label}</span>
                 </div>
 
                 {/* ▼ Toggle Arrow */}
-                <motion.div
+                <motion.button
                   whileHover={{ scale: 1.1 }}
-                  className="flexRow button_ter_icon flex_center"
+                  className="flexRow btn flex_center"
                   onClick={() => setShowDetails((prev) => !prev)}
                 >
-                  <ChevronDown size={20} className="vector" />
-                </motion.div>
+                  <ChevronDown size={20} />
+                </motion.button>
               </div>
+            </div>
+
+            {/* Actions */}
+            <div className="plan-actions flexRow gap_12">
+              {currentPlan.status === "active" ? (
+                <>
+                  <button
+                    className="secondary-btn primary-btn flex_center"
+                    onClick={() => router.push("/billings")}
+                  >
+                    Manage
+                  </button>
+                  <button
+                    className="upgrade_btn width100 flexRow gap_8 flex_center"
+                    onClick={() => router.push("/pricing")}
+                  >
+                    <Crown size={16} className="vector" />
+                    Upgrade Limit
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="primary-btn width100 flex_center flexRow gap_4"
+                  onClick={() => router.push("/pricing")}
+                >
+                  <Sparkles size={16} />
+                  Renew Subscription
+                </button>
+              )}
             </div>
 
             {/* --- Collapsible Section --- */}
@@ -242,15 +271,16 @@ const SubscriptionStatus = () => {
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.4, ease: "easeInOut" }}
-                  className="overflow-hidden flexClm gap_24"
+                  className="flexClm gap_24"
                 >
-                  {/* Progress Bar */}
                   {currentPlan?.status === "active" &&
                     currentPlan.plan !== "lifetime" &&
                     currentPlan.expiresAt && (
                       <div>
                         <div className="progress-header flexRow flexRow_stretch font_12">
-                          <span>Subscription Timeline</span>
+                          <span className="font_14 black-text">
+                            Subscription Timeline
+                          </span>
                           <span
                             className={
                               timeRemaining === "Expired" ? "error" : "success"
@@ -277,13 +307,12 @@ const SubscriptionStatus = () => {
                       </div>
                     )}
 
-                  {/* Dates */}
                   {currentPlan?.startAt && currentPlan?.expiresAt && (
                     <div className="flexRow flexRow_stretch">
                       <div className="flexRow gap_12">
                         <Calendar size={16} className="vector" />
                         <div className="detail-content">
-                          <span className="font_12">Started</span>
+                          <span className="font_12 black-text">Started</span>
                           <span className="font_14 font_weight_600">
                             {formatDate(currentPlan.startAt)}
                           </span>
@@ -295,7 +324,7 @@ const SubscriptionStatus = () => {
                       >
                         <Clock size={16} className="vector" />
                         <div className="detail-content">
-                          <span className="font_12">
+                          <span className="font_12 black-text">
                             {currentPlan.status === "active"
                               ? "Expires"
                               : "Expired"}
@@ -312,54 +341,32 @@ const SubscriptionStatus = () => {
 
                   {/* Limits Overview */}
                   {planRules && (
-                    <div className="gridContainer gap_8 font_12 shade_50">
-                      <div className="boxBg flexRow flexRow_stretch">
-                        <b>Trade Limit:</b>{" "}
-                        {planRules.limits.tradeLimitPerMonth === Infinity
-                          ? "Unlimited"
-                          : `${planRules.limits.tradeLimitPerMonth} / month`}
+                    <div className="gridContainer gap_8 font_12">
+                      <div className="stats-card radius-12 flexRow flexRow_stretch">
+                        <b className="card-label">Trade Limit:</b>{" "}
+                        <span className="card-value">
+                          {planRules.limits.tradeLimitPerMonth === Infinity
+                            ? "Unlimited"
+                            : `${planRules.limits.tradeLimitPerMonth} / month`}
+                        </span>
                       </div>
                       <div className="boxBg flexRow flexRow_stretch">
-                        <b>Account Limit:</b> {planRules.limits.accountLimit}
+                        <b className="card-label">Account Limit:</b>{" "}
+                        <span className="card-value">
+                          {planRules.limits.accountLimit}
+                        </span>
                       </div>
                       <div className="boxBg flexRow flexRow_stretch">
-                        <b>Image Upload:</b>{" "}
-                        {planRules.limits.imageLimitPerMonth === Infinity
-                          ? "Unlimited"
-                          : `${planRules.limits.imageLimitPerMonth} / month`}{" "}
-                        ({planRules.limits.maxImageSizeMB} MB max)
+                        <b className="card-label">Image Upload:</b>{" "}
+                        <span className="card-value">
+                          {planRules.limits.imageLimitPerMonth === Infinity
+                            ? "Unlimited"
+                            : `${planRules.limits.imageLimitPerMonth} / month`}{" "}
+                          ({planRules.limits.maxImageSizeMB} MB max)
+                        </span>
                       </div>
                     </div>
                   )}
-
-                  {/* Actions */}
-                  <div className="plan-actions flexRow gap_12">
-                    {currentPlan.status === "active" ? (
-                      <>
-                        <button
-                          className="button_sec flex_center"
-                          onClick={() => router.push("/billings")}
-                        >
-                          Manage
-                        </button>
-                        <button
-                          className="upgrade_btn width100 flexRow gap_8 flex_center"
-                          onClick={() => router.push("/pricing")}
-                        >
-                          <Crown size={16} className="vector" />
-                          Upgrade Limit
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        className="button_pri flex_center flexRow gap_4"
-                        onClick={() => router.push("/pricing")}
-                      >
-                        <Sparkles size={16} />
-                        Renew Subscription
-                      </button>
-                    )}
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

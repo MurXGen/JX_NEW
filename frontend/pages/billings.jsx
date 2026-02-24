@@ -151,7 +151,7 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="flexClm gap_32">
+    <div className="flexClm gap_32 pad_16">
       {/* Header */}
       <motion.div
         className="flexClm gap_24"
@@ -190,8 +190,8 @@ export default function BillingPage() {
               {formatAmount(
                 orders.reduce(
                   (max, order) => (order.amount > max.amount ? order : max),
-                  orders[0] || { amount: 0, currency: "INR" } // ✅ default object
-                )
+                  orders[0] || { amount: 0, currency: "INR" }, // ✅ default object
+                ),
               )}
             </div>
             <div className="stat-label font_12">Largest Order</div>
@@ -340,7 +340,7 @@ export default function BillingPage() {
                         {getStatusIcon(order.status)}
                         <span
                           className={`font_12 font_weight_600 ${getStatusColor(
-                            order.status
+                            order.status,
                           )}`}
                         >
                           {getStatusText(order.status)}

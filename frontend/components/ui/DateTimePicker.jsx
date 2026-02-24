@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { FiCheck, FiClock, FiTrash2 } from "react-icons/fi";
 
 export default function DateTimePicker({ value, onChange, onClose }) {
   const [date, setDate] = useState(value ? new Date(value) : new Date());
@@ -102,13 +103,13 @@ export default function DateTimePicker({ value, onChange, onClose }) {
     <div className="dtp">
       {/* Year & Month Navigation */}
       <div className="dtp-header">
-        <button onClick={() => changeMonth(-1)} className="nav-btn">
+        <button onClick={() => changeMonth(-1)} className="btn">
           <ChevronLeft size={18} />
         </button>
-        <div className="month-year">
+        <div className="font_16 text-opacity-100">
           {months[currentMonth]} {currentYear}
         </div>
-        <button onClick={() => changeMonth(1)} className="nav-btn">
+        <button onClick={() => changeMonth(1)} className="btn">
           <ChevronRight size={18} />
         </button>
       </div>
@@ -160,7 +161,7 @@ export default function DateTimePicker({ value, onChange, onClose }) {
 
       {/* Preview */}
       <div
-        className="dtp-preview"
+        className="dtp-preview black-text"
         style={{
           marginTop: "12px",
           padding: "10px 12px",
@@ -176,14 +177,28 @@ export default function DateTimePicker({ value, onChange, onClose }) {
       </div>
 
       {/* Footer */}
-      <div className="dtp-footer">
-        <button onClick={handleClear} className="btn clear">
+      <div className="flexRow gap_12 width100">
+        <button
+          onClick={handleClear}
+          className="secondary-btn width100 primary-btn flexRow flex_center gap_8"
+        >
+          <FiTrash2 size={16} />
           Clear
         </button>
-        <button onClick={handleNow} className="btn now">
+
+        <button
+          onClick={handleNow}
+          className="secondary-btn width100 primary-btn flexRow flex_center gap_8"
+        >
+          <FiClock size={16} />
           Now
         </button>
-        <button onClick={handleSubmit} className="btn submit">
+
+        <button
+          onClick={handleSubmit}
+          className="width100 primary-btn flexRow flex_center gap_8"
+        >
+          <FiCheck size={16} />
           Set
         </button>
       </div>

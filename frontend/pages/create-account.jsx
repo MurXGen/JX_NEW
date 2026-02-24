@@ -3,7 +3,7 @@
 import axios from "axios";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -108,14 +108,14 @@ const CreateAccount = () => {
         message ||
           (isEdit
             ? "Journal updated successfully!"
-            : "Journal created successfully!")
+            : "Journal created successfully!"),
       );
 
       setTimeout(() => router.push("/accounts"), 1200);
     } catch (error) {
       triggerToast(
         "error",
-        error.response?.data?.message || "Failed to save account"
+        error.response?.data?.message || "Failed to save account",
       );
     } finally {
       setLoading(false);
@@ -149,12 +149,18 @@ const CreateAccount = () => {
         padding: "0 12px 100px 12px",
       }}
     >
-      <SectionHeader
-        title={isEdit ? "Edit Journal" : "Create Journal"}
-        description="Journals structure logged trades"
-        level={4}
-        loading={loading}
-      />
+      <div className="flexRow gap_8">
+        <div
+          className=" flexRow gap_4"
+          onClick={() => router.push("/accounts")}
+          style={{ cursor: "pointer" }}
+        >
+          <ChevronLeft size={20} />
+          <span className="font_20">
+            {isEdit ? "Edit Journal" : "Create Journal"}
+          </span>
+        </div>
+      </div>
 
       <motion.form
         onSubmit={handleSubmit}
@@ -163,25 +169,31 @@ const CreateAccount = () => {
         initial="hidden"
         animate="visible"
       >
-        <input
-          type="text"
-          value={accountName}
-          placeholder="Journal name"
-          onChange={(e) => setAccountName(e.target.value.toUpperCase())}
-          required
-        />
+        <div className="flexClm">
+          <label className="font_14">Name</label>
+          <input
+            type="text"
+            value={accountName}
+            placeholder="Journal name"
+            onChange={(e) => setAccountName(e.target.value.toUpperCase())}
+            required
+          />
+        </div>
 
-        <input
-          type="number"
-          value={balance}
-          placeholder="Balance"
-          min="0"
-          onChange={(e) => setBalance(Math.max(0, Number(e.target.value)))}
-          required
-        />
+        <div className="flexClm">
+          <label className="font_14">Balance</label>
+          <input
+            type="number"
+            value={balance}
+            placeholder="Balance"
+            min="0"
+            onChange={(e) => setBalance(Math.max(0, Number(e.target.value)))}
+            required
+          />
+        </div>
 
-        <div className="flexClm gap_12">
-          <span className="font_14 shade_50">Journal currency</span>
+        <div className="flexClm ">
+          <span className="font_14">Choose currency</span>
           <Dropdown
             options={currencyOptions}
             value={currency}
@@ -195,14 +207,14 @@ const CreateAccount = () => {
           variants={childVariants}
         >
           <button
-            className="button_sec width100 flex_center flexRow gap_8"
+            className="primary-btn secondary-btn width100 flex_center flexRow gap_8"
             type="button"
             onClick={handleCancel}
           >
             Cancel
           </button>
           <button
-            className="button_pri width100 flex_center flexRow gap_8"
+            className="primary-btn width100 flex_center flexRow gap_8"
             type="submit"
             disabled={loading}
           >

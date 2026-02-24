@@ -1,14 +1,7 @@
 import OverviewSection from "@/components/Tabs/OverviewSection";
-import {
-  ArrowDownRightIcon,
-  ArrowUpRightIcon,
-  Circle,
-  Dot,
-  Plus,
-} from "lucide-react";
-import VolumeChart from "../Charts/VolumeChart";
 import { calculateStats } from "@/utils/calculateStats";
-import SectionHeader from "../ui/SectionHeader";
+import { ArrowDownRightIcon, ArrowUpRightIcon, Circle } from "lucide-react";
+import VolumeChart from "../Charts/LongShortVolumes";
 
 export default function LongShorts({ stats, longTrades, shortTrades }) {
   // Stats
@@ -18,12 +11,12 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
   // ➕ Calculate PNL totals
   const totalLongPNL = longTrades.reduce(
     (sum, t) => sum + (Number(t.pnl) || 0),
-    0
+    0,
   );
 
   const totalShortPNL = shortTrades.reduce(
     (sum, t) => sum + (Number(t.pnl) || 0),
-    0
+    0,
   );
 
   return (
@@ -61,7 +54,7 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
                   {(
                     stats?.dailyVolumeData?.reduce(
                       (sum, day) => sum + (day.longVolume || 0),
-                      0
+                      0,
                     ) || 0
                   ).toLocaleString("en-US")}
                   <ArrowUpRightIcon className="success" size={20} />
@@ -91,7 +84,7 @@ export default function LongShorts({ stats, longTrades, shortTrades }) {
                   {(
                     stats?.dailyVolumeData?.reduce(
                       (sum, day) => sum + (day.shortVolume || 0),
-                      0
+                      0,
                     ) || 0
                   ).toLocaleString("en-US")}
                   <ArrowDownRightIcon className="error" size={20} />

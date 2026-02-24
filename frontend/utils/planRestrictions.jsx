@@ -13,7 +13,7 @@ export const PLAN_RULES = {
       quickTradeLimitPerMonth: 10,
       accountLimit: 1, // 1 journal
       imageLimitPerMonth: 10,
-      maxImageSizeMB: 0,
+      maxImageSizeMB: 10,
       historyDays: 30,
     },
     features: {
@@ -28,8 +28,9 @@ export const PLAN_RULES = {
       multipleEntries: false,
       backupData: false,
       integration: false,
-      exportTrades: false,
+      exportTrades: true,
       fullHistory: false,
+      shareTrades: false,
     },
   },
 
@@ -56,6 +57,7 @@ export const PLAN_RULES = {
       integration: true,
       exportTrades: true,
       fullHistory: true,
+      shareTrades: true,
     },
   },
 

@@ -1,51 +1,93 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, ArrowUpDown, Plus, Bot, Settings, Crown } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Home, ArrowUpDown, Plus, Newspaper, User } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 export default function BottomBar() {
+  const router = useRouter();
   const pathname = usePathname();
 
+  const [playing, setPlaying] = useState(null);
+  const [gifKey, setGifKey] = useState(0);
+
   const navItems = [
-    { href: "/dashboard", label: "Home", icon: Home },
-    { href: "/trade", label: "Trades", icon: ArrowUpDown },
-    { href: "/add-trade", label: "Add", icon: Plus, isFab: true },
-    { href: "/pricing", label: "Upgrade", icon: Crown },
-    { href: "/accountSetting", label: "Settings", icon: Settings },
+    { href: "/dashboard", label: "Home", icon: Home, gif: "/assets/home.gif" },
+    {
+      href: "/trade",
+      label: "Trades",
+      icon: ArrowUpDown,
+      gif: "/assets/trades.gif",
+    },
+    {
+      href: "/add-trade",
+      label: "Add",
+      icon: Plus,
+      gif: "/assets/add-trade.gif",
+      isFab: true,
+    },
+    {
+      href: "/events",
+      label: "Trends",
+      icon: Newspaper,
+      gif: "/assets/news.gif",
+    },
+    {
+      href: "/profile",
+      label: "Profile",
+      icon: User,
+      gif: "/assets/profile.gif",
+    },
   ];
+
+  const handleClick = (e, item) => {
+    e.preventDefault(); // stop instant navigation
+
+    if (pathname === item.href) return; // optional: don't replay on same tab
+
+    setPlaying(item.label);
+    setGifKey((prev) => prev + 1);
+
+    setTimeout(() => {
+      router.push(item.href); // navigate after GIF plays
+    }, 100); // adjust to your GIF duration
+  };
 
   return (
     <nav className="mobile-bottom-bar">
-      {navItems.map(({ href, label, icon: Icon, isFab }) => {
+      {navItems.map((item) => {
+        const { href, label, icon: Icon, gif, isFab } = item;
         const active = pathname === href;
-
-        if (isFab) {
-          return (
-            <Link key={href} href={href} className="fab-wrapper">
-              <motion.div whileTap={{ scale: 0.9 }} className="fab-btn">
-                <Plus size={26} />
-              </motion.div>
-            </Link>
-          );
-        }
+        const isPlaying = playing === label;
 
         return (
-          <Link
+          <a
             key={href}
             href={href}
-            className="tab-item"
+            onClick={(e) => handleClick(e, item)}
+            className={isFab ? "fab-wrapper" : "tab-item"}
             style={{ textDecoration: "none" }}
           >
             <motion.div
               whileTap={{ scale: 0.92 }}
-              className={`tab-content ${active ? "active" : ""}`}
+              className={
+                isFab ? "fab-btn" : `tab-content ${active ? "active" : ""}`
+              }
             >
-              <Icon size={22} />
-              {/* <span className="font_8 shade_50">{label}</span> */}
+              {isPlaying ? (
+                <img
+                  key={gifKey}
+                  src={gif}
+                  width={isFab ? 28 : 32}
+                  height={isFab ? 28 : 32}
+                  alt={label}
+                />
+              ) : (
+                <Icon size={isFab ? 26 : 22} />
+              )}
             </motion.div>
-          </Link>
+          </a>
         );
       })}
     </nav>

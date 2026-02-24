@@ -40,20 +40,8 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
   };
 
   return (
-    <div className="tradeModalOverlay">
-      <div className="tradeModalHeader">
-        <h3>All Trades</h3>
-
-        {/* Close Icon */}
-        <button
-          style={{ background: "none", border: "none", cursor: "pointer" }}
-          onClick={onClose}
-        >
-          <X size={16} color="white" />
-        </button>
-      </div>
-
-      <div className="tradeCardContainer">
+    <div className="">
+      <div className="flexRow tradeStackGrid gap_24">
         {trades.map((trade) => (
           <div
             key={trade._id}
@@ -78,7 +66,7 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
               <div className="flexRow flexRow_stretch">
                 <div className="flexClm">
                   <span className="font_20">{trade.symbol}</span>
-                  <span className="shade_50 flexRow gap_4">
+                  <span className="font_14 flexRow gap_4">
                     {trade.direction === "long" ? (
                       <>
                         Long{" "}
@@ -104,10 +92,10 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
 
               {/* Open Time */}
               <div
-                className="flexRow flexRow_stretch gap_12 font_14 shade_50"
+                className="flexRow flexRow_stretch gap_12 font_14"
                 style={{
                   paddingTop: "12px",
-                  borderTop: "1px solid var(--white-50)",
+                  borderTop: "1px dashed var(--black-50)",
                 }}
               >
                 {trade.openTime && (
@@ -117,32 +105,15 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
                 )}
 
                 {/* Duration only if present */}
-                {trade.duration > 0 && (
+                {/* {trade.duration > 0 && (
                   <span className="duration">{trade.duration} hrs</span>
-                )}
+                )} */}
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Dot Pagination */}
-      <div className="dotPagination">
-        <span className="dot"></span>
-        <span className="dot active"></span> {/* middle dot active */}
-        <span className="dot"></span>
-      </div>
-
-      {/* Bottom Add Button */}
-      <div
-        className="flexRow flex_center gap_12 boxBg"
-        style={{ cursor: "pointer" }}
-        onClick={onAddNew}
-      >
-        <Plus size={16} />
-        <span>Add New</span>
-      </div>
-      {/* Trade Info Modal */}
       {showTradeModal && <TradeInfo onClose={() => setShowTradeModal(false)} />}
     </div>
   );

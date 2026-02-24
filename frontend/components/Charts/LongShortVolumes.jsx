@@ -14,7 +14,7 @@ import { useMemo, useState } from "react";
 import { formatNumber } from "@/utils/formatNumbers";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function VolumeChart({ dailyData }) {
+export default function LongShortVolumes({ dailyData }) {
   const [weekOffset, setWeekOffset] = useState(0);
 
   // Calculate start of the week (Monday)
@@ -72,7 +72,7 @@ export default function VolumeChart({ dailyData }) {
     const fmt = { day: "numeric", month: "short" };
     return `${startOfWeek.toLocaleDateString(
       "en-US",
-      fmt
+      fmt,
     )} - ${endOfWeek.toLocaleDateString("en-US", fmt)}`;
   }, [startOfWeek]);
 
@@ -97,26 +97,24 @@ export default function VolumeChart({ dailyData }) {
   };
 
   return (
-    <div className="chart_container daily-volume-chart-container">
-      <span className="font_12 font_weight_600">
-        Weekly Long/Short volume chart
-      </span>
+    <div className="chart_container stats-card radius-12">
+      <span className="card-value">Weekly Long/Short volume chart</span>
       {/* Navigation */}
       <div className="flexRow flexRow_stretch font_12">
-        <button onClick={handlePreviousWeek} className="button_ter flexRow">
+        <button onClick={handlePreviousWeek} className="btn flexRow">
           <ChevronLeft size={16} />
         </button>
 
         <div className="flexRow gap_12">
-          <span>{weekRange}</span>
+          <span className="card-value">{weekRange}</span>
           {weekOffset !== 0 && (
-            <button onClick={handleCurrentWeek} className="button_ter">
+            <button onClick={handleCurrentWeek} className="btn">
               Current Week
             </button>
           )}
         </div>
 
-        <button onClick={handleNextWeek} className="button_ter flexRow">
+        <button onClick={handleNextWeek} className="btn flexRow">
           <ChevronRight size={16} />
         </button>
       </div>
@@ -161,9 +159,8 @@ export default function VolumeChart({ dailyData }) {
                   x={x}
                   y={y + 16} // dy
                   textAnchor="middle"
-                  className={isToday ? "" : "shade_50"}
+                  className={isToday ? "" : "card-label"}
                   fontSize={12}
-                  fill={isToday ? "#fff" : "#888"} // fallback if shade_50 not applied
                 >
                   {payload.value}
                 </text>

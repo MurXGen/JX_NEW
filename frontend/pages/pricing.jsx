@@ -263,9 +263,9 @@ export default function Pricing() {
         <div>
           {" "}
           <Image
-            src="/assets/journalx_navbar.svg"
+            src="/assets/journalx_navbar_black.png"
             alt="JournalX Logo"
-            width={80}
+            width={130}
             height={42}
             priority
           />
@@ -274,7 +274,7 @@ export default function Pricing() {
           <span className="font_32 font_weight_600">
             Upgrade to enjoy benefits
           </span>
-          <span className="font_16 shade_50">Most affordable and trusted</span>
+          <span className="font_16">Most affordable and trusted</span>
         </div>
         {/* <motion.div
           initial={{ opacity: 0, y: 20 }}

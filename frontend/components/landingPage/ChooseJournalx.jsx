@@ -27,7 +27,7 @@ const features = [
 
 const ChooseJournalX = () => {
   return (
-    <section className="flexClm gap_32 mrgin_tp_100 landingBody">
+    <section className="flexClm gap_32 landingBody">
       <HeaderSection
         title="Why Choose JournalX?"
         subtitle="Powerful, Intuitive, and Made for Every Trader"

@@ -76,12 +76,16 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
   ];
 
   return (
-    <div className="tradeGrid flexClm">
-      <div className="flexClm gap_32">
+    <div className="tradeGrid flexClm reasonContainer">
+      <div className="flexClm gap_12">
         {/* Reasons */}
         <div
           className="flexRow removeScrollBar gap_8"
-          style={{ flexWrap: "wrap" }}
+          style={{
+            flexWrap: "wrap",
+            borderBottom: "1px solid var(--black-10)",
+            paddingBottom: "12px",
+          }}
         >
           {allReasons.map((reason) => {
             const isSelected = value.includes(reason);
@@ -89,8 +93,8 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
               <button
                 key={reason}
                 type="button"
-                className={`button_ter flexRow flex_center gap_8 ${
-                  isSelected ? "selected" : ""
+                className={`secondary-btn primary-btn flexRow flex_center gap_8 ${
+                  isSelected ? "active" : ""
                 }`}
                 onClick={() =>
                   isSelected ? removeReason(reason) : addReason(reason)
@@ -101,16 +105,16 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
               </button>
             );
           })}
-
-          {/* Add button */}
-          <button
-            type="button"
-            className="button_ter flexRow flex_center gap_8"
-            onClick={() => setShowCustomInput((p) => !p)}
-          >
-            {showCustomInput ? <Minus size={16} /> : <Plus size={16} />} Add
-          </button>
         </div>
+
+        {/* Add button */}
+        <button
+          type="button"
+          className="btn flexRow gap_4"
+          onClick={() => setShowCustomInput((p) => !p)}
+        >
+          {showCustomInput ? <Minus size={16} /> : <Plus size={16} />} Add
+        </button>
 
         {/* Custom Input */}
         {showCustomInput && (
@@ -125,7 +129,7 @@ const ReasonSelector = ({ label, name, value = [], onChange }) => {
             />
             <button
               type="button"
-              className="button_pri flexRow flex_center gap_8"
+              className="primary-btn flexRow flex_center gap_8"
               onClick={handleAddCustom}
             >
               <Plus size={16} /> Add

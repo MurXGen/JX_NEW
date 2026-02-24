@@ -31,10 +31,12 @@ import {
   GripVertical,
   User,
   User2,
+  Settings,
+  PieChart,
 } from "lucide-react";
 import Head from "next/head";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FiDatabase } from "react-icons/fi";
 
@@ -359,40 +361,48 @@ function Accounts() {
       </Head>
 
       <div
-        className="dashboard flexClm gap_24"
+        className="flexClm gap_24 "
         style={{
           maxWidth: "1200px",
           minWidth: "300px",
-          margin: "24px auto",
-          padding: "0 12px 24px 12px",
+          margin: "0px auto",
+          padding: "16px 16px 100px 16px",
         }}
       >
         {/* <Navbar /> */}
 
         <div className="flexRow flexRow_stretch">
           <div className="flexRow gap_12">
-            <div
+            {/* <div
               className="boxBg"
               style={{ padding: "12px 16px", cursor: "pointer" }}
               onClick={() => router.push("/profile")}
             >
               <User2 size={16} />
-            </div>
+            </div> */}
             <div className="flexClm">
               <span className="font_20">Journals</span>
             </div>
           </div>
-          <div
-            className="boxBg flexRow gap_4"
-            style={{ padding: "12px 16px", cursor: "pointer" }}
-            onClick={() => router.push("/create-account")}
-          >
-            <Plus size={16} />
-            <span className="font_14">Create journal</span>
+          <div className="flexRow gap_8">
+            <button
+              className="btn flexRow gap_4"
+              style={{ padding: "12px 16px", cursor: "pointer" }}
+              onClick={() => router.push("/create-account")}
+            >
+              <Plus size={16} />
+              <span className="font_14">Create journal</span>
+            </button>
+
+            <button
+              className="btn flexRow gap_4"
+              style={{ padding: "12px 16px", cursor: "pointer" }}
+              onClick={() => router.push("/profile")}
+            >
+              <User size={18} />
+            </button>
           </div>
         </div>
-
-        <BackgroundBlur />
 
         {/* Accounts List */}
         <div className="flexClm gap_12">
@@ -418,23 +428,23 @@ function Accounts() {
                     <FiDatabase size={48} className="vector" />
                     <div className="flexClm gap_8 flex_Center">
                       <span
-                        className="font_16 font_weight_600"
+                        className="font_14 font_weight_600"
                         style={{ textAlign: "center" }}
                       >
                         No journal found
                       </span>
-                      <span className="font_12 shade_50">
+                      {/* <span className="font_12 shade_50">
                         Create your first trading journal to get started
-                      </span>
+                      </span> */}
                     </div>
-                    <button
+                    {/* <button
                       className="button_pri flexRow flex_center gap_8"
                       onClick={handleCreateAccount}
                       disabled={loading}
                     >
                       <Plus size={16} />
                       <span>Create First Journal</span>
-                    </button>
+                    </button> */}
                   </div>
                 ) : (
                   <>
@@ -460,13 +470,12 @@ function Accounts() {
                             onDragEnd={handleDragEnd}
                           >
                             <div
-                              className={`accountCard flexClm gap_24 chart_boxBg ${
+                              className={`stats-card flexClm gap_24 radius-12 ${
                                 isDragging ? "dragging" : ""
                               } ${isLastTraded ? "lastTraded" : ""}`}
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
                               layout
-                              onClick={() => handleAccountClick(acc._id)}
                             >
                               <div className="flexRow flexRow_stretch spaceBetween">
                                 <div className="flexClm">
@@ -476,11 +485,11 @@ function Accounts() {
                                     </span>
                                   </div>
                                   <div className="flexRow gap_12 margin_top_4">
-                                    <span className="font_12 shade_50">
+                                    <span className="font_14">
                                       {tradesCount[acc.name] ?? 0} trades
                                     </span>
                                     {isLastTraded && (
-                                      <span className="font_12 success">
+                                      <span className="font_14 success">
                                         Active
                                       </span>
                                     )}
@@ -508,68 +517,21 @@ function Accounts() {
                                   />
                                 </div>
                               </div>
-
-                              <div className="account-balances flexRow flexRow_stretch">
-                                <div className="flexRow gap_4">
-                                  <span className="font_12 shade_50">
-                                    Starting
-                                  </span>
-                                  <span className="font_14 font_weight_600">
-                                    {formatCurrency(
-                                      acc.startingBalance.amount,
-                                      accountSymbols[acc.name]
-                                    )}
-                                  </span>
-                                </div>
-
-                                <div className="flexRow gap_4">
-                                  <span className="font_12 shade_50">
-                                    Current
-                                  </span>
-                                  <span
-                                    className={`font_14 font_weight_600 ${
-                                      (currentBalances[acc.name] ??
-                                        acc.startingBalance.amount) >=
-                                      acc.startingBalance.amount
-                                        ? "success"
-                                        : "error"
-                                    }`}
-                                  >
-                                    {formatCurrency(
-                                      currentBalances[acc.name] ??
-                                        acc.startingBalance.amount,
-                                      accountSymbols[acc.name]
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Progress Bar (Optional) */}
-                              <div className="progressSection">
-                                <div className="progressBar">
-                                  <div
-                                    className="progressFill"
-                                    style={{
-                                      width: `${
-                                        ((currentBalances[acc.name] ??
-                                          acc.startingBalance.amount) /
-                                          acc.startingBalance.amount) *
-                                        100
-                                      }%`,
-                                    }}
-                                  />
-                                </div>
-                                <div className="flexRow flexRow_stretch font_12 shade_50">
-                                  <span>PnL:</span>
-                                  <span>
-                                    {formatCurrency(
-                                      (currentBalances[acc.name] ??
-                                        acc.startingBalance.amount) -
-                                        acc.startingBalance.amount,
-                                      accountSymbols[acc.name]
-                                    )}
-                                  </span>
-                                </div>
+                              <div className="flexRow gap_12">
+                                <button
+                                  className="primary-btn secondary-btn width100 flexRow flex_center gap_12"
+                                  onClick={() => handleAccountClick(acc._id)}
+                                >
+                                  <PieChart size={16} /> Dashboard
+                                </button>
+                                <button
+                                  className="primary-btn secondary-btn width100 flexRow flex_center gap_12"
+                                  onClick={() =>
+                                    router.push("/journal-setting")
+                                  }
+                                >
+                                  <Settings size={16} /> Setting
+                                </button>
                               </div>
                             </div>
                           </Reorder.Item>
@@ -613,7 +575,9 @@ function Accounts() {
                         transition={{ delay: 0.5 }}
                       >
                         <GripVertical size={12} />
-                        <span>Drag to reorder journals</span>
+                        <span className="font_14">
+                          Drag to reorder journals
+                        </span>
                       </div>
                     )}
                   </>
@@ -622,209 +586,6 @@ function Accounts() {
             </>
           )}
         </div>
-        {/* {accounts.length <= 0 && (
-          <MessageCard
-            type="info"
-            title="Best analysis place to learn trading by journaling"
-            description="We offer analysis and education — no trading services provided."
-          />
-        )} */}
-
-        {/* <hr width="100" color="grey" /> */}
-
-        {/* Quick Actions Section */}
-        {/* <div
-          className="flexClm gap_24"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <SectionHeader
-            title="Quick Actions"
-            description="Manage your trading data and access features"
-            level={4} // uses <h2>
-            // showButton={accounts.length > 0}
-            // buttonLabel="Create journal"
-            // onButtonClick={handleCreateAccount}
-            loading={loading}
-          />
-
-          <div className="gridContainer">
-            {quickActions.map((action) => {
-              const IconComponent = action.icon;
-              const isExternal = action.path.startsWith("http");
-
-              const buttonContent = (
-                <button
-                  className={`boxBg flexRow gap_12 pad_16 ${
-                    !action.enabled ? " disabled" : ""
-                  }`}
-                  style={{
-                    fontFamily: "Poppins",
-                    border: "var(--px-12)",
-                    cursor: action.enabled ? "pointer" : "not-allowed",
-                    width: "100%",
-                  }}
-                  whileHover={action.enabled ? { scale: 1.02 } : {}}
-                  whileTap={action.enabled ? { scale: 0.98 } : {}}
-                  disabled={!action.enabled}
-                >
-                  <div>
-                    <IconComponent size={12} className="vector tag" />
-                  </div>
-                  <div className="flexClm gap_4" style={{ textAlign: "left" }}>
-                    <span
-                      className="font_14"
-                      style={{ color: "var(--base-text)" }}
-                    >
-                      {action.title}
-                    </span>
-                    {action.description && (
-                      <span className="font_12 shade_50">
-                        {action.description}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-
-              // 🔹 Handle external vs internal links differently
-              if (isExternal) {
-                return (
-                  <a
-                    key={action.id}
-                    href={action.enabled ? action.path : "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ textDecoration: "none" }}
-                  >
-                    {buttonContent}
-                  </a>
-                );
-              } else {
-                return (
-                  <Link
-                    key={action.id}
-                    href={action.enabled ? action.path : "#"}
-                    style={{ textDecoration: "none" }}
-                  >
-                    {buttonContent}
-                  </Link>
-                );
-              }
-            })}
-          </div>
-        </div> */}
-
-        {/* <hr width="100" color="grey" /> */}
-
-        {/* Plan Usage Overview */}
-        {/* {userPlan && (
-          <div className="flexClm gap_24">
-            <SectionHeader
-              title="Plan usage and benefits"
-              description="Manage your plan usage"
-              level={2} 
-            
-              loading={loading}
-            />
-
-            <div
-              className="pad_16 flexClm gap_24 chart_boxBg"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="flexRow flexRow_stretch">
-                <div className="flexClm">
-                  <span className="font_16 font_weight_600">Current plan</span>
-                </div>
-                <div className="plan-badge flexRow gap_8">
-                  <Check size={14} className="success" />
-                  <span className="font_10 font_weight_600 success">
-                    {userPlan?.planName || "Free Plan"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flexClm gap_24">
-                <div className="flexClm gap_12">
-                  <div className="flexRow flexRow_stretch">
-                    <span className="font_14">Accounts</span>
-                   
-                    <span
-                      className="font_12"
-                      style={{ color: "var(--white-50)" }}
-                    >
-                      {planUsage.accounts.current}/{planUsage.accounts.limit}
-                    </span>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ backgroundColor: "var(--primary)" }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${planUsage.accounts.percentage}%` }}
-                      transition={{ duration: 1, delay: 0.2 }}
-                    />
-                  </div>
-                </div>
-
-                <div className="flexClm gap_12">
-                  <div className="usage-header flexRow flexRow_stretch">
-                    <span className="font_14">Monthly Trades</span>
-                   
-                    <span
-                      className="font_12"
-                      style={{ color: "var(--white-50)" }}
-                    >
-                      {planUsage.trades.current}/{planUsage.trades.limit}
-                    </span>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ backgroundColor: "var(--success)" }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${planUsage.trades.percentage}%` }}
-                      transition={{ duration: 1, delay: 0.4 }}
-                    />
-                  </div>
-                </div>
-
-                <div className="flexClm gap_12">
-                  <div className="usage-header flexRow flexRow_stretch">
-                    <span className="font_14">Monthly Images</span>
-                   
-                    <span
-                      className="font_12"
-                      style={{ color: "var(--white-50)" }}
-                    >
-                      {planUsage.images.current}/{planUsage.images.limit}
-                    </span>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ backgroundColor: "var(--primary-light)" }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${planUsage.images.percentage}%` }}
-                      transition={{ duration: 1, delay: 0.6 }}
-                    />
-                  </div>
-                </div>
-                <a
-                  className="direct_tertiary flexRow gap_8 font_12"
-                  onClick={(e) => {
-                    router.push("/pricing"); // redirect to pricing page
-                  }}
-                >
-                  Show all features <ChevronDown size={16} />
-                </a>
-              </div>
-            </div>
-          </div>
-        )} */}
 
         {showGuide && <BeginnerGuide onClose={handleCloseGuide} />}
         <GoogleBannerAd />
