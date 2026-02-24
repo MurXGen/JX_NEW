@@ -19,8 +19,8 @@ const Dropdown = ({ options, value, onChange, placeholder = "Select" }) => {
   return (
     <div className="suggestionInput" ref={dropdownRef}>
       {/* Trigger Button */}
-      <div
-        className="primary-btn secondary-btn flexRow flex_between flex_center"
+      <button
+        className="primary-btn secondary-btn width100 flexRow flex_between flex_center"
         onClick={() => setOpen((prev) => !prev)}
         style={{ userSelect: "none" }}
       >
@@ -36,7 +36,7 @@ const Dropdown = ({ options, value, onChange, placeholder = "Select" }) => {
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
           }}
         />
-      </div>
+      </button>
 
       {/* Options */}
       {open && (

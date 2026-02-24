@@ -235,43 +235,46 @@ const ExportPage = () => {
   if (!hasAccess) {
     return (
       <div
-        className="flexClm gap_24 pad_24"
+        className="flexClm flex_center"
         style={{
-          maxWidth: "1200px",
-          minWidth: "300px",
-          margin: "12px auto",
-          padding: "0 12px 100px 12px",
+          minHeight: "100vh",
+          padding: "24px",
+          textAlign: "center",
         }}
       >
-        <div className="flexRow gap_8">
-          <div
-            className="btn flexRow gap_4"
-            onClick={() => router.push("/profile")}
-            style={{ cursor: "pointer" }}
-          >
-            <ChevronLeft size={20} />
-            <span className="font_20">Export trades data</span>
+        <div
+          className="flexClm gap_20 flex_center"
+          style={{
+            maxWidth: "420px",
+            width: "100%",
+          }}
+        >
+          {/* GIF */}
+          <img
+            src="/assets/upgrade.gif"
+            alt="Upgrade Required"
+            width={200}
+            height={200}
+            style={{ objectFit: "contain" }}
+          />
+
+          {/* Heading */}
+          <span className="font_20 font_weight_600">Export Feature Locked</span>
+
+          {/* Description */}
+          <span className="font_14 shade_70">
+            You need a Pro or Master plan to export your trade data.
+          </span>
+
+          <div className="flexClm gap_6 font_14 shade_60">
+            <span>Upgrade your plan to unlock full export access</span>
+            <span>and download your trading history anytime.</span>
           </div>
-        </div>
 
-        <div className="stats-card radius-12 flexClm pad_32 gap_32">
-          <div className="flexRow gap_16 align_center">
-            <div className="boxBg">
-              <Download size={48} />
-            </div>
-
-            <div className="flexClm gap_8">
-              <span className="font_16 font_weight_600">
-                Export Feature Locked
-              </span>
-              <span className="font_14">
-                Upgrade to Pro or Master plan to export your trade data.
-              </span>
-            </div>
+          {/* Upgrade Button */}
+          <div style={{ marginTop: "8px" }}>
+            <UpgradeButton label="Upgrade to Pro" title="Upgrade to Pro" />
           </div>
-
-          {/* Reusable Upgrade Button */}
-          <UpgradeButton label="Upgrade to Pro" title="Upgrade to Pro" />
         </div>
       </div>
     );
@@ -290,14 +293,13 @@ const ExportPage = () => {
     >
       {/* Header */}
       <div className="flexRow gap_8">
-        <button className="button_sec flexRow" onClick={handleBackClick}>
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flexClm">
-          <span className="font_20 font_weight_600">Export</span>
-          <span className="font_14 shade_50">
-            Export your trading data to CSV for analysis
-          </span>
+        <div
+          className=" flexRow gap_4"
+          onClick={() => router.push("/dashboard")}
+          style={{ cursor: "pointer" }}
+        >
+          <ChevronLeft size={20} />
+          <span className="font_20">Export trade</span>
         </div>
       </div>
 
@@ -305,7 +307,7 @@ const ExportPage = () => {
       <div className="filtersSection flexRow flexRow_stretch gap_16">
         {/* Account Selector */}
         <div className="filterGroup flexClm gap_8 width100">
-          <span className="font_12 shade_50">Account</span>
+          <span className="font_14">Choose account</span>
           <Dropdown
             options={[
               { value: "all", label: "All Accounts" },
@@ -322,7 +324,7 @@ const ExportPage = () => {
 
         {/* Time Range Selector */}
         <div className="filterGroup flexClm gap_8 width100">
-          <span className="font_12 shade_50">Time Range</span>
+          <span className="font_14">Choose duration</span>
           <Dropdown
             options={[
               { value: "today", label: "Today" },
@@ -340,18 +342,18 @@ const ExportPage = () => {
 
       {/* Stats Overview */}
       <div className="statsOverview flexRow gap_16">
-        <div className="statBox chart_boxBg flexClm gap_8 pad_16 width100">
-          <span className="font_12 shade_50">Total Trades</span>
+        <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+          <span className="font_14">Total Trades</span>
           <span className="font_16 font_weight_600">{stats.totalTrades}</span>
         </div>
 
-        <div className="statBox chart_boxBg flexClm gap_8 pad_16 width100">
-          <span className="font_12 shade_50">Win Rate</span>
+        <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+          <span className="font_14">Win Rate</span>
           <span className="font_16 font_weight_600">{stats.winRate}%</span>
         </div>
 
-        <div className="statBox chart_boxBg flexClm gap_8 pad_16 width100">
-          <span className="font_12 shade_50">Total P&L</span>
+        <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+          <span className="font_14">Total P&L</span>
           <span
             className={`font_16 font_weight_600 ${
               stats.totalPnL >= 0 ? "success" : "error"
@@ -377,7 +379,7 @@ const ExportPage = () => {
         </button>
 
         <div className="flexRow flexRow_center">
-          <span className="font_12 shade_50 text_center flexRow gap_8">
+          <span className="font_14 text_center flexRow gap_8">
             <Info size={14} />
             CSV will include symbol, direction, P&L, fees, timestamps, and
             trading metrics
@@ -388,7 +390,7 @@ const ExportPage = () => {
       {/* Preview Table */}
       {filteredTrades.length > 0 && (
         <div className="previewSection flexClm gap_16">
-          <span className="font_14 font_weight_600">
+          <span className="font_20 font_weight_600">
             Preview (First 5 Trades)
           </span>
 
@@ -397,7 +399,7 @@ const ExportPage = () => {
               {filteredTrades.slice(0, 5).map((trade, index) => (
                 <motion.div
                   key={trade._id || trade.id || index}
-                  className="chart_boxBg flexClm gap_8 pad_16"
+                  className="stats-card radius-12 flexClm gap_8 pad_16"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, height: 0 }}
@@ -422,7 +424,10 @@ const ExportPage = () => {
 
                       <div className="flexClm">
                         <span className="font_14">{trade.symbol || "N/A"}</span>
-                        <span className="font_12 shade_50">
+                        <span className="font_14">
+                          Margin: {formatCurrency(trade.quantityUSD)}
+                        </span>
+                        <span className="font_14">
                           {dayjs(trade.openTime).format("MMM D, YYYY")}
                         </span>
                       </div>
@@ -436,8 +441,8 @@ const ExportPage = () => {
                   </div>
 
                   {/* Bottom Info */}
-                  <div className="flexRow flexRow_stretch justify_between font_12 shade_50">
-                    <div>Size: {formatCurrency(trade.quantityUSD)}</div>
+                  {/* <div className="flexRow flexRow_stretch justify_between font_14">
+                    
                     <div>Fees: {trade.feeAmount?.toFixed(2) || "0.00"}</div>
                     <div
                       className={`tag ${
@@ -450,14 +455,14 @@ const ExportPage = () => {
                     >
                       {trade.tradeStatus}
                     </div>
-                  </div>
+                  </div> */}
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
 
           {filteredTrades.length > 5 && (
-            <div className="flexRow flexRow_center font_12 shade_50">
+            <div className="flexRow flexRow_center font_14">
               ... and {filteredTrades.length - 5} more trades
             </div>
           )}

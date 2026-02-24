@@ -1,30 +1,24 @@
 "use client";
 
+import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 import Dropdown from "@/components/ui/Dropdown";
+import UpgradeButton from "@/components/ui/UpgradeButton";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getCurrentPlanRules } from "@/utils/planRestrictions";
 import dayjs from "dayjs";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   Check,
+  ChevronLeft,
   Copy,
   Share2,
   Sparkles,
-  Users,
-  BarChart3,
-  Link,
-  Trophy,
-  TrendingUp,
-  ArrowUp,
-  ArrowDown,
-  X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
-import JournalXCTA from "@/components/ui/JournalXCTA";
-import UpgradeButton from "@/components/ui/UpgradeButton";
+import { useEffect, useState } from "react";
 
 const ShareTrades = () => {
   const [accounts, setAccounts] = useState([]);
@@ -78,12 +72,12 @@ const ShareTrades = () => {
         break;
       case "last_week":
         filtered = filtered.filter((t) =>
-          dayjs(t.openTime).isAfter(now.subtract(1, "week"))
+          dayjs(t.openTime).isAfter(now.subtract(1, "week")),
         );
         break;
       case "last_30_days":
         filtered = filtered.filter((t) =>
-          dayjs(t.openTime).isAfter(now.subtract(30, "day"))
+          dayjs(t.openTime).isAfter(now.subtract(30, "day")),
         );
         break;
       default:
@@ -158,7 +152,7 @@ const ShareTrades = () => {
     setShortening(true);
     try {
       const response = await fetch(
-        `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`
+        `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`,
       );
       if (!response.ok) throw new Error("TinyURL failed");
       const shortUrl = await response.text();
@@ -223,27 +217,51 @@ const ShareTrades = () => {
 
   if (!hasAccess) {
     return (
-      <div className="flexClm gap_24 pad_24">
-        <div className="flexRow flexRow_stretch">
-          <span className="font_20 font_weight_600">Share Trades</span>
-        </div>
+      <div
+        className="flexClm flex_center"
+        style={{
+          minHeight: "100vh",
+          padding: "24px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          className="flexClm gap_20 flex_center"
+          style={{
+            maxWidth: "420px",
+            width: "100%",
+          }}
+        >
+          {/* GIF */}
+          <img
+            src="/assets/upgrade.gif"
+            alt="Upgrade Required"
+            width={200}
+            height={200}
+            style={{ objectFit: "contain" }}
+          />
 
-        <div className="chart_boxBg flexClm pad_32 gap_32">
-          <div className="flexRow gap_16 align_center">
-            <Share2 size={48} className="shade_50" />
-            <div className="flexClm gap_8">
-              <span className="font_16 font_weight_600">
-                Share Feature Locked
-              </span>
-              <span className="font_14 shade_50">
-                Upgrade to Pro or Master plan to share your trades with others.
-              </span>
-            </div>
+          {/* Heading */}
+          <span className="font_20 font_weight_600">
+            Share Trades Feature Locked
+          </span>
+
+          {/* Description */}
+          <span className="font_14 shade_70">
+            You need a Pro or Lifetime plan to export your trade data.
+          </span>
+
+          <div className="flexClm gap_6 font_14 shade_60">
+            <span>
+              Upgrade your plan to unlock sharing trades log across community
+            </span>
+            <span>and download your trading history anytime.</span>
           </div>
 
-          {/* Reusable Upgrade Button */}
-
-          <UpgradeButton label="Upgrade to Pro" title="Upgrade to Pro" />
+          {/* Upgrade Button */}
+          <div style={{ marginTop: "8px" }}>
+            <UpgradeButton label="Upgrade to Pro" title="Upgrade to Pro" />
+          </div>
         </div>
       </div>
     );
@@ -252,19 +270,24 @@ const ShareTrades = () => {
   const handleBackClick = () => router.push("/accounts");
 
   return (
-    <div className="shareTradesPage flexClm gap_24 pad_24">
-      <div className="flexClm gap_4">
-        <span className="font_20 font_weight_600">Share Trades</span>
-        <span className="font_14 shade_50">
-          Share your link and they can see your trading performance
-        </span>
+    <div className="shareTradesPage flexClm gap_24 pad_16" style={{}}>
+      {/* Header */}
+      <div className="flexRow gap_8">
+        <div
+          className=" flexRow gap_4"
+          onClick={() => router.push("/dashboard")}
+          style={{ cursor: "pointer" }}
+        >
+          <ChevronLeft size={20} />
+          <span className="font_20">Share trade</span>
+        </div>
       </div>
 
       {/* Filters Section */}
       <div className="filtersSection flexRow flexRow_stretch gap_16">
         {/* Account Filter */}
         <div className="filterGroup flexClm gap_8 width100">
-          <span className="font_12 shade_50">Account</span>
+          <span className="font_14">Choose Account</span>
           <Dropdown
             options={[
               { value: "all", label: "All Accounts" },
@@ -281,7 +304,7 @@ const ShareTrades = () => {
 
         {/* Time Range Filter */}
         <div className="filterGroup flexClm gap_8 width100">
-          <span className="font_12 shade_50">Time Range</span>
+          <span className="font_14">Choose Duration</span>
           <Dropdown
             options={[
               { value: "today", label: "Today" },
@@ -297,20 +320,20 @@ const ShareTrades = () => {
 
       {/* Stats Overview - same as before */}
       <div className="statsOverview flexRow gap_16">
-        <div className="statBox chart_boxBg flexClm gap_8 pad_16 width100">
-          <span className="font_12 shade_50">Total Trades</span>
-          <span className="font_16 font_weight_600">{stats.totalTrades}</span>
+        <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+          <span className="card-label">Total Trades</span>
+          <span className="card-value">{stats.totalTrades}</span>
         </div>
 
-        <div className="statBox chart_boxBg flexClm gap_8 pad_16 width100">
-          <span className="font_12 shade_50">Win Rate</span>
-          <span className="font_16 font_weight_600">{stats.winRate}%</span>
+        <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+          <span className="card-label">Win Rate</span>
+          <span className="card-value">{stats.winRate}%</span>
         </div>
 
-        <div className="statBox chart_boxBg flexClm gap_8 pad_16 width100">
-          <span className="font_12 shade_50">Total P&L</span>
+        <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+          <span className="card-label">Total P&L</span>
           <span
-            className={`font_16 font_weight_600 ${
+            className={`card-value ${
               stats.totalPnL >= 0 ? "success" : "error"
             }`}
           >
@@ -323,7 +346,7 @@ const ShareTrades = () => {
       {/* Generate Share Link Section */}
       <div className="shareSection flexClm gap_16">
         <button
-          className="button_pri flexRow flex_center gap_8 pad_16_24 font_14 font_weight_600"
+          className="upgrade_btn flexRow flex_center gap_8 pad_16_24 font_14 font_weight_600"
           onClick={generateShareUrl}
           disabled={loading || filteredTrades.length === 0}
         >
@@ -335,7 +358,7 @@ const ShareTrades = () => {
 
         {(shareUrl || shortUrl) && (
           <div className="flexClm gap_12">
-            <span className="font_12 shade_50">
+            <span className="font_14">
               {shortening ? "Shortening URL..." : "Share this URL with others:"}
             </span>
 
@@ -347,7 +370,7 @@ const ShareTrades = () => {
                     type="text"
                     value={shortUrl}
                     readOnly
-                    className="urlInput flex1 pad_12 font_12 width100"
+                    className="black-text flex1 pad_12 font_12 width100"
                   />
                   <button
                     className="button_ter flexRow flex_center gap_4 pad_12 font_12 success_border"
@@ -410,15 +433,15 @@ const ShareTrades = () => {
             )}
 
             <div className="flexClm boxBg gap_12">
-              <span className="font_14 shade_50">
+              <span className="font_14">
                 - This link will open a dedicated page showing your trading
                 performance
               </span>
-              <span className="font_14 shade_50">
+              <span className="font_14">
                 - Contains {filteredTrades.length} trades from{" "}
                 {getAccountName(selectedAccount)} ({getTimeRangeLabel()})
               </span>
-              <span className="font_14 shade_50">
+              <span className="font_14">
                 - No login required to view the shared trades
               </span>
               {shortUrl && (
@@ -437,12 +460,15 @@ const ShareTrades = () => {
       {filteredTrades.length > 0 && (
         <div className="previewSection flexClm gap_16">
           <div className="flexRow flexRow_stretch">
-            <span className="font_14 font_weight_600">
-              Preview (First 5 Trades)
-            </span>
+            <div className="flexClm">
+              <span className="font_20 font_weight_600">Preview</span>
+              <span className="font_14">
+                This is how it will appear to the receiver.
+              </span>
+            </div>
           </div>
 
-          <div className="gridContainer gap_24">
+          <div className="flexClm gap_24">
             <AnimatePresence>
               {filteredTrades.slice(0, 5).map((trade, index) => (
                 <motion.div
@@ -472,10 +498,18 @@ const ShareTrades = () => {
 
                       <div className="flexClm">
                         {/* Symbol */}
-                        <span className="font_14">{trade.symbol || "N/A"}</span>
+                        <span className="font_14 font_weight_600">
+                          {trade.symbol || "N/A"}
+                          <div className="font_14">
+                            <span>Margin: </span>
+                            <span>
+                              {trade.quantityUSD?.toFixed(2) || "0.00"}
+                            </span>
+                          </div>
+                        </span>
 
                         {/* Open Time */}
-                        <span className="font_12 shade_50">
+                        <span className="font_14">
                           {dayjs(trade.openTime).format("MMM D, YYYY")}
                         </span>
                       </div>
@@ -483,7 +517,7 @@ const ShareTrades = () => {
 
                     {/* P&L */}
                     <div
-                      className={`font_20 font_weight_600 ${
+                      className={`font_16 ${
                         trade.pnl >= 0 ? "success" : "error"
                       }`}
                     >
@@ -493,19 +527,23 @@ const ShareTrades = () => {
                   </div>
 
                   {/* Bottom Info */}
-                  <div
-                    className="flexRow flexRow_stretch boxBg font_12 shade_50"
-                    style={{ padding: "8px 8px" }}
-                  >
-                    <div className="font_12 shade_50">
-                      <span>Size: </span>
-                      <span>{trade.quantityUSD?.toFixed(2) || "0.00"}</span>
-                    </div>
-
-                    <div className="font_12 shade_50">
+                  <div className="flexRow flexRow_stretch">
+                    {/* <div className="font_14">
                       <span>Fees: </span>
                       <span>{trade.feeAmount?.toFixed(2) || "0.00"}</span>
-                    </div>
+                    </div> */}
+
+                    {/* <span
+                      className={`font_14 ${
+                        trade.tradeStatus === "closed"
+                          ? "success"
+                          : trade.tradeStatus === "running"
+                            ? "warning"
+                            : "shade_50"
+                      }`}
+                    >
+                      Status: {trade.tradeStatus}
+                    </span> */}
                   </div>
                 </motion.div>
               ))}
@@ -514,7 +552,7 @@ const ShareTrades = () => {
             {/* Show more indicator */}
             {filteredTrades.length > 5 && (
               <div className="flexRow flexRow_center">
-                <span className="font_12 shade_50">
+                <span className="font_14">
                   ... and {filteredTrades.length - 5} more trades
                 </span>
               </div>

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
   ArrowLeft,
+  Book,
   ChevronLeft,
   FileText,
   LogOut,
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
+import { clearIndexedDB, getFromIndexedDB } from "@/utils/indexedDB";
 import BottomBar from "@/components/Trades/BottomBar";
 import Image from "next/image";
 
@@ -56,15 +57,7 @@ const ProfileWeb = () => {
   if (loading) return <FullPageLoader />;
 
   return (
-    <div
-      className="flexClm gap_32"
-      style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "24px auto",
-        padding: "0 12px 100px 12px",
-      }}
-    >
+    <div className="flexClm gap_32 pad_16" style={{}}>
       {/* Header */}
       <motion.div
         className="profile-header flexRow flexRow_stretch"
@@ -137,6 +130,12 @@ const ProfileWeb = () => {
           >
             <ShareIcon size={16} />
             Export trade logs
+          </button>
+          <button
+            className="secondary-btn primary-btn flexRow gap_8"
+            onClick={() => router.push("/billings")}
+          >
+            <Book size={16} /> Billing
           </button>
 
           <button

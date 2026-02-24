@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, ArrowUp, RefreshCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 
 const ViewTrades = () => {
@@ -19,6 +20,7 @@ const ViewTrades = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(null);
   const [showAllMonths, setShowAllMonths] = useState(false);
+  const router = useRouter();
 
   const searchParams = useSearchParams();
 
@@ -69,7 +71,7 @@ const ViewTrades = () => {
 
       if (!dataParam) {
         setError(
-          "No trade data found in the URL. Please check that you're using a valid share link."
+          "No trade data found in the URL. Please check that you're using a valid share link.",
         );
         setLoading(false);
         return;
@@ -93,7 +95,7 @@ const ViewTrades = () => {
       } catch (parseError) {
         console.error("❌ Parse error:", parseError);
         throw new Error(
-          "Failed to parse trade data. The link may be corrupted or expired."
+          "Failed to parse trade data. The link may be corrupted or expired.",
         );
       }
     } catch (err) {
@@ -145,7 +147,7 @@ const ViewTrades = () => {
   const yearlyTrades = useMemo(() => {
     if (!selectedYear || !sharedData?.trades) return [];
     return sharedData.trades.filter(
-      (trade) => new Date(trade.openTime).getFullYear() === selectedYear
+      (trade) => new Date(trade.openTime).getFullYear() === selectedYear,
     );
   }, [sharedData?.trades, selectedYear]);
 
@@ -284,31 +286,57 @@ const ViewTrades = () => {
   if (error || !sharedData) {
     return (
       <div
-        className="viewTradesPage flexClm gap_24 pad_24"
+        className="flexClm flex_center"
         style={{
-          maxWidth: "1200px",
-          minWidth: "300px",
-          margin: "12px auto",
-          padding: "0 12px 100px 12px",
+          minHeight: "100vh",
+          padding: "24px",
+          textAlign: "center",
         }}
       >
-        <div className="chart_boxBg flexClm gap_16 pad_32 flex_center text_center">
-          <div className="flexClm gap_12">
-            <span className="font_16 font_weight_600 error">
-              Unable to Load Trades
-            </span>
-            <span className="font_14 shade_50">{error}</span>
-            <div className="flexClm gap_8 font_12 shade_50">
-              <span>• Make sure you're using a valid share link</span>
-              <span>• The link might have expired or been corrupted</span>
-              <span>• Try asking the sender to generate a new share link</span>
-            </div>
+        <div
+          className="flexClm gap_16 flex_center"
+          style={{
+            maxWidth: "420px",
+            width: "100%",
+          }}
+        >
+          {/* GIF */}
+          <img
+            src="/assets/no-data.gif"
+            alt="Invalid Link"
+            width={180}
+            height={180}
+            style={{ objectFit: "contain" }}
+          />
+
+          {/* Heading */}
+          <span className="font_20 font_weight_600 error">
+            Not a Valid Link
+          </span>
+
+          {/* Description */}
+          <span className="font_14 shade_70">
+            This shared trade link appears to be invalid or expired.
+          </span>
+
+          <div className="flexClm gap_6 font_14 shade_60">
+            <span>Please ask the person who shared it with you</span>
+            <span>to generate a new share link and try again.</span>
+          </div>
+
+          {/* Retry Button */}
+          <div className="flexRow gap_12">
             <button
               onClick={loadSharedData}
-              className="button_secondary font_12 pad_8_16"
+              className="primary-btn secondary-btn font_14"
             >
-              <RefreshCw size={14} />
-              Retry Loading
+              Retry
+            </button>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="primary-btn font_14"
+            >
+              Back to dashboard
             </button>
           </div>
         </div>
@@ -337,7 +365,7 @@ const ViewTrades = () => {
       <div className="flexRow flexRow_stretch">
         <div className="flexClm flex1">
           <span className="font_24 font_weight_600">Trading Performance</span>
-          <span className="font_14 shade_50">
+          <span className="font_14 ">
             Shared trading results{" "}
             {sharedData.meta.account ? `from ${sharedData.meta.account}` : ""}
           </span>
@@ -349,22 +377,22 @@ const ViewTrades = () => {
           <div className="headerSection flexClm gap_16">
             {/* Key Stats */}
             <div className="flexRow flexRow_stretch gap_16">
-              <div className="chart_boxBg flexClm gap_8 pad_16 width100">
-                <span className="font_12 shade_50">Win Rate</span>
+              <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+                <span className="font_14">Win Rate</span>
                 <span className="font_16 font_weight_600">
                   {stats.winRate}%
                 </span>
               </div>
 
-              <div className="chart_boxBg flexClm gap_8 pad_16 width100">
-                <span className="font_12 shade_50">Total Trades</span>
+              <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+                <span className="font_14">Total Trades</span>
                 <span className="font_16 font_weight_600">
                   {stats.totalTrades}
                 </span>
               </div>
 
-              <div className="chart_boxBg flexClm gap_8 pad_16 width100">
-                <span className="font_12 shade_50">Total P&L</span>
+              <div className="stats-card radius-12 flexClm gap_8 pad_16 width100">
+                <span className="font_14">Total P&L</span>
                 <span
                   className={`font_16 font_weight_600 ${
                     stats.totalPnL >= 0 ? "success" : "error"
@@ -389,11 +417,11 @@ const ViewTrades = () => {
                           "default",
                           {
                             month: "long",
-                          }
+                          },
                         )} ${selectedYear}`
                       : "All Months"}
                   </span>
-                  <span className="font_12">Overview</span>
+                  <span className="font_14">Overview</span>
                 </div>
               </div>
             )}
@@ -414,7 +442,7 @@ const ViewTrades = () => {
                     {weekdays.map((day) => (
                       <div
                         key={day}
-                        className="weekdayHeader font_12 font_weight_600 shade_50 text_center"
+                        className="weekdayHeader font_14 font_weight_600 text_center"
                       >
                         {day.substring(0, 1)}
                       </div>
@@ -427,12 +455,12 @@ const ViewTrades = () => {
                       if (!day) return <div key={i} className="emptyDay"></div>;
 
                       const dateStr = `${selectedYear}-${String(
-                        selectedMonth
+                        selectedMonth,
                       ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                       const dayTrades = tradesByDate[dateStr] || [];
                       const pnl = dayTrades.reduce(
                         (sum, t) => sum + (t.pnl || 0),
-                        0
+                        0,
                       );
                       const hasTrades = dayTrades.length > 0;
 
@@ -501,20 +529,18 @@ const ViewTrades = () => {
                 </span>
                 <div className="flexClm gap_8">
                   <div className="flexRow flexRow_stretch">
-                    <span className="font_12 shade_50">Winning Trades</span>
+                    <span className="font_14">Winning Trades</span>
                     <span className="font_12 success">
                       {stats.winningTrades} ({stats.winRate}%)
                     </span>
                   </div>
                   <div className="flexRow flexRow_stretch">
-                    <span className="font_12 shade_50">Losing Trades</span>
+                    <span className="font_14">Losing Trades</span>
                     <span className="font_12 error">{stats.losingTrades}</span>
                   </div>
                   <div className="flexRow flexRow_stretch">
-                    <span className="font_12 shade_50">Break-even Trades</span>
-                    <span className="font_12 shade_50">
-                      {stats.breakEvenTrades}
-                    </span>
+                    <span className="font_14">Break-even Trades</span>
+                    <span className="font_14">{stats.breakEvenTrades}</span>
                   </div>
                 </div>
               </div>
@@ -525,15 +551,15 @@ const ViewTrades = () => {
                 </span>
                 <div className="flexClm gap_8">
                   <div className="flexRow flexRow_stretch">
-                    <span className="font_12 shade_50">Long Trades</span>
-                    <span className="font_12">{stats.longTrades}</span>
+                    <span className="font_14">Long Trades</span>
+                    <span className="font_14">{stats.longTrades}</span>
                   </div>
                   <div className="flexRow flexRow_stretch">
-                    <span className="font_12 shade_50">Short Trades</span>
-                    <span className="font_12">{stats.shortTrades}</span>
+                    <span className="font_14">Short Trades</span>
+                    <span className="font_14">{stats.shortTrades}</span>
                   </div>
                   <div className="flexRow flexRow_stretch">
-                    <span className="font_12 shade_50">Avg P&L per Trade</span>
+                    <span className="font_14">Avg P&L per Trade</span>
                     <span
                       className={`font_12 ${
                         stats.avgPnL >= 0 ? "success" : "error"
@@ -559,7 +585,7 @@ const ViewTrades = () => {
                 {sharedData.trades.map((trade, index) => (
                   <motion.div
                     key={trade._id || trade.id || index}
-                    className="chart_boxBg flexClm gap_12 pad_16"
+                    className="stats-card radius-12 flexClm gap_12 pad_16"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, height: 0 }}
@@ -587,9 +613,15 @@ const ViewTrades = () => {
                           <span className="font_14">
                             {trade.symbol || "N/A"}
                           </span>
+                          <div className="font_14">
+                            <span>Margin: </span>
+                            <span className="font_14">
+                              {formatCurrency(trade.quantityUSD)}
+                            </span>
+                          </div>
 
                           {/* Open Time */}
-                          <span className="font_12 shade_50">
+                          <span className="font_14">
                             {dayjs(trade.openTime).format("MMM D, YYYY")}
                           </span>
                         </div>
@@ -603,15 +635,8 @@ const ViewTrades = () => {
                     </div>
 
                     {/* Bottom Info */}
-                    <div className="flexRow flexRow_stretch">
-                      <div className="font_12 shade_50">
-                        <span>Size: </span>
-                        <span className="font_12">
-                          {formatCurrency(trade.quantityUSD)}
-                        </span>
-                      </div>
-
-                      <div className="font_12 shade_50">
+                    {/* <div className="flexRow flexRow_stretch">
+                      <div className="font_14">
                         <span>Fees: </span>
                         <span>{trade.feeAmount?.toFixed(2) || "0.00"}</span>
                       </div>
@@ -627,7 +652,7 @@ const ViewTrades = () => {
                       >
                         Status : {trade.tradeStatus}
                       </span>
-                    </div>
+                    </div> */}
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -635,7 +660,7 @@ const ViewTrades = () => {
           </div>
           {/* Footer */}
           <div className="footerSection flexRow flexRow_center">
-            <span className="font_12 shade_50">
+            <span className="font_14">
               Shared via Trading Journal • {sharedData.meta.totalTrades} trades
               • Generated on{" "}
               {dayjs(sharedData.meta.generatedAt).format("MMM D, YYYY")}

@@ -30,7 +30,7 @@ const JournalXCTA = () => {
 
   return (
     <div
-      className="chart_boxBg pad_16 flexRow "
+      className="boxBg pad_16 flexRow "
       style={{
         position: "fixed",
         bottom: "16px",
@@ -65,7 +65,7 @@ const JournalXCTA = () => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -20, opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="shade_50"
+            className="font_14"
             style={{
               display: "inline-block",
               lineHeight: "1.4",
@@ -79,9 +79,9 @@ const JournalXCTA = () => {
 
       {/* CTA Button */}
       <button
-        className="button_pri flexRow flex_center gap_8"
+        className="primary-btn width100 flexRow flex_center gap_8"
         style={{
-          padding: "8px 16px",
+          padding: "12px 16px",
           borderRadius: "12px",
           fontWeight: "600",
           flexShrink: 0,

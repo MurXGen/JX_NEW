@@ -158,11 +158,12 @@ input::placeholder {
 button {
   font-family: var(--ff-Pop);
   transition: 0.3s;
+  transition-duration: 0.3s;
 }
 
 button:hover {
   cursor: pointer;
-  opacity: 0.8;
+  border-radius: var(--px-4);
 }
 
 .black-text {
@@ -980,31 +981,8 @@ button:disabled {
 .chart_boxBg {
   position: relative;
   border-radius: var(--px-12);
-  background: linear-gradient(to bottom left, #ffffff0a, #1d1d1d);
-}
-
-/* Gradient border */
-.chart_boxBg::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: var(--px-12);
-  padding: 1px;
-  /* border thickness */
-  background: linear-gradient(to top right, #222222, #ffffff33);
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.chart_boxBg.active {
-  border: 1px solid var(--primary-50);
-  background: var(--primary-10);
-  box-shadow: 0 0 var(--px-24) var(--primary-10);
+  background: var(--white);
+  border: 1px solid var(--black-50);
 }
 
 .flexRow_scroll {
@@ -1043,23 +1021,30 @@ input[type="number"] {
 
 .upgrade_btn {
   background: var(--success);
-  border-radius: var(--px-12);
-  padding: var(--padding-16x16);
+  border-radius: var(--px-8);
+  padding: var(--px-16);
   color: var(--base-text);
   border: none;
   width: 100%;
   cursor: pointer;
   font-family: var(--ff-Pop);
-  font-size: var(--px-12);
+  font-size: var(--px-14);
   transition:
     0.3s ease,
     color 0.3s ease,
     transform 0.3s ease;
-  text-shadow: 1px 1px 10px var(--base-box-bg);
+  border: 1px solid var(--success);
 }
 
 .upgrade_btn:hover {
   transform: scale(1.01);
+}
+
+.upgrade_btn:disabled {
+  color: rgba(255, 255, 255, 0.6);
+  cursor: not-allowed;
+  transform: none;
+  border-radius: 6px;
 }
 
 .button_pri {
@@ -1441,7 +1426,6 @@ textarea::placeholder {
 
 .suggestionInput {
   position: relative;
-  background: var(--black-50);
   min-width: 100px;
   border-radius: var(--px-12);
 }
@@ -1858,10 +1842,10 @@ footer {
 @media (min-width: 0px) {
   .skeletonTradeCard {
     padding: var(--px-16);
-    background: var(--base-box-bg);
+    background: var(--white);
     border-radius: var(--px-12);
     margin-bottom: var(--px-8);
-    border: 1px solid var(--white-10);
+    border: 1px solid var(--black-10);
   }
 
   .skeletonContent {
@@ -1874,9 +1858,9 @@ footer {
     border-radius: 50%;
     background: linear-gradient(
       90deg,
-      var(--white-10) 0%,
-      var(--white-20) 50%,
-      var(--white-10) 100%
+      var(--black-10) 0%,
+      var(--black-10) 50%,
+      var(--black-10) 100%
     );
     background-size: 200% 100%;
     animation: skeletonPulse 1.5s ease-in-out infinite;
@@ -1887,9 +1871,9 @@ footer {
     height: 20px;
     background: linear-gradient(
       90deg,
-      var(--white-10) 0%,
-      var(--white-20) 50%,
-      var(--white-10) 100%
+      var(--black-10) 0%,
+      var(--black-20) 50%,
+      var(--black-10) 100%
     );
     background-size: 200% 100%;
     border-radius: var(--px-4);
@@ -1901,9 +1885,9 @@ footer {
     height: 16px;
     background: linear-gradient(
       90deg,
-      var(--white-10) 0%,
-      var(--white-20) 50%,
-      var(--white-10) 100%
+      var(--black-10) 0%,
+      var(--black-10) 50%,
+      var(--black-10) 100%
     );
     background-size: 200% 100%;
     border-radius: var(--px-4);
@@ -2904,7 +2888,7 @@ footer {
     text-align: center;
     font-size: var(--px-12);
     font-weight: var(--weight-600);
-    color: var(--white-50);
+    color: var(--black-50);
     padding: var(--px-8);
   }
 
@@ -2916,7 +2900,7 @@ footer {
 
   .calendarDay {
     aspect-ratio: 1;
-    padding: var(--px-6);
+    padding: var(--px-8);
     border-radius: var(--px-8);
     display: flex;
     flex-direction: column;
@@ -2931,8 +2915,12 @@ footer {
 
   .calendarDay.hasTrades {
     background: var(--primary-50);
-    color: var(--white);
+    color: var(--white) !important;
     cursor: pointer;
+  }
+
+  .calendarDay.hasTrades > .dayNumber {
+    color: var(--white) !important;
   }
 
   /* .calendarDay.hasTrades:hover {
@@ -2969,6 +2957,7 @@ footer {
 
   .dayNumber {
     font-size: var(--px-14) !important;
+    color: var(--black);
   }
 
   .dayInfo {
@@ -6428,22 +6417,41 @@ footer {
 }
 
 .cta_button_sec {
+  position: relative;
   background: var(--white-10);
   color: white;
-  border: 1px solid var(--white-20);
+
   padding: var(--px-16) var(--px-46) !important;
   border-radius: var(--px-32);
   font-size: var(--px-14);
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(4px);
-  font-weight: 600;
   font-family: var(--ff-Pop);
+
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
-.cta_button_sec:hover {
-  box-shadow: 0 0 32px var(--white-20);
+.cta_button_sec::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px; /* border thickness */
+  background: linear-gradient(
+    135deg,
+    var(--primary-light),
+    var(--primary-20),
+    var(--primary-50)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .cta_button:hover {

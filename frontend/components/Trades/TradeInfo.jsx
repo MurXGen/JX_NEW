@@ -571,9 +571,9 @@ const TradeInfo = ({ onClose }) => {
             {/* Delete Button */}
             <button
               onClick={() => setIsConfirmOpen(true)}
-              className="btn error"
+              className="secondary-btn primary-btn flexRow gap_4 error"
             >
-              <Trash2 size={16} />
+              <Trash2 size={16} /> Delete
             </button>
 
             {/* Confirmation Modal */}
@@ -587,20 +587,9 @@ const TradeInfo = ({ onClose }) => {
 
             {/* Full Page Loader */}
             {isDeleting && <FullPageLoader />}
-
-            {trade.tradeStatus === "running" && (
-              <button
-                onClick={handleCloseTrade}
-                className="btn flexRow gap_4 width100 flex_center"
-                disabled={deleting}
-              >
-                <Clock size={18} />
-                Close Trade
-              </button>
-            )}
             <button
               onClick={handleEdit}
-              className="btn flexRow gap_4 width100 flex_center"
+              className="primary-btn flexRow gap_4 width100 flex_center"
               disabled={deleting}
             >
               <Edit3 size={18} />

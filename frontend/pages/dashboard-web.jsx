@@ -44,6 +44,7 @@ import DashboardMobile from "./dashboard";
 import TradesWebPage from "@/components/dashboard/TradesPage";
 import AddTradeWebPage from "@/components/dashboard/AddTradeModal";
 import EventsWebPage from "@/components/dashboard/HeatMap";
+import ProfileWeb from "@/components/dashboard/ProfileWeb";
 
 function TradesCard({ title, total, wins, losses }) {
   const winPercent = total ? (wins / total) * 100 : 0;
@@ -253,9 +254,9 @@ export default function Dashboard1() {
             {open && (
               <div className="flexRow flexRow_stretch width100">
                 <Image
-                  src="/assets/journalx_navbar.svg"
+                  src="/assets/journalx_navbar_black.png"
                   alt="JournalX Logo"
-                  width={120}
+                  width={132}
                   height={42}
                   priority
                 />
@@ -272,7 +273,6 @@ export default function Dashboard1() {
               <div className="flexClm gap_8" style={{ alignItems: "center" }}>
                 <Menu
                   size={22}
-                  color="white"
                   className="sideBar_clickables"
                   style={{ cursor: "pointer" }}
                   onClick={() => setOpen(!open)}

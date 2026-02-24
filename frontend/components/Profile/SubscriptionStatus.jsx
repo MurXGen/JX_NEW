@@ -248,7 +248,7 @@ const SubscriptionStatus = () => {
                     className="upgrade_btn width100 flexRow gap_8 flex_center"
                     onClick={() => router.push("/pricing")}
                   >
-                    <Crown size={16} className="vector" />
+                    <Crown size={16} />
                     Upgrade Limit
                   </button>
                 </>

@@ -62,11 +62,11 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
             </div>
 
             <div className="flexRow gap_12">
-              <button className="button_sec width100" onClick={onCancel}>
+              <button className="primary-btn secondary-btn" onClick={onCancel}>
                 Cancel
               </button>
               <button
-                className="button_pri"
+                className="primary-btn"
                 style={{ background: "var(--error)" }}
                 onClick={onConfirm}
               >

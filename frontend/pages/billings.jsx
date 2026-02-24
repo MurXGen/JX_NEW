@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Calendar,
   CheckCircle,
+  ChevronLeft,
   Clock,
   Coins,
   CreditCard,
@@ -151,7 +152,10 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="flexClm gap_32 pad_16">
+    <div
+      className="flexClm gap_32 pad_16"
+      style={{ maxWidth: "800px", margin: "auto", paddingBottom: "100px" }}
+    >
       {/* Header */}
       <motion.div
         className="flexClm gap_24"
@@ -159,15 +163,14 @@ export default function BillingPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="flexRow gap_12">
-          <button className="button_sec flexRow" onClick={handleBackClick}>
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flexClm">
+        <div className="flexRow gap_8">
+          <div
+            className=" flexRow gap_4"
+            onClick={() => router.push("/profile")}
+            style={{ cursor: "pointer" }}
+          >
+            <ChevronLeft size={20} />
             <span className="font_20">Billing & Orders</span>
-            <span className="font_12">
-              Manage your subscriptions and payment history
-            </span>
           </div>
         </div>
 
@@ -177,13 +180,13 @@ export default function BillingPage() {
             <div className="stat-value font_20 font_weight_700">
               {orders.length}
             </div>
-            <div className="stat-label font_12">Total Orders</div>
+            <div className="card-label">Total Orders</div>
           </div>
           <div className="boxBg width100 flexClm flex_center">
             <div className="stat-value font_20 font_weight_700 success">
               {orders.filter((o) => o.status === "paid").length}
             </div>
-            <div className="stat-label font_12">Completed</div>
+            <div className="card-label">Completed</div>
           </div>
           <div className="boxBg width100 flexClm flex_center">
             <div className="stat-value font_20 font_weight_700">
@@ -194,7 +197,7 @@ export default function BillingPage() {
                 ),
               )}
             </div>
-            <div className="stat-label font_12">Largest Order</div>
+            <div className="card-label">Largest Order</div>
           </div>
         </div>
       </motion.div>
@@ -213,7 +216,7 @@ export default function BillingPage() {
               {getPlanIcon(subscription.planId)}
               <div className="flexClm">
                 <span className="font_16 font_weight_600">Current Plan</span>
-                <span className="font_12 success">Active</span>
+                <span className="font_14 success">Active</span>
               </div>
             </div>
             <div className="subscription-badge success">
@@ -225,7 +228,7 @@ export default function BillingPage() {
             <div className="flexRow gap_12">
               <Calendar size={16} className="vector" />
               <div className="flexClm gap_4">
-                <span className="font_12">Started</span>
+                <span className="font_14">Started</span>
                 <span className="font_14 font_weight_600">
                   {formatDate(subscription.startAt)}
                 </span>
@@ -241,7 +244,7 @@ export default function BillingPage() {
             >
               <Clock size={16} className="vector" />
               <div className="flexClm gap_4">
-                <span className="font_12">Renews</span>
+                <span className="font_14">Renews</span>
                 <span className="font_14 font_weight_600">
                   {formatDate(subscription.expiresAt)}
                 </span>
@@ -262,9 +265,7 @@ export default function BillingPage() {
       >
         <div className="section-header flexRow flexRow_stretch">
           <span className="flexRow gap_4 font_16">Order History</span>
-          <span className="font_12" style={{ color: "var(--white-50)" }}>
-            {orders.length} orders
-          </span>
+          <span className="font_14">{orders.length} orders</span>
         </div>
 
         <AnimatePresence>
@@ -306,10 +307,7 @@ export default function BillingPage() {
                             <span className="font_16 font_weight_600">
                               {order.meta?.planName || order.planId}
                             </span>
-                            <span
-                              className="font_12"
-                              style={{ color: "var(--white-50)" }}
-                            >
+                            <span className="font_14">
                               {order.period === "yearly" ? "Yearly" : "Monthly"}{" "}
                               • {getTimeAgo(order.createdAt)}
                             </span>
@@ -318,20 +316,17 @@ export default function BillingPage() {
                       </div>
 
                       <div className="order-amount">
-                        <span className="font_18 font_weight_700">
+                        <span className="font_14 font_weight_700">
                           {formatAmount(order)}
                         </span>
                       </div>
                     </div>
 
                     {/* Order Details */}
-                    <div
-                      className="flexRow flexRow_stretch boxBg"
-                      style={{ background: "var(--white-4)" }}
-                    >
+                    <div className="flexRow boxBg flexRow_stretch">
                       <div className="flexRow gap_4 flex_center">
                         {getPaymentMethodIcon(order.method)}
-                        <span className="font_12">
+                        <span className="font_14">
                           {order.method?.toUpperCase()}
                         </span>
                       </div>
@@ -339,7 +334,7 @@ export default function BillingPage() {
                       <div className="flexRow gap_4 flex_center">
                         {getStatusIcon(order.status)}
                         <span
-                          className={`font_12 font_weight_600 ${getStatusColor(
+                          className={`font_14 font_weight_600 ${getStatusColor(
                             order.status,
                           )}`}
                         >
@@ -350,9 +345,9 @@ export default function BillingPage() {
 
                     {/* Action Buttons */}
                     <div className="flexRow flexRow_stretch gap_12">
-                      <div className="flexRow gap_4 flex_center shade_50">
+                      <div className="flexRow gap_4 flex_center">
                         <Calendar size={14} />
-                        <span className="font_12">
+                        <span className="font_14">
                           {formatDate(order.createdAt)}
                         </span>
                       </div>

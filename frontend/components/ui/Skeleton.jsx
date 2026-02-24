@@ -5,31 +5,31 @@ import { motion } from "framer-motion";
 const Skeleton = ({ message = "Loading..." }) => {
   return (
     <motion.div
-      className="chart_boxBg"
-      style={{ padding: "16px", marginBottom: "24px" }}
+      className="chart_boxBg flexClm flex_center"
+      style={{
+        padding: "24px",
+        marginBottom: "24px",
+        minHeight: "140px",
+        textAlign: "center",
+      }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="skeletonContent flexRow flexRow_stretch">
-        <div className="flexRow gap_12">
-          {/* Skeleton Position Icon */}
-          <div className="skeletonPositionIcon" />
+      {/* Small GIF Loader */}
+      <img
+        src="/assets/trade-skeleton.gif"
+        alt="Loading"
+        width={60}
+        height={60}
+        style={{ objectFit: "contain" }}
+      />
 
-          <div className="flexClm gap_8">
-            {/* Skeleton Ticker Name */}
-            <div className="skeletonTicker" />
-
-            {/* Skeleton Time */}
-            <div className="skeletonTime" />
-          </div>
-        </div>
-
-        {/* Skeleton PnL */}
-        <div className="skeletonPnl" />
-      </div>
-
-      {message && <div className="skeletonMessage">{message}</div>}
+      {message && (
+        <span className="font_14 shade_60" style={{ marginTop: "12px" }}>
+          {message}
+        </span>
+      )}
     </motion.div>
   );
 };

@@ -28,7 +28,7 @@ export const PLAN_RULES = {
       multipleEntries: false,
       backupData: false,
       integration: false,
-      exportTrades: true,
+      exportTrades: false,
       fullHistory: false,
       shareTrades: false,
     },

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
   ArrowLeft,
+  Book,
   ChevronLeft,
   FileText,
   LogOut,
@@ -137,6 +138,12 @@ const Profile = () => {
           >
             <ShareIcon size={16} />
             Export trade logs
+          </button>
+          <button
+            className="secondary-btn primary-btn flexRow gap_8"
+            onClick={() => router.push("/billings")}
+          >
+            <Book size={16} /> Billing
           </button>
 
           <button
