@@ -819,13 +819,13 @@ button:disabled {
   left: 50%;
   bottom: 46px;
   transform: translate(-50%, -50%);
-  background: var(--white-10);
+  background: var(--black-50);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
   max-width: 320px;
   width: 85%;
-  color: #fff;
+  color: var(--white);
 }
 
 .flexRow {
@@ -3883,6 +3883,20 @@ footer {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
+  .HeroSectionActions {
+    display: flex;
+    flex-direction: column !important;
+    gap: var(--px-12);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .HeroSectionActions > button {
+    display: flex;
+    justify-content: center;
+    max-width: fit-content;
+  }
+
   .tag-charts-container {
     flex-direction: column;
     gap: var(--px-16);
@@ -6378,6 +6392,20 @@ footer {
   text-align: center;
 }
 
+.HeroSectionActions {
+  display: flex;
+  flex-direction: row;
+  gap: var(--px-12);
+  justify-content: center;
+  align-items: center;
+}
+
+.HeroSectionActions > button {
+  display: flex;
+  justify-content: center;
+  max-width: fit-content;
+}
+
 .trust_badge {
   margin-top: 8px;
   animation: fadeIn 0.8s ease forwards;
@@ -6505,6 +6533,7 @@ footer {
 .wordWrapper {
   display: inline-block;
   position: relative;
+  z-index: -1;
 }
 
 .animatedWord {

@@ -1,11 +1,59 @@
 "use client";
 
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star, StarsIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import useInstallPrompt from "@/api/useInstallPrompt";
+import { Stars } from "lucide";
+
+function useInstallPrompt() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  useEffect(() => {
+    const dismissed =
+      localStorage.getItem("journalx_install_dismissed") === "true";
+
+    const isInstalled =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone ||
+      localStorage.getItem("journalx_installed") === "true" ||
+      dismissed;
+
+    if (isInstalled) return;
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowPrompt(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () =>
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const choiceResult = await deferredPrompt.userChoice;
+
+    if (choiceResult.outcome === "accepted") {
+      localStorage.setItem("journalx_installed", "true");
+    }
+
+    setShowPrompt(false);
+    setDeferredPrompt(null);
+  };
+
+  return { showPrompt, handleInstall, setShowPrompt };
+}
 
 const HeroSection = () => {
   const router = useRouter();
@@ -13,7 +61,8 @@ const HeroSection = () => {
   // Track image load state
   const [bgLoaded, setBgLoaded] = useState(false);
   const [heroLoaded, setHeroLoaded] = useState(false);
-  const { showPrompt, handleInstall } = useInstallPrompt();
+  const { showPrompt, setShowPrompt, handleInstall } = useInstallPrompt();
+
   const words = ["winning", "refining", "journaling", "improving"];
 
   const [index, setIndex] = useState(0);
@@ -55,13 +104,15 @@ const HeroSection = () => {
       <section className="hero-bg flexClm flex_center">
         <div
           className="chart_boxBg font_12 flexRow flex_center gap_12"
-          style={{ padding: "4px 16px", cursor: "pointer" }}
+          style={{ padding: "4px 16px", cursor: "pointer", zIndex: "-1" }}
           onClick={() => {
             window.location.href = `https://journalx.app/login`;
           }}
         >
-          <span>Journalx 2.0 released</span>
-          <ArrowRight size={12} className="vector" />
+          <span className="flexRow gap_12">
+            <StarsIcon size={16} style={{ color: "var(--primary)" }} /> Journalx
+            2.0 released
+          </span>
         </div>
         {/* Hero Text */}
         <div
@@ -102,7 +153,7 @@ const HeroSection = () => {
             </p>
           </div>
 
-          <div className="flexRow gap_12 flex_center">
+          <div className="HeroSectionActions">
             <button
               className="cta_button flexRow gap_4"
               onClick={() => {
@@ -111,18 +162,14 @@ const HeroSection = () => {
             >
               Start 7-Day Pro — It’s Free
             </button>
-            <button
-              className="cta_button_sec flexRow gap_4"
-              onClick={() => {
-                if (showPrompt) {
-                  handleInstall(); // 🔥 install PWA
-                } else {
-                  window.location.href = "https://journalx.app/login";
-                }
-              }}
-            >
-              Download app
-            </button>
+            {showPrompt && (
+              <button
+                className="cta_button_sec flexRow gap_4"
+                onClick={handleInstall}
+              >
+                Download app
+              </button>
+            )}
           </div>
 
           <div className="flexRow flex_center gap_8 trust_badge">
