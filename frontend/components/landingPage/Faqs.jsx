@@ -73,7 +73,7 @@ export default function Faqs() {
       />
 
       <div
-        className="flexClm width100 chart_boxBg"
+        className="flexClm width100 chart_boxBg_lp"
         style={{
           minWidth: "300px",
           maxWidth: "720px",

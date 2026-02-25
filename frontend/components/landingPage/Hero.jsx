@@ -103,7 +103,7 @@ const HeroSection = () => {
       <div className="hero-bg-layer"></div>
       <section className="hero-bg flexClm flex_center">
         <div
-          className="chart_boxBg font_12 flexRow flex_center gap_12"
+          className="chart_boxBg_lp font_12 flexRow flex_center gap_12"
           style={{ padding: "4px 16px", cursor: "pointer", zIndex: "-1" }}
           onClick={() => {
             window.location.href = `https://journalx.app/login`;

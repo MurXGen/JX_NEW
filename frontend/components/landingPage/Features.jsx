@@ -39,7 +39,7 @@ const FeatureSection = () => {
           return (
             <motion.div
               key={index}
-              className="chart_boxBg pad_32 gap_24 flexRow featureCard"
+              className="chart_boxBg_lp pad_32 gap_24 flexRow featureCard"
               initial={{
                 opacity: 0,
                 y: 60,
@@ -58,7 +58,7 @@ const FeatureSection = () => {
               viewport={{ once: true }}
             >
               <motion.div
-                className="chart_boxBg flexRow flex_center br_24"
+                className="chart_boxBg_lp flexRow flex_center br_24"
                 style={{ width: 36, height: 36, minWidth: 36 }}
                 initial={{ scale: 0.8, color: "#fff" }}
                 whileInView={{

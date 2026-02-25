@@ -985,6 +985,36 @@ button:disabled {
   border: 1px solid var(--black-50);
 }
 
+.chart_boxBg_lp {
+  position: relative;
+  border-radius: var(--px-12);
+  background: linear-gradient(to bottom left, #ffffff0a, #1d1d1d);
+}
+
+/* Gradient border */
+.chart_boxBg_lp::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--px-12);
+  padding: 1px;
+  /* border thickness */
+  background: linear-gradient(to top right, #222222, #ffffff33);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.chart_boxBg_lp.active {
+  border: 1px solid var(--primary-50);
+  background: var(--primary-10);
+  box-shadow: 0 0 var(--px-24) var(--primary-10);
+}
+
 .flexRow_scroll {
   overflow: scroll;
 }
