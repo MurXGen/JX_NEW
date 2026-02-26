@@ -203,7 +203,7 @@ export default function BillingPage() {
       </motion.div>
 
       {/* Current Subscription */}
-      {subscription && (
+      {/* {subscription && (
         <motion.div
           className="chart_boxBg flexClm gap_24"
           style={{ padding: "20px" }}
@@ -252,7 +252,7 @@ export default function BillingPage() {
             </div>
           </div>
         </motion.div>
-      )}
+      )} */}
 
       <hr width={100} color="grey" />
 
@@ -271,15 +271,29 @@ export default function BillingPage() {
         <AnimatePresence>
           {orders.length === 0 ? (
             <motion.div
-              className="boxBg notFound"
+              className="stats-card radius-12 flexClm flex_center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
+              style={{
+                textAlign: "center",
+                padding: "24px",
+                gap: "16px",
+              }}
             >
-              <AlertCircle size={48} className="vector" />
+              {/* GIF */}
+              <img
+                src="/assets/invoice-bill.gif"
+                alt="No Orders"
+                width={160}
+                height={160}
+                style={{ objectFit: "contain" }}
+              />
+
               <div className="flexClm gap_12">
-                <span className="font_16 font_weight_600">No orders yet</span>
-                <span className="font_12 shade_50">
+                <span className="font_16 font_weight_600">No Orders Yet</span>
+
+                <span className="font_14">
                   Your order history will appear here
                 </span>
               </div>

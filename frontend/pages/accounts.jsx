@@ -386,7 +386,7 @@ function Accounts() {
           </div>
 
           <div className="flexRow gap_8">
-            {!orderedAccounts.length === 0 && (
+            {orderedAccounts.length !== 0 && (
               <button
                 className="btn flexRow gap_4"
                 style={{ padding: "12px 16px", cursor: "pointer" }}

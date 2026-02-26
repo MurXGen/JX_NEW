@@ -143,17 +143,6 @@ export default function DashboardMobile() {
           </button>
         </div> */}
 
-        {/* Stats */}
-        <HeroCards
-          balance={totalBalance}
-          netPnL={stats.netPnL}
-          winTrades={stats.winTrades}
-          loseTrades={stats.loseTrades}
-          maxProfit={stats.maxProfit}
-          maxLoss={stats.maxLoss}
-          currencySymbol={currencySymbol}
-        />
-
         {/* Tabs */}
         <div className="mobile-tabs">
           {tabs.map((tab) => (

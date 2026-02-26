@@ -233,10 +233,7 @@ button:disabled {
 }
 
 .LegalLinks {
-  position: fixed;
-  bottom: 4%;
-  left: 50%;
-  transform: translateX(-50%) !important;
+  margin: 32px;
 }
 
 .stats-cards {
