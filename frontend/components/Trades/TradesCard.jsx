@@ -60,8 +60,8 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
           <img
             src="/assets/cards.gif"
             alt="No Trades Found"
-            width={140}
-            height={140}
+            width={200}
+            height={200}
             style={{ objectFit: "contain" }}
           />
 

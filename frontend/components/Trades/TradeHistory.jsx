@@ -664,7 +664,7 @@ const TradesHistory = ({
                 <div style={{ marginTop: "24px" }}>
                   <button
                     className="primary-btn flexRow flex_center gap_8"
-                    onClick={() => router.push("/create-account")}
+                    onClick={() => router.push("/add-trade")}
                   >
                     Log first trade
                   </button>
