@@ -20,6 +20,7 @@ const Dropdown = ({ options, value, onChange, placeholder = "Select" }) => {
     <div className="suggestionInput" ref={dropdownRef}>
       {/* Trigger Button */}
       <button
+        type="button"
         className="primary-btn secondary-btn width100 flexRow flex_between flex_center"
         onClick={() => setOpen((prev) => !prev)}
         style={{ userSelect: "none" }}
