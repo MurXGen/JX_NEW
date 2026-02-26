@@ -22,7 +22,40 @@ const TagPerformance = ({ tagAnalysis = [], currencySymbol = "$" }) => {
     }));
   }, [tagAnalysis, currencySymbol]);
 
-  if (!processedTags.length) return null;
+  if (!processedTags.length) {
+    return (
+      <div
+        className="stats-card radius-12 flexClm flex_center radius-12"
+        style={{
+          height: "40vh",
+          padding: "24px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          className="flexClm gap_16 flex_center"
+          style={{
+            maxWidth: "320px",
+            width: "100%",
+          }}
+        >
+          {/* GIF */}
+          <img
+            src="/assets/search.gif"
+            alt="No Tag Data"
+            width={140}
+            height={140}
+            style={{ objectFit: "contain" }}
+          />
+
+          {/* Heading */}
+          <span className="font_16 ">
+            Log trade to compute <br /> Tag performance analysis
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   const bestStrategy = processedTags[0]; // Already sorted by totalPnL
   const highestWinRate = [...processedTags].sort(

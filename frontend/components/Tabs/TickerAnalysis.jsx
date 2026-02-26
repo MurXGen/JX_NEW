@@ -157,11 +157,34 @@ const TickerAnalysis = ({ trades }) => {
 
   if (!trades || trades.length === 0) {
     return (
-      <div className="flexClm gap_32 chart_boxBg pad_16">
-        <div className="flex_center">
-          <div className="font_14 shade_50">
-            No trades available for analysis
-          </div>
+      <div
+        className="stats-card radius-12 flexClm flex_center"
+        style={{
+          height: "40vh",
+          padding: "20px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          className="flexClm gap_16 flex_center"
+          style={{
+            maxWidth: "320px",
+            width: "100%",
+          }}
+        >
+          {/* GIF */}
+          <img
+            src="/assets/chart-analysis-area.gif"
+            alt="No Trades"
+            width={140}
+            height={140}
+            style={{ objectFit: "contain" }}
+          />
+
+          {/* Heading */}
+          <span className="font_16 ">
+            Log trade to compute <br /> Ticker analysis
+          </span>
         </div>
       </div>
     );

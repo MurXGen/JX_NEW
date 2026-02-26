@@ -179,14 +179,38 @@ const PnLAreaChart = ({ data }) => {
 
   if (!visibleData.length) {
     return (
-      <div className="flex_center" style={{ height: "300px" }}>
-        <div className="font_14" style={{ color: "var(--white-50)" }}>
-          No trades logged yet.
+      <div
+        className="stats-card radius-12 flexClm flex_center"
+        style={{
+          height: "40vh",
+          padding: "20px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          className="flexClm gap_16 flex_center"
+          style={{
+            maxWidth: "320px",
+            width: "100%",
+          }}
+        >
+          {/* GIF */}
+          <img
+            src="/assets/chart-analysis-area.gif"
+            alt="No Trades"
+            width={140}
+            height={140}
+            style={{ objectFit: "contain" }}
+          />
+
+          {/* Heading */}
+          <span className="font_16 ">
+            Log trade to compute <br /> PNL growth analysis
+          </span>
         </div>
       </div>
     );
   }
-
   return (
     <div className="chart_container radius-12 stats-card">
       <div className="flexRow flexRow_stretch">

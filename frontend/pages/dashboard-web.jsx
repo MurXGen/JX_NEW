@@ -123,6 +123,7 @@ export default function Dashboard1() {
   }, [router]);
 
   const selectedAccountId = Cookies.get("accountId");
+  const currentAccountId = Cookies.get("accountId");
   const currentAccount =
     accounts.find((a) => a._id === selectedAccountId) || accounts[0];
 
@@ -203,8 +204,6 @@ export default function Dashboard1() {
     date: t.closeTime,
     pnl: Number(t.pnl) || 0,
   }));
-
-  const candleData = processPnLCandles(accountTrades);
 
   const longTrades = accountTrades.filter(
     (t) => t.direction?.toLowerCase() === "long" && t.closeTime,

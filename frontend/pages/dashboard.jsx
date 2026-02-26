@@ -81,6 +81,8 @@ export default function DashboardMobile() {
     return trades.filter((t) => t.accountId === selectedAccount._id);
   }, [trades, selectedAccount]);
 
+  const currentAccountId = Cookies.get("accountId");
+
   useEffect(() => {
     const loadData = async () => {
       const data = await fetchAccountsAndTrades();
@@ -117,7 +119,15 @@ export default function DashboardMobile() {
     return starting + pnlSum;
   }, [selectedAccount, selectedTrades]);
 
-  const candleData = processPnLCandles(trades);
+  const filteredTrades = useMemo(() => {
+    if (!currentAccountId) return [];
+
+    return trades.filter((trade) => trade.accountId === currentAccountId);
+  }, [trades, currentAccountId]);
+
+  const candleData = useMemo(() => {
+    return processPnLCandles(filteredTrades);
+  }, [filteredTrades]);
 
   const handleEdit = () => {
     router.push("/create-account?mode=edit");
@@ -221,9 +231,12 @@ export default function DashboardMobile() {
 
         {activeTab === "Ticker" && (
           <>
-            <AllTickerStats trades={trades} currencySymbol={currencySymbol} />
+            <AllTickerStats
+              trades={filteredTrades}
+              currencySymbol={currencySymbol}
+            />
             <div className="">
-              <TickerAnalysis trades={trades} />
+              <TickerAnalysis trades={filteredTrades} />
             </div>
           </>
         )}

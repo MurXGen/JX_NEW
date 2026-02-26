@@ -39,6 +39,53 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
     setShowTradeModal(true); // open modal
   };
 
+  if (!trades || trades.length === 0) {
+    return (
+      <div
+        className="radius-12 stats-card flexClm flex_center"
+        style={{
+          minHeight: "300px",
+          padding: "24px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          className="flexClm gap_16 flex_center"
+          style={{
+            maxWidth: "300px",
+            width: "100%",
+          }}
+        >
+          {/* GIF */}
+          <img
+            src="/assets/cards.gif"
+            alt="No Trades Found"
+            width={140}
+            height={140}
+            style={{ objectFit: "contain" }}
+          />
+
+          {/* Heading */}
+          <span className="font_16 font_weight_600">No Trades Found</span>
+
+          {/* Description */}
+          <span className="font_13 shade_60">
+            There are no trades available in this journal yet.
+          </span>
+
+          {/* Optional CTA */}
+          {onAddNew && (
+            <div style={{ marginTop: "8px" }}>
+              <button className="primary-btn" onClick={onAddNew}>
+                Add Trade
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="">
       <div className="flexRow tradeStackGrid gap_24">

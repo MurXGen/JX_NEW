@@ -384,15 +384,18 @@ function Accounts() {
               <span className="font_20">Journals</span>
             </div>
           </div>
+
           <div className="flexRow gap_8">
-            <button
-              className="btn flexRow gap_4"
-              style={{ padding: "12px 16px", cursor: "pointer" }}
-              onClick={() => router.push("/create-account")}
-            >
-              <Plus size={16} />
-              <span className="font_14">Create journal</span>
-            </button>
+            {!orderedAccounts.length === 0 && (
+              <button
+                className="btn flexRow gap_4"
+                style={{ padding: "12px 16px", cursor: "pointer" }}
+                onClick={() => router.push("/create-account")}
+              >
+                <Plus size={16} />
+                <span className="font_14">Create journal</span>
+              </button>
+            )}
 
             <button
               className="btn flexRow gap_4"
@@ -420,31 +423,54 @@ function Accounts() {
               >
                 {orderedAccounts.length === 0 ? (
                   <div
-                    className="notFound flexClm gap_16 flex_center"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
+                    className="flexClm flex_center"
+                    style={{
+                      minHeight: "80vh",
+                      padding: "24px",
+                      textAlign: "center",
+                    }}
                   >
-                    <FiDatabase size={48} className="vector" />
-                    <div className="flexClm gap_8 flex_Center">
-                      <span
-                        className="font_14 font_weight_600"
-                        style={{ textAlign: "center" }}
-                      >
-                        No journal found
-                      </span>
-                      {/* <span className="font_12 shade_50">
-                        Create your first trading journal to get started
-                      </span> */}
-                    </div>
-                    {/* <button
-                      className="button_pri flexRow flex_center gap_8"
-                      onClick={handleCreateAccount}
-                      disabled={loading}
+                    <div
+                      className="flexClm gap_20 flex_center"
+                      style={{
+                        maxWidth: "420px",
+                        width: "100%",
+                      }}
                     >
-                      <Plus size={16} />
-                      <span>Create First Journal</span>
-                    </button> */}
+                      {/* GIF */}
+                      <img
+                        src="/assets/no-data.gif"
+                        alt="No Journal Found"
+                        width={200}
+                        height={200}
+                        style={{ objectFit: "contain" }}
+                      />
+
+                      {/* Heading */}
+                      <span className="font_20 font_weight_600">
+                        No Journal Found
+                      </span>
+
+                      {/* Description */}
+                      <span className="font_14 shade_70">
+                        You haven’t created any trading journals yet.
+                      </span>
+
+                      <div className="flexClm gap_6 font_14 shade_60">
+                        <span>Create your first journal to start</span>
+                        <span>tracking and analyzing your trades.</span>
+                      </div>
+
+                      {/* Create Button */}
+                      <div style={{ marginTop: "24px" }}>
+                        <button
+                          className="primary-btn flexRow flex_center gap_8"
+                          onClick={() => router.push("/create-account")}
+                        >
+                          Create First Journal
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -542,7 +568,7 @@ function Accounts() {
                     {/* Show More/Less Button */}
                     {orderedAccounts.length > 2 && (
                       <button
-                        className="button_sec flexRow gap_8 flex_center"
+                        className="btn flexRow gap_8 flex_center"
                         onClick={() => setShowAllAccounts(!showAllAccounts)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

@@ -630,18 +630,47 @@ const TradesHistory = ({
             {displayedTrades.length < trades.length && <LockedTradesPreview />}
           </div>
         ) : (
-          <motion.div className="notFound" variants={childVariants}>
-            <TrendingUp size={48} className="vector" />
-            {/* Market/Trading icon */}
-            <span className="font_12">
-              No trades found. You can start logging trades
-            </span>
-            <button
-              className="button_sec flexRow"
-              onClick={() => router.push("/add-trade")}
+          <motion.div className="stats-card radius-12" variants={childVariants}>
+            {" "}
+            <div
+              className="flexClm flex_center"
+              style={{
+                minHeight: "40vh",
+                textAlign: "center",
+              }}
             >
-              <span>Add trade</span>
-            </button>
+              <div
+                className="flexClm gap_20 flex_center"
+                style={{
+                  maxWidth: "420px",
+                  width: "100%",
+                }}
+              >
+                {/* GIF */}
+                <img
+                  src="/assets/trade-skeleton.gif"
+                  alt="No Journal Found"
+                  width={200}
+                  height={200}
+                  style={{ objectFit: "contain" }}
+                />
+
+                {/* Heading */}
+                <span className="font_20 font_weight_600">
+                  Log trades to see history
+                </span>
+
+                {/* Create Button */}
+                <div style={{ marginTop: "24px" }}>
+                  <button
+                    className="primary-btn flexRow flex_center gap_8"
+                    onClick={() => router.push("/create-account")}
+                  >
+                    Log first trade
+                  </button>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
       </div>

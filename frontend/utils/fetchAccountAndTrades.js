@@ -27,7 +27,7 @@ export const fetchAccountsAndTrades = async () => {
       const tradesForAcc = trades.filter((t) => t.accountId === acc._id);
       const pnlSum = tradesForAcc.reduce(
         (sum, t) => sum + (Number(t.pnl) || 0),
-        0
+        0,
       );
 
       currentBalances[acc.name] = starting + pnlSum;

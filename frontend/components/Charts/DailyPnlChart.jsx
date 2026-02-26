@@ -147,7 +147,38 @@ const DailyPnlChart = ({ data }) => {
   };
 
   if (!visibleData.length) {
-    return <div className="font_14">No trades logged yet.</div>;
+    return (
+      <div
+        className="stats-card radius-12 flexClm flex_center"
+        style={{
+          height: "40vh",
+          padding: "20px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          className="flexClm gap_16 flex_center"
+          style={{
+            maxWidth: "320px",
+            width: "100%",
+          }}
+        >
+          {/* GIF */}
+          <img
+            src="/assets/chart-analysis.gif"
+            alt="No Trades"
+            width={140}
+            height={140}
+            style={{ objectFit: "contain" }}
+          />
+
+          {/* Heading */}
+          <span className="font_16 ">
+            Log trade to compute <br /> PNL Candle analysis
+          </span>
+        </div>
+      </div>
+    );
   }
 
   return (
