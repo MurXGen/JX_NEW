@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
+import { clearIndexedDB, getFromIndexedDB } from "@/utils/indexedDB";
 import BottomBar from "@/components/Trades/BottomBar";
 import Image from "next/image";
 
