@@ -1,23 +1,16 @@
 // components/Profile.jsx
 import SubscriptionStatus from "@/components/Profile/SubscriptionStatus";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
-  ArrowLeft,
   Book,
-  ChevronLeft,
-  FileText,
-  LogOut,
   LogOutIcon,
-  Pencil,
-  Phone,
+  Moon,
   Repeat,
   Share2,
   ShareIcon,
-  Shield,
-  Trash2,
+  Sun,
   User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -28,9 +21,37 @@ import Image from "next/image";
 
 const Profile = () => {
   const router = useRouter();
-  const [simpleMode, setSimpleMode] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  // Initialize theme from localStorage or system preference
+  useEffect(() => {
+    // Check localStorage first
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setIsDark(savedTheme === "dark");
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    } else {
+      // Check system preference
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      setIsDark(prefersDark);
+      document.documentElement.setAttribute(
+        "data-theme",
+        prefersDark ? "dark" : "light",
+      );
+    }
+  }, []);
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const newTheme = isDark ? "light" : "dark";
+    setIsDark(!isDark);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
 
   useEffect(() => {
     loadUserData();
@@ -58,178 +79,259 @@ const Profile = () => {
 
   return (
     <div
-      className="flexClm gap_32"
+      className="pad_16"
       style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "24px auto",
-        padding: "0 12px 100px 12px",
+        background: "var(--mobile-bg)",
+        height: "100vh",
       }}
     >
-      {/* Header */}
+      {/* Header with Theme Toggle */}
       <motion.div
-        className="profile-header flexRow flexRow_stretch"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "32px",
+        }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="flexRow flexRow_stretch">
-          <div className="flexRow gap_12">
-            <div className="flexClm">
-              <span className="font_24 font_weight_600">Profile</span>
-            </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div>
+            <span
+              style={{
+                fontSize: "24px",
+                fontWeight: "600",
+                color: "var(--text-primary)",
+              }}
+            >
+              Profile
+            </span>
           </div>
         </div>
+
+        {/* Theme Toggle Switch */}
+        <button
+          onClick={toggleTheme}
+          style={{
+            background: "var(--card-bg)",
+            border: "1px solid var(--border-color)",
+            borderRadius: "30px",
+            padding: "4px",
+            width: "64px",
+            height: "32px",
+            position: "relative",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            boxShadow: "0 2px 8px var(--black-10)",
+            border: "1px solid var(--black-50)",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              background: "var(--primary)",
+              left: isDark ? "calc(100% - 28px)" : "4px",
+              transition: "left 0.3s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+            }}
+          >
+            {isDark ? <Moon size={14} /> : <Sun size={14} />}
+          </div>
+          <span style={{ marginLeft: "8px", opacity: 0 }}>.</span>
+        </button>
       </motion.div>
 
       {/* User Info & Subscription */}
       <motion.div
-        className="profile-content flexClm gap_32"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "32px",
+        }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         {/* User Info Card */}
         <div className="stats-card radius-12">
-          <div className="user-header flexRow gap_8">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
             <Image
               src="/assets/profile.gif"
               alt="Profile"
-              width={50}
-              height={50}
+              width={60}
+              height={60}
               style={{
                 borderRadius: "50%",
                 objectFit: "cover",
+                border: "2px solid var(--primary)",
               }}
               priority
             />
 
-            <div className="user-details flexClm">
-              <span className="font_16 font_weight_600">
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  color: "var(--text-primary)",
+                }}
+              >
                 {userData?.name || "Trading Hero"}
               </span>
-              <span className="font_14">
+              <span
+                style={{
+                  fontSize: "14px",
+                  color: "var(--text-secondary)",
+                }}
+              >
                 {userData?.email || "...@gmail.com"}
               </span>
             </div>
           </div>
         </div>
+
         {/* Subscription Status */}
         <SubscriptionStatus />
 
         {/* Action Buttons */}
-        <div className="flexClm gap_12">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
           <button
-            className="secondary-btn primary-btn flexRow gap_8"
+            style={{
+              padding: "14px 20px",
+              background: "var(--black-10)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "14px",
+              color: "var(--text-primary)",
+              fontSize: "var(--px-16)",
+              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              width: "100%",
+            }}
             onClick={() => router.push("/accounts")}
           >
-            <Repeat size={16} /> Switch journal
-          </button>
-          <button
-            className="secondary-btn primary-btn flexRow gap_8 flexRow_center width100"
-            onClick={() => router.push("/share-trades")}
-          >
-            <Share2 size={16} />
-            Share trade logs
-          </button>
-          <button
-            className="secondary-btn primary-btn flexRow gap_8 flexRow_center width100"
-            onClick={() => router.push("/export")}
-          >
-            <ShareIcon size={16} />
-            Export trade logs
-          </button>
-          <button
-            className="secondary-btn primary-btn flexRow gap_8"
-            onClick={() => router.push("/billings")}
-          >
-            <Book size={16} /> Billing
+            <Repeat size={18} color="var(--primary)" />
+            Switch journal
           </button>
 
           <button
-            className="secondary-btn primary-btn flexRow gap_8 "
+            style={{
+              padding: "14px 20px",
+              background: "var(--black-10)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "14px",
+              color: "var(--text-primary)",
+              fontSize: "var(--px-16)",
+              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              width: "100%",
+            }}
+            onClick={() => router.push("/share-trades")}
+          >
+            <Share2 size={18} color="var(--primary)" />
+            Share trade logs
+          </button>
+
+          <button
+            style={{
+              padding: "14px 20px",
+              background: "var(--black-10)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "14px",
+              color: "var(--text-primary)",
+              fontSize: "var(--px-16)",
+              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              width: "100%",
+            }}
+            onClick={() => router.push("/export")}
+          >
+            <ShareIcon size={18} color="var(--primary)" />
+            Export trade logs
+          </button>
+
+          <button
+            style={{
+              padding: "14px 20px",
+              background: "var(--black-10)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "14px",
+              color: "var(--text-primary)",
+              fontSize: "var(--px-16)",
+              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              width: "100%",
+            }}
+            onClick={() => router.push("/billings")}
+          >
+            <Book size={18} color="var(--primary)" />
+            Billing
+          </button>
+
+          <button
+            style={{
+              padding: "14px 20px",
+              background: "var(--error-10)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "14px",
+              color: "var(--text-primary)",
+              fontSize: "var(--px-16)",
+              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              width: "100%",
+            }}
             onClick={handleLogout}
           >
-            <LogOutIcon size={16} />
+            <LogOutIcon size={18} color="var(--error)" />
             Logout
           </button>
         </div>
-
-        {/* Quick Actions */}
-        {/* <div className="quick-actions-section">
-          <span className="section-title font_14 font_weight_600">
-            Quick Actions
-          </span>
-          <div className="action-grid">
-            <button
-              className="action-card"
-              onClick={() => router.push("/settings")}
-            >
-              <Settings size={20} />
-              <span className="font_12">Settings</span>
-            </button>
-            <button
-              className="action-card"
-              onClick={() => router.push("/notifications")}
-            >
-              <Bell size={20} />
-              <span className="font_12">Notifications</span>
-            </button>
-            <button
-              className="action-card"
-              onClick={() => router.push("/billing")}
-            >
-              <CreditCard size={20} />
-              <span className="font_12">Billing</span>
-            </button>
-            <button
-              className="action-card"
-              onClick={() => router.push("/help")}
-            >
-              <HelpCircle size={20} />
-              <span className="font_12">Help</span>
-            </button>
-          </div>
-        </div> */}
-
-        {/* Legal & Support Section */}
-        {/* <div className="flexClm gap_12 width100">
-          <button
-            className="button_sec flexRow gap_8 flexRow_center width100"
-            onClick={() => router.push("/terms-services")}
-          >
-            <FileText size={16} />
-            Terms of Service
-          </button>
-          <button
-            className="button_sec flexRow gap_8 flexRow_center width100"
-            onClick={() => router.push("/privacy-policy")}
-          >
-            <Shield size={16} />
-            Privacy Policy
-          </button>{" "}
-          <button
-            className="button_sec flexRow gap_8 flexRow_center width100"
-            onClick={() => router.push("/refund-policy")}
-          >
-            <Phone size={16} />
-            Refund policy
-          </button>
-          <button
-            className="button_sec flexRow gap_8 flexRow_center width100"
-            onClick={() => router.push("/contact")}
-          >
-            <Phone size={16} />
-            Contact for support
-          </button>
-          <button
-            className="button_sec flexRow gap_8 flexRow_center width100"
-            onClick={handleLogout}
-          >
-            <LogOut size={16} />
-            Logout
-          </button>
-        </div> */}
       </motion.div>
 
       <BottomBar />

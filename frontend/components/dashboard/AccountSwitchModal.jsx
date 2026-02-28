@@ -47,12 +47,12 @@ export default function AccountSwitchModal({
             const symbol = accountSymbols?.[acc.name] ?? acc.currency ?? "¤";
 
             return (
-              <div
+              <button
                 key={acc._id}
-                className="boxBg"
+                className="secondary-btn primary-btn"
                 onClick={() => handleSwitch(acc)}
               >
-                <div className="flexRow flexRow_stretch button_sec">
+                <div className="flexRow flexRow_stretch">
                   <span className="font_14 font_weight_600 black-text">
                     {acc.name}
                   </span>
@@ -62,7 +62,7 @@ export default function AccountSwitchModal({
                     <span className="vector">{symbol}</span>
                   </span>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

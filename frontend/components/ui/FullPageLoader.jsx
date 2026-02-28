@@ -13,7 +13,7 @@ const FullPageLoader = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "var(--background, #fff)",
+        backdropFilter: "blur(20px)",
         zIndex: 9999,
       }}
     >

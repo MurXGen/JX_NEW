@@ -6,15 +6,22 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDown,
   ArrowUp,
+  Calendar,
   CheckCircle,
-  CircleDot,
+  ChevronLeft,
   Clock,
+  DollarSign,
   Edit3,
+  GanttChartSquare,
   Lightbulb,
-  Loader2,
+  LineChart,
+  Minus,
+  Percent,
   PlayCircle,
+  Target,
   Trash2,
-  X,
+  TrendingDown,
+  TrendingUp,
   Zap,
 } from "lucide-react";
 import Image from "next/image";
@@ -30,7 +37,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const TradeInfo = ({ onClose }) => {
   const [trade, setTrade] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState(false);
   const router = useRouter();
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -51,18 +57,13 @@ const TradeInfo = ({ onClose }) => {
     fetchTrade();
   }, []);
 
-  // --- Handlers ---
   const handleEdit = () => {
     router.push("/add-trade?mode=edit");
   };
 
-  const handleCloseTrade = () => {
-    router.push("/add-trade?mode=close");
-  };
-
   const handleDeleteTrade = async () => {
-    setIsConfirmOpen(false); // close modal
-    setIsDeleting(true); // show loader
+    setIsConfirmOpen(false);
+    setIsDeleting(true);
 
     try {
       const tradeId = localStorage.getItem("__t_rd_iD");
@@ -74,16 +75,11 @@ const TradeInfo = ({ onClose }) => {
 
       if (res.data.success) {
         const { userData, message } = res.data;
-
-        // ✅ Save full userData to IndexedDB (same as add/update)
         await saveToIndexedDB("user-data", userData);
-
         setToast({
           type: "success",
           message: message || "Trade deleted successfully!",
         });
-
-        // Optional: Refresh UI after short delay
         setTimeout(() => window.location.reload(), 1000);
       } else {
         setToast({ type: "error", message: "Failed to delete trade!" });
@@ -98,514 +94,554 @@ const TradeInfo = ({ onClose }) => {
     }
   };
 
-  if (loading) {
-    return <FullPageLoader />;
-  }
-
+  if (loading) return <FullPageLoader />;
   if (!trade) return null;
 
   const isProfit = trade.pnl > 0;
   const isLoss = trade.pnl < 0;
-  const isBreakeven = trade.pnl === 0;
+  const isRunning = trade.tradeStatus === "running";
+  const isLong = trade.direction?.toLowerCase() === "long";
 
-  const ImagePlaceholder = ({ label }) => (
-    <div className="imageContainer">
-      <span className="font_14 black-text">{label}</span>
+  const formatDuration = () => {
+    const start = new Date(trade.openTime);
+    const end = isRunning ? new Date() : new Date(trade.closeTime);
+    const diffMs = end - start;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const days = Math.floor(diffMins / (60 * 24));
+    const hours = Math.floor((diffMins % (60 * 24)) / 60);
+    const mins = diffMins % 60;
+    let duration = "";
+    if (days > 0) duration += `${days}d `;
+    if (hours > 0) duration += `${hours}h `;
+    if (mins > 0 || duration === "") duration += `${mins}m`;
+    return duration;
+  };
 
-      <div className="notFound" style={{}}>
-        Not uploaded
+  const StatItem = ({ icon: Icon, label, value, color }) => (
+    <div className="stats-card radius-12">
+      <div>
+        <div className="card-label">{label}</div>
+        <div className="card-value">{value}</div>
       </div>
+    </div>
+  );
+
+  const InfoChip = ({ icon: Icon, label, value }) => (
+    <div
+      style={{
+        background: "var(--black-4)",
+        borderRadius: "var(--px-20)",
+        padding: "var(--px-8) var(--px-12)",
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--px-8)",
+        fontSize: "var(--px-14)",
+        color: "var(--black)",
+      }}
+    >
+      <Icon size={16} color="var(--black-50)" />
+      <span style={{ fontWeight: "var(--weight-500)" }}>{label}:</span>
+      <span>{value}</span>
     </div>
   );
 
   return (
     <AnimatePresence>
       <motion.div
-        className="modalOverlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "var(--mobile-bg)",
+          zIndex: 1000,
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
+        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
       >
-        <motion.div
-          className="modalContent"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          onClick={(e) => e.stopPropagation()}
+        {/* Header */}
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            background: "var(--white)",
+            borderBottom: "1px solid var(--black-4)",
+            padding: "var(--px-16)",
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--px-12)",
+            zIndex: 10,
+          }}
         >
-          {/* Header */}
-          <div className="modalHeader flexRow flexRow_stretch">
-            <div className="flexRow gap_12">
-              <div
-                className={`positionIcon large ${trade.direction?.toLowerCase()}`}
-              >
-                {trade.direction?.toLowerCase() === "long" ? (
-                  <ArrowUp size={24} />
-                ) : (
-                  <ArrowDown size={24} />
-                )}
-              </div>
-              <div className="modalHeaderText flexClm">
-                <span className="modalHeaderTitle">{trade.symbol}</span>
-                <span className="modalHeaderDesc">
-                  {trade.direction} Position
-                </span>
-              </div>
-            </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              padding: "var(--px-8)",
+              cursor: "pointer",
+              display: "flex",
+              borderRadius: "var(--px-8)",
+              color: "var(--black)",
+            }}
+          >
+            <ChevronLeft size={24} />
+          </button>
 
-            <div className="flexRow gap_12">
-              {/* Status Badge */}
-              <div className={`statusBadge ${trade.tradeStatus}`}>
-                {trade.tradeStatus === "running" && (
-                  <>
-                    <PlayCircle size={16} className="statusIcon" />
-                    <span className="black-text">Active</span>
-                  </>
-                )}
-                {trade.tradeStatus === "closed" && (
-                  <>
-                    <CheckCircle size={16} className="statusIcon" />
-                    <span className="black-text">Closed</span>
-                  </>
-                )}
-                {trade.tradeStatus === "quick" && (
-                  <>
-                    <Zap size={16} className="statusIcon" />
-                    <span className="black-text">Quick</span>
-                  </>
-                )}
-              </div>
-
-              {/* Close Button */}
-              <button className="closeBtn btn flexRow" onClick={onClose}>
-                <X className="crossIcon" size={24} />
-              </button>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--px-12)",
+              flex: 1,
+            }}
+          >
+            {/* <div
+              style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "var(--px-14)",
+                background: isLong ? "var(--success-10)" : "var(--error-10)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: isLong ? "var(--success)" : "var(--error)",
+              }}
+            >
+              {isLong ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
+            </div> */}
+            <div>
+              <div className="font_20">{trade.symbol}</div>
+              <div className="font_14">{trade.direction}</div>
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="modalBody flexClm">
-            {/* Images */}
-            <div className="imagesSection">
-              <div className="imagesGrid">
-                {/* OPEN IMAGE */}
-                {trade.openImageUrl ? (
-                  <div className="imageContainer">
-                    <span className="font_14 black-text">Open Image</span>
+          <div
+            style={{
+              padding: "var(--px-8) var(--px-14)",
+              borderRadius: "var(--px-20)",
+              fontSize: "var(--px-14)",
+              fontWeight: "var(--weight-600)",
+              background: isRunning
+                ? "var(--primary-10)"
+                : trade.tradeStatus === "closed"
+                  ? "var(--success-10)"
+                  : "var(--black-4)",
+              color: isRunning
+                ? "var(--primary)"
+                : trade.tradeStatus === "closed"
+                  ? "var(--success)"
+                  : "var(--black-50)",
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--px-4)",
+            }}
+          >
+            {isRunning && <PlayCircle size={16} />}
+            {trade.tradeStatus === "closed" && <CheckCircle size={16} />}
+            {trade.tradeStatus === "quick" && <Zap size={16} />}
+            <span style={{ textTransform: "capitalize" }}>
+              {trade.tradeStatus}
+            </span>
+          </div>
+        </div>
 
-                    <div
-                      style={{ position: "relative", display: "inline-block" }}
-                    >
-                      <Image
-                        src={trade.openImageUrl}
-                        alt="Open trade"
-                        width={400}
-                        height={300}
-                        priority
-                        className="tradeImage fadeInImage"
-                        data-loaded={trade.openImageLoaded ? "true" : "false"}
-                        onLoadingComplete={() =>
-                          setTrade((prev) => ({
-                            ...prev,
-                            openImageLoaded: true,
-                          }))
-                        }
-                        onClick={() =>
-                          window.open(trade.openImageUrl, "_blank")
-                        }
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <ImagePlaceholder label="Open Image" />
-                )}
-
-                {/* CLOSE IMAGE */}
-                {trade.closeImageUrl ? (
-                  <div className="imageContainer">
-                    <span className="font_14 black-text">Close Image</span>
-
-                    <div
-                      style={{ position: "relative", display: "inline-block" }}
-                    >
-                      <Image
-                        src={trade.closeImageUrl}
-                        alt="Close trade"
-                        width={400}
-                        height={300}
-                        priority
-                        className="tradeImage fadeInImage"
-                        data-loaded={trade.closeImageLoaded ? "true" : "false"}
-                        onLoadingComplete={() =>
-                          setTrade((prev) => ({
-                            ...prev,
-                            closeImageLoaded: true,
-                          }))
-                        }
-                        onClick={() =>
-                          window.open(trade.closeImageUrl, "_blank")
-                        }
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <ImagePlaceholder label="Close Image" />
-                )}
-              </div>
-
-              <div className="sectionDivider" />
-            </div>
-
-            {/* PnL Section */}
-            {trade.tradeStatus !== "running" && (
+        {/* Content */}
+        <div style={{ padding: "var(--px-16)" }}>
+          {/* P&L Card */}
+          {!isRunning && (
+            <div
+              style={{
+                background: isProfit
+                  ? "var(--success-10)"
+                  : isLoss
+                    ? "var(--error-10)"
+                    : "var(--black-4)",
+                borderRadius: "var(--px-16)",
+                padding: "var(--px-20)",
+                marginBottom: "var(--px-24)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                border: `1px solid ${isProfit ? "var(--success-20)" : isLoss ? "var(--error-20)" : "var(--black-4)"}`,
+              }}
+            >
               <div
-                className={`pnlSection stats-card radius-12 ${
-                  isProfit ? "profit" : isLoss ? "loss" : "breakeven"
-                }`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--px-12)",
+                }}
               >
-                <div className="pnlLabel flexRow flexRow_stretch">
-                  <span className="pnlLabel">Profit & Loss</span>
-                  <span
-                    className={`pnlValue font_weight_600 ${
-                      isProfit ? "success" : isLoss ? "error" : "shade_50"
-                    }`}
+                <div
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "var(--px-14)",
+                    background: "var(--white)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: isProfit
+                      ? "var(--success)"
+                      : isLoss
+                        ? "var(--error)"
+                        : "var(--black-50)",
+                  }}
+                >
+                  {isProfit ? (
+                    <TrendingUp size={24} />
+                  ) : isLoss ? (
+                    <TrendingDown size={24} />
+                  ) : (
+                    <Minus size={24} />
+                  )}
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: "var(--px-14)', color: 'var(--black-50)",
+                    }}
+                  >
+                    Total P&L
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "var(--px-24)', fontWeight: 'var(--weight-700)",
+                    }}
                   >
                     {isProfit ? "+" : ""}
                     {formatCurrency(trade.pnl)}
-                  </span>
+                  </div>
                 </div>
               </div>
-            )}
-
-            <div className="sectionDivider" />
-
-            {/* Fees */}
-            {/* {trade.feeAmount > 0 && (
-              <div className="stats-card radius-12 flexClm gap_12 marg_btm_16">
-                <span className="font_12 shade_50">
-                  {trade.tradeStatus === "running"
-                    ? "Trade Open Fees"
-                    : "Trade Open + Close Fees"}
-                </span>
-                <span className="font_14">
-                  {getCurrencySymbol(localStorage.getItem("currencyCode"))}{" "}
-                  {trade.feeAmount.toFixed(2)}
-                </span>
-              </div>
-            )} */}
-
-            {trade.quantityUSD >= 0 && (
-              <div>
-                <div className="quantityGrid">
-                  <div className="stats-card radius-12 flexClm gap_12">
-                    <span className="card-label">Quantity</span>
-                    <span className="card-value">{trade.quantityUSD} USD</span>
-                  </div>
-
-                  <div className="stats-card radius-12 flexClm gap_12">
-                    <span className="card-label">Leverage</span>
-                    <span className="card-value">{trade.leverage}x</span>
-                  </div>
-                  <div className="stats-card radius-12 flexClm gap_12">
-                    <span className="card-label">Total Quantity</span>
-                    <span className="card-value">{trade.totalQuantity}</span>
-                  </div>
-                </div>
-                <div className="sectionDivider" />
-              </div>
-            )}
-
-            {trade.tradeStatus === "closed" && (
-              <>
-                {" "}
-                <div className="detailsGrid">
-                  <div className="stats-card radius-12 flexClm gap_12">
-                    <span className="card-label">Avg Entry</span>
-                    <span className="card-value">{trade.avgEntryPrice}</span>
-                  </div>
-                  <div className="stats-card radius-12 flexClm gap_12">
-                    <span className="card-label">Avg Exit</span>
-                    <span className="card-value">{trade.avgExitPrice}</span>
-                  </div>
-                </div>
-                <div className="sectionDivider" />
-              </>
-            )}
-
-            {/* Details Grid */}
-            {trade.tradeStatus === "running" && (
-              <>
-                <div className="detailsGrid">
-                  {/* Entry Price */}
-                  <div className="stats-card radius-12 flexClm gap_12">
-                    <span className="font_12 shade_50">Entry</span>
-                    <span className="font_14">{trade.avgEntryPrice}</span>
-                  </div>
-
-                  {/* Stop Loss */}
-                  <div className="boxBg flexRow gap_12">
-                    <div className="flexClm gap_4">
-                      <span className="font_12 shade_50">SL Price</span>
-                      <span className="font_14 flexRow gap_12">
-                        {trade.avgSLPrice}{" "}
-                        <span className="font_14 error">
-                          {" "}
-                          -{formatCurrency(trade.expectedLoss)}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Take Profit */}
-                  <div className="boxBg flexRow gap_12">
-                    <div className="flexClm gap_4">
-                      <span className="font_12 shade_50">TP Price</span>
-                      <span className="font_14 flexRow gap_12">
-                        {trade.avgTPPrice}
-                        <span className="font_14 success">
-                          +{formatCurrency(trade.expectedProfit)}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="sectionDivider" />
-              </>
-            )}
-
-            {/* Time Section */}
-            <div className="timeSection">
-              <div className="timelineWrapper">
-                {/* Start Time */}
-                <div className="timelinePoint startPoint">
-                  <div className="boxBg flexRow gap_12">
-                    <div>
-                      <div className="timeDot startDot">
-                        <CircleDot size={14} />
-                      </div>
-                    </div>
-                    <div className="flexClm">
-                      <span className="tradeInfoDate flexRow gap_4">
-                        {new Date(trade.openTime).toLocaleDateString("en-US", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                      <span className="tradeInfoTime">
-                        {new Date(trade.openTime).toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Timeline with Duration */}
-                <div className="timelineLineWrapper">
-                  {(() => {
-                    const start = new Date(trade.openTime);
-                    const end =
-                      trade.tradeStatus === "running"
-                        ? new Date()
-                        : new Date(trade.closeTime);
-
-                    const diffMs = end - start;
-                    const diffMins = Math.floor(diffMs / (1000 * 60));
-                    const days = Math.floor(diffMins / (60 * 24));
-                    const hours = Math.floor((diffMins % (60 * 24)) / 60);
-                    const mins = diffMins % 60;
-
-                    let duration = "";
-                    if (days > 0) duration += `${days}d `;
-                    if (hours > 0) duration += `${hours}h `;
-                    if (mins > 0 || duration === "") duration += `${mins}m`;
-
-                    return (
-                      <div className="tradeDuration flexRow flex_center">
-                        {duration}
-                      </div>
-                    );
-                  })()}
-
-                  <div
-                    className={`timelineLine ${
-                      trade.tradeStatus === "running" ? "running" : "completed"
-                    }`}
-                  >
-                    <div className="timelineLight" />
-                    <div className="timelineDot startTimelineDot" />
-                    <div className="timelineDot endTimelineDot" />
-                  </div>
-                </div>
-
-                {/* End Time (only for closed trades) */}
-                {trade.closeTime && trade.tradeStatus !== "running" && (
-                  <div className="timelinePoint endPoint">
-                    <div className="flexRow gap_12 boxBg">
-                      <div>
-                        <div className="timeDot endDot">
-                          <X size={14} />
-                        </div>
-                      </div>
-                      <div className="flexClm">
-                        <span
-                          className="tradeInfoDate flexRow gap_4"
-                          style={{ justifyContent: "flex-end" }}
-                        >
-                          {new Date(trade.closeTime).toLocaleDateString(
-                            "en-US",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            },
-                          )}
-                        </span>
-                        <span
-                          className="tradeInfoTime"
-                          style={{ textAlign: "right" }}
-                        >
-                          {new Date(trade.closeTime).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            },
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Current time indicator for running trades */}
-                {trade.tradeStatus === "running" && (
-                  <div className="timelinePoint">
-                    <div className="boxBg flexRow gap_12">
-                      <div>
-                        <div className="timeDot currentDot">
-                          <Clock size={14} />
-                        </div>
-                      </div>
-                      <div>
-                        <span className="tradeInfoDate flexRow gap_4">
-                          Till now
-                        </span>
-                        <span className="tradeInfoTime">Running</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div
+                style={{
+                  padding: "var(--px-8) var(--px-14)",
+                  background: "var(--white)",
+                  borderRadius: "var(--px-20)",
+                  fontSize: "var(--px-14)",
+                  fontWeight: "var(--weight-600)",
+                  color: isProfit
+                    ? "var(--success)"
+                    : isLoss
+                      ? "var(--error)"
+                      : "var(--black-50)",
+                }}
+              >
+                {((trade.pnl / (trade.quantityUSD || 1)) * 100).toFixed(2)}%
               </div>
             </div>
+          )}
 
-            {/* ✅ Normalize reason before rendering */}
-            {trade.reason?.length > 0 && (
-              <>
-                <div className="notesCard">
-                  <div className="sectionDivider" />
-                  <div className="flexRow gap_12" style={{ flexWrap: "wrap" }}>
-                    {(() => {
-                      let reasons = [];
-
-                      if (Array.isArray(trade.reason)) {
-                        if (
-                          trade.reason.length === 1 &&
-                          typeof trade.reason[0] === "string"
-                        ) {
-                          try {
-                            reasons = JSON.parse(trade.reason[0]);
-                          } catch {
-                            reasons = trade.reason;
-                          }
-                        } else {
-                          reasons = trade.reason;
-                        }
-                      }
-
-                      return reasons.map((r, idx) => (
-                        <span className="tag" key={idx}>
-                          {r}
-                        </span>
-                      ));
-                    })()}
-                  </div>
-                  <div className="sectionDivider" />
-                </div>
-              </>
-            )}
-
-            {/* Reason & Learnings */}
-            <div style={{ width: "100%", overflow: "hidden" }}>
-              {trade.learnings && (
-                <div style={{ width: "100%" }}>
-                  <h3 className="font_16 font_weight_600 black-text flexRow gap_8">
-                    <Lightbulb size={18} />
-                    Key Learnings
-                  </h3>
-
-                  <span
-                    className="font_14"
+          {/* Images Grid */}
+          {(trade.openImageUrl || trade.closeImageUrl) && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "var(--px-12)",
+                marginBottom: "var(--px-24)",
+              }}
+            >
+              {trade.openImageUrl ? (
+                <div>
+                  <div
                     style={{
-                      display: "inline-block",
-                      width: "100%",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      overflowWrap: "anywhere",
+                      fontSize: "var(--px-12)', color: 'var(--black-50)",
+                      marginBottom: "var(--px-8)",
                     }}
                   >
-                    {trade.learnings}
+                    Entry Screenshot
+                  </div>
+                  <img
+                    src={trade.openImageUrl}
+                    alt="Entry"
+                    style={{
+                      width: "100%",
+                      height: "140px",
+                      objectFit: "cover",
+                      borderRadius: "var(--px-12)",
+                      border: "1px solid var(--black-4)",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => window.open(trade.openImageUrl, "_blank")}
+                  />
+                </div>
+              ) : null}
+
+              {trade.closeImageUrl ? (
+                <div className="flexClm gap_8">
+                  <div className="font_16 font_weight_600">Exit Screenshot</div>
+                  <img
+                    src={trade.closeImageUrl}
+                    alt="Exit"
+                    style={{
+                      width: "100%",
+                      height: "200px",
+                      objectFit: "cover",
+                      borderRadius: "var(--px-12)",
+                      border: "1px solid var(--black-4)",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => window.open(trade.closeImageUrl, "_blank")}
+                  />
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {/* Quick Stats Row */}
+          <div
+            style={{
+              display: "flex",
+              overflow: "scroll",
+              gap: "var(--px-8)",
+              marginBottom: "var(--px-24)",
+            }}
+          >
+            <InfoChip
+              icon={Calendar}
+              label="Opened"
+              value={new Date(trade.openTime).toLocaleDateString()}
+            />
+            {!isRunning && (
+              <InfoChip
+                icon={Clock}
+                label="Duration"
+                value={formatDuration()}
+              />
+            )}
+            {trade.leverage && (
+              <InfoChip
+                icon={Percent}
+                label="Leverage"
+                value={`${trade.leverage}x`}
+              />
+            )}
+          </div>
+
+          {/* Stats Grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "var(--px-12)",
+              marginBottom: "var(--px-24)",
+            }}
+          >
+            <StatItem
+              icon={DollarSign}
+              label="Quantity"
+              value={`${trade.quantityUSD} USD`}
+            />
+
+            <StatItem
+              icon={LineChart}
+              label="Avg Entry"
+              value={trade.avgEntryPrice}
+            />
+
+            {!isRunning && (
+              <StatItem
+                icon={Target}
+                label="Avg Exit"
+                value={trade.avgExitPrice || "-"}
+              />
+            )}
+
+            {isRunning && (
+              <>
+                <StatItem
+                  icon={TrendingDown}
+                  label="Stop Loss"
+                  value={trade.avgSLPrice || "-"}
+                  color="var(--error)"
+                />
+                <StatItem
+                  icon={TrendingUp}
+                  label="Take Profit"
+                  value={trade.avgTPPrice || "-"}
+                  color="var(--success)"
+                />
+              </>
+            )}
+          </div>
+
+          <div className="flexClm gap_12">
+            {/* Reasons */}
+            {trade.reason?.length > 0 && (
+              <div className="stats-card radius-12">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--px-8)",
+                    marginBottom: "var(--px-12)",
+                  }}
+                >
+                  <GanttChartSquare size={18} color="var(--primary)" />
+                  <span
+                    style={{
+                      fontSize: "var(--px-14)', fontWeight: 'var(--weight-600)",
+                      color: "var(--black)",
+                    }}
+                  >
+                    Trade Reasons
                   </span>
                 </div>
-              )}
-            </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "var(--px-8)",
+                  }}
+                >
+                  {(() => {
+                    let reasons = [];
+                    if (Array.isArray(trade.reason)) {
+                      if (
+                        trade.reason.length === 1 &&
+                        typeof trade.reason[0] === "string"
+                      ) {
+                        try {
+                          reasons = JSON.parse(trade.reason[0]);
+                        } catch {
+                          reasons = trade.reason;
+                        }
+                      } else {
+                        reasons = trade.reason;
+                      }
+                    }
+                    return reasons.map((r, idx) => (
+                      <button key={idx} className="btn" type="button">
+                        {r}
+                      </button>
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* Learnings */}
+            {trade.learnings && (
+              <div className="stats-card radius-12">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--px-8)",
+                    marginBottom: "var(--px-12)",
+                  }}
+                >
+                  <Lightbulb size={18} color="var(--primary)" />
+                  <span
+                    style={{
+                      fontSize: "var(--px-14)', fontWeight: 'var(--weight-600)",
+                      color: "var(--black)",
+                    }}
+                  >
+                    Key Learnings
+                  </span>
+                </div>
+                <p
+                  style={{
+                    fontSize: "var(--px-14)",
+                    lineHeight: "1.6",
+                    color: "var(--black)",
+                    margin: 0,
+                  }}
+                >
+                  {trade.learnings}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
-          <div className="modalActions flexRow gap_12">
-            {/* Delete Button */}
+          <div
+            style={{
+              display: "flex",
+              gap: "var(--px-12)",
+              padding: "var(--px-16) 0 var(--px-32) 0",
+            }}
+          >
             <button
               onClick={() => setIsConfirmOpen(true)}
-              className="secondary-btn primary-btn flexRow gap_4 error"
+              style={{
+                flex: 1,
+                padding: "var(--px-16)",
+                border: "1px solid var(--error)",
+                background: "none",
+                borderRadius: "var(--px-14)",
+                color: "var(--error)",
+                fontSize: "var(--px-16)",
+                fontWeight: "var(--weight-600)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--px-8)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.background = "var(--error-10)")
+              }
+              onMouseLeave={(e) => (e.target.style.background = "none")}
             >
-              <Trash2 size={16} /> Delete
+              <Trash2 size={18} /> Delete
             </button>
 
-            {/* Confirmation Modal */}
-            <ConfirmationModal
-              isOpen={isConfirmOpen}
-              title="Delete Trade"
-              message="Are you sure you want to delete this trade? This action cannot be undone."
-              onConfirm={handleDeleteTrade}
-              onCancel={() => setIsConfirmOpen(false)}
-            />
-
-            {/* Full Page Loader */}
-            {isDeleting && <FullPageLoader />}
             <button
               onClick={handleEdit}
-              className="primary-btn flexRow gap_4 width100 flex_center"
-              disabled={deleting}
+              style={{
+                flex: 1,
+                padding: "var(--px-16)",
+                border: "none",
+                background: "var(--primary)",
+                borderRadius: "var(--px-14)",
+                color: "var(--white)",
+                fontSize: "var(--px-16)",
+                fontWeight: "var(--weight-600)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "var(--px-8)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.background = "var(--primary-light)")
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.background = "var(--primary)")
+              }
             >
-              <Edit3 size={18} />
-              Edit Trade
+              <Edit3 size={18} /> Edit
             </button>
           </div>
-        </motion.div>
-      </motion.div>
-      {/* Toast Message */}
-      {toast.message && (
-        <ToastMessage
-          type={toast.type}
-          message={toast.message}
-          duration={3000}
+        </div>
+
+        {/* Modals */}
+        <ConfirmationModal
+          isOpen={isConfirmOpen}
+          title="Delete Trade"
+          message="Are you sure you want to delete this trade? This action cannot be undone."
+          onConfirm={handleDeleteTrade}
+          onCancel={() => setIsConfirmOpen(false)}
         />
-      )}
+
+        {isDeleting && <FullPageLoader />}
+
+        {toast.message && (
+          <ToastMessage
+            type={toast.type}
+            message={toast.message}
+            duration={3000}
+          />
+        )}
+      </motion.div>
     </AnimatePresence>
   );
 };

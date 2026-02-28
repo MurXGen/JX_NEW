@@ -69,7 +69,13 @@
 }
 
 /* Light theme overrides */
-[data-theme="light"] {
+[data-theme="dark"] {
+  --mobile-bg: #0f1115;
+  --white: #161a20;
+  --black: #f3f4f6;
+  --black-50: rgba(255, 255, 255, 0.5);
+  --black-4: rgba(255, 255, 255, 0.04);
+  --black-10: rgba(255, 255, 255, 0.08);
   --base-bg: #f8f8f8;
   --base-text: #1d1d1d;
 
@@ -103,6 +109,10 @@
 
 * {
   -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 html,
@@ -176,12 +186,12 @@ button:hover {
   color: var(--white);
   font-size: var(--px-14);
   border-radius: var(--px-8);
-  border: 1px solid var(--black);
+  border: 1px solid var(--white);
 }
 
 .secondary-btn {
-  background: var(--white);
-  border: 1px solid var(--black);
+  background: var(--black-10);
+  /* border: 1px solid var(--black); */
   color: var(--black);
 }
 
@@ -280,7 +290,7 @@ button:disabled {
 .stats-card .card-value {
   font-size: var(--px-16);
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--black);
 }
 
 .account-action-card {
@@ -691,6 +701,16 @@ button:disabled {
 .direction-btn:hover .short-arrow,
 .direction-btn:active .short-arrow {
   animation: arrowShort 0.9s cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.direction-btn.long:hover {
+  background: var(--success);
+  color: var(--black);
+}
+
+.direction-btn.short:hover {
+  background: var(--error);
+  color: var(--black);
 }
 
 @keyframes arrowShort {
@@ -1290,7 +1310,7 @@ input[type="number"] {
 }
 
 .sidebarItem {
-  background: var(--black-4) !important;
+  background: var(--white) !important;
 }
 
 .sidebarItem:hover {
@@ -1604,13 +1624,13 @@ textarea::placeholder {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
 
   color: white;
-  box-shadow: 0 10px 25px var(--primary-50);
+  box-shadow: 0 10px 25px var(--primary-10);
 }
 
 /* End */
@@ -2851,8 +2871,8 @@ footer {
 
   .statCard {
     padding: 8px 12px !important;
-    background: var(--white);
-    box-shadow: 1px 1px 12px rgba(0, 0, 0, 0.1);
+    background: var(--white) !important;
+    box-shadow: 1px 1px 12px rgba(0, 0, 0, 0.1) !important;
     color: var(--black);
   }
   .statValue {
@@ -3205,6 +3225,8 @@ footer {
   }
   .view-toggle > .btn {
     padding: var(--px-12);
+    background-color: var(--black-10);
+    color: var(--black);
   }
 
   .view-toggle > .btn.active {

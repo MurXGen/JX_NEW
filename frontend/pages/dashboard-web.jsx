@@ -475,7 +475,7 @@ export default function Dashboard1() {
             overflowY: "auto",
             borderRadius: "12px",
             margin: "12px",
-            background: "var(--white)",
+            background: "var(--mobile-bg)",
             padding: "0",
           }}
         >

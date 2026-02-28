@@ -45,7 +45,7 @@ export default function DashboardMobile() {
   const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState("Overview");
-  const tabs = ["Overview", "Buy/sell", "Ticker"];
+  const tabs = ["Overview", "Long/Short", "Ticker"];
 
   const primaryCurrency = accounts.length > 0 ? accounts[0].currency : "usd";
 
@@ -143,6 +143,17 @@ export default function DashboardMobile() {
           </button>
         </div> */}
 
+        {/* Stats */}
+        <HeroCards
+          balance={totalBalance}
+          netPnL={stats.netPnL}
+          winTrades={stats.winTrades}
+          loseTrades={stats.loseTrades}
+          maxProfit={stats.maxProfit}
+          maxLoss={stats.maxLoss}
+          currencySymbol={currencySymbol}
+        />
+
         {/* Tabs */}
         <div className="mobile-tabs">
           {tabs.map((tab) => (
@@ -188,7 +199,7 @@ export default function DashboardMobile() {
           </>
         )}
 
-        {activeTab === "Buy/sell" && (
+        {activeTab === "Long/Short" && (
           <>
             <AllLongShortStats
               trades={selectedTrades}

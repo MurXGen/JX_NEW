@@ -258,7 +258,7 @@ const TradeCalendar = ({
       <div className="calendarReverse flexClm gap_24">
         {/* Stats Cards */}
         <div className="statsGrid">
-          <div className="statCard radius-12 flexRow gap_12">
+          <div className="stats-card radius-12 flexRow gap_12">
             <div className="statIcon total">
               <BarChart3 size={20} />
             </div>
@@ -270,7 +270,7 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="statCard radius-12 flexRow gap_12">
+          <div className="stats-card radius-12 flexRow gap_12">
             <div className="statIcon win">
               <TrendingUp size={20} />
             </div>
@@ -280,7 +280,7 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="statCard radius-12 flexRow gap_12">
+          <div className="stats-card radius-12 flexRow gap_12">
             <div className="statIcon loss">
               <TrendingDown size={20} />
             </div>
@@ -290,7 +290,7 @@ const TradeCalendar = ({
             </div>
           </div>
 
-          <div className="statCard radius-12 flexRow gap_12">
+          <div className="stats-card radius-12 flexRow gap_12">
             <div className="statIcon pnl">
               <span
                 className={`pnlSymbol ${

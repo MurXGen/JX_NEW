@@ -141,7 +141,7 @@ const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
                 <span>{q}</span>
                 <X
                   size={12}
-                  className="chart_boxBg"
+                  className="btn"
                   style={{ padding: "4px" }}
                   onMouseDown={(e) => {
                     e.stopPropagation();

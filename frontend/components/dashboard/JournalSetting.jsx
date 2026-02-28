@@ -285,7 +285,7 @@ const AccountSetting = () => {
           >
             <Repeat size={16} /> Switch journal
           </button>
-          <button
+          {/* <button
             className="secondary-btn primary-btn flexRow gap_8 flexRow_center width100"
             onClick={() => router.push("/share-trades")}
           >
@@ -298,7 +298,7 @@ const AccountSetting = () => {
           >
             <ShareIcon size={16} />
             Export trade logs
-          </button>
+          </button> */}
 
           <button
             className="secondary-btn primary-btn flexRow gap_8 "

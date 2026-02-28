@@ -40,7 +40,7 @@ export default function HeroCards({
     <div className="flexClm">
       {/* Toggle Header */}
       <div
-        className="flexRow stats-cards pad_16"
+        className="flexRow stats-card radius-12 pad_16"
         style={{
           alignItems: "center",
           justifyContent: "space-between",

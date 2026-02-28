@@ -140,7 +140,10 @@ const TradesPage = () => {
   if (loading) return <FullPageLoader />;
 
   return (
-    <div className="flexClm gap_32 pad_16">
+    <div
+      className="flexClm gap_32 pad_16"
+      style={{ background: "var(--mobile-bg)", height: "100vh" }}
+    >
       {/* ✅ SEO + Meta Tags */}
       <Head>
         <title>JournalX | Trade History & Calendar</title>
@@ -191,6 +194,7 @@ const TradesPage = () => {
         className="flexClm gap_32"
         style={{
           minWidth: "300px",
+          paddingBottom: "100px",
         }}
       >
         <BottomBar />

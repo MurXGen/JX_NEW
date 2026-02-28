@@ -109,6 +109,28 @@ export default function MyApp({ Component, pageProps }) {
           }}
         />
 
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function() {
+        try {
+          const savedTheme = localStorage.getItem('theme') || 'dark';
+          // Set on both html and body to ensure coverage
+          document.documentElement.setAttribute('data-theme', savedTheme);
+          document.body.setAttribute('data-theme', savedTheme);
+          
+          // Also add a class for any legacy CSS
+          if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {
+          console.error('Theme initialization failed:', e);
+        }
+      })();`,
+          }}
+        />
+
         {/* GA4 */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>

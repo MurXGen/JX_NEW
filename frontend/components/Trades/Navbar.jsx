@@ -4,15 +4,9 @@ import React, { useState, useEffect } from "react";
 import {
   Sun,
   Moon,
-  User,
-  Repeat,
-  ChevronDown,
-  Menu,
   Crown,
-  User2Icon,
   Plus,
   BookTextIcon,
-  ArrowLeft,
   ListFilterIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,30 +14,55 @@ import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import Cookies from "js-cookie";
 import { motion, AnimatePresence } from "framer-motion";
-import { ListFilter } from "lucide";
 
 export default function Navbar() {
   const router = useRouter();
 
-  const [darkMode, setDarkMode] = useState(false);
+  // Initialize theme synchronously
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      // Apply to both html and body immediately
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      document.body.setAttribute("data-theme", savedTheme);
+      return savedTheme === "dark";
+    }
+    return false;
+  });
+
   const [userName, setUserName] = useState("");
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [hideAccountBox, setHideAccountBox] = useState(false);
   const [isFreePlan, setIsFreePlan] = useState(false);
-
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // ======== FETCH USER + ACCOUNT DATA (Unified) =========
+  // Theme toggle function
+  const toggleTheme = () => {
+    const newTheme = !darkMode ? "dark" : "light";
+    setDarkMode(!darkMode);
+
+    // Update both html and body
+    document.documentElement.setAttribute("data-theme", newTheme);
+    document.body.setAttribute("data-theme", newTheme);
+
+    // Update class for any legacy CSS
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+    } else {
+      document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+    }
+
+    localStorage.setItem("theme", newTheme);
+  };
+
+  // ======== FETCH USER + ACCOUNT DATA =========
   useEffect(() => {
     const init = async () => {
       const name = localStorage.getItem("userName");
       if (name) setUserName(name);
-
-      // Theme
-      const savedTheme = localStorage.getItem("theme") || "dark";
-      document.body.setAttribute("data-theme", savedTheme);
-      setDarkMode(savedTheme === "dark");
 
       // Hide account box on /accounts
       const pathname = window.location.pathname;
@@ -63,7 +82,6 @@ export default function Navbar() {
       // Retrieve selected account via cookies
       const accountId = Cookies.get("accountId");
       const account = result.accounts.find((acc) => acc._id === accountId);
-
       setSelectedAccount(account || result.accounts[0]);
 
       // Subscription check
@@ -79,7 +97,7 @@ export default function Navbar() {
     init();
   }, [router]);
 
-  // ======= CHANGE ACCOUNT (save cookie) ========
+  // ======= CHANGE ACCOUNT ========
   const handleAccountClick = (accountId) => {
     try {
       Cookies.set("accountId", accountId, {
@@ -98,7 +116,6 @@ export default function Navbar() {
     }
   };
 
-  // ======= Create Account =======
   const handleCreateAccount = () => {
     router.push("/create-account");
   };
@@ -109,7 +126,11 @@ export default function Navbar() {
     <>
       <div
         className="flexRow flexRow_stretch gap_4"
-        style={{ marginTop: "8px" }}
+        style={{
+          marginTop: "8px",
+          position: "relative",
+          zIndex: 100,
+        }}
       >
         <div className="flexRow gap_12">
           <div
@@ -124,31 +145,45 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* LEFT SECTION (ACCOUNT DROPDOWN TRIGGER) */}
-        {/* <div
-          className="boxBg width100 flexRow gap_12 flex_center"
-          onClick={() => setShowDropdown((prev) => !prev)}
-          style={{ cursor: "pointer" }}
+        {/* Right section with theme toggle */}
+        <div
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            gap: "8px",
+            alignItems: "center",
+          }}
         >
-          {selectedAccount && !hideAccountBox && (
-            <span className="font_16">{selectedAccount.name}</span>
-          )}
-          <ChevronDown size={16} />
-        </div> */}
-
-        {/* Free plan Crown */}
-        {/* {isFreePlan && (
+          {/* Theme Toggle */}
           <div
             className="boxBg"
-            onClick={handleUpgradeClick}
-            style={{ cursor: "pointer", padding: "12px 16px" }}
+            onClick={toggleTheme}
+            style={{
+              cursor: "pointer",
+              padding: "12px 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
           >
-            <Crown size={16} className="vector" />
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+            <span className="font_14">{darkMode ? "Light" : "Dark"}</span>
           </div>
-        )} */}
+
+          {/* Free plan Crown */}
+          {isFreePlan && (
+            <div
+              className="boxBg"
+              onClick={handleUpgradeClick}
+              style={{ cursor: "pointer", padding: "12px 16px" }}
+            >
+              <Crown size={16} className="vector" />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ======= DROPDOWN ACCOUNT LIST ======= */}
+      {/* Account Dropdown */}
       <AnimatePresence>
         {showDropdown && (
           <motion.div

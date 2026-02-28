@@ -56,20 +56,22 @@ function Accounts() {
   const [orderedAccounts, setOrderedAccounts] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [apiCallFailed, setApiCallFailed] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
       setLoading(true);
+      setApiCallFailed(false);
 
       try {
-        // 1️⃣ Fetch fresh data directly from backend
+        // 1️⃣ Try to fetch fresh data from backend first (this is the primary source)
         const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
           withCredentials: true,
         });
 
         const { userData } = res.data;
 
-        // 2️⃣ Store in IndexedDB for offline usage (only once)
+        // 2️⃣ Store in IndexedDB for future offline usage
         if (userData) {
           await saveToIndexedDB("user-data", userData);
           if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
@@ -84,25 +86,55 @@ function Accounts() {
           return;
         }
 
-        // 4️⃣ Update state
+        // 4️⃣ Update state with fresh data
         setAccounts(result.accounts);
         setAccountSymbols(result.accountSymbols);
         setCurrentBalances(result.currentBalances);
         setTradesCount(result.tradesCount);
         setUserPlan(result.userPlan);
-      } catch (error) {
-        if (error.response?.status === 429) {
-          console.warn("Rate limit reached — try again later.");
-        } else {
-          console.error("Error loading user data:", error);
-        }
 
-        // fallback to cached data if available
-        const cached = await getFromIndexedDB("user-data");
-        if (cached) {
-          const result = await fetchAccountsAndTrades();
-          setAccounts(result.accounts);
-          setUserPlan(result.userPlan);
+        // Calculate plan usage
+        if (result.userPlan) {
+          const cachedUser = await getFromIndexedDB("user-data");
+          if (cachedUser) {
+            const planRules = getPlanRules(cachedUser);
+            const currentUsage = calculatePlanUsage(cachedUser, planRules);
+            setPlanUsage(currentUsage);
+          }
+        }
+      } catch (error) {
+        console.error("API call failed, falling back to cached data:", error);
+        setApiCallFailed(true);
+
+        // 5️⃣ Only fallback to IndexedDB if API fails
+        try {
+          const cached = await getFromIndexedDB("user-data");
+
+          if (cached) {
+            // Process cached data
+            const result = await fetchAccountsAndTrades();
+
+            setAccounts(result.accounts);
+            setAccountSymbols(result.accountSymbols);
+            setCurrentBalances(result.currentBalances);
+            setTradesCount(result.tradesCount);
+            setUserPlan(result.userPlan);
+
+            // Show a toast or notification that you're using cached data
+            // You can add a toast message here if you have a toast system
+            console.log("Using cached data - API unavailable");
+          } else {
+            // No cached data available
+            if (error.response?.status === 429) {
+              // Rate limited - show appropriate message
+              console.warn("Rate limit reached. Please try again later.");
+            } else {
+              router.push("/login");
+            }
+          }
+        } catch (cacheError) {
+          console.error("Failed to load cached data:", cacheError);
+          router.push("/login");
         }
       } finally {
         setLoading(false);
@@ -126,46 +158,6 @@ function Accounts() {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
-
-  // User data loading effect - Simplified using utility
-  useEffect(() => {
-    const loadUserData = async () => {
-      setLoading(true);
-
-      try {
-        // Use your utility function
-        const result = await fetchAccountsAndTrades();
-
-        if (result.redirectToLogin) {
-          router.push("/login");
-          return;
-        }
-
-        // Set state from utility result
-        setAccounts(result.accounts);
-        setAccountSymbols(result.accountSymbols);
-        setCurrentBalances(result.currentBalances);
-        setTradesCount(result.tradesCount);
-        setUserPlan(result.userPlan);
-
-        // Calculate plan usage
-        if (result.userPlan) {
-          const cachedUser = await getFromIndexedDB("user-data");
-          if (cachedUser) {
-            const planRules = getPlanRules(cachedUser);
-            const currentUsage = calculatePlanUsage(cachedUser, planRules);
-            setPlanUsage(currentUsage);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUserData();
-  }, [router]);
 
   // Guide effect
   useEffect(() => {
@@ -361,12 +353,13 @@ function Accounts() {
       </Head>
 
       <div
-        className="flexClm gap_24 "
+        className="flexClm gap_24 dashboard"
         style={{
           maxWidth: "1200px",
           minWidth: "300px",
           margin: "0px auto",
           padding: "16px 16px 100px 16px",
+          height: "100vh",
         }}
       >
         {/* <Navbar /> */}

@@ -209,7 +209,7 @@ const SubscriptionStatus = () => {
                     })()}
                   </span>
 
-                  <span className="font_14">
+                  <span className="font_14 black-text">
                     {currentPlan.type === "recurring"
                       ? "Auto-renewal"
                       : "One-time payment"}
@@ -278,7 +278,7 @@ const SubscriptionStatus = () => {
                     currentPlan.expiresAt && (
                       <div>
                         <div className="progress-header flexRow flexRow_stretch font_12">
-                          <span className="font_14 black-text">
+                          <span className="font_14 black-text black-text">
                             Subscription Timeline
                           </span>
                           <span
@@ -313,7 +313,7 @@ const SubscriptionStatus = () => {
                         <Calendar size={16} className="vector" />
                         <div className="detail-content">
                           <span className="font_12 black-text">Started</span>
-                          <span className="font_14 font_weight_600">
+                          <span className="font_14 black-text font_weight_600">
                             {formatDate(currentPlan.startAt)}
                           </span>
                         </div>
@@ -329,7 +329,7 @@ const SubscriptionStatus = () => {
                               ? "Expires"
                               : "Expired"}
                           </span>
-                          <span className="font_14 font_weight_600">
+                          <span className="font_14 black-text font_weight_600">
                             {currentPlan.expiresAt
                               ? formatDate(currentPlan.expiresAt)
                               : "Lifetime"}
@@ -344,7 +344,7 @@ const SubscriptionStatus = () => {
                     <div className="gridContainer gap_8 font_12">
                       <div className="stats-card radius-12 flexRow flexRow_stretch">
                         <b className="card-label">Trade Limit:</b>{" "}
-                        <span className="card-value">
+                        <span className="font_14 black-text">
                           {planRules.limits.tradeLimitPerMonth === Infinity
                             ? "Unlimited"
                             : `${planRules.limits.tradeLimitPerMonth} / month`}
@@ -352,13 +352,13 @@ const SubscriptionStatus = () => {
                       </div>
                       <div className="boxBg flexRow flexRow_stretch">
                         <b className="card-label">Account Limit:</b>{" "}
-                        <span className="card-value">
+                        <span className="font_14 black-text">
                           {planRules.limits.accountLimit}
                         </span>
                       </div>
                       <div className="boxBg flexRow flexRow_stretch">
                         <b className="card-label">Image Upload:</b>{" "}
-                        <span className="card-value">
+                        <span className="font_14 black-text">
                           {planRules.limits.imageLimitPerMonth === Infinity
                             ? "Unlimited"
                             : `${planRules.limits.imageLimitPerMonth} / month`}{" "}

@@ -173,7 +173,7 @@ const Ticker = ({ form, setForm }) => {
           <div className="flexRow flexRow_stretch gap_12 width100">
             <button
               type="button"
-              className={`primary-btn secondary-btn width100 flexRow flex_center font_weight_600 direction-btn ${
+              className={`primary-btn secondary-btn width100 flexRow flex_center font_weight_600 direction-btn long ${
                 form.direction === "long" ? "longBg active" : ""
               }`}
               onClick={() => setForm({ ...form, direction: "long" })}
@@ -186,7 +186,7 @@ const Ticker = ({ form, setForm }) => {
 
             <button
               type="button"
-              className={`primary-btn secondary-btn width100 flexRow flex_center font_weight_600 direction-btn ${
+              className={`primary-btn secondary-btn width100 flexRow flex_center font_weight_600 direction-btn short ${
                 form.direction === "short" ? "shortBg active" : ""
               }`}
               onClick={() => setForm({ ...form, direction: "short" })}
