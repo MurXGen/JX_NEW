@@ -1075,12 +1075,13 @@ input[type="number"] {
   background: var(--success);
   border-radius: var(--px-8);
   padding: var(--px-16);
-  color: var(--base-text);
+  color: white;
   border: none;
   width: 100%;
   cursor: pointer;
   font-family: var(--ff-Pop);
   font-size: var(--px-14);
+  font-weight: 600;
   transition:
     0.3s ease,
     color 0.3s ease,

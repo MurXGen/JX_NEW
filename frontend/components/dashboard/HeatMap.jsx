@@ -3,7 +3,7 @@ import BottomBar from "@/components/Trades/BottomBar";
 
 export default function EventsWebPage() {
   return (
-    <div className="flexClm gap_24 pad_16">
+    <div className="flexClm gap_24">
       <MarketNews />
       <BottomBar />
     </div>

@@ -4,9 +4,11 @@ import { useEffect, useState, useMemo } from "react";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { calculateStats } from "@/utils/calculateStats";
 import {
+  ArrowLeftRight,
   ArrowUpRight,
   ChevronDown,
   Circle,
+  LucideSwitchCamera,
   Menu,
   MenuIcon,
   PieChart,
@@ -139,22 +141,26 @@ export default function DashboardMobile() {
 
   return (
     <>
-      <div className="flexClm dashboard pad_16 gap_32">
+      <div
+        className="flexClm dashboard pad_16 gap_32"
+        style={{ paddingTop: "24px" }}
+      >
         <div className="mob-header flexRow flexRow_stretch">
-          <button className="btn" onClick={() => router.push("/accounts")}>
-            <MenuIcon size={24} />
-          </button>
-
-          <div className="flexClm flex_center">
-            <span className="font_16 font_weight_600">
+          <div className="flexClm">
+            <span className="font_24 font_weight_600 flexRow flex_center gap_12">
               {selectedAccount && <span>{selectedAccount.name}</span>}
+              <ArrowLeftRight
+                onClick={() => router.push("/accounts")}
+                style={{ color: "var(--primary)", cursor: "pointer" }}
+              />
             </span>
             <span className="font_14" style={{ color: "var(--black-50)" }}>
               Journal Dashboard
             </span>
           </div>
           <button
-            className="btn"
+            style={{ background: "none", border: "none" }}
+            className="black-text"
             onClick={() => router.push("/journal-setting")}
           >
             <Settings size={24} />

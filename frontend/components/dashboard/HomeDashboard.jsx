@@ -36,6 +36,7 @@ import TickerAnalysis from "@/components/Tabs/TickerAnalysis";
 import BottomBar from "@/components/Trades/BottomBar";
 import { useRouter } from "next/navigation";
 import { FcSwitchCamera } from "react-icons/fc";
+import FullPageLoader from "../ui/FullPageLoader";
 
 export default function DashboardMobile() {
   const router = useRouter();
@@ -116,7 +117,7 @@ export default function DashboardMobile() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <FullPageLoader />;
   }
 
   return (

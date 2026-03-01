@@ -220,7 +220,9 @@ const SubscriptionStatus = () => {
               <div className="flexRow flex_center gap_8">
                 <div className={`status-badge ${statusConfig.color}`}>
                   <statusConfig.icon size={16} color="white" />
-                  <span className="font_12">{statusConfig.label}</span>
+                  <span className="font_12" style={{ color: "white" }}>
+                    {statusConfig.label}
+                  </span>
                 </div>
 
                 {/* ▼ Toggle Arrow */}
