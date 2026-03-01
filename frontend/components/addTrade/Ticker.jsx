@@ -75,7 +75,7 @@ const Ticker = ({ form, setForm }) => {
   return (
     <div className="">
       {/* Symbol Input with Clear Icon */}
-      <div className="flexClm gap_24" style={{ position: "relative" }}>
+      <div className="flexClm gap_32" style={{ position: "relative" }}>
         <div
           className="addTradeContainer width100"
           style={{ position: "relative" }}

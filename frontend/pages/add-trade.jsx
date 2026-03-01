@@ -1009,16 +1009,139 @@ export default function AddTradePage() {
     }
   };
 
+  // Helper to get display value for each section
+  const getSectionDisplayValue = (key) => {
+    switch (key.toLowerCase()) {
+      case "quantity":
+        if (form.quantityUSD) {
+          return `${currencySymbol}${form.quantityUSD} @ ${form.leverage}x`;
+        }
+        return null;
+
+      case "entries":
+        if (form.avgEntryPrice) {
+          const entryCount = form.entries.filter((e) => e.price).length;
+          return `Avg: ${form.avgEntryPrice} (${entryCount} entry${entryCount > 1 ? "ies" : ""})`;
+        }
+        return null;
+
+      case "exits":
+        if (form.avgExitPrice) {
+          const exitCount = form.exits.filter(
+            (e) => e.price || e.percent,
+          ).length;
+          return `Avg: ${form.avgExitPrice} (${exitCount} exit${exitCount > 1 ? "s" : ""})`;
+        }
+        return null;
+
+      case "stoploss":
+        if (form.avgSLPrice) {
+          return `Avg: ${form.avgSLPrice} (Expected: -${currencySymbol}${form.expectedLoss || 0})`;
+        }
+        return null;
+
+      case "takeprofit":
+        if (form.avgTPPrice) {
+          return `Avg: ${form.avgTPPrice} (Expected: +${currencySymbol}${form.expectedProfit || 0})`;
+        }
+        return null;
+
+      case "opentime":
+        if (form.openTime) {
+          return new Date(form.openTime).toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+        return null;
+
+      case "closetime":
+        if (form.closeTime) {
+          return new Date(form.closeTime).toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+        return null;
+
+      case "tradeimage":
+        if (form.openImagePreview || form.closeImagePreview) {
+          const images = [];
+          if (form.openImagePreview) images.push("Entry");
+          if (form.closeImagePreview) images.push("Exit");
+          return `${images.join(" & ")} screenshot${images.length > 1 ? "s" : ""}`;
+        }
+        return null;
+
+      case "rules":
+        if (form.rulesFollowed) return "Rules followed";
+        return null;
+
+      case "reason":
+        if (form.reason?.length > 0) {
+          return (
+            form.reason.slice(0, 2).join(", ") +
+            (form.reason.length > 2 ? ` +${form.reason.length - 2}` : "")
+          );
+        }
+        return null;
+
+      case "learnings":
+        if (form.learnings) {
+          return form.learnings.length > 30
+            ? form.learnings.substring(0, 30) + "..."
+            : form.learnings;
+        }
+        return null;
+
+      default:
+        return null;
+    }
+  };
+
+  // Get badge color based on section type
+  const getSectionBadgeColor = (key) => {
+    const completed = isFieldCompleted(key);
+    if (!completed) return "var(--black-4)";
+
+    switch (key.toLowerCase()) {
+      case "quantity":
+      case "entries":
+      case "exits":
+        return "var(--primary-20)";
+      case "stoploss":
+        return "var(--error-20)";
+      case "takeprofit":
+        return "var(--success-20)";
+      case "opentime":
+      case "closetime":
+        return "var(--info-20)";
+      default:
+        return "var(--primary-10)";
+    }
+  };
+
+  // Get text color based on section type
+  const getSectionTextColor = (key) => {
+    const completed = isFieldCompleted(key);
+    if (!completed) return "var(--text-secondary)";
+
+    switch (key.toLowerCase()) {
+      case "stoploss":
+        return "var(--error)";
+      case "takeprofit":
+        return "var(--success)";
+      default:
+        return "var(--primary)";
+    }
+  };
+
   return (
-    <div
-      className="flexClm gap_32"
-      style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "24px auto",
-        padding: "0 12px 100px 12px",
-      }}
-    >
+    <div className="flexClm gap_32 dashboard pad_16">
       <div className="flexRow gap_8">
         <div
           className="btn flexRow gap_4"
@@ -1030,7 +1153,7 @@ export default function AddTradePage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flexClm gap_24">
+      <form onSubmit={handleSubmit} className="flexClm gap_32">
         {/* 1️⃣ Trade Status */}
         <TradeStatusGrid
           form={form}
@@ -1043,14 +1166,12 @@ export default function AddTradePage() {
 
         {/* 3️⃣ Conditional Sections */}
         {tradeStatus === "quick" && (
-          <>
-            <QuickSection
-              form={form}
-              setForm={setForm}
-              currency={currencySymbol}
-              handleChange={handleChange}
-            />
-          </>
+          <QuickSection
+            form={form}
+            setForm={setForm}
+            currency={currencySymbol}
+            handleChange={handleChange}
+          />
         )}
 
         {tradeStatus === "closed" && (
@@ -1063,70 +1184,261 @@ export default function AddTradePage() {
         )}
       </form>
 
+      {/* Sections Display */}
       <div className="flexClm gap_24">
-        {/* 🔵 Recommended Section */}
+        {/* Recommended Sections */}
         {recommendedButtons.length > 0 && (
-          <div className="listSection">
-            <label>Recommended</label>
-
-            <div className="flexRow gap_12" style={{ flexWrap: "wrap" }}>
+          <div className="flexClm gap_12">
+            <span
+              className="font_14"
+              style={{ color: "var(--text-secondary)", fontWeight: 500 }}
+            >
+              Required Information
+            </span>
+            <div className="flexClm gap_8">
               {recommendedButtons.map((key) => {
                 const Icon = modalIcons[key.toLowerCase()];
                 const completed = isFieldCompleted(key);
+                const displayValue = getSectionDisplayValue(key);
+                const badgeColor = getSectionBadgeColor(key);
+                const textColor = getSectionTextColor(key);
 
                 return (
-                  <button
+                  <div
                     key={key}
-                    className={`primary-btn secondary-btn flexRow gap_8 ${
-                      completed ? "completed-btn" : ""
-                    }`}
-                    style={{ minWidth: "fit-content", alignItems: "center" }}
                     onClick={() => openModal(key)}
+                    style={{
+                      background: "var(--card-bg)",
+                      border: `1px solid ${completed ? textColor : "var(--border-color)"}`,
+                      borderRadius: "14px",
+                      padding: "16px",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 12px rgba(0,0,0,0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   >
-                    {Icon && <Icon size={16} />}
-                    {key
-                      .replace(/([A-Z])/g, " $1")
-                      .replace(/^./, (s) => s.toUpperCase())}
+                    {/* Icon */}
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "12px",
+                        background: badgeColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: completed ? textColor : "var(--text-secondary)",
+                      }}
+                    >
+                      {Icon && <Icon size={20} />}
+                    </div>
 
-                    {completed && (
-                      <FiCheckCircle size={20} className="tick-icon" />
-                    )}
-                  </button>
+                    {/* Content */}
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "var(--text-primary)",
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {key.replace(/([A-Z])/g, " $1").trim()}
+                        </span>
+                        {completed && (
+                          <FiCheckCircle size={16} color="var(--success)" />
+                        )}
+                      </div>
+
+                      {displayValue ? (
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: textColor,
+                            display: "block",
+                          }}
+                        >
+                          {displayValue}
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: "var(--text-secondary)",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          Tap to add
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Edit indicator */}
+                    <div style={{ color: "var(--text-secondary)" }}>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                      >
+                        <path
+                          d="M6 12L10 8L6 4"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 );
               })}
             </div>
           </div>
         )}
 
-        {/* ⚪ Optional Section */}
+        {/* Optional Sections */}
         {optionalButtons.length > 0 && (
-          <div className="listSection">
-            <label>Optional</label>
-
-            <div className="flexRow gap_12" style={{ flexWrap: "wrap" }}>
+          <div className="flexClm gap_12">
+            <span
+              className="font_14"
+              style={{ color: "var(--text-secondary)", fontWeight: 500 }}
+            >
+              Additional Information
+            </span>
+            <div className="flexClm gap_8">
               {optionalButtons.map((key) => {
                 const Icon = modalIcons[key.toLowerCase()];
                 const completed = isFieldCompleted(key);
+                const displayValue = getSectionDisplayValue(key);
+                const badgeColor = getSectionBadgeColor(key);
+                const textColor = getSectionTextColor(key);
 
                 return (
-                  <button
+                  <div
                     key={key}
-                    className={`primary-btn secondary-btn flexRow gap_8 ${
-                      completed ? "completed-btn" : ""
-                    }`}
-                    style={{ minWidth: "fit-content", alignItems: "center" }}
                     onClick={() => openModal(key)}
+                    style={{
+                      background: "var(--card-bg)",
+                      border: `1px solid ${completed ? textColor : "var(--border-color)"}`,
+                      borderRadius: "14px",
+                      padding: "16px",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      opacity: completed ? 1 : 0.8,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 12px rgba(0,0,0,0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   >
-                    {Icon && <Icon size={16} />}
+                    {/* Icon */}
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "12px",
+                        background: badgeColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: completed ? textColor : "var(--text-secondary)",
+                      }}
+                    >
+                      {Icon && <Icon size={20} />}
+                    </div>
 
-                    {key
-                      .replace(/([A-Z])/g, " $1")
-                      .replace(/^./, (s) => s.toUpperCase())}
+                    {/* Content */}
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "var(--text-primary)",
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {key.replace(/([A-Z])/g, " $1").trim()}
+                        </span>
+                        {completed && (
+                          <FiCheckCircle size={16} color="var(--success)" />
+                        )}
+                      </div>
 
-                    {completed && (
-                      <FiCheckCircle size={20} className="tick-icon" />
-                    )}
-                  </button>
+                      {displayValue ? (
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: textColor,
+                            display: "block",
+                          }}
+                        >
+                          {displayValue}
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: "var(--text-secondary)",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          Optional - tap to add
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Edit indicator */}
+                    <div style={{ color: "var(--text-secondary)" }}>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                      >
+                        <path
+                          d="M6 12L10 8L6 4"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -1134,11 +1446,21 @@ export default function AddTradePage() {
         )}
       </div>
 
-      <div className="flexRow flexRow_stretch gap_4 ">
+      {/* Submit Button */}
+      <div
+        className="flexRow flexRow_stretch gap_4"
+        style={{ marginTop: "24px" }}
+      >
         <button
           className="primary-btn width100"
           onClick={handleSubmit}
           disabled={loading}
+          style={{
+            padding: "16px",
+            fontSize: "16px",
+            fontWeight: 600,
+            borderRadius: "14px",
+          }}
         >
           {loading
             ? "⏳ Please wait..."
@@ -1172,107 +1494,6 @@ export default function AddTradePage() {
         onKeep={() => setShowPlanLimitModal(false)}
         onUpgrade={() => router.push("/pricing")}
       />
-
-      {/* <pre
-        style={{
-          background: "black",
-          color: "white",
-          padding: "1rem",
-          borderRadius: "8px",
-        }}
-      >
-        {JSON.stringify(
-          {
-            ...form,
-            avgEntryPrice: form.avgEntryPrice,
-          },
-          null,
-          2,
-        )}
-      </pre> */}
-      {/* Summary Section */}
-      {/* <div style={{ marginTop: "2rem" }}>
-                <h3>Trade Setup Summary</h3>
-
-               
-
-
-               
-                <div
-                    style={{
-                        background: "#fff",
-                        padding: "1.5rem",
-                        borderRadius: "10px",
-                        marginTop: "1rem",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                    }}
-                >
-                    <h4>📊 Trade Overview</h4>
-                    <p><strong>Symbol:</strong> {form.symbol}</p>
-                    <p><strong>Direction:</strong> {form.direction}</p>
-                    <p><strong>Quantity (USD):</strong> {form.quantityUSD}</p>
-                    <p><strong>Leverage:</strong> {form.leverage}</p>
-                    <p><strong>Total Quantity:</strong> {form.totalQuantity}</p>
-                    <p><strong>Status:</strong> {form.tradeStatus}</p>
-
-                    <h5>🟢 Entries</h5>
-                    <ul>
-                        {form.entries.map((e, i) => (
-                            <li key={i}>
-                                Price: {e.price} | Allocation: {e.allocation}%
-                            </li>
-                        ))}
-                    </ul>
-                    {form.avgEntryPrice && (
-                        <p><strong>Average Entry Price:</strong> {form.avgEntryPrice
-                        }</p>
-                    )}
-
-                    <h5>🔴 Exits</h5>
-                    <ul>
-                        {form.exits.map((e, i) => (
-                            <li key={i}>
-                                Mode: {e.mode} | {e.mode === "percent" ? `Percent: ${e.percent}%` : `Price: ${e.price}`} |
-                                Allocation: {e.allocation}%
-                            </li>
-                        ))}
-                    </ul>
-                    {form.avgExitPrice && (
-                        <p><strong>Average Exit Price:</strong> {form.avgExitPrice}</p>
-                    )}
-
-                    <h5>🛑 Stop Losses</h5>
-                    <ul>
-                        {form.sls.map((sl, i) => (
-                            <li key={i}>
-                                Mode: {sl.mode} | {sl.mode === "percent" ? `Percent: ${sl.percent}%` : `Price: ${sl.price}`} |
-                                Allocation: {sl.allocation}%
-                            </li>
-                        ))}
-                    </ul>
-                    {form.avgSLPrice && (
-                        <p><strong>Average SL Price:</strong> {form.avgSLPrice}</p>
-                    )}
-
-                    <h5>🎯 Take Profits</h5>
-                    <ul>
-                        {form.tps.map((tp, i) => (
-                            <li key={i}>
-                                Mode: {tp.mode} | {tp.mode === "percent" ? `Percent: ${tp.percent}%` : `Price: ${tp.price}`} |
-                                Allocation: {tp.allocation}%
-                            </li>
-                        ))}
-                    </ul>
-                    {form.avgTPPrice && (
-                        <p><strong>Average TP Price:</strong> {form.avgTPPrice}</p>
-                    )}
-
-                    <h5>📝 Notes</h5>
-                    <p><strong>Rules Followed:</strong> {form.rulesFollowed ? "✅ Yes" : "❌ No"}</p>
-                    <p><strong>Reason:</strong> {form.reason}</p>
-                    <p><strong>Learnings:</strong> {form.learnings}</p>
-                </div>
-            </div> */}
     </div>
   );
 }

@@ -218,13 +218,8 @@ const AccountSetting = () => {
       </Head>
 
       <div
-        className="accountSetting flexClm gap_24"
-        style={{
-          maxWidth: "1200px",
-          minWidth: "300px",
-          margin: "0px auto",
-          padding: "16px 16px 100px 16px",
-        }}
+        className="accountSetting flexClm gap_24 pad_16 dashboard"
+        style={{ height: "100vh" }}
       >
         <div
           className="flexRow gap_4"

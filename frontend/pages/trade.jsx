@@ -142,7 +142,7 @@ const TradesPage = () => {
   return (
     <div
       className="flexClm gap_32 pad_16"
-      style={{ background: "var(--mobile-bg)", height: "100vh" }}
+      style={{ background: "var(--mobile-bg)" }}
     >
       {/* ✅ SEO + Meta Tags */}
       <Head>

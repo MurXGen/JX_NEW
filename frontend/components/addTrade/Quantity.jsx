@@ -1,319 +1,490 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Dropdown from "../ui/Dropdown";
-import { X } from "lucide-react";
+import {
+  X,
+  DollarSign,
+  History,
+  Zap,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+
+const STORAGE_KEY = "trade_quantities";
+const MAX_STORED = 8;
 
 const QuantityGrid = ({ form, handleChange, currencySymbol }) => {
   const [showLeverage, setShowLeverage] = useState(false);
-  const [showFees, setShowFees] = useState(false);
   const [storedQuantities, setStoredQuantities] = useState([]);
   const [isSelecting, setIsSelecting] = useState(false);
-  // Handle fee type change
-  const handleFeeTypeChange = (e) => {
-    const { value } = e.target;
-    handleChange({
-      target: { name: "feeType", value },
-    });
-
-    // Reset fee value when type changes
-    handleChange({
-      target: { name: "feeValue", value: "" },
-    });
-  };
-
-  // Calculate fee and PnL after fee
-  const calculateFeeAndPnL = () => {
-    const totalQuantity = form.totalQuantity || 0;
-    const pnl = form.pnl || 0;
-    let feeAmount = 0;
-
-    if (form.feeType === "percent" && form.feeValue) {
-      feeAmount = totalQuantity * (form.feeValue / 100);
-    } else if (form.feeType === "currency" && form.feeValue) {
-      feeAmount = parseFloat(form.feeValue);
-    }
-
-    const pnlAfterFee = pnl - feeAmount;
-    return { feeAmount, pnlAfterFee };
-  };
-
-  const { feeAmount, pnlAfterFee } = calculateFeeAndPnL();
+  const [showHistory, setShowHistory] = useState(false);
+  const [pendingQuantity, setPendingQuantity] = useState(
+    form.quantityUSD || "",
+  );
 
   // Load saved quantities from localStorage on mount
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("quantities")) || [];
-    setStoredQuantities(saved);
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      setStoredQuantities(saved);
+
+      // Auto-fill with last used value if available and current is empty
+      if (!form.quantityUSD && saved.length > 0) {
+        handleChange({ target: { name: "quantityUSD", value: saved[0] } });
+        setPendingQuantity(saved[0]);
+      }
+    } catch (error) {
+      console.error("Failed to load saved quantities:", error);
+    }
   }, []);
 
-  // Handle quantity input change
-  const handleNonNegativeChange = (e) => {
-    const { name, value } = e.target;
-    const sanitized = Math.max(0, Number(value));
-    handleChange({ target: { name, value: sanitized } });
+  // Update pending quantity when form changes externally
+  useEffect(() => {
+    setPendingQuantity(form.quantityUSD || "");
+  }, [form.quantityUSD]);
+
+  // Handle quantity input change (only updates local state, not form)
+  const handleQuantityChange = (e) => {
+    const { value } = e.target;
+    const sanitized = value === "" ? "" : Math.max(0, Number(value) || 0);
+    setPendingQuantity(sanitized);
   };
 
-  // Save quantity to localStorage on blur
+  // Save quantity on blur
   const handleQuantityBlur = () => {
-    if (isSelecting) return; // ignore when selecting chip
+    if (isSelecting) return;
 
-    const val = form.quantityUSD;
-    if (!val) return;
+    const numValue = Number(pendingQuantity);
+    if (!isNaN(numValue) && numValue > 0) {
+      // Update form
+      handleChange({ target: { name: "quantityUSD", value: numValue } });
 
-    const saved = JSON.parse(localStorage.getItem("quantities")) || [];
-    if (!saved.includes(val)) {
-      const updated = [val, ...saved].slice(0, 10); // keep last 10
-      localStorage.setItem("quantities", JSON.stringify(updated));
-      setStoredQuantities(updated);
+      // Save to history
+      saveQuantity(numValue);
+    } else if (pendingQuantity === "" || pendingQuantity === "0") {
+      // Clear form if empty or zero
+      handleChange({ target: { name: "quantityUSD", value: "" } });
     }
   };
 
-  // Select quantity from chip
+  // Save quantity to localStorage
+  const saveQuantity = (val) => {
+    if (!val || val <= 0) return;
+
+    setStoredQuantities((prev) => {
+      // Remove if exists
+      const filtered = prev.filter((q) => q !== val);
+      // Add to front, limit to MAX_STORED
+      const updated = [val, ...filtered].slice(0, MAX_STORED);
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (error) {
+        console.error("Failed to save quantity:", error);
+      }
+
+      return updated;
+    });
+  };
+
+  // Select quantity from history
   const handleQuantitySelect = (val) => {
     setIsSelecting(true);
+    setPendingQuantity(val);
     handleChange({ target: { name: "quantityUSD", value: val } });
     setTimeout(() => setIsSelecting(false), 200);
   };
 
-  // Remove quantity from chips and localStorage
-  const removeQuantity = (val) => {
-    const updated = storedQuantities.filter((q) => q !== val);
-    localStorage.setItem("quantities", JSON.stringify(updated));
-    setStoredQuantities(updated);
-    if (form.quantityUSD === val)
+  // Remove quantity from history
+  const removeQuantity = (val, e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    setStoredQuantities((prev) => {
+      const updated = prev.filter((q) => q !== val);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (error) {
+        console.error("Failed to remove quantity:", error);
+      }
+      return updated;
+    });
+
+    if (form.quantityUSD === val) {
       handleChange({ target: { name: "quantityUSD", value: "" } });
+      setPendingQuantity("");
+    }
   };
 
-  // Framer Motion animation variants
-  const sectionVariants = {
-    hidden: { opacity: 0, height: 0, overflow: "hidden" },
-    visible: { opacity: 1, height: "auto" },
+  // Clear all history
+  const clearHistory = () => {
+    setStoredQuantities([]);
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  // Handle leverage change
+  const handleLeverageChange = (e) => {
+    const { value } = e.target;
+    const sanitized = Math.max(1, Number(value) || 1);
+    handleChange({ target: { name: "leverage", value: sanitized } });
+  };
+
+  // Quick leverage select
+  const handleLeverageSelect = (lev) => {
+    handleChange({ target: { name: "leverage", value: lev } });
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1 },
   };
 
   return (
-    <div className="tradeGrid">
-      <label className="label">Set margin</label>
-      <div className="flexClm gap_12">
-        {/* Margin Input */}
-        <div className=" flexRow width100" style={{ position: "relative" }}>
-          <input
-            type="number"
-            name="quantityUSD"
-            placeholder="Margin"
-            value={form.quantityUSD || ""}
-            onChange={handleNonNegativeChange}
-            onBlur={handleQuantityBlur}
-            min="0"
-            style={{ flex: "1" }}
-          />
+    <motion.div
+      className="tradeGrid flexClm gap_16"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Header */}
+      <div className="flexRow flexRow_stretch">
+        <div className="flexClm">
+          <span className="font_14 font_weight_600 black-text">Set Margin</span>
+        </div>
 
-          {/* Clear input icon */}
-          {form.quantityUSD && (
-            <X
-              size={16}
+        {/* History Toggle */}
+        {storedQuantities.length > 0 && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowHistory(!showHistory)}
+            className="flexRow gap_4 btn"
+            style={{
+              background: "var(--black-4)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "30px",
+              padding: "6px 12px",
+            }}
+          >
+            <History size={14} className="black-text" />
+            <span className="font_12 black-text">History</span>
+            {showHistory ? (
+              <ChevronUp size={14} className="black-text" />
+            ) : (
+              <ChevronDown size={14} className="black-text" />
+            )}
+          </motion.button>
+        )}
+      </div>
+
+      {/* Main Input Section */}
+      <div className="flexClm gap_16 width100">
+        {/* Margin Input with Currency */}
+        <div style={{ position: "relative", width: "100%" }}>
+          <div
+            style={{
+              position: "absolute",
+              left: "16px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: "16px",
+              fontWeight: "600",
+              color: "var(--primary)",
+              zIndex: 1,
+            }}
+          >
+            {currencySymbol}
+          </div>
+          <div className="flexRow" style={{ flex: "1" }}>
+            <input
+              type="number"
+              name="quantityUSD"
+              value={pendingQuantity}
+              onChange={handleQuantityChange}
+              onBlur={handleQuantityBlur}
+              placeholder="0.00"
+              min="0"
+              step="any"
+              className="font_16 flexRow"
+              style={{ flex: "1", paddingLeft: "32px" }}
+            />
+          </div>
+
+          {/* Clear Button */}
+          {pendingQuantity > 0 && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
               style={{
                 position: "absolute",
-                right: 46,
-                top: "50%",
+                right: "12px",
+                top: "20%",
                 transform: "translateY(-50%)",
+                background: "var(--black-10)",
+                border: "none",
+                borderRadius: "50%",
+                width: "28px",
+                height: "28px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 cursor: "pointer",
-                color: "#888",
+                color: "var(--black)",
               }}
-              onMouseDown={(e) => {
-                e.preventDefault();
+              onClick={() => {
+                setPendingQuantity("");
                 handleChange({ target: { name: "quantityUSD", value: "" } });
               }}
-            />
+              whileHover={{ scale: 1.1, background: "var(--error-10)" }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <X size={14} />
+            </motion.button>
           )}
         </div>
 
-        {/* Saved Quantities Chips */}
-        {storedQuantities.length > 0 && (
-          <div
-            className="flexRow gap_8 flexRow_scroll removeScrollBar"
-            style={{ marginTop: 8 }}
-          >
-            {storedQuantities.map((q) => (
-              <div
-                key={q}
-                className="button_ter font_14 flexRow flex_center gap_8"
-                onMouseDown={() => handleQuantitySelect(q)}
-              >
-                <span>{q}</span>
-                <X
-                  size={12}
-                  className="btn"
-                  style={{ padding: "4px" }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    removeQuantity(q);
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Leverage Checkbox */}
-        <label className="customCheckbox font_16">
-          <input
-            type="checkbox"
-            checked={showLeverage}
-            onChange={(e) => setShowLeverage(e.target.checked)}
-          />
-          Use Leverage
-        </label>
-
-        {/* Leverage Section */}
+        {/* History Chips Section */}
         <AnimatePresence>
-          {showLeverage && (
+          {showHistory && storedQuantities.length > 0 && (
             <motion.div
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={sectionVariants}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="flexClm gap_8"
-              style={{ padding: "12px 0" }}
+              className="flexClm gap_12"
+              style={{ overflow: "hidden" }}
             >
-              <div className="flexRow flexRow_stretch gap_12">
-                <div className="flexRow" style={{ flex: "1" }}>
-                  <input
-                    type="number"
-                    name="leverage"
-                    value={form.leverage || ""}
-                    onChange={handleNonNegativeChange}
-                    placeholder="Leverage"
-                    min="0"
-                    style={{ flex: "1" }}
-                  />
-                  {/* <label>Leverage</label> */}
-                </div>
+              <div className="flexRow flexRow_stretch">
+                <span className="font_12 black-text">Recent Quantities</span>
+                <button
+                  onClick={clearHistory}
+                  className="font_12 error"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Clear All
+                </button>
+              </div>
 
-                {/* Show total value if leverage entered */}
-                {form.leverage > 0 && (
-                  <span className="flexRow flex_center font_12 avgValue">
-                    Total value: {currencySymbol} {form.totalQuantity || 0}
-                  </span>
-                )}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                }}
+              >
+                {storedQuantities.map((q) => (
+                  <motion.div
+                    key={q}
+                    variants={itemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    style={{
+                      background:
+                        form.quantityUSD === q
+                          ? "var(--primary)"
+                          : "var(--card-bg)",
+                      border: `1px solid ${
+                        form.quantityUSD === q
+                          ? "var(--primary)"
+                          : "var(--border-color)"
+                      }`,
+                      borderRadius: "30px",
+                      padding: "6px 12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => handleQuantitySelect(q)}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: "500",
+                        color:
+                          form.quantityUSD === q
+                            ? "white"
+                            : "var(--text-primary)",
+                      }}
+                    >
+                      {currencySymbol}
+                      {q}
+                    </span>
+                    <button
+                      onClick={(e) => removeQuantity(q, e)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        padding: "2px",
+                        display: "flex",
+                        cursor: "pointer",
+                        color:
+                          form.quantityUSD === q
+                            ? "white"
+                            : "var(--text-secondary)",
+                      }}
+                    >
+                      <X size={10} />
+                    </button>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Fees Checkbox */}
-        {/* <label className="customCheckbox font_16">
+        {/* Leverage Checkbox */}
+        <label
+          className="flexRow gap_8"
+          style={{ cursor: "pointer", width: "fit-content" }}
+        >
           <input
             type="checkbox"
-            checked={showFees}
-            onChange={(e) => setShowFees(e.target.checked)}
+            checked={showLeverage}
+            onChange={(e) => setShowLeverage(e.target.checked)}
+            style={{
+              width: "18px",
+              height: "18px",
+              accentColor: "var(--primary)",
+              cursor: "pointer",
+            }}
           />
-          Show Fees
-        </label> */}
+          <span className="font_14 black-text flexRow gap_4">
+            <Zap size={16} className="primary" />
+            Use Leverage
+          </span>
+        </label>
 
-        {/* Fees Section */}
-        {/* <AnimatePresence>
-          {showFees && (
+        {/* Leverage Section - Only shown when checkbox is checked */}
+        <AnimatePresence>
+          {showLeverage && (
             <motion.div
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={sectionVariants}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="flexRow flexRow_stretch gap_12"
-              style={{ padding: "12px 0" }}
+              className="flexClm gap_12"
+              style={{ overflow: "hidden" }}
             >
-              <div style={{ flex: "1" }}>
-                <input
-                  type="number"
-                  name="openFeeValue"
-                  placeholder="Open Fee"
-                  value={form.openFeeValue || ""}
-                  onChange={(e) => {
-                    handleNonNegativeChange(e);
+              <div className="flexRow gap_12">
+                <div style={{ flex: 1, position: "relative" }}>
+                  <div className="flexRow" style={{ flex: "1" }}>
+                    <input
+                      type="number"
+                      name="leverage"
+                      value={form.leverage || "1"}
+                      onChange={handleLeverageChange}
+                      placeholder="Leverage"
+                      min="1"
+                      step="1"
+                      className="font_14"
+                      style={{
+                        flex: "1",
+                      }}
+                    />
+                  </div>
 
-               
-                    if (!form.closeFeeValue) {
-                      handleChange({
-                        target: {
-                          name: "closeFeeValue",
-                          value: e.target.value,
-                        },
-                      });
-                    }
-                  }}
-                  min="0"
-                  step={form.feeType === "percent" ? "0.01" : "0.000001"}
-                />
-                <label className="font_12 black-text">
-                  {form.feeType === "percent"
-                    ? "Open Fee %"
-                    : `Open Fee (${currencySymbol})`}
-                </label>
-              </div>
-
-              <div className="" style={{ flex: "1" }}>
-                <input
-                  type="number"
-                  name="closeFeeValue"
-                  placeholder="Close Fee"
-                  value={form.closeFeeValue || ""}
-                  onChange={handleNonNegativeChange}
-                  min="0"
-                  step={form.feeType === "percent" ? "0.01" : "0.000001"}
-                />
-                <label className="font_12 black-text">
-                  {form.feeType === "percent"
-                    ? "Close Fee %"
-                    : `Close Fee (${currencySymbol})`}
-                </label>
-              </div>
-
-              <div className="" style={{ flex: "1" }}>
-                <Dropdown
-                  value={form.feeType}
-                  onChange={(val) =>
-                    handleFeeTypeChange({ target: { value: val } })
-                  }
-                  options={[
-                    { value: "percent", label: "%" },
-                    { value: "currency", label: `${currencySymbol}` },
-                  ]}
-                />
-              </div>
-
-          
-              {form.feeValue && form.feeType && (
-                <div className="flexRow flex_center font_12 avgValue">
-                  <span>
-                    Trade open fees: {currencySymbol} {feeAmount.toFixed(2)}
+                  <span
+                    style={{
+                      position: "absolute",
+                      right: "16px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "var(--primary)",
+                    }}
+                  >
+                    x
                   </span>
                 </div>
-              )}
+
+                {/* Total Value Display */}
+                {form.leverage > 0 && form.quantityUSD > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flexClm flex_center"
+                    style={{
+                      background: "var(--primary-10)",
+                      padding: "8px 16px",
+                      borderRadius: "12px",
+                      minWidth: "120px",
+                    }}
+                  >
+                    <span className="font_14 font_weight_600 black-text">
+                      Total
+                    </span>
+                    <span className="font_14 font_weight_600 black-text">
+                      {currencySymbol}
+                      {(form.quantityUSD * form.leverage).toLocaleString()}
+                    </span>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Leverage Quick Select */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                }}
+              >
+                {[2, 3, 5, 10, 20, 50, 100].map((lev) => (
+                  <motion.button
+                    key={lev}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleLeverageSelect(lev)}
+                    className="btn font_14 font_weight_600"
+                    style={{
+                      flex: 1,
+                      minWidth: "50px",
+                      padding: "8px",
+                      background:
+                        form.leverage == lev
+                          ? "var(--primary)"
+                          : "var(--card-bg)",
+                      border: `1px solid ${
+                        form.leverage == lev
+                          ? "var(--primary)"
+                          : "var(--border-color)"
+                      }`,
+                      borderRadius: "10px",
+                      color: form.leverage == lev ? "white" : "var(--black)",
+                    }}
+                  >
+                    {lev}x
+                  </motion.button>
+                ))}
+              </div>
             </motion.div>
           )}
-        </AnimatePresence> */}
+        </AnimatePresence>
       </div>
-
-      {/* --- Checkbox Styling --- */}
-      <style jsx>{`
-        .customCheckbox {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          cursor: pointer;
-          font-weight: 500;
-          color: var(--primary);
-        }
-
-        .customCheckbox input[type="checkbox"] {
-          width: 16px;
-          height: 16px;
-          accent-color: var(--primary);
-          cursor: pointer;
-        }
-      `}</style>
-    </div>
+    </motion.div>
   );
 };
 

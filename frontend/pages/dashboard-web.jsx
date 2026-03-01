@@ -251,14 +251,23 @@ export default function Dashboard1() {
             }}
           >
             {open && (
-              <div className="flexRow flexRow_stretch width100">
-                <Image
+              <div className="flexRow flexRow_stretch width100 ">
+                {/* <Image
                   src="/assets/journalx_navbar_black.png"
                   alt="JournalX Logo"
                   width={132}
                   height={42}
                   priority
-                />
+                /> */}
+                <span className="font_24 font_weight_600 black-text flexRow gap_4">
+                  JOURNAL
+                  <strong
+                    className="font_32"
+                    style={{ color: "var(--primary)" }}
+                  >
+                    X
+                  </strong>
+                </span>
                 <ChevronLeft
                   size={22}
                   className="sideBar_clickables"
@@ -326,7 +335,7 @@ export default function Dashboard1() {
                 onClick={() => setActiveTab("logtrade")}
               >
                 <span className="font_12">Log a Trade</span>
-                <ArrowRight size={18} color="white" />
+                <ArrowRight size={18} />
               </div>
             ) : (
               <div

@@ -165,7 +165,7 @@ const MarketNews = () => {
 
   return (
     // Main component JSX
-    <section className="flexClm gap_24 heatmapsContainer">
+    <section className="flexClm gap_24 dashboard pad_16">
       {/* Navigation Dots - Vertical Slider */}
 
       <div className="flexRow flexRow_stretch">

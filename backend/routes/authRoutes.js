@@ -77,7 +77,7 @@ router.get(
   },
 );
 
-router.get("/user-info", createLimiter(10), userFetchGoogleAuth);
+router.get("/user-info", createLimiter(1), userFetchGoogleAuth);
 
 router.put("/update-subscription", updateSubscription);
 
