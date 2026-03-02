@@ -33,49 +33,52 @@ export default function BentoGrid() {
 
   const cards = [
     {
-      title: "Know What’s Right. Fix What’s Wrong.",
-      desc: "Clearly see which trades made you money and which ones didn’t. Stop guessing. Start improving with real data.",
-      highlight: "Clarity creates consistency.",
+      title: "Turn Random Trades into Clear Lessons",
+      desc: "Stop relying on memory and emotion. See exactly what worked, what failed, and why — so every trade becomes a lesson instead of a guess.",
+      highlight: "Awareness drives improvement.",
       video: "/assets/know_pattern1.mp4",
       large: true,
     },
     {
-      title: "Understand Your Trading Patterns",
-      desc: "Identify which setups work, which don’t, and how your strategy performs over time.",
+      title: "Expose Your Hidden Patterns",
+      desc: "See what you keep repeating",
       video: "/assets/identify_pattern.mp4",
     },
     {
-      title: "Make Better Future Decisions",
-      desc: "Use historical insights to avoid repeat mistakes and improve every next trade.",
+      title: "Upgrade Your Next Decision",
+      desc: "Turn past data into action",
       video: "/assets/future_decision.mp4",
     },
     {
-      title: "Track & Analyse Every Trade",
-      desc: "Log entries, exits, screenshots, tags and performance metrics — all in one structured system.",
+      title: "Create a System, Not Chaos",
+      desc: "One workflow for every trade",
       video: "/assets/track_trades.mp4",
     },
     {
-      title: "Control Your Trading Emotions",
-      desc: "Spot emotional trades, overtrading patterns, and revenge setups before they hurt performance.",
+      title: "Control emotions with data",
+      desc: "Trade logic, not feelings",
       video: "/assets/emotions.mp4",
     },
     {
-      title: "Build Long-Term Consistency",
-      desc: "Track progress over weeks and months. Measure growth and build confidence backed by data.",
+      title: "Build Confidence Over Time",
+      desc: "Progress backed by real data",
       video: "/assets/long_term.mp4",
     },
   ];
 
   return (
-    <section className="bentoSection flexClm gap_32">
+    <section
+      className="bentoSection flexClm gap_32"
+      aria-label="Why journaling improves trading performance"
+    >
       <HeaderSection
-        title="Why Every Serious Trader Journals"
-        subtitle="Because consistency, clarity, and confidence don’t come from guessing — they come from reviewing."
+        title="Why Serious Traders Review Every Trade"
+        subtitle="Progress doesn’t come from more trades — it comes from understanding the ones you already made."
       />
 
       <div className="bentoGrid">
         {cards.map((card, index) => (
-          <div
+          <article
             key={index}
             className={`bentoCard ${card.large ? "bentoLarge" : ""}`}
           >
@@ -101,7 +104,7 @@ export default function BentoGrid() {
                 <div className="videoFadeOverlay" />
               </div>
             </div>
-          </div>
+          </article>
         ))}
       </div>
     </section>

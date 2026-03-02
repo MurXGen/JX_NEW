@@ -6601,6 +6601,7 @@ footer {
 
 .animatedWord {
   display: inline-block;
+  text-transform: capitalize;
 
   /* Gradient instead of solid color */
   background: linear-gradient(
@@ -6712,7 +6713,6 @@ footer {
   border-radius: 16px;
   padding: var(--px-32);
   backdrop-filter: blur(16px);
-  background: #020202;
   transition: all 0.3s ease;
 }
 
@@ -6766,7 +6766,7 @@ footer {
 
   background: radial-gradient(
     circle at center,
-    transparent 24%,
+    transparent 50%,
     rgba(0, 0, 0, 1) 100%
   );
 }
@@ -6845,6 +6845,120 @@ footer {
 }
 
 /* Bento grid end */
+
+/* Slider starts */
+
+.featureSliderSection {
+  margin-top: 120px;
+  text-align: center;
+  padding: var(--px-16);
+}
+
+.sliderWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.sliderContainer {
+  width: 100%;
+  max-width: 720px;
+  overflow: hidden;
+}
+
+.featureSlide {
+  border-radius: 20px;
+  padding: 28px;
+}
+
+.slideContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  cursor: grab;
+}
+
+.slideContent:active {
+  cursor: grabbing;
+}
+
+.featureSlide h3 {
+  font-size: var(--px-24);
+  margin: 0;
+}
+
+.featureSlide p {
+  font-size: var(--px-16);
+  color: var(--white-50);
+  max-width: 480px;
+  text-align: center;
+}
+
+.featureImage img {
+  width: 450px;
+  height: 400px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+/* Arrows */
+.sliderArrow {
+  background: transparent;
+  border: 1px solid #333;
+  color: white;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
+
+.sliderArrow:hover {
+  background: #1c1c1c;
+}
+
+/* Dots */
+.sliderDots {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+  gap: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: #555;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dot.active {
+  background: var(--primary);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sliderArrow {
+    display: none;
+  }
+
+  .featureSlide {
+    padding: 20px;
+  }
+
+  .featureSlide h3 {
+    font-size: 1.2rem;
+  }
+}
+
+/* Slider ends */
 
 /* Ach start */
 /* ===== Shiny Gradient Text ===== */

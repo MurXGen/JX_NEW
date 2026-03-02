@@ -29,8 +29,8 @@ const ChooseJournalX = () => {
   return (
     <section className="flexClm gap_32 landingBody">
       <HeaderSection
-        title="Why Choose JournalX?"
-        subtitle="Powerful, Intuitive, and Made for Every Trader"
+        title="Simple Pricing. Powerful Trade Insights."
+        subtitle="From free journaling to advanced performance analytics — JournalX grows with your trading journey."
       />
 
       <div className="flexClm gap_32">

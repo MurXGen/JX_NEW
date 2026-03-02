@@ -63,7 +63,7 @@ const HeroSection = () => {
   const [heroLoaded, setHeroLoaded] = useState(false);
   const { showPrompt, setShowPrompt, handleInstall } = useInstallPrompt();
 
-  const words = ["winning", "refining", "journaling", "improving"];
+  const words = ["trading", "profits", "performance", "results"];
 
   const [index, setIndex] = useState(0);
 
@@ -128,15 +128,10 @@ const HeroSection = () => {
                 textAlign: "center",
               }}
             >
-              Stop guessing.
+              The Smart Trading Journal App
               <br />
-              Start{" "}
-              <span className="wordWrapper">
-                <span key={index} className="animatedWord">
-                  {words[index]}
-                </span>
-              </span>{" "}
-              smarter.
+              To Improve Your &nbsp;
+              <span className="animatedWord">{words[index]}</span>
             </h1>
 
             <p
@@ -149,18 +144,20 @@ const HeroSection = () => {
                 textAlign: "center",
               }}
             >
-              Log in 10 seconds. Analyze in minutes. Trade with clarity.
+              JournalX helps stock, options, futures & crypto traders log trades
+              in seconds, analyze performance with powerful insights, and build
+              consistent profitability.
             </p>
           </div>
 
           <div className="HeroSectionActions">
             <button
               className="cta_button flexRow gap_4"
-              onClick={() => {
-                window.location.href = `https://journalx.app/login`;
-              }}
+              onClick={() =>
+                (window.location.href = `https://journalx.app/login`)
+              }
             >
-              Start 7-Day Pro — It’s Free
+              Start Free Trading Journal
             </button>
             {showPrompt && (
               <button
@@ -183,7 +180,8 @@ const HeroSection = () => {
               }}
             />
             <span className="font_12 shade_50">
-              Trusted and journaled by traders across markets
+              Trusted by traders to journal and analyze trades across stocks,
+              options & crypto markets
             </span>
           </div>
         </div>
