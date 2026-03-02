@@ -42,27 +42,27 @@ export default function BentoGrid() {
     {
       title: "Expose Your Hidden Patterns",
       desc: "See what you keep repeating",
-      video: "/assets/identify_pattern.mp4",
+      video: "/assets/identify_pattern1.mp4",
     },
     {
       title: "Upgrade Your Next Decision",
       desc: "Turn past data into action",
-      video: "/assets/future_decision.mp4",
+      video: "/assets/future_decision1.mp4",
     },
     {
       title: "Create a System, Not Chaos",
       desc: "One workflow for every trade",
-      video: "/assets/track_trades.mp4",
+      video: "/assets/track_trades1.mp4",
     },
     {
       title: "Control emotions with data",
       desc: "Trade logic, not feelings",
-      video: "/assets/emotions.mp4",
+      video: "/assets/emotions1.mp4",
     },
     {
       title: "Build Confidence Over Time",
       desc: "Progress backed by real data",
-      video: "/assets/long_term.mp4",
+      video: "/assets/long_term1.mp4",
     },
   ];
 
