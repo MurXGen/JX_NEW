@@ -228,7 +228,7 @@ export default function Dashboard1() {
       <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
         {/* SIDEBAR */}
         <motion.div
-          animate={{ width: open ? 240 : 65 }}
+          animate={{ width: open ? 320 : 65 }}
           transition={{ duration: 0.25 }}
           className="sidebarContainer"
           style={{

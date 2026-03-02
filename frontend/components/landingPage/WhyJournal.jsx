@@ -1,81 +1,68 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
 import HeaderSection from "./HeaderSection";
 
 const reasons = [
   {
-    title: "Pass Funding Accounts",
+    title: "Know What’s Right & Wrong",
     description:
-      "Master your trades, impress funders, and unlock limitless capital growth.",
+      "Identify mistakes instantly and reinforce winning behaviors through structured trade review.",
+    image: "/assets/reason-1.png",
   },
   {
-    title: "Grow Personal Account",
+    title: "Understand Trading Patterns",
     description:
-      "Turn consistent analysis into compounding profits and real financial freedom.",
+      "Discover recurring setups and eliminate strategies that silently drain your capital.",
+    image: "/assets/reason-2.png",
   },
   {
-    title: "No More Emotion Damage",
+    title: "Take Better Future Decisions",
     description:
-      "Trade calmly, think clearly, and protect your edge from emotions.",
+      "Turn past data into future confidence with objective performance insights.",
+    image: "/assets/reason-3.png",
   },
   {
-    title: "Build Powerful Strategies",
+    title: "Track & Analyze Trades",
     description:
-      "Design data-driven trading systems that adapt, scale, and win consistently.",
+      "Maintain complete visibility over entries, exits, risk, and consistency.",
+    image: "/assets/reason-4.png",
+  },
+  {
+    title: "Control Trading Emotions",
+    description:
+      "Reduce impulsive decisions and build a disciplined trading mindset.",
+    image: "/assets/reason-5.png",
   },
 ];
 
-// helper to highlight last two words
-const highlightLastTwoWords = (text) => {
-  const words = text.split(" ");
-  const firstPart = words.slice(0, -2).join(" ");
-  const lastPart = words.slice(-2).join(" ");
-  return (
-    <>
-      {firstPart} <span className="vector">{lastPart}</span>
-    </>
-  );
-};
-
 const WhyJournalSection = () => {
   return (
-    <section className="flexClm mrgin_tp_100 landingBody gap_32">
+    <section className="flexClm mrgin_tp_100 landingBody gap_40">
       <HeaderSection
         title="Why Journal Your Trades?"
-        subtitle="4 reasons every trader needs JournalX"
+        subtitle="5 powerful reasons every serious trader needs it"
       />
 
-      <div className="section_grid">
+      <div className="bento-grid">
         {reasons.map((reason, index) => (
           <motion.div
             key={index}
-            className="chart_boxBg_lp flexRow gap_12 pad_32"
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, delay: index * 0.15 }}
+            className="bento-card"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: index * 0.1 }}
             viewport={{ once: true }}
           >
-            <motion.div
-              className="chart_boxBg_lp flexRow flex_center br_24"
-              style={{ width: 36, height: 36, minWidth: 36 }}
-              initial={{ scale: 0.8, color: "#fff" }}
-              whileInView={{
-                scale: 1,
-                color: "var(--success)",
-              }}
-              transition={{ duration: 0.8, delay: index * 0.8 }}
-              viewport={{ once: true }}
-            >
-              <Check size={14} className="successBg" />
-            </motion.div>
+            {/* Top Left Content */}
+            <div className="bento-content">
+              <h3 className="font_18 font_weight_600">{reason.title}</h3>
+              <p className="font_14 shade_60">{reason.description}</p>
+            </div>
 
-            <div>
-              <h3 className="font_16 marg_0">
-                {highlightLastTwoWords(reason.title)}
-              </h3>
-              <p className="font_14 shade_50 marg_0">{reason.description}</p>
+            {/* Bottom Right Image */}
+            <div className="bento-image">
+              <img src={reason.image} alt={reason.title} />
             </div>
           </motion.div>
         ))}

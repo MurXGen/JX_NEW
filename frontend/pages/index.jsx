@@ -186,8 +186,8 @@ export default function Home() {
         <HeroSection />
         <ProfitJourneySection />
         <SponsorsSection />
-        {/* <BentoGrid /> */}
-        <WhyJournalSection />
+        <BentoGrid />
+        {/* <WhyJournalSection /> */}
         <ChooseJournalX />
         <AchievementsSection />
         <FeatureSection />

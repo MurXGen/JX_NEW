@@ -1,103 +1,108 @@
+"use client";
+import { useEffect, useRef } from "react";
+import HeaderSection from "./HeaderSection";
+
 export default function BentoGrid() {
+  const videoRefs = useRef([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target;
+          if (entry.isIntersecting) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.5 },
+    );
+
+    videoRefs.current.forEach((video) => {
+      if (video) observer.observe(video);
+    });
+
+    return () => {
+      videoRefs.current.forEach((video) => {
+        if (video) observer.unobserve(video);
+      });
+    };
+  }, []);
+
+  const cards = [
+    {
+      title: "Know What’s Right. Fix What’s Wrong.",
+      desc: "Clearly see which trades made you money and which ones didn’t. Stop guessing. Start improving with real data.",
+      highlight: "Clarity creates consistency.",
+      video: "/assets/know_pattern.mp4",
+      large: true,
+    },
+    {
+      title: "Understand Your Trading Patterns",
+      desc: "Identify which setups work, which don’t, and how your strategy performs over time.",
+      video: "/assets/identify_pattern.mp4",
+    },
+    {
+      title: "Make Better Future Decisions",
+      desc: "Use historical insights to avoid repeat mistakes and improve every next trade.",
+      video: "/assets/future_decision.mp4",
+    },
+    {
+      title: "Track & Analyse Every Trade",
+      desc: "Log entries, exits, screenshots, tags and performance metrics — all in one structured system.",
+      video: "/assets/track_trades.mp4",
+    },
+    {
+      title: "Control Your Trading Emotions",
+      desc: "Spot emotional trades, overtrading patterns, and revenge setups before they hurt performance.",
+      video: "/assets/emotions.mp4",
+    },
+    {
+      title: "Build Long-Term Consistency",
+      desc: "Track progress over weeks and months. Measure growth and build confidence backed by data.",
+      video: "/assets/long_term.mp4",
+    },
+  ];
+
   return (
-    <section className="bentoSection">
-      <div className="bentoHeader">
-        <h2 className="bentoTitle">
-          Everything you need to trade smarter. Nothing you don’t.
-        </h2>
-      </div>
+    <section className="bentoSection flexClm gap_32">
+      <HeaderSection
+        title="Why Every Serious Trader Journals"
+        subtitle="Because consistency, clarity, and confidence don’t come from guessing — they come from reviewing."
+      />
 
       <div className="bentoGrid">
-        {/* 1️⃣ Large Hero Card */}
-        <div className="bentoCard bentoLarge">
-          <div className="bentoContent">
-            <h3>Quick Log in Seconds</h3>
-            <p>
-              Log trades in under 10 seconds. Just symbol + P&amp;L. Add
-              screenshots, tags, learnings if you want.
-            </p>
-            <span className="bentoHighlight">No friction. No excuses.</span>
-          </div>
+        {cards.map((card, index) => (
+          <div
+            key={index}
+            className={`bentoCard ${card.large ? "bentoLarge" : ""}`}
+          >
+            <div className="bentoContent">
+              <h3>{card.title}</h3>
+              <p>{card.desc}</p>
+              {card.highlight && (
+                <span className="bentoHighlight">{card.highlight}</span>
+              )}
+            </div>
 
-          <div className="bentoImageWrap">
-            <img src="/assets/easy_smooth.svg" alt="Quick log preview" />
+            <div className={`bentoImageWrap ${card.large ? "" : "small"}`}>
+              <div className="videoWrapper">
+                <video
+                  ref={(el) => (videoRefs.current[index] = el)}
+                  src={card.video}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  className="bentoVideo"
+                />
+                <div className="videoFadeOverlay" />
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* 2 */}
-        <div className="bentoCard">
-          <div className="bentoContent">
-            <h3>Powerful Dashboard Analytics</h3>
-            <p>
-              Candlestick P&amp;L charts, win-rate, expectancy, tag insights,
-              long/short breakdown — all in one place.
-            </p>
-          </div>
-
-          <div className="bentoImageWrap small">
-            <img src="/assets/easy_smooth.svg" alt="Dashboard analytics" />
-          </div>
-        </div>
-
-        {/* 3 */}
-        <div className="bentoCard">
-          <div className="bentoContent">
-            <h3>Trade Cards with Snapshots</h3>
-            <p>
-              Scroll through trades visually. Compare screenshots and see
-              exactly where things went wrong.
-            </p>
-          </div>
-
-          <div className="bentoImageWrap small">
-            <img src="/assets/easy_smooth.svg" alt="Trade cards preview" />
-          </div>
-        </div>
-
-        {/* 4 */}
-        <div className="bentoCard">
-          <div className="bentoContent">
-            <h3>Smart Tag & Pattern Analysis</h3>
-            <p>
-              Discover winning setups, identify emotional trades, and eliminate
-              repeat mistakes.
-            </p>
-          </div>
-
-          <div className="bentoImageWrap small">
-            <img src="/assets/easy_smooth.svg" alt="Tag analysis preview" />
-          </div>
-        </div>
-
-        {/* 5 */}
-        <div className="bentoCard">
-          <div className="bentoContent">
-            <h3>Calendar Performance View</h3>
-            <p>
-              Monthly & yearly heatmaps. Green days. Red days. Instant clarity
-              on consistency.
-            </p>
-          </div>
-
-          <div className="bentoImageWrap small">
-            <img src="/assets/easy_smooth.svg" alt="Calendar preview" />
-          </div>
-        </div>
-
-        {/* 6 */}
-        <div className="bentoCard">
-          <div className="bentoContent">
-            <h3>Running & Closed Trade Tracking</h3>
-            <p>
-              Auto P&amp;L calculations. Track active trades and know your real
-              exposure anytime.
-            </p>
-          </div>
-
-          <div className="bentoImageWrap small">
-            <img src="/assets/easy_smooth.svg" alt="Trade tracking preview" />
-          </div>
-        </div>
+        ))}
       </div>
     </section>
   );
