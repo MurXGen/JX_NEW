@@ -6710,8 +6710,9 @@ footer {
 .bentoCard {
   border: 1px solid var(--white-10);
   border-radius: 16px;
-  padding: 28px;
+  padding: var(--px-32);
   backdrop-filter: blur(16px);
+  background: #020202;
   transition: all 0.3s ease;
 }
 
@@ -6836,9 +6837,6 @@ footer {
 }
 
 /* Hero card bigger image */
-
-.bentoLarge .bentoImageWrap img {
-}
 
 /* Hover effect */
 

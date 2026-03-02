@@ -36,7 +36,7 @@ export default function BentoGrid() {
       title: "Know What’s Right. Fix What’s Wrong.",
       desc: "Clearly see which trades made you money and which ones didn’t. Stop guessing. Start improving with real data.",
       highlight: "Clarity creates consistency.",
-      video: "/assets/know_pattern.mp4",
+      video: "/assets/know_pattern1.mp4",
       large: true,
     },
     {
