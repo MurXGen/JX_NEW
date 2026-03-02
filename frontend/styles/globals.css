@@ -6708,17 +6708,11 @@ footer {
 /* Cards */
 
 .bentoCard {
-  background: #050505;
   border: 1px solid var(--white-10);
   border-radius: 16px;
   padding: 28px;
   backdrop-filter: blur(16px);
   transition: all 0.3s ease;
-}
-
-.bentoCard:hover {
-  border-color: var(--primary);
-  transform: translateY(-4px);
 }
 
 .bentoCard h3 {
