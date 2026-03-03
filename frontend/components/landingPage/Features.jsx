@@ -1,131 +1,144 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import {
+  Layers,
+  GitBranch,
+  Image as ImageIcon,
+  LineChart,
+  Calendar,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import HeaderSection from "./HeaderSection";
 
 const features = [
   {
     title: "Multiple Journal Accounts",
-    description:
-      "Manage different trading strategies and accounts separately to track performance accurately.",
-    image: "/assets/multiple_journal.svg",
+    desc: "Manage different trading strategies in separate journals.",
+    icon: Layers,
+    image: "/assets/multiple_journal1.svg",
   },
   {
-    title: "Entries & Exits Timeline",
-    description:
-      "Review every trade with a structured execution history and clear insights.",
-    image: "/assets/log_entries.svg",
+    title: "Multiple Entries & Exits",
+    desc: "Track partial entries and exits with precision.",
+    icon: GitBranch,
+    image: "/assets/log_entries1.svg",
   },
   {
-    title: "Trade Image Snapshots",
-    description:
-      "Attach chart screenshots to analyze decisions visually and reduce emotional trading.",
+    title: "Trade Image Snapshot",
+    desc: "Attach chart screenshots to every trade.",
+    icon: ImageIcon,
     image: "/assets/snapshots.svg",
   },
   {
-    title: "Instant P&L Tracking",
-    description: "Get real-time profit and loss summaries after every trade.",
-    image: "/assets/log_pnl.svg",
+    title: "Quick PnL Log",
+    desc: "Instantly record profits and losses.",
+    icon: LineChart,
+    image: "/assets/pnl_graph.svg",
   },
   {
-    title: "Calendar Performance View",
-    description: "Identify winning and losing trading days at a glance.",
-    image: "/assets/calendar_view.svg",
+    title: "Calendar Analysis",
+    desc: "Review performance by day and week.",
+    icon: Calendar,
+    image: "/assets/calendar_view1.svg",
+  },
+  {
+    title: "And Many More",
+    desc: "Advanced tools for serious traders.",
+    icon: MoreHorizontal,
+    image: "/assets/many_more.svg",
   },
 ];
 
-const FeatureSlider = () => {
+export default function FeatureSection() {
   const [index, setIndex] = useState(0);
+  const timeoutRef = useRef(null);
 
-  const nextSlide = () => {
-    setIndex((prev) => (prev + 1) % features.length);
-  };
-
-  const prevSlide = () => {
+  const next = () => setIndex((prev) => (prev + 1) % features.length);
+  const prev = () =>
     setIndex((prev) => (prev - 1 + features.length) % features.length);
-  };
 
-  // ✅ Auto slide every 2 seconds
+  // Auto slide every 2s
   useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 3000);
+    timeoutRef.current = setTimeout(next, 2000);
+    return () => clearTimeout(timeoutRef.current);
+  }, [index]);
 
-    return () => clearInterval(interval);
-  }, []);
+  const activeFeature = features[index];
+  const Icon = activeFeature.icon;
 
   return (
-    <section className="featureSliderSection">
+    <section className="feature-section mrgin_tp_100">
       <HeaderSection
-        title="JournalX Features"
-        subtitle="Explore the tools that help traders build discipline and consistency."
+        title="Powerful Trading Journal Features"
+        subtitle="Tools built to improve discipline, execution, and performance."
         glowLight={false}
       />
 
-      <div className="sliderWrapper">
-        {/* Left Arrow */}
-        <button className="sliderArrow" onClick={prevSlide}>
-          <ChevronLeft size={22} />
+      {/* Slider */}
+      <div className="feature-slider-wrapper">
+        {/* Desktop arrows */}
+        <button className="icon-dot left" onClick={prev}>
+          <ChevronLeft size={28} />
         </button>
 
-        {/* Slide Container */}
-        <div className="sliderContainer">
+        <div className="feature-slider-content">
           <AnimatePresence mode="wait">
-            <motion.article
+            <motion.div
               key={index}
-              className="featureSlide"
-              initial={{ opacity: 0, x: 60 }}
+              className="feature-card"
+              initial={{ opacity: 0, x: 80 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -60 }}
+              exit={{ opacity: 0, x: -80 }}
               transition={{ duration: 0.5 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={(e, info) => {
+                if (info.offset.x < -100) next();
+                if (info.offset.x > 100) prev();
+              }}
             >
-              {/* Swipe only content */}
-              <motion.div
-                className="slideContent"
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(e, info) => {
-                  if (info.offset.x < -120) nextSlide();
-                  if (info.offset.x > 120) prevSlide();
-                }}
-              >
-                <div className="featureImage">
-                  <Image
-                    src={features[index].image}
-                    alt={features[index].title}
-                    width={300}
-                    height={300}
-                  />
-                </div>
-                <div className="flexClm ">
-                  <h3>{features[index].title}</h3>
-                  <p>{features[index].description}</p>
-                </div>
-              </motion.div>
-            </motion.article>
+              <Image
+                src={activeFeature.image}
+                alt={activeFeature.title}
+                width={400}
+                height={300}
+                className="feature-image"
+                priority={false}
+              />
+              <div className="flexClm flex_center">
+                <h3 className="feature-title font_24">{activeFeature.title}</h3>
+                <p className="feature-desc font_16 shade_50">
+                  {activeFeature.desc}
+                </p>
+              </div>
+            </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Right Arrow */}
-        <button className="sliderArrow" onClick={nextSlide}>
-          <ChevronRight size={22} />
+        <button className="icon-dot right" onClick={next}>
+          <ChevronRight size={28} />
         </button>
       </div>
 
-      {/* Dots */}
-      <div className="sliderDots">
-        {features.map((_, i) => (
-          <span
-            key={i}
-            className={`dot ${i === index ? "active" : ""}`}
-            onClick={() => setIndex(i)}
-          />
-        ))}
+      {/* Mobile icon pagination */}
+      <div className="mobile-icon-pagination">
+        {features.map((item, i) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={i}
+              className={`icon-dot ${i === index ? "active" : ""}`}
+              onClick={() => setIndex(i)}
+            >
+              <Icon size={20} />
+            </button>
+          );
+        })}
       </div>
     </section>
   );
-};
-
-export default FeatureSlider;
+}
