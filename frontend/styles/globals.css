@@ -7390,6 +7390,24 @@ footer {
   }
 }
 
+@media (min-width: 768px) {
+  .authWrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center; /* vertical center */
+    justify-content: center; /* horizontal center */
+  }
+  .authenticate {
+    max-width: 400px !important;
+    width: 100%;
+    background: var(--white);
+    padding: var(--px-32);
+    border-radius: var(--px-24);
+    border: 1px solid var(--black-10) !important;
+    box-shadow: 1px 1px 12px var(--black-10);
+  }
+}
+
 /* ===============================
    📱 Responsive Design
 ==================================*/

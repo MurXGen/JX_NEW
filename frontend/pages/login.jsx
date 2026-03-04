@@ -207,114 +207,109 @@ function Login() {
         <link rel="canonical" href="https://journalx.app/login" />
         <meta name="theme-color" content="#000000" />
       </Head>
-      <div
-        className="login flexClm gap_32"
-        style={{
-          maxWidth: "800px",
-          minWidth: "300px",
-          margin: "32px auto",
-          padding: "0 12px 100px 12px",
-        }}
-      >
-        {/* <Navbar /> */}
-        <div className="flexClm gap_32">
-          <div className="s_tit_des flexClm">
-            <span className="font_24 font_weight_600">Login to continue</span>
-            <span className="font_14 desc">
-              Login to your account to access your trades data
-            </span>
-          </div>
-          <div className="flexClm gap_24">
-            <div className="flexClm">
-              <input
-                value={email}
-                onChange={handleChange}
-                placeholder="Email Address"
-                type="email"
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-            <div className="passwordWrap flexClm">
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                type={showPassword ? "text" : "password"}
-                onKeyDown={handleKeyDown}
-              />
-              <button
-                type="button"
-                className="eyeButton"
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "white",
-                  marginTop: "4px",
-                }}
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-              onSuccess={(token) => setTurnstileToken(token)}
-            />
-            <div className="flexClm gap_12">
-              <button
-                type="submit"
-                disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
-                className="primary-btn flexRow gap_12 flexRow_center flexRow_stretch"
-                onClick={(e) => {
-                  e.preventDefault(); // prevent form reload
-                  handleLogin(); // call login function
-                }}
-              >
-                {isLoading ? <div className="spinner"></div> : "Login"}
-                {!isLoading && <ArrowRight size={20} />}
-              </button>
-            </div>
-
-            <div>
-              <button
-                className="tertiary-btn"
-                onClick={() => router.push("/register")}
-              >
-                Don't have an account? Register here
-              </button>
-            </div>
-          </div>
-
-          <div className="flexClm gap_24">
-            <div
-              className="flexRow gap_12 flex_center"
-              style={{ color: "var(--black-50)", opacity: "0.5" }}
-            >
-              <hr width="100%"></hr>
-              <span className="font_12" style={{ color: "var(--black-50)" }}>
-                or
+      <div className="authWrapper">
+        <div className="login authenticate flexClm gap_32">
+          {/* <Navbar /> */}
+          <div className="flexClm gap_32">
+            <div className="s_tit_des flexClm">
+              <span className="font_24 font_weight_600">Login to continue</span>
+              <span className="font_14 desc">
+                Login to your account to access your trades data
               </span>
-              <hr width="100%"></hr>
+            </div>
+            <div className="flexClm gap_24">
+              <div className="flexClm">
+                <input
+                  value={email}
+                  onChange={handleChange}
+                  placeholder="Email Address"
+                  type="email"
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+              <div className="passwordWrap flexClm">
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                  onKeyDown={handleKeyDown}
+                />
+                <button
+                  type="button"
+                  className="eyeButton"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "white",
+                    marginTop: "4px",
+                  }}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setTurnstileToken(token)}
+              />
+              <div className="flexClm gap_12">
+                <button
+                  type="submit"
+                  disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
+                  className="primary-btn flexRow gap_12 flexRow_center flexRow_stretch"
+                  onClick={(e) => {
+                    e.preventDefault(); // prevent form reload
+                    handleLogin(); // call login function
+                  }}
+                >
+                  {isLoading ? <div className="spinner"></div> : "Login"}
+                  {!isLoading && <ArrowRight size={20} />}
+                </button>
+              </div>
+
+              <div>
+                <button
+                  className="tertiary-btn"
+                  onClick={() => router.push("/register")}
+                >
+                  Don't have an account? Register here
+                </button>
+              </div>
             </div>
 
-            <button
-              onClick={() => {
-                // Redirect to your backend Google OAuth endpoint
-                window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
-              }}
-              className="primary-btn secondary-btn flexRow gap_8 items-center justify-center"
-            >
-              <FcGoogle size={20} /> Continue with Google
-            </button>
+            <div className="flexClm gap_24">
+              <div
+                className="flexRow gap_12 flex_center"
+                style={{ color: "var(--black-50)", opacity: "0.5" }}
+              >
+                <hr width="100%"></hr>
+                <span className="font_12" style={{ color: "var(--black-50)" }}>
+                  or
+                </span>
+                <hr width="100%"></hr>
+              </div>
+
+              <button
+                onClick={() => {
+                  // Redirect to your backend Google OAuth endpoint
+                  window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+                }}
+                className="primary-btn secondary-btn flexRow gap_8 items-center justify-center"
+              >
+                <FcGoogle size={20} /> Continue with Google
+              </button>
+            </div>
+
+            {popup.message && (
+              <ToastMessage message={popup.message} type={popup.type} />
+            )}
+
+            <BackgroundBlur />
           </div>
-
-          {popup.message && (
-            <ToastMessage message={popup.message} type={popup.type} />
-          )}
-
-          <BackgroundBlur />
         </div>
       </div>
+
       <LegalLinks />
     </>
   );
