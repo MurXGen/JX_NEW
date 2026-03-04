@@ -31,7 +31,7 @@ const SponsorsSection = () => {
     >
       <HeaderSection
         title="Built for Every Market You Trade"
-        subtitle="No matter how or where you trade, JournalX adapts to your style and helps you stay disciplined and consistent."
+        subtitle="Flexible, structured, and built for consistency."
       />
 
       <div className="marquee_wrapper" role="list">
@@ -59,7 +59,7 @@ const SponsorsSection = () => {
                   >
                     {item.icon}
                   </div>
-                  <span>{item.text}</span>
+                  <span className="font_14">{item.text}</span>
                 </li>
               ))}
             </ul>

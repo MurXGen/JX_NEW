@@ -73,7 +73,7 @@ export default function BentoGrid() {
     >
       <HeaderSection
         title="Why Serious Traders Review Every Trade"
-        subtitle="Progress doesn’t come from more trades — it comes from understanding the ones you already made."
+        subtitle="A trading journal helps improve performance, discipline, and trading consistency."
       />
 
       <div className="bentoGrid">

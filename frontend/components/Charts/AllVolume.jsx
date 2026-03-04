@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
   YAxis,
+  Cell,
   LabelList,
 } from "recharts";
 import { useMemo, useState } from "react";
@@ -17,78 +18,131 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function VolumeChart({ dailyData }) {
   const [weekOffset, setWeekOffset] = useState(0);
 
-  // Calculate start of the week (Monday)
   const startOfWeek = useMemo(() => {
     const now = new Date();
     const day = now.getDay();
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
     const start = new Date(now.setDate(diff));
+    // Adjust based on week offset
     start.setDate(start.getDate() + weekOffset * 7);
+    // Set to beginning of Monday in local timezone
     start.setHours(0, 0, 0, 0);
     return start;
   }, [weekOffset]);
 
-  // Build week data with separate long and short volumes
   const weekData = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    return days.map((d, i) => {
-      const dayDate = new Date(startOfWeek);
-      dayDate.setDate(startOfWeek.getDate() + i);
 
-      const dateKey = dayDate.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+    // Create a map for the week with UTC date boundaries
+    const map = Object.fromEntries(
+      days.map((d, i) => {
+        const dayDate = new Date(startOfWeek);
+        dayDate.setDate(startOfWeek.getDate() + i);
 
-      const dayTrades = dailyData.filter((item) => item.date === dateKey);
-      let totalVolume = 0;
+        // Create UTC boundaries for this day
+        const utcStart = new Date(dayDate);
+        utcStart.setHours(0, 0, 0, 0);
+        const utcEnd = new Date(dayDate);
+        utcEnd.setHours(23, 59, 59, 999);
 
-      dayTrades.forEach((t) => {
-        const longV = t.longVolume || 0;
-        const shortV = t.shortVolume || 0;
-        totalVolume += longV + shortV;
-      });
+        return [
+          d,
+          {
+            totalVolume: 0,
+            longVolume: 0,
+            shortVolume: 0,
+            date: dayDate.toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "short",
+            }),
+            utcStart: utcStart.getTime(),
+            utcEnd: utcEnd.getTime(),
+          },
+        ];
+      }),
+    );
 
-      return {
-        day: d,
-        date: dayDate.toLocaleDateString("en-US", {
-          day: "numeric",
-          month: "short",
-        }),
-        totalVolume,
-      };
+    // Process each trade
+    dailyData.forEach(({ date, longVolume = 0, shortVolume = 0 }) => {
+      const tradeDate = new Date(date);
+      const tradeTime = tradeDate.getTime();
+
+      // Find which day this trade belongs to
+      for (const day in map) {
+        if (tradeTime >= map[day].utcStart && tradeTime <= map[day].utcEnd) {
+          map[day].longVolume += longVolume;
+          map[day].shortVolume += shortVolume;
+          map[day].totalVolume += longVolume + shortVolume;
+          break;
+        }
+      }
     });
+
+    return days.map((d) => ({
+      day: d,
+      totalVolume: map[d].totalVolume,
+      longVolume: map[d].longVolume,
+      shortVolume: map[d].shortVolume,
+      date: map[d].date,
+    }));
   }, [dailyData, startOfWeek]);
 
-  const maxVolume = Math.max(...weekData.map((d) => d.longVolume));
-  const maxShortVolume = Math.max(...weekData.map((d) => d.shortVolume));
+  const maxVolume = Math.max(...weekData.map((d) => d.totalVolume));
 
-  // Week range for header
+  // Format week range for display
   const weekRange = useMemo(() => {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
-    const fmt = { day: "numeric", month: "short" };
-    return `${startOfWeek.toLocaleDateString(
+
+    const formatOptions = { day: "numeric", month: "short" };
+    const startFormatted = startOfWeek.toLocaleDateString(
       "en-US",
-      fmt,
-    )} - ${endOfWeek.toLocaleDateString("en-US", fmt)}`;
+      formatOptions,
+    );
+    const endFormatted = endOfWeek.toLocaleDateString("en-US", formatOptions);
+
+    return `${startFormatted} - ${endFormatted}`;
   }, [startOfWeek]);
 
-  const handlePreviousWeek = () => setWeekOffset((prev) => prev - 1);
-  const handleNextWeek = () => setWeekOffset((prev) => prev + 1);
-  const handleCurrentWeek = () => setWeekOffset(0);
+  // Navigation handlers
+  const handlePreviousWeek = () => {
+    setWeekOffset((prev) => prev - 1);
+  };
 
+  const handleNextWeek = () => {
+    setWeekOffset((prev) => prev + 1);
+  };
+
+  const handleCurrentWeek = () => {
+    setWeekOffset(0);
+  };
+
+  // 🎨 Custom Tooltip (styled like your PnL tooltip)
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload?.length) {
-      const { day, date, longVolume, shortVolume } = payload[0].payload;
+      const { totalVolume, longVolume, shortVolume, day, date } =
+        payload[0].payload;
+
       return (
-        <div className=" font_12 flexClm gap_6">
-          <div>
+        <div className="boxBg tooltip font_12 flexClm gap_12">
+          <div className="pnl-tooltip-header">
             {day} {date && `(${date})`}
           </div>
-          <div className="positive">{formatNumber(longVolume)} Long</div>
-          <div className="negative">{formatNumber(shortVolume)} Short</div>
+
+          <div className="flexClm gap_6">
+            <div className="positive">{formatNumber(longVolume)} Long</div>
+            <div className="negative">{formatNumber(shortVolume)} Short</div>
+            <div
+              className="total-volume"
+              style={{
+                borderTop: "1px solid var(--black-10)",
+                paddingTop: "6px",
+                marginTop: "2px",
+              }}
+            >
+              Total: {formatNumber(totalVolume)}
+            </div>
+          </div>
         </div>
       );
     }
@@ -96,13 +150,18 @@ export default function VolumeChart({ dailyData }) {
   };
 
   return (
-    <div className="chart_container radius-12 stats-card">
+    <div className="chart_container stats-card radius-12">
       <span className="card-value">Weekly volume chart</span>
 
-      {/* Navigation */}
+      {/* Navigation Header */}
       <div className="flexRow flexRow_stretch font_12">
-        <button onClick={handlePreviousWeek} className="btn flexRow">
-          <ChevronLeft size={16} />
+        <button
+          onClick={handlePreviousWeek}
+          className="btn flexRow"
+          aria-label="Previous week"
+          style={{ minWidth: "fit-content", maxWidth: "fit-content" }}
+        >
+          <ChevronLeft size={14} color="black" />
         </button>
 
         <div className="flexRow gap_12">
@@ -114,20 +173,24 @@ export default function VolumeChart({ dailyData }) {
           )}
         </div>
 
-        <button onClick={handleNextWeek} className="btn flexRow">
-          <ChevronRight size={16} />
+        <button
+          onClick={handleNextWeek}
+          className="btn flexRow"
+          aria-label="Next week"
+          style={{ minWidth: "fit-content", maxWidth: "fit-content" }}
+        >
+          <ChevronRight size={14} color="black" />
         </button>
       </div>
 
-      {/* Chart */}
       <ResponsiveContainer width="100%" height={250}>
         <BarChart
           data={weekData}
           barCategoryGap="30%"
-          margin={{ top: 40, bottom: 20 }}
+          margin={{ top: 20, bottom: 20 }}
         >
           <defs>
-            <linearGradient id="volTotal" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.9} />
               <stop offset="100%" stopColor="#3B82F680" stopOpacity={0.5} />
             </linearGradient>
@@ -138,25 +201,21 @@ export default function VolumeChart({ dailyData }) {
             axisLine={false}
             tickLine={false}
             tick={({ x, y, payload }) => {
-              // Compute which day in this week is "today"
               const today = new Date();
-              const adjustedToday = new Date(today);
-              adjustedToday.setHours(0, 0, 0, 0);
+              const currentDayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
-              // The startOfWeek is already adjusted for weekOffset
-              const dayIndex = payload.index; // 0 = Monday, 6 = Sunday
-              const tickDate = new Date(startOfWeek);
-              tickDate.setDate(startOfWeek.getDate() + dayIndex);
-
-              const isToday = tickDate.getTime() === adjustedToday.getTime();
+              // Map Sunday = 0 to "Sun", Monday = 1 to "Mon", ...
+              const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+              const isToday = payload.value === daysMap[currentDayIndex];
 
               return (
                 <text
                   x={x}
-                  y={y + 16} // dy
+                  y={y + 16} // dy equivalent
                   textAnchor="middle"
-                  className={isToday ? "card-value" : "card-label"}
+                  className={isToday ? "" : "shade_50"}
                   fontSize={12}
+                  fill={isToday ? "var(--black)" : "var(--black-50)"}
                 >
                   {payload.value}
                 </text>
@@ -164,36 +223,27 @@ export default function VolumeChart({ dailyData }) {
             }}
           />
 
-          <YAxis hide />
+          <YAxis hide domain={[0, (dataMax) => dataMax * 1.2]} />
+
           <ReferenceLine y={0} stroke="#aaa" strokeDasharray="3 3" />
-          <Tooltip
-            content={({ active, payload }) => {
-              if (active && payload?.length) {
-                const { day, date, totalVolume } = payload[0].payload;
-                return (
-                  <div className="tooltip pad_16 font_12 flexClm">
-                    <div>
-                      {day} {date && `(${date})`}
-                    </div>
-                    <div>Total Volume: {formatNumber(totalVolume)}</div>
-                  </div>
-                );
-              }
-              return null;
-            }}
-            cursor={{ fill: "#ffffff10" }}
-          />
+
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: "#ffffff10" }} />
 
           <Bar
             dataKey="totalVolume"
             radius={[12, 12, 0, 0]}
-            fill="url(#volTotal)"
+            fill="url(#volumeGradient)"
           >
             <LabelList
               dataKey="totalVolume"
               position="top"
               className="bar-label"
-              formatter={(val) => formatNumber(val)}
+              formatter={(val) => {
+                if (val === maxVolume) {
+                  return formatNumber(val);
+                }
+                return "";
+              }}
             />
           </Bar>
         </BarChart>

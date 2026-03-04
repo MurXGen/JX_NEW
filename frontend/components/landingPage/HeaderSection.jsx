@@ -16,9 +16,9 @@ const HeaderSection = ({
       {glowLight && <div className="glow-light" aria-hidden="true"></div>}
 
       <div className="content">
-        <h2 className="font_32 marg_0">{title}</h2>
+        <h2 className="font_24 marg_0">{title}</h2>
 
-        {subtitle && <p className="font_16 marg_0 shade_50">{subtitle}</p>}
+        {subtitle && <p className="font_14 marg_0 shade_50">{subtitle}</p>}
       </div>
     </header>
   );

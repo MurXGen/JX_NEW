@@ -168,35 +168,17 @@ const HeroSection = () => {
               </button>
             )}
           </div>
-
-          <div className="flexRow flex_center gap_8 trust_badge">
-            <Star
-              size={16}
-              strokeWidth={2}
-              className="trust_star"
-              style={{
-                color: "var(--primary-light)",
-                filter: "drop-shadow(0 0 6px var(--primary-light))",
-              }}
-            />
-            <span className="font_12 shade_50">
-              Trusted by traders to journal and analyze trades across stocks,
-              options & crypto markets
-            </span>
-          </div>
         </div>
 
         {/* Hero Image with fade-in */}
         <motion.div
           ref={ref}
-          style={{
-            rotateX,
-            rotateY,
-            rotateZ,
-            scale,
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{
             opacity: heroLoaded ? 1 : 0,
+            scale: heroLoaded ? 1 : 0.96,
           }}
-          transition={{ duration: 1.2 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
           className="heroImageSec"
         >
           <div className="shootingLine">
@@ -205,7 +187,7 @@ const HeroSection = () => {
 
           {isMobile ? (
             <Image
-              src="/assets/hero_mob_bg.png"
+              src="/assets/many_more2.svg"
               alt="Trading analytics dashboard mobile"
               width={800}
               height={600}
@@ -215,7 +197,7 @@ const HeroSection = () => {
             />
           ) : (
             <Image
-              src="/assets/hero_image.svg"
+              src="/assets/dashboard2.png"
               alt="Trading analytics dashboard"
               width={1200}
               height={600}
@@ -225,6 +207,16 @@ const HeroSection = () => {
             />
           )}
         </motion.div>
+
+        <div className="flexRow flex_center gap_8 trust_badge">
+          <span
+            className="font_12"
+            style={{ textAlign: "center", marginTop: "32px" }}
+          >
+            Trusted by traders to journal and analyze trades across <br />
+            stocks, options & crypto markets
+          </span>
+        </div>
       </section>
     </>
   );

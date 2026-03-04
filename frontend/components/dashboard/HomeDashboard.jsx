@@ -184,19 +184,16 @@ export default function DashboardMobile() {
                 currencySymbol={currencySymbol}
               />
             </div>
-            <div className="">
-              <PNLChart dailyData={stats.dailyData} />
-            </div>
-            <div className="">
+            <div className="flexRow gap_24">
               <DailyPnlChart data={candleData} />
-            </div>
-            <div className="">
               <PnLAreaChart data={candleData} />
             </div>
-
-            <div className="">
+            <div className="flexRow gap_24">
+              <PNLChart dailyData={stats.dailyData} />
               <VolumeChart dailyData={stats.dailyVolumeData} />
             </div>
+
+            <div className=""></div>
           </>
         )}
 
