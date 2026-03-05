@@ -12,6 +12,7 @@ require("../utils/passport");
 const passport = require("passport");
 const { sendTelegramNotification } = require("../utils/telegramNotifier");
 const createLimiter = require("../utils/rateLimiter");
+const Account = require("../models/Account");
 
 // 📌 Email/Password Registration
 router.post("/register", registerUser);
