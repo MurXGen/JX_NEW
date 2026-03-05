@@ -1,6 +1,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
+const Account = require("../models/Account");
 
 passport.use(
   new GoogleStrategy(
@@ -13,19 +14,18 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        // Check if user exists
         let user = await User.findOne({ email: profile.emails[0].value });
 
         if (!user) {
           const now = new Date();
           const expiry = new Date(now);
-          expiry.setDate(expiry.getDate() + 7); // 7-day free plan
+          expiry.setDate(expiry.getDate() + 7);
 
-          // Create new Google user with subscription info
+          // ✅ Create user
           user = await User.create({
             name: profile.displayName,
             email: profile.emails[0].value,
-            password: undefined, // Google signup
+            password: undefined,
             googleId: profile.id,
             subscriptionPlan: "pro",
             subscriptionStatus: "active",
@@ -33,16 +33,32 @@ passport.use(
             subscriptionStartAt: now,
             subscriptionExpiresAt: expiry,
             subscriptionCreatedAt: now,
-            isVerified: true, // you can mark Google users as verified immediately
+            isVerified: true,
           });
+
+          // ✅ Create default journal account
+          const defaultAccount = new Account({
+            userId: user._id,
+            name: "Default Journal",
+            currency: "USD", // or detect by IP later if you want
+            startingBalance: {
+              amount: 0,
+              time: new Date(),
+            },
+          });
+
+          await defaultAccount.save();
+
+          // attach account to user object for callback
+          user.defaultAccountId = defaultAccount._id;
         }
 
         return done(null, user);
       } catch (err) {
         return done(err, null);
       }
-    }
-  )
+    },
+  ),
 );
 
 passport.serializeUser((user, done) => {

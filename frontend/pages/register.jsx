@@ -424,8 +424,8 @@ function Register() {
                       style={{
                         background: "none",
                         border: "none",
-                        color: "white",
-                        marginTop: "4px",
+                        color: "var(--black)",
+                        marginTop: "12px",
                       }}
                       onClick={() => setShowPassword((prev) => !prev)}
                     >
@@ -457,8 +457,8 @@ function Register() {
                       style={{
                         background: "none",
                         border: "none",
-                        color: "white",
-                        marginTop: "4px",
+                        color: "var(--black)",
+                        marginTop: "12px",
                       }}
                       onClick={() => setShowConfirmPassword((prev) => !prev)}
                     >
@@ -527,7 +527,7 @@ function Register() {
 
                 <div className="flexRow gap_8">
                   <button
-                    className="button_sec flexRow width100 flex_center flexRow_stretch"
+                    className="primary-btn secondary-btn flexRow width100 flex_center flexRow_stretch"
                     onClick={handleResendOtp}
                     disabled={isLoading || timer > 0 || resendLimitReached}
                   >
@@ -539,9 +539,10 @@ function Register() {
                   </button>
 
                   <button
-                    className="button_pri flexRow width100 flex_center flexRow_stretch"
+                    className="primary-btn flexRow width100 flex_center flexRow_stretch"
                     onClick={handleVerifyOtp}
                     disabled={otp.length !== 6 || isLoading}
+                    style={{ color: "white" }}
                   >
                     {isLoading ? <div className="spinner"></div> : "Verify OTP"}
                   </button>

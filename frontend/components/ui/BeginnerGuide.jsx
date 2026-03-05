@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import SectionHeader from "./SectionHeader";
 
 const guideSteps = [
@@ -8,22 +9,19 @@ const guideSteps = [
     title: "Create Your Journal",
     description:
       "Maintain trades from different markets like Forex, Stocks, Crypto, etc., organized in one place.",
-    image:
-      "https://cdn.journalx.app/trades/close-images/1761478467537-Frame_588-4.png",
+    image: "/assets/multiple_journal.svg",
   },
   {
     title: "Log Trades",
     description:
       "Easily log your trades with all details to track performance and analyze trends.",
-    image:
-      "https://cdn.journalx.app/trades/open-images/1761478464677-Frame_588-3.png",
+    image: "/assets/log_entries.svg",
   },
   {
     title: "Get Analysis",
     description:
       "Receive insights and analysis based on your trading activity to make informed decisions.",
-    image:
-      "https://cdn.journalx.app/trades/open-images/1761478613157-Group_19-3.png",
+    image: "/assets/many_more2.svg",
   },
 ];
 
@@ -31,7 +29,7 @@ const BeginnerGuide = ({ onClose }) => {
   const [step, setStep] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
-  // ✅ Preload images once when component mounts
+  // Preload images
   useEffect(() => {
     const preloadImages = async () => {
       const promises = guideSteps.map(
@@ -41,7 +39,7 @@ const BeginnerGuide = ({ onClose }) => {
             img.src = step.image;
             img.onload = resolve;
             img.onerror = resolve;
-          })
+          }),
       );
       await Promise.all(promises);
       setImagesLoaded(true);
@@ -50,8 +48,11 @@ const BeginnerGuide = ({ onClose }) => {
   }, []);
 
   const handleNext = () => {
-    if (step < guideSteps.length - 1) setStep((prev) => prev + 1);
-    else onClose?.();
+    if (step < guideSteps.length - 1) {
+      setStep((prev) => prev + 1);
+    } else {
+      onClose?.();
+    }
   };
 
   const handlePrevious = () => {
@@ -65,111 +66,251 @@ const BeginnerGuide = ({ onClose }) => {
   const current = guideSteps[step];
 
   return (
-    <div className="cm-backdrop">
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "var(--white)",
+        zIndex: 1000,
+        overflowY: "auto",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Header with Close Button */}
       <div
-        className="bg_blur_40 flexClm gap_32 pad_16 chart_boxBg flex_center beginnerGuideContainer"
         style={{
-          position: "fixed",
-          bottom: "32px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 100,
-          borderRadius: "16px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-          minWidth: "260px",
-          maxWidth: "650px",
-          width: "85%",
-          textAlign: "center",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "20px 24px",
+          borderBottom: "1px solid var(--border-color, #334155)",
         }}
       >
-        <span className="font_12" style={{ color: "var(--primary)" }}>
-          How to journal trades?
-        </span>
+        <button onClick={handleSkip} className="btn">
+          Skip tour
+        </button>
 
-        {/* Section 2: Content */}
-        <div className="guideContent flexClm gap_16">
-          <SectionHeader
-            title={current.title}
-            description={current.description}
-            level={2}
-          />
+        <div
+          style={{
+            display: "flex",
+            gap: "4px",
+            background: "var(--black)",
+            padding: "4px 12px",
+            borderRadius: "20px",
+          }}
+        >
+          <span style={{ color: "var(--primary, #a77d02)", fontWeight: 600 }}>
+            {step + 1}
+          </span>
+          <span style={{ color: "var(--text-secondary, #94a3b8)" }}>
+            / {guideSteps.length}
+          </span>
         </div>
 
-        {/* Section 1: Image */}
+        <button
+          onClick={handleSkip}
+          style={{
+            background: "var(--black)",
+            border: "none",
+            color: "var(--white)",
+            cursor: "pointer",
+            width: "36px",
+            height: "36px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Main Content */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "24px",
+          maxWidth: "600px",
+          margin: "0 auto",
+        }}
+      >
+        {/* Image Section */}
         <div
-          className="guideImageContainer flex_center"
-          style={{ height: "250px" }}
+          style={{
+            height: "350px",
+            marginBottom: "40px",
+            position: "relative",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: "12px",
+            background: "black",
+          }}
         >
           {imagesLoaded ? (
             <img
               key={current.image}
               src={current.image}
               alt={current.title}
-              className="guideImageShake"
               style={{
                 width: "100%",
-                height: "auto",
-                maxHeight: "250px",
+                height: "100%",
                 objectFit: "contain",
-                transition: "opacity 0.3s ease",
+                boxShadow: "1px 1px 12px var(--black-50)",
+                animation: "fadeIn 0.3s ease",
+                borderRadius: "12px",
               }}
             />
           ) : (
-            <div className="spinner" />
+            <div
+              style={{
+                width: "48px",
+                height: "48px",
+                border: "3px solid var(--border-color, #334155)",
+                borderTopColor: "var(--primary, #a77d02)",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+              }}
+            />
           )}
-          <div className="guideImageShadow" />
         </div>
 
-        {/* Section 3: Progress Dots */}
-        <div className="flexRow flex_center gap_8">
+        {/* Content Section */}
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <span
+            style={{
+              fontSize: "12px",
+              color: "var(--primary, #a77d02)",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
+              marginBottom: "12px",
+              display: "block",
+            }}
+          >
+            Step {step + 1}
+          </span>
+
+          <h2 className="font_24" style={{ margin: "0" }}>
+            {" "}
+            {current.title}
+          </h2>
+
+          <p
+            className="font_16"
+            style={{ color: "var(--black-50)", margin: "0" }}
+          >
+            {current.description}
+          </p>
+        </div>
+
+        {/* Progress Dots */}
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            justifyContent: "center",
+            marginBottom: "40px",
+          }}
+        >
           {guideSteps.map((_, idx) => (
-            <span
+            <button
               key={idx}
-              className={`progressDot ${idx === step ? "active" : ""}`}
               onClick={() => setStep(idx)}
               style={{
-                width: "10px",
+                width: idx === step ? "32px" : "10px",
                 height: "10px",
-                borderRadius: "50%",
-                background: idx === step ? "var(--primary)" : "var(--white-20)",
+                borderRadius: idx === step ? "20px" : "50%",
+                background:
+                  idx === step
+                    ? "var(--primary, #a77d02)"
+                    : "var(--border-color, #334155)",
+                border: "none",
                 cursor: "pointer",
-                transition: "all 0.3s",
+                transition: "all 0.3s ease",
               }}
             />
           ))}
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flexRow flexRow_stretch gap_16 width100">
+        <div
+          style={{
+            display: "flex",
+            gap: "16px",
+            width: "100%",
+          }}
+        >
           <button
-            className="button_sec width100"
             onClick={handlePrevious}
             disabled={step === 0}
+            className="primary-btn secondary-btn width100 flexRow flex_center"
           >
+            <ChevronLeft size={18} />
             Previous
           </button>
 
           <button
-            className="shade_50 width100"
-            onClick={handleSkip}
-            style={{
-              color: "var(--base-text)",
-              background: "none",
-              border: "none",
-            }}
-          >
-            Skip
-          </button>
-
-          <button
-            className="button_pri width100"
             onClick={handleNext}
-            aria-label={step === guideSteps.length - 1 ? "Finish" : "Next"}
+            className="primary-btn width100 flexRow flex_center"
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = "scale(1.02)")
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
           >
             {step === guideSteps.length - 1 ? "Finish" : "Next"}
+            {step !== guideSteps.length - 1 && <ChevronRight size={18} />}
           </button>
         </div>
+
+        {/* Skip link for mobile */}
+        <button
+          onClick={handleSkip}
+          style={{
+            marginTop: "24px",
+            background: "none",
+            border: "none",
+            color: "var(--text-secondary, #94a3b8)",
+            fontSize: "14px",
+            textDecoration: "underline",
+            cursor: "pointer",
+            display: "none", // Hide on desktop, show on mobile via media query
+          }}
+          className="mobile-skip"
+        />
       </div>
+
+      {/* Animations */}
+      <style jsx>{`
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @media (max-width: 640px) {
+          .mobile-skip {
+            display: block;
+          }
+        }
+      `}</style>
     </div>
   );
 };

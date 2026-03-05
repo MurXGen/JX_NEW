@@ -37,15 +37,24 @@ router.get(
   }),
   async (req, res) => {
     try {
-      // ✅ Set userId cookie
       res.cookie("userId", req.user._id.toString(), {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-        maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
+        maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
       });
 
-      // Send Telegram notification
+      // ✅ Get user's default account
+      const account = await Account.findOne({ userId: req.user._id });
+
+      if (account) {
+        res.cookie("accountId", account._id.toString(), {
+          sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
+        });
+      }
+
       await sendTelegramNotification({
         name: req.user.name || "N/A",
         email: req.user.email || "N/A",
@@ -53,18 +62,14 @@ router.get(
         status: "success",
       });
 
-      const isVerified = "yes";
-
-      // ✅ Redirect with query params
       const redirectUrl = `${
         process.env.CLIENT_URL || "http://localhost:3000"
-      }/accounts?isVerified=${isVerified}`;
+      }/accounts?isVerified=yes`;
 
       res.redirect(redirectUrl);
     } catch (err) {
-      console.error("Google OAuth Telegram notification failed:", err.message);
+      console.error("Google OAuth Error:", err.message);
 
-      // Optional: notify Telegram of failure
       await sendTelegramNotification({
         name: req.user?.name || "N/A",
         email: req.user?.email || "N/A",
@@ -77,7 +82,7 @@ router.get(
   },
 );
 
-router.get("/user-info", createLimiter(10), userFetchGoogleAuth);
+router.get("/user-info", createLimiter(20), userFetchGoogleAuth);
 
 router.put("/update-subscription", updateSubscription);
 

@@ -241,8 +241,8 @@ function Login() {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "white",
-                    marginTop: "4px",
+                    color: "var(--black)",
+                    marginTop: "12px",
                   }}
                   onClick={() => setShowPassword((prev) => !prev)}
                 >

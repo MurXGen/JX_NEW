@@ -220,7 +220,7 @@ button:hover {
 }
 
 button:disabled {
-  color: var(--black-10);
+  color: var(--black-50);
 }
 
 .toastMessage {
