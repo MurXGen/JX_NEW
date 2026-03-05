@@ -136,7 +136,7 @@ const Profile = () => {
               height: "32px",
               borderRadius: "50%",
               background: "var(--primary)",
-              left: isDark ? "calc(100% - 28px)" : "4px",
+              left: isDark ? "calc(100% - 28px)" : "0px",
               transition: "left 0.3s ease",
               display: "flex",
               alignItems: "center",

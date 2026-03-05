@@ -112,26 +112,15 @@ export default function Home() {
           href="/apple-touch-icon.png"
         />
         <link rel="manifest" href="/site.webmanifest" />
-
         <script
           dangerouslySetInnerHTML={{
             __html: `(function() {
-        try {
-          const savedTheme = localStorage.getItem('theme') || 'light';
-          // Set on both html and body to ensure coverage
-          document.documentElement.setAttribute('data-theme', savedTheme);
-          document.body.setAttribute('data-theme', savedTheme);
-          
-          // Also add a class for any legacy CSS
-          if (savedTheme === 'dark') {
-            document.documentElement.classList.add('light');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-        } catch (e) {
-          console.error('Theme initialization failed:', e);
-        }
-      })();`,
+      try {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.className = theme;
+      } catch (e) {}
+    })();`,
           }}
         />
 
