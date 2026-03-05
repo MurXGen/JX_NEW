@@ -39,7 +39,7 @@ function Counter({ value }) {
 
 export default function AchievementsSection() {
   return (
-    <section className="achievementsSection" style={{ marginTop: "100px" }}>
+    <section className="achievementsSection">
       {stats.map((stat, index) => (
         <div key={index} className="achievementCard ">
           <p className="achievementLabel">{stat.label}</p>

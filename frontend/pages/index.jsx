@@ -185,12 +185,13 @@ export default function Home() {
         <Navbar />
         <HeroSection />
         <ProfitJourneySection />
+        <AchievementsSection />
+
+        <FeatureSection />
         <SponsorsSection />
         <BentoGrid />
         {/* <WhyJournalSection /> */}
         <ChooseJournalX />
-        <AchievementsSection />
-        <FeatureSection />
         <ReviewsSection />
         <Faqs />
         <BottomCTA />

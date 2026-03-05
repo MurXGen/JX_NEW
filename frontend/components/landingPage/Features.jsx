@@ -72,21 +72,6 @@ export default function FeatureSection() {
 
   return (
     <section className="feature-section mrgin_tp_100">
-      <div className="stars-container">
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-        <div className="star"></div>
-      </div>
-
       <HeaderSection
         title="Powerful Trading Journal Features"
         subtitle="Tools built to improve discipline, execution, and performance."
