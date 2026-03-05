@@ -7390,6 +7390,10 @@ footer {
   }
 }
 
+.authenticate {
+  padding: var(--px-24);
+}
+
 @media (min-width: 768px) {
   .authWrapper {
     min-height: 100vh;
