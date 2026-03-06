@@ -20,27 +20,24 @@ const TradeStatusGrid = ({ form, handleChange, statuses }) => {
   };
 
   return (
-    <div className="tradeGrid">
-      <div className="flexRow flexRow_stretch gap_12">
-        {statuses.map((status) => (
-          <button
-            key={status.value}
-            type="button"
-            className={`btn width100 flexRow gap_8 flex_center ${
-              form.tradeStatus === status.value ? "selected" : ""
-            }`}
-            style={{ padding: "12px" }}
-            onClick={() =>
-              handleChange({
-                target: { name: "tradeStatus", value: status.value },
-              })
-            }
-          >
-            {getIcon(status.value)}
-            <span className="font_14 font_weight_600">{status.label}</span>
-          </button>
-        ))}
-      </div>
+    <div className="mobile-tabs trade-status-tabs">
+      {statuses.map((status) => (
+        <button
+          key={status.value}
+          type="button"
+          className={`tab-item flexRow flex_center gap_8 ${
+            form.tradeStatus === status.value ? "active" : ""
+          }`}
+          onClick={() =>
+            handleChange({
+              target: { name: "tradeStatus", value: status.value },
+            })
+          }
+        >
+          {getIcon(status.value)}
+          <span className="font_14 font_weight_600">{status.label}</span>
+        </button>
+      ))}
     </div>
   );
 };

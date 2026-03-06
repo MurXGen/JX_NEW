@@ -1146,7 +1146,7 @@ export default function AddTradePage() {
   return (
     <div className="flexClm gap_32 dashboard pad_16">
       <div className="flexRow gap_8">
-        <div className="flexRow flexRow_stretch width100">
+        <div className="flexClm gap_24 width100">
           <div
             className="btn flexRow gap_4"
             onClick={() => router.push("/trade")}
@@ -1211,7 +1211,7 @@ export default function AddTradePage() {
                 className=" "
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
                   gap: "12px",
                 }}
               >
@@ -1360,7 +1360,7 @@ export default function AddTradePage() {
 
                       {/* Content */}
                       <div style={{ flex: 1 }}>
-                        <div className="flexClm">
+                        <div className="flexRow gap_4">
                           <span
                             style={{
                               fontSize: "14px",
@@ -1372,18 +1372,16 @@ export default function AddTradePage() {
                             {key.replace(/([A-Z])/g, " $1").trim()}
                           </span>
                           {completed && (
-                            <FiCheckCircle size={16} color="var(--success)" />
+                            <Circle
+                              fill="green"
+                              size={8}
+                              color="var(--success)"
+                            />
                           )}
                         </div>
 
                         {displayValue ? (
-                          <span
-                            style={{
-                              fontSize: "13px",
-                              color: textColor,
-                              display: "block",
-                            }}
-                          >
+                          <span className="font_12 black-text">
                             {displayValue}
                           </span>
                         ) : (
