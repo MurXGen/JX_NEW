@@ -14,7 +14,7 @@ setInterval(() => {
   const minute = now.getMinutes();
 
   // 🌙 11PM trade journal reminder
-  if (hour === 0 && minute === 1) {
+  if (hour === 0 && minute === 5) {
     self.registration.showNotification("Log Your Trades 📒", {
       body: "Don't forget to journal today's trades.",
       icon: "/assets/jx_trans_favicon.png",
