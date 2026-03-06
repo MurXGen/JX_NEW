@@ -23,8 +23,11 @@ import {
   Brain,
   Camera,
   ChevronLeft,
+  ChevronRight,
+  Circle,
   Clock,
   DollarSign,
+  Dot,
   List,
   LogIn,
   LogOut,
@@ -1143,357 +1146,324 @@ export default function AddTradePage() {
   return (
     <div className="flexClm gap_32 dashboard pad_16">
       <div className="flexRow gap_8">
-        <div
-          className="btn flexRow gap_4"
-          onClick={() => router.push("/trade")}
-          style={{ cursor: "pointer" }}
-        >
-          <ChevronLeft size={20} />
-          <span className="font_20">Log trade</span>
+        <div className="flexRow flexRow_stretch width100">
+          <div
+            className="btn flexRow gap_4"
+            onClick={() => router.push("/trade")}
+            style={{ cursor: "pointer" }}
+          >
+            <ChevronLeft size={20} />
+            <span className="font_20">Log trade</span>
+          </div>
+          {/* 1️⃣ Trade Status */}
+          <TradeStatusGrid
+            form={form}
+            handleChange={handleChange}
+            statuses={statuses}
+          />
         </div>
       </div>
-
-      <form onSubmit={handleSubmit} className="flexClm gap_32">
-        {/* 1️⃣ Trade Status */}
-        <TradeStatusGrid
-          form={form}
-          handleChange={handleChange}
-          statuses={statuses}
-        />
-
-        {/* 2️⃣ Ticker */}
-        <Ticker form={form} setForm={setForm} handleChange={handleChange} />
-
-        {/* 3️⃣ Conditional Sections */}
-        {tradeStatus === "quick" && (
-          <QuickSection
-            form={form}
-            setForm={setForm}
-            currency={currencySymbol}
-            handleChange={handleChange}
-          />
-        )}
-
-        {tradeStatus === "closed" && (
-          <QuickSection
-            form={form}
-            setForm={setForm}
-            currency={currencySymbol}
-            handleChange={handleChange}
-          />
-        )}
-      </form>
-
-      {/* Sections Display */}
-      <div className="flexClm gap_24">
-        {/* Recommended Sections */}
-        {recommendedButtons.length > 0 && (
-          <div className="flexClm gap_12">
-            <span
-              className="font_14"
-              style={{ color: "var(--text-secondary)", fontWeight: 500 }}
-            >
-              Required Information
-            </span>
-            <div className="flexClm gap_8">
-              {recommendedButtons.map((key) => {
-                const Icon = modalIcons[key.toLowerCase()];
-                const completed = isFieldCompleted(key);
-                const displayValue = getSectionDisplayValue(key);
-                const badgeColor = getSectionBadgeColor(key);
-                const textColor = getSectionTextColor(key);
-
-                return (
-                  <div
-                    key={key}
-                    onClick={() => openModal(key)}
-                    style={{
-                      background: "var(--card-bg)",
-                      border: `1px solid ${completed ? textColor : "var(--border-color)"}`,
-                      borderRadius: "14px",
-                      padding: "16px",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0,0,0,0.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    {/* Icon */}
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "12px",
-                        background: badgeColor,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: completed ? textColor : "var(--text-secondary)",
-                      }}
-                    >
-                      {Icon && <Icon size={20} />}
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: 600,
-                            color: "var(--text-primary)",
-                            textTransform: "capitalize",
-                          }}
-                        >
-                          {key.replace(/([A-Z])/g, " $1").trim()}
-                        </span>
-                        {completed && (
-                          <FiCheckCircle size={16} color="var(--success)" />
-                        )}
-                      </div>
-
-                      {displayValue ? (
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            color: textColor,
-                            display: "block",
-                          }}
-                        >
-                          {displayValue}
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            color: "var(--text-secondary)",
-                            fontStyle: "italic",
-                          }}
-                        >
-                          Tap to add
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Edit indicator */}
-                    <div style={{ color: "var(--text-secondary)" }}>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                      >
-                        <path
-                          d="M6 12L10 8L6 4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Optional Sections */}
-        {optionalButtons.length > 0 && (
-          <div className="flexClm gap_12">
-            <span
-              className="font_14"
-              style={{ color: "var(--text-secondary)", fontWeight: 500 }}
-            >
-              Additional Information
-            </span>
-            <div className="flexClm gap_8">
-              {optionalButtons.map((key) => {
-                const Icon = modalIcons[key.toLowerCase()];
-                const completed = isFieldCompleted(key);
-                const displayValue = getSectionDisplayValue(key);
-                const badgeColor = getSectionBadgeColor(key);
-                const textColor = getSectionTextColor(key);
-
-                return (
-                  <div
-                    key={key}
-                    onClick={() => openModal(key)}
-                    style={{
-                      background: "var(--card-bg)",
-                      border: `1px solid ${completed ? textColor : "var(--border-color)"}`,
-                      borderRadius: "14px",
-                      padding: "16px",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      opacity: completed ? 1 : 0.8,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0,0,0,0.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    {/* Icon */}
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "12px",
-                        background: badgeColor,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: completed ? textColor : "var(--text-secondary)",
-                      }}
-                    >
-                      {Icon && <Icon size={20} />}
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: 600,
-                            color: "var(--text-primary)",
-                            textTransform: "capitalize",
-                          }}
-                        >
-                          {key.replace(/([A-Z])/g, " $1").trim()}
-                        </span>
-                        {completed && (
-                          <FiCheckCircle size={16} color="var(--success)" />
-                        )}
-                      </div>
-
-                      {displayValue ? (
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            color: textColor,
-                            display: "block",
-                          }}
-                        >
-                          {displayValue}
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            color: "var(--text-secondary)",
-                            fontStyle: "italic",
-                          }}
-                        >
-                          Optional - tap to add
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Edit indicator */}
-                    <div style={{ color: "var(--text-secondary)" }}>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                      >
-                        <path
-                          d="M6 12L10 8L6 4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Submit Button */}
       <div
-        className="flexRow flexRow_stretch gap_4"
-        style={{ marginTop: "24px" }}
+        style={{
+          background: "var(--black-4)",
+          borderRadius: "var(--px-16)",
+          border: "1px solid var(--black-10)",
+          boxShadow: "1px 1px 12px var(--black-10)",
+        }}
+        className="pad_16 flexClm gap_32"
       >
-        <button
-          className="primary-btn width100"
-          onClick={handleSubmit}
-          disabled={loading}
-          style={{
-            padding: "16px",
-            fontSize: "16px",
-            fontWeight: 600,
-            borderRadius: "14px",
-          }}
+        <form onSubmit={handleSubmit} className="flexClm gap_32">
+          {/* 2️⃣ Ticker */}
+          <Ticker form={form} setForm={setForm} handleChange={handleChange} />
+
+          {/* 3️⃣ Conditional Sections */}
+          {tradeStatus === "quick" && (
+            <QuickSection
+              form={form}
+              setForm={setForm}
+              currency={currencySymbol}
+              handleChange={handleChange}
+            />
+          )}
+
+          {tradeStatus === "closed" && (
+            <QuickSection
+              form={form}
+              setForm={setForm}
+              currency={currencySymbol}
+              handleChange={handleChange}
+            />
+          )}
+        </form>
+
+        {/* Sections Display */}
+        <div className="flexClm gap_24">
+          {/* Recommended Sections */}
+          {recommendedButtons.length > 0 && (
+            <div className="flexClm gap_12">
+              <span
+                className="font_14"
+                style={{ color: "var(--text-secondary)", fontWeight: 500 }}
+              >
+                Required Information
+              </span>
+              <div
+                className=" "
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: "12px",
+                }}
+              >
+                {recommendedButtons.map((key) => {
+                  const Icon = modalIcons[key.toLowerCase()];
+                  const completed = isFieldCompleted(key);
+                  const displayValue = getSectionDisplayValue(key);
+                  const badgeColor = getSectionBadgeColor(key);
+                  const textColor = getSectionTextColor(key);
+
+                  return (
+                    <div
+                      key={key}
+                      onClick={() => openModal(key)}
+                      className="stats-card radius-12 flexRow gap_12"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(0,0,0,0.1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    >
+                      {/* Icon */}
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "12px",
+                          background: badgeColor,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: completed
+                            ? textColor
+                            : "var(--text-secondary)",
+                        }}
+                      >
+                        {Icon && <Icon size={20} />}
+                      </div>
+
+                      {/* Content */}
+                      <div style={{ flex: 1 }}>
+                        <div className="flexRow gap_4">
+                          <span
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: 600,
+                              color: "var(--text-primary)",
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {key.replace(/([A-Z])/g, " $1").trim()}
+                          </span>
+                          {completed && (
+                            <Circle
+                              fill="green"
+                              size={8}
+                              color="var(--success)"
+                            />
+                          )}
+                        </div>
+
+                        {displayValue ? (
+                          <span className="font_12 black-text">
+                            {displayValue}
+                          </span>
+                        ) : (
+                          <span className="font_12 shade_50">Tap to add</span>
+                        )}
+                      </div>
+
+                      {/* Edit indicator */}
+                      <div style={{ color: "var(--black)" }}>
+                        <ChevronRight size={14} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Optional Sections */}
+          {optionalButtons.length > 0 && (
+            <div className="flexClm gap_12">
+              <span
+                className="font_14 flexRow gap_4"
+                style={{
+                  color: "var(--text-secondary)",
+                  fontWeight: 500,
+                }}
+              >
+                Additional Information
+                <i className="font_12">{"(Optional)"}</i>
+              </span>
+              <div
+                className=" "
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: "12px",
+                }}
+              >
+                {optionalButtons.map((key) => {
+                  const Icon = modalIcons[key.toLowerCase()];
+                  const completed = isFieldCompleted(key);
+                  const displayValue = getSectionDisplayValue(key);
+                  const badgeColor = getSectionBadgeColor(key);
+                  const textColor = getSectionTextColor(key);
+
+                  return (
+                    <div
+                      key={key}
+                      onClick={() => openModal(key)}
+                      className="stats-card radius-12 flexRow gap_12"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(0,0,0,0.1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    >
+                      {/* Icon */}
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "12px",
+                          background: badgeColor,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: completed
+                            ? textColor
+                            : "var(--text-secondary)",
+                        }}
+                      >
+                        {Icon && <Icon size={20} />}
+                      </div>
+
+                      {/* Content */}
+                      <div style={{ flex: 1 }}>
+                        <div className="flexClm">
+                          <span
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: 600,
+                              color: "var(--text-primary)",
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {key.replace(/([A-Z])/g, " $1").trim()}
+                          </span>
+                          {completed && (
+                            <FiCheckCircle size={16} color="var(--success)" />
+                          )}
+                        </div>
+
+                        {displayValue ? (
+                          <span
+                            style={{
+                              fontSize: "13px",
+                              color: textColor,
+                              display: "block",
+                            }}
+                          >
+                            {displayValue}
+                          </span>
+                        ) : (
+                          <span className="font_12 shade_50">Tap to add</span>
+                        )}
+                      </div>
+
+                      {/* Edit indicator */}
+                      <div style={{ color: "var(--text-secondary)" }}>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <path
+                            d="M6 12L10 8L6 4"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <div
+          className="flexRow flexRow_stretch gap_4"
+          style={{ marginTop: "24px" }}
         >
-          {loading
-            ? "⏳ Please wait..."
-            : isEdit
-              ? "Update Trade"
-              : "Submit Trade"}
-        </button>
-      </div>
+          <button
+            className="primary-btn width100"
+            onClick={handleSubmit}
+            disabled={loading}
+            style={{
+              padding: "16px",
+              fontSize: "16px",
+              fontWeight: 600,
+              borderRadius: "14px",
+            }}
+          >
+            {loading
+              ? "⏳ Please wait..."
+              : isEdit
+                ? "Update Trade"
+                : "Submit Trade"}
+          </button>
+        </div>
 
-      {/* 🔄 Toast + Loader */}
-      {toast && (
-        <ToastMessage
-          type={toast.type}
-          message={toast.message}
-          duration={3000}
+        {/* 🔄 Toast + Loader */}
+        {toast && (
+          <ToastMessage
+            type={toast.type}
+            message={toast.message}
+            duration={3000}
+          />
+        )}
+        {loading && <FullPageLoader />}
+
+        {/* 🪟 Active Modal */}
+        {activeModal && (
+          <ModalWrapper onClose={closeModal}>
+            <div className="modal_inner flexClm gap_16">
+              {modalComponents[activeModal]}
+            </div>
+          </ModalWrapper>
+        )}
+
+        <PlanLimitModal
+          isOpen={showPlanLimitModal}
+          onKeep={() => setShowPlanLimitModal(false)}
+          onUpgrade={() => router.push("/pricing")}
         />
-      )}
-      {loading && <FullPageLoader />}
-
-      {/* 🪟 Active Modal */}
-      {activeModal && (
-        <ModalWrapper onClose={closeModal}>
-          <div className="modal_inner flexClm gap_16">
-            {modalComponents[activeModal]}
-          </div>
-        </ModalWrapper>
-      )}
-
-      <PlanLimitModal
-        isOpen={showPlanLimitModal}
-        onKeep={() => setShowPlanLimitModal(false)}
-        onUpgrade={() => router.push("/pricing")}
-      />
+      </div>
     </div>
   );
 }

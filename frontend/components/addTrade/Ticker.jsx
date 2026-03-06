@@ -75,7 +75,7 @@ const Ticker = ({ form, setForm }) => {
   return (
     <div className="">
       {/* Symbol Input with Clear Icon */}
-      <div className="flexClm gap_32" style={{ position: "relative" }}>
+      <div className="flexRow gap_12" style={{ position: "relative" }}>
         <div
           className="addTradeContainer width100"
           style={{ position: "relative" }}
@@ -167,10 +167,10 @@ const Ticker = ({ form, setForm }) => {
           </div>
         )}
 
-        <div className="addTradeContainer width100">
+        <div className="addTradeContainer">
           <label>Direction</label>
 
-          <div className="flexRow flexRow_stretch gap_12 width100">
+          <div className="flexRow flexRow_stretch gap_4 width100">
             <button
               type="button"
               className={`primary-btn secondary-btn width100 flexRow flex_center font_weight_600 direction-btn long ${
@@ -178,7 +178,6 @@ const Ticker = ({ form, setForm }) => {
               }`}
               onClick={() => setForm({ ...form, direction: "long" })}
             >
-              Long
               <span className="arrow-wrapper">
                 <ArrowUpRight size={20} className="arrow-icon long-arrow" />
               </span>
@@ -191,7 +190,6 @@ const Ticker = ({ form, setForm }) => {
               }`}
               onClick={() => setForm({ ...form, direction: "short" })}
             >
-              Short
               <span className="arrow-wrapper">
                 <ArrowDownRight size={20} className="arrow-icon short-arrow" />
               </span>

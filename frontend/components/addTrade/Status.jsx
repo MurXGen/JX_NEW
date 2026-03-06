@@ -11,7 +11,7 @@ const TradeStatusGrid = ({ form, handleChange, statuses }) => {
       case "quick":
         return (
           <motion.div className="vector">
-            <Zap size={14} color="#FFD700" />
+            <Zap fill="#FFD700" size={14} color="#FFD700" />
           </motion.div>
         );
       default:
@@ -26,9 +26,10 @@ const TradeStatusGrid = ({ form, handleChange, statuses }) => {
           <button
             key={status.value}
             type="button"
-            className={`primary-btn width100 flexRow gap_8 flex_center ${
+            className={`btn width100 flexRow gap_8 flex_center ${
               form.tradeStatus === status.value ? "selected" : ""
             }`}
+            style={{ padding: "12px" }}
             onClick={() =>
               handleChange({
                 target: { name: "tradeStatus", value: status.value },

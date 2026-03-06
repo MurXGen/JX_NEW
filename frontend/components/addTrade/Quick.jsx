@@ -127,7 +127,6 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="stats-card radius-12"
     >
       {/* Header */}
       <div className="flexRow flexRow_stretch" style={{ marginBottom: "20px" }}>
@@ -157,6 +156,7 @@ const QuickSection = ({ currency, form, handleChange, setForm }) => {
         {/* History Toggle */}
         {savedPnLs.length > 0 && (
           <motion.button
+            type="button"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowHistory(!showHistory)}

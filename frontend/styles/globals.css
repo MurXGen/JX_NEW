@@ -225,7 +225,7 @@ button:disabled {
 
 .toastMessage {
   position: fixed;
-  top: 20px;
+  top: 0px;
   left: 50%;
   transform: translateX(-50%);
   padding: 24px 32px;
@@ -235,17 +235,16 @@ button:disabled {
   font-weight: 500;
   z-index: 9999;
   color: var(--black);
-  background: var(--white);
   box-shadow: 0 4px 12px var(--black-10);
   opacity: 0;
   pointer-events: none;
   animation: popupFade 0.4s ease forwards;
   backdrop-filter: blur(12px);
-  width: 80%;
+  width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: center;
-  border: 1px solid var(--black-50);
+  border-bottom: 1px solid var(--black-50);
 }
 
 .LegalLinks {
@@ -678,62 +677,14 @@ button:disabled {
   will-change: transform;
 }
 
-/* ===== LONG ARROW (UP) ===== */
-.direction-btn:hover .long-arrow,
-.direction-btn:active .long-arrow {
-  animation: arrowLong 0.9s cubic-bezier(0.45, 0, 0.2, 1);
-}
-
-@keyframes arrowLong {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  25% {
-    transform: translate(18px, -22px) scale(1.35);
-  }
-
-  70% {
-    transform: translate(12px, -14px) scale(1.15);
-  }
-
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-}
-
-/* ===== SHORT ARROW (DOWN) ===== */
-.direction-btn:hover .short-arrow,
-.direction-btn:active .short-arrow {
-  animation: arrowShort 0.9s cubic-bezier(0.45, 0, 0.2, 1);
-}
-
 .direction-btn.long:hover {
   background: var(--success);
-  color: var(--black);
+  color: var(--white);
 }
 
 .direction-btn.short:hover {
   background: var(--error);
-  color: var(--black);
-}
-
-@keyframes arrowShort {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  45% {
-    transform: translate(18px, 22px) scale(1.35);
-  }
-
-  70% {
-    transform: translate(12px, 14px) scale(1.15);
-  }
-
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
+  color: var(--white);
 }
 
 .listSection {
@@ -982,7 +933,7 @@ button:disabled {
 }
 
 .shade_50 {
-  color: var(--base-text);
+  color: var(--black);
   opacity: 0.5;
 }
 
@@ -8894,6 +8845,10 @@ footer {
   cursor: pointer;
   min-width: fit-content;
   max-width: fit-content;
+}
+.btn.selected {
+  background: var(--black);
+  color: var(--white);
 }
 
 .reasonContainer .secondary-btn.active {
