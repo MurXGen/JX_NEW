@@ -19,16 +19,7 @@ import { useEffect, useState } from "react";
 import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
 import BottomBar from "@/components/Trades/BottomBar";
 import Image from "next/image";
-
-const enableNotifications = async () => {
-  if (!("Notification" in window)) return;
-
-  const permission = await Notification.requestPermission();
-
-  if (permission === "granted") {
-    console.log("Notifications enabled");
-  }
-};
+import { enableNotifications } from "@/utils/enableNotify";
 
 const Profile = () => {
   const router = useRouter();
@@ -253,6 +244,28 @@ const Profile = () => {
           >
             <Repeat size={18} color="var(--primary)" />
             Switch journal
+          </button>
+
+          <button
+            onClick={() => {
+              if (Notification.permission === "granted") {
+                new Notification("Test Notification", {
+                  body: "JournalX reminder working!",
+                  icon: "/assets/jx_trans_favicon.png",
+                });
+              } else {
+                Notification.requestPermission().then((perm) => {
+                  if (perm === "granted") {
+                    new Notification("Test Notification", {
+                      body: "JournalX reminder working!",
+                      icon: "/assets/jx_trans_favicon.png",
+                    });
+                  }
+                });
+              }
+            }}
+          >
+            Test Notification
           </button>
 
           <button
