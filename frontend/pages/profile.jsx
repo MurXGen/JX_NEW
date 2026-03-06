@@ -247,28 +247,6 @@ const Profile = () => {
           </button>
 
           <button
-            onClick={() => {
-              if (Notification.permission === "granted") {
-                new Notification("Test Notification", {
-                  body: "JournalX reminder working!",
-                  icon: "/assets/jx_trans_favicon.png",
-                });
-              } else {
-                Notification.requestPermission().then((perm) => {
-                  if (perm === "granted") {
-                    new Notification("Test Notification", {
-                      body: "JournalX reminder working!",
-                      icon: "/assets/jx_trans_favicon.png",
-                    });
-                  }
-                });
-              }
-            }}
-          >
-            Test Notification
-          </button>
-
-          <button
             style={{
               padding: "14px 20px",
               background: "var(--black-10)",
