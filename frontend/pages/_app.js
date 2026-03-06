@@ -30,6 +30,14 @@ export default function MyApp({ Component, pageProps }) {
     return () => router.events.off("routeChangeComplete", handleRouteChange);
   }, [router.events]);
 
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").then((reg) => {
+        console.log("Service Worker registered:", reg);
+      });
+    });
+  }
+
   return (
     <>
       <Head>

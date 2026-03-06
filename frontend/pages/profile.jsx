@@ -4,6 +4,7 @@ import FullPageLoader from "@/components/ui/FullPageLoader";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
+  Bell,
   Book,
   LogOutIcon,
   Moon,
@@ -18,6 +19,16 @@ import { useEffect, useState } from "react";
 import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
 import BottomBar from "@/components/Trades/BottomBar";
 import Image from "next/image";
+
+const enableNotifications = async () => {
+  if (!("Notification" in window)) return;
+
+  const permission = await Notification.requestPermission();
+
+  if (permission === "granted") {
+    console.log("Notifications enabled");
+  }
+};
 
 const Profile = () => {
   const router = useRouter();
@@ -286,6 +297,28 @@ const Profile = () => {
           >
             <ShareIcon size={18} color="var(--primary)" />
             Export trade logs
+          </button>
+
+          <button
+            onClick={enableNotifications}
+            style={{
+              padding: "14px 20px",
+              background: "var(--black-10)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "14px",
+              color: "var(--text-primary)",
+              fontSize: "var(--px-16)",
+              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              width: "100%",
+            }}
+          >
+            <Bell size={18} color="var(--primary)" />
+            Enable Trading Reminders 🔔
           </button>
 
           <button
