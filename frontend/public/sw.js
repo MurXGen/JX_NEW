@@ -47,6 +47,18 @@ setInterval(() => {
     });
   }
 
+  if (hour === 1 && minute === 15 && lastNotified["10am"] !== todayKey) {
+    lastNotified["10am"] = todayKey;
+
+    self.registration.showNotification("Review Your Trades 📈", {
+      body: "Analyse trades logged in JournalX and improve your decisions.",
+      icon: "/assets/jx_trans_favicon.png",
+      badge: "/assets/jx_trans_favicon.png",
+      requireInteraction: true,
+      data: { url: "/accounts" },
+    });
+  }
+
   // 🌙 Night – Log trades
   if (hour === 23 && minute === 0 && lastNotified["11pm"] !== todayKey) {
     lastNotified["11pm"] = todayKey;
