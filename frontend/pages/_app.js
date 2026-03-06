@@ -9,46 +9,17 @@ export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("Reminder system started");
-
-    const checkReminder = () => {
-      const now = new Date();
-      const hour = now.getHours();
-      const minute = now.getMinutes();
-
-      console.log("Checking reminder:", hour, minute);
-
-      if (Notification.permission !== "granted") {
-        console.log("Notification permission not granted");
-        return;
-      }
-
-      // 11 PM reminder
-      if (hour === 0 && minute === 40) {
-        console.log("Sending 11PM notification");
-
-        new Notification("Log Your Trades 📒", {
-          body: "Don't forget to journal today's trades.",
-          icon: "/assets/jx_trans_favicon.png",
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          console.log("✅ Service Worker registered:", registration);
+        })
+        .catch((error) => {
+          console.log("❌ Service Worker registration failed:", error);
         });
-      }
-
-      // 9 AM reminder
-      if (hour === 9 && minute === 0) {
-        console.log("Sending 9AM notification");
-
-        new Notification("Start Chart Analysis 📊", {
-          body: "Review charts and plan your trades.",
-          icon: "/assets/jx_trans_favicon.png",
-        });
-      }
-    };
-
-    const interval = setInterval(checkReminder, 60000);
-
-    return () => clearInterval(interval);
+    }
   }, []);
-
   useEffect(() => {
     const handleClick = (e) => {
       const btn = e.target.closest("button");

@@ -291,25 +291,36 @@ const Profile = () => {
           </button>
 
           <button
-            onClick={enableNotifications}
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
+            onClick={async () => {
+              console.log("Test notification clicked");
+
+              if (!("serviceWorker" in navigator)) {
+                console.log("Service Worker not supported");
+                return;
+              }
+
+              const permission = await Notification.requestPermission();
+              console.log("Permission:", permission);
+
+              if (permission !== "granted") {
+                console.log("Notification permission denied");
+                return;
+              }
+
+              const registration = await navigator.serviceWorker.ready;
+              console.log("Service Worker ready:", registration);
+
+              registration.showNotification("JournalX Test 🚀", {
+                body: "Your notification system is working!",
+                icon: "/assets/jx_trans_favicon.png",
+                badge: "/assets/jx_trans_favicon.png",
+                data: {
+                  url: "/events",
+                },
+              });
             }}
           >
-            <Bell size={18} color="var(--primary)" />
-            Enable Trading Reminders 🔔
+            Test Notification
           </button>
 
           <button
