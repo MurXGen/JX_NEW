@@ -9,18 +9,6 @@ export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("✅ Service Worker registered:", registration);
-        })
-        .catch((error) => {
-          console.log("❌ Service Worker registration failed:", error);
-        });
-    }
-  }, []);
-  useEffect(() => {
     const handleClick = (e) => {
       const btn = e.target.closest("button");
       if (!btn) return;

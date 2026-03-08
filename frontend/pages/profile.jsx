@@ -19,7 +19,6 @@ import { useEffect, useState } from "react";
 import { clearIndexedDB, getFromIndexedDB } from "../utils/indexedDB";
 import BottomBar from "@/components/Trades/BottomBar";
 import Image from "next/image";
-import { enableNotifications } from "@/utils/enableNotify";
 
 const Profile = () => {
   const router = useRouter();
@@ -240,40 +239,6 @@ const Profile = () => {
               transition: "all 0.2s",
               width: "100%",
             }}
-            onClick={async () => {
-              if (!("Notification" in window)) {
-                console.log("Notifications not supported in this browser");
-                return;
-              }
-
-              const permission = await Notification.requestPermission();
-              console.log("Notification permission:", permission);
-
-              if (permission === "granted") {
-                console.log("Notifications enabled successfully");
-              } else if (permission === "denied") {
-                console.log("User blocked notifications");
-              }
-            }}
-          >
-            Enable Notifications
-          </button>
-          <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
             onClick={() => router.push("/accounts")}
           >
             <Repeat size={18} color="var(--primary)" />
@@ -323,6 +288,7 @@ const Profile = () => {
             <ShareIcon size={18} color="var(--primary)" />
             Export trade logs
           </button>
+
           <button
             style={{
               padding: "14px 20px",

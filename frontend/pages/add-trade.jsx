@@ -65,6 +65,76 @@ import RulesManager from "@/components/addTrade/Rules";
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+const DurationInput = ({ value, openTime, onChange }) => {
+  const [unit, setUnit] = useState("min"); // min | hour
+  const [inputValue, setInputValue] = useState("");
+
+  const calculate = (num, selectedUnit) => {
+    let minutes = selectedUnit === "hour" ? num * 60 : num;
+
+    const open = new Date(openTime);
+    const close = new Date(open.getTime() + minutes * 60000);
+
+    onChange({
+      duration: minutes,
+      closeTime: close,
+    });
+  };
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+
+    const num = parseFloat(val);
+    if (!isNaN(num)) {
+      calculate(num, unit);
+    }
+  };
+
+  const changeUnit = (newUnit) => {
+    setUnit(newUnit);
+
+    const num = parseFloat(inputValue);
+    if (!isNaN(num)) {
+      calculate(num, newUnit);
+    }
+  };
+
+  return (
+    <div className="flexClm gap_4">
+      <span className="font_14">Trade duration</span>
+      <div className="flexRow gap_8">
+        <div className="flexRow" style={{ flex: "1" }}>
+          <input
+            type="number"
+            placeholder="Duration"
+            value={inputValue}
+            onChange={handleChange}
+            className="width100"
+          />
+        </div>
+
+        <div className="flexRow gap_4">
+          <button
+            type="button"
+            className={unit === "min" ? "primary-btn selected" : "primary-btn"}
+            onClick={() => changeUnit("min")}
+          >
+            Min
+          </button>
+
+          <button
+            type="button"
+            className={unit === "hour" ? "primary-btn selected" : "primary-btn"}
+            onClick={() => changeUnit("hour")}
+          >
+            Hour
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 export default function AddTradePage() {
   const router = useRouter();
   const firstExitRef = useRef(null);
@@ -136,11 +206,24 @@ export default function AddTradePage() {
 
     // Derived values
     duration: 0,
+    durationInput: "",
     rr: "",
     pnl: "",
     expectedProfit: 0,
     expectedLoss: 0,
   });
+
+  useEffect(() => {
+    if (!form.openTime || !form.duration) return;
+
+    const open = new Date(form.openTime);
+    const close = new Date(open.getTime() + form.duration * 60000);
+
+    setForm((prev) => ({
+      ...prev,
+      closeTime: close,
+    }));
+  }, [form.openTime]);
 
   useEffect(() => {
     if (form.tradeStatus === "quick") {
@@ -1296,6 +1379,18 @@ export default function AddTradePage() {
               </div>
             </div>
           )}
+
+          <DurationInput
+            value={form.duration}
+            openTime={form.openTime}
+            onChange={({ duration, closeTime }) =>
+              setForm((prev) => ({
+                ...prev,
+                duration,
+                closeTime,
+              }))
+            }
+          />
 
           {/* Optional Sections */}
           {optionalButtons.length > 0 && (
