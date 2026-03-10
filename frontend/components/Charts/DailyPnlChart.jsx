@@ -165,7 +165,7 @@ const DailyPnlChart = ({ data }) => {
         >
           {/* GIF */}
           <img
-            src="/assets/chart-analysis.gif"
+            src="/assets/Area-chart.png"
             alt="No Trades"
             width={140}
             height={140}

@@ -432,7 +432,7 @@ function Accounts() {
                     >
                       {/* GIF */}
                       <img
-                        src="/assets/no-data.gif"
+                        src="/assets/notFound.png"
                         alt="No Journal Found"
                         width={200}
                         height={200}

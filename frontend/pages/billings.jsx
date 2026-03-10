@@ -283,7 +283,7 @@ export default function BillingPage() {
             >
               {/* GIF */}
               <img
-                src="/assets/invoice-bill.gif"
+                src="/assets/notFound.png"
                 alt="No Orders"
                 width={160}
                 height={160}

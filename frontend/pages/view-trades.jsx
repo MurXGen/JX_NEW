@@ -302,7 +302,7 @@ const ViewTrades = () => {
         >
           {/* GIF */}
           <img
-            src="/assets/no-data.gif"
+            src="/assets/notFound.png"
             alt="Invalid Link"
             width={180}
             height={180}

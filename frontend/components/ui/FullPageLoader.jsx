@@ -17,14 +17,8 @@ const FullPageLoader = () => {
         zIndex: 9999,
       }}
     >
-      <div className="loaderContent">
-        <Image
-          src="/assets/stock-market.gif"
-          alt="Loading..."
-          width={120}
-          height={120}
-          priority
-        />
+      <div className="spinner">
+  
       </div>
     </div>
   );

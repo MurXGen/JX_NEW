@@ -648,7 +648,7 @@ const TradesHistory = ({
               >
                 {/* GIF */}
                 <img
-                  src="/assets/trade-skeleton.gif"
+                  src="/assets/notFound.png"
                   alt="No Journal Found"
                   width={200}
                   height={200}

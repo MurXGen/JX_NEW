@@ -196,7 +196,7 @@ const PnLAreaChart = ({ data }) => {
         >
           {/* GIF */}
           <img
-            src="/assets/chart-analysis-area.gif"
+            src="/assets/Area-chart.png"
             alt="No Trades"
             width={140}
             height={140}

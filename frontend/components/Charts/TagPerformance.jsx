@@ -41,7 +41,7 @@ const TagPerformance = ({ tagAnalysis = [], currencySymbol = "$" }) => {
         >
           {/* GIF */}
           <img
-            src="/assets/search.gif"
+            src="/assets/notFound.png"
             alt="No Tag Data"
             width={140}
             height={140}

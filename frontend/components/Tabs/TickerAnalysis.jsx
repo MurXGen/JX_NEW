@@ -202,7 +202,7 @@ const TickerAnalysis = ({ trades }) => {
           style={{ maxWidth: "320px", width: "100%" }}
         >
           <img
-            src="/assets/chart-analysis-area.gif"
+            src="/assets/Bar-chart.png"
             alt="No Trades"
             width={140}
             height={140}

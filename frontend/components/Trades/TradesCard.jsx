@@ -58,7 +58,7 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
         >
           {/* GIF */}
           <img
-            src="/assets/cards.gif"
+            src="/assets/notFound.png"
             alt="No Trades Found"
             width={200}
             height={200}
