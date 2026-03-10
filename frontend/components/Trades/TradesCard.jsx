@@ -1,13 +1,24 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Plus, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  X,
+  Plus,
+  TrendingUp,
+  TrendingDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import TradeInfo from "./TradeInfo";
 
 const TRADE_KEY = "__t_rd_iD";
 
 const TradeCardModal = ({ trades, onClose, onAddNew }) => {
   const [showTradeModal, setShowTradeModal] = useState(false);
+  const [pnlFilter, setPnlFilter] = useState("all"); // "all", "profit", "loss"
+  const [currentPage, setCurrentPage] = useState(1);
+  const tradesPerPage = 6;
+
   const formatDateTime = (dateStr) => {
     const date = new Date(dateStr);
 
@@ -39,18 +50,45 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
     setShowTradeModal(true); // open modal
   };
 
+  // Filter trades based on PnL
+  const filteredTrades = trades.filter((trade) => {
+    if (pnlFilter === "profit") return trade.pnl > 0;
+    if (pnlFilter === "loss") return trade.pnl < 0;
+    return true; // "all"
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredTrades.length / tradesPerPage);
+  const indexOfLastTrade = currentPage * tradesPerPage;
+  const indexOfFirstTrade = indexOfLastTrade - tradesPerPage;
+  const currentTrades = filteredTrades.slice(
+    indexOfFirstTrade,
+    indexOfLastTrade,
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
   if (!trades || trades.length === 0) {
     return (
       <div
         className="radius-12 stats-card flexClm flex_center"
         style={{
           minHeight: "300px",
-          padding: "24px",
           textAlign: "center",
         }}
       >
         <div
-          className="flexClm gap_16 flex_center"
+          className="flexClm  flex_center"
           style={{
             maxWidth: "300px",
             width: "100%",
@@ -65,22 +103,19 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
             style={{ objectFit: "contain" }}
           />
 
-          {/* Heading */}
-          <span className="font_16 font_weight_600">No Trades Found</span>
-
-          {/* Description */}
-          <span className="font_13 shade_60">
-            There are no trades available in this journal yet.
+          <span className="font_20 font_weight_600">
+            Log trades to see history
           </span>
 
-          {/* Optional CTA */}
-          {onAddNew && (
-            <div style={{ marginTop: "8px" }}>
-              <button className="primary-btn" onClick={onAddNew}>
-                Add Trade
-              </button>
-            </div>
-          )}
+          {/* Create Button */}
+          <div style={{ marginTop: "24px" }}>
+            <button
+              className="primary-btn flexRow flex_center gap_8"
+              onClick={() => router.push("/add-trade")}
+            >
+              Log first trade
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -88,16 +123,43 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
 
   return (
     <div className="">
-      <div className="flexRow tradeStackGrid gap_24">
-        {trades.map((trade) => (
+      {/* Filter Section */}
+      <div className="flexRow gap_8" style={{ marginBottom: "20px" }}>
+        <button
+          className={`btn ${pnlFilter === "all" ? "primary-btn" : "secondary-btn"}`}
+          onClick={() => {
+            setPnlFilter("all");
+            setCurrentPage(1);
+          }}
+        >
+          All
+        </button>
+        <button
+          className={`btn ${pnlFilter === "profit" ? "primary-btn" : "secondary-btn"}`}
+          onClick={() => {
+            setPnlFilter("profit");
+            setCurrentPage(1);
+          }}
+        >
+          Profit
+        </button>
+        <button
+          className={`btn ${pnlFilter === "loss" ? "primary-btn" : "secondary-btn"}`}
+          onClick={() => {
+            setPnlFilter("loss");
+            setCurrentPage(1);
+          }}
+        >
+          Loss
+        </button>
+      </div>
+
+      <div className="flexRow flexRow_scroll gap_24">
+        {currentTrades.map((trade) => (
           <div
             key={trade._id}
             className="tradeStackCard"
             onClick={() => handleTradeClick(trade._id)}
-            // style={{
-            //   background:
-            //     trade.pnl >= 0 ? "var(--success-10)" : "var(--error-10)",
-            // }}
           >
             {/* Image Preview */}
             <div className="imageBox">
@@ -159,6 +221,42 @@ const TradeCardModal = ({ trades, onClose, onAddNew }) => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Footer with Total Trades and Pagination */}
+      <div
+        className="flexRow flexRow_stretch"
+        style={{ marginTop: "24px", alignItems: "center" }}
+      >
+        <div className="font_14">
+          Total Trades: <strong>{filteredTrades.length}</strong>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flexRow gap_8">
+            <button
+              className="btn secondary-btn"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              style={{ padding: "8px 12px" }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            <span className="font_14">
+              {currentPage} of {totalPages}
+            </span>
+
+            <button
+              className="btn secondary-btn"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              style={{ padding: "8px 12px" }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
       </div>
 
       {showTradeModal && <TradeInfo onClose={() => setShowTradeModal(false)} />}

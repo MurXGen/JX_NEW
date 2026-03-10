@@ -635,7 +635,6 @@ const TradesHistory = ({
             <div
               className="flexClm flex_center"
               style={{
-                minHeight: "40vh",
                 textAlign: "center",
               }}
             >

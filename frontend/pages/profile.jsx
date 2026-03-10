@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import {
   Bell,
   Book,
+  Edit,
   LogOutIcon,
   Moon,
   Repeat,
@@ -83,7 +84,7 @@ const Profile = () => {
       className="pad_16"
       style={{
         background: "var(--mobile-bg)",
-        height: "100vh",
+        paddingBottom: "100px",
       }}
     >
       {/* Header with Theme Toggle */}
@@ -223,27 +224,50 @@ const Profile = () => {
             gap: "12px",
           }}
         >
-          <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
-            onClick={() => router.push("/accounts")}
-          >
-            <Repeat size={18} color="var(--primary)" />
-            Switch journal
-          </button>
+          <div>
+            <button
+              style={{
+                padding: "14px 20px",
+                background: "var(--black-10)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "14px",
+                color: "var(--text-primary)",
+                fontSize: "var(--px-16)",
+                fontWeight: "500",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                width: "100%",
+              }}
+              onClick={() => router.push("/accounts")}
+            >
+              <Repeat size={18} color="var(--primary)" />
+              Switch journal
+            </button>
+            <button
+              style={{
+                padding: "14px 20px",
+                background: "var(--black-10)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "14px",
+                color: "var(--text-primary)",
+                fontSize: "var(--px-16)",
+                fontWeight: "500",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                width: "100%",
+              }}
+              onClick={() => router.push("/create-account?mode=edit")}
+            >
+              <Edit size={18} color="var(--primary)" />
+              Edit journal
+            </button>
+          </div>
 
           <button
             style={{
