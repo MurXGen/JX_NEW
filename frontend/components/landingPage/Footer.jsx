@@ -36,7 +36,7 @@ export default function Footer() {
                 { href: "/pricing", text: "Pricing" },
                 { href: "/contact", text: "Contact Us" },
               ].map((link, i) => (
-                <li key={i} className="footer_link_item flexRow gap_4 shade_50">
+                <li key={i} className="footer_link_item flexRow gap_4">
                   <Link href={link.href} className="footer_link_hover">
                     {link.text}
                     <ArrowUpRight className="arrow_icon" size={14} />
@@ -55,7 +55,7 @@ export default function Footer() {
                 { href: "/refund-policy", text: "Refund Policy" },
                 { href: "/terms-services", text: "Terms of Service" },
               ].map((link, i) => (
-                <li key={i} className="footer_link_item flexRow gap_4 shade_50">
+                <li key={i} className="footer_link_item flexRow gap_4">
                   <Link href={link.href} className="footer_link_hover">
                     {link.text}
                     <ArrowUpRight className="arrow_icon" size={14} />
@@ -68,7 +68,7 @@ export default function Footer() {
           {/* Contact & Social */}
           <div className="footer_contact">
             <h4>Connect</h4>
-            <ul className="shade_50">
+            <ul className="">
               <li className="flexRow flex_align_center gap_8">
                 <Mail size={16} />{" "}
                 <a href="mailto:officialjournalx@gmail.com">
@@ -81,12 +81,12 @@ export default function Footer() {
                   journalx.app
                 </a>
               </li>
-              <li className="flexRow flex_align_center gap_8">
+              {/* <li className="flexRow flex_align_center gap_8">
                 <Twitter size={16} /> <a href="#">Twitter</a>
               </li>
               <li className="flexRow flex_align_center gap_8">
                 <Linkedin size={16} /> <a href="#">LinkedIn</a>
-              </li>
+              </li> */}
             </ul>
           </div>
         </div>

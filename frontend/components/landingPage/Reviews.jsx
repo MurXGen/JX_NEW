@@ -93,7 +93,7 @@ export default function ReviewsSection() {
       </motion.div>
 
       <motion.p
-        className="font_14 shade_50 center_txt"
+        className="font_14 center_txt"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ delay: 0.4 }}

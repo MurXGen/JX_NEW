@@ -135,13 +135,14 @@ const HeroSection = () => {
             </h1>
 
             <p
-              className="marg_0 font_16 shade_50"
+              className="marg_0 font_16"
               style={{
                 width: "80%",
                 lineHeight: "1.375",
                 letterSpacing: "-0.4px",
                 marginTop: "12px",
                 textAlign: "center",
+                opacity: "0.5",
               }}
             >
               JournalX helps stock, options, futures & crypto traders log trades
@@ -211,7 +212,7 @@ const HeroSection = () => {
         <div className="flexRow flex_center gap_8 trust_badge">
           <span
             className="font_12"
-            style={{ textAlign: "center", marginTop: "32px" }}
+            style={{ textAlign: "center", marginTop: "32px", opacity: "0.5" }}
           >
             Trusted by traders to journal and analyze trades across <br />
             stocks, options & crypto markets

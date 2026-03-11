@@ -18,7 +18,11 @@ const HeaderSection = ({
       <div className="content">
         <h2 className="font_24 marg_0">{title}</h2>
 
-        {subtitle && <p className="font_14 marg_0 shade_50">{subtitle}</p>}
+        {subtitle && (
+          <p className="font_14 marg_0" style={{ opacity: "0.5" }}>
+            {subtitle}
+          </p>
+        )}
       </div>
     </header>
   );

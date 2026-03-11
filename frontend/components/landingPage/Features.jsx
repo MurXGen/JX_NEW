@@ -71,7 +71,7 @@ export default function FeatureSection() {
   const Icon = activeFeature.icon;
 
   return (
-    <section className="feature-section mrgin_tp_100">
+    <section className="feature-section">
       <HeaderSection
         title="Powerful Trading Journal Features"
         subtitle="Tools built to improve discipline, execution, and performance."

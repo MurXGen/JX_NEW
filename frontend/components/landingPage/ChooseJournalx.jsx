@@ -64,7 +64,14 @@ const ChooseJournalX = () => {
                 transition={{ duration: 1.2, ease: "easeInOut" }}
               >
                 <h3 className="font_24 marg_0">{item.title}</h3>
-                <p className="font_14 shade_50 marg_0">{item.description}</p>
+                <p
+                  className="font_14 marg_0"
+                  style={{
+                    opacity: "0.8",
+                  }}
+                >
+                  {item.description}
+                </p>
               </motion.div>
 
               <motion.div
@@ -79,7 +86,9 @@ const ChooseJournalX = () => {
                   >
                     {item.title}
                   </strong>
-                  <span className="font_14 shade_50">{item.description}</span>
+                  <span className="font_14" style={{ opacity: "0.8" }}>
+                    {item.description}
+                  </span>
                 </span>
               </motion.div>
 

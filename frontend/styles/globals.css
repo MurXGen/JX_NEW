@@ -758,15 +758,15 @@ button:disabled {
   background:
     repeating-linear-gradient(
       to right,
-      var(--white-10) 0px,
-      var(--white-10) 0.1px,
+      rgba(255, 255, 255, 0.1) 0px,
+      rgba(255, 255, 255, 0.1) 0.1px,
       transparent 1px,
       transparent 80px
     ),
     repeating-linear-gradient(
       to bottom,
-      var(--white-10) 0px,
-      var(--white-10) 1px,
+      rgba(255, 255, 255, 0.1) 0px,
+      rgba(255, 255, 255, 0.1) 1px,
       transparent 1px,
       transparent 80px
     ),
@@ -962,6 +962,7 @@ button:disabled {
   position: relative;
   border-radius: var(--px-12);
   background: linear-gradient(to bottom left, #ffffff0a, #1d1d1d);
+  color: white;
 }
 
 /* Gradient border */
@@ -1055,7 +1056,7 @@ input[type="number"] {
   background: var(--primary);
   border-radius: var(--px-12);
   padding: var(--px-16) var(--px-12);
-  color: var(--base-text);
+  color: white;
   border: none;
   width: 100%;
   cursor: pointer;
@@ -6303,7 +6304,7 @@ footer {
 
 .navbar_link {
   text-decoration: none;
-  color: var(--base-text);
+  color: white;
   transition: color 0.3s;
   font-size: var(--px-12);
   min-width: fit-content;
@@ -6494,9 +6495,9 @@ footer {
   z-index: 2;
 
   background:
-    linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 35%),
-    linear-gradient(to right, rgba(0, 0, 0, 0.7), transparent 10%),
-    linear-gradient(to left, rgba(0, 0, 0, 0.7), transparent 25%);
+    linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 30%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.7), transparent 0%),
+    linear-gradient(to left, rgba(0, 0, 0, 0.7), transparent 0%);
 }
 
 .heroImage {
@@ -6540,7 +6541,6 @@ footer {
   background: var(--white-10);
   overflow: visible;
   z-index: -1;
-  margin-top: 40px;
 }
 
 .shootingGlow {
@@ -6611,7 +6611,7 @@ footer {
 }
 
 .heroContent {
-  margin: 24px;
+  margin: 72px 24px;
 }
 
 .heroBg {
@@ -6834,7 +6834,7 @@ footer {
 .feature-card {
   background: var(--card-bg);
   border-radius: 16px;
-  padding: 24px;
+
   text-align: center;
 }
 
@@ -7147,6 +7147,11 @@ footer {
   opacity: 0.4;
 }
 
+.footer_link_item {
+  color: white;
+  opacity: 0.7;
+}
+
 .footer_brand p {
   font-size: var(--px-14);
   margin-top: var(--px-12);
@@ -7454,18 +7459,19 @@ footer {
     transition: 0.3s;
     padding: var(--px-12) var(--px-24);
     border-radius: var(--px-12);
+    color: white;
   }
 }
 
 /* Feature Container */
 .feature-section {
   position: relative;
-  padding: 0 20px 100px 20px;
+
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 48px;
+
   background: var(--bg-dark);
 }
 

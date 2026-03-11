@@ -112,17 +112,17 @@ export default function Home() {
           href="/apple-touch-icon.png"
         />
         <link rel="manifest" href="/site.webmanifest" />
-        {/* <script
+        <script
           dangerouslySetInnerHTML={{
             __html: `(function() {
       try {
-        const theme = localStorage.getItem('theme') || 'dark';
+        const theme = localStorage.getItem('theme') || 'light';
         document.documentElement.dataset.theme = theme;
         document.documentElement.className = theme;
       } catch (e) {}
     })();`,
           }}
-        /> */}
+        />
 
         {/* === Schema: SaaS / Software Application === */}
         <script
@@ -173,11 +173,11 @@ export default function Home() {
       >
         <Navbar />
         <HeroSection />
+        <SponsorsSection />
         <ProfitJourneySection />
+        <FeatureSection />
         <AchievementsSection />
 
-        <FeatureSection />
-        <SponsorsSection />
         <BentoGrid />
         {/* <WhyJournalSection /> */}
         <ChooseJournalX />
