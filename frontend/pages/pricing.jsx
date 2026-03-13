@@ -115,7 +115,7 @@ export const PLANS_CONFIG = {
 
   yearly: {
     title: "Pro Yearly",
-    price: currency === "INR" ? "₹1,999" : "$29.99",
+    price: currency === "INR" ? "₹1,499" : "$29.99",
     amount: currency === "INR" ? "29.99" : "29.99",
     currency,
     period: "yearly",
