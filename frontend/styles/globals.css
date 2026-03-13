@@ -2116,7 +2116,7 @@ footer {
   .pnl-tooltip-header {
     font-weight: 600;
     margin-bottom: 4px;
-    color: var(--white);
+    color: var(--black);
   }
 
   /* Tooltip value */
