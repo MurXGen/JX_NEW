@@ -119,7 +119,7 @@ html,
 body {
   scroll-behavior: smooth; /* 🔥 enables smooth scroll for anchor jumps, etc. */
   -webkit-overflow-scrolling: touch; /* ensures smoothness on iOS */
-  user-select: none;
+  /* user-select: none; */
 }
 
 body {
@@ -2117,7 +2117,7 @@ footer {
   .pnl-tooltip-header {
     font-weight: 600;
     margin-bottom: 4px;
-    color: var(--black);
+    color: white;
   }
 
   /* Tooltip value */

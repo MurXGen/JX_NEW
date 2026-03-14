@@ -15,6 +15,7 @@ const cryptoPaymentsRoutes = require("./routes/cryptoPayments");
 const telegramRoutes = require("./routes/telegramRoutes");
 const paddleRoute = require("./routes/paddleWebhook");
 const thebookxpayments = require("./routes/thebookxpayments");
+const integrationsRoutes = require("./routes/integrations");
 
 // Rate limiter
 const createLimiter = require("./utils/rateLimiter");
@@ -87,6 +88,7 @@ mongoose
 app.use("/api/auth", createLimiter(40), authRoutes);
 app.use("/api/account", createLimiter(20), accountRoutes);
 app.use("/api/trades", createLimiter(40), tradeRoutes);
+app.use("/api/integrations", integrationsRoutes);
 
 app.use(
   "/api/payments/webhook",

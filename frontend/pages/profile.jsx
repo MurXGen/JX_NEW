@@ -9,6 +9,7 @@ import {
   Edit,
   LogOutIcon,
   Moon,
+  Plug,
   Repeat,
   Share2,
   ShareIcon,
@@ -224,44 +225,17 @@ const Profile = () => {
             gap: "12px",
           }}
         >
-          <div>
+          <div className="flexRow gap_12 width100">
             <button
-              style={{
-                padding: "14px 20px",
-                background: "var(--black-10)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "14px",
-                color: "var(--text-primary)",
-                fontSize: "var(--px-16)",
-                fontWeight: "500",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                width: "100%",
-              }}
+              className="secondary-btn primary-btn radius-12 flexRow gap_12 width100"
               onClick={() => router.push("/accounts")}
             >
               <Repeat size={18} color="var(--primary)" />
               Switch journal
             </button>
+
             <button
-              style={{
-                padding: "14px 20px",
-                background: "var(--black-10)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "14px",
-                color: "var(--text-primary)",
-                fontSize: "var(--px-16)",
-                fontWeight: "500",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                width: "100%",
-              }}
+              className="secondary-btn primary-btn radius-12 flexRow gap_12 width100"
               onClick={() => router.push("/create-account?mode=edit")}
             >
               <Edit size={18} color="var(--primary)" />
@@ -270,21 +244,7 @@ const Profile = () => {
           </div>
 
           <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
+            className="secondary-btn primary-btn radius-12 flexRow gap_12"
             onClick={() => router.push("/share-trades")}
           >
             <Share2 size={18} color="var(--primary)" />
@@ -292,43 +252,24 @@ const Profile = () => {
           </button>
 
           <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
+            className="secondary-btn primary-btn radius-12 flexRow gap_12"
             onClick={() => router.push("/export")}
           >
             <ShareIcon size={18} color="var(--primary)" />
             Export trade logs
           </button>
 
+          {/* NEW BUTTON */}
           <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
+            className="secondary-btn primary-btn radius-12 flexRow gap_12"
+            onClick={() => router.push("/integrations")}
+          >
+            <Plug size={18} color="var(--primary)" />
+            Integrations
+          </button>
+
+          <button
+            className="secondary-btn primary-btn radius-12 flexRow gap_12"
             onClick={() => router.push("/billings")}
           >
             <Book size={18} color="var(--primary)" />
@@ -336,21 +277,7 @@ const Profile = () => {
           </button>
 
           <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--error-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
+            className="secondary-btn primary-btn radius-12 flexRow gap_12"
             onClick={handleLogout}
           >
             <LogOutIcon size={18} color="var(--error)" />
