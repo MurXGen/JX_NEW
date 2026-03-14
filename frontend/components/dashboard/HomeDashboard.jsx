@@ -37,6 +37,7 @@ import BottomBar from "@/components/Trades/BottomBar";
 import { useRouter } from "next/navigation";
 import { FcSwitchCamera } from "react-icons/fc";
 import FullPageLoader from "../ui/FullPageLoader";
+import SliderCalendar from "../Charts/SliderCalendar";
 
 export default function DashboardMobile() {
   const router = useRouter();
@@ -172,6 +173,11 @@ export default function DashboardMobile() {
 
         {activeTab === "Overview" && (
           <>
+            <SliderCalendar
+              trades={selectedTrades}
+              onDateSelect={(date) => console.log("Selected:", date)}
+              currencySymbol="$"
+            />
             <AllTradeStats
               stats={stats}
               trades={selectedTrades}
@@ -184,6 +190,7 @@ export default function DashboardMobile() {
                 currencySymbol={currencySymbol}
               />
             </div>
+
             <div className="flexRow gap_24">
               <DailyPnlChart data={candleData} />
               <PnLAreaChart data={candleData} />

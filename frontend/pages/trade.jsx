@@ -4,44 +4,30 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
 import Head from "next/head";
-import { getFromIndexedDB } from "@/utils/indexedDB";
+import { Calendar, History, Layers } from "lucide-react";
 import TradesHistory from "@/components/Trades/TradeHistory";
 import TradeCalendar from "@/components/Trades/TradeCalendar";
 import BottomBar from "@/components/Trades/BottomBar";
-import Navbar from "@/components/Trades/Navbar";
-import { Calendar, History, Home, Layers, ListFilterIcon } from "lucide-react";
-import Dropdown from "@/components/ui/Dropdown";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
 import FullPageLoader from "@/components/ui/FullPageLoader";
-import SectionHeader from "@/components/ui/SectionHeader";
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
 import TradeCardModal from "@/components/Trades/TradesCard";
-import HeroCards from "@/components/dashboardMobile/HeroCards";
 import { calculateStats } from "@/utils/calculateStats";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
-import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
+import { useData } from "@/api/DataContext";
 
 const TradesPage = () => {
-  const [trades, setTrades] = useState([]);
-  const [loading, setLoading] = useState(true);
-
   const router = useRouter();
+  const { accounts, accountTrades, loading, currentAccount } = useData();
 
   const [selectedDate, setSelectedDate] = useState(null);
-
-  const today = new Date();
   const [selectedMonth, setSelectedMonth] = useState("");
-  // const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [selectedYear, setSelectedYear] = useState("");
   const [showCardModal, setShowCardModal] = useState(false);
   const [activeTab, setActiveTab] = useState("history");
-  const [accounts, setAccounts] = useState([]);
-  const [userPlan, setUserPlan] = useState(null);
 
+  const today = new Date();
   const primaryCurrency = accounts.length > 0 ? accounts[0].currency : "usd";
-
   const currencySymbol = getCurrencySymbol(primaryCurrency);
-
   const selectedAccountId = Cookies.get("accountId");
 
   const selectedAccount = useMemo(() => {
@@ -51,27 +37,8 @@ const TradesPage = () => {
 
   const selectedTrades = useMemo(() => {
     if (!selectedAccount) return [];
-    return trades.filter((t) => t.accountId === selectedAccount._id);
-  }, [trades, selectedAccount]);
-
-  useEffect(() => {
-    const loadData = async () => {
-      const data = await fetchAccountsAndTrades();
-
-      if (data?.redirectToLogin) {
-        window.location.href = "/login";
-        return;
-      }
-
-      setAccounts(data.accounts || []);
-      setTrades(data.trades || []);
-      setUserPlan(data.userPlan || null);
-
-      setLoading(false);
-    };
-
-    loadData();
-  }, []);
+    return accountTrades.filter((t) => t.accountId === selectedAccount._id);
+  }, [accountTrades, selectedAccount]);
 
   const stats = useMemo(() => {
     return calculateStats(selectedTrades);
@@ -81,7 +48,6 @@ const TradesPage = () => {
     if (!selectedAccount) return 0;
 
     const starting = selectedAccount.startingBalance?.amount || 0;
-
     const pnlSum = selectedTrades.reduce(
       (sum, t) => sum + (Number(t.pnl) || 0),
       0,
@@ -96,46 +62,31 @@ const TradesPage = () => {
     { label: "Cards", value: "showCardModal", icon: <Layers size={18} /> },
   ];
 
+  const years = Array.from({ length: 15 }, (_, i) => today.getFullYear() - i);
+
   // 🟩 Automatically set current month when switching to calendar
   useEffect(() => {
     if (activeTab === "calendar") {
-      setSelectedMonth(today.getMonth() + 1); // JS months are 0-based
+      setSelectedMonth(today.getMonth() + 1);
       setSelectedYear(today.getFullYear());
     }
   }, [activeTab]);
 
-  const years = Array.from({ length: 15 }, (_, i) => today.getFullYear() - i);
+  // 🟩 Filter trades for the selected account and sort
+  const filteredTrades = useMemo(() => {
+    if (!selectedAccountId) return [];
 
+    return accountTrades
+      .filter((trade) => trade.accountId === selectedAccountId)
+      .sort((a, b) => new Date(b.openTime) - new Date(a.openTime));
+  }, [accountTrades, selectedAccountId]);
+
+  // 🟩 Redirect if no account selected
   useEffect(() => {
-    setLoading(true);
-    const loadTrades = async () => {
-      const accountId = Cookies.get("accountId");
-
-      // 🚨 If no account selected, redirect to accounts page
-      if (!accountId) {
-        router.push("/accounts");
-        return;
-      }
-
-      const userData = await getFromIndexedDB("user-data");
-      if (userData) {
-        const accountTrades = (userData.trades || []).filter(
-          (trade) => trade.accountId === accountId,
-        );
-
-        // Sort by openTime (newest first)
-        const sorted = accountTrades.sort(
-          (a, b) => new Date(b.openTime) - new Date(a.openTime),
-        );
-
-        setTrades(sorted);
-      }
-
-      setLoading(false);
-    };
-
-    loadTrades();
-  }, [router]);
+    if (!loading && !selectedAccountId) {
+      router.push("/accounts");
+    }
+  }, [loading, selectedAccountId, router]);
 
   if (loading) return <FullPageLoader />;
 
@@ -215,7 +166,7 @@ const TradesPage = () => {
 
         {activeTab === "history" && (
           <TradesHistory
-            trades={trades}
+            trades={filteredTrades}
             location={router}
             selectedDate={selectedDate}
             selectedMonth={selectedMonth}
@@ -223,20 +174,19 @@ const TradesPage = () => {
             years={years}
             setSelectedMonth={setSelectedMonth}
             setSelectedYear={setSelectedYear}
-            // onTradesUpdated={handleTradesUpdated} // ✅ here
           />
         )}
 
         {activeTab === "calendar" && (
           <TradeCalendar
-            trades={trades}
+            trades={filteredTrades}
             onDateSelect={(dateKey) => {
               setSelectedDate(new Date(dateKey));
               setActiveTab("history");
             }}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
-            years={years} // ✅ pass years here
+            years={years}
             setSelectedMonth={setSelectedMonth}
             setSelectedYear={setSelectedYear}
           />
@@ -244,12 +194,11 @@ const TradesPage = () => {
 
         {activeTab === "showCardModal" && (
           <TradeCardModal
-            trades={trades}
+            trades={filteredTrades}
             onClose={() => setShowCardModal(false)}
             onAddNew={() => router.push("/add-trade")}
           />
         )}
-        {/* <BackgroundBlur /> */}
 
         <GoogleBannerAd />
       </div>

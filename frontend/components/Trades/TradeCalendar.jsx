@@ -255,9 +255,9 @@ const TradeCalendar = ({
         </div>
       )}
 
-      <div className="calendarReverse flexClm gap_24">
+      <div className="calendarReverse flexRow gap_24">
         {/* Stats Cards */}
-        <div className="statsGrid">
+        <div className="statsGrid width100">
           <div className="stats-card radius-12 flexRow gap_12">
             <div className="statIcon total">
               <BarChart3 size={20} />
@@ -323,7 +323,7 @@ const TradeCalendar = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="monthView"
+              className="monthView width100"
             >
               {/* Weekday Headers */}
               <div className="weekdayHeaders">
@@ -398,7 +398,7 @@ const TradeCalendar = ({
               </div>
             </motion.div>
           ) : (
-            <div className="flexClm gap_12">
+            <div className="flexClm gap_12 width100">
               <motion.div
                 key="year-view"
                 initial={{ opacity: 0, y: 20 }}

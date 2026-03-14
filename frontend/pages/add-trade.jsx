@@ -47,6 +47,7 @@ import dayjs from "dayjs";
 import TradeImagesSection from "@/components/addTrade/TradeImage";
 import DateTimePicker from "@/components/ui/DateTimePicker";
 import { FcQuestions } from "react-icons/fc";
+import { useData } from "@/api/DataContext";
 import {
   FiCheck,
   FiCheckCircle,
@@ -143,6 +144,8 @@ export default function AddTradePage() {
   const [loading, setLoading] = useState(false);
   const [activeGrid, setActiveGrid] = useState(null);
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
+  // Inside your component
+  const { userData } = useData(); // Get userData from context
 
   const statuses = [
     // { value: "running", label: "Running" },
@@ -315,7 +318,7 @@ export default function AddTradePage() {
       const tradeId = localStorage.getItem(TRADE_KEY);
       if (!tradeId) return;
 
-      const userData = await getFromIndexedDB("user-data");
+      // Use userData from context instead of fetching from IndexedDB
       const tradeData = userData?.trades?.find((t) => t._id === tradeId);
 
       if (tradeData) {
@@ -340,7 +343,7 @@ export default function AddTradePage() {
         setForm({
           ...form,
           ...tradeData,
-          reason: parsedReason, // ✅ fix here
+          reason: parsedReason,
           openTime: tradeData.openTime
             ? getLocalDateTime(new Date(tradeData.openTime))
             : getLocalDateTime(),
@@ -357,7 +360,7 @@ export default function AddTradePage() {
 
     prefillTrade();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit]);
+  }, [isEdit, userData]); // Add userData to dependency array
 
   useEffect(() => {
     if (router.query.mode === "close") {

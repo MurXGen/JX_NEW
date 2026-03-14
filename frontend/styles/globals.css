@@ -1001,10 +1001,9 @@ button:disabled {
 }
 
 .tooltip {
-  background: var(--base-bg);
   backdrop-filter: blur(50px);
-  box-shadow: 1px 1px 10px var(--base-bg);
   width: 150px;
+  color: var(--black) !important;
 }
 
 /* Remove number input arrows in Chrome, Safari, Edge, Opera */
@@ -2117,7 +2116,7 @@ footer {
   .pnl-tooltip-header {
     font-weight: 600;
     margin-bottom: 4px;
-    color: white;
+    color: var(--black);
   }
 
   /* Tooltip value */
@@ -2926,7 +2925,7 @@ footer {
   }
 
   .calendarDay.hasTrades > .dayNumber {
-    color: var(--white) !important;
+    color: white !important;
   }
 
   /* .calendarDay.hasTrades:hover {
@@ -3289,7 +3288,6 @@ footer {
   .tooltip-container {
     padding: var(--px-12);
     min-width: 160px;
-    background: var(--base-bg);
     backdrop-filter: blur(50px);
     box-shadow: 1px 1px 10px var(--base-bg);
     width: 150px;

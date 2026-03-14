@@ -50,7 +50,7 @@ const TagPerformance = ({ tagAnalysis = [], currencySymbol = "$" }) => {
 
           {/* Heading */}
           <span className="font_16 ">
-            Log trade to compute <br /> Tag performance analysis
+            Add tags to your trades to view <br /> Tag performance analysis
           </span>
         </div>
       </div>

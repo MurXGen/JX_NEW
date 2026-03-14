@@ -4,9 +4,12 @@ import FullPageLoader from "@/components/ui/FullPageLoader";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
+  Bell,
   Book,
+  Edit,
   LogOutIcon,
   Moon,
+  Plug,
   Repeat,
   Share2,
   ShareIcon,
@@ -82,7 +85,7 @@ const Profile = () => {
       className="pad_16"
       style={{
         background: "var(--mobile-bg)",
-        height: "100vh",
+        paddingBottom: "100px",
       }}
     >
       {/* Header with Theme Toggle */}
@@ -136,7 +139,7 @@ const Profile = () => {
               height: "32px",
               borderRadius: "50%",
               background: "var(--primary)",
-              left: isDark ? "calc(100% - 28px)" : "4px",
+              left: isDark ? "calc(100% - 28px)" : "0px",
               transition: "left 0.3s ease",
               display: "flex",
               alignItems: "center",
@@ -222,88 +225,17 @@ const Profile = () => {
             gap: "12px",
           }}
         >
+          {/* NEW BUTTON */}
           <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
-            onClick={() => router.push("/accounts")}
+            className="secondary-btn primary-btn radius-12 flexRow gap_12"
+            onClick={() => router.push("/integrations")}
           >
-            <Repeat size={18} color="var(--primary)" />
-            Switch journal
-          </button>
-
-          {/* <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
-            onClick={() => router.push("/share-trades")}
-          >
-            <Share2 size={18} color="var(--primary)" />
-            Share trade logs
+            <Plug size={18} color="var(--primary)" />
+            Integrations
           </button>
 
           <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
-            onClick={() => router.push("/export")}
-          >
-            <ShareIcon size={18} color="var(--primary)" />
-            Export trade logs
-          </button> */}
-
-          <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--black-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
+            className="secondary-btn primary-btn radius-12 flexRow gap_12"
             onClick={() => router.push("/billings")}
           >
             <Book size={18} color="var(--primary)" />
@@ -311,21 +243,7 @@ const Profile = () => {
           </button>
 
           <button
-            style={{
-              padding: "14px 20px",
-              background: "var(--error-10)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "14px",
-              color: "var(--text-primary)",
-              fontSize: "var(--px-16)",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%",
-            }}
+            className="secondary-btn primary-btn radius-12 flexRow gap_12"
             onClick={handleLogout}
           >
             <LogOutIcon size={18} color="var(--error)" />

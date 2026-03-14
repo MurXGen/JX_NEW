@@ -224,12 +224,6 @@ router.post("/binance/import", async (req, res) => {
       });
     }
 
-    console.log("Incoming trades:", trades);
-    console.log("Trades count:", trades?.length);
-
-    console.log("UserID:", userId);
-    console.log("AccountID:", accountId);
-
     /* =============================
        FORMAT TRADES
     ============================= */
@@ -301,7 +295,6 @@ router.post("/binance/import", async (req, res) => {
     /* =============================
        INSERT NEW TRADES
     ============================= */
-    console.log("Formatted Trades:", formattedTrades);
 
     const inserted = await Trade.insertMany(formattedTrades, {
       ordered: false,
@@ -311,7 +304,6 @@ router.post("/binance/import", async (req, res) => {
       imported: inserted.length,
       message: "Trades imported successfully",
     });
-    console.log("Inserted:", inserted.length);
   } catch (error) {
     console.error("Binance import error:", error);
 

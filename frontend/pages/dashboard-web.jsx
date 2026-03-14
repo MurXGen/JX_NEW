@@ -16,86 +16,44 @@ import {
   TrendingUp as TrendingUpIcon,
   User,
 } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 import AccountSwitchModal from "@/components/dashboard/AccountSwitchModal";
-import AddTrade from "@/components/dashboard/AddTradeModal";
 import ExportPage from "@/components/dashboard/ExportModal";
 import HomeContent from "@/components/dashboard/HomeDashboard";
 import JournalSetting from "@/components/dashboard/JournalSetting";
 import Pricing from "@/components/dashboard/PricingModal";
 import ShareTrades from "@/components/dashboard/ShareModal";
-import TradePage from "@/components/dashboard/TradesPage";
-import MarketNews from "@/components/Tabs/MarketNews";
 import FullPageLoader from "@/components/ui/FullPageLoader";
-import { calculateStats } from "@/utils/calculateStats";
-import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
-import { processPnLCandles } from "@/utils/processPnLCandles";
-import axios from "axios";
-import Cookies from "js-cookie";
-import { useRouter } from "next/router";
-import Profile from "./profile";
-import AddTradePage from "./add-trade";
-import EventsPage from "./events";
-import TradesPage from "./trade";
-import DashboardMobile from "./dashboard";
 import TradesWebPage from "@/components/dashboard/TradesPage";
 import AddTradeWebPage from "@/components/dashboard/AddTradeModal";
 import EventsWebPage from "@/components/dashboard/HeatMap";
 import ProfileWeb from "@/components/dashboard/ProfileWeb";
+import { useData } from "@/api/DataContext";
 
-function TradesCard({ title, total, wins, losses }) {
-  const winPercent = total ? (wins / total) * 100 : 0;
-  const lossPercent = total ? (losses / total) * 100 : 0;
-
-  return (
-    <div
-      className="totalTrades flexClm gap_12 chart_boxBg width100"
-      style={{ padding: "16px 16px" }}
-    >
-      <div className="flexRow flexRow_stretch">
-        <span className="font_12">{title}</span>
-        <span className="font_12">{total ?? 0}</span>
-      </div>
-
-      <div className="progress-bar">
-        <div className="progress-win" style={{ width: `${winPercent}%` }}></div>
-        <div
-          className="progress-loss"
-          style={{ width: `${lossPercent}%` }}
-        ></div>
-      </div>
-
-      <div className="flexRow flexRow_stretch">
-        <span className="font_12">Wins: {wins}</span>
-        <span className="font_12">Losses: {losses}</span>
-      </div>
-    </div>
-  );
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 export default function Dashboard1() {
   const [open, setOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
-  const [accounts, setAccounts] = useState([]);
-  const [currentBalances, setCurrentBalances] = useState({});
-  const [accountSymbols, setAccountSymbols] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [tradesCount, setTradesCount] = useState({});
 
-  const [userData, setUserData] = useState(null);
-  // 🟩 state for trades
-  const [accountTrades, setAccountTrades] = useState([]);
+  // Get all data from context
+  const {
+    loading,
+    userData,
+    accounts,
+    accountTrades,
+    currentBalances,
+    accountSymbols,
+    currentAccount,
+    isProMonthly,
+  } = useData();
+
   const menuItems = [
     { id: "home", icon: <HomeIcon size={20} />, label: "Home" },
     { id: "trades", icon: <TrendingUpIcon size={20} />, label: "History" },
     { id: "heatmaps", icon: <Newspaper size={20} />, label: "Heatmap & News" },
-    // { id: "reports", icon: <BarChartIcon size={20} />, label: "Reports" },
     { id: "share", icon: <Share2Icon size={20} />, label: "Share logs" },
     { id: "export", icon: <Share size={20} />, label: "Export logs" },
     {
@@ -110,8 +68,6 @@ export default function Dashboard1() {
       const checkWidth = () => {
         if (window.innerWidth < 600) {
           router.replace("/dashboard");
-        } else {
-          setLoading(false); // allow mobile UI
         }
       };
 
@@ -121,103 +77,6 @@ export default function Dashboard1() {
       return () => window.removeEventListener("resize", checkWidth);
     }
   }, [router]);
-
-  const selectedAccountId = Cookies.get("accountId");
-  const currentAccountId = Cookies.get("accountId");
-  const currentAccount =
-    accounts.find((a) => a._id === selectedAccountId) || accounts[0];
-
-  useEffect(() => {
-    const loadEverything = async () => {
-      setLoading(true);
-
-      try {
-        // 1️⃣ fetch user-info
-        const userRes = await axios.get(`${API_BASE}/api/auth/user-info`, {
-          withCredentials: true,
-        });
-
-        const { userData } = userRes.data;
-        setUserData(userData);
-
-        // Save locally
-        if (userData) {
-          await saveToIndexedDB("user-data", userData);
-          if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
-          if (userData?.name) localStorage.setItem("userName", userData.name);
-        }
-
-        // 2️⃣ fetch accounts + trades
-        const result = await fetchAccountsAndTrades();
-
-        if (result.redirectToLogin) {
-          router.push("/login");
-          return;
-        }
-
-        setAccounts(result.accounts);
-        setAccountSymbols(result.accountSymbols);
-        setCurrentBalances(result.currentBalances);
-        setTradesCount(result.tradesCount);
-        setAccountTrades(result.trades || []);
-      } catch (err) {
-        console.error("Load error:", err);
-
-        // fallback to cache
-        const cachedUser = await getFromIndexedDB("user-data");
-
-        setUserData(cachedUser);
-
-        if (cachedUser) {
-          const result = await fetchAccountsAndTrades();
-          setAccounts(result.accounts);
-          setAccountTrades(result.trades || []);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEverything();
-  }, [router]);
-
-  // URL verification effect
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const isVerified = params.get("isVerified");
-
-    if (isVerified === "yes") {
-      Cookies.set("isVerified", "yes", {
-        path: "/",
-        sameSite: "Strict",
-        expires: 365000,
-      });
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
-  // 🟩 compute stats
-  const stats = calculateStats(accountTrades);
-
-  // Build daily pnl array from trades
-  const dailyData = accountTrades.map((t) => ({
-    date: t.closeTime,
-    pnl: Number(t.pnl) || 0,
-  }));
-
-  const longTrades = accountTrades.filter(
-    (t) => t.direction?.toLowerCase() === "long" && t.closeTime,
-  ).length;
-
-  const shortTrades = accountTrades.filter(
-    (t) => t.direction?.toLowerCase() === "short" && t.closeTime,
-  ).length;
-
-  const isFree = userData?.subscription?.plan === "free";
-
-  const isProMonthly =
-    userData?.subscription?.plan === "pro" &&
-    userData?.subscription?.type === "one-time";
 
   if (loading) {
     return <FullPageLoader />;
@@ -252,13 +111,6 @@ export default function Dashboard1() {
           >
             {open && (
               <div className="flexRow flexRow_stretch width100 ">
-                {/* <Image
-                  src="/assets/journalx_navbar_black.png"
-                  alt="JournalX Logo"
-                  width={132}
-                  height={42}
-                  priority
-                /> */}
                 <span className="font_24 font_weight_600 black-text flexRow gap_4">
                   JOURNAL
                   <strong
@@ -411,7 +263,7 @@ export default function Dashboard1() {
               </>
             )}
 
-            {/* 👤 PROFILE CARD (SHOW ALWAYS — regardless of plan or open state) */}
+            {/* 👤 PROFILE CARD */}
             {open && (
               <div
                 className="sideBar_clickables"
@@ -499,11 +351,10 @@ export default function Dashboard1() {
           {activeTab === "export" && <ExportPage />}
 
           {activeTab === "share" && <ShareTrades />}
+
           {activeTab === "pricingpage" && <Pricing />}
 
           {activeTab === "accountSetting" && <JournalSetting />}
-
-          {/* {activeTab === "reports" && <ReportsPage />} */}
 
           {activeTab === "profile" && <ProfileWeb />}
         </div>

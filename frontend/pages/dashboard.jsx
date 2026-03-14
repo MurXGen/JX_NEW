@@ -1,25 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
+import { useData } from "@/api/DataContext";
 import { calculateStats } from "@/utils/calculateStats";
-import {
-  ArrowLeftRight,
-  ArrowUpRight,
-  ChevronDown,
-  Circle,
-  LucideSwitchCamera,
-  Menu,
-  MenuIcon,
-  PieChart,
-  Settings,
-  Smile,
-  SwitchCamera,
-  SwitchCameraIcon,
-  TrendingDown,
-  TrendingUp,
-  User,
-} from "lucide-react";
+import { ArrowLeftRight, Settings } from "lucide-react";
 import HeroCards from "@/components/dashboardMobile/HeroCards";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import Cookies from "js-cookie";
@@ -37,23 +21,24 @@ import VolumeChart from "@/components/Charts/AllVolume";
 import TickerAnalysis from "@/components/Tabs/TickerAnalysis";
 import BottomBar from "@/components/Trades/BottomBar";
 import { useRouter } from "next/navigation";
-import { FcSwitchCamera } from "react-icons/fc";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import SliderCalendar from "@/components/Charts/SliderCalendar";
 
 export default function DashboardMobile() {
   const router = useRouter();
-  const [accounts, setAccounts] = useState([]);
-  const [trades, setTrades] = useState([]);
-  const [userPlan, setUserPlan] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    accounts,
+    accountTrades: trades,
+    userPlan,
+    loading,
+    currentAccount,
+  } = useData();
 
   const [activeTab, setActiveTab] = useState("Overview");
   const tabs = ["Overview", "Long/Short", "Ticker"];
 
   const primaryCurrency = accounts.length > 0 ? accounts[0].currency : "usd";
-
   const currencySymbol = getCurrencySymbol(primaryCurrency);
-
   const selectedAccountId = Cookies.get("accountId");
 
   useEffect(() => {
@@ -61,8 +46,6 @@ export default function DashboardMobile() {
       const checkWidth = () => {
         if (window.innerWidth > 600) {
           router.replace("/dashboard-web");
-        } else {
-          setLoading(false); // allow mobile UI
         }
       };
 
@@ -83,27 +66,6 @@ export default function DashboardMobile() {
     return trades.filter((t) => t.accountId === selectedAccount._id);
   }, [trades, selectedAccount]);
 
-  const currentAccountId = Cookies.get("accountId");
-
-  useEffect(() => {
-    const loadData = async () => {
-      const data = await fetchAccountsAndTrades();
-
-      if (data?.redirectToLogin) {
-        window.location.href = "/login";
-        return;
-      }
-
-      setAccounts(data.accounts || []);
-      setTrades(data.trades || []);
-      setUserPlan(data.userPlan || null);
-
-      setLoading(false);
-    };
-
-    loadData();
-  }, []);
-
   const stats = useMemo(() => {
     return calculateStats(selectedTrades);
   }, [selectedTrades]);
@@ -112,7 +74,6 @@ export default function DashboardMobile() {
     if (!selectedAccount) return 0;
 
     const starting = selectedAccount.startingBalance?.amount || 0;
-
     const pnlSum = selectedTrades.reduce(
       (sum, t) => sum + (Number(t.pnl) || 0),
       0,
@@ -122,10 +83,9 @@ export default function DashboardMobile() {
   }, [selectedAccount, selectedTrades]);
 
   const filteredTrades = useMemo(() => {
-    if (!currentAccountId) return [];
-
-    return trades.filter((trade) => trade.accountId === currentAccountId);
-  }, [trades, currentAccountId]);
+    if (!selectedAccountId) return [];
+    return trades.filter((trade) => trade.accountId === selectedAccountId);
+  }, [trades, selectedAccountId]);
 
   const candleData = useMemo(() => {
     return processPnLCandles(filteredTrades);
@@ -195,6 +155,11 @@ export default function DashboardMobile() {
 
         {activeTab === "Overview" && (
           <>
+            <SliderCalendar
+              trades={selectedTrades}
+              onDateSelect={(date) => console.log("Selected:", date)}
+              currencySymbol="$"
+            />
             <AllTradeStats
               stats={stats}
               trades={selectedTrades}
