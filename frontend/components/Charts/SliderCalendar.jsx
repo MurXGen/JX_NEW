@@ -31,6 +31,23 @@ const SliderCalendar = ({ trades, onDateSelect, currencySymbol }) => {
     "December",
   ];
 
+  // Helper function to get local date string (YYYY-MM-DD)
+  const getLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper to check if two dates are the same day in local time
+  const isSameDay = (date1, date2) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
   // Get all days in current month
   useEffect(() => {
     const year = currentDate.getFullYear();
@@ -42,13 +59,19 @@ const SliderCalendar = ({ trades, onDateSelect, currencySymbol }) => {
     const daysInMonth = [];
     let monthTotalPnL = 0;
 
+    const today = new Date();
+
     for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split("T")[0];
+      const currentLoopDate = new Date(d); // Create a new date object to avoid reference issues
+      const localDateStr = getLocalDateString(currentLoopDate);
+
+      // Filter trades that happened on this local date
       const dayTrades = trades.filter((t) => {
-        const tradeDate = new Date(t.closeTime || t.openTime)
-          .toISOString()
-          .split("T")[0];
-        return tradeDate === dateStr;
+        const tradeDate = t.closeTime || t.openTime;
+        if (!tradeDate) return false;
+
+        const tradeDateTime = new Date(tradeDate);
+        return isSameDay(tradeDateTime, currentLoopDate);
       });
 
       const dayPnL = dayTrades.reduce(
@@ -58,13 +81,15 @@ const SliderCalendar = ({ trades, onDateSelect, currencySymbol }) => {
       monthTotalPnL += dayPnL;
 
       daysInMonth.push({
-        date: new Date(d),
-        day: d.getDate(),
-        dayName: d.toLocaleDateString("en-US", { weekday: "short" }),
+        date: new Date(currentLoopDate),
+        day: currentLoopDate.getDate(),
+        dayName: currentLoopDate.toLocaleDateString("en-US", {
+          weekday: "short",
+        }),
         pnl: dayPnL,
         trades: dayTrades.length,
-        isToday: d.toDateString() === new Date().toDateString(),
-        isSelected: d.toDateString() === selectedDate.toDateString(),
+        isToday: isSameDay(currentLoopDate, today),
+        isSelected: isSameDay(currentLoopDate, selectedDate),
       });
     }
 
@@ -74,10 +99,10 @@ const SliderCalendar = ({ trades, onDateSelect, currencySymbol }) => {
     // Scroll to selected date or today
     setTimeout(() => {
       if (sliderRef.current) {
-        const selectedDay = daysInMonth.find((d) => d.isSelected || d.isToday);
-        if (selectedDay) {
-          const index = daysInMonth.findIndex(
-            (d) => d.date === selectedDay.date,
+        const targetDay = daysInMonth.find((d) => d.isSelected || d.isToday);
+        if (targetDay) {
+          const index = daysInMonth.findIndex((d) =>
+            isSameDay(d.date, targetDay.date),
           );
           const scrollPosition =
             index * 70 - sliderRef.current.offsetWidth / 2 + 35;
@@ -221,7 +246,7 @@ const SliderCalendar = ({ trades, onDateSelect, currencySymbol }) => {
             <span
               className="font_10"
               style={{
-                color: day.isSelected ? "var(--black)" : "var(--black)",
+                color: day.isSelected ? "white" : "var(--black)",
                 marginBottom: "4px",
                 fontWeight: 500,
               }}
@@ -321,7 +346,6 @@ const SliderCalendar = ({ trades, onDateSelect, currencySymbol }) => {
               height: "12px",
               borderRadius: "3px",
               background: "var(--primary)",
-              border: "1px solid var(--primary)",
             }}
           />
           <span className="font_12 black-text">Today</span>

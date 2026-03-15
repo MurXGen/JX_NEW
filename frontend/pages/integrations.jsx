@@ -51,14 +51,9 @@ export default function IntegrationsPage() {
       );
 
       setTrades(res.data.trades || []);
-
-      if (res.data.trades?.length) {
-        await importTrades(res.data.trades);
-      } else {
-        alert("No trades found to import.");
-        setFetchStatus("");
-        setLoading(false);
-      }
+      setPreviewReady(true);
+      setFetchStatus("");
+      setLoading(false);
     } catch (err) {
       alert("Failed to fetch trades");
       setFetchStatus("");
@@ -66,14 +61,19 @@ export default function IntegrationsPage() {
     }
   };
 
-  const importTrades = async (tradesToImport) => {
+  const importTrades = async () => {
+    if (!trades.length) {
+      alert("No trades to import");
+      return;
+    }
+
     try {
       setImporting(true);
       setFetchStatus("importing");
 
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/integrations/binance/import`,
-        { trades: tradesToImport },
+        { trades },
         { withCredentials: true },
       );
 
@@ -95,7 +95,6 @@ export default function IntegrationsPage() {
         setShowModal(false);
         setPreviewReady(false);
         setTrades([]);
-        setLoading(false);
         setImporting(false);
       }
     } catch (err) {
@@ -104,7 +103,6 @@ export default function IntegrationsPage() {
         err.response?.data?.message || "Import failed. Please try again.";
       alert(`❌ ${errorMessage}`);
       setFetchStatus("");
-      setLoading(false);
       setImporting(false);
     }
   };
@@ -125,6 +123,17 @@ export default function IntegrationsPage() {
     if (!timestamp) return "Never";
     const date = new Date(timestamp);
     return date.toLocaleString();
+  };
+
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return "-";
+    const date = new Date(timestamp);
+    return date.toLocaleString(undefined, {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   return (
@@ -157,6 +166,7 @@ export default function IntegrationsPage() {
       <div
         onClick={() => setShowModal(true)}
         className="stats-card radius-12 flexRow flexRow_stretch"
+        style={{ cursor: "pointer" }}
       >
         <div className="flexRow gap_12">
           <SiBinance size={32} color="#F3BA2F" />
@@ -179,9 +189,13 @@ export default function IntegrationsPage() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            zIndex: 1000,
           }}
         >
-          <div className="boxBg flexClm gap_24" style={{ width: "80%" }}>
+          <div
+            className="boxBg flexClm gap_24"
+            style={{ width: "95%", maxWidth: "1200px", padding: "24px" }}
+          >
             <h3 className="font_24" style={{ margin: "0" }}>
               Connect Binance
             </h3>
@@ -191,21 +205,31 @@ export default function IntegrationsPage() {
               fetchStatus !== "importing" &&
               fetchStatus !== "success" && (
                 <>
-                  <div className="flexClm gap_24">
+                  <div className="flexClm gap_16">
                     <input
                       placeholder="API Key"
                       value={apiKey}
                       onChange={handleApiKeyChange}
+                      style={{
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border: "1px solid var(--border-color)",
+                      }}
                     />
 
                     <input
                       placeholder="Secret Key"
                       value={secretKey}
                       onChange={handleSecretKeyChange}
+                      style={{
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border: "1px solid var(--border-color)",
+                      }}
                     />
                   </div>
 
-                  <p className="font_14" style={{ margin: "0" }}>
+                  <p className="font_14" style={{ margin: "0", opacity: 0.6 }}>
                     JournalX will only read your trade history.
                   </p>
 
@@ -246,6 +270,228 @@ export default function IntegrationsPage() {
                 <p>Fetching trades from Binance...</p>
               </div>
             )}
+
+            {previewReady &&
+              fetchStatus !== "importing" &&
+              fetchStatus !== "success" && (
+                <>
+                  <div className="flexRow flexRow_stretch">
+                    <span className="font_16 font_weight_600">
+                      Found {trades.length} trades
+                    </span>
+                  </div>
+
+                  {/* Preview Table - Show ALL trades with dates and fees */}
+                  <div
+                    style={{
+                      maxHeight: "450px",
+                      overflow: "auto",
+                      border: "1px solid var(--border-color)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        fontSize: "13px",
+                      }}
+                    >
+                      <thead
+                        style={{
+                          position: "sticky",
+                          top: 0,
+                          background: "var(--card-bg)",
+                          borderBottom: "1px solid var(--border-color)",
+                        }}
+                      >
+                        <tr>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Symbol
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Side
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Open Time
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Close Time
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Entry
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Exit
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Size
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Leverage
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Fees
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            P&L
+                          </th>
+                          <th
+                            style={{ padding: "12px 8px", textAlign: "left" }}
+                          >
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {trades.map((trade, index) => (
+                          <tr
+                            key={index}
+                            style={{
+                              borderBottom: "1px solid var(--border-color)",
+                            }}
+                          >
+                            <td
+                              style={{ padding: "12px 8px", fontWeight: 600 }}
+                            >
+                              {trade.symbol}
+                            </td>
+                            <td
+                              style={{
+                                padding: "12px 8px",
+                                color:
+                                  trade.side === "LONG"
+                                    ? "var(--success)"
+                                    : "var(--error)",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {trade.side || "-"}
+                            </td>
+                            <td style={{ padding: "12px 8px" }}>
+                              {formatDateTime(trade.openTime)}
+                            </td>
+                            <td style={{ padding: "12px 8px" }}>
+                              {formatDateTime(trade.closeTime)}
+                            </td>
+                            <td style={{ padding: "12px 8px" }}>
+                              ${trade.entry?.toFixed(2) || "-"}
+                            </td>
+                            <td style={{ padding: "12px 8px" }}>
+                              ${trade.exit?.toFixed(2) || "-"}
+                            </td>
+                            <td style={{ padding: "12px 8px" }}>
+                              ${trade.size?.toFixed(2) || "-"}
+                            </td>
+                            <td style={{ padding: "12px 8px" }}>
+                              {trade.leverage ? `${trade.leverage}x` : "-"}
+                            </td>
+                            <td
+                              style={{
+                                padding: "12px 8px",
+                                color: "var(--error)",
+                              }}
+                            >
+                              ${trade.fees?.toFixed(2) || "-"}
+                            </td>
+                            <td
+                              style={{
+                                padding: "12px 8px",
+                                color:
+                                  trade.pnl > 0
+                                    ? "var(--success)"
+                                    : trade.pnl < 0
+                                      ? "var(--error)"
+                                      : "inherit",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {trade.pnl
+                                ? `${trade.pnl > 0 ? "+" : ""}${trade.pnl?.toFixed(2)}`
+                                : "-"}
+                            </td>
+                            <td
+                              style={{
+                                padding: "12px 8px",
+                                color:
+                                  trade.status === "OPEN"
+                                    ? "#f59e0b"
+                                    : "#22c55e",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {trade.status || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Summary Row - Total Fees */}
+                  <div
+                    className="flexRow flexRow_stretch"
+                    style={{
+                      background: "var(--black-4)",
+                      padding: "12px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <span className="font_14 font_weight_600">Total Fees:</span>
+                    <span className="font_14 font_weight_600 error">
+                      $
+                      {trades
+                        .reduce((sum, t) => sum + (Number(t.fees) || 0), 0)
+                        .toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flexRow width100 gap_12">
+                    <button
+                      onClick={importTrades}
+                      disabled={importing}
+                      className="primary-btn width100"
+                    >
+                      {importing
+                        ? "Importing..."
+                        : `Import ${trades.length} Trades`}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowModal(false);
+                        setPreviewReady(false);
+                        setTrades([]);
+                        setFetchStatus("");
+                      }}
+                      className="primary-btn secondary-btn width100"
+                      disabled={importing}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
 
             {fetchStatus === "importing" && (
               <div style={{ textAlign: "center", padding: "40px" }}>
