@@ -44,7 +44,7 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
           exit="hidden"
         >
           <motion.div
-            className="chart_boxBg flexClm gap_24"
+            className="stats-card radius-12 flexClm gap_24"
             style={{ padding: "24px", margin: "12px" }}
             variants={modalVariants}
             initial="hidden"
@@ -62,12 +62,15 @@ const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
             </div>
 
             <div className="flexRow gap_12">
-              <button className="primary-btn secondary-btn" onClick={onCancel}>
+              <button
+                className="primary-btn secondary-btn width100"
+                onClick={onCancel}
+              >
                 Cancel
               </button>
               <button
-                className="primary-btn"
-                style={{ background: "var(--error)" }}
+                className="primary-btn width100"
+                style={{ background: "var(--error)", color: "white" }}
                 onClick={onConfirm}
               >
                 Confirm

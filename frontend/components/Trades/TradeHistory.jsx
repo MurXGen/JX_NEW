@@ -7,17 +7,8 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import Cookies from "js-cookie";
-import {
-  ArrowDown,
-  ArrowDownIcon,
-  ArrowUp,
-  ArrowUpIcon,
-  ChevronDown,
-  LucideSquareStack,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
-import { useRouter } from "next/navigation"; // for Next.js 13+ app directory
+import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import TradeInfo from "./TradeInfo";
 import ToastMessage from "../ui/ToastMessage";
@@ -199,7 +190,7 @@ const TradesHistory = ({
             _id: tempId,
             loading: true,
             symbol: formData.symbol || "N/A",
-            openTime: normalizedFormData.openTime, // ✅ local → UTC safe
+            openTime: normalizedFormData.openTime,
             pnl: 0,
           },
           ...prev,
@@ -248,19 +239,23 @@ const TradesHistory = ({
         localStorage.removeItem("newTradeImage_closeImage");
         sessionStorage.removeItem("newTradeData");
         sessionStorage.removeItem("isEditTrade");
+
+        // ✅ Keep skeleton visible, then reload
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } else {
         throw new Error("Upload failed");
       }
     } catch (err) {
       setDisplayedTrades((prev) => prev.filter((t) => !t.loading));
       setToast({ type: "error", message: err.message || "Upload failed" });
-    } finally {
       setLoadingNewTrade(false);
+    } finally {
       sessionStorage.removeItem("newTradeData");
       sessionStorage.removeItem("isEditTrade");
     }
   };
-
   useEffect(() => {
     applyFilters(); // reads current selectedMonth, selectedYear, filter by default
   }, [trades, selectedDate, selectedMonth, selectedYear, filter, visibleCount]);
@@ -447,10 +442,110 @@ const TradesHistory = ({
         }
       }
     >
+      {/* Full Screen Skeleton for New Trade */}
+      <AnimatePresence>
+        {loadingNewTrade && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.8)",
+              backdropFilter: "blur(8px)",
+              zIndex: 9999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {/* Card Sliding Animation */}
+            <motion.div
+              initial={{ scale: 0.9, y: 50, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: -50, opacity: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 20,
+              }}
+              style={{
+                width: "90%",
+                maxWidth: "400px",
+                position: "relative",
+              }}
+            >
+              {/* Front Card */}
+              <motion.div
+                animate={{
+                  y: [0, -10, 0],
+                  rotateZ: [0, 1, -1, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <Skeleton message="Processing your trade..." />
+              </motion.div>
+
+              {/* Behind Cards (stack effect) */}
+              <motion.div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  left: "10px",
+                  right: "-10px",
+                  bottom: "-10px",
+                  zIndex: -1,
+                  opacity: 0.5,
+                }}
+                animate={{
+                  y: [5, -5, 5],
+                  rotateZ: [0, -1, 1, 0],
+                }}
+                transition={{
+                  duration: 2.2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.1,
+                }}
+              >
+                <Skeleton message="" />
+              </motion.div>
+
+              <motion.div
+                style={{
+                  position: "absolute",
+                  top: "20px",
+                  left: "20px",
+                  right: "-20px",
+                  bottom: "-20px",
+                  zIndex: -2,
+                  opacity: 0.3,
+                }}
+                animate={{
+                  y: [10, -10, 10],
+                  rotateZ: [0, -2, 2, 0],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.2,
+                }}
+              >
+                <Skeleton message="" />
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Trades List */}
       <div className="tradesList">
-        {/* Skeleton placeholder for new trade */}
-        {loadingNewTrade && <Skeleton message="Processing your trade..." />}
         {/* Trades List */}
         {Object.keys(groupedTrades).length > 0 ? (
           <div className="flexClm gap_32">
@@ -521,9 +616,9 @@ const TradesHistory = ({
                                   }`}
                                 >
                                   {trade.direction?.toLowerCase() === "long" ? (
-                                    <ArrowUpIcon size={20} />
+                                    <span>L</span>
                                   ) : (
-                                    <ArrowDownIcon size={20} />
+                                    <span>S</span>
                                   )}
                                 </div>
 

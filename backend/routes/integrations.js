@@ -8,7 +8,6 @@ const Trade = require("../models/Trade");
 /* ======================================
    BINANCE PREVIEW TRADES (LAST 3 MONTHS)
 ====================================== */
-
 router.post("/binance/preview", async (req, res) => {
   const { apiKey, secretKey } = req.body;
 
@@ -55,89 +54,185 @@ router.post("/binance/preview", async (req, res) => {
 
     const incomeRes = await axios.get(incomeURL, { headers });
 
-    const pnlMap = {};
+    // Map PnL by trade ID
+    const pnlByTradeId = {};
     incomeRes.data.forEach((i) => {
-      if (!pnlMap[i.symbol]) pnlMap[i.symbol] = 0;
-      pnlMap[i.symbol] += Number(i.income);
+      if (i.tradeId) {
+        pnlByTradeId[i.tradeId] = Number(i.income);
+      }
     });
 
     /* =============================
-       3️⃣ GROUP FILLS → POSITIONS
+       3️⃣ GROUP FILLS BY ORDER ID
+       Each order (even with partial fills) should be tracked together
     ============================= */
 
-    const symbolMap = {};
+    // First, group fills by orderId to track partial fills
+    const ordersByOrderId = {};
 
-    fills.forEach((t) => {
-      if (!symbolMap[t.symbol]) {
-        symbolMap[t.symbol] = {
-          symbol: t.symbol,
-          buyQty: 0,
-          sellQty: 0,
-          buyValue: 0,
-          sellValue: 0,
+    fills.forEach((fill) => {
+      const orderId = fill.orderId;
+
+      if (!ordersByOrderId[orderId]) {
+        ordersByOrderId[orderId] = {
+          orderId,
+          symbol: fill.symbol,
+          side: fill.side,
+          fills: [],
+          totalQty: 0,
+          totalValue: 0,
+          avgPrice: 0,
           fees: 0,
-          firstSide: t.side, // 👈 important
-          openTime: t.time,
-          closeTime: t.time,
+          firstFillTime: fill.time,
+          lastFillTime: fill.time,
+          tradeIds: [],
         };
       }
 
-      const s = symbolMap[t.symbol];
-
-      const qty = Number(t.qty);
-      const price = Number(t.price);
+      const order = ordersByOrderId[orderId];
+      const qty = Number(fill.qty);
+      const price = Number(fill.price);
       const value = qty * price;
 
-      if (t.side === "BUY") {
-        s.buyQty += qty;
-        s.buyValue += value;
-      } else {
-        s.sellQty += qty;
-        s.sellValue += value;
-      }
+      order.fills.push(fill);
+      order.totalQty += qty;
+      order.totalValue += value;
+      order.fees += Number(fill.commission || 0);
+      order.lastFillTime = Math.max(order.lastFillTime, fill.time);
+      order.tradeIds.push(fill.id);
 
-      s.fees += Number(t.commission || 0);
-
-      s.openTime = Math.min(s.openTime, t.time);
-      s.closeTime = Math.max(s.closeTime, t.time);
+      // Recalculate average price
+      order.avgPrice = order.totalValue / order.totalQty;
     });
 
     /* =============================
-       4️⃣ BUILD CLOSED POSITIONS
+       4️⃣ MATCH BUY AND SELL ORDERS TO CREATE TRADES
     ============================= */
 
-    const closedTrades = Object.values(symbolMap)
-      .filter((t) => t.buyQty > 0 && t.sellQty > 0)
-      .map((t) => {
-        const entry = t.buyValue / t.buyQty;
-        const exit = t.sellValue / t.sellQty;
+    const trades = [];
+    const processedOrders = new Set();
 
-        const size = Math.min(t.buyValue, t.sellValue);
-        const side = t.firstSide === "BUY" ? "LONG" : "SHORT";
+    // Separate orders by symbol
+    const ordersBySymbol = {};
 
-        const pnl = pnlMap[t.symbol] || 0;
+    Object.values(ordersByOrderId).forEach((order) => {
+      if (!ordersBySymbol[order.symbol]) {
+        ordersBySymbol[order.symbol] = [];
+      }
+      ordersBySymbol[order.symbol].push(order);
+    });
 
-        const roi = size ? (pnl / size) * 100 : 0;
+    // For each symbol, match buy and sell orders
+    Object.keys(ordersBySymbol).forEach((symbol) => {
+      const symbolOrders = ordersBySymbol[symbol];
 
-        const durationMs = t.closeTime - t.openTime;
+      // Separate into buy and sell orders
+      const buyOrders = symbolOrders
+        .filter((o) => o.side === "BUY")
+        .sort((a, b) => a.firstFillTime - b.firstFillTime);
+
+      const sellOrders = symbolOrders
+        .filter((o) => o.side === "SELL")
+        .sort((a, b) => a.firstFillTime - b.firstFillTime);
+
+      // Match orders FIFO style
+      let buyIndex = 0;
+      let sellIndex = 0;
+
+      while (buyIndex < buyOrders.length && sellIndex < sellOrders.length) {
+        const buyOrder = buyOrders[buyIndex];
+        const sellOrder = sellOrders[sellIndex];
+
+        // Determine which order happened first to set direction
+        const isLong = buyOrder.firstFillTime < sellOrder.firstFillTime;
+
+        // Calculate matched quantity (minimum of remaining quantities)
+        const buyQty = buyOrder.totalQty;
+        const sellQty = sellOrder.totalQty;
+        const matchedQty = Math.min(buyQty, sellQty);
+
+        // Calculate proportional values
+        const buyValue = (matchedQty / buyQty) * buyOrder.totalValue;
+        const sellValue = (matchedQty / sellQty) * sellOrder.totalValue;
+
+        // Calculate average prices for this matched portion
+        const avgEntryPrice = buyValue / matchedQty;
+        const avgExitPrice = sellValue / matchedQty;
+
+        // Calculate fees proportionally
+        const buyFees = (matchedQty / buyQty) * buyOrder.fees;
+        const sellFees = (matchedQty / sellQty) * sellOrder.fees;
+        const totalFees = buyFees + sellFees;
+
+        // Calculate PnL from matched trade IDs
+        let totalPnl = 0;
+        buyOrder.tradeIds.forEach((tradeId) => {
+          if (pnlByTradeId[tradeId]) {
+            totalPnl += pnlByTradeId[tradeId] * (matchedQty / buyQty);
+          }
+        });
+        sellOrder.tradeIds.forEach((tradeId) => {
+          if (pnlByTradeId[tradeId]) {
+            totalPnl += pnlByTradeId[tradeId] * (matchedQty / sellQty);
+          }
+        });
+
+        // If no PnL from trade IDs, calculate from price difference
+        if (totalPnl === 0) {
+          const priceDiff = isLong
+            ? avgExitPrice - avgEntryPrice
+            : avgEntryPrice - avgExitPrice;
+          totalPnl = priceDiff * matchedQty;
+        }
+
+        // Calculate position size (in quote currency)
+        const positionSize = isLong ? buyValue : sellValue;
+
+        // Calculate duration
+        const openTime = isLong
+          ? buyOrder.firstFillTime
+          : sellOrder.firstFillTime;
+        const closeTime = isLong
+          ? sellOrder.lastFillTime
+          : buyOrder.lastFillTime;
+        const durationMs = closeTime - openTime;
         const durationMin = Math.round(durationMs / 60000);
 
-        return {
-          symbol: t.symbol,
-          side,
-          size: Number(size.toFixed(2)),
-          entry: Number(entry.toFixed(4)),
-          exit: Number(exit.toFixed(4)),
+        // Create trade
+        trades.push({
+          symbol,
+          side: isLong ? "LONG" : "SHORT",
+          size: Number(positionSize.toFixed(2)),
+          entry: Number(avgEntryPrice.toFixed(4)),
+          exit: Number(avgExitPrice.toFixed(4)),
           leverage: "-",
-          pnl: Number(pnl.toFixed(4)),
-          fees: Number(t.fees.toFixed(4)),
-          roi: Number(roi.toFixed(2)),
+          pnl: Number(totalPnl.toFixed(4)),
+          fees: Number(totalFees.toFixed(4)),
+          roi: Number(((totalPnl / positionSize) * 100).toFixed(2)),
           duration: `${durationMin}m`,
-          openTime: new Date(t.openTime),
-          closeTime: new Date(t.closeTime),
+          openTime: new Date(openTime),
+          closeTime: new Date(closeTime),
           status: "CLOSED",
-        };
-      });
+          fillDetails: {
+            buyFills: buyOrder.fills.length,
+            sellFills: sellOrder.fills.length,
+            totalFills: buyOrder.fills.length + sellOrder.fills.length,
+          },
+        });
+
+        // Reduce quantities
+        buyOrder.totalQty -= matchedQty;
+        buyOrder.totalValue =
+          (buyOrder.totalQty / buyQty) * buyOrder.totalValue;
+        sellOrder.totalQty -= matchedQty;
+        sellOrder.totalValue =
+          (sellOrder.totalQty / sellQty) * sellOrder.totalValue;
+
+        // Move to next order if current is fully matched
+        if (buyOrder.totalQty < 0.000001) buyIndex++;
+        if (sellOrder.totalQty < 0.000001) sellIndex++;
+      }
+    });
 
     /* =============================
        5️⃣ OPEN POSITIONS
@@ -182,11 +277,11 @@ router.post("/binance/preview", async (req, res) => {
        FINAL RESULT
     ============================= */
 
-    const trades = [...closedTrades, ...openTrades];
+    const allTrades = [...trades, ...openTrades];
 
     res.json({
-      totalTrades: trades.length,
-      trades,
+      totalTrades: allTrades.length,
+      trades: allTrades,
     });
   } catch (error) {
     console.error("Binance preview error:", error?.response?.data || error);

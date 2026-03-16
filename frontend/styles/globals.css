@@ -175,6 +175,7 @@ button {
   font-family: var(--ff-Pop);
   transition: 0.3s;
   transition-duration: 0.3s;
+  font-weight: 600;
 }
 
 button:hover {
@@ -4209,6 +4210,7 @@ footer {
     align-items: center;
     z-index: 999;
     backdrop-filter: blur(20px);
+    background-color: var(--black-50);
   }
 
   .cm-modal {

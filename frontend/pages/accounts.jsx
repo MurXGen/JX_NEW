@@ -39,19 +39,110 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FiDatabase } from "react-icons/fi";
-import { useData } from "@/api/DataContext";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function Accounts() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [accounts, setAccounts] = useState([]);
+  const [accountSymbols, setAccountSymbols] = useState({});
+  const [currentBalances, setCurrentBalances] = useState({});
+  const [tradesCount, setTradesCount] = useState({});
   const [showAllAccounts, setShowAllAccounts] = useState(false);
+  const [userPlan, setUserPlan] = useState(null);
+  const [planUsage, setPlanUsage] = useState({});
+  const [showMore, setShowMore] = useState(false);
   const [orderedAccounts, setOrderedAccounts] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [apiCallFailed, setApiCallFailed] = useState(false);
 
-  // Get data from context
-  const { loading, accounts, tradesCount } = useData();
+  useEffect(() => {
+    const loadUserData = async () => {
+      setLoading(true);
+      setApiCallFailed(false);
+
+      try {
+        // 1️⃣ Try to fetch fresh data from backend first (this is the primary source)
+        const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
+          withCredentials: true,
+        });
+
+        const { userData } = res.data;
+
+        // 2️⃣ Store in IndexedDB for future offline usage
+        if (userData) {
+          await saveToIndexedDB("user-data", userData);
+          if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
+          if (userData?.name) localStorage.setItem("userName", userData.name);
+        }
+
+        // 3️⃣ Process with your existing utility
+        const result = await fetchAccountsAndTrades();
+
+        if (result.redirectToLogin) {
+          router.push("/login");
+          return;
+        }
+
+        // 4️⃣ Update state with fresh data
+        setAccounts(result.accounts);
+        setAccountSymbols(result.accountSymbols);
+        setCurrentBalances(result.currentBalances);
+        setTradesCount(result.tradesCount);
+        setUserPlan(result.userPlan);
+
+        // Calculate plan usage
+        if (result.userPlan) {
+          const cachedUser = await getFromIndexedDB("user-data");
+          if (cachedUser) {
+            const planRules = getPlanRules(cachedUser);
+            const currentUsage = calculatePlanUsage(cachedUser, planRules);
+            setPlanUsage(currentUsage);
+          }
+        }
+      } catch (error) {
+        console.error("API call failed, falling back to cached data:", error);
+        setApiCallFailed(true);
+
+        // 5️⃣ Only fallback to IndexedDB if API fails
+        try {
+          const cached = await getFromIndexedDB("user-data");
+
+          if (cached) {
+            // Process cached data
+            const result = await fetchAccountsAndTrades();
+
+            setAccounts(result.accounts);
+            setAccountSymbols(result.accountSymbols);
+            setCurrentBalances(result.currentBalances);
+            setTradesCount(result.tradesCount);
+            setUserPlan(result.userPlan);
+
+            // Show a toast or notification that you're using cached data
+            // You can add a toast message here if you have a toast system
+            console.log("Using cached data - API unavailable");
+          } else {
+            // No cached data available
+            if (error.response?.status === 429) {
+              // Rate limited - show appropriate message
+              console.warn("Rate limit reached. Please try again later.");
+            } else {
+              router.push("/login");
+            }
+          }
+        } catch (cacheError) {
+          console.error("Failed to load cached data:", cacheError);
+          router.push("/login");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [router]);
 
   // URL verification effect
   useEffect(() => {
@@ -185,25 +276,14 @@ function Accounts() {
       Cookies.set("accountId", accountId, {
         path: "/",
         sameSite: "Strict",
-        expires: 365000, // Limitless - effectively never expires (1000 years)
+        expires: 365,
       });
-
-      // Optional: Store in localStorage as backup
-      localStorage.setItem("selectedAccountId", accountId);
-
       router.push("/dashboard");
     } catch (err) {
       console.error("Error setting account cookie:", err);
-
-      // Fallback to localStorage if cookies fail
-      try {
-        localStorage.setItem("selectedAccountId", accountId);
-        router.push("/dashboard");
-      } catch (fallbackErr) {
-        console.error("Even localStorage failed:", fallbackErr);
-      }
     }
   };
+
   const handleCreateAccount = async () => {
     setLoading(true);
     router.push("/create-account");

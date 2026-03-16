@@ -179,16 +179,9 @@ const RulesManager = ({ onRulesStatusChange }) => {
               value={rule.text || ""}
               onClick={() => rule.saved && !rule.isEditing && enableEdit(index)}
               onChange={(e) => handleChange(index, e.target.value)}
-              style={{
-                flex: 1,
-                backgroundColor: rule.isEditing ? "#fff" : "#f5f5f5",
-                border: rule.isEditing ? "2px solid #007bff" : "1px solid #ddd",
-                padding: "8px 12px",
-                borderRadius: "4px",
-                cursor: rule.saved && !rule.isEditing ? "pointer" : "text",
-              }}
               placeholder={rule.isEditing ? "Enter rule..." : "No rule text"}
               readOnly={!rule.isEditing}
+              className="width100"
             />
 
             {/* Action Buttons */}

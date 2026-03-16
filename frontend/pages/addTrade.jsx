@@ -1,100 +1,122 @@
-import EntriesSection from "@/components/addTrade/Entries";
-import ExitsSection from "@/components/addTrade/Exits";
-import TextAreaField from "@/components/addTrade/Learnings";
-import OpenTime from "@/components/addTrade/OpenTime";
-import CloseTime from "@/components/addTrade/CloseTime";
-import QuantityGrid from "@/components/addTrade/Quantity";
-import QuickSection from "@/components/addTrade/Quick";
-import ReasonSelector from "@/components/addTrade/Reasons";
-import ToggleSwitch from "@/components/addTrade/Rules";
-import StopLossSection from "@/components/addTrade/SL";
-import TradeStatusGrid from "@/components/addTrade/Status";
-import TakeProfitSection from "@/components/addTrade/TP";
-import Ticker from "@/components/addTrade/Ticker";
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import ModalWrapper from "@/components/ui/ModalWrapper";
-import ToastMessage from "@/components/ui/ToastMessage";
-import { getCurrencySymbol } from "@/utils/currencySymbol";
-import { formatNumber } from "@/utils/formatNumbers"; //
-import { getFromIndexedDB } from "@/utils/indexedDB";
+// pages/add-trade.jsx
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import Cookies from "js-cookie";
+import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
-  Brain,
-  Camera,
   ChevronLeft,
+  ChevronRight,
   Clock,
   DollarSign,
-  List,
-  LogIn,
-  LogOut,
-  Target,
   TrendingUp,
+  TrendingDown,
+  Upload,
+  X,
+  Check,
+  Camera,
+  Brain,
+  Target,
+  Zap,
+  Plus,
+  Minus,
+  Save,
 } from "lucide-react";
-import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import DateTimePicker from "@/components/ui/DateTimePicker";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import ToastMessage from "@/components/ui/ToastMessage";
+import PlanLimitModal from "@/components/ui/PlanLimitModal";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import {
   canSubmitTrade,
   canUploadImageThisMonth,
-  getTradesThisMonth,
 } from "@/utils/TradeMonthCount";
-import PlanLimitModal from "@/components/ui/PlanLimitModal";
-import { getPlanRules } from "@/utils/planRestrictions";
-import dayjs from "dayjs";
-import TradeImagesSection from "@/components/addTrade/TradeImage";
-import DateTimePicker from "@/components/ui/DateTimePicker";
-import { FcQuestions } from "react-icons/fc";
-import {
-  FiCheck,
-  FiCheckCircle,
-  FiClock,
-  FiDollarSign,
-  FiHelpCircle,
-  FiImage,
-  FiList,
-  FiLogIn,
-  FiLogOut,
-  FiTarget,
-  FiTrendingUp,
-} from "react-icons/fi";
-import RulesManager from "@/components/addTrade/Rules";
+import { useData } from "@/api/DataContext";
 
 const TRADE_KEY = "__t_rd_iD";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Helper: Convert file to data URL
+const fileToDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+// Helper: Convert data URL to File
+const dataUrlToFile = (dataUrl, filename, mimeType) => {
+  const arr = dataUrl.split(",");
+  const mime = arr[0].match(/:(.*?);/)[1] || mimeType;
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename || "image.png", { type: mime });
+};
+
+// Helper: Format price
+const formatPrice = (num) => {
+  if (!num && num !== 0) return "";
+  if (num < 1) {
+    return num.toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
+  }
+  return num.toFixed(2);
+};
+
+// Helper: Calculate price from percent
+const calcPriceFromPercent = (avgEntryPrice, percent, direction = "long") => {
+  const base = Number(avgEntryPrice);
+  const pct = Number(percent);
+  if (!base || !pct) return "";
+  if (direction === "long") {
+    return formatPrice(base * (1 + pct / 100));
+  }
+  return formatPrice(base * (1 - pct / 100));
+};
+
+// Helper: Get local datetime string
+const getLocalDateTime = (date = new Date()) => {
+  const pad = (n) => (n < 10 ? "0" + n : n);
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    ":" +
+    pad(date.getMinutes())
+  );
+};
+
+// Helper: Normalize datetime
+const normalizeDateTime = (value) => {
+  if (!value) return null;
+  if (!value.includes("T")) {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const localDateTime = `${value}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    return new Date(localDateTime).toISOString();
+  }
+  return new Date(value).toISOString();
+};
 
 export default function AddTradePage() {
   const router = useRouter();
-  const firstExitRef = useRef(null);
-  const [currencySymbol, setCurrencySymbol] = useState("$");
-  const [toast, setToast] = useState({ type: "", message: "" });
-  const [loading, setLoading] = useState(false);
-  const [activeGrid, setActiveGrid] = useState(null);
-  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
+  const { userData, refreshData } = useData();
+  const fileInputRef = useRef(null);
 
-  const statuses = [
-    // { value: "running", label: "Running" },
-    { value: "closed", label: "Log with entries" },
-    { value: "quick", label: "Quick" },
-  ];
-
-  // format local datetime for <input type="datetime-local" />
-  const getLocalDateTime = (date = new Date()) => {
-    const pad = (n) => (n < 10 ? "0" + n : n);
-    return (
-      date.getFullYear() +
-      "-" +
-      pad(date.getMonth() + 1) +
-      "-" +
-      pad(date.getDate()) +
-      "T" +
-      pad(date.getHours()) +
-      ":" +
-      pad(date.getMinutes())
-    );
-  };
-
-  const now = getLocalDateTime(new Date());
-
+  // State
   const [form, setForm] = useState({
     symbol: "",
     direction: "long",
@@ -113,186 +135,113 @@ export default function AddTradePage() {
     avgExitPrice: "",
     avgSLPrice: "",
     avgTPPrice: "",
-    openTime: now,
-    closeTime: now,
-
-    // Fee Fields
-    feeType: "percent",
-    openFeeValue: "",
-    closeFeeValue: "",
-    openFeeAmount: 0,
-    closeFeeAmount: 0,
-    feeAmount: 0,
-    pnlAfterFee: 0,
-
-    // Images
+    openTime: getLocalDateTime(new Date()),
+    closeTime: getLocalDateTime(new Date()),
     openImage: null,
     openImagePreview: "",
     closeImage: null,
     closeImagePreview: "",
-
-    // Derived values
     duration: 0,
     rr: "",
     pnl: "",
     expectedProfit: 0,
     expectedLoss: 0,
+    fees: 0,
   });
 
-  useEffect(() => {
-    if (form.tradeStatus === "quick") {
-      setForm((prev) => ({ ...prev, closeTime: new Date().toISOString() }));
-    } else if (form.tradeStatus === "running") {
-      setForm((prev) => ({ ...prev, closeTime: null }));
-    }
-  }, [form.tradeStatus]);
+  const [loading, setLoading] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(""); // "submitting", "success", "error"
+  const [toast, setToast] = useState({ type: "", message: "" });
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [currencySymbol, setCurrencySymbol] = useState("$");
+  const [activeImageField, setActiveImageField] = useState(null);
+  const [showOpenTimePicker, setShowOpenTimePicker] = useState(false);
+  const [showCloseTimePicker, setShowCloseTimePicker] = useState(false);
+  const [showReasonSelector, setShowReasonSelector] = useState(false);
+  const [showLearnings, setShowLearnings] = useState(false);
 
-  const validateForm = (form) => {
-    if (!form.symbol.trim()) return "Symbol name is required";
-
-    if (form.tradeStatus === "quick") {
-      if (form.pnl === "" || form.pnl === null)
-        return "Net Profit or Loss (PnL) is required";
-
-      // ✅ CloseTime required for quick trades
-      if (!form.closeTime) return "Close time is required for quick trades";
-    } else {
-      // Entries required (only for running/closed)
-      if (!form.entries || form.entries.length === 0 || !form.entries[0].price)
-        return "At least one entry is required";
-
-      if (form.tradeStatus === "closed") {
-        // Exits required for closed trades
-        if (!form.exits || form.exits.length === 0 || !form.exits[0].price)
-          return "At least one exit is required";
-
-        // ✅ CloseTime required for closed trades
-        if (!form.closeTime) return "Close time is required for closed trades";
-      }
-
-      if (form.tradeStatus === "running") {
-        // TP required: at least one with price OR percent
-        if (
-          !form.tps ||
-          form.tps.length === 0 ||
-          ((form.tps[0].price === "" || form.tps[0].price === null) &&
-            (form.tps[0].percent === "" || form.tps[0].percent === null))
-        ) {
-          return "At least one Take Profit (TP) is required (price or percent)";
-        }
-
-        // SL required: at least one with price OR percent
-        if (
-          !form.sls ||
-          form.sls.length === 0 ||
-          ((form.sls[0].price === "" || form.sls[0].price === null) &&
-            (form.sls[0].percent === "" || form.sls[0].percent === null))
-        ) {
-          return "At least one Stop Loss (SL) is required (price or percent)";
-        }
-      }
-    }
-
-    // Duration must be positive
-    if (form.duration < 0) return "Duration should be positive";
-
-    // ✅ CloseTime can’t be before OpenTime (only if both exist)
-    if (form.closeTime && form.openTime) {
-      if (new Date(form.closeTime) < new Date(form.openTime)) {
-        return "Close date cannot be earlier than Open time";
-      }
-    }
-
-    return null; // ✅ No errors
-  };
-
-  // 🔍 detect edit mode
   const isEdit = router.query.mode === "edit" || router.query.mode === "close";
+  const tradeStatus = form.tradeStatus;
 
+  // Reason options
+  const reasonOptions = [
+    "Trend Following",
+    "Breakout",
+    "Reversal",
+    "Support/Resistance",
+    "News Based",
+    "Scalping",
+    "Swing",
+    "Positional",
+    "Pattern Recognition",
+    "Volume Spike",
+  ];
+
+  // Load currency
   useEffect(() => {
-    if (!isEdit && form.tradeStatus === "quick") {
-      setForm((prev) => ({
-        ...prev,
-        closeTime: getLocalDateTime(new Date()),
-      }));
-    }
-
-    if (form.tradeStatus === "running") {
-      setForm((prev) => ({ ...prev, closeTime: null }));
-    }
-  }, [form.tradeStatus, isEdit]);
-
-  useEffect(() => {
-    const prefillTrade = async () => {
-      if (!isEdit) return;
-
-      const tradeId = localStorage.getItem(TRADE_KEY);
-      if (!tradeId) return;
-
-      const userData = await getFromIndexedDB("user-data");
-      const tradeData = userData?.trades?.find((t) => t._id === tradeId);
-
-      if (tradeData) {
-        let parsedReason = [];
-
-        if (Array.isArray(tradeData.reason)) {
-          // If first item is a stringified JSON, parse it
-          if (
-            tradeData.reason.length === 1 &&
-            typeof tradeData.reason[0] === "string"
-          ) {
-            try {
-              parsedReason = JSON.parse(tradeData.reason[0]);
-            } catch {
-              parsedReason = tradeData.reason; // fallback
-            }
-          } else {
-            parsedReason = tradeData.reason;
-          }
-        }
-
-        setForm({
-          ...form,
-          ...tradeData,
-          reason: parsedReason, // ✅ fix here
-          openTime: tradeData.openTime
-            ? getLocalDateTime(new Date(tradeData.openTime))
-            : getLocalDateTime(),
-          closeTime: tradeData.closeTime
-            ? getLocalDateTime(new Date(tradeData.closeTime))
-            : getLocalDateTime(),
-          openImage: null,
-          openImagePreview: tradeData.openImageUrl || "",
-          closeImage: null,
-          closeImagePreview: tradeData.closeImageUrl || "",
-        });
+    const loadCurrency = async () => {
+      const cachedUser = await getFromIndexedDB("user-data");
+      const accountId = Cookies.get("accountId");
+      const activeAccount = cachedUser?.accounts?.find(
+        (acc) => acc._id === accountId,
+      );
+      if (activeAccount?.currency) {
+        setCurrencySymbol(getCurrencySymbol(activeAccount.currency));
       }
     };
+    loadCurrency();
+  }, []);
 
-    prefillTrade();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit]);
-
+  // Load trade data for edit
   useEffect(() => {
-    if (router.query.mode === "close") {
-      // scroll & focus after slight delay
-      setTimeout(() => {
-        firstExitRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-        firstExitRef.current?.focus();
-      }, 300);
+    if (!isEdit || !userData) return;
+
+    const tradeId = localStorage.getItem(TRADE_KEY);
+    if (!tradeId) return;
+
+    const tradeData = userData.trades?.find((t) => t._id === tradeId);
+    if (!tradeData) return;
+
+    let parsedReason = [];
+    if (Array.isArray(tradeData.reason)) {
+      if (
+        tradeData.reason.length === 1 &&
+        typeof tradeData.reason[0] === "string"
+      ) {
+        try {
+          parsedReason = JSON.parse(tradeData.reason[0]);
+        } catch {
+          parsedReason = tradeData.reason;
+        }
+      } else {
+        parsedReason = tradeData.reason;
+      }
     }
-  }, [router.query.mode]);
 
+    setForm({
+      ...form,
+      ...tradeData,
+      reason: parsedReason,
+      openTime: tradeData.openTime
+        ? getLocalDateTime(new Date(tradeData.openTime))
+        : getLocalDateTime(),
+      closeTime: tradeData.closeTime
+        ? getLocalDateTime(new Date(tradeData.closeTime))
+        : getLocalDateTime(),
+      openImage: null,
+      openImagePreview: tradeData.openImageUrl || "",
+      closeImage: null,
+      closeImagePreview: tradeData.closeImageUrl || "",
+    });
+  }, [isEdit, userData]);
+
+  // Calculate averages and derived values
   useEffect(() => {
-    const avgEntry = calcWeightedAverage(form.entries, null, form.direction);
+    const avgEntry = calcWeightedAverage(form.entries);
     const avgTP = calcWeightedAverage(form.tps, avgEntry, form.direction);
     const avgSL = calcWeightedAverage(form.sls, avgEntry, form.direction);
     const avgExit = calcWeightedAverage(form.exits, avgEntry, form.direction);
 
-    // Duration (hours)
     let duration = 0;
     if (form.openTime && form.closeTime) {
       const start = new Date(form.openTime);
@@ -300,7 +249,6 @@ export default function AddTradePage() {
       duration = ((end - start) / (1000 * 60 * 60)).toFixed(2);
     }
 
-    // Expected Profit / Loss (store as USD)
     let expectedProfit = 0;
     let expectedLoss = 0;
 
@@ -313,22 +261,18 @@ export default function AddTradePage() {
       expectedLoss = ((lossPercent / 100) * form.quantityUSD).toFixed(2);
     }
 
-    // Risk-Reward Ratio
     let rr = "";
     if (expectedLoss && expectedProfit && expectedLoss !== "0") {
       const rawRR = expectedProfit / Math.abs(expectedLoss);
       rr = `1:${Number(rawRR.toFixed(2))}`;
     }
 
-    // PnL (only for closed trades, stored as USD)
-    let pnl = form.pnl; // keep DB value if not closed
-
+    let pnl = form.pnl;
     if (form.tradeStatus === "closed" && avgExit && avgEntry) {
       const pnlPercent =
         form.direction === "long"
           ? ((avgExit - avgEntry) / avgEntry) * 100
           : ((avgEntry - avgExit) / avgEntry) * 100;
-
       pnl = ((pnlPercent / 100) * form.quantityUSD).toFixed(2);
     }
 
@@ -356,71 +300,22 @@ export default function AddTradePage() {
     form.direction,
   ]);
 
+  // Calculate total quantity when quantity or leverage changes
   useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        const cachedUser = await getFromIndexedDB("user-data");
+    setForm((prev) => ({
+      ...prev,
+      totalQuantity:
+        (Number(prev.quantityUSD) || 0) * (Number(prev.leverage) || 0),
+    }));
+  }, [form.quantityUSD, form.leverage]);
 
-        if (cachedUser?.accounts?.length > 0) {
-          const accountId = Cookies.get("accountId"); // ✅ active account from cookies
-
-          const activeAccount = cachedUser.accounts.find(
-            (acc) => acc._id === accountId,
-          );
-
-          if (activeAccount?.currency) {
-            setCurrencySymbol(getCurrencySymbol(activeAccount.currency));
-          } else {
-            console.warn(
-              "⚠️ No matching account found or missing currency field.",
-            );
-          }
-        } else {
-        }
-      } catch (err) {}
-    };
-
-    fetchAccounts();
-  }, []);
-
-  // --- Helpers ---
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => {
-      const updated = { ...prev, [name]: value };
-      if (name === "quantityUSD" || name === "leverage") {
-        updated.totalQuantity =
-          (Number(updated.quantityUSD) || 0) * (Number(updated.leverage) || 0);
-      }
-      return updated;
-    });
-  };
-
-  const updateExit = (idx, field, value) => {
-    setForm((prev) => {
-      const exits = [...prev.exits];
-      exits[idx] = { ...exits[idx], [field]: value };
-      return { ...prev, exits };
-    });
-  };
-
-  const formatPrice = (num) => {
-    if (num < 1) {
-      return num.toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
-    } else {
-      return num.toFixed(2);
-    }
-  };
-
-  // calculate weighted average from array of { price, allocation }
+  // Weighted average calculator
   const calcWeightedAverage = (arr, avgEntryPrice, direction = "long") => {
     let totalAlloc = 0;
     let weighted = 0;
 
     arr.forEach((x) => {
       let price;
-
       if (x.mode === "percent" && x.percent !== "") {
         price = Number(
           calcPriceFromPercent(avgEntryPrice, x.percent, direction),
@@ -428,9 +323,7 @@ export default function AddTradePage() {
       } else {
         price = Number(x.price);
       }
-
       const alloc = Number(x.allocation) || 0;
-
       if (!isNaN(price) && alloc > 0) {
         weighted += price * alloc;
         totalAlloc += alloc;
@@ -440,1068 +333,1414 @@ export default function AddTradePage() {
     return totalAlloc > 0 ? (weighted / totalAlloc).toFixed(2) : "";
   };
 
-  const handleAllocationBlur = (idx, value) => {
+  // Handle allocation for entries
+  const handleEntryAllocation = (idx, value) => {
     setForm((prev) => {
       let entries = [...prev.entries];
       let currentVal = Number(value);
+      if (isNaN(currentVal) || currentVal <= 0) return prev;
 
-      if (isNaN(currentVal) || currentVal <= 0) {
-        return prev;
-      }
-
-      // calculate remaining allocation
       const usedOther = entries.reduce(
         (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
         0,
       );
       const remaining = Math.max(0, 100 - usedOther);
-
-      // clamp allocation to remaining
       if (currentVal > remaining) currentVal = remaining;
-      entries[idx].allocation = currentVal;
 
-      // calculate total allocation
+      entries[idx].allocation = currentVal;
       const totalAllocated = entries.reduce(
         (sum, e) => sum + Number(e.allocation || 0),
         0,
       );
 
-      // if < 100 and this is last entry → add new slot
       if (totalAllocated < 100 && idx === entries.length - 1) {
         entries.push({ price: "", allocation: "" });
       } else if (totalAllocated >= 100) {
-        // cut off extra slots
         entries = entries.slice(0, idx + 1);
       }
-
-      // --- Calculate weighted average entry price ---
-      let weightedSum = 0;
-      let totalWeight = 0;
-      entries.forEach((e) => {
-        const price = Number(e.price);
-        const alloc = Number(e.allocation);
-        if (price > 0 && alloc > 0) {
-          weightedSum += price * (alloc / 100);
-          totalWeight += alloc / 100;
-        }
-      });
-
-      const avg = totalWeight > 0 ? weightedSum / totalWeight : "";
-
-      const avgPrice = avg !== "" ? formatPrice(avg) : "";
-
-      // update separate state
-      setForm((prev) => ({
-        ...prev,
-        avgEntryPrice: avgPrice,
-      }));
 
       return { ...prev, entries };
     });
   };
 
-  const handleExitAllocationBlur = (idx, value) => {
-    setForm((prev) => {
-      let exits = [...prev.exits];
-      let currentVal = Number(value);
-
-      if (isNaN(currentVal) || currentVal <= 0) {
-        return prev;
-      }
-
-      // calculate remaining allocation
-      const usedOther = exits.reduce(
-        (sum, e, i) => (i !== idx ? sum + Number(e.allocation || 0) : sum),
-        0,
-      );
-      const remaining = Math.max(0, 100 - usedOther);
-
-      // clamp allocation to remaining
-      if (currentVal > remaining) currentVal = remaining;
-      exits[idx].allocation = currentVal;
-
-      // calculate total allocated
-      const totalAllocated = exits.reduce(
-        (sum, e) => sum + Number(e.allocation || 0),
-        0,
-      );
-
-      // if < 100 and this is last exit → add new slot
-      if (totalAllocated < 100 && idx === exits.length - 1) {
-        exits.push({
-          mode: "price",
-          price: "",
-          percent: "",
-          allocation: "",
-        });
-      } else if (totalAllocated >= 100) {
-        exits = exits.slice(0, idx + 1);
-      }
-
-      // --- Calculate weighted average exit price ---
-      let weightedSum = 0;
-      let totalWeight = 0;
-      exits.forEach((e) => {
-        let exitPrice =
-          e.mode === "percent"
-            ? calcPriceFromPercent(
-                form.avgEntryPrice,
-                e.percent,
-                prev.direction,
-              )
-            : e.price;
-
-        const priceNum = Number(exitPrice);
-        const alloc = Number(e.allocation);
-
-        if (priceNum > 0 && alloc > 0) {
-          weightedSum += priceNum * (alloc / 100);
-          totalWeight += alloc / 100;
-        }
-      });
-
-      const avgExitPrice =
-        totalWeight > 0 ? formatPrice(weightedSum / totalWeight) : "";
-
-      return { ...prev, exits, avgExitPrice };
-    });
+  // Handle image selection
+  const handleImageSelect = (field) => {
+    setActiveImageField(field);
+    fileInputRef.current?.click();
   };
 
-  const handleSLAllocationBlur = (idx, value) => {
-    setForm((prev) => {
-      let sls = [...prev.sls];
-      let currentVal = Number(value);
-
-      if (isNaN(currentVal) || currentVal <= 0) {
-        return prev;
-      }
-
-      const usedOther = sls.reduce(
-        (sum, sl, i) => (i !== idx ? sum + Number(sl.allocation || 0) : sum),
-        0,
-      );
-      const remaining = Math.max(0, 100 - usedOther);
-
-      if (currentVal > remaining) currentVal = remaining;
-      sls[idx].allocation = currentVal;
-
-      const totalAllocated = sls.reduce(
-        (sum, sl) => sum + Number(sl.allocation || 0),
-        0,
-      );
-      if (totalAllocated < 100 && idx === sls.length - 1) {
-        sls.push({ mode: "price", price: "", percent: "", allocation: "" });
-      } else if (totalAllocated >= 100) {
-        sls = sls.slice(0, idx + 1);
-      }
-
-      // --- Weighted Average SL Price ---
-      let weightedSum = 0;
-      let totalWeight = 0;
-
-      sls.forEach((s) => {
-        let slPrice;
-
-        if (s.mode === "percent") {
-          // ✅ Use percentage exactly as entered
-          const percentNum = Number(s.percent);
-
-          slPrice = calcPriceFromPercent(
-            form.avgEntryPrice,
-            percentNum, // <-- negative keeps it below, positive adds above
-            prev.direction,
-          );
-        } else {
-          slPrice = s.price;
-        }
-
-        const priceNum = Number(slPrice);
-        const alloc = Number(s.allocation);
-
-        if (!isNaN(priceNum) && alloc > 0) {
-          weightedSum += priceNum * (alloc / 100);
-          totalWeight += alloc / 100;
-        }
-      });
-
-      const avgSLPrice =
-        totalWeight > 0 ? formatPrice(weightedSum / totalWeight) : "";
-
-      return { ...prev, sls, avgSLPrice };
-    });
-  };
-
-  const handleTPAllocationBlur = (idx, value) => {
-    setForm((prev) => {
-      let tps = [...prev.tps];
-      let currentVal = Number(value);
-
-      if (isNaN(currentVal) || currentVal <= 0) {
-        return prev;
-      }
-
-      const usedOther = tps.reduce(
-        (sum, tp, i) => (i !== idx ? sum + Number(tp.allocation || 0) : sum),
-        0,
-      );
-      const remaining = Math.max(0, 100 - usedOther);
-
-      if (currentVal > remaining) currentVal = remaining;
-      tps[idx].allocation = currentVal;
-
-      const totalAllocated = tps.reduce(
-        (sum, tp) => sum + Number(tp.allocation || 0),
-        0,
-      );
-      if (totalAllocated < 100 && idx === tps.length - 1) {
-        tps.push({ mode: "price", price: "", percent: "", allocation: "" });
-      } else if (totalAllocated >= 100) {
-        tps = tps.slice(0, idx + 1);
-      }
-
-      // --- Weighted Average TP Price ---
-      let weightedSum = 0;
-      let totalWeight = 0;
-      tps.forEach((t) => {
-        let tpPrice =
-          t.mode === "percent"
-            ? calcPriceFromPercent(
-                form.avgEntryPrice,
-                t.percent,
-                prev.direction,
-              )
-            : t.price;
-
-        const priceNum = Number(tpPrice);
-        const alloc = Number(t.allocation);
-
-        if (priceNum > 0 && alloc > 0) {
-          weightedSum += priceNum * (alloc / 100);
-          totalWeight += alloc / 100;
-        }
-      });
-
-      const avgTPPrice =
-        totalWeight > 0 ? formatPrice(weightedSum / totalWeight) : "";
-
-      return { ...prev, tps, avgTPPrice };
-    });
-  };
-
-  const calcPriceFromPercent = (avgEntryPrice, percent, direction = "long") => {
-    const base = Number(avgEntryPrice);
-    const pct = Number(percent);
-    if (!base || !pct) return "";
-
-    let price;
-    if (direction === "long") {
-      price = base * (1 + pct / 100);
-    } else {
-      price = base * (1 - pct / 100);
-    }
-    return formatPrice(price);
-  };
-  // AddTrade - part of component
-
-  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-
-  // helper: read file as dataURL
-  const fileToDataUrl = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-  async function handleImageChange(e, field, setForm) {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !activeImageField) return;
 
-    // 1️⃣ Size check (plan-independent)
     if (file.size > MAX_IMAGE_SIZE) {
-      alert("❌ Image size cannot exceed 5MB.");
+      setToast({ type: "error", message: "Image size cannot exceed 5MB" });
       e.target.value = "";
+      setActiveImageField(null);
       return;
     }
 
-    // 2️⃣ Monthly image limit check
     const allowed = await canUploadImageThisMonth();
-
     if (!allowed) {
-      e.target.value = ""; // reset file input
-      setShowPlanLimitModal(true);
+      setShowPlanModal(true);
+      e.target.value = "";
+      setActiveImageField(null);
       return;
     }
 
-    // 3️⃣ Preview
     const previewUrl = URL.createObjectURL(file);
-
     setForm((prev) => ({
       ...prev,
-      [field]: file,
-      [`${field}Preview`]: previewUrl,
-      [`${field}Removed`]: false,
+      [activeImageField]: file,
+      [`${activeImageField}Preview`]: previewUrl,
     }));
 
-    // 4️⃣ Persist to localStorage
     fileToDataUrl(file).then((dataUrl) => {
       try {
-        const payload = JSON.stringify({
-          dataUrl,
-          name: file.name,
-          type: file.type,
-          ts: Date.now(),
-        });
-
-        localStorage.setItem(`newTradeImage_${field}`, payload);
-      } catch {
-        // silent fail (non-blocking)
-      }
+        localStorage.setItem(
+          `newTradeImage_${activeImageField}`,
+          JSON.stringify({
+            dataUrl,
+            name: file.name,
+            type: file.type,
+            ts: Date.now(),
+          }),
+        );
+      } catch {}
     });
-  }
 
-  function handleImageRemove(field, setForm) {
-    // Remove from form state
+    setActiveImageField(null);
+    e.target.value = "";
+  };
+
+  const handleImageRemove = (field) => {
     setForm((prev) => ({
       ...prev,
       [field]: null,
       [`${field}Preview`]: "",
-      [`${field}Removed`]: true,
     }));
+    localStorage.removeItem(`newTradeImage_${field}`);
+  };
 
-    // Remove from localStorage
-    try {
-      localStorage.removeItem(`newTradeImage_${field}`);
-    } catch (err) {
-      error(`Failed to remove image from localStorage for ${field}`, err);
+  // Validate form
+  const validateForm = () => {
+    if (!form.symbol.trim()) return "Symbol name is required";
+
+    if (form.tradeStatus === "quick") {
+      if (form.pnl === "" || form.pnl === null) return "PnL is required";
+      if (!form.closeTime) return "Close time is required";
+    } else {
+      if (!form.entries[0]?.price) return "At least one entry is required";
+      if (form.tradeStatus === "closed") {
+        if (!form.exits[0]?.price) return "At least one exit is required";
+        if (!form.closeTime) return "Close time is required";
+      }
     }
-  }
 
+    if (form.closeTime && form.openTime) {
+      if (new Date(form.closeTime) < new Date(form.openTime)) {
+        return "Close time cannot be earlier than open time";
+      }
+    }
+
+    return null;
+  };
+
+  // Submit trade
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const validationError = validateForm(form);
+    const validationError = validateForm();
     if (validationError) {
-      setToast(null);
-      setTimeout(() => {
-        setToast({ type: "error", message: validationError });
-      }, 0);
+      setToast({ type: "error", message: validationError });
+      return;
+    }
+
+    const tradeType = form.tradeStatus === "quick" ? "quick" : "normal";
+    const allowed = await canSubmitTrade(tradeType);
+    if (!allowed) {
+      setShowPlanModal(true);
       return;
     }
 
     setLoading(true);
+    setSubmitStatus("submitting");
 
     try {
-      const tradeType = form?.tradeStatus === "quick" ? "quick" : "normal";
+      const accountId = Cookies.get("accountId");
+      const formData = new FormData();
 
-      const allowed = await canSubmitTrade(tradeType);
-
-      if (!allowed) {
-        setShowPlanLimitModal(true);
-        return;
+      if (accountId) {
+        const parsed = Array.isArray(accountId)
+          ? accountId[0]
+          : typeof accountId === "string" && accountId.includes("[")
+            ? JSON.parse(accountId)[0]
+            : accountId;
+        formData.append("accountId", parsed);
       }
 
-      const serializable = {
+      const normalizedForm = {
         ...form,
-        openImage: null,
-        closeImage: null,
+        openTime: normalizeDateTime(form.openTime),
+        closeTime: normalizeDateTime(form.closeTime),
       };
 
-      if (!serializable.closeTime) {
-        delete serializable.closeTime;
+      Object.entries(normalizedForm).forEach(([key, value]) => {
+        if (key === "openImagePreview" || key === "closeImagePreview") return;
+        if (Array.isArray(value) || typeof value === "object") {
+          formData.append(key, JSON.stringify(value));
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, value);
+        }
+      });
+
+      // Add images
+      const openImagePayload = localStorage.getItem("newTradeImage_openImage");
+      const closeImagePayload = localStorage.getItem(
+        "newTradeImage_closeImage",
+      );
+
+      if (openImagePayload) {
+        const { dataUrl, name, type } = JSON.parse(openImagePayload);
+        formData.append("openImage", dataUrlToFile(dataUrl, name, type));
+      }
+      if (closeImagePayload) {
+        const { dataUrl, name, type } = JSON.parse(closeImagePayload);
+        formData.append("closeImage", dataUrlToFile(dataUrl, name, type));
       }
 
-      sessionStorage.setItem("newTradeData", JSON.stringify(serializable));
-      sessionStorage.setItem("isEditTrade", isEdit ? "true" : "false");
+      let res;
+      if (isEdit) {
+        const tradeId = localStorage.getItem(TRADE_KEY);
+        res = await axios.put(
+          `${API_BASE}/api/trades/update/${tradeId}`,
+          formData,
+          {
+            withCredentials: true,
+          },
+        );
+      } else {
+        res = await axios.post(`${API_BASE}/api/trades/add`, formData, {
+          withCredentials: true,
+        });
+      }
 
-      router.push({
-        pathname: "/trade",
-        query: { isNewTrade: "true" },
-      });
+      if (res.data?.success) {
+        setSubmitStatus("success");
+        setToast({
+          type: "success",
+          message:
+            res.data.message || (isEdit ? "Trade updated!" : "Trade added!"),
+        });
+
+        // Update IndexedDB
+        const userData = (await getFromIndexedDB("user-data")) || {};
+        const allTrades = userData.trades || [];
+        const updatedTrades = isEdit
+          ? allTrades.map((t) =>
+              t._id === res.data.trade._id ? res.data.trade : t,
+            )
+          : [res.data.trade, ...allTrades];
+
+        await saveToIndexedDB("user-data", {
+          ...userData,
+          trades: updatedTrades,
+        });
+        await refreshData();
+
+        localStorage.removeItem("newTradeImage_openImage");
+        localStorage.removeItem("newTradeImage_closeImage");
+
+        setTimeout(() => router.push("/trade"), 1500);
+      } else {
+        throw new Error("Upload failed");
+      }
     } catch (err) {
+      setSubmitStatus("error");
       setToast({
         type: "error",
-        message: err?.message || "Something went wrong.",
+        message: err.response?.data?.message || "Something went wrong",
       });
+      setTimeout(() => setSubmitStatus(""), 2000);
     } finally {
       setLoading(false);
     }
   };
 
-  const [activeModal, setActiveModal] = useState(null);
-
-  const openModal = (key) => setActiveModal(key);
-  const closeModal = () => setActiveModal(null);
-
-  const modalComponents = {
-    quantity: (
-      <QuantityGrid
-        form={form}
-        handleChange={handleChange}
-        currencySymbol={currencySymbol}
-      />
-    ),
-    entries: (
-      <EntriesSection
-        form={form}
-        setForm={setForm}
-        currencySymbol={currencySymbol}
-        formatPrice={formatPrice}
-        formatNumber={formatNumber}
-        handleAllocationBlur={handleAllocationBlur}
-      />
-    ),
-    exits: (
-      <ExitsSection
-        form={form}
-        setForm={setForm}
-        currencySymbol={currencySymbol}
-        handleExitAllocationBlur={handleExitAllocationBlur}
-        calcPriceFromPercent={calcPriceFromPercent}
-        formatPrice={formatPrice}
-        formatNumber={formatNumber}
-      />
-    ),
-    stoploss: (
-      <StopLossSection
-        form={form}
-        setForm={setForm}
-        calcPriceFromPercent={calcPriceFromPercent}
-        formatPrice={formatPrice}
-        currencySymbol={currencySymbol}
-        handleSLAllocationBlur={handleSLAllocationBlur}
-      />
-    ),
-    takeprofit: (
-      <TakeProfitSection
-        form={form}
-        setForm={setForm}
-        calcPriceFromPercent={calcPriceFromPercent}
-        formatPrice={formatPrice}
-        currencySymbol={currencySymbol}
-        handleTPAllocationBlur={handleTPAllocationBlur}
-      />
-    ),
-    tradeImage: (
-      <TradeImagesSection
-        openImagePreview={form.openImagePreview}
-        closeImagePreview={form.closeImagePreview}
-        onOpenImageChange={(e) => handleImageChange(e, "openImage", setForm)}
-        onCloseImageChange={(e) => handleImageChange(e, "closeImage", setForm)}
-        onRemoveOpenImage={() => handleImageRemove("openImage", setForm)}
-        onRemoveCloseImage={() => handleImageRemove("closeImage", setForm)}
-      />
-    ),
-    opentime: (
-      <OpenTime
-        label="Open Time"
-        dateValue={form.openTime}
-        onDateChange={(date) =>
-          setForm((prev) => ({ ...prev, openTime: date }))
-        }
-        onClose={closeModal}
-      />
-    ),
-    closetime: (
-      <CloseTime
-        label="Close Time"
-        dateValue={form.closeTime}
-        onDateChange={(date) =>
-          setForm((prev) => ({ ...prev, closeTime: date }))
-        }
-        onClose={closeModal}
-      />
-    ),
-    rules: (
-      <RulesManager
-        onRulesStatusChange={(status) =>
-          setForm((prev) => ({
-            ...prev,
-            rulesFollowed: status,
-          }))
-        }
-      />
-    ),
-    reason: (
-      <ReasonSelector
-        label="Reason"
-        name="reason"
-        value={form.reason}
-        onChange={handleChange}
-      />
-    ),
-    learnings: (
-      <TextAreaField
-        label="Learnings"
-        name="learnings"
-        value={form.learnings}
-        onChange={handleChange}
-        placeholder="What did you learn from this trade?"
-      />
-    ),
+  // Quick PnL sign toggle
+  const handleSignChange = (sign) => {
+    const currentValue = Number(form.pnl) || 0;
+    setForm((prev) => ({
+      ...prev,
+      pnl:
+        sign === "positive" ? Math.abs(currentValue) : -Math.abs(currentValue),
+    }));
   };
-  // 🧠 Determine which modal buttons to show
-  const tradeStatus = form.tradeStatus?.toLowerCase();
 
-  let hiddenKeys = [];
-  if (tradeStatus === "running") hiddenKeys = ["exits", "closetime"];
-  else if (tradeStatus === "closed") hiddenKeys = ["stoploss", "takeprofit"];
-  else if (tradeStatus === "quick")
-    hiddenKeys = ["stoploss", "takeprofit", "entries", "exits"];
+  // Render entry/exit rows
+  const renderRows = (type, items, onAllocationBlur) => (
+    <div className="flexClm gap_8">
+      {items.map((item, idx) => (
+        <div key={idx} className="flexRow gap_8">
+          <select
+            value={item.mode || "price"}
+            onChange={(e) => {
+              const newItems = [...items];
+              newItems[idx].mode = e.target.value;
+              setForm({ ...form, [type]: newItems });
+            }}
+            className="select-small"
+            style={{ width: "80px" }}
+          >
+            <option value="price">Price</option>
+            <option value="percent">%</option>
+          </select>
 
-  // ✅ FIRST define visibleButtons
-  const visibleButtons = Object.keys(modalComponents).filter(
-    (key) => !hiddenKeys.includes(key),
+          <input
+            type="number"
+            placeholder={item.mode === "price" ? "Price" : "Percent"}
+            value={item.mode === "price" ? item.price : item.percent}
+            onChange={(e) => {
+              const newItems = [...items];
+              newItems[idx][item.mode === "price" ? "price" : "percent"] =
+                e.target.value;
+              setForm({ ...form, [type]: newItems });
+            }}
+            step="any"
+            className="flex-1"
+          />
+
+          <input
+            type="number"
+            placeholder="Alloc %"
+            value={item.allocation}
+            onChange={(e) => {
+              const newItems = [...items];
+              newItems[idx].allocation = e.target.value;
+              setForm({ ...form, [type]: newItems });
+            }}
+            onBlur={(e) => onAllocationBlur(idx, e.target.value)}
+            min="0"
+            max="100"
+            style={{ width: "80px" }}
+          />
+
+          {items.length > 1 && (
+            <button
+              type="button"
+              onClick={() =>
+                setForm({ ...form, [type]: items.filter((_, i) => i !== idx) })
+              }
+              className="btn-icon error"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
   );
-
-  // ✅ THEN define recommended fields
-  const recommendedFields = ["tradeimage", "opentime", "closetime"];
-
-  // ✅ THEN split them
-  const recommendedButtons = visibleButtons.filter((key) =>
-    recommendedFields.includes(key.toLowerCase()),
-  );
-
-  const optionalButtons = visibleButtons.filter(
-    (key) => !recommendedFields.includes(key.toLowerCase()),
-  );
-
-  const modalIcons = {
-    quantity: FiDollarSign,
-    rules: FiList,
-    reason: FiHelpCircle,
-    learnings: Brain, // keeping lucide if you prefer
-    tradeimage: FiImage,
-    opentime: FiClock,
-    closetime: FiClock,
-    stoploss: FiTarget,
-    takeprofit: FiTrendingUp,
-    entries: FiLogIn,
-    exits: FiLogOut,
-  };
-
-  const isFieldCompleted = (key) => {
-    switch (key.toLowerCase()) {
-      case "tradeimage":
-        return form.openImage || form.closeImage;
-
-      case "opentime":
-        return !!form.openTime;
-
-      case "closetime":
-        return !!form.closeTime;
-
-      case "quantity":
-        return !!form.totalQuantity;
-
-      case "rules":
-        return form.rulesFollowed === true;
-
-      case "reason":
-        return form.reason && form.reason.length > 0;
-
-      case "learnings":
-        return !!form.learnings?.trim();
-
-      default:
-        return false;
-    }
-  };
-
-  // Helper to get display value for each section
-  const getSectionDisplayValue = (key) => {
-    switch (key.toLowerCase()) {
-      case "quantity":
-        if (form.quantityUSD) {
-          return `${currencySymbol}${form.quantityUSD} @ ${form.leverage}x`;
-        }
-        return null;
-
-      case "entries":
-        if (form.avgEntryPrice) {
-          const entryCount = form.entries.filter((e) => e.price).length;
-          return `Avg: ${form.avgEntryPrice} (${entryCount} entry${entryCount > 1 ? "ies" : ""})`;
-        }
-        return null;
-
-      case "exits":
-        if (form.avgExitPrice) {
-          const exitCount = form.exits.filter(
-            (e) => e.price || e.percent,
-          ).length;
-          return `Avg: ${form.avgExitPrice} (${exitCount} exit${exitCount > 1 ? "s" : ""})`;
-        }
-        return null;
-
-      case "stoploss":
-        if (form.avgSLPrice) {
-          return `Avg: ${form.avgSLPrice} (Expected: -${currencySymbol}${form.expectedLoss || 0})`;
-        }
-        return null;
-
-      case "takeprofit":
-        if (form.avgTPPrice) {
-          return `Avg: ${form.avgTPPrice} (Expected: +${currencySymbol}${form.expectedProfit || 0})`;
-        }
-        return null;
-
-      case "opentime":
-        if (form.openTime) {
-          return new Date(form.openTime).toLocaleString("en-US", {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        }
-        return null;
-
-      case "closetime":
-        if (form.closeTime) {
-          return new Date(form.closeTime).toLocaleString("en-US", {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        }
-        return null;
-
-      case "tradeimage":
-        if (form.openImagePreview || form.closeImagePreview) {
-          const images = [];
-          if (form.openImagePreview) images.push("Entry");
-          if (form.closeImagePreview) images.push("Exit");
-          return `${images.join(" & ")} screenshot${images.length > 1 ? "s" : ""}`;
-        }
-        return null;
-
-      case "rules":
-        if (form.rulesFollowed) return "Rules followed";
-        return null;
-
-      case "reason":
-        if (form.reason?.length > 0) {
-          return (
-            form.reason.slice(0, 2).join(", ") +
-            (form.reason.length > 2 ? ` +${form.reason.length - 2}` : "")
-          );
-        }
-        return null;
-
-      case "learnings":
-        if (form.learnings) {
-          return form.learnings.length > 30
-            ? form.learnings.substring(0, 30) + "..."
-            : form.learnings;
-        }
-        return null;
-
-      default:
-        return null;
-    }
-  };
-
-  // Get badge color based on section type
-  const getSectionBadgeColor = (key) => {
-    const completed = isFieldCompleted(key);
-    if (!completed) return "var(--black-4)";
-
-    switch (key.toLowerCase()) {
-      case "quantity":
-      case "entries":
-      case "exits":
-        return "var(--primary-20)";
-      case "stoploss":
-        return "var(--error-20)";
-      case "takeprofit":
-        return "var(--success-20)";
-      case "opentime":
-      case "closetime":
-        return "var(--info-20)";
-      default:
-        return "var(--primary-10)";
-    }
-  };
-
-  // Get text color based on section type
-  const getSectionTextColor = (key) => {
-    const completed = isFieldCompleted(key);
-    if (!completed) return "var(--text-secondary)";
-
-    switch (key.toLowerCase()) {
-      case "stoploss":
-        return "var(--error)";
-      case "takeprofit":
-        return "var(--success)";
-      default:
-        return "var(--primary)";
-    }
-  };
 
   return (
     <div
-      className="flexClm gap_32"
       style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "24px auto",
-        padding: "0 12px 100px 12px",
+        maxWidth: "600px",
+        margin: "0 auto",
+        padding: "20px 16px 100px",
+        background: "var(--mobile-bg)",
+        minHeight: "100vh",
       }}
     >
-      <div className="flexRow gap_8">
-        <div
-          className="btn flexRow gap_4"
-          onClick={() => router.push("/trade")}
-          style={{ cursor: "pointer" }}
-        >
-          <ChevronLeft size={20} />
-          <span className="font_20">Log trade</span>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flexClm gap_24">
-        {/* 1️⃣ Trade Status */}
-        <TradeStatusGrid
-          form={form}
-          handleChange={handleChange}
-          statuses={statuses}
-        />
-
-        {/* 2️⃣ Ticker */}
-        <Ticker form={form} setForm={setForm} handleChange={handleChange} />
-
-        {/* 3️⃣ Conditional Sections */}
-        {tradeStatus === "quick" && (
-          <QuickSection
-            form={form}
-            setForm={setForm}
-            currency={currencySymbol}
-            handleChange={handleChange}
-          />
-        )}
-
-        {tradeStatus === "closed" && (
-          <QuickSection
-            form={form}
-            setForm={setForm}
-            currency={currencySymbol}
-            handleChange={handleChange}
-          />
-        )}
-      </form>
-
-      {/* Sections Display */}
-      <div className="flexClm gap_24">
-        {/* Recommended Sections */}
-        {recommendedButtons.length > 0 && (
-          <div className="flexClm gap_12">
-            <span
-              className="font_14"
-              style={{ color: "var(--text-secondary)", fontWeight: 500 }}
-            >
-              Required Information
-            </span>
-            <div className="flexClm gap_8">
-              {recommendedButtons.map((key) => {
-                const Icon = modalIcons[key.toLowerCase()];
-                const completed = isFieldCompleted(key);
-                const displayValue = getSectionDisplayValue(key);
-                const badgeColor = getSectionBadgeColor(key);
-                const textColor = getSectionTextColor(key);
-
-                return (
-                  <div
-                    key={key}
-                    onClick={() => openModal(key)}
-                    style={{
-                      background: "var(--card-bg)",
-                      border: `1px solid ${completed ? textColor : "var(--border-color)"}`,
-                      borderRadius: "14px",
-                      padding: "16px",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0,0,0,0.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    {/* Icon */}
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "12px",
-                        background: badgeColor,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: completed ? textColor : "var(--text-secondary)",
-                      }}
-                    >
-                      {Icon && <Icon size={20} />}
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: 600,
-                            color: "var(--text-primary)",
-                            textTransform: "capitalize",
-                          }}
-                        >
-                          {key.replace(/([A-Z])/g, " $1").trim()}
-                        </span>
-                        {completed && (
-                          <FiCheckCircle size={16} color="var(--success)" />
-                        )}
-                      </div>
-
-                      {displayValue ? (
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            color: textColor,
-                            display: "block",
-                          }}
-                        >
-                          {displayValue}
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            color: "var(--text-secondary)",
-                            fontStyle: "italic",
-                          }}
-                        >
-                          Tap to add
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Edit indicator */}
-                    <div style={{ color: "var(--text-secondary)" }}>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                      >
-                        <path
-                          d="M6 12L10 8L6 4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Optional Sections */}
-        {optionalButtons.length > 0 && (
-          <div className="flexClm gap_12">
-            <span
-              className="font_14"
-              style={{ color: "var(--text-secondary)", fontWeight: 500 }}
-            >
-              Additional Information
-            </span>
-            <div className="flexClm gap_8">
-              {optionalButtons.map((key) => {
-                const Icon = modalIcons[key.toLowerCase()];
-                const completed = isFieldCompleted(key);
-                const displayValue = getSectionDisplayValue(key);
-                const badgeColor = getSectionBadgeColor(key);
-                const textColor = getSectionTextColor(key);
-
-                return (
-                  <div
-                    key={key}
-                    onClick={() => openModal(key)}
-                    style={{
-                      background: "var(--card-bg)",
-                      border: `1px solid ${completed ? textColor : "var(--border-color)"}`,
-                      borderRadius: "14px",
-                      padding: "16px",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      opacity: completed ? 1 : 0.8,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0,0,0,0.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    {/* Icon */}
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "12px",
-                        background: badgeColor,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: completed ? textColor : "var(--text-secondary)",
-                      }}
-                    >
-                      {Icon && <Icon size={20} />}
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: 600,
-                            color: "var(--text-primary)",
-                            textTransform: "capitalize",
-                          }}
-                        >
-                          {key.replace(/([A-Z])/g, " $1").trim()}
-                        </span>
-                        {completed && (
-                          <FiCheckCircle size={16} color="var(--success)" />
-                        )}
-                      </div>
-
-                      {displayValue ? (
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            color: textColor,
-                            display: "block",
-                          }}
-                        >
-                          {displayValue}
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            color: "var(--text-secondary)",
-                            fontStyle: "italic",
-                          }}
-                        >
-                          Optional - tap to add
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Edit indicator */}
-                    <div style={{ color: "var(--text-secondary)" }}>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                      >
-                        <path
-                          d="M6 12L10 8L6 4"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Submit Button */}
+      {/* Header */}
       <div
-        className="flexRow flexRow_stretch gap_4"
-        style={{ marginTop: "24px" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          marginBottom: "24px",
+        }}
       >
         <button
-          className="primary-btn width100"
-          onClick={handleSubmit}
-          disabled={loading}
+          onClick={() => router.back()}
           style={{
-            padding: "16px",
-            fontSize: "16px",
-            fontWeight: 600,
-            borderRadius: "14px",
+            background: "var(--card-bg)",
+            border: "1px solid var(--border-color)",
+            borderRadius: "12px",
+            padding: "10px",
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
           }}
         >
-          {loading
-            ? "⏳ Please wait..."
-            : isEdit
-              ? "Update Trade"
-              : "Submit Trade"}
+          <ChevronLeft size={20} />
+        </button>
+        <h1 style={{ fontSize: "20px", fontWeight: "600", margin: 0 }}>
+          {isEdit ? "Edit Trade" : "Log Trade"}
+        </h1>
+      </div>
+
+      {/* Trade Type Selector */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "12px",
+          marginBottom: "24px",
+          background: "var(--card-bg)",
+          padding: "8px",
+          borderRadius: "16px",
+          border: "1px solid var(--border-color)",
+        }}
+      >
+        <button
+          onClick={() => setForm({ ...form, tradeStatus: "quick" })}
+          style={{
+            padding: "14px",
+            borderRadius: "12px",
+            border: "none",
+            background:
+              form.tradeStatus === "quick" ? "var(--primary)" : "transparent",
+            color:
+              form.tradeStatus === "quick" ? "white" : "var(--text-secondary)",
+            fontWeight: "600",
+            cursor: "pointer",
+          }}
+        >
+          ⚡ Quick Trade
+        </button>
+        <button
+          onClick={() => setForm({ ...form, tradeStatus: "closed" })}
+          style={{
+            padding: "14px",
+            borderRadius: "12px",
+            border: "none",
+            background:
+              form.tradeStatus === "closed" ? "var(--primary)" : "transparent",
+            color:
+              form.tradeStatus === "closed" ? "white" : "var(--text-secondary)",
+            fontWeight: "600",
+            cursor: "pointer",
+          }}
+        >
+          📊 Log with Entries
         </button>
       </div>
 
-      {/* 🔄 Toast + Loader */}
-      {toast && (
+      <form onSubmit={handleSubmit}>
+        {/* Symbol & Direction */}
+        <div
+          style={{
+            background: "var(--card-bg)",
+            borderRadius: "20px",
+            padding: "20px",
+            marginBottom: "16px",
+            border: "1px solid var(--border-color)",
+          }}
+        >
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              style={{
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              Symbol/Ticker
+            </label>
+            <input
+              type="text"
+              value={form.symbol}
+              onChange={(e) =>
+                setForm({ ...form, symbol: e.target.value.toUpperCase() })
+              }
+              placeholder="e.g., BTCUSD, AAPL"
+              style={{
+                width: "100%",
+                padding: "14px",
+                border: "1px solid var(--border-color)",
+                borderRadius: "12px",
+                fontSize: "16px",
+                background: "var(--mobile-bg)",
+                outline: "none",
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, direction: "long" })}
+              style={{
+                padding: "14px",
+                borderRadius: "12px",
+                border: `2px solid ${form.direction === "long" ? "var(--success)" : "var(--border-color)"}`,
+                background:
+                  form.direction === "long"
+                    ? "var(--success-10)"
+                    : "transparent",
+                color:
+                  form.direction === "long"
+                    ? "var(--success)"
+                    : "var(--text-primary)",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                cursor: "pointer",
+              }}
+            >
+              <TrendingUp size={18} /> Long
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, direction: "short" })}
+              style={{
+                padding: "14px",
+                borderRadius: "12px",
+                border: `2px solid ${form.direction === "short" ? "var(--error)" : "var(--border-color)"}`,
+                background:
+                  form.direction === "short"
+                    ? "var(--error-10)"
+                    : "transparent",
+                color:
+                  form.direction === "short"
+                    ? "var(--error)"
+                    : "var(--text-primary)",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                cursor: "pointer",
+              }}
+            >
+              <TrendingDown size={18} /> Short
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Trade PnL */}
+        {tradeStatus === "quick" && (
+          <div
+            style={{
+              background: "var(--card-bg)",
+              borderRadius: "20px",
+              padding: "20px",
+              marginBottom: "16px",
+              border: "1px solid var(--border-color)",
+            }}
+          >
+            <label
+              style={{
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+                display: "block",
+                marginBottom: "12px",
+              }}
+            >
+              Profit & Loss
+            </label>
+            <div style={{ position: "relative", marginBottom: "16px" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: "16px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  fontSize: "24px",
+                  fontWeight: "600",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                {currencySymbol}
+              </span>
+              <input
+                type="number"
+                value={form.pnl}
+                onChange={(e) => setForm({ ...form, pnl: e.target.value })}
+                placeholder="0.00"
+                step="any"
+                style={{
+                  width: "100%",
+                  padding: "16px 16px 16px 48px",
+                  border: "2px solid var(--border-color)",
+                  borderRadius: "16px",
+                  fontSize: "32px",
+                  fontWeight: "700",
+                  textAlign: "center",
+                  outline: "none",
+                  color:
+                    Number(form.pnl) > 0
+                      ? "var(--success)"
+                      : Number(form.pnl) < 0
+                        ? "var(--error)"
+                        : "var(--text-primary)",
+                  background: "var(--mobile-bg)",
+                }}
+              />
+            </div>
+            <div
+              style={{ display: "flex", gap: "12px", justifyContent: "center" }}
+            >
+              <button
+                type="button"
+                onClick={() => handleSignChange("positive")}
+                style={{
+                  padding: "8px 20px",
+                  background: "var(--success-10)",
+                  border: "1px solid var(--success)",
+                  borderRadius: "20px",
+                  color: "var(--success)",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <Plus size={16} /> Profit
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSignChange("negative")}
+                style={{
+                  padding: "8px 20px",
+                  background: "var(--error-10)",
+                  border: "1px solid var(--error)",
+                  borderRadius: "20px",
+                  color: "var(--error)",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <Minus size={16} /> Loss
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Entry/Exit for Log with Entries */}
+        {tradeStatus === "closed" && (
+          <>
+            <div
+              style={{
+                background: "var(--card-bg)",
+                borderRadius: "20px",
+                padding: "20px",
+                marginBottom: "16px",
+                border: "1px solid var(--border-color)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "12px",
+                }}
+              >
+                <span style={{ fontWeight: "600" }}>Entries</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      entries: [...form.entries, { price: "", allocation: "" }],
+                    })
+                  }
+                  className="btn secondary-btn"
+                  style={{ padding: "4px 12px" }}
+                >
+                  + Add Entry
+                </button>
+              </div>
+              {renderRows("entries", form.entries, handleEntryAllocation)}
+              {form.avgEntryPrice && (
+                <div
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "13px",
+                    color: "var(--primary)",
+                  }}
+                >
+                  Avg Entry: {currencySymbol}
+                  {form.avgEntryPrice}
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                background: "var(--card-bg)",
+                borderRadius: "20px",
+                padding: "20px",
+                marginBottom: "16px",
+                border: "1px solid var(--border-color)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "12px",
+                }}
+              >
+                <span style={{ fontWeight: "600" }}>Exits</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      exits: [
+                        ...form.exits,
+                        {
+                          mode: "price",
+                          price: "",
+                          percent: "",
+                          allocation: "",
+                        },
+                      ],
+                    })
+                  }
+                  className="btn secondary-btn"
+                  style={{ padding: "4px 12px" }}
+                >
+                  + Add Exit
+                </button>
+              </div>
+              {renderRows("exits", form.exits, (idx, val) => {
+                setForm((prev) => {
+                  let exits = [...prev.exits];
+                  let currentVal = Number(val);
+                  if (isNaN(currentVal) || currentVal <= 0) return prev;
+
+                  const usedOther = exits.reduce(
+                    (sum, e, i) =>
+                      i !== idx ? sum + Number(e.allocation || 0) : sum,
+                    0,
+                  );
+                  const remaining = Math.max(0, 100 - usedOther);
+                  if (currentVal > remaining) currentVal = remaining;
+                  exits[idx].allocation = currentVal;
+
+                  const totalAllocated = exits.reduce(
+                    (sum, e) => sum + Number(e.allocation || 0),
+                    0,
+                  );
+                  if (totalAllocated < 100 && idx === exits.length - 1) {
+                    exits.push({
+                      mode: "price",
+                      price: "",
+                      percent: "",
+                      allocation: "",
+                    });
+                  } else if (totalAllocated >= 100) {
+                    exits = exits.slice(0, idx + 1);
+                  }
+
+                  return { ...prev, exits };
+                });
+              })}
+              {form.avgExitPrice && (
+                <div
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "13px",
+                    color: "var(--primary)",
+                  }}
+                >
+                  Avg Exit: {currencySymbol}
+                  {form.avgExitPrice}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Quantity Section */}
+        <div
+          style={{
+            background: "var(--card-bg)",
+            borderRadius: "20px",
+            padding: "20px",
+            marginBottom: "16px",
+            border: "1px solid var(--border-color)",
+          }}
+        >
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              style={{
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              Quantity (USD)
+            </label>
+            <input
+              type="number"
+              value={form.quantityUSD}
+              onChange={(e) =>
+                setForm({ ...form, quantityUSD: e.target.value })
+              }
+              placeholder="1000"
+              style={{
+                width: "100%",
+                padding: "14px",
+                border: "1px solid var(--border-color)",
+                borderRadius: "12px",
+                fontSize: "16px",
+                background: "var(--mobile-bg)",
+                outline: "none",
+              }}
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              Leverage
+            </label>
+            <select
+              value={form.leverage}
+              onChange={(e) => setForm({ ...form, leverage: e.target.value })}
+              style={{
+                width: "100%",
+                padding: "14px",
+                border: "1px solid var(--border-color)",
+                borderRadius: "12px",
+                fontSize: "16px",
+                background: "var(--mobile-bg)",
+                outline: "none",
+              }}
+            >
+              {[1, 2, 3, 4, 5, 10, 20, 50, 100].map((lev) => (
+                <option key={lev} value={lev}>
+                  {lev}x
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {form.totalQuantity > 0 && (
+            <div
+              style={{
+                marginTop: "12px",
+                padding: "10px",
+                background: "var(--primary-10)",
+                borderRadius: "10px",
+                textAlign: "center",
+              }}
+            >
+              <span
+                style={{ fontSize: "12px", color: "var(--text-secondary)" }}
+              >
+                Total Position:
+              </span>{" "}
+              <span style={{ fontWeight: "600", color: "var(--primary)" }}>
+                {currencySymbol}
+                {form.totalQuantity.toLocaleString()}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Time Section */}
+        <div
+          style={{
+            background: "var(--card-bg)",
+            borderRadius: "20px",
+            padding: "20px",
+            marginBottom: "16px",
+            border: "1px solid var(--border-color)",
+          }}
+        >
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              style={{
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              Open Time
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowOpenTimePicker(true)}
+              style={{
+                width: "100%",
+                padding: "14px",
+                border: "1px solid var(--border-color)",
+                borderRadius: "12px",
+                fontSize: "14px",
+                background: "var(--mobile-bg)",
+                textAlign: "left",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <Clock size={16} />
+              {new Date(form.openTime).toLocaleString()}
+            </button>
+          </div>
+
+          <div>
+            <label
+              style={{
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              Close Time
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowCloseTimePicker(true)}
+              style={{
+                width: "100%",
+                padding: "14px",
+                border: "1px solid var(--border-color)",
+                borderRadius: "12px",
+                fontSize: "14px",
+                background: "var(--mobile-bg)",
+                textAlign: "left",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <Clock size={16} />
+              {new Date(form.closeTime).toLocaleString()}
+            </button>
+          </div>
+        </div>
+
+        {/* Images Section */}
+        <div
+          style={{
+            background: "var(--card-bg)",
+            borderRadius: "20px",
+            padding: "20px",
+            marginBottom: "16px",
+            border: "1px solid var(--border-color)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "16px",
+            }}
+          >
+            <Camera size={18} />
+            <span style={{ fontWeight: "600" }}>Screenshots</span>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px",
+            }}
+          >
+            {/* Entry Image */}
+            <div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text-secondary)",
+                  marginBottom: "6px",
+                }}
+              >
+                Entry
+              </div>
+              {form.openImagePreview ? (
+                <div style={{ position: "relative" }}>
+                  <img
+                    src={form.openImagePreview}
+                    alt="Entry"
+                    style={{
+                      width: "100%",
+                      height: "100px",
+                      objectFit: "cover",
+                      borderRadius: "12px",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleImageRemove("openImage")}
+                    style={{
+                      position: "absolute",
+                      top: "4px",
+                      right: "4px",
+                      background: "var(--error)",
+                      border: "none",
+                      borderRadius: "20px",
+                      width: "24px",
+                      height: "24px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <X size={14} color="white" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleImageSelect("openImage")}
+                  style={{
+                    width: "100%",
+                    height: "100px",
+                    border: "2px dashed var(--border-color)",
+                    borderRadius: "12px",
+                    background: "var(--mobile-bg)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Upload size={20} />
+                  <span style={{ fontSize: "10px" }}>Upload</span>
+                </button>
+              )}
+            </div>
+
+            {/* Exit Image */}
+            <div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text-secondary)",
+                  marginBottom: "6px",
+                }}
+              >
+                Exit
+              </div>
+              {form.closeImagePreview ? (
+                <div style={{ position: "relative" }}>
+                  <img
+                    src={form.closeImagePreview}
+                    alt="Exit"
+                    style={{
+                      width: "100%",
+                      height: "100px",
+                      objectFit: "cover",
+                      borderRadius: "12px",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleImageRemove("closeImage")}
+                    style={{
+                      position: "absolute",
+                      top: "4px",
+                      right: "4px",
+                      background: "var(--error)",
+                      border: "none",
+                      borderRadius: "20px",
+                      width: "24px",
+                      height: "24px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <X size={14} color="white" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleImageSelect("closeImage")}
+                  style={{
+                    width: "100%",
+                    height: "100px",
+                    border: "2px dashed var(--border-color)",
+                    borderRadius: "12px",
+                    background: "var(--mobile-bg)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Upload size={20} />
+                  <span style={{ fontSize: "10px" }}>Upload</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            style={{ display: "none" }}
+          />
+        </div>
+
+        {/* Reasons Section */}
+        <div
+          style={{
+            background: "var(--card-bg)",
+            borderRadius: "20px",
+            padding: "20px",
+            marginBottom: "16px",
+            border: "1px solid var(--border-color)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              cursor: "pointer",
+            }}
+            onClick={() => setShowReasonSelector(!showReasonSelector)}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Brain size={18} />
+              <span style={{ fontWeight: "600" }}>Trade Reasons</span>
+            </div>
+            <ChevronRight
+              size={18}
+              style={{
+                transform: showReasonSelector ? "rotate(90deg)" : "none",
+              }}
+            />
+          </div>
+
+          <AnimatePresence>
+            {showReasonSelector && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                style={{ overflow: "hidden", marginTop: "16px" }}
+              >
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {reasonOptions.map((reason) => (
+                    <button
+                      key={reason}
+                      type="button"
+                      onClick={() => {
+                        const newReasons = form.reason.includes(reason)
+                          ? form.reason.filter((r) => r !== reason)
+                          : [...form.reason, reason];
+                        setForm({ ...form, reason: newReasons });
+                      }}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: "20px",
+                        border: "none",
+                        background: form.reason.includes(reason)
+                          ? "var(--primary)"
+                          : "var(--black-4)",
+                        color: form.reason.includes(reason)
+                          ? "white"
+                          : "var(--text-primary)",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {form.reason.length > 0 && !showReasonSelector && (
+            <div
+              style={{
+                marginTop: "12px",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "4px",
+              }}
+            >
+              {form.reason.slice(0, 3).map((r) => (
+                <span
+                  key={r}
+                  style={{
+                    fontSize: "11px",
+                    background: "var(--black-4)",
+                    padding: "4px 8px",
+                    borderRadius: "12px",
+                  }}
+                >
+                  {r}
+                </span>
+              ))}
+              {form.reason.length > 3 && <span>+{form.reason.length - 3}</span>}
+            </div>
+          )}
+        </div>
+
+        {/* Learnings Section */}
+        <div
+          style={{
+            background: "var(--card-bg)",
+            borderRadius: "20px",
+            padding: "20px",
+            marginBottom: "24px",
+            border: "1px solid var(--border-color)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              cursor: "pointer",
+            }}
+            onClick={() => setShowLearnings(!showLearnings)}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Target size={18} />
+              <span style={{ fontWeight: "600" }}>Key Learnings</span>
+            </div>
+            <ChevronRight
+              size={18}
+              style={{ transform: showLearnings ? "rotate(90deg)" : "none" }}
+            />
+          </div>
+
+          <AnimatePresence>
+            {showLearnings && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                style={{ overflow: "hidden", marginTop: "16px" }}
+              >
+                <textarea
+                  value={form.learnings}
+                  onChange={(e) =>
+                    setForm({ ...form, learnings: e.target.value })
+                  }
+                  placeholder="What did you learn from this trade?"
+                  rows={4}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "12px",
+                    fontSize: "14px",
+                    background: "var(--mobile-bg)",
+                    resize: "vertical",
+                    fontFamily: "inherit",
+                  }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {form.learnings && !showLearnings && (
+            <div style={{ marginTop: "12px", fontSize: "13px", opacity: 0.7 }}>
+              {form.learnings.substring(0, 50)}
+              {form.learnings.length > 50 && "..."}
+            </div>
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: "100%",
+            padding: "18px",
+            background: "var(--primary)",
+            border: "none",
+            borderRadius: "16px",
+            color: "white",
+            fontSize: "16px",
+            fontWeight: "600",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.7 : 1,
+            marginBottom: "20px",
+          }}
+        >
+          {loading ? (
+            <>
+              <div
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  border: "2px solid white",
+                  borderTopColor: "transparent",
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                }}
+              />
+              {submitStatus === "submitting" && "Submitting..."}
+              {submitStatus === "success" && "Success! Redirecting..."}
+              {submitStatus === "error" && "Failed. Try again?"}
+            </>
+          ) : (
+            <>
+              <Save size={18} />
+              {isEdit ? "Update Trade" : "Log Trade"}
+            </>
+          )}
+        </button>
+      </form>
+
+      {/* Time Pickers */}
+      {showOpenTimePicker && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--card-bg)",
+              padding: "20px",
+              borderRadius: "20px",
+              width: "90%",
+              maxWidth: "400px",
+            }}
+          >
+            <DateTimePicker
+              value={form.openTime}
+              onChange={(date) => {
+                setForm({ ...form, openTime: date });
+                setShowOpenTimePicker(false);
+              }}
+              onClose={() => setShowOpenTimePicker(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {showCloseTimePicker && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--card-bg)",
+              padding: "20px",
+              borderRadius: "20px",
+              width: "90%",
+              maxWidth: "400px",
+            }}
+          >
+            <DateTimePicker
+              value={form.closeTime}
+              onChange={(date) => {
+                setForm({ ...form, closeTime: date });
+                setShowCloseTimePicker(false);
+              }}
+              onClose={() => setShowCloseTimePicker(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast.message && (
         <ToastMessage
           type={toast.type}
           message={toast.message}
-          duration={3000}
+          onClose={() => setToast({ type: "", message: "" })}
         />
       )}
-      {loading && <FullPageLoader />}
 
-      {/* 🪟 Active Modal */}
-      {activeModal && (
-        <ModalWrapper onClose={closeModal}>
-          <div className="modal_inner flexClm gap_16">
-            {modalComponents[activeModal]}
-          </div>
-        </ModalWrapper>
-      )}
-
+      {/* Plan Limit Modal */}
       <PlanLimitModal
-        isOpen={showPlanLimitModal}
-        onKeep={() => setShowPlanLimitModal(false)}
+        isOpen={showPlanModal}
+        onClose={() => setShowPlanModal(false)}
         onUpgrade={() => router.push("/pricing")}
       />
+
+      <style jsx>{`
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        .flex-1 {
+          flex: 1;
+        }
+        .select-small {
+          padding: 8px;
+          border-radius: 8px;
+          border: 1px solid var(--border-color);
+          background: var(--mobile-bg);
+          font-size: 12px;
+        }
+        .btn-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          border: 1px solid var(--border-color);
+          background: transparent;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+        }
+        .btn-icon.error:hover {
+          background: var(--error-10);
+          border-color: var(--error);
+        }
+      `}</style>
     </div>
   );
 }

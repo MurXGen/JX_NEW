@@ -17,7 +17,6 @@ import Dropdown from "@/components/ui/Dropdown";
 import PlanLimitModal from "@/components/ui/PlanLimitModal";
 import SectionHeader from "@/components/ui/SectionHeader";
 import ToastMessage from "@/components/ui/ToastMessage";
-import { useData } from "@/api/DataContext";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -35,7 +34,6 @@ const CreateAccount = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [toastKey, setToastKey] = useState(0);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const { userData } = useData();
 
   // 🔹 Pre-fill existing account if editing
   useEffect(() => {
@@ -43,9 +41,9 @@ const CreateAccount = () => {
 
     const prefillAccount = async () => {
       const accountId = Cookies.get("accountId");
-      if (!accountId || !userData) return;
+      if (!accountId) return;
 
-      // Use userData from context instead of fetching from IndexedDB
+      const userData = await getFromIndexedDB("user-data");
       const accountData = userData?.accounts?.find((a) => a._id === accountId);
 
       if (accountData) {
@@ -56,7 +54,7 @@ const CreateAccount = () => {
     };
 
     prefillAccount();
-  }, [isEdit, userData]); // Add userData to dependency array
+  }, [isEdit]);
 
   // 🔹 Handle submit (create or edit journal)
   const handleSubmit = async (e) => {
