@@ -154,7 +154,7 @@ export default function MyApp({ Component, pageProps }) {
         )}
       </Head>
       <DataProvider>
-        <BackgroundBinanceSync />
+        {/* <BackgroundBinanceSync /> */}
         <Component {...pageProps} />
       </DataProvider>
     </>
