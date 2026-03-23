@@ -158,19 +158,19 @@ export const DataProvider = ({ children }) => {
   }, []);
 
   // URL verification effect
-  // useEffect(() => {
-  //   const params = new URLSearchParams(window.location.search);
-  //   const isVerified = params.get("isVerified");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isVerified = params.get("isVerified");
 
-  //   if (isVerified === "yes") {
-  //     Cookies.set("isVerified", "yes", {
-  //       path: "/",
-  //       sameSite: "Strict",
-  //       expires: 365000,
-  //     });
-  //     window.history.replaceState({}, document.title, window.location.pathname);
-  //   }
-  // }, []);
+    if (isVerified === "yes") {
+      Cookies.set("isVerified", "yes", {
+        path: "/",
+        sameSite: "Strict",
+        expires: 365000,
+      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const selectedAccountId = Cookies.get("accountId");
   const currentAccount =
