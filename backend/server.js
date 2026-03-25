@@ -13,6 +13,7 @@ const accountRoutes = require("./routes/account");
 const paymentsRoutes = require("./routes/payments");
 const cryptoPaymentsRoutes = require("./routes/cryptoPayments");
 const telegramRoutes = require("./routes/telegramRoutes");
+const bookxTelegram = require("./routes/bookxTelegram");
 const paddleRoute = require("./routes/paddleWebhook");
 const thebookxpayments = require("./routes/thebookxpayments");
 const integrationsRoutes = require("./routes/integrations");
