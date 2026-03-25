@@ -34,20 +34,35 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
 ];
 
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin) return callback(null, true); // allow Postman/curl
+//       if (allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization", "x-trade-id"],
+//   }),
+// );
+
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
-      if (
-        allowedOrigins.includes(origin) ||
-        origin.includes("thebookx.in") // 👈 KEY FIX
-      ) {
+      if (allowedOrigins.includes(origin) || origin.includes("thebookx.in")) {
         return callback(null, true);
       }
 
-      console.log("Blocked by CORS:", origin); // debug
-      return callback(null, false); // ❗ don't throw error
+      console.log("❌ Blocked by CORS:", origin);
+
+      // ❗ DO NOT THROW ERROR
+      return callback(null, false);
     },
     credentials: true,
   }),
@@ -105,7 +120,7 @@ app.use("/api/payments", createLimiter(20), paymentsRoutes);
 
 app.use("/api/crypto-payments", createLimiter(20), cryptoPaymentsRoutes);
 app.use("/api/telegram", createLimiter(20), telegramRoutes);
-app.use("/api/bookxTelegram", createLimiter(20), bookxTelegram);
+app.use("/api/bookxTelegram", bookxTelegram);
 
 app.use(
   "/api/pricingpad",
