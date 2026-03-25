@@ -37,16 +37,19 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // allow Postman/curl
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.includes("thebookx.in") // 👈 KEY FIX
+      ) {
+        return callback(null, true);
       }
+
+      console.log("Blocked by CORS:", origin); // debug
+      return callback(null, false); // ❗ don't throw error
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-trade-id"],
   }),
 );
 
