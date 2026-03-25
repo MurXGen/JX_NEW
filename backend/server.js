@@ -101,6 +101,7 @@ app.use("/api/payments", createLimiter(20), paymentsRoutes);
 
 app.use("/api/crypto-payments", createLimiter(20), cryptoPaymentsRoutes);
 app.use("/api/telegram", createLimiter(20), telegramRoutes);
+app.use("/api/bookxTelegram", createLimiter(20), bookxTelegram);
 
 app.use(
   "/api/pricingpad",
