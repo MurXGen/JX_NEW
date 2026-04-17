@@ -121,4 +121,85 @@ Sent from JournalX App
   }
 });
 
+// Add this to your existing API routes
+router.post("/storeReview", async (req, res) => {
+  try {
+    const { feedback, phoneNumber, type } = req.body;
+
+    if (!feedback) {
+      return res.status(400).json({ message: "Feedback is required" });
+    }
+
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    const message = `
+🏪 *New Store Feedback*
+
+📝 *Feedback:*
+${feedback}
+
+📞 *Phone:* ${phoneNumber || "Not provided"}
+
+—
+Sent from TheBookX Store Review
+    `;
+
+    await axios.post(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHAT_ID,
+        text: message,
+        parse_mode: "Markdown",
+      },
+    );
+
+    res.status(200).json({ success: true, message: "Feedback submitted!" });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/contestEntry", async (req, res) => {
+  try {
+    const { phoneNumber, reviewType, bookId } = req.body;
+
+    if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
+      return res.status(400).json({ message: "Valid phone number required" });
+    }
+
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    const message = `
+🎁 *New Contest Entry!*
+
+📞 *Phone:* ${phoneNumber}
+📚 *Review Type:* ${bookId ? "Book Review" : "Store Feedback"}
+${bookId ? `🆔 *Book ID:* ${bookId}` : ""}
+📝 *Content:* ${reviewType || "No review provided"}
+
+—
+Weekly Contest Entry
+    `;
+
+    await axios.post(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHAT_ID,
+        text: message,
+        parse_mode: "Markdown",
+      },
+    );
+
+    res
+      .status(200)
+      .json({ success: true, message: "Contest entry registered!" });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;
