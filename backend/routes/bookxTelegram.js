@@ -3,8 +3,8 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
-// POST /api/review/store
-router.post("/store", async (req, res) => {
+// POST /api/bookxTelegram/store-review
+router.post("/store-review", async (req, res) => {
   try {
     const { review, rating, phoneNumber } = req.body;
 
@@ -19,8 +19,13 @@ router.post("/store", async (req, res) => {
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
+      console.error("Missing Telegram configuration:", {
+        hasToken: !!TELEGRAM_BOT_TOKEN,
+        hasChatId: !!CHAT_ID,
+      });
       return res.status(500).json({
         message: "Server configuration error",
+        details: "Telegram credentials not configured",
       });
     }
 
@@ -39,30 +44,58 @@ ${phoneNumber ? `📱 *Phone:* ${phoneNumber}\n🎁 *Entered in Lucky Draw*` : "
 Sent from TheBookX Review System
     `;
 
-    await axios.post(
+    const telegramResponse = await axios.post(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: CHAT_ID,
         text: message,
         parse_mode: "Markdown",
+        disable_web_page_preview: true,
       },
-      { timeout: 10000 },
+      {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
     );
 
-    return res.status(200).json({
-      success: true,
-      message: "Store review submitted successfully!",
-    });
+    if (telegramResponse.data && telegramResponse.data.ok) {
+      return res.status(200).json({
+        success: true,
+        message: "Store review submitted successfully!",
+      });
+    } else {
+      throw new Error("Telegram API returned unexpected response");
+    }
   } catch (err) {
-    console.error("Error in /store review:", err);
+    console.error("Error in /store-review:", {
+      message: err.message,
+      status: err.response?.status,
+      data: err.response?.data,
+    });
+
+    if (err.response) {
+      const statusCode = err.response.status;
+      if (statusCode === 401) {
+        return res.status(500).json({
+          message: "Invalid Telegram bot token",
+        });
+      } else if (statusCode === 400) {
+        return res.status(500).json({
+          message: "Invalid request to Telegram",
+        });
+      }
+    }
+
     return res.status(500).json({
-      message: "Internal server error",
+      message: "Internal server error. Please try again.",
     });
   }
 });
 
-// POST /api/review/book
-router.post("/book", async (req, res) => {
+// POST /api/bookxTelegram/review
+router.post("/review", async (req, res) => {
   try {
     const { bookId, review, rating, phoneNumber } = req.body;
 
@@ -77,8 +110,13 @@ router.post("/book", async (req, res) => {
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
+      console.error("Missing Telegram configuration:", {
+        hasToken: !!TELEGRAM_BOT_TOKEN,
+        hasChatId: !!CHAT_ID,
+      });
       return res.status(500).json({
         message: "Server configuration error",
+        details: "Telegram credentials not configured",
       });
     }
 
@@ -98,36 +136,64 @@ ${phoneNumber ? `📱 *Phone:* ${phoneNumber}\n🎁 *Entered in Lucky Draw*` : "
 Sent from TheBookX Review System
     `;
 
-    await axios.post(
+    const telegramResponse = await axios.post(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: CHAT_ID,
         text: message,
         parse_mode: "Markdown",
+        disable_web_page_preview: true,
       },
-      { timeout: 10000 },
+      {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
     );
 
-    return res.status(200).json({
-      success: true,
-      message: "Book review submitted successfully!",
-    });
+    if (telegramResponse.data && telegramResponse.data.ok) {
+      return res.status(200).json({
+        success: true,
+        message: "Book review submitted successfully!",
+      });
+    } else {
+      throw new Error("Telegram API returned unexpected response");
+    }
   } catch (err) {
-    console.error("Error in /book review:", err);
+    console.error("Error in /review:", {
+      message: err.message,
+      status: err.response?.status,
+      data: err.response?.data,
+    });
+
+    if (err.response) {
+      const statusCode = err.response.status;
+      if (statusCode === 401) {
+        return res.status(500).json({
+          message: "Invalid Telegram bot token",
+        });
+      } else if (statusCode === 400) {
+        return res.status(500).json({
+          message: "Invalid request to Telegram",
+        });
+      }
+    }
+
     return res.status(500).json({
-      message: "Internal server error",
+      message: "Internal server error. Please try again.",
     });
   }
 });
 
-// POST /api/review/phone
+// POST /api/bookxTelegram/phone
 router.post("/phone", async (req, res) => {
   try {
     const { phoneNumber, type } = req.body;
 
     if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
       return res.status(400).json({
-        message: "Invalid phone number",
+        message: "Invalid phone number. Please enter a 10-digit number.",
       });
     }
 
@@ -135,8 +201,13 @@ router.post("/phone", async (req, res) => {
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
+      console.error("Missing Telegram configuration:", {
+        hasToken: !!TELEGRAM_BOT_TOKEN,
+        hasChatId: !!CHAT_ID,
+      });
       return res.status(500).json({
         message: "Server configuration error",
+        details: "Telegram credentials not configured",
       });
     }
 
@@ -145,29 +216,58 @@ router.post("/phone", async (req, res) => {
 
 📱 *Phone:* ${phoneNumber}
 📋 *Entry Type:* ${type === "store" ? "Store Review" : "Book Review"}
+🕐 *Time:* ${new Date().toLocaleString()}
 
 —
 Entered for ₹499 Books Set Giveaway
     `;
 
-    await axios.post(
+    const telegramResponse = await axios.post(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: CHAT_ID,
         text: message,
         parse_mode: "Markdown",
+        disable_web_page_preview: true,
       },
-      { timeout: 10000 },
+      {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
     );
 
-    return res.status(200).json({
-      success: true,
-      message: "Phone number saved for lucky draw!",
-    });
+    if (telegramResponse.data && telegramResponse.data.ok) {
+      return res.status(200).json({
+        success: true,
+        message: "Phone number saved for lucky draw!",
+      });
+    } else {
+      throw new Error("Telegram API returned unexpected response");
+    }
   } catch (err) {
-    console.error("Error in /phone:", err);
+    console.error("Error in /phone:", {
+      message: err.message,
+      status: err.response?.status,
+      data: err.response?.data,
+    });
+
+    if (err.response) {
+      const statusCode = err.response.status;
+      if (statusCode === 401) {
+        return res.status(500).json({
+          message: "Invalid Telegram bot token",
+        });
+      } else if (statusCode === 400) {
+        return res.status(500).json({
+          message: "Invalid request to Telegram",
+        });
+      }
+    }
+
     return res.status(500).json({
-      message: "Internal server error",
+      message: "Failed to save number. Please try again.",
     });
   }
 });
