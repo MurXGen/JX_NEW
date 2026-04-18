@@ -1,148 +1,42 @@
+// routes/review.js
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
-// POST /api/telegram/review
-router.post("/review", async (req, res) => {
+// POST /api/review/store
+router.post("/store", async (req, res) => {
   try {
-    const { bookId, review } = req.body;
+    const { review, rating, phoneNumber } = req.body;
 
-    // Validate input
-    if (!bookId || !review) {
+    if (!review || !rating) {
       return res.status(400).json({
         message: "Missing fields",
-        required: ["bookId", "review"],
+        required: ["review", "rating"],
       });
     }
 
-    // Check environment variables
     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
-      console.error("Missing Telegram configuration:", {
-        hasToken: !!TELEGRAM_BOT_TOKEN,
-        hasChatId: !!CHAT_ID,
-      });
       return res.status(500).json({
         message: "Server configuration error",
-        details: "Telegram credentials not configured",
       });
     }
 
-    // Format the message
+    const stars = "⭐".repeat(rating);
     const message = `
-📚 *New Book Review*
+🏪 *New Store Review*
 
-🆔 *Book ID:* ${bookId}
+⭐ *Rating:* ${rating}/5 ${stars}
 
 📝 *Review:*
 ${review}
 
-—
-Sent from JournalX App
-    `;
-
-    // Send to Telegram
-    const telegramResponse = await axios.post(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        chat_id: CHAT_ID,
-        text: message,
-        parse_mode: "Markdown",
-        disable_web_page_preview: true,
-      },
-      {
-        timeout: 10000, // 10 second timeout
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    // Check if Telegram request was successful
-    if (telegramResponse.data && telegramResponse.data.ok) {
-      return res.status(200).json({
-        success: true,
-        message: "Review submitted successfully!",
-      });
-    } else {
-      throw new Error("Telegram API returned unexpected response");
-    }
-  } catch (err) {
-    // Detailed error logging
-    console.error("Error in /review endpoint:", {
-      message: err.message,
-      status: err.response?.status,
-      data: err.response?.data,
-      config: {
-        url: err.config?.url,
-        method: err.config?.method,
-        hasToken: !!process.env.TELEGRAM_BOT_TOKEN,
-        hasChatId: !!process.env.TELEGRAM_CHAT_ID,
-      },
-    });
-
-    // Send appropriate error response
-    if (err.response) {
-      // Telegram API error
-      const statusCode = err.response.status;
-      const errorData = err.response.data;
-
-      if (statusCode === 401) {
-        return res.status(500).json({
-          message: "Invalid Telegram bot token",
-          details: "Please check your TELEGRAM_BOT_TOKEN",
-        });
-      } else if (statusCode === 400) {
-        return res.status(500).json({
-          message: "Invalid request to Telegram",
-          details: errorData.description || "Please check CHAT_ID",
-        });
-      } else {
-        return res.status(500).json({
-          message: "Telegram API error",
-          details: errorData.description || "Unknown error",
-        });
-      }
-    } else if (err.request) {
-      // Network error
-      return res.status(500).json({
-        message: "Network error - Cannot reach Telegram API",
-        details: err.message,
-      });
-    } else {
-      // Other errors
-      return res.status(500).json({
-        message: "Internal server error",
-        details: err.message,
-      });
-    }
-  }
-});
-
-// Add this to your existing API routes
-router.post("/storeReview", async (req, res) => {
-  try {
-    const { feedback, phoneNumber, type } = req.body;
-
-    if (!feedback) {
-      return res.status(400).json({ message: "Feedback is required" });
-    }
-
-    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-
-    const message = `
-🏪 *New Store Feedback*
-
-📝 *Feedback:*
-${feedback}
-
-📞 *Phone:* ${phoneNumber || "Not provided"}
+${phoneNumber ? `📱 *Phone:* ${phoneNumber}\n🎁 *Entered in Lucky Draw*` : ""}
 
 —
-Sent from TheBookX Store Review
+Sent from TheBookX Review System
     `;
 
     await axios.post(
@@ -152,36 +46,108 @@ Sent from TheBookX Store Review
         text: message,
         parse_mode: "Markdown",
       },
+      { timeout: 10000 },
     );
 
-    res.status(200).json({ success: true, message: "Feedback submitted!" });
+    return res.status(200).json({
+      success: true,
+      message: "Store review submitted successfully!",
+    });
   } catch (err) {
-    console.error("Error:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error in /store review:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 });
 
-router.post("/contestEntry", async (req, res) => {
+// POST /api/review/book
+router.post("/book", async (req, res) => {
   try {
-    const { phoneNumber, reviewType, bookId } = req.body;
+    const { bookId, review, rating, phoneNumber } = req.body;
+
+    if (!bookId || !review || !rating) {
+      return res.status(400).json({
+        message: "Missing fields",
+        required: ["bookId", "review", "rating"],
+      });
+    }
+
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
+      return res.status(500).json({
+        message: "Server configuration error",
+      });
+    }
+
+    const stars = "⭐".repeat(rating);
+    const message = `
+📚 *New Book Review*
+
+🆔 *Book ID:* ${bookId}
+⭐ *Rating:* ${rating}/5 ${stars}
+
+📝 *Review:*
+${review}
+
+${phoneNumber ? `📱 *Phone:* ${phoneNumber}\n🎁 *Entered in Lucky Draw*` : ""}
+
+—
+Sent from TheBookX Review System
+    `;
+
+    await axios.post(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHAT_ID,
+        text: message,
+        parse_mode: "Markdown",
+      },
+      { timeout: 10000 },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Book review submitted successfully!",
+    });
+  } catch (err) {
+    console.error("Error in /book review:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
+
+// POST /api/review/phone
+router.post("/phone", async (req, res) => {
+  try {
+    const { phoneNumber, type } = req.body;
 
     if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
-      return res.status(400).json({ message: "Valid phone number required" });
+      return res.status(400).json({
+        message: "Invalid phone number",
+      });
     }
 
     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-    const message = `
-🎁 *New Contest Entry!*
+    if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
+      return res.status(500).json({
+        message: "Server configuration error",
+      });
+    }
 
-📞 *Phone:* ${phoneNumber}
-📚 *Review Type:* ${bookId ? "Book Review" : "Store Feedback"}
-${bookId ? `🆔 *Book ID:* ${bookId}` : ""}
-📝 *Content:* ${reviewType || "No review provided"}
+    const message = `
+🎁 *New Lucky Draw Entry*
+
+📱 *Phone:* ${phoneNumber}
+📋 *Entry Type:* ${type === "store" ? "Store Review" : "Book Review"}
 
 —
-Weekly Contest Entry
+Entered for ₹499 Books Set Giveaway
     `;
 
     await axios.post(
@@ -191,14 +157,18 @@ Weekly Contest Entry
         text: message,
         parse_mode: "Markdown",
       },
+      { timeout: 10000 },
     );
 
-    res
-      .status(200)
-      .json({ success: true, message: "Contest entry registered!" });
+    return res.status(200).json({
+      success: true,
+      message: "Phone number saved for lucky draw!",
+    });
   } catch (err) {
-    console.error("Error:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error in /phone:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 });
 
