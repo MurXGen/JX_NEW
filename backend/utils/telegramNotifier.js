@@ -9,7 +9,7 @@ const sendTelegramNotification = async ({
   orderId, // added to link button actions
 }) => {
   try {
-    const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const BOT_TOKEN = process.env.JX_BOT_TELEGRAM;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     let header = "";
