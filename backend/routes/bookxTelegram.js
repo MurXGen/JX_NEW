@@ -16,7 +16,7 @@ router.post("/store-review", async (req, res) => {
     }
 
     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+    const CHAT_ID = process.env.BookX_Telegram_Chat;
 
     if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
       console.error("Missing Telegram configuration:", {
@@ -107,7 +107,7 @@ router.post("/review", async (req, res) => {
     }
 
     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+    const CHAT_ID = process.env.BookX_Telegram_Chat;
 
     if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
       console.error("Missing Telegram configuration:", {
@@ -198,7 +198,7 @@ router.post("/phone", async (req, res) => {
     }
 
     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+    const CHAT_ID = process.env.BookX_Telegram_Chat;
 
     if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
       console.error("Missing Telegram configuration:", {

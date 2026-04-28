@@ -12,7 +12,7 @@ router.post("/webhook", async (req, res) => {
   if (body.callback_query) {
     const { id, data, message } = body.callback_query;
     const chatId = message.chat.id;
-    const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const BOT_TOKEN = process.env.JX_BOT_TELEGRAM;
 
     console.log("🟦 Callback Data Received:", data);
 
@@ -27,7 +27,7 @@ router.post("/webhook", async (req, res) => {
         updateResult = await Order.findByIdAndUpdate(
           orderId,
           { status: "paid" },
-          { new: true }
+          { new: true },
         );
 
         console.log("🟢 DB Update Result:", updateResult);
@@ -38,7 +38,7 @@ router.post("/webhook", async (req, res) => {
             chat_id: chatId,
             text: `✅ Order *${orderId}* marked as *PAID*.`,
             parse_mode: "Markdown",
-          }
+          },
         );
       } else if (data.startsWith("payment_failed_")) {
         orderId = data.replace("payment_failed_", "").trim();
@@ -47,7 +47,7 @@ router.post("/webhook", async (req, res) => {
         updateResult = await Order.findByIdAndUpdate(
           orderId,
           { status: "failed" },
-          { new: true }
+          { new: true },
         );
 
         console.log("🔴 DB Update Result:", updateResult);
@@ -58,7 +58,7 @@ router.post("/webhook", async (req, res) => {
             chat_id: chatId,
             text: `❌ Order *${orderId}* marked as *FAILED*.`,
             parse_mode: "Markdown",
-          }
+          },
         );
       } else {
         console.warn("⚠️ Unknown callback data:", data);
@@ -69,7 +69,7 @@ router.post("/webhook", async (req, res) => {
         `https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`,
         {
           callback_query_id: id,
-        }
+        },
       );
     } catch (error) {
       console.error("🚨 Telegram webhook error:", error.message);
