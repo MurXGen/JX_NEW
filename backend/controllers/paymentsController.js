@@ -37,7 +37,7 @@ exports.createOrder = async (req, res) => {
 
     const amountPaise = toPaise(priceINR);
     console.log(
-      `💰 Calculated amount for ${period}: ₹${priceINR} (${amountPaise} paise)`
+      `💰 Calculated amount for ${period}: ₹${priceINR} (${amountPaise} paise)`,
     );
 
     // 🔹 Create Razorpay order
@@ -340,8 +340,6 @@ exports.webhookHandler = async (req, res) => {
     res.status(500).send("server error");
   }
 };
-
-controllers/paymentsController.js - Add these functions
 
 exports.createCryptoOrder = async (req, res) => {
   try {
