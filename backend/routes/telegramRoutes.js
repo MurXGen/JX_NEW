@@ -12,7 +12,7 @@ router.post("/webhook", async (req, res) => {
   if (body.callback_query) {
     const { id, data, message } = body.callback_query;
     const chatId = message.chat.id;
-    const BOT_TOKEN = process.env.JX_BOT_TELEGRAM;
+    const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
     console.log("🟦 Callback Data Received:", data);
 
