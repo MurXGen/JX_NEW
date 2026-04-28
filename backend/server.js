@@ -15,7 +15,7 @@ const cryptoPaymentsRoutes = require("./routes/cryptoPayments");
 const telegramRoutes = require("./routes/telegramRoutes");
 const bookxTelegram = require("./routes/bookxTelegram");
 const paddleRoute = require("./routes/paddleWebhook");
-// const thebookxpayments = require("./routes/bookxTelegram");
+const thebookxpayments = require("./routes/bookxTelegram");
 const integrationsRoutes = require("./routes/integrations");
 
 // Rate limiter
