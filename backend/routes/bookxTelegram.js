@@ -272,4 +272,62 @@ Entered for ₹499 Books Set Giveaway
   }
 });
 
+router.post("/order", async (req, res) => {
+  try {
+    const {
+      orderDetails,
+      customerName,
+      customerPhone,
+      totalAmount,
+      paymentMethod,
+    } = req.body;
+
+    if (!orderDetails) {
+      return res.status(400).json({
+        message: "Missing order details",
+      });
+    }
+
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
+      console.error("Missing Telegram configuration");
+      return res.status(500).json({
+        message: "Server configuration error",
+      });
+    }
+
+    const telegramResponse = await axios.post(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHAT_ID,
+        text: orderDetails,
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
+      },
+      {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (telegramResponse.data && telegramResponse.data.ok) {
+      return res.status(200).json({
+        success: true,
+        message: "Order submitted successfully!",
+      });
+    } else {
+      throw new Error("Telegram API returned unexpected response");
+    }
+  } catch (err) {
+    console.error("Error in /order:", err);
+    return res.status(500).json({
+      message: "Failed to submit order. Please try again.",
+    });
+  }
+});
+
 module.exports = router;
