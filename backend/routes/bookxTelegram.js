@@ -330,4 +330,57 @@ router.post("/order", async (req, res) => {
   }
 });
 
+// POST /api/bookxTelegram/pincode
+router.post("/pincode", async (req, res) => {
+  try {
+    const { message, pincode, city, state, phone } = req.body;
+
+    if (!message) {
+      return res.status(400).json({
+        message: "Missing message",
+      });
+    }
+
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
+      console.error("Missing Telegram configuration");
+      return res.status(500).json({
+        message: "Server configuration error",
+      });
+    }
+
+    const telegramResponse = await axios.post(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHAT_ID,
+        text: message,
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
+      },
+      {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (telegramResponse.data && telegramResponse.data.ok) {
+      return res.status(200).json({
+        success: true,
+        message: "Pincode submitted successfully!",
+      });
+    } else {
+      throw new Error("Telegram API returned unexpected response");
+    }
+  } catch (err) {
+    console.error("Error in /pincode:", err);
+    return res.status(500).json({
+      message: "Failed to submit pincode. Please try again.",
+    });
+  }
+});
+
 module.exports = router;
