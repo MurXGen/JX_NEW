@@ -86,8 +86,8 @@ mongoose
    ROUTES
 ======================= */
 
-app.use("/api/auth", createLimiter(40), authRoutes);
-app.use("/api/account", createLimiter(40), accountRoutes);
+app.use("/api/auth", createLimiter(20), authRoutes);
+app.use("/api/account", createLimiter(5), accountRoutes);
 app.use("/api/trades", createLimiter(40), tradeRoutes);
 app.use("/api/integrations", integrationsRoutes);
 
