@@ -450,6 +450,7 @@
   height: auto;
   overflow-y: scroll; /* always-present track — no width shake when an
                           accordion expands and content height changes */
+  overflow-x: hidden; /* never scroll sideways */
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   padding: var(--space-8);
@@ -474,6 +475,11 @@
 }
 .jx-acc__content--open {
   grid-template-rows: 1fr;
+}
+/* keep every panel inside the scroll width */
+.jx-shell__main > * {
+  min-width: 0;
+  max-width: 100%;
 }
 .jx-acc__inner {
   overflow: hidden;

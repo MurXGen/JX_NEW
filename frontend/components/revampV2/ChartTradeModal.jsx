@@ -21,6 +21,14 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+/* compact money: 12.12k / 1.20M, max 2 decimals */
+const cmoney = (v) => {
+  const a = Math.abs(Number(v) || 0);
+  const sign = v < 0 ? "−" : "+";
+  if (a >= 1e6) return `${sign}$${fmt(a / 1e6, 2)}M`;
+  if (a >= 1e3) return `${sign}$${fmt(a / 1e3, 2)}k`;
+  return `${sign}$${fmt(a, 2)}`;
+};
 const POPULAR = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT"];
 
 const TIMEFRAMES = [
@@ -354,7 +362,7 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
                     <Badge variant={direction === "long" ? "success" : "danger"}>{direction === "long" ? "Long" : "Short"}</Badge>
                   </div>
                   <span style={{ font: "var(--text-h2)", color: calc.pnl == null ? "var(--color-text-muted)" : calc.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                    {calc.pnl == null ? "P&L —" : `${calc.pnl >= 0 ? "+" : "−"}$${fmt(Math.abs(calc.pnl))}`}
+                    {calc.pnl == null ? "P&L —" : cmoney(calc.pnl)}
                     {calc.retPct != null && <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginLeft: 8 }}>{calc.retPct >= 0 ? "+" : ""}{fmt(calc.retPct, 1)}%</span>}
                   </span>
                   {calc.rr != null && <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Planned R:R 1 : {fmt(calc.rr, 1)}</span>}

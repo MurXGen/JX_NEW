@@ -29,11 +29,9 @@ import { getLivePrice } from "@/utils/livePrice";
    crypto symbols, with a clearly-labeled simulation fallback. */
 
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
-const kf = (v, sym = "$") => {
-  const a = Math.abs(v);
-  const s = a >= 1000 ? `${sym}${fmt(a / 1000, 2)}k` : `${sym}${fmt(a)}`;
-  return `${v < 0 ? "−" : "+"}${s}`;
-};
+/* details view shows FULL numbers with 2 decimals (not compact k/M),
+   with a signed prefix for money values */
+const kf = (v, sym = "$") => `${v < 0 ? "−" : "+"}${sym}${fmt(Math.abs(Number(v) || 0), 2)}`;
 const dt = (v) =>
   v ? new Date(v).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
 
@@ -190,7 +188,7 @@ export default function TradeDetailsModal({
   const stats = [
     ["Entry", entry ? `$${fmt(entry)}` : "—"],
     ["Exit", exit ? `$${fmt(exit)}` : "—"],
-    ["Size", size ?? "—"],
+    ["Size", size != null ? fmt(size, 2) : "—"],
     ["Net P&L", kf(pnl, currencySymbol), pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)"],
     ["Return", retPct != null ? `${retPct >= 0 ? "+" : ""}${fmt(retPct, 1)}%` : "—", retPct != null ? (retPct >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)") : undefined],
     ["R : R", t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"],

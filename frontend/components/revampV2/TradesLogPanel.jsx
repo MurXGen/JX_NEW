@@ -41,6 +41,8 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
    "Trades log — Table view" (22831:53489). */
 
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+/* quantity / size — max 2 decimals (avoids 0.293838…) */
+const qty = (v) => (v == null || v === "" ? "—" : Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }));
 const money = (v, sym = "$") => {
   const a = Math.abs(v);
   const s = a >= 1000 ? `${sym}${fmt(a / 1000, 2)}k` : `${sym}${fmt(a)}`;
@@ -148,7 +150,7 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
         <span>Entry</span><span>Exit</span><span>Size</span><span>R : R</span>
         <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{entry ? `$${fmt(entry)}` : "—"}</span>
         <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{exit ? `$${fmt(exit)}` : "—"}</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{t.totalQuantity ?? "—"}</span>
+        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{qty(t.totalQuantity)}</span>
         <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
@@ -762,7 +764,7 @@ export default function TradesLogPanel({
                         <td><Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge></td>
                         <td>{entry ? `$${fmt(entry)}` : "—"}</td>
                         <td>{exit ? `$${fmt(exit)}` : "—"}</td>
-                        <td>{t.totalQuantity ?? "—"}</td>
+                        <td>{qty(t.totalQuantity)}</td>
                         <td style={{ fontWeight: 600, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
                           {money(pnl, currencySymbol)}
                         </td>

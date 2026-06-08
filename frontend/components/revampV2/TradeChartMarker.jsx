@@ -56,9 +56,15 @@ function synthSeries(entry, exit, t0, t1) {
   return out;
 }
 
+const TF_TABS = [
+  { id: "1m", label: "1m" }, { id: "5m", label: "5m" }, { id: "15m", label: "15m" },
+  { id: "1h", label: "1h" }, { id: "4h", label: "4h" }, { id: "1d", label: "1D" },
+];
+
 export default function TradeChartMarker({ trade, height = 280 }) {
   const ref = useRef(null);
   const [status, setStatus] = useState("loading");
+  const [tf, setTf] = useState(null); // null = use the trade's own timeframe
 
   useEffect(() => {
     if (!ref.current || !trade) return;
@@ -86,8 +92,9 @@ export default function TradeChartMarker({ trade, height = 280 }) {
 
     let disposed = false;
     (async () => {
-      const interval = tvToBinanceInterval(tv.timeframe || trade.timeframe);
-      const pad = (TF_MS[tv.timeframe] || 36e5) * 30;
+      const interval = tf || tvToBinanceInterval(tv.timeframe || trade.timeframe);
+      const intervalMs = { "1m": 60e3, "5m": 3e5, "15m": 9e5, "1h": 36e5, "4h": 144e5, "1d": 864e5 }[interval] || 36e5;
+      const pad = intervalMs * 40;
       let data = await fetchKlines(trade.symbol, interval, t0 - pad, t1 + pad);
       if (disposed) return;
       if (!data || data.length < 3) {
@@ -119,13 +126,29 @@ export default function TradeChartMarker({ trade, height = 280 }) {
     onResize();
     window.addEventListener("resize", onResize);
     return () => { disposed = true; window.removeEventListener("resize", onResize); chart.remove(); };
-  }, [trade, height]);
+  }, [trade, height, tf]);
+
+  const activeTf = tf || tvToBinanceInterval((trade?.tvChart || {}).timeframe || trade?.timeframe);
 
   return (
     <div>
+      {/* timeframe tabs */}
+      <div className="jx-seg jx-seg--inline" style={{ flexWrap: "wrap", marginBottom: 8 }}>
+        {TF_TABS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            className={`jx-seg__btn ${activeTf === f.id ? "jx-seg__btn--active" : ""}`}
+            style={{ padding: "5px 10px", font: "var(--text-caption)", fontWeight: 600 }}
+            onClick={() => setTf(f.id)}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
       <div ref={ref} style={{ width: "100%" }} />
       <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: 6, display: "flex", justifyContent: "space-between" }}>
-        <span>Marked from TradingView</span>
+        <span>Entry &amp; exit marked</span>
         <span>{status === "live" ? "● Live candles" : status === "synthetic" ? "○ Approx. path (no live feed)" : "Loading…"}</span>
       </div>
     </div>
