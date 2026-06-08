@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import Cookies from "js-cookie";
 import {
+  ArrowRightLeft,
   ArrowUpDown,
   BookOpen,
   Globe,
@@ -244,6 +245,23 @@ export default function Dashboard() {
       />
 
       <main className="jx-shell__main">
+        {/* Mobile-only top bar: journal switcher (sidebar is hidden < 768px) */}
+        <button
+          type="button"
+          className="jx-mobile-journalbar"
+          onClick={() => setShowSwitchModal(true)}
+        >
+          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0 }}>
+            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Journal</span>
+            <span style={{ font: "var(--text-body-md)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70vw" }}>
+              {currentAccount?.name || "Select journal"}
+            </span>
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--yellow-600)", font: "var(--text-small)", fontWeight: 600 }}>
+            <ArrowRightLeft size={16} /> Switch
+          </span>
+        </button>
+
         <AnimatedPanel id={activeTab}>
           {TAB_CONTENT[activeTab] || overview}
         </AnimatedPanel>
