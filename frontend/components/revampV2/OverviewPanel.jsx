@@ -56,6 +56,108 @@ function useMorph(values, duration = 0.7) {
 
 const BAR_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 
+/* ---- Profit-day celebration: gradient stars + confetti rising and
+   fading from bottom to top. Rendered only when today is in profit. ---- */
+function Celebration() {
+  const id = useId().replace(/[:]/g, "");
+  // deterministic-per-mount particle field
+  const particles = useMemo(() => {
+    const STAR = "star";
+    const CONFETTI = "confetti";
+    const colors = [
+      "var(--yellow-400)",
+      "var(--yellow-500)",
+      "#34d399",
+      "#22d3ee",
+      "#f472b6",
+      "#a78bfa",
+    ];
+    return Array.from({ length: 26 }, (_, i) => {
+      const isStar = i % 3 === 0;
+      return {
+        i,
+        type: isStar ? STAR : CONFETTI,
+        left: Math.random() * 100, // %
+        size: isStar ? 8 + Math.random() * 10 : 4 + Math.random() * 6,
+        delay: Math.random() * 3.5, // s
+        dur: 3.2 + Math.random() * 2.6, // s
+        drift: (Math.random() - 0.5) * 40, // px horizontal sway
+        spin: Math.random() * 360,
+        color: colors[i % colors.length],
+      };
+    });
+  }, []);
+
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        pointerEvents: "none",
+        borderRadius: "inherit",
+        zIndex: 0,
+      }}
+    >
+      {/* soft gradient glow at the top */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--yellow-400) 18%, transparent) 0%, transparent 60%)",
+        }}
+      />
+      <style>{`
+        @keyframes jx-rise-${id} {
+          0%   { transform: translateY(0) translateX(0) rotate(0deg) scale(0.6); opacity: 0; }
+          12%  { opacity: 1; }
+          70%  { opacity: 0.9; }
+          100% { transform: translateY(-110%) translateX(var(--jx-drift)) rotate(var(--jx-spin)) scale(1); opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .jx-celebrate-${id} { display: none !important; }
+        }
+      `}</style>
+      {particles.map((p) => (
+        <span
+          key={p.i}
+          className={`jx-celebrate-${id}`}
+          style={{
+            position: "absolute",
+            bottom: "-12px",
+            left: `${p.left}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            color: p.color,
+            "--jx-drift": `${p.drift}px`,
+            "--jx-spin": `${p.spin}deg`,
+            animation: `jx-rise-${id} ${p.dur}s ${p.delay}s ease-in-out infinite`,
+            willChange: "transform, opacity",
+          }}
+        >
+          {p.type === "star" ? (
+            <svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor">
+              <path d="M12 2l2.6 6.3L21 9l-5 4.3L17.5 21 12 17.3 6.5 21 8 13.3 3 9l6.4-.7z" />
+            </svg>
+          ) : (
+            <span
+              style={{
+                display: "block",
+                width: "100%",
+                height: "60%",
+                background: "currentColor",
+                borderRadius: "1px",
+              }}
+            />
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 /* Figma "Dashboard / Desktop" (22721:51429) + "Components / Analytics
    & Charts" (22688:51368). Dependency-free inline SVG charts; every
    time-range control filters the underlying trades for real. */
@@ -531,6 +633,16 @@ export default function OverviewPanel({
         .sort((a, b) => new Date(a.closeTime) - new Date(b.closeTime)),
     [trades],
   );
+
+  /* ---- today's realized P&L (drives profit celebration) ---- */
+  const todayPnl = useMemo(() => {
+    if (usingDummy) return 0; // never celebrate on sample data
+    const today = new Date().toDateString();
+    return closed
+      .filter((t) => new Date(t.closeTime).toDateString() === today)
+      .reduce((s, t) => s + (Number(t.pnl) || 0), 0);
+  }, [closed, usingDummy]);
+  const celebrate = todayPnl > 0;
 
   /* ---- hero (range-filtered) ---- */
   const hero = useMemo(() => {
@@ -1035,14 +1147,19 @@ export default function OverviewPanel({
       <div
         className="jx-card jx-hero-grid"
         style={{
+          position: "relative",
+          overflow: "hidden",
           display: "grid",
           gridTemplateColumns: "minmax(0,1.2fr) minmax(180px,1fr)",
           gap: "var(--space-5)",
           alignItems: "center",
         }}
       >
+        {celebrate && <Celebration />}
         <div
           style={{
+            position: "relative",
+            zIndex: 1,
             display: "flex",
             flexDirection: "column",
             gap: "var(--space-3)",
@@ -1122,10 +1239,12 @@ export default function OverviewPanel({
             ))}
           </div>
         </div>
-        <AreaChart
-          values={hero.spark.length > 1 ? hero.spark : [0, 0]}
-          height={120}
-        />
+        <div style={{ position: "relative", zIndex: 1, minWidth: 0 }}>
+          <AreaChart
+            values={hero.spark.length > 1 ? hero.spark : [0, 0]}
+            height={120}
+          />
+        </div>
       </div>
 
       {/* ===== Progress cards ===== */}

@@ -36,13 +36,13 @@ export default function LegalLayout({ title, path, description, updated, intro, 
           {/* table of contents */}
           <nav style={{ margin: "28px 0", padding: "18px 20px", background: "#161a20", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14 }}>
             <div style={{ font: "600 12px Poppins", color: "#707a8a", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 10 }}>On this page</div>
-            <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
               {sections.map((s) => (
                 <li key={s.h}>
                   <a href={`#${slug(s.h)}`} style={{ color: "#aeb4bc", textDecoration: "none", font: "400 14px Poppins" }}>{s.h}</a>
                 </li>
               ))}
-            </ol>
+            </ul>
           </nav>
 
           {/* sections */}
@@ -67,7 +67,7 @@ export default function LegalLayout({ title, path, description, updated, intro, 
 
           <div style={{ marginTop: 40, padding: "18px 20px", background: "#161a20", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, font: "400 14px/1.7 Poppins", color: "#707a8a" }}>
             Questions about this policy? Contact us at{" "}
-            <a href="mailto:support@journalx.app" style={{ color: "#fcd535", textDecoration: "none" }}>support@journalx.app</a>.
+            <a href="mailto:officialjournalx@gmail.com" style={{ color: "#fcd535", textDecoration: "none" }}>officialjournalx@gmail.com</a>.
           </div>
         </main>
 

@@ -41,9 +41,8 @@ export default function AuthLayout({ children, title, subtitle }) {
           padding: "var(--space-12)",
         }}
       >
-        <a href="/" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ width: 32, height: 32, borderRadius: 10, background: "var(--color-primary)" }} />
-          <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>
+        <a href="/" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center" }}>
+          <span style={{ font: "var(--text-h3)", fontWeight: 700, letterSpacing: "-0.5px" }}>
             Journal<strong style={{ color: "var(--yellow-500)" }}>X</strong>
           </span>
         </a>

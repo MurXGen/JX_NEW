@@ -88,19 +88,20 @@ export default function Sidebar({
       {/* Brand */}
       <div className="jx-sidebar__brand">
         {collapsed ? (
-          /* Collapsed: logo by default, expand icon on hover */
+          /* Collapsed: "JX" wordmark by default, expand icon on hover */
           <button
             className="jx-sidebar__logobtn"
             onClick={toggleCollapsed}
             aria-label="Expand sidebar"
             title="Expand sidebar"
           >
-            <span className="jx-sidebar__logo" />
+            <span className="jx-sidebar__logomark">
+              J<strong style={{ color: "var(--yellow-500)" }}>X</strong>
+            </span>
             <PanelLeftOpen size={18} className="jx-sidebar__expandicon" />
           </button>
         ) : (
           <>
-            <div className="jx-sidebar__logo" />
             <span className="jx-sidebar__brand-name">
               Journal<strong style={{ color: "var(--yellow-500)" }}>X</strong>
             </span>
@@ -116,8 +117,9 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Journal switcher */}
+      {/* Journal switcher + theme toggle (top) */}
       {onAccountSwitch && (
+        <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "stretch" }}>
         <button
           className="jx-sidebar__item"
           onClick={onAccountSwitch}
@@ -125,6 +127,8 @@ export default function Sidebar({
           style={{
             border: "1px solid var(--color-border)",
             background: "var(--color-bg-muted)",
+            flex: 1,
+            minWidth: 0,
           }}
         >
           <ArrowRightLeft size={18} />
@@ -163,6 +167,25 @@ export default function Sidebar({
             </span>
           )}
         </button>
+        {!collapsed && (
+          <button
+            className="jx-sidebar__item"
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+            aria-label="Toggle theme"
+            style={{
+              border: "1px solid var(--color-border)",
+              background: "var(--color-bg-muted)",
+              width: 44,
+              flexShrink: 0,
+              justifyContent: "center",
+              padding: 0,
+            }}
+          >
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        )}
+        </div>
       )}
 
       {/* Log trade CTA */}

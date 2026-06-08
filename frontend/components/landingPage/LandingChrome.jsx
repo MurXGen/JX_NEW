@@ -25,9 +25,8 @@ export function LandingNav() {
       }}
     >
       <div style={{ maxWidth: 1160, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", gap: 20 }}>
-        <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 9 }}>
-          <span style={{ width: 28, height: 28, borderRadius: 8, background: "#fcd535" }} />
-          <span style={{ font: "600 19px/1 Poppins, sans-serif", color: "#fff" }}>
+        <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+          <span style={{ font: "700 20px/1 Poppins, sans-serif", color: "#fff", letterSpacing: "-0.5px" }}>
             Journal<span style={{ color: "#fcd535" }}>X</span>
           </span>
         </a>
@@ -92,9 +91,8 @@ export function LandingFooter() {
     <footer style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "#0b0e13" }}>
       <div style={{ maxWidth: 1160, margin: "0 auto", padding: "48px 20px 28px", display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: 32 }} className="lp-footer-grid">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12 }}>
-            <span style={{ width: 26, height: 26, borderRadius: 7, background: "#fcd535" }} />
-            <span style={{ font: "600 18px Poppins", color: "#fff" }}>Journal<span style={{ color: "#fcd535" }}>X</span></span>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+            <span style={{ font: "700 19px Poppins", color: "#fff", letterSpacing: "-0.5px" }}>Journal<span style={{ color: "#fcd535" }}>X</span></span>
           </div>
           <p style={{ font: "400 14px/1.6 Poppins", color: "#707a8a", maxWidth: 280 }}>
             The trading journal that turns your trade history into a measurable edge.

@@ -52,7 +52,7 @@ export default function PrivacyPolicy() {
         {
           h: "6. Your Rights and Choices",
           body: [
-            "Depending on your jurisdiction, you may have the right to access, correct, export, restrict, or delete your personal data, and to object to certain processing. JournalX provides in-product controls to export your data and to delete your account. To exercise any right not available in-product, contact support@journalx.app and we will respond within the timeframe required by applicable law.",
+            "Depending on your jurisdiction, you may have the right to access, correct, export, restrict, or delete your personal data, and to object to certain processing. JournalX provides in-product controls to export your data and to delete your account. To exercise any right not available in-product, contact officialjournalx@gmail.com and we will respond within the timeframe required by applicable law.",
           ],
         },
         {

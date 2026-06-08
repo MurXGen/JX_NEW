@@ -43,7 +43,7 @@ export default function RefundPolicy() {
         {
           h: "5. How to Request a Refund",
           body: [
-            "To request a refund, email support@journalx.app from the address associated with your account, including your order details and the reason for the request. We aim to respond within 5 business days. Approved refunds are issued to the original payment method and may take additional time to appear depending on your provider.",
+            "To request a refund, email officialjournalx@gmail.com from the address associated with your account, including your order details and the reason for the request. We aim to respond within 5 business days. Approved refunds are issued to the original payment method and may take additional time to appear depending on your provider.",
           ],
         },
         {

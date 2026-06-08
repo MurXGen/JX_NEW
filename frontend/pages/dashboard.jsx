@@ -8,6 +8,8 @@ import {
   ArrowRightLeft,
   ArrowUpDown,
   BookOpen,
+  Moon,
+  Sun,
   Globe,
   History,
   LayoutGrid,
@@ -68,6 +70,7 @@ export default function Dashboard() {
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [showLogTrade, setShowLogTrade] = useState(false);
   const [importSignal, setImportSignal] = useState(0);
+  const [, setThemeTick] = useState(0); // re-render the mobile theme icon
 
   const [userData, setUserData] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -245,22 +248,44 @@ export default function Dashboard() {
       />
 
       <main className="jx-shell__main">
-        {/* Mobile-only top bar: journal switcher (sidebar is hidden < 768px) */}
-        <button
-          type="button"
-          className="jx-mobile-journalbar"
-          onClick={() => setShowSwitchModal(true)}
-        >
-          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0 }}>
-            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Journal</span>
-            <span style={{ font: "var(--text-body-md)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70vw" }}>
-              {currentAccount?.name || "Select journal"}
+        {/* Mobile-only top bar: journal switcher + theme toggle (sidebar hidden < 768px) */}
+        <div className="jx-mobile-journalrow" style={{ display: "none", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
+          <button
+            type="button"
+            className="jx-mobile-journalbar"
+            style={{ flex: 1, minWidth: 0, marginBottom: 0 }}
+            onClick={() => setShowSwitchModal(true)}
+          >
+            <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0 }}>
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Journal</span>
+              <span style={{ font: "var(--text-body-md)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "55vw" }}>
+                {currentAccount?.name || "Select journal"}
+              </span>
             </span>
-          </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--yellow-600)", font: "var(--text-small)", fontWeight: 600 }}>
-            <ArrowRightLeft size={16} /> Switch
-          </span>
-        </button>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--yellow-600)", font: "var(--text-small)", fontWeight: 600 }}>
+              <ArrowRightLeft size={16} /> Switch
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-label="Toggle theme"
+            onClick={() => {
+              const next = (localStorage.getItem("theme") || "dark") === "dark" ? "light" : "dark";
+              localStorage.setItem("theme", next);
+              document.documentElement.setAttribute("data-theme", next);
+              document.body.setAttribute("data-theme", next);
+              document.documentElement.classList.toggle("dark", next === "dark");
+              setThemeTick((t) => t + 1);
+            }}
+            style={{
+              flexShrink: 0, width: 52, display: "flex", alignItems: "center", justifyContent: "center",
+              background: "var(--color-bg-surface)", border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-md)", cursor: "pointer", color: "var(--color-text-primary)",
+            }}
+          >
+            {(typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light") ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+        </div>
 
         <AnimatedPanel id={activeTab}>
           {TAB_CONTENT[activeTab] || overview}

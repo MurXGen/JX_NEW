@@ -351,15 +351,16 @@
   padding: var(--space-2);
   margin-bottom: var(--space-4);
 }
-.jx-sidebar__logo {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary);
+/* "JX" wordmark used in the collapsed sidebar (replaces the old box logo) */
+.jx-sidebar__logomark {
+  font: 700 20px/1 var(--jx-font);
+  color: var(--color-text-primary);
+  letter-spacing: -0.5px;
   flex-shrink: 0;
 }
 .jx-sidebar__brand-name {
-  font: var(--text-title);
+  font: 700 18px/1 var(--jx-font);
+  letter-spacing: -0.5px;
   color: var(--color-text-primary);
   flex: 1;
 }
@@ -384,7 +385,7 @@
 .jx-sidebar__logobtn:hover .jx-sidebar__expandicon {
   display: block;
 }
-.jx-sidebar__logobtn:hover .jx-sidebar__logo {
+.jx-sidebar__logobtn:hover .jx-sidebar__logomark {
   display: none;
 }
 .jx-sidebar__logobtn:hover {
@@ -710,6 +711,10 @@
   justify-content: center;
   z-index: 1000;
   padding: var(--space-4);
+  /* globals.css pins body { color: var(--black) }, which the modal would
+     otherwise inherit (black text, invisible in dark mode). Force the
+     theme-aware token so all modal text flips with the theme. */
+  color: var(--color-text-primary);
 }
 .jx-modal-overlay--blur {
   background: rgba(24, 26, 32, 0.35);
@@ -866,6 +871,7 @@
 /* ================= Log Trade modal ================= */
 .jx-ltmodal {
   background: var(--color-bg-surface);
+  color: var(--color-text-primary);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   width: min(960px, 96vw);
@@ -1604,4 +1610,10 @@
   .jx-shell__main::after {
     height: calc(140px + 70px + env(safe-area-inset-bottom));
   }
+}
+
+/* mobile journal+theme row: show only the row on phones (the old
+   standalone bar rule still hides on desktop) */
+@media (max-width: 768px) {
+  .jx-mobile-journalrow { display: flex !important; }
 }

@@ -1,12 +1,35 @@
 User-agent: *
 Allow: /
+
+# Authenticated / app pages
 Disallow: /dashboard
 Disallow: /dashboard-web
+Disallow: /dashboard1
 Disallow: /accounts
 Disallow: /add-trade
+Disallow: /addTrade
 Disallow: /settings
+Disallow: /journal-setting
+Disallow: /profile
 Disallow: /billings
 Disallow: /trade
 Disallow: /integrations
+Disallow: /export
+Disallow: /events
+Disallow: /create-account
+Disallow: /view-trades
+Disallow: /share-trades
+
+# Checkout / payment flows
+Disallow: /checkoutonline
+Disallow: /cryptobillingpage
+Disallow: /pricingpage
+Disallow: /payment-verify
+Disallow: /subscription-success
+Disallow: /subscription-failed
+
+# Legacy duplicates
+Disallow: /login1
+Disallow: /register1
 
 Sitemap: https://journalx.app/sitemap.xml

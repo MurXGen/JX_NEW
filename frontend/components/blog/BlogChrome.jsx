@@ -16,9 +16,8 @@ export function BlogTopbar() {
         background: "var(--color-bg-surface)", position: "sticky", top: 0, zIndex: 20,
       }}
     >
-      <a href="/" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ width: 26, height: 26, borderRadius: 8, background: "var(--color-primary)" }} />
-        <span style={{ font: "var(--text-title)", fontWeight: 600 }}>
+      <a href="/" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center" }}>
+        <span style={{ font: "var(--text-title)", fontWeight: 700, letterSpacing: "-0.5px" }}>
           Journal<strong style={{ color: "var(--yellow-500)" }}>X</strong>
         </span>
       </a>

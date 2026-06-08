@@ -4,11 +4,11 @@
    dark skin; full SEO (meta, OG, Twitter, Organization + SoftwareApp
    JSON-LD); mobile responsive top to bottom. */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowRight,
   BarChart3,
@@ -30,6 +30,79 @@ const DESC =
   "JournalX is the all-in-one trading journal for stocks, options, forex, futures & crypto. Log trades in seconds, track risk and psychology, and turn your history into a measurable edge.";
 
 const C = { text: "#fff", muted: "#aeb4bc", dim: "#707a8a", surface: "#161a20", border: "rgba(255,255,255,0.08)", yellow: "#fcd535", green: "#2ebd85", red: "#f6465d" };
+
+/* A single faded candlestick (wick + body). Purely decorative. */
+function Candle({ color, w = 16, wickTop = 18, bodyH = 46, wickBottom = 18 }) {
+  const h = wickTop + bodyH + wickBottom;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none" aria-hidden="true">
+      <line x1={w / 2} y1="0" x2={w / 2} y2={h} stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <rect x="1" y={wickTop} width={w - 2} height={bodyH} rx="3" fill={color} />
+    </svg>
+  );
+}
+
+/* Transparent, faded candles drifting in the hero. Each candle floats on
+   its own gentle loop; the whole field parallax-scrolls and fades as the
+   visitor scrolls past the hero (driven by `progress`). */
+const CANDLES = [
+  { left: "6%",  top: "12%", color: C.green, w: 16, bodyH: 54, scale: 1.1,  delay: 0,   dur: 7,  amp: 18 },
+  { left: "16%", top: "52%", color: C.red,   w: 14, bodyH: 40, scale: 0.9,  delay: 1.2, dur: 8,  amp: 24 },
+  { left: "30%", top: "26%", color: C.green, w: 12, bodyH: 32, scale: 0.8,  delay: 0.6, dur: 9,  amp: 14 },
+  { left: "72%", top: "16%", color: C.green, w: 18, bodyH: 60, scale: 1.2,  delay: 0.3, dur: 7.5,amp: 20 },
+  { left: "84%", top: "48%", color: C.red,   w: 15, bodyH: 44, scale: 1.0,  delay: 1.6, dur: 8.5,amp: 26 },
+  { left: "60%", top: "62%", color: C.red,   w: 12, bodyH: 30, scale: 0.75, delay: 2.0, dur: 9.5,amp: 16 },
+  { left: "46%", top: "8%",  color: C.green, w: 13, bodyH: 36, scale: 0.85, delay: 0.9, dur: 8,  amp: 18 },
+];
+
+/* Owns its own ref + scroll tracking so the target is always hydrated on
+   mount (avoids motion's "target ref not hydrated" warning when the page
+   gates the hero behind a loading state). */
+function HeroBackdrop() {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+  return (
+    <div ref={ref} style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+      <FloatingCandles progress={scrollYProgress} />
+    </div>
+  );
+}
+
+function FloatingCandles({ progress }) {
+  // parallax: drift up and fade out as the hero scrolls away
+  const y = useTransform(progress, [0, 1], [0, -90]);
+  const opacity = useTransform(progress, [0, 0.85], [1, 0]);
+  return (
+    <motion.div
+      aria-hidden="true"
+      style={{ position: "absolute", inset: 0, pointerEvents: "none", y, opacity, zIndex: 0 }}
+    >
+      {CANDLES.map((c, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.1, y: [0, -c.amp, 0] }}
+          transition={{
+            opacity: { duration: 1.2, delay: c.delay },
+            y: { duration: c.dur, delay: c.delay, repeat: Infinity, ease: "easeInOut" },
+          }}
+          style={{
+            position: "absolute",
+            left: c.left,
+            top: c.top,
+            transform: `scale(${c.scale})`,
+            filter: "blur(0.4px)",
+          }}
+        >
+          <Candle color={c.color} w={c.w} bodyH={c.bodyH} />
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
 
 const FEATURES = [
   { icon: Zap, title: "Log trades in seconds", body: "Quick log for P&L-only, or full detail with entries, risk, screenshots and emotions. Connect an exchange and trades import automatically." },
@@ -69,8 +142,8 @@ const FAQS = [
   ["Can I journal on mobile?", "Absolutely — JournalX is fully responsive with a dedicated mobile experience and quick log."],
 ];
 
-function Section({ children, style }) {
-  return <section style={{ maxWidth: 1160, margin: "0 auto", padding: "72px 20px", ...style }}>{children}</section>;
+function Section({ children, style, innerRef }) {
+  return <section ref={innerRef} style={{ maxWidth: 1160, margin: "0 auto", padding: "72px 20px", ...style }}>{children}</section>;
 }
 
 export default function Home() {
@@ -130,9 +203,10 @@ export default function Home() {
         <LandingNav />
 
         {/* ===== Hero ===== */}
-        <Section style={{ paddingTop: 72, paddingBottom: 48, textAlign: "center", position: "relative" }}>
+        <Section style={{ paddingTop: 72, paddingBottom: 48, textAlign: "center", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(700px 380px at 50% -10%, rgba(252,213,53,0.16), transparent 70%)", pointerEvents: "none" }} />
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative" }}>
+          <HeroBackdrop />
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative", zIndex: 1 }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 22 }}>
               <Sparkles size={14} /> A fresh trading lesson every day on our blog
             </span>
@@ -154,7 +228,7 @@ export default function Home() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }}
-            style={{ position: "relative", marginTop: 48, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, maxWidth: 720, marginInline: "auto" }}>
+            style={{ position: "relative", zIndex: 1, marginTop: 48, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, maxWidth: 720, marginInline: "auto" }}>
             {[["250k+", "Trades logged"], ["4.8★", "Avg. rating"], ["40+", "Markets"], ["10s", "To log a trade"]].map(([v, l]) => (
               <div key={l} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "18px 16px" }}>
                 <div style={{ font: "700 26px Poppins", color: C.yellow, letterSpacing: "-1px" }}>{v}</div>
@@ -258,11 +332,24 @@ export default function Home() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {FAQS.map(([q, a], i) => (
               <div key={q} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-                <button onClick={() => setFaq(faq === i ? -1 : i)} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, background: "none", border: "none", color: C.text, cursor: "pointer", padding: "18px 20px", font: "600 16px Poppins", textAlign: "left" }}>
+                <button onClick={() => setFaq(faq === i ? -1 : i)} aria-expanded={faq === i} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, background: "none", border: "none", color: C.text, cursor: "pointer", padding: "18px 20px", font: "600 16px Poppins", textAlign: "left" }}>
                   {q}
-                  <span style={{ color: C.yellow, transform: faq === i ? "rotate(45deg)" : "none", transition: "transform .2s", flexShrink: 0, fontSize: 20 }}>+</span>
+                  <span style={{ color: C.yellow, transform: faq === i ? "rotate(45deg)" : "none", transition: "transform .25s ease", flexShrink: 0, fontSize: 20 }}>+</span>
                 </button>
-                {faq === i && <div style={{ padding: "0 20px 18px", font: "400 14px/1.6 Poppins", color: C.muted }}>{a}</div>}
+                <AnimatePresence initial={false}>
+                  {faq === i && (
+                    <motion.div
+                      key="content"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ overflow: "hidden" }}
+                    >
+                      <div style={{ padding: "0 20px 18px", font: "400 14px/1.6 Poppins", color: C.muted }}>{a}</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </div>

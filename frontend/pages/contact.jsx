@@ -1,20 +1,27 @@
 "use client";
 
+/* Contact page — matches the marketing/legal dark theme so text is
+   always readable (the public site uses a fixed dark palette). */
+
 import Head from "next/head";
-import { useEffect } from "react";
+import { LandingNav, LandingFooter } from "@/components/landingPage/LandingChrome";
+
+const SITE_URL = "https://journalx.app";
+const EMAIL = "officialjournalx@gmail.com";
+
+const card = {
+  background: "#161a20",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 16,
+  padding: "22px 24px",
+};
+const h2 = { font: "600 20px Poppins", margin: "0 0 10px", color: "#fff" };
+const para = { font: "400 15px/1.7 Poppins", color: "#aeb4bc", margin: "0 0 8px" };
+const link = { color: "#fcd535", textDecoration: "none" };
+const strong = { color: "#e7eaee", fontWeight: 600 };
 
 export default function ContactUs() {
   const effectiveDate = "2025-11-01";
-  useEffect(() => {
-    // Set landing page background
-    document.body.style.backgroundColor = "#020202";
-    document.body.style.color = "white";
-
-    return () => {
-      document.body.style.backgroundColor = "";
-      document.body.style.color = "";
-    };
-  }, []);
 
   return (
     <>
@@ -25,190 +32,183 @@ export default function ContactUs() {
           content="Get in touch with the JournalX team for product support, billing help, partnership inquiries, or feedback. We're here to help you make the most of your journaling experience."
         />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://journalx.app/contact-us" />
+        <link rel="canonical" href={`${SITE_URL}/contact`} />
+        <meta property="og:title" content="Contact Us | JournalX" />
+        <meta
+          property="og:description"
+          content="Reach the JournalX team for support, billing, partnerships or feedback."
+        />
+        <meta property="og:url" content={`${SITE_URL}/contact`} />
+        <meta property="og:type" content="website" />
       </Head>
 
-      <main className="legalPageContainer">
-        {/* HEADER */}
-        <header className="legalHeader">
-          <h1>Contact Us</h1>
-          <p>
-            We're here to help! Whether you have questions about your account,
-            payments, or general inquiries — the JournalX team is available to
-            assist you. Reach out through any of the options below.
-          </p>
-        </header>
+      <div
+        style={{
+          background: "#0d1117",
+          color: "#fff",
+          fontFamily: "Poppins, sans-serif",
+          minHeight: "100vh",
+        }}
+      >
+        <LandingNav />
 
-        {/* SECTION 1 */}
-        <section>
-          <h2>1. General Inquiries</h2>
-          <p>
-            For general questions about JournalX features, feedback, or
-            improvement suggestions, feel free to drop us an email:
-          </p>
-          <p>
-            – <strong>Email:</strong>{" "}
-            <a href="mailto:officialjournalx@gmail.com">
-              officialjournalx@gmail.com
-            </a>
-          </p>
-          <p>
-            We aim to respond to all inquiries within{" "}
-            <strong>1–2 business days</strong>.
-          </p>
-        </section>
-
-        {/* SECTION 2 */}
-        <section>
-          <h2>2. Technical Support</h2>
-          <p>
-            If you’re facing issues with login, subscriptions, or journal data
-            sync, please reach out with the subject line{" "}
-            <strong>"Technical Support – JournalX"</strong> and include the
-            following details:
-          </p>
-          <p>
-            – Your registered email address <br />
-            – Description of the issue <br />– Screenshots or error messages (if
-            available)
-          </p>
-          <p>
-            Send your request to:{" "}
-            <a href="mailto:officialjournalx@gmail.com">
-              officialjournalx@gmail.com
-            </a>
-          </p>
-        </section>
-
-        {/* SECTION 3 */}
-        <section>
-          <h2>3. Billing & Payment Support</h2>
-          <p>
-            For payment-related questions or refund requests, please check our{" "}
-            <a href="/refund-policy">Refund Policy</a> first. If your case meets
-            eligibility, contact us via:
-          </p>
-          <p>
-            – <strong>Email:</strong>{" "}
-            <a href="mailto:officialjournalx@gmail.com">
-              officialjournalx@gmail.com
-            </a>
-            <br />– <strong>Phone:</strong> +91 7977960242
-          </p>
-          <p>
-            Ensure to include your transaction ID or payment receipt for faster
-            assistance.
-          </p>
-        </section>
-
-        {/* SECTION 4 */}
-        <section>
-          <h2>4. Partnership & Collaboration</h2>
-          <p>
-            We’re open to collaborations with trading educators, communities, or
-            technology partners who share our mission to improve trader
-            psychology and journaling discipline.
-          </p>
-          <p>
-            – <strong>Business Email:</strong>{" "}
-            <a href="mailto:officialjournalx@gmail.com">
-              officialjournalx@gmail.com
-            </a>
-          </p>
-        </section>
-
-        {/* SECTION 5 */}
-        <section>
-          <h2>5. Registered Business Information</h2>
-          <p>
-            JournalX is operated by a registered MSME entity in India. Below are
-            our verified business details:
-          </p>
-          <p>
-            – <strong>Legal Name:</strong> Murthy Poothapandi Thevar (JournalX)
-            <br />– <strong>Udyam Registration No:</strong> UDYAM-MH-19-0386866
-            <br />– <strong>PAN:</strong> CFXPT4171B
-            <br />– <strong>Registered Location:</strong> Mumbai, Maharashtra,
-            India
-          </p>
-        </section>
-
-        {/* SECTION 6 */}
-        <section>
-          <h2>6. Response Time & Support Hours</h2>
-          <p>
-            Our support operates Monday to Saturday between{" "}
-            <strong>10:00 AM – 7:00 PM IST</strong>. Queries sent during
-            holidays or weekends will be addressed on the next working day.
-          </p>
-        </section>
-
-        {/* SECTION 7 */}
-        <section>
-          <h2>7. Data Security</h2>
-          <p>
-            Your messages and contact details are handled with strict
-            confidentiality. We do <span className="highlight-not">NOT</span>{" "}
-            sell, rent, or share any personal information with third parties.
-            For full details, refer to our{" "}
-            <a href="/privacy-policy" className="link">
-              Privacy Policy
-            </a>
-            .
-          </p>
-        </section>
-
-        {/* SECTION 8 */}
-        <section>
-          <h2>8. Connect With Us</h2>
-          <p>Stay updated and explore more about JournalX:</p>
-          <p>
-            – <a href="https://journalx.app">Website</a>
-            <br />– <a href="https://www.linkedin.com">LinkedIn</a> (coming
-            soon)
-            <br />– <a href="https://x.com">Twitter</a> (coming soon)
-          </p>
-        </section>
-
-        {/* OPTIONAL MAP EMBED */}
-        <section>
-          <h2>9. Location (for correspondence)</h2>
-          <p>
-            While JournalX primarily operates remotely, our MSME registration is
-            based in Mumbai, Maharashtra. You can write to us at:
-          </p>
-          <p>
-            <strong>JournalX – Mumbai, India</strong>
-          </p>
-          <div
-            style={{ borderRadius: "12px", overflow: "hidden", marginTop: 12 }}
+        <main style={{ maxWidth: 880, margin: "0 auto", padding: "56px 20px 96px" }}>
+          <span
+            style={{
+              font: "600 13px Poppins",
+              color: "#fcd535",
+              letterSpacing: 0.6,
+              textTransform: "uppercase",
+            }}
           >
-            <iframe
-              title="JournalX Location"
-              src="https://www.google.com/maps?q=Mumbai,+Maharashtra,+India&output=embed"
-              width="100%"
-              height="300"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-            ></iframe>
-          </div>
-        </section>
+            Support
+          </span>
+          <h1
+            style={{
+              font: "700 clamp(28px,5vw,42px)/1.1 Poppins",
+              margin: "8px 0 10px",
+              letterSpacing: "-1px",
+              color: "#fff",
+            }}
+          >
+            Contact Us
+          </h1>
+          <p style={{ ...para, font: "400 16px/1.7 Poppins", maxWidth: 680 }}>
+            We&apos;re here to help! Whether you have questions about your
+            account, payments, or general inquiries — the JournalX team is
+            available to assist you. Reach out through any of the options below.
+          </p>
 
-        {/* FOOTER */}
-        <footer>
-          <p className="legalDisclaimer">
-            JournalX is a journaling and analytics platform designed for
-            traders’ self-analysis and reflection. We do{" "}
-            <span className="highlight-not">NOT</span> offer trading signals or
-            financial advice. Contact information provided here is strictly for
-            customer and business communication.
+          <div
+            style={{
+              marginTop: 28,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 18,
+            }}
+          >
+            <section style={card}>
+              <h2 style={h2}>General inquiries</h2>
+              <p style={para}>
+                Questions about features, feedback, or improvement suggestions —
+                drop us an email and we&apos;ll reply within 1–2 business days.
+              </p>
+              <p style={para}>
+                <span style={strong}>Email:</span>{" "}
+                <a href={`mailto:${EMAIL}`} style={link}>
+                  {EMAIL}
+                </a>
+              </p>
+            </section>
+
+            <section style={card}>
+              <h2 style={h2}>Technical support</h2>
+              <p style={para}>
+                Issues with login, subscriptions, or data sync? Email us with
+                the subject &quot;Technical Support – JournalX&quot; and include
+                your registered email, a description of the issue, and any
+                screenshots.
+              </p>
+              <p style={para}>
+                <a href={`mailto:${EMAIL}`} style={link}>
+                  {EMAIL}
+                </a>
+              </p>
+            </section>
+
+            <section style={card}>
+              <h2 style={h2}>Billing &amp; payments</h2>
+              <p style={para}>
+                For payment questions or refunds, please review our{" "}
+                <a href="/refund-policy" style={link}>
+                  Refund Policy
+                </a>{" "}
+                first, then contact us with your transaction ID.
+              </p>
+              <p style={para}>
+                <span style={strong}>Email:</span>{" "}
+                <a href={`mailto:${EMAIL}`} style={link}>
+                  {EMAIL}
+                </a>
+              </p>
+              <p style={para}>
+                <span style={strong}>Phone:</span> +91 7977960242
+              </p>
+            </section>
+
+            <section style={card}>
+              <h2 style={h2}>Partnerships</h2>
+              <p style={para}>
+                We&apos;re open to collaborations with trading educators,
+                communities, and technology partners who share our mission to
+                improve trader psychology and journaling discipline.
+              </p>
+              <p style={para}>
+                <span style={strong}>Business email:</span>{" "}
+                <a href={`mailto:${EMAIL}`} style={link}>
+                  {EMAIL}
+                </a>
+              </p>
+            </section>
+          </div>
+
+          <section style={{ ...card, marginTop: 18 }}>
+            <h2 style={h2}>Registered business information</h2>
+            <p style={para}>
+              JournalX is operated by a registered MSME entity in India.
+            </p>
+            <p style={para}>
+              <span style={strong}>Udyam Registration No:</span>{" "}
+              UDYAM-MH-19-0386866
+              <br />
+              <span style={strong}>Registered location:</span> Mumbai,
+              Maharashtra, India
+            </p>
+          </section>
+
+          <section style={{ ...card, marginTop: 18 }}>
+            <h2 style={h2}>Support hours</h2>
+            <p style={para}>
+              Monday to Saturday, <span style={strong}>10:00 AM – 7:00 PM IST</span>
+              . Queries sent during holidays or weekends are addressed on the
+              next working day. Your messages are handled confidentially — we do
+              not sell, rent, or share your personal information. See our{" "}
+              <a href="/privacy-policy" style={link}>
+                Privacy Policy
+              </a>
+              .
+            </p>
+          </section>
+
+          <section style={{ ...card, marginTop: 18 }}>
+            <h2 style={h2}>Location</h2>
+            <p style={para}>
+              JournalX operates remotely; our MSME registration is based in
+              Mumbai, Maharashtra. Write to us at{" "}
+              <span style={strong}>JournalX – Mumbai, India</span>.
+            </p>
+            <div style={{ borderRadius: 12, overflow: "hidden", marginTop: 12 }}>
+              <iframe
+                title="JournalX Location"
+                src="https://www.google.com/maps?q=Mumbai,+Maharashtra,+India&output=embed"
+                width="100%"
+                height="300"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+              />
+            </div>
+          </section>
+
+          <p style={{ ...para, marginTop: 24, color: "#707a8a", font: "400 13px Poppins" }}>
+            JournalX is a journaling and analytics platform for traders&apos;
+            self-analysis and reflection. We do not offer trading signals or
+            financial advice. · Last updated: {effectiveDate}
           </p>
-          <p style={{ marginTop: 8, color: "var(--white-70)" }}>
-            Last updated: {effectiveDate}
-          </p>
-        </footer>
-      </main>
+        </main>
+
+        <LandingFooter />
+      </div>
     </>
   );
 }
