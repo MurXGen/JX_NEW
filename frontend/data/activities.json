@@ -1,0 +1,250 @@
+{
+  "biasQuiz": [
+    {
+      "id": "bq1",
+      "bias": "Loss aversion",
+      "question": "You're down 1.5% on a trade and it just hit your pre-planned stop loss. What's the disciplined move?",
+      "options": [
+        "Move the stop lower to give it 'room to breathe'",
+        "Close the trade — the stop is your decision made in a calm state",
+        "Add to the position to lower your average",
+        "Remove the stop and watch it manually"
+      ],
+      "correctIndex": 1,
+      "explanation": "Your stop was set with a clear head before emotions were involved. Moving or removing it is loss aversion talking — the urge to avoid realising a small, planned loss is exactly what turns it into a large, unplanned one."
+    },
+    {
+      "id": "bq2",
+      "bias": "FOMO",
+      "question": "A coin is up 40% on the day and your feed is full of it. You have no setup. What do you do?",
+      "options": [
+        "Buy now before it runs further",
+        "Buy half size to 'not miss out'",
+        "Skip it — no setup, no trade",
+        "Short it because it's overextended"
+      ],
+      "correctIndex": 2,
+      "explanation": "There will always be another trade. Chasing a move you have no plan for is FOMO. The best traders are comfortable missing moves that don't fit their system."
+    },
+    {
+      "id": "bq3",
+      "bias": "Revenge trading",
+      "question": "You just took two losses in a row. The urge to 'win it back' immediately is strongest sign of…",
+      "options": [
+        "A great opportunity",
+        "Revenge trading — step away",
+        "Confirmation your edge works",
+        "A reason to double size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Trading to recover a loss rather than because a valid setup appeared is revenge trading. It usually leads to oversized, low-quality trades. The fix: a hard rule to stop after N losses."
+    },
+    {
+      "id": "bq4",
+      "bias": "Confirmation bias",
+      "question": "You're long and only reading bullish takes while ignoring bearish data. This is…",
+      "options": [
+        "Smart focus",
+        "Confirmation bias",
+        "Good risk management",
+        "Contrarian thinking"
+      ],
+      "correctIndex": 1,
+      "explanation": "Seeking only information that supports your existing position is confirmation bias. Actively look for the strongest argument against your trade before and during it."
+    },
+    {
+      "id": "bq5",
+      "bias": "Recency bias",
+      "question": "Your last 3 breakout trades worked, so you size up massively on the 4th. The flaw?",
+      "options": [
+        "Nothing — ride the hot hand",
+        "Recency bias — a small streak isn't a new edge",
+        "You should size up more",
+        "Breakouts never fail"
+      ],
+      "correctIndex": 1,
+      "explanation": "A handful of recent wins feels like proof, but variance is normal. Position size should follow your tested risk rules, not your most recent results."
+    },
+    {
+      "id": "bq6",
+      "bias": "Anchoring",
+      "question": "You won't sell a loser because you're 'waiting to get back to breakeven'. This is…",
+      "options": [
+        "Patience",
+        "Anchoring to your entry price",
+        "Good for taxes",
+        "A valid strategy"
+      ],
+      "correctIndex": 1,
+      "explanation": "The market doesn't know or care about your entry price. Anchoring to breakeven keeps you in bad trades. Judge the position on its current setup, not your cost basis."
+    },
+    {
+      "id": "bq7",
+      "bias": "Overconfidence",
+      "question": "After a big winning week you decide to trade without stops 'because you're reading the market well'. The risk?",
+      "options": [
+        "None, you're in flow",
+        "Overconfidence — one trade can erase the week",
+        "Stops are optional anyway",
+        "You'll make even more"
+      ],
+      "correctIndex": 1,
+      "explanation": "Winning streaks breed overconfidence and rule-breaking. The trades that blow up accounts almost always happen right after a run of success, when discipline slips."
+    },
+    {
+      "id": "bq8",
+      "bias": "Sunk cost",
+      "question": "You've spent hours analysing a setup that no longer triggers. You take it anyway because of the effort. That's…",
+      "options": [
+        "Dedication",
+        "Sunk cost fallacy",
+        "Thorough analysis",
+        "Discipline"
+      ],
+      "correctIndex": 1,
+      "explanation": "Time already spent is gone whether you trade or not. Taking an invalid setup to justify the effort is the sunk cost fallacy. Only the present setup quality matters."
+    }
+  ],
+  "chartCall": [
+    {
+      "id": "cc1",
+      "context": "Uptrend pulling back to support with a long lower wick (rejection).",
+      "candles": [
+        {"o": 100, "h": 104, "l": 99, "c": 103},
+        {"o": 103, "h": 107, "l": 102, "c": 106},
+        {"o": 106, "h": 108, "l": 103, "c": 104},
+        {"o": 104, "h": 105, "l": 99, "c": 100},
+        {"o": 100, "h": 101, "l": 95, "c": 100}
+      ],
+      "answer": "up",
+      "explanation": "A pullback into prior support with a long lower wick shows buyers stepping in. In an established uptrend this often resolves to the upside — but always wait for confirmation."
+    },
+    {
+      "id": "cc2",
+      "context": "Lower highs and lower lows — a clean downtrend with a weak bounce.",
+      "candles": [
+        {"o": 120, "h": 121, "l": 114, "c": 115},
+        {"o": 115, "h": 117, "l": 110, "c": 111},
+        {"o": 111, "h": 114, "l": 110, "c": 113},
+        {"o": 113, "h": 114, "l": 107, "c": 108},
+        {"o": 108, "h": 110, "l": 107, "c": 109}
+      ],
+      "answer": "down",
+      "explanation": "Lower highs and lower lows define a downtrend. The small green bounce is a weak counter-move; the path of least resistance stays down until structure breaks."
+    },
+    {
+      "id": "cc3",
+      "context": "Tight range / consolidation, small candles, no clear direction.",
+      "candles": [
+        {"o": 50, "h": 52, "l": 49, "c": 51},
+        {"o": 51, "h": 52, "l": 50, "c": 50},
+        {"o": 50, "h": 51, "l": 49, "c": 51},
+        {"o": 51, "h": 52, "l": 50, "c": 50},
+        {"o": 50, "h": 51, "l": 49, "c": 50}
+      ],
+      "answer": "flat",
+      "explanation": "Overlapping small-bodied candles in a tight range mean indecision. The highest-probability call is no clear edge — wait for a breakout rather than guessing direction."
+    },
+    {
+      "id": "cc4",
+      "context": "Strong momentum breakout above resistance on an expanding green candle.",
+      "candles": [
+        {"o": 80, "h": 82, "l": 79, "c": 81},
+        {"o": 81, "h": 83, "l": 80, "c": 82},
+        {"o": 82, "h": 83, "l": 81, "c": 82},
+        {"o": 82, "h": 84, "l": 82, "c": 83},
+        {"o": 83, "h": 90, "l": 83, "c": 89}
+      ],
+      "answer": "up",
+      "explanation": "A wide-range candle breaking above a clear ceiling on expanding momentum tends to see continuation as breakout traders pile in and shorts cover."
+    },
+    {
+      "id": "cc5",
+      "context": "Climactic spike then a large bearish engulfing candle at the highs.",
+      "candles": [
+        {"o": 60, "h": 64, "l": 60, "c": 63},
+        {"o": 63, "h": 69, "l": 63, "c": 68},
+        {"o": 68, "h": 75, "l": 67, "c": 74},
+        {"o": 74, "h": 76, "l": 73, "c": 75},
+        {"o": 75, "h": 75, "l": 67, "c": 68}
+      ],
+      "answer": "down",
+      "explanation": "A parabolic run followed by a large bearish engulfing candle signals exhaustion — buyers are trapped at the highs. Reversals from climax tops are common."
+    },
+    {
+      "id": "cc6",
+      "context": "Higher lows pressing into flat resistance (ascending triangle).",
+      "candles": [
+        {"o": 30, "h": 35, "l": 29, "c": 31},
+        {"o": 31, "h": 35, "l": 31, "c": 34},
+        {"o": 34, "h": 35, "l": 33, "c": 34},
+        {"o": 34, "h": 35, "l": 34, "c": 35},
+        {"o": 35, "h": 39, "l": 35, "c": 38}
+      ],
+      "answer": "up",
+      "explanation": "Higher lows compressing against flat resistance is an ascending triangle — buyers are increasingly aggressive. These more often break upward, though a failed break is always possible."
+    }
+  ],
+  "disciplineScenarios": [
+    {
+      "id": "ds1",
+      "scenario": "Price gaps hard against your position at the open, blowing through your stop before it could fill. You're now down 2x your planned risk. What do you do?",
+      "options": [
+        {"text": "Exit immediately at market and accept the loss", "score": 10, "feedback": "Correct. The trade is invalidated and you can't un-gap. Take the loss, protect capital, and reset. Bigger-than-planned losses happen — adding to them is the real danger."},
+        {"text": "Average down to recover faster", "score": 0, "feedback": "Dangerous. Adding to a losing position that's already broken your risk plan is how small losses become account-ending ones."},
+        {"text": "Remove the stop and 'give it time'", "score": 0, "feedback": "This converts a defined loss into an undefined one. No stop = no risk control."},
+        {"text": "Hold and hope it comes back", "score": 2, "feedback": "Hope isn't a plan. Sometimes it recovers, but you've handed control to luck rather than process."}
+      ]
+    },
+    {
+      "id": "ds2",
+      "scenario": "You've hit your daily loss limit of 3 trades down. A perfect-looking setup appears. What's the disciplined call?",
+      "options": [
+        {"text": "Take it — it's too good to skip", "score": 2, "feedback": "Even a great setup isn't worth breaking your daily limit. Limits exist precisely for moments your judgment feels sharpest after losses."},
+        {"text": "Stop for the day — the limit is non-negotiable", "score": 10, "feedback": "Correct. Daily loss limits protect you from tilt and revenge trading. The setup will repeat; a blown limit compounds bad days."},
+        {"text": "Take it at double size to make the day back", "score": 0, "feedback": "Classic revenge trading. Sizing up to recover losses is the fastest path to a catastrophic day."},
+        {"text": "Take it but skip the stop", "score": 0, "feedback": "Two rule violations at once. This is exactly the behaviour limits are designed to prevent."}
+      ]
+    },
+    {
+      "id": "ds3",
+      "scenario": "Your trade is up nicely and approaching your take-profit target. Price stalls. What's the most process-driven action?",
+      "options": [
+        {"text": "Hold to your planned target / trail your stop", "score": 10, "feedback": "Correct. Sticking to your plan (or a pre-defined trail) keeps your average winner large. Reacting to every stall erodes your edge."},
+        {"text": "Panic-sell the whole thing now", "score": 3, "feedback": "Banking profit isn't wrong, but exiting on fear rather than plan caps your winners and hurts long-term expectancy."},
+        {"text": "Move target much further out on hope", "score": 1, "feedback": "Moving targets on hope is greed. If structure supports it, fine — but not as an emotional reaction to a stall."},
+        {"text": "Add size near the target", "score": 0, "feedback": "Adding risk right at your exit zone inverts your risk/reward at the worst possible moment."}
+      ]
+    },
+    {
+      "id": "ds4",
+      "scenario": "A news event you didn't anticipate is about to drop in 2 minutes while you hold an open position. What's prudent?",
+      "options": [
+        {"text": "Reduce or close to control event risk", "score": 10, "feedback": "Correct. Unmodellable binary event risk isn't an edge — it's a gamble. Reducing exposure keeps you in control of outcomes you can't predict."},
+        {"text": "Add size to profit from the move", "score": 0, "feedback": "Betting on a coin-flip news spike is gambling, not trading. The spread and volatility are stacked against you."},
+        {"text": "Do nothing and watch", "score": 4, "feedback": "Acceptable only if the event is small relative to your stop. Otherwise you're exposed to a move you can't control."},
+        {"text": "Remove your stop so you don't get wicked out", "score": 0, "feedback": "Removing protection right before maximum volatility is the opposite of risk management."}
+      ]
+    },
+    {
+      "id": "ds5",
+      "scenario": "You realise mid-trade you entered without defining your stop or target. What now?",
+      "options": [
+        {"text": "Define a stop and target immediately based on structure", "score": 9, "feedback": "Good recovery. Imposing a plan now is far better than running blind. Ideally, never enter without them — log this as a process miss."},
+        {"text": "Close the trade since the entry broke process", "score": 10, "feedback": "Strongest discipline. An unplanned entry is a process failure; flattening and re-approaching with a real plan is the cleanest reset."},
+        {"text": "Keep winging it", "score": 0, "feedback": "Trading without a stop or target is pure gambling and the leading cause of oversized losses."},
+        {"text": "Size up to make it worthwhile", "score": 0, "feedback": "Compounding a process error with more risk is exactly backwards."}
+      ]
+    },
+    {
+      "id": "ds6",
+      "scenario": "You're flat and bored. The market is choppy with no clear setup. What's the pro move?",
+      "options": [
+        {"text": "Force a trade to stay active", "score": 0, "feedback": "Boredom trades are negative-expectancy. Choppy, setup-less markets are where overtrading quietly bleeds accounts."},
+        {"text": "Wait — protect capital until a real setup forms", "score": 10, "feedback": "Correct. 'No trade' is a position. Patience in unclear conditions is one of the highest-ROI skills a trader has."},
+        {"text": "Lower your standards just this once", "score": 1, "feedback": "Lowering standards out of boredom erodes your edge. Your rules should be hardest to break exactly when you're itching to act."},
+        {"text": "Trade a random coin for fun", "score": 0, "feedback": "Entertainment trading mixes gambling with your capital. Keep play money and risk capital separate."}
+      ]
+    }
+  ]
+}

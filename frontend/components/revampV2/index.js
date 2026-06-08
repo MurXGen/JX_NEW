@@ -13,6 +13,7 @@ export { default as LogTradeModal } from "./LogTradeModal";
 export { default as SettingsPanel } from "./SettingsPanel";
 export { default as ImportExportPanel } from "./ImportExportPanel";
 export { default as BlogsPanel } from "./BlogsPanel";
+export { default as ActivitiesPanel } from "./ActivitiesPanel";
 export { default as TradesLogPanel } from "./TradesLogPanel";
 export { default as JournalsModal } from "./JournalsModal";
 export { default as SupportModal } from "./SupportModal";

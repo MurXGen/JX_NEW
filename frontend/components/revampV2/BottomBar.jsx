@@ -28,7 +28,7 @@ const MAIN = [
 ];
 
 const MORE = [
-  { id: "blogs", label: "Learn & News", icon: BookOpen },
+  { id: "blogs", label: "Trader Gym", icon: BookOpen },
   { id: "share", label: "Share logs", icon: Share2 },
   { id: "importexport", label: "Import / Export", icon: ArrowUpDown },
   { id: "settings", label: "Profile & settings", icon: Settings },

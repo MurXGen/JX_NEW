@@ -1,15 +1,16 @@
-// components/Subscription/SubscriptionFailed.js
 "use client";
+
+/* Subscription failed — v2 redesign. Theme-aware, token-based. */
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  XCircle,
-  RefreshCw,
   ArrowLeft,
-  HelpCircle,
-  Shield,
+  CreditCard,
   Mail,
+  RefreshCw,
+  ShieldCheck,
+  XCircle,
 } from "lucide-react";
 
 export default function SubscriptionFailed() {
@@ -18,185 +19,95 @@ export default function SubscriptionFailed() {
 
   const errorMessage =
     searchParams.get("message") ||
-    "The payment was not completed. This could be due to insufficient funds, card decline, or technical issues.";
+    "We couldn't confirm your payment. If you've already sent it, contact us and we'll activate your plan.";
 
-  const retryPayment = () => {
-    router.back(); // Go back to payment page
+  const card = {
+    background: "var(--color-bg-surface)",
+    border: "1px solid var(--color-border)",
+    borderRadius: "var(--radius-lg)",
+    padding: "var(--space-6)",
   };
+  const muted = { color: "var(--color-text-muted)" };
+
+  const reasons = [
+    "The deposit hasn't been confirmed on-chain yet",
+    "Sent on a different network than selected",
+    "Amount received was less than required",
+    "Network congestion delayed the transfer",
+  ];
+
+  const fixes = [
+    { icon: RefreshCw, title: "Try again", sub: "Re-check and retry the payment" },
+    { icon: CreditCard, title: "Use another method", sub: "Pay with card, PayPal or another network" },
+    { icon: Mail, title: "Contact support", sub: "We'll verify your transfer manually" },
+  ];
 
   return (
-    <div
-      className="subscription-failed"
-      style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "24px auto",
-        padding: "0 12px 100px 12px",
-      }}
-    >
-      <div className="flexClm gap_24">
-        {/* Error Header */}
+    <div style={{ minHeight: "100vh", background: "var(--color-bg-canvas)", fontFamily: "var(--jx-font)", color: "var(--color-text-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
+      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+        {/* Header */}
         <motion.div
-          className="flexClm gap_12 flex_center"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "var(--space-3)" }}
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{
-              type: "spring",
-              stiffness: 200,
-              delay: 0.2,
-            }}
-            className="error"
+            transition={{ type: "spring", stiffness: 200, delay: 0.15 }}
+            style={{ width: 88, height: 88, borderRadius: "50%", background: "var(--color-danger-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            <XCircle size={80} className="error" />
+            <XCircle size={52} style={{ color: "var(--color-danger)" }} />
           </motion.div>
-          <span className="font_24 font_weight_700">Payment Failed</span>
-          <span
-            className="font_12 shade_50"
-            style={{
-              margin: "0 auto",
-              textAlign: "center",
-            }}
-          >
-            We couldn't process your payment. Don't worry, you can try again.
-          </span>
+          <span style={{ font: "var(--text-h2)", fontWeight: 700 }}>Payment not confirmed</span>
+          <span style={{ font: "var(--text-body)", ...muted, maxWidth: 380 }}>{errorMessage}</span>
         </motion.div>
 
-        {/* Error Details */}
-        <motion.div
-          className="flexClm gap_12 chart_boxBg"
-          style={{ padding: "16px" }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <div className="flexRow gap_12">
-            <HelpCircle size={20} className="error" />
-            <div className="">
-              <span className="font_14 font_weight_600">
-                Possible Reasons for failure
-              </span>
-            </div>
-          </div>
-
-          <div className="common-issues">
-            <span
-              className="font_12 font_weight_600"
-              style={{ color: "var(--white-50)" }}
-            >
-              Common issues:
-            </span>
-            <ul
-              className="issues-list font_12"
-              style={{ color: "var(--white-50)" }}
-            >
-              <li>Insufficient funds in your account</li>
-              <li>Card declined by your bank</li>
-              <li>Incorrect card details entered</li>
-              <li>Network connectivity issues</li>
-            </ul>
-          </div>
+        {/* Reasons */}
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} style={card}>
+          <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Possible reasons</span>
+          <ul style={{ margin: "var(--space-3) 0 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
+            {reasons.map((r) => (
+              <li key={r} style={{ font: "var(--text-small)", ...muted }}>{r}</li>
+            ))}
+          </ul>
         </motion.div>
 
-        {/* Action Buttons */}
-        <motion.div
-          className="flexClm gap_24"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-        >
-          <div className="flexRow flexRow_stretch widthh100 gap_12">
-            <button
-              className="button_sec flexRow flex_center gap_8 width100"
-              onClick={() => router.push("/pricing")}
-            >
-              <ArrowLeft size={18} />
-              Select other Plan
+        {/* Actions */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }} style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <button className="jx-btn jx-btn--secondary" onClick={() => router.push("/pricing")} style={{ flex: 1, justifyContent: "center", minWidth: 150 }}>
+              <ArrowLeft size={17} /> Choose another plan
             </button>
-            <motion.button
-              className="button_pri flexRow flex_center gap_8 width100"
-              onClick={retryPayment}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <RefreshCw size={18} />
-              Try Again
-            </motion.button>
-          </div>
-
-          <button
-            className="support-link"
-            onClick={() => router.push("/support")}
-          >
-            Need help? Contact Support
-          </button>
-        </motion.div>
-
-        {/* Solutions & Support */}
-        <motion.div
-          className="chart_boxBg"
-          style={{ padding: "20px 16px" }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          {/* <div className="solutions-header">
-            <span className="font_16 font_weight_600">Let's fix this</span>
-          </div> */}
-
-          <div className="flexRow_mobile flexRow_stretch gap_32">
-            <div className="flexRow gap_8">
-              <RefreshCw size={20} className="vector" />
-              <div className="solution-content">
-                <span className="font_14 font_weight_600">Try Again</span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Retry the payment with same details
-                </span>
-              </div>
-            </div>
-
-            <div className="flexRow gap_8">
-              <Shield size={20} className="vector" />
-              <div className="solution-content">
-                <span className="font_14 font_weight_600">
-                  Use Different Method
-                </span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Try UPI, Crypto, or another card
-                </span>
-              </div>
-            </div>
-
-            <div className="flexRow gap_8">
-              <Mail size={20} className="vector" />
-              <div className="solution-content">
-                <span className="font_14 font_weight_600">Contact Support</span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Get help from our team
-                </span>
-              </div>
-            </div>
+            <button className="jx-btn jx-btn--primary" onClick={() => router.back()} style={{ flex: 1, justifyContent: "center", minWidth: 150 }}>
+              <RefreshCw size={17} /> Try again
+            </button>
           </div>
         </motion.div>
 
-        {/* Security Assurance */}
-        <motion.div
-          className="security-assurance"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-        >
-          <div className="security-badge flexRow gap_8 flex_center">
-            <Shield size={16} className="vector" />
-            <span className="font_12">
-              Your payment information is secure and encrypted
-            </span>
+        {/* Fixes */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }} style={card}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "var(--space-4)" }}>
+            {fixes.map(({ icon: Icon, title, sub }) => (
+              <div key={title} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span style={{ width: 34, height: 34, borderRadius: "var(--radius-md)", background: "var(--color-bg-muted)", color: "var(--color-text-secondary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon size={17} />
+                </span>
+                <span style={{ font: "var(--text-small)", fontWeight: 600 }}>{title}</span>
+                <span style={{ font: "var(--text-caption)", ...muted }}>{sub}</span>
+              </div>
+            ))}
           </div>
         </motion.div>
+
+        <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => router.push("/contact")} style={{ alignSelf: "center" }}>
+          Need help? Contact support
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, font: "var(--text-caption)", ...muted }}>
+          <ShieldCheck size={15} style={{ color: "var(--color-success)" }} /> Your payment information is secure and encrypted
+        </div>
       </div>
     </div>
   );

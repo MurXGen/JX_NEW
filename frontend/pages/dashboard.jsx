@@ -25,6 +25,7 @@ import {
   SettingsPanel,
   ImportExportPanel,
   BlogsPanel,
+  ActivitiesPanel,
   TradesLogPanel,
   JournalsModal,
   SupportModal,
@@ -58,7 +59,7 @@ const DUMMY_TRADES = [
 const NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutGrid },
   { id: "trades", label: "Trades log", icon: History },
-  { id: "blogs", label: "Learn & News", icon: BookOpen },
+  { id: "blogs", label: "Trader Gym", icon: BookOpen },
   { id: "markets", label: "Markets", icon: Globe },
   { id: "share", label: "Share logs", icon: Share2 },
   { id: "importexport", label: "Import / Export", icon: ArrowUpDown },
@@ -220,7 +221,7 @@ export default function Dashboard() {
         }
       />
     ),
-    blogs: <BlogsPanel />,
+    blogs: <ActivitiesPanel />,
     markets: <MarketsPanel trades={trades} />,
     share: (
       <SharePanel

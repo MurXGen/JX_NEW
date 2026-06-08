@@ -1,22 +1,19 @@
-// components/Subscription/SubscriptionSuccess.js
 "use client";
+
+/* Subscription success — v2 redesign. Theme-aware, token-based.
+   Keeps the confetti burst + auto-redirect and the order summary. */
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
-  CheckCircle,
-  Calendar,
-  Clock,
-  Zap,
-  Crown,
-  Sparkles,
-  Users,
   ArrowRight,
-  Shield,
+  CheckCircle2,
+  Clock,
+  Crown,
+  ShieldCheck,
 } from "lucide-react";
-import { formatCurrency } from "@/utils/formatNumbers";
 import Cookies from "js-cookie";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 
@@ -24,297 +21,133 @@ export default function SubscriptionSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orderDetails, setOrderDetails] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const isVerified = Cookies.get("isVerified");
-    if (!isVerified || isVerified !== "yes") {
-      router.replace("/login");
-    } else {
-      setChecking(false);
-    }
+    if (!isVerified || isVerified !== "yes") router.replace("/login");
+    else setChecking(false);
   }, [router]);
 
+  // 🎊 confetti burst, then redirect to the dashboard
   useEffect(() => {
-    // 🎊 Trigger confetti immediately
-    setShowConfetti(true);
-
-    if (showConfetti) {
-      const duration = 3 * 1000; // 3 seconds
-      const animationEnd = Date.now() + duration;
-
-      const defaults = {
-        startVelocity: 30,
-        spread: 360,
-        ticks: 60,
-        zIndex: 9999,
-      };
-
-      const interval = setInterval(() => {
-        const timeLeft = animationEnd - Date.now();
-
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-          // ⏩ Redirect after confetti stops
-          router.push("/dashboard");
-          return;
-        }
-
-        const particleCount = 5 + Math.random() * 5;
-        confetti({
-          ...defaults,
-          particleCount,
-          origin: {
-            x: Math.random(),
-            y: 0,
-          },
-        });
-      }, 250);
-
-      return () => clearInterval(interval);
-    }
-  }, [showConfetti, router]);
+    if (checking) return;
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        router.push("/dashboard");
+        return;
+      }
+      confetti({
+        ...defaults,
+        particleCount: 5 + Math.random() * 5,
+        origin: { x: Math.random(), y: 0 },
+      });
+    }, 250);
+    return () => clearInterval(interval);
+  }, [checking, router]);
 
   useEffect(() => {
-    const planName = searchParams.get("planName") || "Pro Plan";
-    const period = searchParams.get("period") || "Monthly";
-    const amount = searchParams.get("amount") || "2999";
-    const startDate = new Date(searchParams.get("start") || Date.now());
-    const expiryDate = new Date(searchParams.get("expiry") || Date.now());
-    const orderId = searchParams.get("orderId") || "N/A";
-
     setOrderDetails({
-      planName,
-      period,
-      amount,
-      startDate,
-      expiryDate,
-      orderId,
-      paymentMethod: searchParams.get("method") || "UPI",
+      planName: searchParams.get("planName") || "Pro Plan",
+      period: searchParams.get("period") || "monthly",
+      amount: searchParams.get("amount") || "0",
+      orderId: searchParams.get("orderId") || "N/A",
+      paymentMethod: searchParams.get("method") || "crypto",
+      isLifetime: searchParams.get("isLifetime") === "true",
     });
   }, [searchParams]);
 
-  const formatDate = (date) => {
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getPlanIcon = (planName) => {
-    if (planName.toLowerCase().includes("pro"))
-      return <Crown size={24} className="vector" />;
-    if (planName.toLowerCase().includes("elite"))
-      return <Sparkles size={24} className="vector" />;
-    if (planName.toLowerCase().includes("master"))
-      return <Zap size={24} className="vector" />;
-    return <Users size={24} className="vector" />;
-  };
-
   if (checking) return <FullPageLoader />;
-  return (
-    <div
-      className="subscription-success"
-      style={{
-        maxWidth: "1200px",
-        minWidth: "300px",
-        margin: "24px auto",
-        padding: "0 12px 100px 12px",
-      }}
-    >
-      {/* Background Celebration Effect */}
-      {showConfetti && <div id="confetti-container"></div>}
 
-      <div className="flexClm gap_24">
-        {/* Success Header */}
+  const card = {
+    background: "var(--color-bg-surface)",
+    border: "1px solid var(--color-border)",
+    borderRadius: "var(--radius-lg)",
+    padding: "var(--space-6)",
+  };
+  const muted = { color: "var(--color-text-muted)" };
+  const amountLabel =
+    orderDetails?.paymentMethod === "crypto"
+      ? `${orderDetails?.amount || "0"} USDT`
+      : `${orderDetails?.amount || "0"}`;
+
+  const Row = ({ label, value, strong }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--color-border)" }}>
+      <span style={{ font: "var(--text-small)", ...muted }}>{label}</span>
+      <span style={{ font: strong ? "var(--text-body-md)" : "var(--text-small)", fontWeight: 600, textAlign: "right", textTransform: label === "Plan" || label === "Billing" ? "capitalize" : "none" }}>
+        {value}
+      </span>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--color-bg-canvas)", fontFamily: "var(--jx-font)", color: "var(--color-text-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
+      <div style={{ width: "100%", maxWidth: 460, display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+        {/* Header */}
         <motion.div
-          className="flexClm flex_center gap_12"
-          initial={{ opacity: 0, y: -30 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, type: "spring" }}
+          transition={{ duration: 0.6, type: "spring" }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "var(--space-3)" }}
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{
-              type: "spring",
-              stiffness: 200,
-              delay: 0.2,
-            }}
-            className="success-icon"
+            transition={{ type: "spring", stiffness: 200, delay: 0.15 }}
+            style={{ width: 88, height: 88, borderRadius: "50%", background: "var(--color-success-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            <CheckCircle size={80} className="success" />
+            <CheckCircle2 size={52} style={{ color: "var(--color-success)" }} />
           </motion.div>
-          <span className="font_24 font_weight_600">--Happy Journaling--</span>
-          <span
-            className="font_12"
-            style={{
-              color: "var(--white-50)",
-              margin: "0 auto",
-              textAlign: "center",
-            }}
-          >
-            Your subscription is now active. Get ready to transform your trading
-            experience.
+          <span style={{ font: "var(--text-h2)", fontWeight: 700 }}>Payment confirmed 🎉</span>
+          <span style={{ font: "var(--text-body)", ...muted, maxWidth: 360 }}>
+            Your subscription is now active. Get ready to transform your trading.
           </span>
         </motion.div>
 
-        {/* Order Summary */}
-        <motion.div
-          className="order-summary-card chart_boxBg"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <div className="summary-header">
-            <div className="flexRow gap_12">
-              {orderDetails && getPlanIcon(orderDetails.planName)}
-              <div className="flexClm">
-                <span className="font_18 font_weight_600">Order Confirmed</span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Order ID: {orderDetails?.orderId}
-                </span>
-              </div>
+        {/* Order summary */}
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} style={card}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
+            <span style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Crown size={20} />
+            </span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Order confirmed</span>
+              <span style={{ font: "var(--text-caption)", ...muted, wordBreak: "break-all" }}>
+                Order ID: {orderDetails?.orderId}
+              </span>
             </div>
           </div>
 
-          <div className="order-details">
-            <div className="detail-row flexRow flexRow_stretch">
-              <span className="font_14">Plan</span>
-              <span className="font_16 font_weight_600">
-                {orderDetails?.planName}
-              </span>
-            </div>
-
-            <div className="detail-row flexRow flexRow_stretch">
-              <span className="font_14">Billing Period</span>
-              <span className="font_14 font_weight_600">
-                {orderDetails?.period}
-              </span>
-            </div>
-
-            <div className="detail-row flexRow flexRow_stretch">
-              <span className="font_14">Amount Paid</span>
-              <span className="font_18 font_weight_600">
-                {orderDetails?.paymentMethod === "crypto"
-                  ? `${orderDetails?.amount || "0"} USDT`
-                  : `₹${orderDetails?.amount || "0"}`}
-              </span>
-            </div>
-
-            <div className="detail-row flexRow flexRow_stretch">
-              <span className="font_14">Payment Method</span>
-              <span className="font_14 font_weight_600">
-                {orderDetails?.paymentMethod?.toUpperCase()}
-              </span>
-            </div>
-
-            {/* Subscription Timeline */}
-            {/* <div
-              className="flexRow flexRow_stretch gap_24"
-              style={{ paddingTop: "16px" }}
-            >
-              <div className="flexRow gap_12">
-                <Calendar size={18} className="vector" />
-                <div className="timeline-content">
-                  <span className="font_12">Activated On</span>
-                  <span className="font_14 font_weight_600">
-                    {orderDetails
-                      ? formatDate(orderDetails.startDate)
-                      : "Today"}
-                  </span>
-                </div>
-              </div>
-              <div
-                className="flexRow gap_12"
-                style={{
-                  textAlign: "right",
-                  justifyContent: "end",
-                  flexDirection: "row-reverse",
-                }}
-              >
-                <Clock size={18} className="vector" />
-                <div className="timeline-content">
-                  <span className="font_12">Renews On</span>
-                  <span className="font_14 font_weight_600">
-                    {orderDetails
-                      ? formatDate(orderDetails.expiryDate)
-                      : "Next month"}
-                  </span>
-                </div>
-              </div>
-            </div> */}
+          <Row label="Plan" value={orderDetails?.planName} />
+          <Row label="Billing" value={orderDetails?.isLifetime ? "One-time · lifetime" : orderDetails?.period} />
+          <Row label="Payment method" value={(orderDetails?.paymentMethod || "").toUpperCase()} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingTop: 12 }}>
+            <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Amount paid</span>
+            <span style={{ font: "var(--text-h3)", fontWeight: 700, color: "var(--color-success-strong)" }}>{amountLabel}</span>
           </div>
         </motion.div>
 
-        {/* Welcome Benefits */}
-        {/* <motion.div
-          className="benefits-card chart_boxBg"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <div className="benefits-header">
-            <span className="font_16 font_weight_600">What's Next?</span>
-            <p className="font_12" style={{ color: "var(--white-50)" }}>
-              Start exploring your premium features
-            </p>
+        {/* Trust + CTA */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: "var(--space-5)", flexWrap: "wrap", font: "var(--text-caption)", ...muted }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <ShieldCheck size={15} style={{ color: "var(--color-success)" }} /> Secure payment
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Clock size={15} style={{ color: "var(--color-success)" }} /> Instant activation
+            </span>
           </div>
 
-          <div className="benefits-list">
-            {getWelcomeBenefits().map((benefit, index) => (
-              <motion.div
-                key={index}
-                className="benefit-item flexRow gap_12"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.8 + index * 0.1 }}
-              >
-                <div className="benefit-icon">
-                  <CheckCircle size={16} className="success" />
-                </div>
-                <span className="font_14">{benefit}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div> */}
-
-        {/* Trust & Next Steps */}
-        <motion.div
-          className="next-steps"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 1 }}
-        >
-          <div className="trust-badges flexRow gap_24 flex_center">
-            <div className="trust-item flexRow gap_8">
-              <Shield size={16} className="vector" />
-              <span className="font_12">Secure Payment</span>
-            </div>
-            <div className="trust-item flexRow gap_8">
-              <Clock size={16} className="vector" />
-              <span className="font_12">Instant Activation</span>
-            </div>
-          </div>
-
-          {/* Primary CTA */}
-          <motion.button
-            className="button_pri flexRow gap_8 flex_center"
-            onClick={() => router.push("/accounts")}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <span>Go to Dashboard</span>
-            <ArrowRight size={18} />
-          </motion.button>
-
-          <button
-            className="support-link"
-            onClick={() => router.push("/support")}
-          >
-            Need help? Contact Support
+          <button className="jx-btn jx-btn--primary" onClick={() => router.push("/accounts")} style={{ width: "100%", justifyContent: "center" }}>
+            Go to dashboard <ArrowRight size={17} />
+          </button>
+          <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => router.push("/contact")} style={{ alignSelf: "center" }}>
+            Need help? Contact support
           </button>
         </motion.div>
       </div>
