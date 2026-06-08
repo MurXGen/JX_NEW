@@ -35,6 +35,7 @@ export { default as TradeChartMarker } from "./TradeChartMarker";
 export { default as TradingViewCard } from "./TradingViewCard";
 export { default as ChartTradeModal } from "./ChartTradeModal";
 export { default as XpCard } from "./XpCard";
+export { default as PlanLimitsCard } from "./PlanLimitsCard";
 export { default as ConfirmDialog } from "./ConfirmDialog";
 export { default as ImageViewerModal } from "./ImageViewerModal";
 export { generateShareCard } from "./shareCard";

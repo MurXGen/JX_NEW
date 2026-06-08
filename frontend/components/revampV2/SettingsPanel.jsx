@@ -12,6 +12,7 @@ import Toast from "./Toast";
 import ExchangeConnectModal, { PLATFORMS } from "./ExchangeConnectModal";
 import TradingViewCard from "./TradingViewCard";
 import XpCard from "./XpCard";
+import PlanLimitsCard from "./PlanLimitsCard";
 import { useTheme } from "./Sidebar";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 
@@ -275,6 +276,9 @@ export default function SettingsPanel({ user }) {
           Manage your profile, trading preferences, and connected accounts.
         </div>
       </div>
+
+      {/* ===== Plan & limits ===== */}
+      <PlanLimitsCard />
 
       {/* ===== Profile ===== */}
       <div className="jx-card">

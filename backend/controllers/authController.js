@@ -95,21 +95,20 @@ const registerUser = async (req, res) => {
       : undefined;
 
     const now = new Date();
-    const expiry = new Date(now);
-    expiry.setDate(expiry.getDate() + 7);
 
-    // ✅ Create new user
+    // ✅ Create new user — starts on the FREE plan (limits apply).
+    // Upgrade to Pro/Lifetime happens via checkout.
     const user = new User({
       name,
       email,
       password: hashedPassword,
       googleId: googleId || undefined,
       isVerified: false,
-      subscriptionPlan: "pro",
-      subscriptionStatus: "active",
-      subscriptionType: "one-time",
-      subscriptionStartAt: now,
-      subscriptionExpiresAt: expiry,
+      subscriptionPlan: "free",
+      subscriptionStatus: "none",
+      subscriptionType: undefined,
+      subscriptionStartAt: undefined,
+      subscriptionExpiresAt: undefined,
       subscriptionCreatedAt: now,
     });
     await user.save();

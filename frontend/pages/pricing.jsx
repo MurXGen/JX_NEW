@@ -23,10 +23,10 @@ const lifetimePriceId = process.env.NEXT_PUBLIC_PADDLE_LIFETIME_PRICE_ID;
 
 const PLANS_FEATURES = {
   free: [
-    { text: "10 trades/month" },
-    { text: "Basic charts" },
-    { text: "1 account" },
-    { text: "30-day history" },
+    { text: "30 trades / month" },
+    { text: "1 journal" },
+    { text: "1 screenshot per trade" },
+    { text: "Basic charts · 30-day history" },
   ],
   pro: [
     { text: "Unlimited trades" },

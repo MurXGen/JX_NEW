@@ -9,10 +9,11 @@ import { getFromIndexedDB } from "./indexedDB";
 export const PLAN_RULES = {
   free: {
     limits: {
-      tradeLimitPerMonth: 10,
-      quickTradeLimitPerMonth: 10,
+      tradeLimitPerMonth: 30,
+      quickTradeLimitPerMonth: 30,
       accountLimit: 1, // 1 journal
-      imageLimitPerMonth: 10,
+      imagesPerTrade: 1, // 1 screenshot per trade
+      imageLimitPerMonth: Infinity, // gated per-trade instead of per-month
       maxImageSizeMB: 10,
       historyDays: 30,
     },
@@ -39,8 +40,9 @@ export const PLAN_RULES = {
       tradeLimitPerMonth: Infinity,
       quickTradeLimitPerMonth: Infinity,
       accountLimit: 3, // 3 journals
+      imagesPerTrade: 4,
       imageLimitPerMonth: Infinity,
-      // maxImageSizeMB: 25,
+      maxImageSizeMB: 25,
       historyDays: Infinity,
     },
     features: {
@@ -66,6 +68,7 @@ export const PLAN_RULES = {
       tradeLimitPerMonth: Infinity,
       quickTradeLimitPerMonth: Infinity,
       accountLimit: Infinity,
+      imagesPerTrade: 4,
       imageLimitPerMonth: Infinity,
       maxImageSizeMB: 50,
       historyDays: Infinity,

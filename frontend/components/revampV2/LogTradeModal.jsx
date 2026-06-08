@@ -271,6 +271,7 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
   const [symbols, setSymbols] = useState([]);
   const [customStrategies, setCustomStrategies] = useState([]);
   const [customEmotions, setCustomEmotions] = useState([]);
+  const [maxImages, setMaxImages] = useState(MAX_IMAGES); // plan-gated per-trade cap
   const fileRef = useRef(null);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const flash = (type, msg, ms = 3000) => {
@@ -303,6 +304,8 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
         setSymbols([...seen.keys()]);
         setCustomStrategies((await getFromIndexedDB("jx-custom-strategies")) || []);
         setCustomEmotions((await getFromIndexedDB("jx-custom-emotions")) || []);
+        const perTrade = getPlanRules(userData).limits.imagesPerTrade;
+        setMaxImages(perTrade === Infinity ? MAX_IMAGES : (perTrade || MAX_IMAGES));
       } catch (e) {
         console.error("IndexedDB read failed:", e);
       }
@@ -402,7 +405,7 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     let bytes = totalBytes;
     const next = [...form.screenshots];
     for (const f of incoming) {
-      if (next.length >= MAX_IMAGES) { flash("danger", "Max 4 screenshots per trade"); break; }
+      if (next.length >= maxImages) { flash("danger", maxImages === 1 ? "Free plan allows 1 screenshot per trade — upgrade for up to 4" : `Max ${maxImages} screenshots per trade`); break; }
       if (bytes + f.size > MAX_BYTES) { flash("danger", "Screenshots exceed the 10MB limit"); break; }
       bytes += f.size;
       next.push({ name: f.name, url: URL.createObjectURL(f), file: f });
@@ -596,14 +599,14 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
             </button>
           </div>
         ))}
-        {form.screenshots.length < MAX_IMAGES && (
+        {form.screenshots.length < maxImages && (
           <button type="button" onClick={() => fileRef.current?.click()} className="jx-dropzone" style={{ width: 64, height: 64, padding: 0, gap: 2, font: "var(--text-caption)" }}>
             <Upload size={14} /> Add
           </button>
         )}
       </div>
       <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-        {form.screenshots.length}/{MAX_IMAGES} · {fmt(totalBytes / 1024 / 1024, 1)}MB of 10MB · stored on Backblaze
+        {form.screenshots.length}/{maxImages} · {fmt(totalBytes / 1024 / 1024, 1)}MB of 10MB · stored on Backblaze
       </span>
     </div>
   );

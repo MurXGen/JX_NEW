@@ -87,7 +87,7 @@ mongoose
 ======================= */
 
 app.use("/api/auth", createLimiter(20), authRoutes);
-app.use("/api/account", createLimiter(5), accountRoutes);
+app.use("/api/account", createLimiter(20), accountRoutes);
 app.use("/api/trades", createLimiter(40), tradeRoutes);
 app.use("/api/integrations", integrationsRoutes);
 
