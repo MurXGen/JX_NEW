@@ -10,6 +10,8 @@ import Button from "./Button";
 import Dropdown from "./Dropdown";
 import Toast from "./Toast";
 import ExchangeConnectModal, { PLATFORMS } from "./ExchangeConnectModal";
+import TradingViewCard from "./TradingViewCard";
+import XpCard from "./XpCard";
 import { useTheme } from "./Sidebar";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 
@@ -473,6 +475,12 @@ export default function SettingsPanel({ user }) {
           <Switch on={autoSync} onChange={toggleAutoSync} disabled={!binanceConnected} />
         </Row>
       </div>
+
+      {/* ===== XP ===== */}
+      <XpCard />
+
+      {/* ===== TradingView ===== */}
+      <TradingViewCard />
 
       {/* ===== Danger zone ===== */}
       <div className="jx-card" style={{ borderColor: "var(--color-danger)" }}>

@@ -92,10 +92,13 @@ function SessionClock() {
             marginLeft: "auto",
             font: "var(--text-caption)",
             color: "var(--color-text-muted)",
+            textAlign: "right",
+            lineHeight: 1.4,
           }}
         >
-          {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{" "}
-          local
+          {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} local
+          <br />
+          {now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC
         </span>
       </div>
       <div

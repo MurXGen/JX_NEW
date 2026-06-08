@@ -232,4 +232,26 @@ const deactivateAccount = async (req, res) => {
 //   res.status(200).json({ message: 'Logged out successfully' });
 // };
 
-module.exports = { createAccount, updateAccount, deactivateAccount };
+// XP per account for the logged-in user (Settings card)
+const getAccountsXp = async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const accounts = await Account.find({ userId }).select("name xp xpTrades accountType currency").lean();
+    res.json({
+      accounts: accounts.map((a) => ({
+        _id: a._id,
+        name: a.name,
+        accountType: a.accountType || "spot",
+        currency: a.currency || "USD",
+        xp: a.xp || 0,
+        xpTrades: a.xpTrades || 0,
+      })),
+    });
+  } catch (err) {
+    console.error("getAccountsXp error:", err);
+    res.status(500).json({ message: "Could not load XP" });
+  }
+};
+
+module.exports = { createAccount, updateAccount, deactivateAccount, getAccountsXp };

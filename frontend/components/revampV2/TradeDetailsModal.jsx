@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
+import TradeChartMarker from "./TradeChartMarker";
 import { getLivePrice } from "@/utils/livePrice";
 
 /* Figma "Trade Details · Desktop" (22753:54032) — gamified: every
@@ -78,11 +79,22 @@ function MiniArea({ from, to, height = 140 }) {
   );
 }
 
+/* bento detail cell — label on top, value below, light border */
 function DetailRow({ label, value, valueEl }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: "var(--space-3)", padding: "7px 0", font: "var(--text-small)" }}>
-      <span style={{ color: "var(--color-text-muted)" }}>{label}</span>
-      {valueEl || <span style={{ fontWeight: 600, textAlign: "right" }}>{value ?? "—"}</span>}
+    <div
+      style={{
+        display: "flex", flexDirection: "column", gap: 3,
+        padding: "var(--space-2) var(--space-3)",
+        background: "var(--color-bg-surface)",
+        border: "1px solid var(--color-border)",
+        borderRadius: "var(--radius-sm)",
+        font: "var(--text-small)",
+        minWidth: 0,
+      }}
+    >
+      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{label}</span>
+      {valueEl || <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis" }}>{value ?? "—"}</span>}
     </div>
   );
 }
@@ -242,15 +254,24 @@ export default function TradeDetailsModal({
             </div>
 
             {/* body */}
-            <div className="jx-ltmodal__body" style={{ gridTemplateColumns: "minmax(0,1.6fr) 300px" }}>
+            <div className="jx-ltmodal__body">
               <div className="jx-ltmodal__form" style={{ gap: "var(--space-4)" }}>
-                {/* stats strip */}
-                <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "var(--space-3)" }}>
+                {/* stats — bento grid of bordered cells */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(108px, 1fr))", gap: "var(--space-2)" }}>
                   {stats.map(([l, v, color]) => (
-                    <span key={l} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <div
+                      key={l}
+                      style={{
+                        display: "flex", flexDirection: "column", gap: 3,
+                        padding: "var(--space-3)",
+                        background: "var(--color-bg-surface)",
+                        border: "1px solid var(--color-border)",
+                        borderRadius: "var(--radius-md)",
+                      }}
+                    >
                       <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{l}</span>
                       <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: color || "var(--color-text-primary)" }}>{v}</span>
-                    </span>
+                    </div>
                   ))}
                 </div>
 
@@ -350,6 +371,17 @@ export default function TradeDetailsModal({
                   </p>
                 </div>
 
+                {/* TradingView-marked chart (when sourced from TV / no screenshots) */}
+                {(t.source === "tradingview" || (t.tvChart && images.length === 0)) && (
+                  <div className="jx-card jx-card--flat">
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Chart — entry &amp; exit</span>
+                      <Badge variant="brand">TradingView</Badge>
+                    </div>
+                    <TradeChartMarker trade={t} />
+                  </div>
+                )}
+
                 {/* screenshots — real B2 urls */}
                 <div className="jx-card jx-card--flat">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
@@ -399,39 +431,43 @@ export default function TradeDetailsModal({
                 </div>
 
                 <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)" }}>
-                  <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginBottom: "var(--space-2)" }}>Trade details</div>
-                  <DetailRow label="Date opened" value={dt(t.openTime)} />
-                  <DetailRow label="Date closed" value={dt(t.closeTime)} />
-                  <DetailRow label="Direction" value={isLong ? "Long" : "Short"} />
-                  <DetailRow label="Status" valueEl={<Badge variant="neutral">{t.tradeStatus || "closed"}</Badge>} />
-                  <DetailRow label="Size unit" value={t.sizeUnit ? t.sizeUnit.toUpperCase() : "—"} />
-                  <DetailRow label="Leverage" value={t.leverage && t.leverage !== 1 ? `${t.leverage}×` : "—"} />
-                  <DetailRow label="Margin (USD)" value={t.quantityUSD ? `$${fmt(t.quantityUSD)}` : "—"} />
-                  <DetailRow
-                    label="Source"
-                    valueEl={
-                      <span className="jx-badge jx-badge--neutral">
-                        {t.source === "auto" ? <Download size={11} /> : <User size={11} />}
-                        {t.source === "auto" ? "Exchange API" : "Manual entry"}
-                      </span>
-                    }
-                  />
+                  <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginBottom: "var(--space-3)" }}>Trade details</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
+                    <DetailRow label="Date opened" value={dt(t.openTime)} />
+                    <DetailRow label="Date closed" value={dt(t.closeTime)} />
+                    <DetailRow label="Direction" value={isLong ? "Long" : "Short"} />
+                    <DetailRow label="Status" valueEl={<Badge variant="neutral">{t.tradeStatus || "closed"}</Badge>} />
+                    <DetailRow label="Size unit" value={t.sizeUnit ? t.sizeUnit.toUpperCase() : "—"} />
+                    <DetailRow label="Leverage" value={t.leverage && t.leverage !== 1 ? `${t.leverage}×` : "—"} />
+                    <DetailRow label="Margin (USD)" value={t.quantityUSD ? `$${fmt(t.quantityUSD)}` : "—"} />
+                    <DetailRow
+                      label="Source"
+                      valueEl={
+                        <span className="jx-badge jx-badge--neutral">
+                          {t.source === "auto" ? <Download size={11} /> : <User size={11} />}
+                          {t.source === "auto" ? "Exchange" : t.source === "tradingview" ? "Chart" : "Manual"}
+                        </span>
+                      }
+                    />
+                  </div>
                 </div>
 
                 <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)" }}>
-                  <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginBottom: "var(--space-2)" }}>Risk management</div>
-                  <DetailRow label="Stop loss" value={sl ? `$${fmt(sl)}` : "—"} />
-                  <DetailRow label="Take profit" value={tp ? `$${fmt(tp)}` : "—"} />
-                  <DetailRow label="Expected profit" value={t.expectedProfit ? `$${fmt(t.expectedProfit, 0)}` : "—"} />
-                  <DetailRow label="Expected loss" value={t.expectedLoss ? `$${fmt(t.expectedLoss, 0)}` : "—"} />
-                  <DetailRow
-                    label="Planned R:R"
-                    valueEl={
-                      <span style={{ fontWeight: 600, color: t.rr ? "var(--color-success-strong)" : "var(--color-text-primary)" }}>
-                        {t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}
-                      </span>
-                    }
-                  />
+                  <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginBottom: "var(--space-3)" }}>Risk management</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
+                    <DetailRow label="Stop loss" value={sl ? `$${fmt(sl)}` : "—"} />
+                    <DetailRow label="Take profit" value={tp ? `$${fmt(tp)}` : "—"} />
+                    <DetailRow label="Expected profit" value={t.expectedProfit ? `$${fmt(t.expectedProfit, 0)}` : "—"} />
+                    <DetailRow label="Expected loss" value={t.expectedLoss ? `$${fmt(t.expectedLoss, 0)}` : "—"} />
+                    <DetailRow
+                      label="Planned R:R"
+                      valueEl={
+                        <span style={{ fontWeight: 600, color: t.rr ? "var(--color-success-strong)" : "var(--color-text-primary)" }}>
+                          {t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}
+                        </span>
+                      }
+                    />
+                  </div>
                 </div>
 
                 <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>

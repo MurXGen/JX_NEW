@@ -16,7 +16,10 @@ const accountSchema = new mongoose.Schema({
     amount: { type: Number, required: true },
     time: { type: Date, default: Date.now }
   },
-  
+
+  // gamification — XP accrued from logging trades in this journal
+  xp: { type: Number, default: 0 },
+  xpTrades: { type: Number, default: 0 }, // count of trades that earned XP
 
 }, { timestamps: true });
 

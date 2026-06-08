@@ -30,7 +30,9 @@ import ImportTradesModal from "./ImportTradesModal";
 import ImageViewerModal from "./ImageViewerModal";
 import LogTradeModal from "./LogTradeModal";
 import SampleDataBanner from "./SampleDataBanner";
+import ChartTradeModal from "./ChartTradeModal";
 import { generateShareCard } from "./shareCard";
+import { CandlestickChart } from "lucide-react";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -390,6 +392,7 @@ export default function TradesLogPanel({
   const [sort, setSort] = useState("newest");
   const [openTrade, setOpenTrade] = useState(null);
   const [showImport, setShowImport] = useState(false);
+  const [showChartTrade, setShowChartTrade] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [toast, setToast] = useState(null);
@@ -537,7 +540,8 @@ export default function TradesLogPanel({
             {usingDummy && <> <Badge variant="brand">Sample data</Badge></>}
           </div>
         </div>
-        <div style={{ display: "flex", gap: "var(--space-3)" }}>
+        <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+          <Button variant="outline" icon={CandlestickChart} onClick={() => setShowChartTrade(true)}>Log on chart</Button>
           <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)}>Import trades</Button>
           <Button variant="primary" icon={Plus} onClick={onAddTrade}>Add trade</Button>
         </div>
@@ -688,8 +692,12 @@ export default function TradesLogPanel({
           ) : view === "cards" ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
               {groups.map(([label, list]) => (
-                <div key={label} style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                <div
+                  key={label}
+                  className="jx-card jx-card--flat"
+                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", padding: "var(--space-4)" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", paddingBottom: "var(--space-2)", borderBottom: "1px solid var(--color-border)" }}>
                     <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{label}</span>
                     <span className="jx-badge jx-badge--neutral">{list.length} trades</span>
                     <span style={{ marginLeft: "auto", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
@@ -825,6 +833,13 @@ export default function TradesLogPanel({
         open={showImport}
         onClose={() => setShowImport(false)}
         onImported={(newTrades) => onTradesAdded?.(newTrades)}
+      />
+
+      {/* Log on chart */}
+      <ChartTradeModal
+        open={showChartTrade}
+        onClose={() => setShowChartTrade(false)}
+        onSaved={(trade) => trade && onTradesAdded?.([trade])}
       />
 
       {/* Confirm export / delete */}

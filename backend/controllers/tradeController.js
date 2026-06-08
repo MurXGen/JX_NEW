@@ -151,6 +151,21 @@ exports.addTrade = async (req, res) => {
     // --- Save Trade ---
     const newTrade = await new Trade(tradeData).save();
 
+    // --- Award XP to the journal based on log quality ---
+    // base 10; +20 risk set (SL+TP), +10 strategy, +10 emotion,
+    // +10 notes, +15 screenshots — mirrors the log-trade quality model
+    let xp = 10;
+    if (Number(tradeData.avgSLPrice) > 0 && Number(tradeData.avgTPPrice) > 0) xp += 20;
+    if (tradeData.strategy) xp += 10;
+    if (tradeData.emotion) xp += 10;
+    if (tradeData.learnings && String(tradeData.learnings).trim()) xp += 10;
+    if (Array.isArray(tradeData.images) && tradeData.images.length) xp += 15;
+    try {
+      await Account.findByIdAndUpdate(accountId, { $inc: { xp, xpTrades: 1 } });
+    } catch (e) {
+      console.error("XP update failed:", e.message);
+    }
+
     // --- Aggregation Pipeline (include tradeStatus)
     const pipeline = [
       { $match: { _id: newTrade._id } },
@@ -666,6 +681,14 @@ exports.addTradesBulk = async (req, res) => {
     }
 
     const inserted = await Trade.insertMany(docs);
+    // base 10 XP per imported quick-log trade
+    try {
+      await Account.findByIdAndUpdate(accountId, {
+        $inc: { xp: inserted.length * 10, xpTrades: inserted.length },
+      });
+    } catch (e) {
+      console.error("Bulk XP update failed:", e.message);
+    }
     res.status(201).json({
       success: true,
       message: `${inserted.length} trades imported`,

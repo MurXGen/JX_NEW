@@ -170,6 +170,24 @@ const tradeSchema = new mongoose.Schema(
       },
     ],
 
+    // origin: manual | auto (exchange) | tradingview (webhook)
+    source: { type: String, default: "manual" },
+
+    // TradingView marker metadata — lets the details page redraw the
+    // entry/exit chart when there are no screenshots
+    tvChart: {
+      symbol: String,
+      exchange: String,
+      timeframe: String,
+      entryTime: Date,
+      exitTime: Date,
+      entryPrice: Number,
+      exitPrice: Number,
+      stopPrice: Number,
+      takeProfit: Number,
+      _id: false,
+    },
+
     // Calculations
     rr: { type: String, default: "" },
     pnl: { type: Number, default: 0 },

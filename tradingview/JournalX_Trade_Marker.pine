@@ -1,0 +1,131 @@
+// ============================================================
+//  JournalX — Trade Marker
+//  Drag your entry & exit on any chart, mark Long/Short, set your
+//  size, and JournalX logs the trade automatically via a webhook.
+//
+//  HOW IT WORKS
+//  1. Add this indicator to a chart.
+//  2. Open settings and drag the ENTRY point and EXIT/CLOSE point
+//     to the dates & prices you want (these are interactive — you
+//     can also drag them directly on the chart).
+//  3. Choose direction (Long/Short) and position size.
+//  4. Set the alert (right-click → Add alert → Condition: this
+//     indicator → "Any alert() function call") and paste your
+//     JournalX webhook URL (find it in Settings → Integrations).
+//  5. When the trade is CLOSED (exit point set + "Position closed"
+//     toggle on), the alert fires and JournalX saves the trade.
+//
+//  NOTE: Pine Script runs on TradingView's servers and cannot send
+//  data by itself — it can only emit alerts. JournalX captures the
+//  symbol, entry/exit price & time, direction, size and computed
+//  P&L from the alert payload and renders the marked chart for you.
+// ============================================================
+//@version=5
+indicator("JournalX — Trade Marker", overlay = true, max_labels_count = 50, max_lines_count = 50)
+
+// ---------- Inputs (interactive — draggable on the chart) ----------
+g_entry = "Entry"
+entryTime  = input.time(0,  "Entry time",  group = g_entry, confirm = true, tooltip = "Drag the entry point to your entry date/time")
+entryPrice = input.price(0, "Entry price", group = g_entry, confirm = true, tooltip = "Drag to your entry price")
+
+g_dir = "Direction & size"
+dir       = input.string("Long", "Direction", options = ["Long", "Short"], group = g_dir)
+sizeUnit  = input.string("Asset", "Size unit", options = ["Asset", "USD"], group = g_dir)
+sizeInput = input.float(1.0, "Position size", minval = 0.0, group = g_dir, tooltip = "Quantity in the asset, or USD notional if Size unit = USD")
+leverage  = input.float(1.0, "Leverage", minval = 1.0, group = g_dir)
+
+g_exit = "Exit / Close"
+isClosed   = input.bool(false, "Position closed", group = g_exit, tooltip = "Turn ON when you've exited — only then will JournalX log the trade")
+exitTime   = input.time(0,  "Exit time",  group = g_exit, confirm = true)
+exitPrice  = input.price(0, "Exit price", group = g_exit, confirm = true)
+
+g_risk = "Risk (optional)"
+stopPrice = input.price(0, "Stop loss", group = g_risk, confirm = true)
+tpPrice   = input.price(0, "Take profit", group = g_risk, confirm = true)
+
+g_meta = "Journal"
+strategy = input.string("", "Strategy / setup", group = g_meta)
+note     = input.string("", "Note", group = g_meta)
+
+// ---------- Derived values ----------
+isLong   = dir == "Long"
+dirSign  = isLong ? 1.0 : -1.0
+
+// asset quantity regardless of input unit
+assetQty = sizeUnit == "Asset" ? sizeInput : (entryPrice > 0 ? (sizeInput * leverage) / entryPrice : 0.0)
+notional = assetQty * entryPrice
+
+// live P&L: use exit price if closed, else current close
+refPrice = isClosed and exitPrice > 0 ? exitPrice : close
+pnl      = (refPrice - entryPrice) * assetQty * dirSign
+retPct   = notional > 0 ? (pnl / notional) * 100 : 0.0
+
+// risk / reward
+plannedRR = (stopPrice > 0 and tpPrice > 0 and math.abs(entryPrice - stopPrice) > 0) ? math.abs(tpPrice - entryPrice) / math.abs(entryPrice - stopPrice) : na
+
+// ---------- Drawing (live, on the last bar) ----------
+var line  entryLine = na
+var line  exitLine  = na
+var line  stopLine  = na
+var line  tpLine    = na
+var label pnlLabel  = na
+
+if barstate.islast
+    line.delete(entryLine)
+    line.delete(exitLine)
+    line.delete(stopLine)
+    line.delete(tpLine)
+    label.delete(pnlLabel)
+
+    col = isLong ? color.new(color.teal, 0) : color.new(color.red, 0)
+
+    if entryPrice > 0
+        entryLine := line.new(bar_index - 50, entryPrice, bar_index, entryPrice, color = col, width = 2, style = line.style_solid)
+    if exitPrice > 0
+        exitLine := line.new(bar_index - 50, exitPrice, bar_index, exitPrice, color = color.new(color.gray, 0), width = 2, style = line.style_dashed)
+    if stopPrice > 0
+        stopLine := line.new(bar_index - 50, stopPrice, bar_index, stopPrice, color = color.new(color.red, 40), width = 1, style = line.style_dotted)
+    if tpPrice > 0
+        tpLine := line.new(bar_index - 50, tpPrice, bar_index, tpPrice, color = color.new(color.teal, 40), width = 1, style = line.style_dotted)
+
+    txt = (isLong ? "▲ LONG " : "▼ SHORT ") + syminfo.ticker + "\n" +
+          "P&L: " + str.tostring(pnl, format.mintick) + "  (" + str.tostring(retPct, "#.##") + "%)\n" +
+          "Size: " + str.tostring(assetQty, "#.####") + (na(plannedRR) ? "" : "   R:R 1:" + str.tostring(plannedRR, "#.#")) +
+          (isClosed ? "\n✔ CLOSED — will log to JournalX" : "\n… open (toggle “Position closed” to log)")
+    pnlLabel := label.new(bar_index, entryPrice, txt, style = label.style_label_left, color = color.new(color.black, 20), textcolor = color.white, size = size.normal)
+
+// ---------- Alert payload (JSON for the JournalX webhook) ----------
+// Fires once when the position is marked closed. Paste your webhook
+// URL into the alert; JournalX reads the JSON below.
+payload = '{' +
+  '"source":"tradingview",' +
+  '"token":"{{REPLACE_WITH_YOUR_JOURNALX_TOKEN}}",' +
+  '"symbol":"' + syminfo.ticker + '",' +
+  '"exchange":"' + syminfo.prefix + '",' +
+  '"direction":"' + (isLong ? "long" : "short") + '",' +
+  '"entryPrice":' + str.tostring(entryPrice) + ',' +
+  '"exitPrice":' + str.tostring(exitPrice) + ',' +
+  '"stopPrice":' + str.tostring(stopPrice) + ',' +
+  '"takeProfit":' + str.tostring(tpPrice) + ',' +
+  '"sizeUnit":"' + (sizeUnit == "Asset" ? "asset" : "usd") + '",' +
+  '"size":' + str.tostring(sizeInput) + ',' +
+  '"assetQty":' + str.tostring(assetQty) + ',' +
+  '"leverage":' + str.tostring(leverage) + ',' +
+  '"entryTime":' + str.tostring(entryTime) + ',' +
+  '"exitTime":' + str.tostring(exitTime) + ',' +
+  '"pnl":' + str.tostring(pnl) + ',' +
+  '"strategy":"' + strategy + '",' +
+  '"note":"' + note + '",' +
+  '"timeframe":"' + timeframe.period + '"' +
+  '}'
+
+// Fire the alert only on the bar where the position is marked closed.
+var bool fired = false
+if isClosed and exitPrice > 0 and not fired and barstate.isconfirmed
+    alert(payload, alert.freq_once_per_bar)
+    fired := true
+if not isClosed
+    fired := false
+
+// plot nothing extra; lines/labels above carry the visual
+plot(na, "noop", display = display.none)

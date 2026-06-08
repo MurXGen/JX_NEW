@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema(
     avatarSizeKB: { type: Number, default: 0 },
     baseCurrency: { type: String, default: "USD" },
 
+    // TradingView webhook integration — per-user secret token
+    tvWebhookToken: { type: String, index: true },
+
     password: {
       type: String,
       required: function () {

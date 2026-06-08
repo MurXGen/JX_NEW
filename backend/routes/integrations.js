@@ -4,6 +4,160 @@ const axios = require("axios");
 const crypto = require("crypto");
 
 const Trade = require("../models/Trade");
+const User = require("../models/User");
+const Account = require("../models/Account");
+
+/* ======================================================
+   TRADINGVIEW — issue/fetch a per-user webhook token
+   (called from Settings to set up the Pine indicator)
+====================================================== */
+router.get("/tradingview/token", async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.tvWebhookToken) {
+      user.tvWebhookToken = crypto.randomBytes(24).toString("hex");
+      await user.save();
+    }
+    const base = process.env.PUBLIC_API_URL || "https://api.journalx.com";
+    res.json({
+      token: user.tvWebhookToken,
+      webhookUrl: `${base}/api/integrations/tradingview`,
+    });
+  } catch (err) {
+    console.error("TV token error:", err);
+    res.status(500).json({ message: "Could not issue token" });
+  }
+});
+
+router.post("/tradingview/token/rotate", async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    user.tvWebhookToken = crypto.randomBytes(24).toString("hex");
+    await user.save();
+    res.json({ token: user.tvWebhookToken });
+  } catch (err) {
+    res.status(500).json({ message: "Could not rotate token" });
+  }
+});
+
+/* ======================================================
+   TRADINGVIEW WEBHOOK — ingest a marked trade from the
+   Pine "Trade Marker" alert. Auth is the per-user token
+   inside the JSON body (TradingView can't send cookies).
+====================================================== */
+router.post(
+  "/tradingview",
+  express.json({ type: () => true, limit: "64kb" }), // TV may send text/plain
+  async (req, res) => {
+    try {
+      let body = req.body;
+      if (typeof body === "string") {
+        try { body = JSON.parse(body); } catch { body = {}; }
+      }
+
+      const token = body?.token;
+      if (!token) return res.status(400).json({ message: "Missing token" });
+
+      const user = await User.findOne({ tvWebhookToken: token });
+      if (!user) return res.status(401).json({ message: "Invalid token" });
+
+      // pick the user's default / most-recent account
+      const account =
+        (await Account.findOne({ userId: user._id }).sort({ updatedAt: -1 })) || null;
+      if (!account) {
+        return res.status(400).json({ message: "No journal found for user" });
+      }
+
+      const entryPrice = Number(body.entryPrice) || 0;
+      const exitPrice = Number(body.exitPrice) || 0;
+      const assetQty = Number(body.assetQty) || Number(body.size) || 0;
+      const direction = body.direction === "short" ? "short" : "long";
+      const lev = Number(body.leverage) || 1;
+      const notional = entryPrice * assetQty;
+      const pnl =
+        body.pnl != null
+          ? Number(body.pnl)
+          : (exitPrice - entryPrice) * assetQty * (direction === "long" ? 1 : -1);
+
+      // TradingView times are unix ms strings
+      const toDate = (v) => {
+        const n = Number(v);
+        return n > 0 ? new Date(n) : null;
+      };
+      const openTime = toDate(body.entryTime) || new Date();
+      const closeTime = toDate(body.exitTime) || new Date();
+
+      const stop = Number(body.stopPrice) || 0;
+      const tp = Number(body.takeProfit) || 0;
+      const plannedRR =
+        stop > 0 && tp > 0 && Math.abs(entryPrice - stop) > 0
+          ? Math.abs(tp - entryPrice) / Math.abs(entryPrice - stop)
+          : null;
+
+      const trade = await new Trade({
+        userId: user._id,
+        accountId: account._id,
+        symbol: body.symbol || "—",
+        direction,
+        quantityUSD: lev > 0 ? notional / lev : notional,
+        leverage: lev,
+        totalQuantity: assetQty,
+        sizeUnit: body.sizeUnit === "usd" ? "usd" : "asset",
+        tradeStatus: "closed",
+        source: "tradingview",
+        entries: entryPrice ? [{ price: entryPrice, allocation: 100, quantity: assetQty }] : [],
+        exits: exitPrice ? [{ mode: "price", price: exitPrice, allocation: 100, quantity: assetQty }] : [],
+        sls: stop ? [{ mode: "price", price: stop, allocation: 100 }] : [],
+        tps: tp ? [{ mode: "price", price: tp, allocation: 100 }] : [],
+        avgEntryPrice: entryPrice,
+        avgExitPrice: exitPrice,
+        avgSLPrice: stop,
+        avgTPPrice: tp,
+        rr: plannedRR ? `1:${plannedRR.toFixed(1)}` : "",
+        pnl,
+        pnlAfterFee: pnl,
+        openTime,
+        closeTime,
+        duration: Math.max(0, (closeTime - openTime) / 36e5),
+        strategy: body.strategy || "",
+        timeframe: body.timeframe || "",
+        learnings: body.note || "",
+        // chart-marker metadata so the details page can redraw it
+        tvChart: {
+          symbol: body.symbol || "",
+          exchange: body.exchange || "",
+          timeframe: body.timeframe || "",
+          entryTime: openTime,
+          exitTime: closeTime,
+          entryPrice,
+          exitPrice,
+          stopPrice: stop,
+          takeProfit: tp,
+        },
+      }).save();
+
+      // award XP (risk set on most chart-marked trades)
+      let xp = 10;
+      if (stop > 0 && tp > 0) xp += 20;
+      if (body.strategy) xp += 10;
+      if (body.note) xp += 10;
+      try { await Account.findByIdAndUpdate(account._id, { $inc: { xp, xpTrades: 1 } }); } catch {}
+
+      res.status(201).json({ success: true, tradeId: trade._id });
+    } catch (err) {
+      console.error("TradingView webhook error:", err);
+      res.status(500).json({ message: "Failed to ingest trade" });
+    }
+  },
+);
 
 /* ======================================
    BINANCE PREVIEW TRADES (LAST 3 MONTHS)
