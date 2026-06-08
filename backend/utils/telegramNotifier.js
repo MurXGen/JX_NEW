@@ -13,26 +13,32 @@ const sendTelegramNotification = async ({
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     let header = "";
-    if (type === "register") header = "📝 *New User Registration*";
-    else if (type === "login") header = "🔐 *User Login*";
-    else if (type === "payment") header = "💰 *New Payment Created*";
-    else header = "📣 *JournalX Notification*";
+    if (type === "register") header = "📝 New User Registration";
+    else if (type === "login") header = "🔐 User Login";
+    else if (type === "payment") header = "💰 New Payment Created";
+    else header = "📣 JournalX Notification";
 
-    const message = `
-${header}
-━━━━━━━━━━━━━━━
-👤 *Name:* ${name || "N/A"}
-📧 *Email:* ${email || "N/A"}
-⚙️ *Type:* ${type}
-✅ *Status:* ${status}
-${details ? `💬 *Details:* ${details}` : ""}
-🆔 *Order ID:* ${orderId || "N/A"}
-🕒 *Time:* ${new Date().toLocaleString("en-IN")}
-`;
+    // NOTE: sent as PLAIN TEXT (no parse_mode). Crypto addresses and order
+    // IDs contain underscores/special chars that break Telegram's Markdown
+    // parser, which silently rejected the whole message (400). Plain text is
+    // immune to that.
+    const message = [
+      header,
+      "━━━━━━━━━━━━━━━",
+      `👤 Name: ${name || "N/A"}`,
+      `📧 Email: ${email || "N/A"}`,
+      `⚙️ Type: ${type}`,
+      `✅ Status: ${status}`,
+      details ? `💬 Details:\n${details}` : null,
+      `🆔 Order ID: ${orderId || "N/A"}`,
+      `🕒 Time: ${new Date().toLocaleString("en-IN")}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     // 🔹 Inline buttons for manual confirmation
     const inlineKeyboard =
-      type === "payment"
+      type === "payment" && orderId
         ? {
             reply_markup: {
               inline_keyboard: [
@@ -51,14 +57,26 @@ ${details ? `💬 *Details:* ${details}` : ""}
           }
         : {};
 
+    if (!BOT_TOKEN || !CHAT_ID) {
+      console.error(
+        "Telegram env missing:",
+        !BOT_TOKEN ? "TELEGRAM_BOT_TOKEN" : "",
+        !CHAT_ID ? "TELEGRAM_CHAT_ID" : "",
+      );
+      return;
+    }
+
     await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       chat_id: CHAT_ID,
       text: message,
-      parse_mode: "Markdown",
+      // no parse_mode → plain text, can't be rejected for bad entities
       ...inlineKeyboard,
     });
   } catch (err) {
-    console.error("Telegram notification failed:", err.message);
+    console.error(
+      "Telegram notification failed:",
+      err.response?.data?.description || err.message,
+    );
   }
 };
 

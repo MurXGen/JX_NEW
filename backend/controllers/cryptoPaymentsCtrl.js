@@ -89,21 +89,6 @@ exports.createCryptoOrder = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🔔 Early best-effort notification — fires the instant the user clicks
-    // "Verify Payment", before any DB writes that could fail. This guarantees
-    // we always learn about a verify attempt even if order creation errors.
-    try {
-      await sendTelegramNotification({
-        name: user.name || "N/A",
-        email: user.email || "N/A",
-        type: "login", // simple message, no action buttons (orderId not ready)
-        status: "🔎 Crypto verify clicked — awaiting deposit confirmation",
-        details: `Plan: ${planName}\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${(network || "").toUpperCase()}\nDeposit: ${NETWORK_ADDRESSES[network]}`,
-      });
-    } catch (e) {
-      console.error("Early crypto notify failed:", e?.message);
-    }
-
     // Calculate start and expiry dates
     const startDate = startAt ? new Date(startAt) : new Date();
     const expiryDate = expiresAt

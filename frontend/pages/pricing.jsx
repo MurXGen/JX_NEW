@@ -89,71 +89,86 @@ const getUserCurrency = () => {
   return "USD";
 };
 
-const currency = getUserCurrency();
-
-console.log("💱 Final detected currency:", currency);
-
-export const PLANS_CONFIG = {
-  free: {
-    title: "Free",
-    price: currency === "INR" ? "₹0" : "$0",
-    amount: currency === "INR" ? "0" : "0",
-    currency,
-    period: "monthly",
-    planName: "Pro",
-    tagline: "Flexible monthly access",
-    popular: false,
-    paddlePriceId: monthlyPriceId,
-  },
-  monthly: {
-    title: "Pro Monthly",
-    price: currency === "INR" ? "₹149" : "$3.49",
-    amount: currency === "INR" ? "3.49" : "3.49",
-    currency,
-    period: "monthly",
-    planName: "Pro",
-    tagline: "Flexible monthly access",
-    popular: false,
-    paddlePriceId: monthlyPriceId,
-  },
-
-  yearly: {
-    title: "Pro Yearly",
-    price: currency === "INR" ? "₹1,499" : "$29.99",
-    amount: currency === "INR" ? "29.99" : "29.99",
-    currency,
-    period: "yearly",
-    planName: "Pro",
-    tagline: "Most popular • Save 28%",
-    popular: true,
-    savings: "28%",
-    paddlePriceId: yearlyPriceId,
-  },
-
-  lifetime: {
-    title: "Lifetime",
-    price: currency === "INR" ? "₹7,999" : "$99",
-    amount: currency === "INR" ? "99" : "99",
-    currency,
-    period: "lifetime",
-    planName: "Lifetime",
-    tagline: "One payment, forever access",
-    popular: false,
-    value: "Best value",
-    paddlePriceId: lifetimePriceId,
-  },
+/* Display prices per currency. Amounts sent to Paddle/crypto are the same
+   regardless (USD-denominated); only the displayed label changes. */
+const PRICE_LABELS = {
+  USD: { free: "$0", monthly: "$3.49", yearly: "$29.99", lifetime: "$99" },
+  INR: { free: "₹0", monthly: "₹149", yearly: "₹1,499", lifetime: "₹7,999" },
 };
+
+/* Build the plan config for a given currency. Defaults to USD so the
+   server render and the first client render match (avoids hydration
+   mismatch); the component swaps to the detected currency after mount. */
+export function buildPlansConfig(currency = "USD") {
+  const label = PRICE_LABELS[currency] || PRICE_LABELS.USD;
+  return {
+    free: {
+      title: "Free",
+      price: label.free,
+      amount: "0",
+      currency,
+      period: "monthly",
+      planName: "Pro",
+      tagline: "Flexible monthly access",
+      popular: false,
+      paddlePriceId: monthlyPriceId,
+    },
+    monthly: {
+      title: "Pro Monthly",
+      price: label.monthly,
+      amount: "3.49",
+      currency,
+      period: "monthly",
+      planName: "Pro",
+      tagline: "Flexible monthly access",
+      popular: false,
+      paddlePriceId: monthlyPriceId,
+    },
+    yearly: {
+      title: "Pro Yearly",
+      price: label.yearly,
+      amount: "29.99",
+      currency,
+      period: "yearly",
+      planName: "Pro",
+      tagline: "Most popular • Save 28%",
+      popular: true,
+      savings: "28%",
+      paddlePriceId: yearlyPriceId,
+    },
+    lifetime: {
+      title: "Lifetime",
+      price: label.lifetime,
+      amount: "99",
+      currency,
+      period: "lifetime",
+      planName: "Lifetime",
+      tagline: "One payment, forever access",
+      popular: false,
+      value: "Best value",
+      paddlePriceId: lifetimePriceId,
+    },
+  };
+}
+
+// Stable default (USD) for SSR + any external imports.
+export const PLANS_CONFIG = buildPlansConfig("USD");
 
 export default function Pricing() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [hoveredPlan, setHoveredPlan] = useState(null);
+  // Start with USD so SSR and first client render match; detect after mount.
+  const [currency, setCurrency] = useState("USD");
   const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
+    setCurrency(getUserCurrency());
   }, []);
+
+  const plans = buildPlansConfig(currency);
 
   const openPaddleCheckout = async (priceId) => {
     if (!priceId) {
@@ -256,7 +271,7 @@ export default function Pricing() {
   const handlePaymentOptionClick = (option) => {
     if (!selectedPlan) return;
 
-    const planConfig = PLANS_CONFIG[selectedPlan];
+    const planConfig = plans[selectedPlan];
     setIsModalOpen(false);
 
     switch (option) {
@@ -292,10 +307,10 @@ export default function Pricing() {
   const SITE_URL = "https://journalx.app";
 
   const CARDS = [
-    { key: "free", title: "Free", price: PLANS_CONFIG.free.price, period: "forever", features: PLANS_FEATURES.free, cta: "Start free", current: true },
-    { key: "monthly", title: "Pro Monthly", price: PLANS_CONFIG.monthly.price, period: "/ month", features: PLANS_FEATURES.pro, cta: "Get monthly" },
-    { key: "yearly", title: "Pro Yearly", price: PLANS_CONFIG.yearly.price, period: "/ year", features: PLANS_FEATURES.pro, cta: "Get yearly", popular: true, badge: "Save 28%" },
-    { key: "lifetime", title: "Lifetime", price: PLANS_CONFIG.lifetime.price, period: "once", features: PLANS_FEATURES.lifetime, cta: "Get lifetime", badge: "Best value" },
+    { key: "free", title: "Free", price: plans.free.price, period: "forever", features: PLANS_FEATURES.free, cta: "Start free", current: true },
+    { key: "monthly", title: "Pro Monthly", price: plans.monthly.price, period: "/ month", features: PLANS_FEATURES.pro, cta: "Get monthly" },
+    { key: "yearly", title: "Pro Yearly", price: plans.yearly.price, period: "/ year", features: PLANS_FEATURES.pro, cta: "Get yearly", popular: true, badge: "Save 28%" },
+    { key: "lifetime", title: "Lifetime", price: plans.lifetime.price, period: "once", features: PLANS_FEATURES.lifetime, cta: "Get lifetime", badge: "Best value" },
   ];
 
   const pricingLd = {
@@ -423,8 +438,8 @@ export default function Pricing() {
           <PaymentModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            planTitle={PLANS_CONFIG[selectedPlan]?.title || ""}
-            planPrice={PLANS_CONFIG[selectedPlan]?.price || ""}
+            planTitle={plans[selectedPlan]?.title || ""}
+            planPrice={plans[selectedPlan]?.price || ""}
             onPaymentOptionClick={handlePaymentOptionClick}
           />,
           document.body,
