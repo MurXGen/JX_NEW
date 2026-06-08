@@ -30,6 +30,7 @@ export { default as AuthLayout } from "./AuthLayout";
 export { default as OtpInput } from "./OtpInput";
 export { default as Tip } from "./Tip";
 export { default as SampleDataBanner } from "./SampleDataBanner";
+export { default as BottomBar } from "./BottomBar";
 export { default as ConfirmDialog } from "./ConfirmDialog";
 export { default as ImageViewerModal } from "./ImageViewerModal";
 export { generateShareCard } from "./shareCard";

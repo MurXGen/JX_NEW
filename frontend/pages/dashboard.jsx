@@ -16,6 +16,7 @@ import {
 import {
   Sidebar,
   Button,
+  BottomBar,
   AnimatedPanel,
   LogTradeModal,
   SettingsPanel,
@@ -243,24 +244,17 @@ export default function Dashboard() {
       />
 
       <main className="jx-shell__main">
-        {/* Mobile nav strip (sidebar hidden < 768px) */}
-        <div className="jx-mobile-nav">
-          {[...NAV_ITEMS, { id: "settings", label: "Profile" }].map((item) => (
-            <Button
-              key={item.id}
-              size="sm"
-              variant={activeTab === item.id ? "primary" : "secondary"}
-              onClick={() => setActiveTab(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </div>
-
         <AnimatedPanel id={activeTab}>
           {TAB_CONTENT[activeTab] || overview}
         </AnimatedPanel>
       </main>
+
+      {/* Mobile bottom navigation (hidden on desktop) */}
+      <BottomBar
+        active={activeTab}
+        onChange={setActiveTab}
+        onLogTrade={() => setShowLogTrade(true)}
+      />
 
       {/* Log trade modal (Quick log / Detailed) — blurred backdrop */}
       <LogTradeModal

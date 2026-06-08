@@ -285,7 +285,7 @@ export default function TradeDetailsModal({
                         <span className="jx-badge jx-badge--neutral">● Simulated · no live feed for this symbol</span>
                       )}
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "var(--space-3)", marginTop: "var(--space-3)" }}>
+                    <div className="jx-held-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "var(--space-3)", marginTop: "var(--space-3)" }}>
                       <div style={{ background: "var(--color-bg-muted)", borderRadius: "var(--radius-md)", padding: "var(--space-4)" }}>
                         <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Your exit</div>
                         <div style={{ font: "var(--text-h2)" }}>${fmt(exit)}</div>

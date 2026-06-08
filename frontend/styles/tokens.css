@@ -99,6 +99,19 @@
     0 12px 28px -6px rgba(15, 23, 41, 0.1), 0 4px 8px rgba(15, 23, 41, 0.05);
 }
 
+/* ---- Mobile type scale (≤640px) — every v2 component inherits ---- */
+@media (max-width: 640px) {
+  :root {
+    --text-display: 600 30px/38px var(--jx-font);
+    --text-h1: 600 26px/34px var(--jx-font);
+    --text-h2: 600 20px/28px var(--jx-font);
+    --text-h3: 500 18px/26px var(--jx-font);
+    --text-title: 600 15px/22px var(--jx-font);
+    --text-body-lg: 400 15px/22px var(--jx-font);
+    --text-stat: 600 22px/28px var(--jx-font);
+  }
+}
+
 /* ---- Semantic: DARK (Binance gray ramp, primary unchanged) ---- */
 [data-theme="dark"] {
   --color-primary: var(--yellow-300);

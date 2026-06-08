@@ -581,7 +581,7 @@ export default function OverviewPanel({
       {usingDummy && <SampleDataBanner onLog={onLogTrade} onImport={onImport} />}
 
       {/* ===== Hero card ===== */}
-      <div className="jx-card" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.2fr) minmax(180px,1fr)", gap: "var(--space-5)", alignItems: "center" }}>
+      <div className="jx-card jx-hero-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.2fr) minmax(180px,1fr)", gap: "var(--space-5)", alignItems: "center" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-2)" }}>
             <span style={LABEL}>Total profit · {heroRange === "1D" ? "last day" : `last ${heroRange.toLowerCase()}`}</span>
