@@ -8,6 +8,48 @@ const {
 
 const router = express.Router();
 
+// 🔧 Diagnostics — open in a browser to debug delivery in prod.
+// GET /api/telegram/info  → shows whether the webhook is registered + last error
+// GET /api/telegram/test  → sends a test message to your chat
+router.get("/info", async (req, res) => {
+  try {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const r = await axios.get(
+      `https://api.telegram.org/bot${token}/getWebhookInfo`,
+    );
+    res.json({
+      hasToken: !!token,
+      hasChatId: !!process.env.TELEGRAM_CHAT_ID,
+      webhook: r.data?.result,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.response?.data || e.message });
+  }
+});
+
+router.get("/test", async (req, res) => {
+  try {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    if (!token || !chatId) {
+      return res.status(400).json({
+        ok: false,
+        message: "Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID in env",
+        hasToken: !!token,
+        hasChatId: !!chatId,
+      });
+    }
+    const r = await axios.post(
+      `https://api.telegram.org/bot${token}/sendMessage`,
+      { chat_id: chatId, text: "✅ JournalX Telegram test message — delivery works." },
+    );
+    res.json({ ok: true, result: r.data });
+  } catch (e) {
+    // Surfaces "chat not found" / "bot was blocked" / bad token, etc.
+    res.status(500).json({ ok: false, error: e.response?.data || e.message });
+  }
+});
+
 router.post("/webhook", async (req, res) => {
   const body = req.body;
 

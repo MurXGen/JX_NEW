@@ -131,7 +131,11 @@ app.use((req, res) => {
    START SERVER
 ======================= */
 
+const { initTelegramWebhook } = require("./utils/telegramSetup");
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🌐 Server running on http://localhost:${PORT}`);
+  // Register the Telegram webhook so Mark-as-Paid/Failed buttons reach us.
+  initTelegramWebhook();
 });
