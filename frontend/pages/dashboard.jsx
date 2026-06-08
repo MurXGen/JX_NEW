@@ -300,6 +300,7 @@ export default function Dashboard() {
         active={activeTab}
         onChange={setActiveTab}
         onLogTrade={() => setShowLogTrade(true)}
+        onSupport={() => setShowSupport(true)}
       />
 
       {/* Log trade modal (Quick log / Detailed) — blurred backdrop */}

@@ -17,6 +17,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import Cookies from "js-cookie";
 import PaddleLoader from "../components/payments/PaddleLoader";
 import { LandingNav, LandingFooter } from "@/components/landingPage/LandingChrome";
 
@@ -161,14 +162,24 @@ export default function Pricing() {
       return;
     }
 
+    // The Paddle webhook activates the subscription using custom_data.userId.
+    // Without this, the payment succeeds but the user is never upgraded.
+    const userId = Cookies.get("userId");
+    if (!userId) {
+      router.push("/login?redirect=/pricing");
+      return;
+    }
+
     try {
       window.Paddle.Checkout.open({
         items: [{ priceId, quantity: 1 }],
+        // attaches userId to transaction.completed → handlePaddleWebhook
+        customData: { userId },
         settings: { displayMode: "overlay" },
 
-        // Not always reliable but keep it
         successCallback: () => {
           console.log("⚡ Payment successCallback triggered");
+          startSubscriptionPolling();
         },
 
         closeCallback: () => {
@@ -199,11 +210,16 @@ export default function Pricing() {
           },
         );
 
-        const user = await res.json();
+        const json = await res.json();
+        // user-info returns { userData: { subscription: { status } } }
+        const status =
+          json?.userData?.subscription?.status ??
+          json?.subscription?.status ??
+          json?.subscriptionStatus;
 
-        console.log("🔍 Checking subscription:", user.subscriptionStatus);
+        console.log("🔍 Checking subscription:", status);
 
-        if (user.subscriptionStatus === "active") {
+        if (status === "active") {
           clearInterval(interval);
           router.push("/dashboard");
         }

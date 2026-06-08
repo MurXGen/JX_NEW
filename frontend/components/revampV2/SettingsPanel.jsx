@@ -10,7 +10,6 @@ import Button from "./Button";
 import Dropdown from "./Dropdown";
 import Toast from "./Toast";
 import ExchangeConnectModal, { PLATFORMS } from "./ExchangeConnectModal";
-import TradingViewCard from "./TradingViewCard";
 import XpCard from "./XpCard";
 import PlanLimitsCard from "./PlanLimitsCard";
 import { useTheme } from "./Sidebar";
@@ -482,9 +481,6 @@ export default function SettingsPanel({ user }) {
 
       {/* ===== XP ===== */}
       <XpCard />
-
-      {/* ===== TradingView ===== */}
-      <TradingViewCard />
 
       {/* ===== Account / session ===== */}
       <div className="jx-card">

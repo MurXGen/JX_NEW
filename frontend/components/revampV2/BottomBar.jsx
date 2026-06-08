@@ -8,6 +8,7 @@ import {
   Globe,
   History,
   LayoutGrid,
+  LifeBuoy,
   MoreHorizontal,
   Plus,
   Settings,
@@ -33,13 +34,18 @@ const MORE = [
   { id: "settings", label: "Profile & settings", icon: Settings },
 ];
 
-export default function BottomBar({ active, onChange, onLogTrade }) {
+export default function BottomBar({ active, onChange, onLogTrade, onSupport }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreActive = MORE.some((m) => m.id === active);
 
   const go = (id) => {
     setMoreOpen(false);
     onChange(id);
+  };
+
+  const openSupport = () => {
+    setMoreOpen(false);
+    onSupport?.();
   };
 
   const item = ({ id, label, icon: Icon }, isActive) => (
@@ -84,6 +90,15 @@ export default function BottomBar({ active, onChange, onLogTrade }) {
                   <Icon size={16} /> {label}
                 </button>
               ))}
+              {onSupport && (
+                <button
+                  type="button"
+                  className="jx-dd__option"
+                  onClick={openSupport}
+                >
+                  <LifeBuoy size={16} /> Support &amp; feedback
+                </button>
+              )}
             </motion.div>
           </motion.div>
         )}
