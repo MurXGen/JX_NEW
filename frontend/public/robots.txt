@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /dashboard-web
+Disallow: /accounts
+Disallow: /add-trade
+Disallow: /settings
+Disallow: /billings
+Disallow: /trade
+Disallow: /integrations
+
+Sitemap: https://journalx.app/sitemap.xml

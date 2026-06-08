@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Button from "./Button";
 import { createAccount } from "@/api/auth";
+import { canAddAccount, getPlanRules } from "@/utils/planRestrictions";
+import { getFromIndexedDB } from "@/utils/indexedDB";
 
 /* Figma "Journals Modal" (22811:53855) — two views:
    list (switch/manage) ⇄ create journal. Blurred backdrop,
@@ -67,6 +69,20 @@ export default function JournalsModal({
 
   const create = async () => {
     if (!name.trim()) return setError("Give your journal a name");
+
+    /* plan limit: account/journal count */
+    try {
+      const userData = await getFromIndexedDB("user-data");
+      const rules = getPlanRules(userData);
+      if (!canAddAccount(userData, accounts.length)) {
+        const limit = rules.limits.accountLimit;
+        setError(
+          `Your plan allows ${limit === Infinity ? "unlimited" : limit} journal${limit === 1 ? "" : "s"}. Upgrade to create more.`,
+        );
+        return;
+      }
+    } catch {}
+
     setSaving(true);
     setError(null);
     try {

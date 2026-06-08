@@ -10,11 +10,12 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
-import Image from "next/image";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import PaddleLoader from "../components/payments/PaddleLoader";
+import { LandingNav, LandingFooter } from "@/components/landingPage/LandingChrome";
 
 const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
 const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
@@ -254,133 +255,132 @@ export default function Pricing() {
     }
   };
 
+  const C = { text: "#fff", muted: "#aeb4bc", dim: "#707a8a", surface: "#161a20", border: "rgba(255,255,255,0.08)", yellow: "#fcd535", green: "#2ebd85" };
+  const SITE_URL = "https://journalx.app";
+
+  const CARDS = [
+    { key: "free", title: "Free", price: PLANS_CONFIG.free.price, period: "forever", features: PLANS_FEATURES.free, cta: "Start free", current: true },
+    { key: "monthly", title: "Pro Monthly", price: PLANS_CONFIG.monthly.price, period: "/ month", features: PLANS_FEATURES.pro, cta: "Get monthly" },
+    { key: "yearly", title: "Pro Yearly", price: PLANS_CONFIG.yearly.price, period: "/ year", features: PLANS_FEATURES.pro, cta: "Get yearly", popular: true, badge: "Save 28%" },
+    { key: "lifetime", title: "Lifetime", price: PLANS_CONFIG.lifetime.price, period: "once", features: PLANS_FEATURES.lifetime, cta: "Get lifetime", badge: "Best value" },
+  ];
+
+  const pricingLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "JournalX Pro",
+    description: "JournalX trading journal — advanced analytics, unlimited trades, risk and psychology tracking.",
+    brand: { "@type": "Brand", name: "JournalX" },
+    offers: CARDS.filter((c) => c.key !== "free").map((c) => ({
+      "@type": "Offer",
+      name: c.title,
+      price: PLANS_CONFIG[c.key].amount,
+      priceCurrency: PLANS_CONFIG[c.key].currency,
+      url: `${SITE_URL}/pricing`,
+      availability: "https://schema.org/InStock",
+    })),
+  };
+
   return (
     <>
+      <Head>
+        <title>Pricing — JournalX | Start Free, Upgrade Anytime</title>
+        <meta name="description" content="Simple, affordable pricing for the JournalX trading journal. Start free, then unlock unlimited trades and advanced analytics with Pro monthly, yearly, or lifetime plans." />
+        <meta name="keywords" content="journalx pricing, trading journal price, trading journal subscription, trade tracker cost, best value trading journal" />
+        <link rel="canonical" href={`${SITE_URL}/pricing`} />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="JournalX Pricing — Start Free, Upgrade Anytime" />
+        <meta property="og:description" content="Simple, affordable pricing for the JournalX trading journal. Start free; unlock advanced analytics with Pro." />
+        <meta property="og:url" content={`${SITE_URL}/pricing`} />
+        <meta property="og:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingLd) }} />
+      </Head>
+
       <PaddleLoader />
+      <LandingNav />
 
-      {/* Hero Section */}
-      <section className="pricing-hero">
-        <div>
-          {" "}
-          <Image
-            src="/assets/journalx_navbar_black.png"
-            alt="JournalX Logo"
-            width={130}
-            height={42}
-            priority
-          />
-        </div>
-        <div className="flexClm gap_4">
-          <span className="font_32 font_weight_600">
-            Upgrade to enjoy benefits
-          </span>
-          <span className="font_16">Most affordable and trusted</span>
-        </div>
-        {/* <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="hero-content"
-        >
-          <div className="badge">
-            <Sparkles size={14} />
-            <span>TRUSTED BY 10,000+ TRADERS</span>
+      <div style={{ background: "#0d1117", color: C.text, fontFamily: "Poppins, sans-serif", minHeight: "100vh" }}>
+        {/* Hero */}
+        <section style={{ maxWidth: 1160, margin: "0 auto", padding: "72px 20px 32px", textAlign: "center", position: "relative" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(600px 320px at 50% -10%, rgba(252,213,53,0.16), transparent 70%)", pointerEvents: "none" }} />
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 20 }}>
+              <Sparkles size={14} /> Trusted by traders worldwide
+            </span>
+            <h1 style={{ font: "700 clamp(32px,5vw,52px)/1.1 Poppins", margin: "0 auto 14px", maxWidth: 640, letterSpacing: "-1.5px" }}>
+              Invest in your <span style={{ color: C.yellow }}>edge</span>
+            </h1>
+            <p style={{ font: "400 clamp(16px,2vw,18px)/1.6 Poppins", color: C.muted, maxWidth: 520, margin: "0 auto" }}>
+              Start free and upgrade when you're ready. Every plan pays for itself the first time it saves you from one bad habit.
+            </p>
+          </motion.div>
+        </section>
+
+        {/* Plans */}
+        <section style={{ maxWidth: 1160, margin: "0 auto", padding: "0 20px 40px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 18, alignItems: "stretch" }}>
+            {CARDS.map((c, i) => (
+              <motion.div
+                key={c.key}
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}
+                style={{
+                  position: "relative", display: "flex", flexDirection: "column",
+                  background: c.popular ? "linear-gradient(160deg, rgba(252,213,53,0.1), rgba(22,26,32,1))" : C.surface,
+                  border: `1px solid ${c.popular ? "rgba(252,213,53,0.4)" : C.border}`,
+                  borderRadius: 20, padding: 26,
+                }}
+              >
+                {c.popular && (
+                  <span style={{ position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)", background: C.yellow, color: "#1e2329", font: "700 11px Poppins", padding: "4px 12px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                    <Crown size={12} /> MOST POPULAR
+                  </span>
+                )}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ font: "600 17px Poppins" }}>{c.title}</span>
+                  {c.badge && !c.popular && (
+                    <span style={{ background: "rgba(46,189,133,0.15)", color: C.green, font: "600 11px Poppins", padding: "3px 9px", borderRadius: 999 }}>{c.badge}</span>
+                  )}
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, margin: "10px 0 4px" }}>
+                  <span style={{ font: "700 34px Poppins", letterSpacing: "-1px" }}>{c.price}</span>
+                  <span style={{ font: "400 14px Poppins", color: C.dim }}>{c.period}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 11, margin: "20px 0 24px", flex: 1 }}>
+                  {c.features.map((f) => (
+                    <span key={f.text} style={{ display: "flex", alignItems: "center", gap: 9, font: "400 14px Poppins", color: C.muted }}>
+                      <Check size={16} style={{ color: C.green, flexShrink: 0 }} /> {f.text}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  onClick={c.current ? undefined : () => handlePlanClick(c.key)}
+                  disabled={c.current}
+                  style={{
+                    width: "100%", justifyContent: "center", display: "inline-flex", alignItems: "center", gap: 8,
+                    borderRadius: 12, padding: "13px", cursor: c.current ? "default" : "pointer",
+                    font: "600 14px Poppins", border: "none",
+                    background: c.current ? "rgba(255,255,255,0.08)" : c.popular ? C.yellow : "rgba(255,255,255,0.1)",
+                    color: c.current ? C.dim : c.popular ? "#1e2329" : "#fff",
+                  }}
+                >
+                  {c.current ? <><Check size={15} /> Current plan</> : <><Zap size={15} /> {c.cta}</>}
+                </button>
+              </motion.div>
+            ))}
           </div>
 
-          <h1 className="hero-title">
-            Trade Smarter.
-            <br />
-            <span className="gradient-text">Invest in Your Edge</span>
-          </h1>
-
-          <p className="hero-subtitle">
-            Professional tools that pay for themselves. Start free, upgrade when
-            ready.
-          </p>
-        </motion.div> */}
-
-        {/* Trust Indicators */}
-        {/* <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flexRow gap_32 flex_center"
-        >
-          <div className="trust-item">
-            <Shield size={16} className="text-success" />
-            <span>Lowest pricing</span>
+          {/* trust row */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap", marginTop: 36, font: "400 13px Poppins", color: C.dim }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Shield size={15} style={{ color: C.green }} /> 256-bit encrypted</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Lock size={15} style={{ color: C.green }} /> Cancel anytime</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}><CreditCard size={15} style={{ color: C.green }} /> Cards, PayPal & crypto</span>
           </div>
-          <div className="trust-item">
-            <Lock size={16} className="text-success" />
-            <span>Full data encrypted</span>
-          </div>
-          <div className="trust-item">
-            <Check size={16} className="text-success" />
-            <span>Cancel anytime</span>
-          </div>
-        </motion.div> */}
-      </section>
+        </section>
 
-      {/* Pricing Cards */}
-      <section className="pricing-section">
-        <div className="pricing-grid">
-          {/* Free Plan */}
-          <PricingCard
-            plan="free"
-            title="Free"
-            price={PLANS_CONFIG.free.price}
-            period="Forever free"
-            features={PLANS_FEATURES.free}
-            buttonText="Start Free"
-            isCurrent={true}
-            onHover={setHoveredPlan}
-            isHovered={hoveredPlan === "free"}
-          />
-
-          {/* Monthly Plan */}
-          <PricingCard
-            plan="monthly"
-            title={PLANS_CONFIG.monthly.title}
-            price={PLANS_CONFIG.monthly.price}
-            period={PLANS_CONFIG.monthly.period}
-            features={PLANS_FEATURES.pro}
-            buttonText="Get Monthly"
-            onClick={() => handlePlanClick("monthly")}
-            onHover={setHoveredPlan}
-            isHovered={hoveredPlan === "monthly"}
-          />
-
-          {/* Yearly Plan (Most Popular) */}
-          <PricingCard
-            plan="yearly"
-            title={PLANS_CONFIG.yearly.title}
-            price={PLANS_CONFIG.yearly.price}
-            period={PLANS_CONFIG.yearly.period}
-            features={PLANS_FEATURES.pro}
-            buttonText="Get Yearly"
-            highlight={true}
-            popular={PLANS_CONFIG.yearly.popular}
-            savings={PLANS_CONFIG.yearly.savings}
-            onClick={() => handlePlanClick("yearly")}
-            onHover={setHoveredPlan}
-            isHovered={hoveredPlan === "yearly"}
-          />
-
-          {/* Lifetime Plan */}
-          <PricingCard
-            plan="lifetime"
-            title={PLANS_CONFIG.lifetime.title}
-            price={PLANS_CONFIG.lifetime.price}
-            period={PLANS_CONFIG.lifetime.period}
-            features={PLANS_FEATURES.lifetime}
-            buttonText="Get Lifetime"
-            valueBadge={PLANS_CONFIG.lifetime.value}
-            onClick={() => handlePlanClick("lifetime")}
-            onHover={setHoveredPlan}
-            isHovered={hoveredPlan === "lifetime"}
-          />
-        </div>
-      </section>
+        <LandingFooter />
+      </div>
 
       {/* Payment Modal */}
       {isClient &&

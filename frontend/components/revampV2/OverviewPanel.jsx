@@ -846,9 +846,9 @@ export default function OverviewPanel({
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {S.symPnl.slice(0, 6).map(([sym, v]) => (
                 <Tip key={sym} content={`${sym}\n${k(v, currencySymbol)} net P&L in this journal`} block>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, font: "var(--text-small)", flex: 1, cursor: "help" }}>
-                  <span style={{ width: 42, fontWeight: 600 }}>{sym.split("/")[0]}</span>
-                  <div style={{ flex: 1, display: "flex" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, font: "var(--text-small)", flex: 1, cursor: "help" }}>
+                  <span style={{ width: 54, flexShrink: 0, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sym.split("/")[0]}</span>
+                  <div style={{ flex: 1, display: "flex", minWidth: 40 }}>
                     <span style={{ height: 12, borderRadius: 6, width: `${Math.max(6, (Math.abs(v) / maxSym) * 100)}%`, background: v >= 0 ? "var(--color-success)" : "var(--color-danger)", transition: `width 0.8s ${BAR_EASE}` }} />
                   </div>
                   <span style={{ fontWeight: 600, color: v >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)", whiteSpace: "nowrap" }}>

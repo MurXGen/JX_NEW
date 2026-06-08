@@ -17,6 +17,7 @@ import Badge from "./Badge";
 import Button from "./Button";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { getPlanRules } from "@/utils/planRestrictions";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -116,6 +117,16 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
   const doImport = async () => {
     const accountId = Cookies.get("accountId");
     if (!accountId) return flash("danger", "No journal selected");
+
+    /* plan limit: free plans can't bulk-import beyond their monthly cap */
+    try {
+      const userData = await getFromIndexedDB("user-data");
+      const limit = getPlanRules(userData).limits.tradeLimitPerMonth;
+      if (limit !== Infinity) {
+        return flash("danger", `Bulk import is a Pro feature. Your plan is capped at ${limit} trades/month — upgrade to import in bulk.`);
+      }
+    } catch {}
+
     setSaving(true);
     try {
       const res = await axios.post(

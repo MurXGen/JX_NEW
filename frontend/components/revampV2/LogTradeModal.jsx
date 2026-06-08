@@ -30,6 +30,7 @@ import Dropdown from "./Dropdown";
 import DateTimePicker from "./DateTimePicker";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { canAddTrade, getPlanRules } from "@/utils/planRestrictions";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -420,6 +421,18 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     }
     const accountId = Cookies.get("accountId");
     if (!accountId) return flash("danger", "No journal selected — switch journals first");
+
+    /* plan limit: trades per month */
+    try {
+      const userData = await getFromIndexedDB("user-data");
+      const status = mode === "quick" ? "running" : "closed";
+      const allowed = await canAddTrade(userData, status);
+      if (!allowed) {
+        const limit = getPlanRules(userData).limits.tradeLimitPerMonth;
+        flash("danger", `You've hit your plan's limit of ${limit} trades this month. Upgrade for unlimited logging.`);
+        return;
+      }
+    } catch {}
 
     const isQuickPnl = mode === "quick" && form.logMethod === "pnl";
     const pnl = isQuickPnl ? Number(form.netPnl) : calc.pnl ?? 0;

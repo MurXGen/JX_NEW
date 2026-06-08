@@ -1,218 +1,96 @@
 "use client";
-import Head from "next/head";
-import { useEffect } from "react";
 
-export default function TermsServices() {
-  useEffect(() => {
-    // Set landing page background
-    document.body.style.backgroundColor = "#020202";
-    document.body.style.color = "white";
+import LegalLayout from "@/components/legal/LegalLayout";
 
-    return () => {
-      document.body.style.backgroundColor = "";
-      document.body.style.color = "";
-    };
-  }, []);
+export default function TermsOfService() {
   return (
-    <>
-      <Head>
-        <title>Terms of Service | JournalX</title>
-        <meta
-          name="description"
-          content="Official Terms of Service for JournalX. JournalX is a digital journaling and analytics tool for traders. We do NOT offer trading signals, brokerage, or financial advice."
-        />
-        <link rel="canonical" href="https://journalx.app/terms-services" />
-      </Head>
-
-      <main className="legalPageContainer">
-        {/* HEADER */}
-        <header className="legalHeader">
-          <h1>Terms of Service</h1>
-          <p>
-            Welcome to JournalX. These Terms of Service (“Terms”) explain how
-            you can use our website, app, and services. By using JournalX, you
-            agree to follow these Terms. If you disagree, please stop using the
-            service.
-          </p>
-        </header>
-
-        {/* SECTION 1 */}
-        <section>
-          <h2>1. About JournalX</h2>
-          <p>
-            JournalX is a digital journaling and analytics tool for traders to
-            record, track, and understand their own trading behavior.
-          </p>
-          <p>
-            – JournalX does <span className="highlight-not">NOT</span> provide
-            trading signals or investment advice. <br />– JournalX does{" "}
-            <span className="highlight-not">NOT</span> execute or manage trades.{" "}
-            <br />– JournalX does <span className="highlight-not">NOT</span>{" "}
-            hold or manage any user money or funds.
-          </p>
-          <p>
-            The purpose of JournalX is to help traders learn from their own
-            activity, not to influence or guide trading decisions.
-          </p>
-        </section>
-
-        {/* SECTION 2 */}
-        <section>
-          <h2>2. Account Registration</h2>
-          <p>
-            To use JournalX, you need to create an account using a valid email
-            address. You are responsible for:
-          </p>
-          <p>
-            – Keeping your password and login secure. <br />– Any actions taken
-            from your account.
-          </p>
-          <p>
-            JournalX may suspend or remove your account if you misuse the
-            platform or break these Terms.
-          </p>
-        </section>
-
-        {/* SECTION 3 */}
-        <section>
-          <h2>3. Subscriptions and Payments</h2>
-          <p>
-            JournalX provides both free and paid plans to help users personalize
-            their journaling experience. The paid plans are designed only to
-            unlock additional journaling features such as:
-          </p>
-          <p>
-            – Adding more daily or monthly journal entries <br />
-            – Creating and managing multiple trading accounts <br />
-            – Backing up and restoring journal data securely <br />– Accessing
-            advanced insights and analytics for self-review
-          </p>
-          <p>
-            These paid features are meant to improve your record-keeping and
-            organization. JournalX does{" "}
-            <span className="highlight-not">NOT</span> provide any trading
-            signals, stock recommendations, or financial services of any kind.
-          </p>
-          <p>
-            Payments for subscriptions are processed securely through trusted
-            gateways such as Razorpay (for Indian users) and Stripe (for
-            international users).
-          </p>
-          <p>
-            – Subscriptions renew automatically unless canceled before the
-            renewal date. <br />– You can manage or cancel your plan anytime
-            from your account settings.
-          </p>
-
-          <h3>Refund Policy</h3>
-          <p>
-            Refunds are only applicable for failed or duplicate transactions. We
-            do <span className="highlight-not">NOT</span> provide refunds for
-            active subscriptions or completed usage. Approved refunds are
-            processed within 3–5 business days of confirmation.
-          </p>
-        </section>
-
-        {/* SECTION 4 */}
-        <section>
-          <h2>4. Data Privacy</h2>
-          <p>
-            We value your privacy. JournalX collects only what’s needed for
-            functionality:
-          </p>
-          <p>
-            – Email and password (securely encrypted) <br />
-            – Trade notes and journal entries (entered by you) <br />– Anonymous
-            analytics data for improving the platform
-          </p>
-          <p>
-            We do <span className="highlight-not">NOT</span> sell or share your
-            personal data for marketing. See our{" "}
-            <a href="/privacy-policy">Privacy Policy</a> for more details.
-          </p>
-        </section>
-
-        {/* SECTION 5 */}
-        <section>
-          <h2>5. Intellectual Property</h2>
-          <p>
-            All designs, code, branding, and content of JournalX are owned by
-            the company. You own your journal data. You may{" "}
-            <span className="highlight-not">NOT</span> copy, reproduce, or
-            distribute any part of JournalX without written permission.
-          </p>
-        </section>
-
-        {/* SECTION 6 */}
-        <section>
-          <h2>6. Limitation of Liability</h2>
-          <p>
-            JournalX is provided for journaling and educational use. We are{" "}
-            <span className="highlight-not">NOT</span> responsible for financial
-            results, trading losses, or any actions you take based on your
-            journal insights. Always make your own independent decisions or
-            consult certified professionals.
-          </p>
-        </section>
-
-        {/* SECTION 7 */}
-        <section>
-          <h2>7. Termination</h2>
-          <p>
-            – JournalX may suspend or delete accounts that break these Terms.{" "}
-            <br />– You can request to delete your account anytime by contacting
-            our support team.
-          </p>
-        </section>
-
-        {/* SECTION 8 */}
-        <section>
-          <h2>8. MSME & Business Information</h2>
-          <p>JournalX is a registered MSME business in India.</p>
-          <p>
-            – Legal Name: <strong>Murthy Poothapandi Thevar (JournalX)</strong>{" "}
-            <br />– Udyam Registration No: <strong>UDYAM-MH-19-0386866</strong>{" "}
-            <br />– PAN: <strong>CFXPT4171B</strong> <br />– Email:{" "}
-            <a href="mailto:officialjournalx@gmail.com">
-              officialjournalx@gmail.com
-            </a>{" "}
-            <br />– Phone: <strong>+91 7977960242</strong>
-          </p>
-        </section>
-
-        {/* SECTION 9 */}
-        <section>
-          <h2>9. Governing Law</h2>
-          <p>
-            These Terms are governed by Indian law and fall under the
-            jurisdiction of courts in Mumbai, Maharashtra.
-          </p>
-        </section>
-
-        {/* SECTION 10 */}
-        <section>
-          <h2>10. Contact</h2>
-          <p>
-            For questions or support, please reach out at: <br />
-            <strong>Email:</strong>{" "}
-            <a href="mailto:officialjournalx@gmail.com">
-              officialjournalx@gmail.com
-            </a>{" "}
-            <br />
-            <strong>Phone:</strong> +91 7977960242
-          </p>
-        </section>
-
-        {/* FOOTER */}
-        <footer className="termsDisclaimer">
-          <p className="legalDisclaimer">
-            JournalX is a journaling and analytics tool. We are{" "}
-            <span className="highlight-not">NOT</span> a broker, financial
-            advisor, or trading signal provider. Use JournalX responsibly for
-            personal learning and record-keeping.
-          </p>
-        </footer>
-      </main>
-    </>
+    <LegalLayout
+      title="Terms of Service"
+      path="/terms-services"
+      updated="June 8, 2026"
+      description="The Terms of Service governing your use of JournalX, including acceptable use, subscriptions, disclaimers, and limitation of liability."
+      intro="These Terms of Service (“Terms”) form a binding agreement between you and JournalX governing your access to and use of the JournalX website, applications, and services (collectively, the “Service”). By creating an account or using the Service, you agree to these Terms. If you do not agree, you must not use the Service."
+      sections={[
+        {
+          h: "1. Eligibility",
+          body: [
+            "You must be at least 18 years old and capable of forming a binding contract to use the Service. By using JournalX you represent and warrant that you meet these requirements and that the information you provide is accurate and complete.",
+          ],
+        },
+        {
+          h: "2. Your Account",
+          body: [
+            "You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. You agree to notify us immediately of any unauthorised use. We are not liable for any loss arising from your failure to safeguard your credentials.",
+          ],
+        },
+        {
+          h: "3. Acceptable Use",
+          body: [
+            "You agree not to:",
+            [
+              "use the Service for any unlawful purpose or in violation of any applicable law or regulation;",
+              "attempt to gain unauthorised access to the Service, other accounts, or our systems;",
+              "interfere with or disrupt the integrity or performance of the Service;",
+              "reverse engineer, scrape, or resell any part of the Service except as expressly permitted; or",
+              "upload content that is unlawful, infringing, or malicious.",
+            ],
+          ],
+        },
+        {
+          h: "4. Subscriptions, Billing, and Renewals",
+          body: [
+            "Paid plans are billed in advance on a recurring basis (monthly or yearly) or as a one-time lifetime purchase, as selected at checkout. Subscriptions renew automatically until cancelled. You may cancel at any time from your account settings; cancellation takes effect at the end of the current billing period. Prices may change with prior notice, and applicable taxes may be added.",
+          ],
+        },
+        {
+          h: "5. Connected Exchanges and Third-Party Services",
+          body: [
+            "Where you connect a third-party exchange or service, you authorise JournalX to access read-only data using the credentials you provide. We are not responsible for the availability, accuracy, or actions of third-party services, and your use of them is subject to their own terms.",
+          ],
+        },
+        {
+          h: "6. Not Financial Advice",
+          body: [
+            "JournalX is a trade-journaling and analytics tool. Nothing in the Service constitutes financial, investment, tax, or legal advice, a recommendation, or a solicitation to buy or sell any instrument. All analytics, statistics, projections, and “if you had held” estimates are informational only and may be inaccurate. You are solely responsible for your trading decisions. See our Risk Disclaimer for more.",
+          ],
+        },
+        {
+          h: "7. Intellectual Property",
+          body: [
+            "The Service, including its software, design, and content (excluding your data), is owned by JournalX and protected by intellectual-property laws. You retain ownership of the trading data and content you submit, and you grant us a limited licence to host, process, and display it solely to provide the Service to you.",
+          ],
+        },
+        {
+          h: "8. Disclaimers",
+          body: [
+            "The Service is provided “as is” and “as available” without warranties of any kind, whether express or implied, including merchantability, fitness for a particular purpose, and non-infringement. We do not warrant that the Service will be uninterrupted, error-free, or that data will be accurate or complete.",
+          ],
+        },
+        {
+          h: "9. Limitation of Liability",
+          body: [
+            "To the maximum extent permitted by law, JournalX and its officers, employees, and suppliers will not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, trading losses, data, or goodwill, arising out of or related to your use of the Service. Our total liability for any claim will not exceed the amount you paid us in the twelve months preceding the claim.",
+          ],
+        },
+        {
+          h: "10. Termination",
+          body: [
+            "We may suspend or terminate your access to the Service at any time for violation of these Terms or to protect the Service or other users. You may stop using the Service and delete your account at any time. Provisions that by their nature should survive termination will survive.",
+          ],
+        },
+        {
+          h: "11. Governing Law",
+          body: [
+            "These Terms are governed by the laws of the jurisdiction in which JournalX is established, without regard to conflict-of-law principles. Any disputes will be subject to the exclusive jurisdiction of the competent courts of that jurisdiction.",
+          ],
+        },
+        {
+          h: "12. Changes to These Terms",
+          body: [
+            "We may modify these Terms from time to time. We will notify you of material changes through the Service or by email. Continued use after changes take effect constitutes acceptance of the revised Terms.",
+          ],
+        },
+      ]}
+    />
   );
 }

@@ -135,6 +135,9 @@ export default function Sidebar({
                 flexDirection: "column",
                 alignItems: "flex-start",
                 lineHeight: 1.3,
+                minWidth: 0,
+                flex: 1,
+                overflow: "hidden",
               }}
             >
               <span
@@ -145,7 +148,16 @@ export default function Sidebar({
               >
                 Journal
               </span>
-              <span style={{ fontWeight: 600 }}>
+              <span
+                style={{
+                  fontWeight: 600,
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+                title={accountName || "Select journal"}
+              >
                 {accountName || "Select journal"}
               </span>
             </span>
