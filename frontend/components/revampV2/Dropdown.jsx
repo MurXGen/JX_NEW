@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { Check, ChevronDown, Search, X } from "lucide-react";
 
 /**
  * revampV2 Dropdown — Figma "Dropdowns & Filters" (22683:51248).
@@ -17,6 +17,7 @@ import { Check, ChevronDown, Search } from "lucide-react";
  *  leading        — element rendered before the value in the trigger
  *  width          — trigger width (default 100%)
  *  triggerStyle
+ *  onRemove(value) — if set, each option shows an × to delete it
  */
 export default function Dropdown({
   value,
@@ -28,6 +29,7 @@ export default function Dropdown({
   allowCustom = false,
   leading = null,
   triggerStyle = {},
+  onRemove = null,
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -119,15 +121,35 @@ export default function Dropdown({
             )}
 
             {filtered.map((o) => (
-              <button
+              <div
                 key={o.value}
-                type="button"
                 className={`jx-dd__option ${o.value === value ? "jx-dd__option--selected" : ""}`}
+                style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
                 onClick={() => pick(o.value)}
               >
                 <span style={{ flex: 1 }}>{o.label}</span>
                 {o.value === value && <Check size={14} style={{ color: "var(--yellow-500)" }} />}
-              </button>
+                {onRemove && (
+                  <span
+                    role="button"
+                    aria-label={`Remove ${o.label}`}
+                    title={`Remove ${o.label}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(o.value);
+                    }}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                      color: "var(--color-text-muted)",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg-muted)"; e.currentTarget.style.color = "var(--color-danger)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-muted)"; }}
+                  >
+                    <X size={13} />
+                  </span>
+                )}
+              </div>
             ))}
 
             {allowCustom && query.trim() && !filtered.some((o) => o.label.toLowerCase() === query.trim().toLowerCase()) && (

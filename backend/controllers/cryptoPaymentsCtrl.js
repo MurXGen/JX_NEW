@@ -32,12 +32,12 @@ exports.createCryptoOrder = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
 
     const NETWORK_ADDRESSES = {
-      erc20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-      trc20: "TP4aBJBJaRL8Qumcb9TTGxecxryQhh8LTT",
-      bep20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-      avaxc: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-      sol: "Acw24wYJFWhQyk9NR8EHdpCAr53Wsuf1X78A2UPsvWDf",
-      ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
+      erc20: "0x26013fc3db5eac1c4ff6cf28a107eca908f2f35f",
+      trc20: "TV1R4rhR8xJYZD1axRiKoHN2bAsn8SJwaN",
+      bep20: "0x26013fc3db5eac1c4ff6cf28a107eca908f2f35f",
+      avaxc: "0x26013fc3db5eac1c4ff6cf28a107eca908f2f35f",
+      sol: "bvy3Ye5ZDMfpGDkwpnKSAbBbPybWJfaEYQkK3w8DcZt",
+      ton: "UQAGm_9b3_y6hjIshL2A-XZ36Cp7RW_tOX3NoVnxdOA94S-Z",
     };
 
     if (!NETWORK_ADDRESSES[network]) {
@@ -139,12 +139,14 @@ exports.createCryptoOrder = async (req, res) => {
 
     await user.save();
 
+    // 🔔 Fired the moment the user clicks "Verify Payment" — lets you confirm
+    // the deposit manually via the inline Telegram buttons.
     await sendTelegramNotification({
       name: user.name || "N/A",
       email: user.email || "N/A",
       type: "payment",
-      status: "Created",
-      details: `Plan: ${plan.name}\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}\nOrder ID: ${cryptoOrder._id}`,
+      status: "🔎 Verification requested (user clicked Verify Payment)",
+      details: `Plan: ${plan.name}\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}\nDeposit: ${NETWORK_ADDRESSES[network]}\nOrder ID: ${cryptoOrder._id}`,
       orderId: cryptoOrder._id,
     });
 

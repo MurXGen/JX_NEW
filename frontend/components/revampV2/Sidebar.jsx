@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   ArrowRightLeft,
   Crown,
-  LogOut,
+  LifeBuoy,
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
@@ -13,7 +13,6 @@ import {
   Sun,
   User,
 } from "lucide-react";
-import Cookies from "js-cookie";
 import Button from "./Button";
 
 export function useTheme() {
@@ -45,6 +44,7 @@ export function useTheme() {
  *  onLogTrade                      — primary CTA
  *  user ({name,email}), onProfile
  *  showUpgrade, onUpgrade
+ *  onSupport                       — opens the support/feedback modal
  */
 export default function Sidebar({
   items = [],
@@ -55,6 +55,7 @@ export default function Sidebar({
   onLogTrade,
   user,
   onProfile,
+  onSupport,
   showUpgrade,
   onUpgrade,
 }) {
@@ -69,13 +70,6 @@ export default function Sidebar({
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem("jx-sidebar-collapsed", next ? "1" : "0");
-  };
-
-  const handleLogout = () => {
-    Cookies.remove("userId");
-    Cookies.remove("accountId");
-    Cookies.remove("isVerified");
-    window.location.href = "/login";
   };
 
   return (
@@ -117,9 +111,8 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Journal switcher + theme toggle (top) */}
+      {/* Journal switcher (top) */}
       {onAccountSwitch && (
-        <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "stretch" }}>
         <button
           className="jx-sidebar__item"
           onClick={onAccountSwitch}
@@ -127,7 +120,6 @@ export default function Sidebar({
           style={{
             border: "1px solid var(--color-border)",
             background: "var(--color-bg-muted)",
-            flex: 1,
             minWidth: 0,
           }}
         >
@@ -167,25 +159,6 @@ export default function Sidebar({
             </span>
           )}
         </button>
-        {!collapsed && (
-          <button
-            className="jx-sidebar__item"
-            onClick={toggleTheme}
-            title={theme === "dark" ? "Switch to light" : "Switch to dark"}
-            aria-label="Toggle theme"
-            style={{
-              border: "1px solid var(--color-border)",
-              background: "var(--color-bg-muted)",
-              width: 44,
-              flexShrink: 0,
-              justifyContent: "center",
-              padding: 0,
-            }}
-          >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        )}
-        </div>
       )}
 
       {/* Log trade CTA */}
@@ -237,44 +210,53 @@ export default function Sidebar({
           )}
         </button>
 
-        {user && (
+        {onSupport && (
           <button
             className="jx-sidebar__item"
-            onClick={onProfile}
-            title={collapsed ? user.name : undefined}
+            onClick={onSupport}
+            title={collapsed ? "Support & feedback" : undefined}
           >
-            <User size={20} />
-            {!collapsed && (
-              <span
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-start",
-                  lineHeight: 1.3,
-                  minWidth: 0,
-                }}
-              >
-                <span style={{ fontWeight: 600 }}>{user.name || "User"}</span>
-                <span
-                  style={{
-                    font: "var(--text-caption)",
-                    color: "var(--color-text-muted)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    maxWidth: 150,
-                  }}
-                >
-                  {user.email}
-                </span>
-              </span>
-            )}
+            <LifeBuoy size={20} />
+            {!collapsed && <span>Support &amp; feedback</span>}
           </button>
         )}
 
-        <button className="jx-sidebar__item" onClick={handleLogout}>
-          <LogOut size={20} />
-          {!collapsed && <span>Log out</span>}
-        </button>
+        {user && (
+          <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "stretch" }}>
+            <button
+              className="jx-sidebar__item"
+              onClick={onProfile}
+              title={collapsed ? user.name : undefined}
+              style={{ flex: 1, minWidth: 0 }}
+            >
+              <User size={20} />
+              {!collapsed && (
+                <span
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    lineHeight: 1.3,
+                    minWidth: 0,
+                  }}
+                >
+                  <span style={{ fontWeight: 600 }}>{user.name || "User"}</span>
+                  <span
+                    style={{
+                      font: "var(--text-caption)",
+                      color: "var(--color-text-muted)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      maxWidth: 130,
+                    }}
+                  >
+                    {user.email}
+                  </span>
+                </span>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </motion.aside>
   );

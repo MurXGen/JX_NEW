@@ -27,6 +27,7 @@ import {
   BlogsPanel,
   TradesLogPanel,
   JournalsModal,
+  SupportModal,
   OverviewPanel,
   MarketsPanel,
   SharePanel,
@@ -68,6 +69,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
   const [showLogTrade, setShowLogTrade] = useState(false);
   const [importSignal, setImportSignal] = useState(0);
   const [, setThemeTick] = useState(0); // re-render the mobile theme icon
@@ -243,6 +245,7 @@ export default function Dashboard() {
         onLogTrade={() => setShowLogTrade(true)}
         user={userData}
         onProfile={() => setActiveTab("settings")}
+        onSupport={() => setShowSupport(true)}
         showUpgrade={!isProMonthly}
         onUpgrade={() => setActiveTab("pricingpage")}
       />
@@ -313,6 +316,13 @@ export default function Dashboard() {
         trades={accountTrades}
         currentBalances={currentBalances}
         currentAccountId={currentAccount?._id}
+      />
+
+      <SupportModal
+        open={showSupport}
+        onClose={() => setShowSupport(false)}
+        user={userData}
+        plan={userData?.subscription?.plan || "free"}
       />
     </div>
   );

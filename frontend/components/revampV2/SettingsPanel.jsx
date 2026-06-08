@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { Upload, X } from "lucide-react";
+import { LogOut, Upload, X } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import Dropdown from "./Dropdown";
@@ -485,6 +485,27 @@ export default function SettingsPanel({ user }) {
 
       {/* ===== TradingView ===== */}
       <TradingViewCard />
+
+      {/* ===== Account / session ===== */}
+      <div className="jx-card">
+        <div className="jx-card__title">Account</div>
+        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Manage your session.</div>
+        <Row title="Log out" sub="Sign out of JournalX on this device">
+          <Button
+            variant="outline"
+            size="sm"
+            icon={LogOut}
+            onClick={() => {
+              Cookies.remove("userId");
+              Cookies.remove("accountId");
+              Cookies.remove("isVerified");
+              window.location.href = "/login";
+            }}
+          >
+            Log out
+          </Button>
+        </Row>
+      </div>
 
       {/* ===== Danger zone ===== */}
       <div className="jx-card" style={{ borderColor: "var(--color-danger)" }}>

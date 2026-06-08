@@ -1,0 +1,219 @@
+"use client";
+
+/* Support & feedback modal.
+   ───────────────────────────────────────────────────────────────────
+   Submissions are sent to a Google Form, which writes rows to the
+   linked Google Sheet. Google Forms don't allow reading the response
+   cross-origin, so we POST with mode:"no-cors" (fire-and-forget) — the
+   request still lands in the sheet.
+
+   ▶ TO WIRE THIS UP, fill in the config below:
+     1. Create your Google Form with these questions (any types are fine):
+          • Category        (short answer / multiple choice)
+          • Message         (paragraph)
+          • Email           (short answer)
+          • Name            (short answer)
+          • Plan            (short answer)
+     2. Open the form → ⋮ → "Get pre-filled link", fill dummy values,
+        copy the link. Each field shows as entry.XXXXXXX=value.
+     3. Paste the form's POST URL and each entry ID below.
+
+   The POST URL looks like:
+     https://docs.google.com/forms/d/e/<LONG_ID>/formResponse
+   ─────────────────────────────────────────────────────────────────── */
+const GOOGLE_FORM = {
+  actionUrl:
+    "https://docs.google.com/forms/d/e/1FAIpQLSeosaJAbSxvkpXbhiiw-Dm9QOYS0BfYN5hygLiH2IMq1cApKw/formResponse",
+  // Mapped in the order the entries appear in the pre-fill URL, matching the
+  // suggested question order: Category, Message, Email, Name, Plan.
+  entries: {
+    category: "entry.328676108",
+    message: "entry.1405331720",
+    email: "entry.1963206462",
+    name: "entry.191488008",
+    plan: "entry.1950424137",
+  },
+};
+
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { LifeBuoy, Send, X } from "lucide-react";
+import Button from "./Button";
+
+const CATEGORIES = ["Support", "Feedback", "Bug report", "Feature request", "Other"];
+
+export default function SupportModal({ open, onClose, user, plan = "free" }) {
+  const [category, setCategory] = useState("Support");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | done | error
+
+  const configured = Boolean(GOOGLE_FORM.actionUrl && GOOGLE_FORM.entries.message);
+
+  const reset = () => {
+    setCategory("Support");
+    setMessage("");
+    setStatus("idle");
+  };
+
+  const close = () => {
+    if (status === "sending") return;
+    onClose();
+    // let the exit animation play before clearing
+    setTimeout(reset, 250);
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+    setStatus("sending");
+
+    try {
+      if (configured) {
+        const fd = new FormData();
+        const { entries } = GOOGLE_FORM;
+        if (entries.category) fd.append(entries.category, category);
+        if (entries.message) fd.append(entries.message, message.trim());
+        if (entries.email) fd.append(entries.email, user?.email || "");
+        if (entries.name) fd.append(entries.name, user?.name || "");
+        if (entries.plan) fd.append(entries.plan, plan);
+
+        await fetch(GOOGLE_FORM.actionUrl, {
+          method: "POST",
+          mode: "no-cors",
+          body: fd,
+        });
+      } else {
+        // Not yet configured — fall back to opening the user's mail client
+        // so feedback isn't silently lost.
+        const subject = encodeURIComponent(`[${category}] JournalX feedback`);
+        const body = encodeURIComponent(
+          `${message.trim()}\n\n—\nFrom: ${user?.name || ""} <${user?.email || ""}>\nPlan: ${plan}`,
+        );
+        window.open(`mailto:officialjournalx@gmail.com?subject=${subject}&body=${body}`, "_blank");
+      }
+      setStatus("done");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="jx-modal-overlay jx-modal-overlay--blur"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={close}
+        >
+          <motion.div
+            className="jx-ltmodal jx-ltmodal--narrow"
+            style={{ width: "min(480px, 96vw)" }}
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+            transition={{ duration: 0.18 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="jx-ltmodal__header">
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                <span
+                  style={{
+                    width: 36, height: 36, borderRadius: "var(--radius-md)",
+                    background: "var(--color-primary-subtle)", color: "var(--yellow-500)",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}
+                >
+                  <LifeBuoy size={18} />
+                </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Support &amp; feedback</span>
+                  <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
+                    We read every message.
+                  </span>
+                </div>
+              </div>
+              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={close} aria-label="Close" style={{ padding: 8 }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {status === "done" ? (
+              <div style={{ padding: "var(--space-8) var(--space-6)", textAlign: "center", display: "flex", flexDirection: "column", gap: "var(--space-3)", alignItems: "center" }}>
+                <span style={{ font: "var(--text-h2)" }}>🎉</span>
+                <span style={{ font: "var(--text-title)", fontWeight: 600 }}>Thanks for reaching out!</span>
+                <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)", maxWidth: 320 }}>
+                  Your {category.toLowerCase()} has been received. We&apos;ll get back to you at {user?.email || "your email"} if a reply is needed.
+                </span>
+                <Button variant="primary" onClick={close} style={{ marginTop: "var(--space-2)" }}>Done</Button>
+              </div>
+            ) : (
+              <form onSubmit={submit} style={{ padding: "var(--space-5) var(--space-6) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+                  <label style={{ font: "var(--text-body-md)", fontWeight: 600 }}>What&apos;s this about?</label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                    {CATEGORIES.map((c) => (
+                      <button
+                        type="button"
+                        key={c}
+                        onClick={() => setCategory(c)}
+                        className="jx-btn jx-btn--sm"
+                        style={{
+                          background: category === c ? "var(--color-primary)" : "var(--color-bg-muted)",
+                          color: category === c ? "var(--color-primary-foreground)" : "var(--color-text-secondary)",
+                          border: "1px solid var(--color-border)",
+                        }}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+                  <label style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Message</label>
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Tell us what's on your mind…"
+                    rows={5}
+                    autoFocus
+                    style={{
+                      width: "100%", resize: "vertical", minHeight: 110,
+                      background: "var(--color-bg-surface)", color: "var(--color-text-primary)",
+                      border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
+                      padding: "12px 14px", font: "var(--text-body)", outline: "none",
+                    }}
+                  />
+                </div>
+
+                {user?.email && (
+                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                    Sending as {user.name ? `${user.name} · ` : ""}{user.email}
+                  </span>
+                )}
+
+                {status === "error" && (
+                  <div className="jx-toast jx-toast--danger" style={{ font: "var(--text-small)" }}>
+                    Something went wrong. Please try again or email officialjournalx@gmail.com.
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  icon={Send}
+                  disabled={!message.trim() || status === "sending"}
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
+                  {status === "sending" ? "Sending…" : "Send message"}
+                </Button>
+              </form>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

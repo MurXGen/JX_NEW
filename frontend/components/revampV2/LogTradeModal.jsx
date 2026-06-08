@@ -166,6 +166,21 @@ function Spinner() {
 
 const DEFAULT_STRATEGIES = ["Breakout", "Pullback", "Reversal", "Range", "Trend-follow", "News"];
 const DEFAULT_EMOTIONS = ["Calm", "Confident", "FOMO", "Revenge", "Hesitant"];
+
+/* User's tradable symbols are managed in localStorage so they can add/remove
+   their own list. Seeded with a few common markets on first use. */
+const SYMBOLS_KEY = "jx-symbols";
+const DEFAULT_SYMBOLS = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XAU/USD", "EUR/USD", "NIFTY", "AAPL", "TSLA"];
+const readStoredSymbols = () => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SYMBOLS_KEY) || "null");
+    if (Array.isArray(raw) && raw.length) return raw;
+  } catch {}
+  return null;
+};
+const writeStoredSymbols = (list) => {
+  try { localStorage.setItem(SYMBOLS_KEY, JSON.stringify(list)); } catch {}
+};
 const TIMEFRAMES = ["1m", "5m", "15m", "1H", "4H", "1D"];
 const MISTAKES = ["None", "Moved stop", "Oversized", "No stop", "Chased entry", "Exited early"];
 const MAX_IMAGES = 4;
@@ -274,6 +289,30 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
   const [maxImages, setMaxImages] = useState(MAX_IMAGES); // plan-gated per-trade cap
   const fileRef = useRef(null);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  /* symbol list management (persisted to localStorage) */
+  const addSymbol = (raw) => {
+    const sym = (raw || "").trim().toUpperCase();
+    if (!sym) return;
+    setSymbols((prev) => {
+      if (prev.includes(sym)) return prev;
+      const next = [sym, ...prev];
+      writeStoredSymbols(next);
+      return next;
+    });
+  };
+  const removeSymbol = (sym) => {
+    setSymbols((prev) => {
+      const next = prev.filter((s) => s !== sym);
+      writeStoredSymbols(next);
+      return next;
+    });
+    if (form.symbol === sym) set("symbol", "");
+  };
+  const pickSymbol = (v) => {
+    addSymbol(v); // typing a new one persists it
+    set("symbol", (v || "").toUpperCase());
+  };
   const flash = (type, msg, ms = 3000) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), ms);
@@ -301,7 +340,11 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
             const s = (t.symbol || "").toUpperCase();
             if (s && !seen.has(s)) seen.set(s, true);
           });
-        setSymbols([...seen.keys()]);
+        // merge: stored list (or defaults) + any symbols seen in real trades
+        const stored = readStoredSymbols() || DEFAULT_SYMBOLS;
+        const merged = [...new Set([...stored, ...seen.keys()].map((s) => s.toUpperCase()))];
+        writeStoredSymbols(merged);
+        setSymbols(merged);
         setCustomStrategies((await getFromIndexedDB("jx-custom-strategies")) || []);
         setCustomEmotions((await getFromIndexedDB("jx-custom-emotions")) || []);
         const perTrade = getPlanRules(userData).limits.imagesPerTrade;
@@ -532,9 +575,10 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
       <Dropdown
         value={form.symbol}
-        onChange={(v) => set("symbol", v)}
+        onChange={pickSymbol}
+        onRemove={removeSymbol}
         options={symbols}
-        label="Your assets"
+        label="Your assets — type to add, × to remove"
         placeholder="Search or type a symbol…"
         searchable
         allowCustom

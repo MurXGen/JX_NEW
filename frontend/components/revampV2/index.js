@@ -15,6 +15,7 @@ export { default as ImportExportPanel } from "./ImportExportPanel";
 export { default as BlogsPanel } from "./BlogsPanel";
 export { default as TradesLogPanel } from "./TradesLogPanel";
 export { default as JournalsModal } from "./JournalsModal";
+export { default as SupportModal } from "./SupportModal";
 export { default as OverviewPanel } from "./OverviewPanel";
 export { default as TradeDetailsModal } from "./TradeDetailsModal";
 export { default as Dropdown } from "./Dropdown";

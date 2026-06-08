@@ -53,6 +53,17 @@ function LimitBar({ label, used, limit, note }) {
   );
 }
 
+function SubItem({ label, children }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: 0.4 }}>
+        {label}
+      </span>
+      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{children}</span>
+    </div>
+  );
+}
+
 export default function PlanLimitsCard() {
   const [userData, setUserData] = useState(null);
 
@@ -62,7 +73,7 @@ export default function PlanLimitsCard() {
     })();
   }, []);
 
-  const { rules, planName, isTop, usage } = useMemo(() => {
+  const { rules, planName, isTop, usage, sub, status } = useMemo(() => {
     const rules = getPlanRules(userData);
     const sub = userData?.subscription || {};
     const plan = (sub.plan || "free").toLowerCase();
@@ -83,10 +94,24 @@ export default function PlanLimitsCard() {
       0,
     );
 
-    return { rules, planName, isTop, usage: { closedThisMonth, accounts, imagesThisMonth } };
+    return { rules, planName, isTop, usage: { closedThisMonth, accounts, imagesThisMonth }, sub, status };
   }, [userData]);
 
   const L = rules.limits;
+
+  const fmtDate = (d) =>
+    d
+      ? new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+      : null;
+  const startStr = fmtDate(sub?.startAt);
+  const expiresStr = fmtDate(sub?.expiresAt);
+  const isActive = status === "active";
+  const isLifetime = planName === "Lifetime";
+  // days remaining (only meaningful for an active, dated subscription)
+  const daysLeft =
+    isActive && sub?.expiresAt
+      ? Math.ceil((new Date(sub.expiresAt).getTime() - Date.now()) / 864e5)
+      : null;
 
   return (
     <div className="jx-card">
@@ -106,6 +131,49 @@ export default function PlanLimitsCard() {
           ? "You're on a premium plan — enjoy unlimited logging and analytics."
           : "Usage for the current journal this month. Upgrade for unlimited everything."}
       </div>
+
+      {/* Subscription details */}
+      {(isActive || startStr || expiresStr) && (
+        <div
+          style={{
+            marginBottom: "var(--space-4)",
+            padding: "var(--space-4)",
+            background: "var(--color-bg-muted)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-md)",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+            gap: "var(--space-3) var(--space-5)",
+          }}
+        >
+          <SubItem label="Status">
+            <Badge variant={isActive ? "success" : "neutral"}>
+              <span style={{ textTransform: "capitalize" }}>
+                {isActive ? "Active" : status === "none" ? "No subscription" : status}
+              </span>
+            </Badge>
+          </SubItem>
+          {sub?.type && (
+            <SubItem label="Billing">
+              <span style={{ textTransform: "capitalize" }}>
+                {sub.type === "one-time" ? "One-time" : sub.type}
+              </span>
+            </SubItem>
+          )}
+          {startStr && <SubItem label="Started">{startStr}</SubItem>}
+          {!isLifetime && expiresStr && (
+            <SubItem label={isActive ? "Renews / expires" : "Expired"}>
+              {expiresStr}
+              {daysLeft != null && daysLeft >= 0 && (
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", display: "block" }}>
+                  {daysLeft} day{daysLeft === 1 ? "" : "s"} left
+                </span>
+              )}
+            </SubItem>
+          )}
+          {isLifetime && <SubItem label="Expires">Never — lifetime access</SubItem>}
+        </div>
+      )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
         <LimitBar label="Trades this month" used={usage.closedThisMonth} limit={L.tradeLimitPerMonth} note="Resets at the start of each month" />

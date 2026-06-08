@@ -1,6 +1,8 @@
 // pages/pricing.js
 import { motion } from "framer-motion";
 import {
+  ArrowRight,
+  Bitcoin,
   Check,
   CreditCard,
   Crown,
@@ -8,6 +10,7 @@ import {
   Shield,
   Sparkles,
   TrendingUp,
+  X,
   Zap,
 } from "lucide-react";
 import Head from "next/head";
@@ -508,119 +511,174 @@ function PaymentModal({
     {
       id: "cards_paypal",
       title: "Cards & PayPal",
-      description: "Secure payment via Visa, Mastercard, Amex, or PayPal",
-      icon: <CreditCard size={24} />,
-      gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+      description: "Visa, Mastercard, Amex or PayPal",
+      icon: <CreditCard size={22} />,
+      accent: "#3b82f6",
+      tags: ["Instant access", "Most popular"],
     },
     {
       id: "crypto",
-      title: "Crypto Payment",
-      description: "Pay with USDT, Bitcoin, Ethereum on multiple networks",
-      icon: "₿",
-      gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+      title: "Crypto (USDT)",
+      description: "Pay with USDT on ETH, TRON, BSC, SOL & more",
+      icon: <Bitcoin size={22} />,
+      accent: "#f59e0b",
+      tags: ["Low fees", "No card needed"],
     },
-    // {
-    //   id: "binance",
-    //   title: "Binance Pay",
-    //   description: "Instant payment directly from your Binance account",
-    //   icon: "⚡",
-    //   gradient: "linear-gradient(135deg, #f0b90b 0%, #c27803 100%)",
-    // },
+  ];
+
+  const benefits = [
+    "Advanced analytics & risk metrics",
+    "Unlimited trade logging",
+    "Priority support",
   ];
 
   return (
     <motion.div
+      className="jx-modal-overlay jx-modal-overlay--blur"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="payment-modal-overlay"
-      onClick={onClose}
+      onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
+      style={{ fontFamily: "var(--jx-font)" }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.96, y: 18 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ type: "spring", damping: 25 }}
-        className="payment-modal-container"
+        exit={{ opacity: 0, scale: 0.96, y: 12 }}
+        transition={{ type: "spring", stiffness: 360, damping: 28 }}
+        className="jx-ltmodal"
+        style={{ width: "min(820px, 96vw)", overflow: "hidden" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Content Side (Left) */}
-        <div className="modal-content-side">
-          <div className="modal-header">
-            <button className="modal-close" onClick={onClose}>
-              ×
-            </button>
-            <h2 className="modal-title">Complete Your Purchase</h2>
-            <p className="modal-subtitle">
-              Select your preferred payment method
-            </p>
-          </div>
-
-          <div className="selected-plan-info">
-            <div className="plan-badge">
-              <span>{planTitle}</span>
-            </div>
-            <div className="plan-price-display">
-              <span className="price">{planPrice}</span>
-              <span className="plan-period">One-time payment</span>
-            </div>
-          </div>
-
-          <div className="payment-options">
-            {paymentOptions.map((option, index) => (
-              <motion.button
-                key={option.id}
-                className="button_sec payment-option-button"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onPaymentOptionClick(option.id)}
-                style={{
-                  background: option.gradient,
-                  color: "white",
-                  border: "none",
-                }}
-              >
-                <div className="payment-option-content">
-                  <span className="payment-icon">{option.icon}</span>
-                  <div className="payment-info">
-                    <span className="payment-title">{option.title}</span>
-                    <span className="payment-desc">{option.description}</span>
-                  </div>
-                </div>
-                <span className="payment-arrow">→</span>
-              </motion.button>
-            ))}
-          </div>
-
-          <div className="security-notice">
-            <Shield size={16} />
-            <span>Secure payment · 256-bit encryption</span>
-          </div>
-        </div>
-
-        {/* Image Side (Right) */}
-        <div className="modal-image-side">
-          <div className="">
-            <div className="pad_16">
-              <h3>Unlock Your Trading Potential</h3>
-              <p>Join 10,000+ traders who trust JournalX</p>
-              <div className="benefits-list">
-                <span>
-                  <Check size={14} /> Advanced analytics
-                </span>
-                <span>
-                  <Check size={14} /> Unlimited trade logging
-                </span>
-                <span>
-                  <Check size={14} /> Priority support
-                </span>
+        <div className="cb-pay-grid" style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr" }}>
+          {/* Left — payment choices */}
+          <div style={{ padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)" }}>
+              <div>
+                <h2 style={{ font: "var(--text-h3)", fontWeight: 700, margin: 0 }}>Complete your purchase</h2>
+                <p style={{ font: "var(--text-small)", color: "var(--color-text-muted)", margin: "4px 0 0" }}>
+                  Select your preferred payment method
+                </p>
               </div>
+              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Plan summary */}
+            <div
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)",
+                padding: "var(--space-4)", borderRadius: "var(--radius-md)",
+                background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
+              }}
+            >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "var(--text-body-md)", fontWeight: 600 }}>
+                <Crown size={16} style={{ color: "var(--yellow-500)" }} /> {planTitle}
+              </span>
+              <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                <span style={{ font: "var(--text-title)", fontWeight: 700 }}>{planPrice}</span>
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>One-time payment</span>
+              </span>
+            </div>
+
+            {/* Options */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              {paymentOptions.map((option, index) => (
+                <motion.button
+                  key={option.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.06 }}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => onPaymentOptionClick(option.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "var(--space-3)", textAlign: "left",
+                    padding: "var(--space-4)", borderRadius: "var(--radius-md)", cursor: "pointer",
+                    background: "var(--color-bg-surface)", border: "1px solid var(--color-border)",
+                    color: "var(--color-text-primary)", transition: "border-color .15s ease",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = option.accent)}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}
+                >
+                  <span
+                    style={{
+                      width: 44, height: 44, borderRadius: "var(--radius-md)", flexShrink: 0,
+                      background: `${option.accent}1f`, color: option.accent,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    {option.icon}
+                  </span>
+                  <span style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
+                    <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{option.title}</span>
+                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{option.description}</span>
+                    <span style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 2 }}>
+                      {option.tags.map((t) => (
+                        <span
+                          key={t}
+                          style={{
+                            font: "var(--text-caption)", fontWeight: 600, padding: "2px 8px", borderRadius: 999,
+                            background: "var(--color-bg-muted)", color: "var(--color-text-secondary)",
+                          }}
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </span>
+                  </span>
+                  <ArrowRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                </motion.button>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+              <Lock size={14} style={{ color: "var(--color-success)" }} /> Secure payment · 256-bit encryption
+            </div>
+          </div>
+
+          {/* Right — value panel */}
+          <div
+            className="cb-pay-aside"
+            style={{
+              padding: "var(--space-6)",
+              background: "linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 16%, var(--color-bg-surface)) 0%, var(--color-bg-surface) 70%)",
+              borderLeft: "1px solid var(--color-border)",
+              display: "flex", flexDirection: "column", justifyContent: "center", gap: "var(--space-4)",
+            }}
+          >
+            <span style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Sparkles size={22} />
+            </span>
+            <div>
+              <h3 style={{ font: "var(--text-title)", fontWeight: 700, margin: 0 }}>Unlock your trading edge</h3>
+              <p style={{ font: "var(--text-small)", color: "var(--color-text-secondary)", margin: "6px 0 0" }}>
+                Join thousands of traders who trust JournalX to sharpen their edge.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              {benefits.map((b) => (
+                <span key={b} style={{ display: "flex", alignItems: "center", gap: 10, font: "var(--text-small)" }}>
+                  <span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--color-success-subtle)", color: "var(--color-success-strong)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Check size={12} />
+                  </span>
+                  {b}
+                </span>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: "var(--space-2)" }}>
+              <Shield size={14} /> 7-day money-back guarantee
             </div>
           </div>
         </div>
+
+        <style jsx global>{`
+          @media (max-width: 640px) {
+            .cb-pay-grid { grid-template-columns: 1fr !important; }
+            .cb-pay-aside { display: none !important; }
+          }
+        `}</style>
       </motion.div>
     </motion.div>
   );

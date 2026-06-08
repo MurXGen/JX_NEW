@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Flame, Plus } from "lucide-react";
+import { Flame, Info, Plus } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import CountUp from "./CountUp";
@@ -325,37 +325,72 @@ function BarChart({ values, height = 140, tips }) {
   );
 }
 
+/* Filled pie/donut. Robust to single-slice (100%) and empty/zero data. */
+function pieArc(cx, cy, r, startAngle, endAngle) {
+  const pol = (ang) => {
+    const a = ((ang - 90) * Math.PI) / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  const [sx, sy] = pol(endAngle);
+  const [ex, ey] = pol(startAngle);
+  const large = endAngle - startAngle <= 180 ? 0 : 1;
+  return `M ${cx} ${cy} L ${sx} ${sy} A ${r} ${r} 0 ${large} 0 ${ex} ${ey} Z`;
+}
+
 function Donut({ segments, size = 120 }) {
   const morphedVals = useMorph(segments.map((s) => s.value));
-  const total = morphedVals.reduce((s, x) => s + x, 0) || 1;
-  const r = 44;
-  const c = 2 * Math.PI * r;
+  const total = morphedVals.reduce((s, x) => s + Math.max(0, x), 0);
+  const cx = 60;
+  const cy = 60;
+  const r = 52;
+  const holeR = 30; // donut hole
+
+  // nothing to show — render a faint placeholder ring
+  if (total <= 0) {
+    return (
+      <svg viewBox="0 0 120 120" style={{ width: size, height: size, flexShrink: 0 }}>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--color-border)" strokeWidth={r - holeR} />
+      </svg>
+    );
+  }
+
   let acc = 0;
+  const singleIdx = morphedVals.findIndex((v) => v > 0);
+  const single = segments.filter((_, i) => (morphedVals[i] ?? 0) > 0).length === 1;
+  const tip = (s, v) =>
+    `${s.label ?? ""}${s.label ? " — " : ""}${Math.round((v / total) * 100)}%`;
+
   return (
-    <svg
-      viewBox="0 0 120 120"
-      style={{ width: size, height: size, flexShrink: 0 }}
-    >
-      {segments.map((s, i) => {
-        const frac = (morphedVals[i] ?? 0) / total;
-        const dash = `${frac * c} ${c}`;
-        const offset = -acc * c;
-        acc += frac;
-        return (
-          <circle
-            key={i}
-            cx="60"
-            cy="60"
-            r={r}
-            fill="none"
-            stroke={s.color}
-            strokeWidth="18"
-            strokeDasharray={dash}
-            strokeDashoffset={offset}
-            transform="rotate(-90 60 60)"
-          />
-        );
-      })}
+    <svg viewBox="0 0 120 120" style={{ width: size, height: size, flexShrink: 0 }}>
+      {single ? (
+        // a lone 100% slice — draw a full ring (arc path degenerates at 360°)
+        <circle
+          cx={cx}
+          cy={cy}
+          r={(r + holeR) / 2}
+          fill="none"
+          stroke={segments[singleIdx]?.color || "var(--color-primary)"}
+          strokeWidth={r - holeR}
+        >
+          <title>{tip(segments[singleIdx] || {}, total)}</title>
+        </circle>
+      ) : (
+        segments.map((s, i) => {
+          const v = Math.max(0, morphedVals[i] ?? 0);
+          if (v <= 0) return null;
+          const frac = v / total;
+          const start = acc * 360;
+          const end = (acc + frac) * 360;
+          acc += frac;
+          return (
+            <path key={i} d={pieArc(cx, cy, r, start, Math.min(end, 359.99))} fill={s.color}>
+              <title>{tip(s, v)}</title>
+            </path>
+          );
+        })
+      )}
+      {/* donut hole */}
+      <circle cx={cx} cy={cy} r={holeR} fill="var(--color-bg-surface)" />
     </svg>
   );
 }
@@ -757,18 +792,25 @@ export default function OverviewPanel({
 
     const alloc = new Map();
     win.forEach((t) => {
-      const s = (t.symbol || t.ticker || "—").split("/")[0];
-      alloc.set(
-        s,
-        (alloc.get(s) || 0) +
-          Math.abs(
-            (t.avgEntryPrice || t.entryPrice || 1) * (t.totalQuantity || 0),
-          ),
-      );
+      // base asset: part before "/" but tolerate odd inputs like "/MNS"
+      // (split → ["", "MNS"]) by dropping empty parts; fall back to raw symbol
+      const raw = (t.symbol || t.ticker || "—").trim().toUpperCase();
+      const s = raw.split("/").filter(Boolean)[0] || raw || "—";
+      const qty = Number(t.totalQuantity ?? t.quantity ?? t.size) || 0;
+      const price = Number(t.avgEntryPrice ?? t.entryPrice ?? t.entries?.[0]?.price) || 0;
+      // traded notional → fall back to |P&L| → fall back to 1 (equal weight),
+      // so the allocation pie always renders whenever there are trades
+      const notional = price && qty ? Math.abs(price * qty) : 0;
+      const value = notional || Math.abs(Number(t.pnl) || 0) || 1;
+      alloc.set(s, (alloc.get(s) || 0) + value);
     });
-    const allocList = [...alloc.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 4);
+    // top 5 by traded value + an "Other" bucket so every symbol is represented
+    const allocSorted = [...alloc.entries()].sort((a, b) => b[1] - a[1]);
+    const allocTop = allocSorted.slice(0, 5);
+    const allocRest = allocSorted.slice(5);
+    const allocList = allocRest.length
+      ? [...allocTop, ["Other", allocRest.reduce((s, [, v]) => s + v, 0)]]
+      : allocTop;
 
     const volByDay = new Map();
     win.forEach((t) => {
@@ -1803,8 +1845,13 @@ export default function OverviewPanel({
               }}
             >
               <div>
-                <div style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
+                <div style={{ font: "var(--text-body-md)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                   Cumulative P&L
+                  <Tip
+                    content={"Your running total profit & loss — each closed trade's P&L added on top of the last.\nA steadily rising line means your account is growing over time; dips show drawdowns."}
+                  >
+                    <Info size={14} style={{ color: "var(--color-text-muted)", cursor: "help" }} />
+                  </Tip>
                 </div>
                 <div style={{ font: "var(--text-h2)" }}>
                   {k(cumSeries[cumSeries.length - 1] || 0, currencySymbol)} net
@@ -2037,9 +2084,17 @@ export default function OverviewPanel({
                 font: "var(--text-body-md)",
                 fontWeight: 600,
                 marginBottom: "var(--space-3)",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
               Asset allocation
+              <Tip
+                content={"How your traded value is split across symbols (by entry price × size).\nHover a slice or a row to see its share. Smaller positions are grouped into “Other”."}
+              >
+                <Info size={14} style={{ color: "var(--color-text-muted)", cursor: "help" }} />
+              </Tip>
             </div>
             <div
               style={{
@@ -2049,9 +2104,10 @@ export default function OverviewPanel({
               }}
             >
               <Donut
-                segments={S.allocList.map(([, v], i) => ({
+                segments={S.allocList.map(([sym, v], i) => ({
                   value: v,
                   color: DONUT_COLORS[i],
+                  label: sym,
                 }))}
               />
               <div

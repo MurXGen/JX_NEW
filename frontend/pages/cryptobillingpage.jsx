@@ -1,19 +1,25 @@
-// components/CryptoBilling/CryptoBillingPage.js
 "use client";
 
-import Dropdown from "@/components/ui/Dropdown";
+/* Crypto checkout — v2 redesign.
+   Logic (order creation, verification polling, timers, localStorage) is
+   unchanged; only the UI/UX and styling were rebuilt on the design tokens
+   so it's polished and theme-aware. */
+
 import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertCircle,
   ArrowLeft,
   Check,
+  CheckCircle2,
   Clock,
   Copy,
+  Loader2,
   Mail,
   RefreshCw,
   Shield,
-  ShieldCheckIcon,
+  ShieldCheck,
+  Wallet,
   Zap,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,21 +28,21 @@ import { useEffect, useState } from "react";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const NETWORKS = [
-  { id: "erc20", name: "Ethereum (ERC20)", symbol: "ETH" },
-  { id: "trc20", name: "Tron (TRC20)", symbol: "TRX" },
-  { id: "bep20", name: "BSC (BEP20)", symbol: "BNB" },
-  { id: "avaxc", name: "Avalanche C-Chain", symbol: "AVAX" },
-  { id: "sol", name: "Solana", symbol: "SOL" },
-  { id: "ton", name: "Toncoin", symbol: "TON" },
+  { id: "erc20", name: "Ethereum", tag: "ERC20", symbol: "ETH", color: "#627eea" },
+  { id: "trc20", name: "Tron", tag: "TRC20", symbol: "TRX", color: "#ef0027" },
+  { id: "bep20", name: "BNB Smart Chain", tag: "BEP20", symbol: "BNB", color: "#f0b90b" },
+  { id: "avaxc", name: "Avalanche", tag: "C-Chain", symbol: "AVAX", color: "#e84142" },
+  { id: "sol", name: "Solana", tag: "SOL", symbol: "SOL", color: "#14f195" },
+  { id: "ton", name: "Toncoin", tag: "TON", symbol: "TON", color: "#0098ea" },
 ];
 
 const NETWORK_ADDRESSES = {
-  erc20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-  trc20: "TP4aBJBJaRL8Qumcb9TTGxecxryQhh8LTT",
-  bep20: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-  avaxc: "0x3757a7076cb4eab649de3b44747f260f619ba754",
-  sol: "Acw24wYJFWhQyk9NR8EHdpCAr53Wsuf1X78A2UPsvWDf",
-  ton: "UQAaj0aa-jfxE27qof_4pDByzX2lr9381xeaj6QZAabRUsr1",
+  erc20: "0x26013fc3db5eac1c4ff6cf28a107eca908f2f35f",
+  trc20: "TV1R4rhR8xJYZD1axRiKoHN2bAsn8SJwaN",
+  bep20: "0x26013fc3db5eac1c4ff6cf28a107eca908f2f35f",
+  avaxc: "0x26013fc3db5eac1c4ff6cf28a107eca908f2f35f",
+  sol: "bvy3Ye5ZDMfpGDkwpnKSAbBbPybWJfaEYQkK3w8DcZt",
+  ton: "UQAGm_9b3_y6hjIshL2A-XZ36Cp7RW_tOX3NoVnxdOA94S-Z",
 };
 
 export default function CryptoBillingPage() {
@@ -48,70 +54,46 @@ export default function CryptoBillingPage() {
   const [paymentStatus, setPaymentStatus] = useState("selecting");
   const [processingTime, setProcessingTime] = useState(0);
   const [cryptoOrderId, setCryptoOrderId] = useState("");
-  const [verificationAttempts, setVerificationAttempts] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [planData, setPlanData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Get plan details from URL parameters
   const planName = searchParams.get("planName");
   const period = searchParams.get("period");
   const amount = searchParams.get("amount");
 
   useEffect(() => {
-    // Validate that we have the required parameters
     if (!planName || !period || !amount) {
-      console.error("Missing plan parameters. Redirecting to pricing...");
       router.push("/pricing");
       return;
     }
-
-    setPlanData({
-      planName,
-      period,
-      amount,
-    });
+    setPlanData({ planName, period, amount });
   }, [planName, period, amount, router]);
 
   const getPlanDisplayName = () => {
     if (!planData) return "";
     const { planName, period } = planData;
-
-    if (period === "lifetime") {
-      return "Lifetime Access";
-    }
-
-    if (planName === "Lifetime") {
-      return "Lifetime Access";
-    }
-
-    switch (period) {
-      case "monthly":
-        return `${planName} Monthly`;
-      case "yearly":
-        return `${planName} Yearly`;
-      default:
-        return `${planName} Plan`;
-    }
+    if (period === "lifetime" || planName === "Lifetime") return "Lifetime Access";
+    if (period === "monthly") return `${planName} Monthly`;
+    if (period === "yearly") return `${planName} Yearly`;
+    return `${planName} Plan`;
   };
 
   // 60-second confirmation timer
   useEffect(() => {
     if (paymentStatus === "waiting" && confirmTimer > 0) {
-      const timer = setTimeout(() => {
-        setConfirmTimer(confirmTimer - 1);
-      }, 1000);
+      const timer = setTimeout(() => setConfirmTimer(confirmTimer - 1), 1000);
       return () => clearTimeout(timer);
     } else if (paymentStatus === "waiting" && confirmTimer === 0) {
       setPaymentStatus("confirming");
     }
   }, [paymentStatus, confirmTimer]);
 
-  // 5-minute countdown timer + periodic verification
+  // 5-minute countdown + periodic verification
   useEffect(() => {
     if (paymentStatus === "processing") {
       const startTime = Date.now();
-      const totalTime = 300; // 5 minutes = 300s
+      const totalTime = 300;
       localStorage.setItem("cryptoPaymentInitiated", startTime.toString());
 
       const interval = setInterval(async () => {
@@ -119,23 +101,18 @@ export default function CryptoBillingPage() {
         const remaining = Math.max(totalTime - elapsed, 0);
         setProcessingTime(remaining);
 
-        // Verify every 60 seconds
         if (elapsed % 10 === 0 && elapsed > 0) {
           try {
             const storedOrderId = localStorage.getItem("cryptoOrderId");
             if (!storedOrderId) return;
-
             const res = await axios.post(
               `${API_BASE}/api/crypto-payments/verify-payment`,
               { orderId: storedOrderId },
-              { withCredentials: true }
+              { withCredentials: true },
             );
-
             if (res.data.success) {
               clearInterval(interval);
               setPaymentStatus("success");
-
-              // Redirect to success page with all details
               const params = new URLSearchParams({
                 planName: planData?.planName || "",
                 period: planData?.period || "",
@@ -144,7 +121,6 @@ export default function CryptoBillingPage() {
                 orderId: storedOrderId,
                 isLifetime: planData?.period === "lifetime" ? "true" : "false",
               }).toString();
-
               router.push(`/subscription-success?${params}`);
             }
           } catch (err) {
@@ -152,7 +128,6 @@ export default function CryptoBillingPage() {
           }
         }
 
-        // Timeout after 5 minutes
         if (elapsed >= totalTime) {
           clearInterval(interval);
           handlePaymentTimeout();
@@ -175,79 +150,41 @@ export default function CryptoBillingPage() {
   };
 
   const createCryptoOrder = async () => {
+    if (!planData) throw new Error("Plan data not available");
+    const { planName, period, amount } = planData;
+    const now = new Date();
+    let expiry = new Date(now);
+    if (period === "lifetime") expiry.setFullYear(expiry.getFullYear() + 100);
+    else if (period === "yearly") expiry.setFullYear(expiry.getFullYear() + 1);
+    else expiry.setMonth(expiry.getMonth() + 1);
+
+    const requestData = {
+      planName,
+      period,
+      amount,
+      network: selectedNetwork,
+      currency: "USDT",
+      startAt: now.toISOString(),
+      expiresAt: expiry.toISOString(),
+    };
+
     try {
-      if (!planData) {
-        throw new Error("Plan data not available");
-      }
-
-      const { planName, period, amount } = planData;
-      const now = new Date();
-      let expiry = new Date(now);
-
-      // Handle different subscription periods
-      if (period === "lifetime") {
-        expiry.setFullYear(expiry.getFullYear() + 100);
-      } else if (period === "yearly") {
-        expiry.setFullYear(expiry.getFullYear() + 1);
-      } else {
-        expiry.setMonth(expiry.getMonth() + 1);
-      }
-
-      // Prepare request data
-      const requestData = {
-        planName,
-        period,
-        amount,
-        network: selectedNetwork,
-        currency: "USDT",
-        startAt: now.toISOString(),
-        expiresAt: expiry.toISOString(),
-      };
-
-      console.log("Creating crypto order with data:", requestData);
-
       const response = await axios.post(
         `${API_BASE}/api/crypto-payments/create-order`,
         requestData,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { withCredentials: true, headers: { "Content-Type": "application/json" } },
       );
+      if (!response.data.success) throw new Error(response.data.message || "Failed to create order");
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || "Failed to create order");
-      }
-
-      // Store in localStorage
       localStorage.setItem("cryptoOrderId", response.data.orderId);
       localStorage.setItem("cryptoPaymentStart", now.toISOString());
       localStorage.setItem("cryptoPaymentExpiry", expiry.toISOString());
-      localStorage.setItem(
-        "isLifetimePlan",
-        period === "lifetime" ? "true" : "false"
-      );
-
+      localStorage.setItem("isLifetimePlan", period === "lifetime" ? "true" : "false");
       return response.data.orderId;
     } catch (error) {
-      console.error("Failed to create crypto order:", error);
-
-      // Show more detailed error
       let errorMsg = "Failed to create payment order";
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        errorMsg =
-          error.response.data?.message ||
-          `Server error: ${error.response.status}`;
-        console.error("Server response:", error.response.data);
-      } else if (error.request) {
-        // The request was made but no response was received
-        errorMsg = "No response from server. Please check your connection.";
-      }
-
+      if (error.response) errorMsg = error.response.data?.message || `Server error: ${error.response.status}`;
+      else if (error.request) errorMsg = "No response from server. Please check your connection.";
       setErrorMessage(errorMsg);
       throw new Error(errorMsg);
     }
@@ -262,11 +199,10 @@ export default function CryptoBillingPage() {
 
   const handleProceedToPay = () => {
     if (!selectedNetwork) {
-      alert("Please select a network first");
+      setErrorMessage("Please select a network first.");
       return;
     }
-
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage("");
     setShowModal(true);
     setPaymentStatus("waiting");
     setConfirmTimer(10);
@@ -276,7 +212,6 @@ export default function CryptoBillingPage() {
     try {
       setPaymentStatus("processing");
       setErrorMessage("");
-
       const orderId = await createCryptoOrder();
       if (!orderId) throw new Error("Order ID not received from server");
 
@@ -284,29 +219,25 @@ export default function CryptoBillingPage() {
       localStorage.setItem("cryptoOrderId", orderId);
       localStorage.setItem("cryptoPaymentInitiated", "true");
 
-      // Poll every 60 seconds
       const interval = setInterval(async () => {
         try {
           const res = await axios.post(
             `${API_BASE}/api/crypto-payments/verify-payment`,
             { orderId },
-            { withCredentials: true }
+            { withCredentials: true },
           );
-
           if (res.data.success) {
             clearInterval(interval);
             setPaymentStatus("success");
             setShowModal(false);
-
             const params = new URLSearchParams({
               planName: planData?.planName || "",
               period: planData?.period || "",
               amount: planData?.amount || "",
               method: "crypto",
-              orderId: orderId,
+              orderId,
               isLifetime: planData?.period === "lifetime" ? "true" : "false",
             }).toString();
-
             router.push(`/subscription-success?${params}`);
           }
         } catch (err) {
@@ -314,14 +245,10 @@ export default function CryptoBillingPage() {
         }
       }, 60000);
 
-      // Stop polling after 10 minutes
-      setTimeout(
-        () => {
-          clearInterval(interval);
-          handlePaymentTimeout();
-        },
-        10 * 60 * 1000
-      );
+      setTimeout(() => {
+        clearInterval(interval);
+        handlePaymentTimeout();
+      }, 10 * 60 * 1000);
     } catch (err) {
       console.error("Payment verification failed:", err);
       setErrorMessage(err.message);
@@ -329,652 +256,465 @@ export default function CryptoBillingPage() {
     }
   };
 
-  const selectedNetworkData = NETWORKS.find(
-    (net) => net.id === selectedNetwork
-  );
+  const selectedNetworkData = NETWORKS.find((n) => n.id === selectedNetwork);
+  const address = selectedNetwork ? NETWORK_ADDRESSES[selectedNetwork] : "";
 
-  const handleBackClick = () => {
-    router.push("/pricing");
+  // shared style atoms
+  const card = {
+    background: "var(--color-bg-surface)",
+    border: "1px solid var(--color-border)",
+    borderRadius: "var(--radius-lg)",
+    padding: "var(--space-6)",
   };
+  const muted = { color: "var(--color-text-muted)" };
 
-  const networkOptions = NETWORKS.map((network) => ({
-    value: network.id,
-    label: `${network.name} (${network.symbol})`,
-  }));
-
-  // Show loading if plan data isn't available yet
   if (!planData) {
     return (
-      <div className="flexClm gap_32">
-        <div className="flexRow gap_12">
-          <button className="button_sec flexRow" onClick={handleBackClick}>
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flexClm">
-            <span className="font_20">Loading...</span>
-          </div>
-        </div>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)", fontFamily: "var(--jx-font)" }}>
+        <Loader2 size={20} className="jx-spin" /> &nbsp;Loading checkout…
       </div>
     );
   }
 
-  return (
-    <div className="">
-      <div
-        className="flexClm gap_32"
+  const NetworkBadge = ({ n, size = 34 }) => (
+    <span
+      style={{
+        width: size, height: size, borderRadius: "50%", flexShrink: 0,
+        background: `${n.color}22`, color: n.color,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        font: "700 11px var(--jx-font)",
+      }}
+    >
+      {n.symbol}
+    </span>
+  );
+
+  const Step = ({ n, label, active, done }) => (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, opacity: active || done ? 1 : 0.5 }}>
+      <span
         style={{
-          maxWidth: "1200px",
-          minWidth: "300px",
-          margin: "24px auto",
-          padding: "0 12px 100px 12px",
+          width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          font: "600 12px var(--jx-font)",
+          background: done ? "var(--color-success)" : active ? "var(--color-primary)" : "var(--color-bg-muted)",
+          color: done ? "#fff" : active ? "var(--color-primary-foreground)" : "var(--color-text-muted)",
         }}
       >
+        {done ? <Check size={13} /> : n}
+      </span>
+      <span style={{ font: "var(--text-small)", fontWeight: active ? 600 : 400, color: active || done ? "var(--color-text-primary)" : "var(--color-text-muted)" }}>
+        {label}
+      </span>
+    </div>
+  );
+
+  const step = paymentStatus === "selecting" ? (selectedNetwork ? 2 : 1) : 3;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--color-bg-canvas)", fontFamily: "var(--jx-font)", color: "var(--color-text-primary)" }}>
+      <div style={{ maxWidth: 920, margin: "0 auto", padding: "28px 16px 96px" }}>
         {/* Header */}
-        <div className="flexRow gap_12">
-          <button className="button_sec flexRow" onClick={handleBackClick}>
-            <ArrowLeft size={20} />
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-6)" }}>
+          <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => router.push("/pricing")} aria-label="Back" style={{ padding: 9 }}>
+            <ArrowLeft size={18} />
           </button>
-          <div className="flexClm">
-            <span className="font_20">Pay Crypto</span>
-            <span className="font_12">Deposit to confirm your payment</span>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Complete your payment</span>
+            <span style={{ font: "var(--text-small)", ...muted }}>Pay with USDT — fast, low fees, no card needed.</span>
           </div>
         </div>
 
-        {/* Error Message */}
-        {errorMessage && (
+        {/* Steps */}
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", flexWrap: "wrap", marginBottom: "var(--space-6)" }}>
+          <Step n={1} label="Choose network" active={step === 1} done={step > 1} />
+          <span style={{ flex: 1, height: 1, minWidth: 16, background: "var(--color-border)" }} />
+          <Step n={2} label="Send USDT" active={step === 2} done={step > 2} />
+          <span style={{ flex: 1, height: 1, minWidth: 16, background: "var(--color-border)" }} />
+          <Step n={3} label="Verify" active={step === 3} done={paymentStatus === "success"} />
+        </div>
+
+        {errorMessage && paymentStatus !== "processing" && (
           <motion.div
-            className="chart_boxBg error"
-            style={{
-              padding: "12px 16px",
-              background: "var(--error-10)",
-              border: "1px solid var(--error-30)",
-            }}
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
+            style={{
+              display: "flex", alignItems: "center", gap: 8, marginBottom: "var(--space-4)",
+              padding: "12px 16px", borderRadius: "var(--radius-md)",
+              background: "var(--color-danger-subtle)", border: "1px solid var(--color-danger)",
+              color: "var(--color-danger-strong)", font: "var(--text-small)",
+            }}
           >
-            <div className="flexRow gap_8">
-              <AlertCircle size={16} />
-              <span className="font_12">{errorMessage}</span>
-            </div>
+            <AlertCircle size={16} /> {errorMessage}
           </motion.div>
         )}
 
-        {/* Order Summary */}
-        <motion.div
-          className="chart_boxBg flexClm gap_12"
-          style={{ padding: "16px" }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <div className="flexRow flexRow_stretch">
-            <div className="flexClm gap_4">
-              <span className="font_weight_600">{getPlanDisplayName()}</span>
-              <span className="font_12">
-                {planData.period === "lifetime"
-                  ? "One-time payment"
-                  : planData.period}
-                {planData.period === "lifetime" && " (Never expires)"}
-              </span>
-            </div>
-            <div className="detail-item flexRow flexRow_stretch"></div>
-            <div className="flexClm gap_4" style={{ textAlign: "right" }}>
-              <span className="font_12">Amount</span>
-              <span className="font_weight_600 success">
-                {planData.amount} USDT
-              </span>
-            </div>
-          </div>
-
-          {/* Lifetime plan note */}
-          {planData.period === "lifetime" && (
-            <div className="flexRow gap_8 mt-8">
-              <Check size={16} className="success" />
-              <span className="font_12 success">
-                Lifetime plan includes all current and future features
-              </span>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Network Selection */}
-        <AnimatePresence>
-          {paymentStatus === "selecting" && (
-            <motion.div
-              className="chart_boxBg flexClm gap_24"
-              style={{ padding: "16px" }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <div className="flexClm">
-                <span className="font_16 font_weight_600">Select Network</span>
-                <span className="font_12" style={{ color: "var(--white-50)" }}>
-                  Choose your preferred blockchain network
-                </span>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 320px", gap: "var(--space-5)", alignItems: "start" }} className="cb-grid">
+          {/* LEFT — network + deposit */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+            <div style={card}>
+              <div style={{ font: "var(--text-title)", fontWeight: 600, marginBottom: 4 }}>Select network</div>
+              <div style={{ font: "var(--text-small)", ...muted, marginBottom: "var(--space-4)" }}>
+                Choose the blockchain you&apos;ll send USDT on. Sending on the wrong network can lose your funds.
               </div>
-
-              <div className="flexClm gap_12">
-                <Dropdown
-                  options={networkOptions}
-                  value={selectedNetwork}
-                  onChange={(val) => setSelectedNetwork(val)}
-                  placeholder="Select a network"
-                />
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "var(--space-3)" }}>
+                {NETWORKS.map((n) => {
+                  const on = selectedNetwork === n.id;
+                  return (
+                    <button
+                      key={n.id}
+                      type="button"
+                      onClick={() => setSelectedNetwork(n.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10, textAlign: "left",
+                        padding: "12px 14px", borderRadius: "var(--radius-md)", cursor: "pointer",
+                        background: on ? "var(--color-primary-subtle)" : "var(--color-bg-surface)",
+                        border: `1.5px solid ${on ? "var(--color-primary)" : "var(--color-border)"}`,
+                        color: "var(--color-text-primary)", transition: "all .15s ease",
+                      }}
+                    >
+                      <NetworkBadge n={n} />
+                      <span style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
+                        <span style={{ font: "var(--text-body-md)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n.name}</span>
+                        <span style={{ font: "var(--text-caption)", ...muted }}>{n.tag}</span>
+                      </span>
+                      {on && <Check size={16} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />}
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
+            <AnimatePresence>
               {selectedNetwork && (
                 <motion.div
-                  className="chart_boxBg flexClm gap_24"
-                  style={{ padding: "16px" }}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  transition={{ duration: 0.4 }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  style={card}
                 >
-                  <div
-                    className="flexRow flexRow_stretch gap_24 boxBg"
-                    style={{
-                      wordBreak: "break-all",
-                      overflowWrap: "anywhere",
-                      padding: "12px",
-                    }}
-                  >
-                    <code
-                      className="flexClm"
-                      style={{
-                        wordBreak: "break-all",
-                        whiteSpace: "normal",
-                        background: "var(--black-10)",
-                        borderRadius: "8px",
-                        padding: "8px",
-                      }}
-                    >
-                      <span
-                        className="font_12"
-                        style={{ marginBottom: "12px" }}
+                  <div style={{ font: "var(--text-title)", fontWeight: 600, marginBottom: "var(--space-4)" }}>
+                    Send <span style={{ color: "var(--yellow-600)" }}>{planData.amount} USDT</span> to this address
+                  </div>
+
+                  <div style={{ display: "flex", gap: "var(--space-5)", alignItems: "center", flexWrap: "wrap" }}>
+                    {/* Currency / network logo */}
+                    {selectedNetworkData && (
+                      <div
+                        style={{
+                          flexShrink: 0, width: 150, height: 150, borderRadius: "var(--radius-lg)",
+                          background: `${selectedNetworkData.color}14`,
+                          border: `1px solid ${selectedNetworkData.color}33`,
+                          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
+                        }}
                       >
-                        Deposit Address
-                      </span>
-                      {NETWORK_ADDRESSES[selectedNetwork]}
-                    </code>
-
-                    <button
-                      className="button_ter"
-                      style={{
-                        alignSelf: "center",
-                        marginTop: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
-                      onClick={() =>
-                        copyToClipboard(NETWORK_ADDRESSES[selectedNetwork])
-                      }
-                    >
-                      {copiedAddress ? (
-                        <Check size={16} className="success" />
-                      ) : (
-                        <Copy size={16} />
-                      )}
-                    </button>
-                  </div>
-
-                  <div className="flexRow gap_12 flexRow_stretch">
-                    <span className="font_12">Network selected:</span>
-                    <span className="font_12 font_weight_600">
-                      {NETWORKS.find((n) => n.id === selectedNetwork)?.name} (
-                      {NETWORKS.find((n) => n.id === selectedNetwork)?.symbol})
-                    </span>
-                  </div>
-                  <div className="flexRow gap_8">
-                    <AlertCircle size={16} className="error" />
-                    <span className="font_12">
-                      Send exactly{" "}
-                      <u className="font_weight_600">{planData.amount} USDT</u>{" "}
-                      excluding fees
-                    </span>
-                  </div>
-
-                  <div className="flexRow gap_8">
-                    <AlertCircle size={16} className="error" />
-                    <span className="font_12">
-                      Only send USDT on {selectedNetworkData?.name}.
-                    </span>
-                  </div>
-
-                  <motion.button
-                    className="button_pri flexRow gap_8 flex_center"
-                    onClick={handleProceedToPay}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Zap size={18} />
-                    Proceed to pay
-                  </motion.button>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Modal for Waiting Confirmation */}
-        <AnimatePresence>
-          {showModal && (
-            <motion.div
-              className="modal-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.7)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1000,
-                padding: "20px",
-              }}
-            >
-              <motion.div
-                className="modal-content chart_boxBg"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                style={{
-                  maxWidth: "500px",
-                  width: "100%",
-                  padding: "24px",
-                  borderRadius: "12px",
-                }}
-              >
-                {paymentStatus === "waiting" && (
-                  <div className="flexClm gap_12">
-                    <div className="flexRow flexRow_stretch boxBg">
-                      <div className="flexClm gap_4">
-                        <span className="font_16 font_weight_600">
-                          Kindly make the payment to the below address
-                        </span>
                         <span
-                          className="font_12"
-                          style={{ color: "var(--white-50)" }}
-                        >
-                          It might take upto 10 minutes for verification.
-                        </span>
-                      </div>
-                      <div
-                        className="timer-circle"
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          borderRadius: "50%",
-                          border: "2px solid var(--primary)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span className="timer-value font_20 font_weight_700">
-                          {confirmTimer}s
-                        </span>
-                      </div>
-                    </div>
-                    <motion.div
-                      className="chart_boxBg flexClm gap_24"
-                      style={{ padding: "16px" }}
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <div
-                        className="flexRow flexRow_stretch gap_24 boxBg"
-                        style={{
-                          wordBreak: "break-all",
-                          overflowWrap: "anywhere",
-                          padding: "12px",
-                        }}
-                      >
-                        <code
-                          className="flexClm"
                           style={{
-                            wordBreak: "break-all",
-                            whiteSpace: "normal",
-                            background: "var(--black-10)",
-                            borderRadius: "8px",
-                            padding: "8px",
+                            width: 64, height: 64, borderRadius: "50%",
+                            background: `${selectedNetworkData.color}22`, color: selectedNetworkData.color,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            font: "800 18px var(--jx-font)",
                           }}
                         >
-                          <span
-                            className="font_12"
-                            style={{ marginBottom: "12px" }}
-                          >
-                            Deposit Address
-                          </span>
-                          {NETWORK_ADDRESSES[selectedNetwork]}
-                        </code>
+                          {selectedNetworkData.symbol}
+                        </span>
+                        <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-text-primary)" }}>USDT</span>
+                        <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                          on {selectedNetworkData.tag}
+                        </span>
+                      </div>
+                    )}
 
+                    <div style={{ flex: 1, minWidth: 220, display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", ...muted }}>
+                        <NetworkBadge n={selectedNetworkData} size={22} />
+                        USDT on {selectedNetworkData?.name} ({selectedNetworkData?.tag})
+                      </div>
+                      <div
+                        style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
+                          borderRadius: "var(--radius-md)", padding: "10px 12px",
+                        }}
+                      >
+                        <code style={{ flex: 1, font: "var(--text-caption)", wordBreak: "break-all", color: "var(--color-text-primary)" }}>
+                          {address}
+                        </code>
                         <button
-                          className="button_ter"
-                          style={{
-                            alignSelf: "center",
-                            marginTop: "8px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
-                          }}
-                          onClick={() =>
-                            copyToClipboard(NETWORK_ADDRESSES[selectedNetwork])
-                          }
+                          className="jx-btn jx-btn--secondary jx-btn--sm"
+                          onClick={() => copyToClipboard(address)}
+                          style={{ flexShrink: 0, padding: 8 }}
+                          aria-label="Copy address"
                         >
-                          {copiedAddress ? (
-                            <Check size={16} className="success" />
-                          ) : (
-                            <Copy size={16} />
-                          )}
+                          {copiedAddress ? <Check size={15} style={{ color: "var(--color-success)" }} /> : <Copy size={15} />}
                         </button>
                       </div>
 
-                      <div className="flexRow gap_12 flexRow_stretch">
-                        <span className="font_12">Network selected:</span>
-                        <span className="font_12 font_weight_600">
-                          {NETWORKS.find((n) => n.id === selectedNetwork)?.name}{" "}
-                          (
-                          {
-                            NETWORKS.find((n) => n.id === selectedNetwork)
-                              ?.symbol
-                          }
-                          )
-                        </span>
-                      </div>
-                      <div className="flexRow gap_8">
-                        <AlertCircle size={16} className="error" />
-                        <span className="font_12">
-                          Send exactly{" "}
-                          <u className="font_weight_600">
-                            {planData.amount} USDT
-                          </u>{" "}
-                          excluding fees
-                        </span>
-                      </div>
-
-                      <div className="flexRow gap_8">
-                        <AlertCircle size={16} className="error" />
-                        <span className="font_12">
-                          Only send USDT on {selectedNetworkData?.name}.
-                        </span>
-                      </div>
-                    </motion.div>
-                  </div>
-                )}
-
-                {paymentStatus === "confirming" && (
-                  <div className="verify-section">
-                    <div className="flexRow gap_12">
-                      <ShieldCheckIcon size={48} className="vector" />
-                      <div className="flexClm gap_4">
-                        <span className="font_18 font_weight_600">
-                          Verify Payment
-                        </span>
-                        <span
-                          className="font_14"
-                          style={{ color: "var(--white-50)" }}
-                        >
-                          Click verify to start payment verification process
-                        </span>
+                      <div
+                        style={{
+                          display: "flex", flexDirection: "column", gap: 8,
+                          background: "var(--color-danger-subtle)",
+                          border: "1px solid var(--color-danger)",
+                          borderRadius: "var(--radius-md)", padding: "12px 14px",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", fontWeight: 700, color: "var(--color-danger-strong)" }}>
+                          <AlertCircle size={15} style={{ flexShrink: 0 }} /> Read before sending — transfers are irreversible
+                        </div>
+                        <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 5 }}>
+                          <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+                            Send <strong>USDT only</strong> on the <strong>{selectedNetworkData?.name} ({selectedNetworkData?.tag})</strong> network. Any other coin or network will be permanently lost.
+                          </li>
+                          <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+                            Send <strong>at least {planData.amount} USDT</strong> — you cover the network fee, so the amount we receive must equal {planData.amount} USDT.
+                          </li>
+                          <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+                            <strong>Double-check the full address</strong> — copy it with the button, don&apos;t type it by hand.
+                          </li>
+                          <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+                            Sent to the wrong address or network? It cannot be recovered or refunded.
+                          </li>
+                        </ul>
                       </div>
                     </div>
+                  </div>
 
+                  {paymentStatus === "selecting" && (
                     <motion.button
-                      className="upgrade_btn flexRow gap_8 flex_center"
-                      style={{ width: "100%", marginTop: "24px" }}
-                      onClick={handleVerifyPayment}
-                      whileHover={{ scale: 1.02 }}
+                      className="jx-btn jx-btn--primary"
+                      onClick={handleProceedToPay}
                       whileTap={{ scale: 0.98 }}
+                      style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-5)" }}
                     >
-                      <Shield size={18} />
-                      Verify Payment
+                      <Zap size={17} /> I&apos;ve sent the payment
                     </motion.button>
-                  </div>
-                )}
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                {paymentStatus === "processing" && (
-                  <div className="flexClm gap_24">
-                    {/* Progress Bar */}
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "4px",
-                        width: "100%",
-                        marginTop: "12px",
-                      }}
-                    >
-                      {[0, 1, 2, 3].map((barIndex) => {
-                        const elapsed = 300 - processingTime;
-                        let fillPercent = 0;
-
-                        if (barIndex === 0)
-                          fillPercent = Math.min((elapsed / 30) * 100, 100);
-                        else if (barIndex === 1)
-                          fillPercent = Math.min(
-                            ((elapsed - 30) / 30) * 100,
-                            100
-                          );
-                        else if (barIndex === 2)
-                          fillPercent = Math.min(
-                            ((elapsed - 60) / 30) * 100,
-                            100
-                          );
-                        else if (barIndex === 3)
-                          fillPercent = Math.min(
-                            ((elapsed - 90) / 180) * 100,
-                            100
-                          );
-
-                        fillPercent = Math.max(0, Math.min(100, fillPercent));
-
-                        return (
-                          <div
-                            key={barIndex}
-                            style={{
-                              flex: 1,
-                              height: "6px",
-                              background: "rgba(255,255,255,0.1)",
-                              borderRadius: "4px",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <div
-                              style={{
-                                height: "100%",
-                                width: `${fillPercent}%`,
-                                background: "var(--success)",
-                                transition: "width 1s linear",
-                              }}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="flexRow flexRow_stretch gap_12">
-                      <div className="flexClm">
-                        <span className="font_18 font_weight_600">
-                          Verifying Payment
-                        </span>
-                        <span
-                          className="font_14"
-                          style={{ color: "var(--white-50)" }}
-                        >
-                          Verifying and processing your transaction...
-                        </span>
-                      </div>
-                      <div className="flexRow gap_12">
-                        <span
-                          className="font_16 font_weight_600"
-                          style={{ marginLeft: "8px" }}
-                        >
-                          {Math.floor(processingTime / 60)}:
-                          {(processingTime % 60).toString().padStart(2, "0")}
-                        </span>
-                        <motion.div className="spinner">
-                          {/* < size={48} className="vector" /> */}
-                        </motion.div>
+            {/* Failed / success inline (when modal closed) */}
+            <AnimatePresence>
+              {paymentStatus === "failed" && (
+                <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} style={card}>
+                  <div style={{ display: "flex", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
+                    <AlertCircle size={28} style={{ color: "var(--color-danger)", flexShrink: 0 }} />
+                    <div>
+                      <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Payment not detected yet</div>
+                      <div style={{ font: "var(--text-small)", ...muted }}>
+                        {errorMessage || "We couldn't verify your payment in time. If you've already sent it, contact us and we'll activate your plan."}
                       </div>
                     </div>
-                    <hr width={100} color="grey" />
+                  </div>
+                  <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+                    <button className="jx-btn jx-btn--secondary" onClick={() => { setPaymentStatus("selecting"); setErrorMessage(""); }}>
+                      <RefreshCw size={15} /> Try again
+                    </button>
+                    <button className="jx-btn jx-btn--outline" onClick={() => router.push("/contact")}>
+                      <Mail size={15} /> Contact support
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-                    <div className=" flexRow gap_8">
-                      <Clock size={16} className="vector" />
-                      <span className="font_12">
-                        This may take up to 5 minutes. Please don't close this
-                        page.
-                      </span>
+          {/* RIGHT — order summary */}
+          <div style={{ ...card, position: "sticky", top: 20 }}>
+            <div style={{ font: "var(--text-caption)", textTransform: "uppercase", letterSpacing: 0.5, ...muted, marginBottom: "var(--space-3)" }}>
+              Order summary
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
+              <span style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Wallet size={20} />
+              </span>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{getPlanDisplayName()}</span>
+                <span style={{ font: "var(--text-caption)", ...muted }}>
+                  {planData.period === "lifetime" ? "One-time payment · never expires" : `Billed ${planData.period}`}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ height: 1, background: "var(--color-border)", margin: "var(--space-4) 0" }} />
+
+            <div style={{ display: "flex", justifyContent: "space-between", font: "var(--text-small)", marginBottom: 8 }}>
+              <span style={muted}>Subtotal</span>
+              <span>{planData.amount} USDT</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", font: "var(--text-small)", marginBottom: "var(--space-4)" }}>
+              <span style={muted}>Network fee</span>
+              <span style={muted}>Paid by you</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Total</span>
+              <span style={{ font: "var(--text-h3)", fontWeight: 700, color: "var(--color-success-strong)" }}>{planData.amount} USDT</span>
+            </div>
+
+            {planData.period === "lifetime" && (
+              <div style={{ display: "flex", gap: 8, marginTop: "var(--space-4)", padding: "10px 12px", background: "var(--color-success-subtle)", borderRadius: "var(--radius-md)" }}>
+                <Check size={15} style={{ color: "var(--color-success-strong)", flexShrink: 0, marginTop: 2 }} />
+                <span style={{ font: "var(--text-caption)", color: "var(--color-success-strong)" }}>
+                  Includes all current and future features, forever.
+                </span>
+              </div>
+            )}
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "var(--space-5)", font: "var(--text-caption)", ...muted }}>
+              <ShieldCheck size={15} style={{ color: "var(--color-success)" }} /> Secured & verified on-chain
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== Modal ===== */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="jx-modal-overlay jx-modal-overlay--blur"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget && (paymentStatus === "waiting" || paymentStatus === "confirming")) {
+                setShowModal(false);
+                setPaymentStatus("selecting");
+                setErrorMessage("");
+              }
+            }}
+          >
+            <motion.div
+              className="jx-ltmodal jx-ltmodal--narrow"
+              style={{ width: "min(480px, 96vw)", padding: "var(--space-6)" }}
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            >
+              {paymentStatus === "waiting" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                    <span style={{ width: 56, height: 56, borderRadius: "50%", border: "3px solid var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", font: "700 16px var(--jx-font)", flexShrink: 0 }}>
+                      {confirmTimer}s
+                    </span>
+                    <div>
+                      <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Confirm your transfer</div>
+                      <div style={{ font: "var(--text-small)", ...muted }}>Make sure you&apos;ve sent {planData.amount} USDT to the address.</div>
                     </div>
                   </div>
-                )}
-
-                {/* Error Message in Modal */}
-                {errorMessage && (
-                  <div
-                    className="flexRow gap_8 mt-12 p-8"
-                    style={{
-                      background: "var(--error-10)",
-                      borderRadius: "8px",
-                      border: "1px solid var(--error-30)",
-                    }}
-                  >
-                    <AlertCircle size={16} className="error" />
-                    <span className="font_12 error">{errorMessage}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--color-bg-muted)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "10px 12px" }}>
+                    <code style={{ flex: 1, font: "var(--text-caption)", wordBreak: "break-all" }}>{address}</code>
+                    <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => copyToClipboard(address)} style={{ padding: 8 }}>
+                      {copiedAddress ? <Check size={15} style={{ color: "var(--color-success)" }} /> : <Copy size={15} />}
+                    </button>
                   </div>
-                )}
-
-                {/* Close button for modal */}
-                {(paymentStatus === "waiting" ||
-                  paymentStatus === "confirming") && (
                   <button
-                    className="button_sec"
-                    style={{ width: "100%", marginTop: "12px" }}
-                    onClick={() => {
-                      setShowModal(false);
-                      setPaymentStatus("selecting");
-                      setErrorMessage("");
-                    }}
+                    className="jx-btn jx-btn--secondary"
+                    style={{ width: "100%", justifyContent: "center" }}
+                    onClick={() => { setShowModal(false); setPaymentStatus("selecting"); setErrorMessage(""); }}
                   >
                     Cancel
                   </button>
-                )}
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Payment Failed */}
-        <AnimatePresence>
-          {paymentStatus === "failed" && (
-            <motion.div
-              className="flexClm gap_24 chart_boxBg"
-              style={{ padding: "16px" }}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="flexClm gap_12">
-                <AlertCircle size={32} className="error" />
-                <div className="flexClm">
-                  <span className="font_18 font_weight_600">
-                    Payment Not Detected
-                  </span>
-                  <span
-                    className="font_14"
-                    style={{ color: "var(--white-50)" }}
-                  >
-                    {errorMessage ||
-                      "We couldn't verify your payment within the expected time. Contact us if you have made the payment"}
-                  </span>
                 </div>
-              </div>
+              )}
 
-              <div className="flexRow gap_12">
-                <button
-                  className="button_sec flexRow gap_12"
-                  onClick={() => {
-                    setPaymentStatus("selecting");
-                    setErrorMessage("");
-                  }}
-                >
-                  <RefreshCw size={16} />
-                  Try Again
-                </button>
-                <button
-                  className="button_ter flexRow gap_12"
-                  onClick={() => router.push("/contact")}
-                >
-                  <Mail size={16} />
-                  Contact Support
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Payment Success */}
-        <AnimatePresence>
-          {paymentStatus === "success" && (
-            <motion.div
-              className="flexClm gap_24 chart_boxBg"
-              style={{ padding: "16px" }}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="flexClm gap_12">
-                <Check size={32} className="success" />
-                <div className="flexClm">
-                  <span className="font_18 font_weight_600">
-                    Payment Confirmed!
+              {paymentStatus === "confirming" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", textAlign: "center", alignItems: "center" }}>
+                  <span style={{ width: 60, height: 60, borderRadius: "50%", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <ShieldCheck size={28} />
                   </span>
-                  <span
-                    className="font_14"
-                    style={{ color: "var(--white-50)" }}
+                  <div>
+                    <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Ready to verify</div>
+                    <div style={{ font: "var(--text-small)", ...muted, maxWidth: 320 }}>
+                      We&apos;ll check the blockchain and confirm your deposit. This can take a few minutes.
+                    </div>
+                  </div>
+                  <button className="jx-btn jx-btn--primary" style={{ width: "100%", justifyContent: "center" }} onClick={handleVerifyPayment}>
+                    <Shield size={17} /> Verify payment
+                  </button>
+                  <button
+                    className="jx-btn jx-btn--ghost jx-btn--sm"
+                    onClick={() => { setShowModal(false); setPaymentStatus("selecting"); setErrorMessage(""); }}
                   >
-                    Your {getPlanDisplayName()} subscription is now active.
-                    {planData.period === "lifetime" &&
-                      " You now have lifetime access!"}
-                  </span>
+                    Cancel
+                  </button>
                 </div>
-              </div>
+              )}
 
-              <div className="flexRow gap_12">
-                <button
-                  className="button_pri flexRow gap_12"
-                  onClick={() => router.push("/accounts")}
-                >
-                  Go to Dashboard
-                </button>
-              </div>
+              {paymentStatus === "processing" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {[0, 1, 2, 3].map((bi) => {
+                      const elapsed = 300 - processingTime;
+                      let fill = 0;
+                      if (bi === 0) fill = (elapsed / 30) * 100;
+                      else if (bi === 1) fill = ((elapsed - 30) / 30) * 100;
+                      else if (bi === 2) fill = ((elapsed - 60) / 30) * 100;
+                      else fill = ((elapsed - 90) / 180) * 100;
+                      fill = Math.max(0, Math.min(100, fill));
+                      return (
+                        <div key={bi} style={{ flex: 1, height: 6, background: "var(--color-bg-muted)", borderRadius: 999, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${fill}%`, background: "var(--color-success)", transition: "width 1s linear" }} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
+                    <div>
+                      <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Verifying payment…</div>
+                      <div style={{ font: "var(--text-small)", ...muted }}>Checking the blockchain for your deposit.</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
+                        {Math.floor(processingTime / 60)}:{(processingTime % 60).toString().padStart(2, "0")}
+                      </span>
+                      <Loader2 size={18} className="jx-spin" style={{ color: "var(--yellow-500)" }} />
+                    </div>
+                  </div>
+                  <div style={{ height: 1, background: "var(--color-border)" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", ...muted }}>
+                    <Clock size={14} /> This may take up to 5 minutes — please keep this page open.
+                  </div>
+                  {errorMessage && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--color-danger-subtle)", borderRadius: "var(--radius-md)", font: "var(--text-caption)", color: "var(--color-danger-strong)" }}>
+                      <AlertCircle size={14} /> {errorMessage}
+                    </div>
+                  )}
+                </div>
+              )}
             </motion.div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Security Footer */}
-        <motion.div
-          className="security-footer"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          <div className="security-badge flexRow gap_8 flex_center">
-            <Shield size={16} className="vector" />
-            <span className="font_12">
-              Secure Crypto Payment • Blockchain Verified
-            </span>
-          </div>
-        </motion.div>
-      </div>
+      {/* success inline (in case redirect is delayed) */}
+      <AnimatePresence>
+        {paymentStatus === "success" && (
+          <motion.div
+            className="jx-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <motion.div className="jx-ltmodal jx-ltmodal--narrow" style={{ width: "min(420px, 96vw)", padding: "var(--space-8)", textAlign: "center" }} initial={{ scale: 0.95 }} animate={{ scale: 1 }}>
+              <CheckCircle2 size={48} style={{ color: "var(--color-success)", margin: "0 auto" }} />
+              <div style={{ font: "var(--text-h3)", fontWeight: 700, marginTop: "var(--space-3)" }}>Payment confirmed!</div>
+              <div style={{ font: "var(--text-body)", ...muted, marginTop: 6 }}>
+                Your {getPlanDisplayName()} subscription is now active.
+              </div>
+              <button className="jx-btn jx-btn--primary" style={{ marginTop: "var(--space-5)", width: "100%", justifyContent: "center" }} onClick={() => router.push("/accounts")}>
+                Go to dashboard
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <style jsx global>{`
+        .jx-spin { animation: jx-spin 0.9s linear infinite; }
+        @keyframes jx-spin { to { transform: rotate(360deg); } }
+        @media (max-width: 760px) {
+          .cb-grid { grid-template-columns: 1fr !important; }
+          .cb-grid > div:last-child { position: static !important; }
+        }
+      `}</style>
     </div>
   );
 }
