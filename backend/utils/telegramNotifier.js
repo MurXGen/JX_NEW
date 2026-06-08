@@ -10,13 +10,7 @@ const sendTelegramNotification = async ({
 }) => {
   try {
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    // Payments go to the dedicated payments chat; everything else to the
-    // general chat. Falls back to the general chat if the payments one
-    // isn't configured.
-    const CHAT_ID =
-      type === "payment"
-        ? process.env.TELEGRAM_PAYMENTS_CHAT_ID || process.env.TELEGRAM_CHAT_ID
-        : process.env.TELEGRAM_CHAT_ID;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     let header = "";
     if (type === "register") header = "📝 New User Registration";

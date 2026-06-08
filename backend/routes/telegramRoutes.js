@@ -28,40 +28,26 @@ router.get("/info", async (req, res) => {
 });
 
 router.get("/test", async (req, res) => {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const generalChat = process.env.TELEGRAM_CHAT_ID;
-  const paymentsChat = process.env.TELEGRAM_PAYMENTS_CHAT_ID;
-
-  if (!token) {
-    return res.status(400).json({ ok: false, message: "Missing TELEGRAM_BOT_TOKEN" });
-  }
-
-  // Send a test message to each configured chat and report per-chat result,
-  // so you can see exactly which chat the bot can/can't post to.
-  const targets = [
-    { label: "general (TELEGRAM_CHAT_ID)", chatId: generalChat },
-    { label: "payments (TELEGRAM_PAYMENTS_CHAT_ID)", chatId: paymentsChat },
-  ].filter((t) => t.chatId);
-
-  const results = [];
-  for (const t of targets) {
-    try {
-      await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
-        chat_id: t.chatId,
-        text: `✅ JournalX test → ${t.label}. Delivery works.`,
+  try {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    if (!token || !chatId) {
+      return res.status(400).json({
+        ok: false,
+        message: "Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID in env",
+        hasToken: !!token,
+        hasChatId: !!chatId,
       });
-      results.push({ ...t, ok: true });
-    } catch (e) {
-      results.push({ ...t, ok: false, error: e.response?.data?.description || e.message });
     }
+    const r = await axios.post(
+      `https://api.telegram.org/bot${token}/sendMessage`,
+      { chat_id: chatId, text: "✅ JournalX Telegram test message — delivery works." },
+    );
+    res.json({ ok: true, result: r.data });
+  } catch (e) {
+    // Surfaces "chat not found" / "bot was blocked" / bad token, etc.
+    res.status(500).json({ ok: false, error: e.response?.data || e.message });
   }
-
-  res.json({
-    hasToken: !!token,
-    hasGeneralChat: !!generalChat,
-    hasPaymentsChat: !!paymentsChat,
-    results,
-  });
 });
 
 router.post("/webhook", async (req, res) => {
