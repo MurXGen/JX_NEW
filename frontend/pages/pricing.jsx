@@ -17,7 +17,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Cookies from "js-cookie";
 import PaddleLoader from "../components/payments/PaddleLoader";
 import { LandingNav, LandingFooter } from "@/components/landingPage/LandingChrome";
 
@@ -157,14 +156,29 @@ export default function Pricing() {
   }, []);
 
   const openPaddleCheckout = async (priceId) => {
-    if (!window?.Paddle) {
-      alert("Payment system is loading. Please wait a moment and try again.");
+    if (!priceId) {
+      alert("This plan isn't available for card payment right now. Please try crypto, or contact support.");
+      return;
+    }
+    if (!window?.Paddle?.Checkout) {
+      alert("Payment system is still loading. Please wait a moment and try again.");
       return;
     }
 
-    // The Paddle webhook activates the subscription using custom_data.userId.
-    // Without this, the payment succeeds but the user is never upgraded.
-    const userId = Cookies.get("userId");
+    // The Paddle webhook activates the subscription via custom_data.userId.
+    // The userId cookie is httpOnly (not readable here), so fetch it from the
+    // authenticated user-info endpoint instead.
+    let userId;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`, {
+        credentials: "include",
+      });
+      const json = await res.json();
+      userId = json?.userData?.userId || json?.userData?._id || json?.userId;
+    } catch (e) {
+      console.error("Could not resolve user for checkout:", e);
+    }
+
     if (!userId) {
       router.push("/login?redirect=/pricing");
       return;

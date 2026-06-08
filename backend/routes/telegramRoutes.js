@@ -1,6 +1,10 @@
 const express = require("express");
 const axios = require("axios");
 const Order = require("../models/Orders");
+const User = require("../models/User");
+const {
+  updateUserAfterCryptoPayment,
+} = require("../utils/updateUserAfterCryptoPayment");
 
 const router = express.Router();
 
@@ -32,11 +36,31 @@ router.post("/webhook", async (req, res) => {
 
         console.log("🟢 DB Update Result:", updateResult);
 
+        // 🔥 Activate the user's subscription immediately so it doesn't depend
+        // on the frontend polling loop. The waiting page's verify-payment poll
+        // will then succeed and redirect the user.
+        let activated = false;
+        try {
+          if (updateResult?.userId) {
+            const user = await User.findById(updateResult.userId);
+            if (user) {
+              await updateUserAfterCryptoPayment(user, updateResult);
+              await user.save();
+              activated = true;
+              console.log("🟢 Subscription activated for", user.email);
+            }
+          }
+        } catch (e) {
+          console.error("⚠️ Subscription activation failed:", e.message);
+        }
+
         await axios.post(
           `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
           {
             chat_id: chatId,
-            text: `✅ Order *${orderId}* marked as *PAID*.`,
+            text: activated
+              ? `✅ Order *${orderId}* marked as *PAID* and subscription activated.`
+              : `✅ Order *${orderId}* marked as *PAID*. ⚠️ Could not auto-activate the subscription — check logs.`,
             parse_mode: "Markdown",
           },
         );
