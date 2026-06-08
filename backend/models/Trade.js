@@ -152,6 +152,24 @@ const tradeSchema = new mongoose.Schema(
     reason: [{ type: String }], // array of strings
     learnings: { type: String, default: "" },
 
+    // --- Revamp v2 context fields ---
+    sizeUnit: { type: String, enum: ["asset", "usd", ""], default: "" }, // how user entered size
+    strategy: { type: String, default: "" }, // setup tag (incl. custom)
+    marketCondition: { type: String, default: "" }, // trending | ranging | volatile
+    timeframe: { type: String, default: "" }, // "1H", "4H" or custom "45m"
+    confidence: { type: Number, min: 0, max: 5, default: 0 }, // stars
+    emotion: { type: String, default: "" }, // emotion at entry (incl. custom)
+    mistakes: [{ type: String }], // self-reported mistakes
+
+    // v2 screenshots — up to 4 per trade (10MB total), stored on Backblaze
+    images: [
+      {
+        url: { type: String },
+        sizeKB: { type: Number, default: 0 },
+        _id: false,
+      },
+    ],
+
     // Calculations
     rr: { type: String, default: "" },
     pnl: { type: Number, default: 0 },

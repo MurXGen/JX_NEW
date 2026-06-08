@@ -13,6 +13,23 @@ const DataContext = createContext();
 
 export const useData = () => useContext(DataContext);
 
+/* Pages that must never trigger an authenticated user-info call */
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/view-trades",
+  "/share-trades",
+  "/pricing",
+  "/pricingpage",
+  "/contact",
+  "/privacy-policy",
+  "/terms-services",
+  "/refund-policy",
+  "/404",
+];
+
 export const DataProvider = ({ children }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -30,6 +47,17 @@ export const DataProvider = ({ children }) => {
   const [apiCallFailed, setApiCallFailed] = useState(false);
 
   const loadData = async () => {
+    /* Skip entirely on public/auth pages or when there is no session —
+       otherwise the 401 from user-info surfaces as a dev error overlay
+       on the login screen. */
+    if (
+      PUBLIC_PATHS.includes(router.pathname) ||
+      Cookies.get("isVerified") !== "yes"
+    ) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setApiCallFailed(false);
 
@@ -69,7 +97,12 @@ export const DataProvider = ({ children }) => {
       // Compute derived data from fresh trades
       updateDerivedData(result.trades || []);
     } catch (err) {
-      console.error("API load failed, falling back to cache:", err);
+      if (err?.response?.status === 401) {
+        /* expected when the session expired — warn, don't error-overlay */
+        console.warn("Session not authenticated — using cached data if any");
+      } else {
+        console.warn("API load failed, falling back to cache:", err?.message);
+      }
       setApiCallFailed(true);
 
       // Fallback to IndexedDB
@@ -154,8 +187,12 @@ export const DataProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    /* re-evaluate on route change: public → private navigation (e.g.
+       right after login) loads data once; already-loaded data is kept */
+    if (userData && !PUBLIC_PATHS.includes(router.pathname)) return;
     loadData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.pathname]);
 
   // URL verification effect
   useEffect(() => {

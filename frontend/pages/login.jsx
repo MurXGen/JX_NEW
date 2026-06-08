@@ -1,318 +1,227 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Head from "next/head";
+/* /login — revamp v2 auth. Email+password with Turnstile, Google OAuth,
+   unverified accounts drop into the 6-digit OTP step, forgot-password link. */
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
-import { ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
-import { containerVariants, childVariants } from "@/animations/motionVariants";
-import { saveToIndexedDB } from "@/utils/indexedDB";
 import Cookies from "js-cookie";
-import Navbar from "@/components/Auth/Navbar";
-import ToastMessage from "@/components/ui/ToastMessage";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import WelcomeModal from "@/components/ui/WelcomeModal";
-import { FcGoogle } from "react-icons/fc";
+import { ArrowLeft, Eye, EyeOff, Lock, Mail } from "lucide-react";
+
 import { Turnstile } from "@marsidev/react-turnstile";
-import LegalLinks from "@/components/landingPage/LegalLinks";
+import { AuthLayout, Button, OtpInput, Toast } from "@/components/revampV2";
+import { saveToIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function Login() {
-  const router = useRouter();
-  const [turnstileToken, setTurnstileToken] = useState(null);
-  const [email, setEmail] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-  const domains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"];
-
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [popup, setPopup] = useState({ message: "", type: "" }); // ✅ message + type
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  useEffect(() => {
-    const isVerified = Cookies.get("isVerified");
-    if (isVerified === "yes") {
-      router.push("/accounts");
-    }
-  }, [router]);
-
-  const handleLogin = async () => {
-    if (!turnstileToken) {
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message: "Please complete the CAPTCHA before logging in.",
-          type: "error",
-          id: Date.now(),
-        });
-      }, 0);
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const res = await axios.post(
-        `${API_BASE}/api/auth/login`,
-        { email, password, turnstileToken },
-        { withCredentials: true },
-      );
-
-      const { userData, isVerified } = res.data;
-
-      // ✅ Save user data
-      await saveToIndexedDB("user-data", userData);
-      if (userData?.plans) {
-        await saveToIndexedDB("plans", userData.plans);
-      }
-
-      // ✅ Handle verified users
-      if (isVerified === "yes") {
-        Cookies.set("isVerified", "yes", {
-          path: "/",
-          sameSite: "Strict",
-          expires: 3650,
-        });
-        localStorage.setItem("guide", "yes");
-
-        // ✅ Show success toast only
-        setPopup({
-          message: "Login successful! Redirecting to your accounts...",
-          type: "success",
-          id: Date.now(),
-        });
-
-        // ✅ Redirect after short delay
-        setTimeout(() => {
-          router.push("/accounts");
-        }, 1200);
-      } else {
-        // ⚠️ Not verified – Redirect to OTP page
-        Cookies.remove("isVerified");
-        setPopup({
-          message: "Redirecting... Please verify OTP first.",
-          type: "success",
-          id: Date.now(),
-        });
-
-        localStorage.setItem("otpUserId", userData?._id);
-        setTimeout(() => {
-          router.push({
-            pathname: "/register",
-            query: { step: "verify-otp", userId: userData?._id },
-          });
-        }, 1200);
-      }
-    } catch (err) {
-      const status = err.response?.status;
-      const message = err.response?.data?.message;
-
-      // ✅ OTP verification needed
-      if (
-        status === 403 &&
-        message?.toLowerCase().includes("verify your account")
-      ) {
-        const { userId } = err.response.data;
-        setPopup({
-          message: "Redirecting... Please verify OTP first.",
-          type: "success",
-          id: Date.now(),
-        });
-        localStorage.setItem("otpUserId", userId);
-        setTimeout(() => {
-          router.push({
-            pathname: "/register",
-            query: { step: "verify-otp", userId },
-          });
-        }, 1200);
-        return;
-      }
-
-      // ❌ Invalid credentials or other error
-      setPopup({
-        message: message || "Invalid email or password",
-        type: "error",
-        id: Date.now(),
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // stops accidental form submission/page reload
-      handleLogin();
-    }
-  };
-
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-
-    if (value && !value.includes("@")) {
-      // Show suggestions only before @ is typed
-      setSuggestions(domains.map((d) => `${value}@${d}`));
-    } else {
-      setSuggestions([]);
-    }
-  };
-
-  const handleSelect = (suggestion) => {
-    setEmail(suggestion);
-    setSuggestions([]);
-  };
-
+function Spinner() {
   return (
-    <>
-      {/* ✅ SEO + Meta Setup */}
-      <Head>
-        <title>Login | JournalX</title>
-        <meta
-          name="description"
-          content="Login to JournalX to access your trading journal, performance analytics, trade history, and personalized trading insights. Stay ahead with data-driven decisions and behavioral tracking."
-        />
-        <meta
-          name="keywords"
-          content="trading journal login, forex trading journal, crypto trading journal, stock trading log, trading analytics, trading performance tracker, JournalX app, login trading tracker, trading logbook, online trading journal"
-        />
-        <meta name="robots" content="index, follow" />
-        <meta name="author" content="JournalX" />
-
-        {/* ✅ Open Graph Meta (Facebook, WhatsApp, LinkedIn) */}
-        <meta
-          property="og:title"
-          content="JournalX | Login to Your Trading Journal"
-        />
-        <meta
-          property="og:description"
-          content="Access your AI-powered trading journal, track your trades, and improve your performance with JournalX."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://journalx.app/login" />
-        <meta property="og:image" content="/assets/Journalx_Banner.png" />
-
-        {/* ✅ Twitter Meta */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JournalX | Login" />
-        <meta
-          name="twitter:description"
-          content="Login to JournalX to access your trades, analytics, and performance insights."
-        />
-        <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
-
-        <link rel="canonical" href="https://journalx.app/login" />
-        <meta name="theme-color" content="#000000" />
-      </Head>
-      <div className="authWrapper">
-        <div className="login authenticate flexClm gap_32">
-          {/* <Navbar /> */}
-          <div className="flexClm gap_32">
-            <div className="s_tit_des flexClm">
-              <span className="font_24 font_weight_600">Login to continue</span>
-              <span className="font_14 desc">
-                Login to your account to access your trades data
-              </span>
-            </div>
-            <div className="flexClm gap_24">
-              <div className="flexClm">
-                <input
-                  value={email}
-                  onChange={handleChange}
-                  placeholder="Email Address"
-                  type="email"
-                  onKeyDown={handleKeyDown}
-                />
-              </div>
-              <div className="passwordWrap flexClm">
-                <input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  type={showPassword ? "text" : "password"}
-                  onKeyDown={handleKeyDown}
-                />
-                <button
-                  type="button"
-                  className="eyeButton"
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--black)",
-                    marginTop: "12px",
-                  }}
-                  onClick={() => setShowPassword((prev) => !prev)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                onSuccess={(token) => setTurnstileToken(token)}
-              />
-              <div className="flexClm gap_12">
-                <button
-                  type="submit"
-                  disabled={isLoading || !turnstileToken} // ✅ disabled until CAPTCHA success
-                  className="primary-btn flexRow gap_12 flexRow_center flexRow_stretch"
-                  onClick={(e) => {
-                    e.preventDefault(); // prevent form reload
-                    handleLogin(); // call login function
-                  }}
-                >
-                  {isLoading ? <div className="spinner"></div> : "Login"}
-                  {!isLoading && <ArrowRight size={20} />}
-                </button>
-              </div>
-
-              <div>
-                <button
-                  className="tertiary-btn"
-                  onClick={() => router.push("/register")}
-                >
-                  Don't have an account? Register here
-                </button>
-              </div>
-            </div>
-
-            <div className="flexClm gap_24">
-              <div
-                className="flexRow gap_12 flex_center"
-                style={{ color: "var(--black-50)", opacity: "0.5" }}
-              >
-                <hr width="100%"></hr>
-                <span className="font_12" style={{ color: "var(--black-50)" }}>
-                  or
-                </span>
-                <hr width="100%"></hr>
-              </div>
-
-              <button
-                onClick={() => {
-                  // Redirect to your backend Google OAuth endpoint
-                  window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
-                }}
-                className="primary-btn secondary-btn flexRow gap_8 items-center justify-center"
-              >
-                <FcGoogle size={20} /> Continue with Google
-              </button>
-            </div>
-
-            {popup.message && (
-              <ToastMessage message={popup.message} type={popup.type} />
-            )}
-
-            <BackgroundBlur />
-          </div>
-        </div>
-      </div>
-
-      <LegalLinks />
-    </>
+    <motion.span
+      animate={{ rotate: 360 }}
+      transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+      style={{ width: 14, height: 14, borderRadius: "50%", display: "inline-block", border: "2px solid color-mix(in srgb, currentColor 30%, transparent)", borderTopColor: "currentColor" }}
+    />
   );
 }
 
-export default Login;
+function GoogleButton() {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      style={{ width: "100%", justifyContent: "center" }}
+      onClick={() => { window.location.href = `${API_BASE}/api/auth/google`; }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
+        <path fill="#FBBC05" d="M5.84 14.1A6.6 6.6 0 0 1 5.49 12c0-.73.13-1.44.35-2.1V7.06H2.18A11 11 0 0 0 1 12c0 1.78.43 3.45 1.18 4.94l3.66-2.84z" />
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.16-3.16C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
+      </svg>
+      Continue with Google
+    </Button>
+  );
+}
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [step, setStep] = useState("login"); // login | otp
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpUserId, setOtpUserId] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [toast, setToast] = useState(null);
+  const flash = (type, msg, ms = 3500) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), ms);
+  };
+
+  useEffect(() => {
+    if (Cookies.get("isVerified") === "yes") router.replace("/dashboard");
+  }, [router]);
+
+  useEffect(() => {
+    if (!cooldown) return;
+    const id = setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
+  const finishLogin = async (userData) => {
+    Cookies.set("isVerified", "yes", { path: "/", sameSite: "Strict", expires: 365000 });
+    if (userData) {
+      try { await saveToIndexedDB("user-data", userData); } catch {}
+      if (userData?.name) localStorage.setItem("userName", userData.name);
+    }
+    router.push("/dashboard");
+  };
+
+  const submitLogin = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || !password) return flash("danger", "Enter your email and password");
+    if (!captchaToken) return flash("danger", "Please complete the captcha first");
+    setBusy(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE}/api/auth/login`,
+        { email: email.trim(), password, turnstileToken: captchaToken },
+        { withCredentials: true },
+      );
+      await finishLogin(res.data?.userData);
+    } catch (err) {
+      const data = err.response?.data;
+      if (err.response?.status === 403 && data?.userId) {
+        /* not verified yet → OTP step */
+        setOtpUserId(data.userId);
+        setStep("otp");
+        try {
+          await axios.post(`${API_BASE}/api/auth/resend-otp`, { userId: data.userId }, { withCredentials: true });
+          setCooldown(60);
+          flash("info", "We emailed you a fresh verification code");
+        } catch {
+          flash("info", "Verify your email — enter the code we sent you");
+        }
+      } else {
+        flash("danger", data?.message || "Login failed — try again");
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitOtp = async () => {
+    if (otp.length !== 6) return flash("danger", "Enter the 6-digit code");
+    setBusy(true);
+    try {
+      await axios.post(`${API_BASE}/api/auth/verify-otp`, { userId: otpUserId, otp }, { withCredentials: true });
+      flash("success", "Email verified — welcome back!");
+      setTimeout(() => finishLogin(null), 700);
+    } catch (err) {
+      flash("danger", err.response?.data?.message || "Invalid code");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resend = async () => {
+    try {
+      const res = await axios.post(`${API_BASE}/api/auth/resend-otp`, { userId: otpUserId }, { withCredentials: true });
+      setCooldown(60);
+      flash("success", `Code resent${res.data?.remaining != null ? ` · ${res.data.remaining} left` : ""}`);
+    } catch (err) {
+      flash("danger", err.response?.data?.message || "Could not resend");
+    }
+  };
+
+  return (
+    <AuthLayout
+      title={step === "login" ? "Welcome back" : "Check your email"}
+      subtitle={step === "login" ? "Log in to your trading journal" : `We sent a 6-digit code to ${email}`}
+    >
+      <Toast toast={toast} />
+      <AnimatePresence mode="wait">
+        {step === "login" ? (
+          <motion.form
+            key="login"
+            initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+            transition={{ duration: 0.18 }}
+            onSubmit={submitLogin}
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+          >
+            <div className="jx-field">
+              <label className="jx-field__label">Email</label>
+              <div className="jx-input">
+                <span className="jx-input__icon"><Mail size={15} /></span>
+                <input type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="jx-field">
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <label className="jx-field__label">Password</label>
+                <a href="/forgot-password" style={{ font: "var(--text-small)", color: "var(--yellow-600)", textDecoration: "none", fontWeight: 600 }}>
+                  Forgot password?
+                </a>
+              </div>
+              <div className="jx-input">
+                <span className="jx-input__icon"><Lock size={15} /></span>
+                <input type={showPw ? "text" : "password"} autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <button type="button" onClick={() => setShowPw(!showPw)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", display: "flex" }} aria-label="Toggle password">
+                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onExpire={() => setCaptchaToken("")}
+              onError={() => setCaptchaToken("")}
+              options={{ size: "flexible" }}
+            />
+
+            <Button type="submit" variant="primary" disabled={busy || !captchaToken} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
+              {busy ? <><Spinner /> Logging in…</> : "Log in"}
+            </Button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", color: "var(--color-text-muted)", font: "var(--text-caption)" }}>
+              <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} /> or <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
+            </div>
+
+            <GoogleButton />
+
+            <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", textAlign: "center" }}>
+              New to JournalX?{" "}
+              <a href="/register" style={{ color: "var(--yellow-600)", fontWeight: 600, textDecoration: "none" }}>Create an account</a>
+            </span>
+          </motion.form>
+        ) : (
+          <motion.div
+            key="otp"
+            initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
+            transition={{ duration: 0.18 }}
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+          >
+            <OtpInput value={otp} onChange={setOtp} />
+            <Button variant="primary" disabled={busy || otp.length !== 6} onClick={submitOtp} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
+              {busy ? <><Spinner /> Verifying…</> : "Verify & log in"}
+            </Button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setStep("login"); setOtp(""); }}>
+                <ArrowLeft size={14} /> Back
+              </button>
+              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={resend} disabled={cooldown > 0}>
+                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </AuthLayout>
+  );
+}

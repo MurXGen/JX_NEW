@@ -1,635 +1,198 @@
 "use client";
 
-import { childVariants, containerVariants } from "@/animations/motionVariants";
-import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
-import Navbar from "@/components/Trades/Navbar";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import MessageCard from "@/components/ui/BannerInstruction";
-import BeginnerGuide from "@/components/ui/BeginnerGuide";
-import FullPageLoader from "@/components/ui/FullPageLoader";
-import SectionHeader from "@/components/ui/SectionHeader";
-import { formatCurrency } from "@/utils/formatNumbers";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
-import { getPlanRules } from "@/utils/planRestrictions";
-import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades"; // Your new utility
-import axios from "axios";
-import { motion, Reorder } from "framer-motion";
+/* /accounts — Journals page, revamp v2.
+   Lists every journal with live stats; click to switch (sets the
+   account cookie and returns to the dashboard). Create opens the
+   v2 Journals modal directly in create view. */
+
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
+import { motion } from "framer-motion";
 import Cookies from "js-cookie";
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUp,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  CreditCard,
-  Crown,
-  Plus,
-  Share2,
-  TrendingUp,
-  Upload,
-  GripVertical,
-  User,
-  User2,
-  Settings,
-  PieChart,
-} from "lucide-react";
-import Head from "next/head";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FiDatabase } from "react-icons/fi";
+import { ArrowLeft, Check, Plus, Wallet } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { Badge, Button, CountUp, JournalsModal } from "@/components/revampV2";
+import FullPageLoader from "@/components/ui/FullPageLoader";
+import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
 
-function Accounts() {
+const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+const money = (v, sym = "$") => {
+  const a = Math.abs(v);
+  const s = a >= 1000 ? `${sym}${fmt(a / 1000, 2)}k` : `${sym}${fmt(a)}`;
+  return `${v < 0 ? "−" : "+"}${s}`;
+};
+
+export default function AccountsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState([]);
-  const [accountSymbols, setAccountSymbols] = useState({});
-  const [currentBalances, setCurrentBalances] = useState({});
-  const [tradesCount, setTradesCount] = useState({});
-  const [showAllAccounts, setShowAllAccounts] = useState(false);
-  const [userPlan, setUserPlan] = useState(null);
-  const [planUsage, setPlanUsage] = useState({});
-  const [showMore, setShowMore] = useState(false);
-  const [orderedAccounts, setOrderedAccounts] = useState([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
-  const [apiCallFailed, setApiCallFailed] = useState(false);
+  const [trades, setTrades] = useState([]);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
-    const loadUserData = async () => {
-      setLoading(true);
-      setApiCallFailed(false);
-
-      try {
-        // 1️⃣ Try to fetch fresh data from backend first (this is the primary source)
-        const res = await axios.get(`${API_BASE}/api/auth/user-info`, {
-          withCredentials: true,
-        });
-
-        const { userData } = res.data;
-
-        // 2️⃣ Store in IndexedDB for future offline usage
-        if (userData) {
-          await saveToIndexedDB("user-data", userData);
-          if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
-          if (userData?.name) localStorage.setItem("userName", userData.name);
-        }
-
-        // 3️⃣ Process with your existing utility
-        const result = await fetchAccountsAndTrades();
-
-        if (result.redirectToLogin) {
-          router.push("/login");
-          return;
-        }
-
-        // 4️⃣ Update state with fresh data
-        setAccounts(result.accounts);
-        setAccountSymbols(result.accountSymbols);
-        setCurrentBalances(result.currentBalances);
-        setTradesCount(result.tradesCount);
-        setUserPlan(result.userPlan);
-
-        // Calculate plan usage
-        if (result.userPlan) {
-          const cachedUser = await getFromIndexedDB("user-data");
-          if (cachedUser) {
-            const planRules = getPlanRules(cachedUser);
-            const currentUsage = calculatePlanUsage(cachedUser, planRules);
-            setPlanUsage(currentUsage);
-          }
-        }
-      } catch (error) {
-        console.error("API call failed, falling back to cached data:", error);
-        setApiCallFailed(true);
-
-        // 5️⃣ Only fallback to IndexedDB if API fails
-        try {
-          const cached = await getFromIndexedDB("user-data");
-
-          if (cached) {
-            // Process cached data
-            const result = await fetchAccountsAndTrades();
-
-            setAccounts(result.accounts);
-            setAccountSymbols(result.accountSymbols);
-            setCurrentBalances(result.currentBalances);
-            setTradesCount(result.tradesCount);
-            setUserPlan(result.userPlan);
-
-            // Show a toast or notification that you're using cached data
-            // You can add a toast message here if you have a toast system
-            console.log("Using cached data - API unavailable");
-          } else {
-            // No cached data available
-            if (error.response?.status === 429) {
-              // Rate limited - show appropriate message
-              console.warn("Rate limit reached. Please try again later.");
-            } else {
-              router.push("/login");
-            }
-          }
-        } catch (cacheError) {
-          console.error("Failed to load cached data:", cacheError);
-          router.push("/login");
-        }
-      } finally {
-        setLoading(false);
+    (async () => {
+      const result = await fetchAccountsAndTrades();
+      if (result.redirectToLogin) {
+        router.push("/login");
+        return;
       }
-    };
-
-    loadUserData();
+      setAccounts(result.accounts || []);
+      setTrades(result.trades || []);
+      setLoading(false);
+    })();
   }, [router]);
 
-  // URL verification effect
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const isVerified = params.get("isVerified");
+  const currentId = Cookies.get("accountId");
 
-    if (isVerified === "yes") {
-      Cookies.set("isVerified", "yes", {
-        path: "/",
-        sameSite: "Strict",
-        expires: 365000,
+  const stats = useMemo(() => {
+    const m = new Map();
+    accounts.forEach((acc) => {
+      const list = trades.filter((t) => t.accountId === acc._id && t.closeTime);
+      const pnl = list.reduce((s, t) => s + (Number(t.pnl) || 0), 0);
+      const wins = list.filter((t) => t.pnl > 0).length;
+      m.set(acc._id, {
+        pnl,
+        n: list.length,
+        winRate: list.length ? (wins / list.length) * 100 : null,
+        balance: (acc.startingBalance?.amount || 0) + pnl,
       });
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
+    });
+    return m;
+  }, [accounts, trades]);
 
-  // Guide effect
-  useEffect(() => {
-    const guideFlag = localStorage.getItem("guide");
-    if (guideFlag === "yes") {
-      setShowGuide(true);
-    }
-  }, []);
-
-  const handleCloseGuide = () => {
-    setShowGuide(false);
-    localStorage.removeItem("guide");
+  const switchTo = (acc) => {
+    Cookies.set("accountId", acc._id, { expires: 365 });
+    Cookies.set("selectedAccount", acc._id, { expires: 365 });
+    router.push("/dashboard");
   };
 
-  // Account ordering effects
-  useEffect(() => {
-    const savedOrder = JSON.parse(localStorage.getItem("accountOrder") || "[]");
-    if (savedOrder.length && accounts.length) {
-      const mapById = new Map(accounts.map((a) => [a._id, a]));
-      const reordered = savedOrder.map((id) => mapById.get(id)).filter(Boolean);
-      const missing = accounts.filter((a) => !savedOrder.includes(a._id));
-      setOrderedAccounts([...reordered, ...missing]);
-    } else {
-      setOrderedAccounts(accounts);
-    }
-  }, [accounts]);
-
-  useEffect(() => {
-    if (orderedAccounts.length > 0) {
-      const order = orderedAccounts.map((acc) => acc._id);
-      localStorage.setItem("accountOrder", JSON.stringify(order));
-    }
-  }, [orderedAccounts]);
-
-  const displayedAccounts = showAllAccounts
-    ? orderedAccounts
-    : orderedAccounts.slice(0, 2);
-
-  const handleReorderVisible = (newVisibleOrder) => {
-    if (showAllAccounts) {
-      setOrderedAccounts(newVisibleOrder);
-      return;
-    }
-
-    const rest = orderedAccounts.slice(newVisibleOrder.length);
-    const merged = [...newVisibleOrder, ...rest];
-
-    const seen = new Set();
-    const deduped = [];
-    for (const item of merged) {
-      const id = item._id ?? item;
-      const key = typeof id === "string" ? id : JSON.stringify(item);
-      if (!seen.has(key)) {
-        seen.add(key);
-        deduped.push(item);
-      }
-    }
-
-    setOrderedAccounts(deduped);
-  };
-
-  const calculatePlanUsage = (userData, planRules) => {
-    const accountsCount = userData.accounts?.length || 0;
-    const tradesCount = userData.trades?.length || 0;
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-
-    const monthlyTrades =
-      userData.trades?.filter((trade) => {
-        const tradeDate = new Date(trade.openTime);
-        return (
-          tradeDate.getMonth() === currentMonth &&
-          tradeDate.getFullYear() === currentYear
-        );
-      }).length || 0;
-
-    const monthlyImages =
-      userData.trades?.reduce((count, trade) => {
-        const tradeDate = new Date(trade.openTime);
-        if (
-          tradeDate.getMonth() === currentMonth &&
-          tradeDate.getFullYear() === currentYear
-        ) {
-          if (trade.openImageUrl) count++;
-          if (trade.closeImageUrl) count++;
-        }
-        return count;
-      }, 0) || 0;
-
-    const formatLimit = (value) => (value === Infinity ? "Unlimited" : value);
-
-    const calcPercentage = (current, limit) =>
-      limit === Infinity ? 100 : Math.min((current / limit) * 100, 100);
-
-    return {
-      accounts: {
-        current: accountsCount,
-        limit: formatLimit(planRules.accountLimit),
-        percentage: calcPercentage(accountsCount, planRules.accountLimit),
-      },
-      trades: {
-        current: monthlyTrades,
-        limit: formatLimit(planRules.tradeLimitPerMonth),
-        percentage: calcPercentage(monthlyTrades, planRules.tradeLimitPerMonth),
-      },
-      images: {
-        current: monthlyImages,
-        limit: formatLimit(planRules.imageLimitPerMonth),
-        percentage: calcPercentage(monthlyImages, planRules.imageLimitPerMonth),
-      },
-    };
-  };
-
-  const handleAccountClick = (accountId) => {
-    try {
-      Cookies.set("accountId", accountId, {
-        path: "/",
-        sameSite: "Strict",
-        expires: 365,
-      });
-      router.push("/dashboard");
-    } catch (err) {
-      console.error("Error setting account cookie:", err);
-    }
-  };
-
-  const handleCreateAccount = async () => {
-    setLoading(true);
-    router.push("/create-account");
-  };
-
-  const quickActions = [
-    {
-      id: "upgrade-plan",
-      title: "Upgrade plan limit",
-      description: "Unlock more features and higher limits",
-      icon: Crown,
-      path: "/pricing",
-      enabled: true,
-    },
-    {
-      id: "export",
-      title: "Export journal",
-      description: "Backup or migrate your trading data",
-      icon: Upload,
-      path: "/export",
-      enabled: true,
-    },
-    {
-      id: "share-trades",
-      title: "Share journal",
-      description: "Share your trading performance",
-      icon: Share2,
-      path: "/share-trades",
-      enabled: true,
-    },
-    {
-      id: "market-news",
-      title: "Events calendar",
-      description: "Forex factory's market updates",
-      icon: TrendingUp,
-      path: "https://www.forexfactory.com/calendar",
-      enabled: true,
-    },
-  ];
-
-  const handleDragStart = () => setIsDragging(true);
-  const handleDragEnd = () => setIsDragging(false);
-
-  if (loading) {
-    return <FullPageLoader />;
-  }
+  if (loading) return <FullPageLoader label="Loading your journals…" />;
 
   return (
-    <>
-      <Head>
-        <title>Accounts | JournalX</title>
-        <meta
-          name="description"
-          content="Manage your JournalX trading accounts. Add, view, and analyze your performance across multiple portfolios in one place."
-        />
-        <meta name="robots" content="index, follow" />
-        <meta name="author" content="JournalX" />
-        <meta property="og:title" content="Accounts | JournalX" />
-        <meta
-          property="og:description"
-          content="Access and manage all your JournalX accounts with a unified dashboard."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://journalx.app/accounts" />
-        <meta property="og:image" content="/assets/Journalx_Banner.png" />
-        <link rel="canonical" href="https://journalx.app/accounts" />
-      </Head>
-
-      <div
-        className="flexClm gap_24 dashboard"
-        style={{
-          maxWidth: "1200px",
-          minWidth: "300px",
-          margin: "0px auto",
-          padding: "16px 16px 100px 16px",
-          height: "100vh",
-        }}
-      >
-        {/* <Navbar /> */}
-
-        <div className="flexRow flexRow_stretch">
-          <div className="flexRow gap_12">
-            {/* <div
-              className="boxBg"
-              style={{ padding: "12px 16px", cursor: "pointer" }}
-              onClick={() => router.push("/profile")}
-            >
-              <User2 size={16} />
-            </div> */}
-            <div className="flexClm">
-              <span className="font_20">Journals</span>
-            </div>
+    <div className="jx-shell" style={{ justifyContent: "center" }}>
+      <main className="jx-shell__main" style={{ maxWidth: 920, width: "100%" }}>
+        {/* header */}
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+          <Button variant="ghost" size="sm" icon={ArrowLeft} onClick={() => router.push("/dashboard")}>
+            Dashboard
+          </Button>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ font: "var(--text-h2)" }}>Journals</span>
+            <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
+              Switch, manage, or create a journal · {accounts.length} total
+            </span>
           </div>
-
-          <div className="flexRow gap_8">
-            {orderedAccounts.length !== 0 && (
-              <button
-                className="btn flexRow gap_4"
-                style={{ padding: "12px 16px", cursor: "pointer" }}
-                onClick={() => router.push("/create-account")}
-              >
-                <Plus size={16} />
-                <span className="font_14">Create journal</span>
-              </button>
-            )}
-
-            <button
-              className="btn flexRow gap_4"
-              style={{ padding: "12px 16px", cursor: "pointer" }}
-              onClick={() => router.push("/profile")}
-            >
-              <User size={18} />
-            </button>
-          </div>
+          <span style={{ marginLeft: "auto" }}>
+            <Button variant="primary" icon={Plus} onClick={() => setShowCreate(true)}>
+              Create journal
+            </Button>
+          </span>
         </div>
 
-        {/* Accounts List */}
-        <div className="flexClm gap_12">
-          {loading ? (
-            <div className="flexRow flex_center">
-              <div className="spinner"></div>
-            </div>
-          ) : (
-            <>
-              <div
-                className="accountsList flexClm gap_16"
-                initial={{ opacity: 0, y: 40 }}
+        {/* journal cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "var(--space-4)" }}>
+          {accounts.map((acc, i) => {
+            const s = stats.get(acc._id) || { pnl: 0, n: 0, winRate: null, balance: 0 };
+            const active = acc._id === currentId;
+            const sym = getCurrencySymbol(acc.currency || "usd");
+            return (
+              <motion.button
+                key={acc._id}
+                type="button"
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                transition={{ delay: i * 0.05, duration: 0.25, ease: "easeOut" }}
+                onClick={() => switchTo(acc)}
+                className="jx-card"
+                style={{
+                  textAlign: "left",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-3)",
+                  outline: active ? "2px solid var(--color-primary)" : "none",
+                  background: active ? "var(--color-primary-subtle)" : undefined,
+                }}
               >
-                {orderedAccounts.length === 0 ? (
-                  <div
-                    className="flexClm flex_center"
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                  <span
                     style={{
-                      minHeight: "80vh",
-                      padding: "24px",
-                      textAlign: "center",
+                      width: 40, height: 40, borderRadius: "var(--radius-md)",
+                      background: active ? "var(--color-primary)" : "var(--color-bg-muted)",
+                      color: active ? "var(--color-primary-foreground)" : "var(--color-text-muted)",
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                     }}
                   >
-                    <div
-                      className="flexClm gap_20 flex_center"
+                    <Wallet size={18} />
+                  </span>
+                  <span style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
+                    <span style={{ font: "var(--text-title)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {acc.name}
+                    </span>
+                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", textTransform: "capitalize" }}>
+                      {acc.accountType || "spot"} · {(acc.currency || "USD").toUpperCase()}
+                    </span>
+                  </span>
+                  {active && (
+                    <span
                       style={{
-                        maxWidth: "420px",
-                        width: "100%",
+                        width: 22, height: 22, borderRadius: "50%", background: "var(--color-primary)",
+                        color: "var(--color-primary-foreground)", display: "flex", alignItems: "center",
+                        justifyContent: "center", flexShrink: 0,
                       }}
                     >
-                      {/* GIF */}
-                      <img
-                        src="/assets/notFound.png"
-                        alt="No Journal Found"
-                        width={200}
-                        height={200}
-                        style={{ objectFit: "contain" }}
-                      />
+                      <Check size={13} />
+                    </span>
+                  )}
+                </div>
 
-                      {/* Heading */}
-                      <span className="font_20 font_weight_600">
-                        No Journal Found
-                      </span>
-
-                      {/* Description */}
-                      <span className="font_14 shade_70">
-                        You haven’t created any trading journals yet.
-                      </span>
-
-                      <div className="flexClm gap_6 font_14 shade_60">
-                        <span>Create your first journal to start</span>
-                        <span>tracking and analyzing your trades.</span>
-                      </div>
-
-                      {/* Create Button */}
-                      <div style={{ marginTop: "24px" }}>
-                        <button
-                          className="primary-btn flexRow flex_center gap_8"
-                          onClick={() => router.push("/create-account")}
-                        >
-                          Create First Journal
-                        </button>
-                      </div>
-                    </div>
+                <div>
+                  <span style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>
+                    Balance
+                  </span>
+                  <div style={{ font: "var(--text-stat)", letterSpacing: "-1px" }}>
+                    <CountUp value={s.balance} format={(v) => `${sym}${fmt(v)}`} />
                   </div>
-                ) : (
-                  <>
-                    {/* Draggable Accounts List */}
-                    <Reorder.Group
-                      as="div"
-                      axis="y"
-                      values={displayedAccounts} // <- use the rendered list
-                      onReorder={handleReorderVisible} // <- merge back to full order
-                      className="flexClm gap_16"
-                    >
-                      {displayedAccounts.map((acc) => {
-                        const lastTradedAccountId = Cookies.get("accountId");
-                        const isLastTraded = acc._id === lastTradedAccountId;
+                </div>
 
-                        return (
-                          <Reorder.Item
-                            as="div"
-                            key={acc._id}
-                            value={acc}
-                            className="accountCardWrapper"
-                            onDragStart={handleDragStart}
-                            onDragEnd={handleDragEnd}
-                          >
-                            <div
-                              className={`stats-card flexClm gap_24 radius-12 ${
-                                isDragging ? "dragging" : ""
-                              } ${isLastTraded ? "lastTraded" : ""}`}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              layout
-                            >
-                              <div className="flexRow flexRow_stretch spaceBetween">
-                                <div className="flexClm">
-                                  <div className="flexRow gap_8">
-                                    <span className="font_16 font_weight_600">
-                                      {acc.name}
-                                    </span>
-                                  </div>
-                                  <div className="flexRow gap_12 margin_top_4">
-                                    <span className="font_14">
-                                      {tradesCount[acc.name] ?? 0} trades
-                                    </span>
-                                    {isLastTraded && (
-                                      <span className="font_14 success">
-                                        Active
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
+                  <Badge variant={s.pnl >= 0 ? "success" : "danger"}>{money(s.pnl, sym)} all-time</Badge>
+                  <Badge variant="neutral">{s.n} trades</Badge>
+                  {s.winRate != null && <Badge variant="neutral">{fmt(s.winRate, 0)}% win</Badge>}
+                  {active && <Badge variant="brand">Active</Badge>}
+                </div>
+              </motion.button>
+            );
+          })}
 
-                                <div className="flexRow gap_8 flex_center">
-                                  {/* Drag Handle */}
-                                  <div
-                                    className="dragHandle flexRow flex_center"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    title="Drag to reorder"
-                                  >
-                                    <GripVertical
-                                      size={16}
-                                      className="shade_50"
-                                    />
-                                  </div>
-
-                                  <ArrowRight
-                                    size={18}
-                                    className="vector cursor_pointer"
-                                    onClick={() => handleAccountClick(acc._id)}
-                                  />
-                                </div>
-                              </div>
-                              <div className="flexRow gap_12">
-                                <button
-                                  className="primary-btn secondary-btn width100 flexRow flex_center gap_12"
-                                  onClick={() => handleAccountClick(acc._id)}
-                                >
-                                  <PieChart size={16} /> Dashboard
-                                </button>
-                                <button
-                                  className="primary-btn secondary-btn width100 flexRow flex_center gap_12"
-                                  onClick={() =>
-                                    router.push("/journal-setting")
-                                  }
-                                >
-                                  <Settings size={16} /> Setting
-                                </button>
-                              </div>
-                            </div>
-                          </Reorder.Item>
-                        );
-                      })}
-                    </Reorder.Group>
-
-                    {/* Show More/Less Button */}
-                    {orderedAccounts.length > 2 && (
-                      <button
-                        className="btn flexRow gap_8 flex_center"
-                        onClick={() => setShowAllAccounts(!showAllAccounts)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        {showAllAccounts ? (
-                          <>
-                            <ChevronUp size={16} />
-                            <span>Show Less</span>
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown size={16} />
-                            <span>
-                              Show {orderedAccounts.length - 2} more journals
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    )}
-
-                    {/* Drag Hint */}
-                    {orderedAccounts.length > 1 && (
-                      <div
-                        className="dragHint flexRow gap_8 flex_center font_12 shade_50"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        <GripVertical size={12} />
-                        <span className="font_14">
-                          Drag to reorder journals
-                        </span>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </>
-          )}
+          {/* create card */}
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: accounts.length * 0.05, duration: 0.25 }}
+            onClick={() => setShowCreate(true)}
+            className="jx-dropzone"
+            style={{ minHeight: 170, borderRadius: "var(--radius-lg)" }}
+          >
+            <span className="jx-sect__icon" style={{ borderRadius: "50%", width: 36, height: 36 }}>
+              <Plus size={16} />
+            </span>
+            <strong style={{ color: "var(--color-text-primary)" }}>Create a new journal</strong>
+            <span style={{ font: "var(--text-caption)" }}>Separate strategies, accounts, or paper trading</span>
+          </motion.button>
         </div>
 
-        {showGuide && <BeginnerGuide onClose={handleCloseGuide} />}
-        <GoogleBannerAd />
-      </div>
-
-      {loading ? (
-        <div
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <FullPageLoader />
-        </div>
-      ) : (
-        <div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className="dashboard-page">{/* content here */}</div>
-        </div>
-      )}
-    </>
+        <JournalsModal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+          accounts={accounts}
+          trades={trades}
+          currentAccountId={currentId}
+          initialView="create"
+        />
+      </main>
+    </div>
   );
 }
-
-export default Accounts;

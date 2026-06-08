@@ -10,6 +10,8 @@ const BackgroundBinanceSync = () => {
         const secretKey = localStorage.getItem("binance_secret_key");
 
         if (!apiKey || !secretKey) return;
+        // v2: respect the auto-import toggle from Settings
+        if (localStorage.getItem("binance_auto_sync") === "0") return;
 
         console.log("Background sync running at:", new Date().toLocaleString());
 

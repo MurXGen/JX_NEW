@@ -1,0 +1,1259 @@
+/* ============================================================
+   JournalX Component Library — matches Figma "Trading Design
+   System". All classes prefixed .jx- to avoid legacy collisions.
+   Consumes tokens.css. Theme-aware via [data-theme].
+   ============================================================ */
+
+/* ================= Box model ================= */
+/* globals.css does not set border-box, so 100dvh + padding overflows.
+   Scope it to all v2 surfaces. */
+.jx-shell,
+.jx-shell *,
+.jx-modal-overlay,
+.jx-modal-overlay *,
+.jx-sidebar,
+.jx-sidebar * {
+  box-sizing: border-box;
+}
+
+/* ================= Buttons ================= */
+.jx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font: var(--text-body-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+.jx-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ring) 45%, transparent);
+}
+.jx-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.jx-btn--sm {
+  padding: 6px 12px;
+  font: var(--text-small);
+  border-radius: var(--radius-sm);
+}
+.jx-btn--lg {
+  padding: 14px 24px;
+  font: var(--text-body-lg);
+  font-weight: 500;
+  border-radius: var(--radius-lg);
+}
+
+.jx-btn--primary {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+.jx-btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.jx-btn--secondary {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+.jx-btn--secondary:hover:not(:disabled) {
+  background: var(--color-border);
+}
+
+.jx-btn--outline {
+  background: transparent;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+.jx-btn--outline:hover:not(:disabled) {
+  background: var(--color-bg-muted);
+}
+
+.jx-btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.jx-btn--ghost:hover:not(:disabled) {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+
+.jx-btn--danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+.jx-btn--danger:hover:not(:disabled) {
+  background: var(--color-danger-strong);
+}
+.jx-btn--danger-outline {
+  background: transparent;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.jx-btn--danger-outline:hover:not(:disabled) {
+  background: var(--color-danger-subtle);
+}
+.jx-btn--danger-subtle {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger-strong);
+}
+
+.jx-btn--success {
+  background: var(--color-success);
+  color: #fff;
+}
+.jx-btn--success:hover:not(:disabled) {
+  background: var(--color-success-strong);
+}
+.jx-btn--success-subtle {
+  background: var(--color-success-subtle);
+  color: var(--color-success-strong);
+}
+
+/* ================= Inputs ================= */
+.jx-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.jx-field__label {
+  font: var(--text-body-md);
+  color: var(--color-text-primary);
+}
+.jx-field__hint {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+.jx-field__hint--error {
+  color: var(--color-danger);
+}
+
+.jx-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  height: 44px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.jx-input:focus-within {
+  border-color: var(--color-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ring) 30%, transparent);
+}
+.jx-input--error {
+  border-color: var(--color-danger);
+}
+.jx-input--error:focus-within {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent);
+}
+.jx-input--success {
+  border-color: var(--color-success);
+}
+.jx-input--disabled {
+  background: var(--color-bg-muted);
+  pointer-events: none;
+}
+.jx-input input,
+.jx-input select {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: var(--text-body);
+  color: var(--color-text-primary);
+}
+/* kill the native select arrow — we render our own chevron */
+.jx-input select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+.jx-input select option {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
+.jx-input input::placeholder {
+  color: var(--color-text-muted);
+}
+.jx-input__icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  display: flex;
+}
+.jx-input__addon {
+  font: var(--text-body-md);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+/* ================= Cards ================= */
+.jx-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
+}
+.jx-card--flat {
+  box-shadow: none;
+}
+.jx-card__title {
+  font: var(--text-title);
+  color: var(--color-text-primary);
+}
+
+/* ---- Stat card (Analytics Stat Cards in Figma) ---- */
+.jx-stat-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.jx-stat-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.jx-stat-card__label {
+  font: var(--text-body-md);
+  color: var(--color-text-secondary);
+}
+.jx-stat-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-subtle);
+  color: var(--yellow-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.jx-stat-card__value {
+  font: var(--text-stat);
+  letter-spacing: -1px;
+  color: var(--color-text-primary);
+}
+.jx-stat-card__delta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+/* ================= Badges ================= */
+.jx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--text-caption);
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+.jx-badge--success {
+  background: var(--color-success-subtle);
+  color: var(--color-success-strong);
+}
+.jx-badge--danger {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger-strong);
+}
+.jx-badge--neutral {
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+.jx-badge--brand {
+  background: var(--color-primary-subtle);
+  color: var(--yellow-600);
+}
+
+/* ================= Tabs ================= */
+.jx-tabs {
+  display: inline-flex;
+  gap: var(--space-1);
+  background: var(--color-bg-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-1);
+}
+.jx-tabs__item {
+  border: none;
+  background: transparent;
+  font: var(--text-body-md);
+  color: var(--color-text-secondary);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.jx-tabs__item:hover {
+  color: var(--color-text-primary);
+}
+.jx-tabs__item--active {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ================= Sidebar ================= */
+.jx-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 248px;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--color-bg-surface);
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-5) var(--space-4);
+  gap: var(--space-2);
+  transition: width 0.2s ease;
+  flex-shrink: 0;
+}
+.jx-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.jx-sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+.jx-sidebar--collapsed {
+  width: 76px;
+  align-items: center;
+}
+.jx-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.jx-sidebar__logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+.jx-sidebar__brand-name {
+  font: var(--text-title);
+  color: var(--color-text-primary);
+  flex: 1;
+}
+/* Collapsed: logo shown, expand icon revealed on hover */
+.jx-sidebar__logobtn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+.jx-sidebar__logobtn .jx-sidebar__expandicon {
+  display: none;
+  color: var(--color-text-secondary);
+}
+.jx-sidebar__logobtn:hover .jx-sidebar__expandicon {
+  display: block;
+}
+.jx-sidebar__logobtn:hover .jx-sidebar__logo {
+  display: none;
+}
+.jx-sidebar__logobtn:hover {
+  background: var(--color-bg-muted);
+}
+.jx-sidebar__section {
+  font: var(--text-label);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: var(--space-2);
+}
+.jx-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: var(--text-body-md);
+  color: var(--color-text-secondary);
+  padding: 11px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+.jx-sidebar__item:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+.jx-sidebar__item--active {
+  background: var(--color-primary-subtle);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.jx-sidebar__item--active svg {
+  color: var(--yellow-500);
+}
+.jx-sidebar--collapsed .jx-sidebar__item {
+  justify-content: center;
+  padding: 11px;
+}
+.jx-sidebar__footer {
+  margin-top: auto;
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+/* ================= App shell ================= */
+.jx-shell {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-bg-canvas);
+  font-family: var(--jx-font);
+  color: var(--color-text-primary);
+}
+.jx-shell__main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0; /* critical: lets the flex child shrink so inner scroll works */
+  height: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable; /* no width jump when scrollbar appears */
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: 24px;
+}
+/* Some browsers ignore padding-bottom on scroll containers —
+   a real spacer element always works. */
+.jx-shell__main::after {
+  content: "";
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ================= Accordion (CSS grid-rows — smooth, no measuring) ===== */
+.jx-acc__content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+.jx-acc__content--open {
+  grid-template-rows: 1fr;
+}
+.jx-acc__inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.jx-acc__content--open .jx-acc__inner {
+  overflow: visible; /* dropdown panels inside can escape once open */
+}
+.jx-shell__main::-webkit-scrollbar {
+  width: 6px;
+}
+.jx-shell__main::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+@media (max-width: 768px) {
+  .jx-shell__main {
+    padding: var(--space-4);
+    padding-bottom: 96px;
+  }
+  .jx-sidebar {
+    display: none;
+  }
+}
+
+/* ================= Table ================= */
+.jx-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.jx-table th {
+  font: var(--text-caption);
+  font-weight: 500;
+  text-align: left;
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.jx-table td {
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.jx-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.jx-table tbody tr {
+  transition: background 0.12s ease;
+}
+.jx-table tbody tr:hover {
+  background: var(--color-bg-muted);
+}
+
+/* ================= Progress (win/loss) ================= */
+.jx-progress {
+  display: flex;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-bg-muted);
+}
+.jx-progress__win {
+  background: var(--color-success);
+}
+.jx-progress__loss {
+  background: var(--color-danger);
+}
+
+/* ================= Mobile nav strip ================= */
+.jx-mobile-nav {
+  display: none;
+}
+@media (max-width: 768px) {
+  .jx-mobile-nav {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    -webkit-overflow-scrolling: touch;
+  }
+  .jx-mobile-nav::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ================= Choice chips ================= */
+.jx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--text-body-md);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.jx-chip:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-muted);
+}
+.jx-chip--selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 600;
+}
+
+/* ================= Textarea ================= */
+.jx-textarea {
+  width: 100%;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  resize: vertical;
+  min-height: 96px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.jx-textarea:focus {
+  outline: none;
+  border-color: var(--color-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ring) 30%, transparent);
+}
+.jx-textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ================= Dropzone ================= */
+.jx-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+  font: var(--text-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.jx-dropzone:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+/* ================= Form layout ================= */
+.jx-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+.jx-form-row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.jx-form-row > .jx-field {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Direction segmented (Buy/Long vs Sell/Short) */
+.jx-direction {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.jx-direction__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font: var(--text-body-md);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  padding: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.jx-direction__btn--long.jx-direction__btn--active {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+}
+.jx-direction__btn--short.jx-direction__btn--active {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}
+
+/* ================= Modal ================= */
+.jx-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 26, 32, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+.jx-modal-overlay--blur {
+  background: rgba(24, 26, 32, 0.35);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+/* Journal rows (Journals Modal) */
+.jx-journalrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+.jx-journalrow:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-muted);
+}
+.jx-journalrow--active {
+  border: 1.5px solid var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+.jx-modal {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.jx-modal__title {
+  font: var(--text-h3);
+  color: var(--color-text-primary);
+}
+
+/* ================= Segmented control (block) ================= */
+.jx-seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-1);
+  background: var(--color-bg-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-1);
+  width: 100%;
+}
+.jx-seg__btn {
+  border: none;
+  background: transparent;
+  font: var(--text-body-md);
+  color: var(--color-text-secondary);
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.jx-seg__btn--active {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+.jx-seg--inline {
+  width: auto;
+  display: inline-grid;
+}
+
+/* ================= Banners ================= */
+.jx-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-body-md);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+}
+.jx-banner--success {
+  background: var(--color-success-subtle);
+  color: var(--color-text-primary);
+}
+.jx-banner--warn {
+  background: var(--color-primary-subtle);
+  color: var(--color-text-primary);
+}
+
+/* ================= Direction (big, with subtitle) ================= */
+.jx-dirbig {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+.jx-dirbig__btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+.jx-dirbig__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.jx-dirbig__title {
+  font: var(--text-body-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.jx-dirbig__sub {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+.jx-dirbig__btn--long-active {
+  border-color: var(--color-success);
+  background: var(--color-success-subtle);
+}
+.jx-dirbig__btn--long-active .jx-dirbig__icon {
+  background: var(--color-success);
+  color: #fff;
+}
+.jx-dirbig__btn--short-active {
+  border-color: var(--color-danger);
+  background: var(--color-danger-subtle);
+}
+.jx-dirbig__btn--short-active .jx-dirbig__icon {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+/* ================= Log Trade modal ================= */
+.jx-ltmodal {
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: min(960px, 96vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.jx-ltmodal--narrow {
+  width: min(480px, 96vw);
+}
+.jx-ltmodal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+.jx-ltmodal__body {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  overflow-y: auto;
+  flex: 1;
+}
+.jx-ltmodal--narrow .jx-ltmodal__body {
+  grid-template-columns: 1fr;
+}
+.jx-ltmodal__form {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+.jx-ltmodal__rail {
+  background: var(--color-bg-canvas);
+  border-left: 1px solid var(--color-border);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.jx-ltmodal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+@media (max-width: 900px) {
+  .jx-ltmodal__body {
+    grid-template-columns: 1fr;
+  }
+  .jx-ltmodal__rail {
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+  }
+}
+@media (max-width: 600px) {
+  .jx-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .jx-ltmodal {
+    width: 100vw;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+}
+
+/* Section header inside form */
+.jx-sect {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.jx-sect__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.jx-sect__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-subtle);
+  color: var(--yellow-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.jx-sect__title {
+  font: var(--text-title);
+  color: var(--color-text-primary);
+}
+.jx-sect__hint {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+/* XP / checklist rows */
+.jx-xp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: var(--text-small);
+  color: var(--color-text-secondary);
+  padding: 4px 0;
+}
+.jx-xp-row--off {
+  opacity: 0.45;
+}
+
+/* ================= Switch ================= */
+.jx-switch {
+  width: 40px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+  position: relative;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+.jx-switch::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  top: 2px;
+  left: 2px;
+  transition: left 0.15s ease;
+  box-shadow: var(--shadow-sm);
+}
+.jx-switch--on {
+  background: var(--color-primary);
+}
+.jx-switch--on::after {
+  left: 20px;
+}
+
+/* ================= Settings rows ================= */
+.jx-setrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+.jx-setrow:last-child {
+  border-bottom: none;
+}
+.jx-setrow__title {
+  font: var(--text-body-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.jx-setrow__sub {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+/* ================= Export option cards ================= */
+.jx-exportopt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  padding: var(--space-4);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.jx-exportopt--selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+/* ================= P&L calendar ================= */
+.jx-cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-2);
+}
+.jx-cal__head {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+  text-align: left;
+  padding: 2px 4px;
+}
+.jx-cal__cell {
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+  min-height: 52px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+.jx-cal__cell--win {
+  background: var(--color-success-subtle);
+}
+.jx-cal__cell--loss {
+  background: var(--color-danger-subtle);
+}
+.jx-cal__pnl--win {
+  color: var(--color-success-strong);
+  font-weight: 600;
+}
+.jx-cal__pnl--loss {
+  color: var(--color-danger-strong);
+  font-weight: 600;
+}
+
+/* ================= Dropdown (Figma "Dropdowns & Filters") ================= */
+.jx-dd {
+  position: relative;
+}
+.jx-dd__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  z-index: 1200;
+}
+.jx-dd__label {
+  font: var(--text-label);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: var(--space-2);
+  display: block;
+}
+.jx-dd__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: var(--text-body-md);
+  color: var(--color-text-primary);
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+.jx-dd__option:hover {
+  background: var(--color-bg-muted);
+}
+.jx-dd__option--selected {
+  background: var(--color-primary-subtle);
+  font-weight: 600;
+}
+
+/* ================= Calendar (Figma "Date & Time Picker") ================= */
+.jx-dtp {
+  width: 280px;
+}
+.jx-dtp__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-top: var(--space-2);
+}
+.jx-dtp__dow {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 4px 0;
+}
+.jx-dtp__day {
+  border: none;
+  background: transparent;
+  font: var(--text-small);
+  color: var(--color-text-primary);
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.jx-dtp__day:hover {
+  background: var(--color-bg-muted);
+}
+.jx-dtp__day--muted {
+  color: var(--color-text-disabled);
+}
+.jx-dtp__day--selected {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 600;
+}
+.jx-dtp__day--today {
+  outline: 1.5px solid var(--color-primary);
+  outline-offset: -1.5px;
+}
+
+/* ================= Accordion (grid-rows collapse) ================= */
+.jx-acc__content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.22s ease;
+}
+.jx-acc__content--open {
+  grid-template-rows: 1fr;
+}
+.jx-acc__inner {
+  min-height: 0;
+  overflow: hidden; /* must stay hidden in BOTH states — `visible` makes
+                       expanded content overlap and block sections below */
+}
+
+/* ================= Tooltip ================= */
+.jx-tip {
+  position: relative;
+  display: inline-flex;
+}
+.jx-tip--block {
+  display: flex;
+}
+.jx-tip__bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  font: var(--text-caption);
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  white-space: pre-line;
+  text-align: center;
+  width: max-content;
+  max-width: 240px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 600;
+}
+.jx-tip__bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-bg-elevated);
+}
+.jx-tip:hover .jx-tip__bubble,
+.jx-tip:focus-within .jx-tip__bubble {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+/* hover highlight for invisible chart columns */
+.jx-tip--col {
+  border-radius: 4px;
+  transition: background 0.12s ease;
+}
+.jx-tip--col:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+/* ================= Toast ================= */
+.jx-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-3) var(--space-4);
+  font: var(--text-body);
+  color: var(--color-text-primary);
+}
+.jx-toast--success {
+  border-left-color: var(--color-success);
+}
+.jx-toast--danger {
+  border-left-color: var(--color-danger);
+}

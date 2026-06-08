@@ -1,570 +1,229 @@
 "use client";
 
-import { register } from "@/api/auth";
-import Navbar from "@/components/Auth/Navbar";
-import LegalLinks from "@/components/landingPage/LegalLinks";
-import BackgroundBlur from "@/components/ui/BackgroundBlur";
-import MessageCard from "@/components/ui/BannerInstruction";
-import ToastMessage from "@/components/ui/ToastMessage";
-import { Turnstile } from "@marsidev/react-turnstile";
-import axios from "axios";
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
-import Head from "next/head";
-import { useRouter, useSearchParams } from "next/navigation";
+/* /register — revamp v2 auth. Name/email/password with Turnstile,
+   Google OAuth, then 6-digit OTP verification. */
+
 import { useEffect, useState } from "react";
-import { FcGoogle } from "react-icons/fc";
+import { useRouter } from "next/router";
+import { AnimatePresence, motion } from "framer-motion";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { ArrowLeft, Check, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+
+import { Turnstile } from "@marsidev/react-turnstile";
+import { AuthLayout, Button, OtpInput, Toast } from "@/components/revampV2";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function Register() {
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [step, setStep] = useState("enter-email");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [userId, setUserId] = useState(""); // store the registered user's ID
-
-  const [suggestions, setSuggestions] = useState([]);
-  const domains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"];
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [popupMessage, setPopupMessage] = useState("");
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const [popup, setPopup] = useState({ message: "", type: "" });
-
-  const [timer, setTimer] = useState(0);
-
-  const [resendLimitReached, setResendLimitReached] = useState(false);
-
-  const searchParams = useSearchParams();
-  const stepParam = searchParams.get("step");
-  const userIdParam = searchParams.get("userId");
-
-  useEffect(() => {
-    if (stepParam === "verify-otp") {
-      setStep("verify-otp");
-      setUserId(userIdParam);
-    }
-  }, [stepParam, userIdParam]);
-
-  // countdown effect
-  useEffect(() => {
-    let interval;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  useEffect(() => {
-    if (step === "verify-otp") {
-      setTimer(60); // start 60s countdown immediately
-    }
-  }, [step]);
-
-  useEffect(() => {
-    const storedId = localStorage.getItem("otpUserId");
-    if (storedId && !userId) setUserId(storedId);
-    setTimer(60);
-  }, []);
-
-  const handleRegister = async () => {
-    // ✅ Ensure Turnstile is passed
-    if (!turnstileToken) {
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message: "Please complete the CAPTCHA before registering.",
-          type: "error",
-          id: Date.now(),
-        });
-      }, 0);
-      return;
-    }
-
-    // Validation
-    if (!name || !email || !password || !confirmPassword) {
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message: "All fields are required",
-          type: "error",
-          id: Date.now(),
-        });
-      }, 0);
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message: "Enter a valid email address",
-          type: "error",
-          id: Date.now(),
-        });
-      }, 0);
-      return;
-    }
-
-    if (!/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(password)) {
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message:
-            "Password must be 8–15 chars, include letters, numbers & a special character",
-          type: "error",
-          id: Date.now(),
-        });
-      }, 0);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message: "Passwords do not match",
-          type: "error",
-          id: Date.now(),
-        });
-      }, 0);
-      return;
-    }
-
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    setIsLoading(true);
-    try {
-      const res = await register({
-        name,
-        email,
-        password,
-        turnstileToken,
-        timezone,
-      });
-
-      if (res.data.isVerified === false) {
-        setPopup(null);
-        setTimeout(() => {
-          setPopup({
-            message: "User exists. Please verify OTP.",
-            type: "success",
-            id: Date.now(),
-          });
-        }, 0);
-        setUserId(res.data.userId);
-        setStep("verify-otp");
-        return;
-      }
-
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message: "Check your email for OTP",
-          type: "success",
-          id: Date.now(),
-        });
-      }, 0);
-
-      setUserId(res.data.userId);
-      setStep("verify-otp");
-      setName("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-    } catch (err) {
-      if (
-        err.response?.status === 409 ||
-        err.response?.data?.message === "User already exists. Please login."
-      ) {
-        setPopup(null);
-        setTimeout(() => {
-          setPopup({
-            message: "User already exists. Redirecting to login...",
-            type: "info",
-            id: Date.now(),
-          });
-        }, 0);
-        router.push("/login");
-        return;
-      }
-
-      setPopup(null);
-      setTimeout(() => {
-        setPopup({
-          message: err.response?.data?.message || "Registration failed",
-          type: "error",
-          id: Date.now(),
-        });
-      }, 0);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    setIsLoading(true);
-    try {
-      await axios.post(`${API_BASE}/api/auth/verify-otp`, {
-        userId,
-        otp,
-      });
-
-      setPopup({
-        message: "Email verified! You can now log in.",
-        type: "success",
-      });
-
-      setTimeout(() => router.push("/login"), 1500);
-    } catch (err) {
-      setPopup({
-        message: err.response?.data?.message || "OTP verification failed",
-        type: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    setIsLoading(true);
-    try {
-      const res = await axios.post(`${API_BASE}/api/auth/resend-otp`, {
-        userId,
-      });
-
-      // Check if remaining attempts are 0
-      if (res.data.remaining === 0) {
-        setResendLimitReached(true);
-      }
-
-      setPopup({
-        message: `${res.data.message}${
-          res.data.remaining !== undefined
-            ? ` (${res.data.remaining} attempts left)`
-            : ""
-        }`,
-        type: "success",
-      });
-
-      setTimer(60); // start/reset countdown
-    } catch (err) {
-      // If backend returns limit reached error
-      if (
-        err.response?.status === 429 &&
-        err.response?.data?.message === "Resend limit reached"
-      ) {
-        setResendLimitReached(true);
-      }
-
-      setPopup({
-        message: err.response?.data?.message || "Failed to resend OTP",
-        type: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // stops accidental form submission/page reload
-      handleRegister();
-    }
-  };
-
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-
-    if (value && !value.includes("@")) {
-      // Show suggestions only before @ is typed
-      setSuggestions(domains.map((d) => `${value}@${d}`));
-    } else {
-      setSuggestions([]);
-    }
-  };
-
-  const handleSelect = (suggestion) => {
-    setEmail(suggestion);
-    setSuggestions([]);
-  };
-
+function Spinner() {
   return (
-    <>
-      <Head>
-        <title>Register | JournalX</title>
-        <meta
-          name="description"
-          content="Create your JournalX account to start tracking, analyzing, and improving your trading performance. Join JournalX today and take control of your trades with data-driven insights."
-        />
-        <meta
-          name="keywords"
-          content="JournalX register, trading journal signup, trading account creation, trading analytics, trade performance tracker"
-        />
-        <meta name="robots" content="index, follow" />
-        <meta property="og:title" content="JournalX | Register" />
-        <meta
-          property="og:description"
-          content="Join JournalX and elevate your trading game. Register to start logging trades and gaining insights instantly."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://yourdomain.com/register" />
-        <meta property="og:image" content="/assets/Journalx_Banner.png" />
-      </Head>
-      <div className="authWrapper">
-        <div className="register flexClm gap_32 pad_16 authenticate" style={{}}>
-          {/* <Navbar /> */}
-          <div className="s_tit_des flexClm">
-            <span className="font_24 font_weight_600">Create new account</span>
-            <span className="desc font_14">
-              Explore the ease of journaling by creating your account
-            </span>
-          </div>
-
-          <div className="container">
-            {step === "enter-email" && (
-              <div className="flexClm gap_8">
-                <div className="flexClm gap_24">
-                  <div key="email-step" className="flexClm gap_24">
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Name"
-                      type="text"
-                    />
-
-                    <div className="suggestionInput flexClm">
-                      <input
-                        value={email}
-                        onChange={handleChange}
-                        placeholder="Email Address"
-                        type="email"
-                      />
-                      {/* Email Validation */}
-                      {email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
-                        <span className="font_12 error">
-                          Enter a valid email (must include @ and .com)
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flexClm gap_8 flex_center">
-                    <button
-                      className="primary-btn flexRow flexRow_stretch width100"
-                      onClick={() => setStep("set-password")}
-                      disabled={
-                        !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-                      }
-                    >
-                      Next <ArrowRight size={16} />
-                    </button>
-                  </div>
-                </div>
-                <div className="flexClm gap_24">
-                  <div>
-                    <button
-                      className="tertiary-btn"
-                      onClick={() => router.push("/login")}
-                    >
-                      Already have an account? Login here
-                    </button>
-                  </div>
-                  <div className="flexClm gap_24">
-                    <div
-                      className="flexRow gap_12 flex_center"
-                      style={{ color: "var(--black-50)", opacity: "0.5" }}
-                    >
-                      <hr width="100%"></hr>
-                      <span
-                        className="font_12"
-                        style={{ color: "var(--black-50)" }}
-                      >
-                        or
-                      </span>
-                      <hr width="100%"></hr>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
-                      }}
-                      className="primary-btn secondary-btn flexRow gap_8 items-center justify-center"
-                    >
-                      <FcGoogle size={20} /> Continue with Google
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {step === "set-password" && (
-              <div className="flexClm gap_24">
-                <div key="password-step" className="flexClm gap_24">
-                  {/* Password */}
-                  <div className="passwordWrap flexClm">
-                    <input
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
-                      type={showPassword ? "text" : "password"}
-                      onKeyDown={handleKeyDown}
-                    />
-                    <button
-                      type="button"
-                      className="eyeButton"
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--black)",
-                        marginTop: "12px",
-                      }}
-                      onClick={() => setShowPassword((prev) => !prev)}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                    {password &&
-                      !/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(
-                        password,
-                      ) && (
-                        <span className="font_12 error">
-                          Password: 8–15 chars, letters, numbers & 1 special
-                          character
-                        </span>
-                      )}
-                  </div>
-
-                  {/* Confirm Password */}
-                  <div className="passwordWrap flexClm">
-                    <input
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm Password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      onKeyDown={handleKeyDown}
-                    />
-                    <button
-                      type="button"
-                      className="eyeButton"
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--black)",
-                        marginTop: "12px",
-                      }}
-                      onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff size={18} />
-                      ) : (
-                        <Eye size={18} />
-                      )}
-                    </button>
-                    {confirmPassword && password !== confirmPassword && (
-                      <span className="font_12 error">
-                        Passwords do not match
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <Turnstile
-                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                  onSuccess={(token) => setTurnstileToken(token)}
-                />
-
-                <div className="flexClm gap_8">
-                  <div className="flexRow flexRow_stretch gap_12">
-                    <button
-                      className="primary-btn width100 secondary-btn flexRow gap_12  flex_center"
-                      onClick={() => setStep("enter-email")}
-                      disabled={isLoading}
-                    >
-                      <ArrowLeft size={20} />
-                      Back
-                    </button>
-
-                    <button
-                      className="primary-btn width100 flexRow  gap_12 flex_center"
-                      onClick={handleRegister}
-                      disabled={isLoading || !turnstileToken} // ✅ disable until captcha success
-                    >
-                      {isLoading ? (
-                        <div className="spinner"></div>
-                      ) : (
-                        <>
-                          Register <ArrowRight size={20} />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {step === "verify-otp" && (
-              <div className="flexClm gap_24">
-                <div className="flexClm gap_24">
-                  <span className="font_16">
-                    Enter the 6-digit OTP sent to your email
-                  </span>
-                  <input
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder="Enter OTP"
-                    type="text"
-                    maxLength={6}
-                  />
-                </div>
-
-                <div className="flexRow gap_8">
-                  <button
-                    className="primary-btn secondary-btn flexRow width100 flex_center flexRow_stretch"
-                    onClick={handleResendOtp}
-                    disabled={isLoading || timer > 0 || resendLimitReached}
-                  >
-                    {resendLimitReached
-                      ? "Resend limit reached"
-                      : timer > 0
-                        ? `Resend OTP in ${timer}s`
-                        : "Resend OTP"}
-                  </button>
-
-                  <button
-                    className="primary-btn flexRow width100 flex_center flexRow_stretch"
-                    onClick={handleVerifyOtp}
-                    disabled={otp.length !== 6 || isLoading}
-                    style={{ color: "white" }}
-                  >
-                    {isLoading ? <div className="spinner"></div> : "Verify OTP"}
-                  </button>
-                </div>
-
-                <LegalLinks />
-              </div>
-            )}
-          </div>
-
-          {/* <MessageCard
-          type="info"
-          title="Best analysis place to learn trading by journaling"
-          description="We offer analysis and education — no trading services provided."
-        /> */}
-
-          <ToastMessage type={popup.type} message={popup.message} />
-          <BackgroundBlur />
-        </div>
-      </div>
-    </>
+    <motion.span
+      animate={{ rotate: 360 }}
+      transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+      style={{ width: 14, height: 14, borderRadius: "50%", display: "inline-block", border: "2px solid color-mix(in srgb, currentColor 30%, transparent)", borderTopColor: "currentColor" }}
+    />
   );
 }
 
-export default Register;
+export default function RegisterPage() {
+  const router = useRouter();
+  const [step, setStep] = useState("form"); // form | otp
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [userId, setUserId] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [toast, setToast] = useState(null);
+  const flash = (type, msg, ms = 3500) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), ms);
+  };
+
+  useEffect(() => {
+    if (Cookies.get("isVerified") === "yes") router.replace("/dashboard");
+  }, [router]);
+
+  useEffect(() => {
+    if (!cooldown) return;
+    const id = setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
+  const pwChecks = [
+    ["8+ characters", password.length >= 8],
+    ["A number", /\d/.test(password)],
+    ["A letter", /[a-zA-Z]/.test(password)],
+  ];
+  const pwOk = pwChecks.every(([, ok]) => ok);
+
+  const submitRegister = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return flash("danger", "What should we call you?");
+    if (!email.trim()) return flash("danger", "Enter your email");
+    if (!pwOk) return flash("danger", "Password needs 8+ chars with a letter and a number");
+    if (!captchaToken) return flash("danger", "Please complete the captcha first");
+    setBusy(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE}/api/auth/register`,
+        {
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          turnstileToken: captchaToken,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        { withCredentials: true },
+      );
+      setUserId(res.data?.userId);
+      setStep("otp");
+      setCooldown(60);
+      flash("success", "Account created — check your email for the code");
+    } catch (err) {
+      const data = err.response?.data;
+      if (err.response?.status === 409) {
+        flash("danger", "Account already exists — log in instead");
+      } else {
+        flash("danger", data?.message || "Registration failed — try again");
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitOtp = async () => {
+    if (otp.length !== 6) return flash("danger", "Enter the 6-digit code");
+    setBusy(true);
+    try {
+      await axios.post(`${API_BASE}/api/auth/verify-otp`, { userId, otp }, { withCredentials: true });
+      Cookies.set("isVerified", "yes", { path: "/", sameSite: "Strict", expires: 365000 });
+      flash("success", "You're in — welcome to JournalX!");
+      setTimeout(() => router.push("/dashboard"), 800);
+    } catch (err) {
+      flash("danger", err.response?.data?.message || "Invalid code");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resend = async () => {
+    try {
+      const res = await axios.post(`${API_BASE}/api/auth/resend-otp`, { userId }, { withCredentials: true });
+      setCooldown(60);
+      flash("success", `Code resent${res.data?.remaining != null ? ` · ${res.data.remaining} left` : ""}`);
+    } catch (err) {
+      flash("danger", err.response?.data?.message || "Could not resend");
+    }
+  };
+
+  return (
+    <AuthLayout
+      title={step === "form" ? "Create your account" : "Verify your email"}
+      subtitle={step === "form" ? "Free to start — log your first trade in under a minute" : `We sent a 6-digit code to ${email}`}
+    >
+      <Toast toast={toast} />
+      <AnimatePresence mode="wait">
+        {step === "form" ? (
+          <motion.form
+            key="form"
+            initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+            transition={{ duration: 0.18 }}
+            onSubmit={submitRegister}
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+          >
+            <div className="jx-field">
+              <label className="jx-field__label">Name</label>
+              <div className="jx-input">
+                <span className="jx-input__icon"><User size={15} /></span>
+                <input autoComplete="name" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="jx-field">
+              <label className="jx-field__label">Email</label>
+              <div className="jx-input">
+                <span className="jx-input__icon"><Mail size={15} /></span>
+                <input type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="jx-field">
+              <label className="jx-field__label">Password</label>
+              <div className="jx-input">
+                <span className="jx-input__icon"><Lock size={15} /></span>
+                <input type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <button type="button" onClick={() => setShowPw(!showPw)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", display: "flex" }} aria-label="Toggle password">
+                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+              {password && (
+                <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+                  {pwChecks.map(([label, ok]) => (
+                    <span key={label} style={{ display: "flex", alignItems: "center", gap: 4, font: "var(--text-caption)", color: ok ? "var(--color-success)" : "var(--color-text-muted)" }}>
+                      <Check size={12} /> {label}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onExpire={() => setCaptchaToken("")}
+              onError={() => setCaptchaToken("")}
+              options={{ size: "flexible" }}
+            />
+
+            <Button type="submit" variant="primary" disabled={busy || !captchaToken} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
+              {busy ? <><Spinner /> Creating account…</> : "Create account"}
+            </Button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", color: "var(--color-text-muted)", font: "var(--text-caption)" }}>
+              <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} /> or <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
+            </div>
+
+            <Button type="button" variant="outline" style={{ width: "100%", justifyContent: "center" }} onClick={() => { window.location.href = `${API_BASE}/api/auth/google`; }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.1A6.6 6.6 0 0 1 5.49 12c0-.73.13-1.44.35-2.1V7.06H2.18A11 11 0 0 0 1 12c0 1.78.43 3.45 1.18 4.94l3.66-2.84z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.16-3.16C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
+              </svg>
+              Sign up with Google
+            </Button>
+
+            <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", textAlign: "center" }}>
+              Already journaling?{" "}
+              <a href="/login" style={{ color: "var(--yellow-600)", fontWeight: 600, textDecoration: "none" }}>Log in</a>
+            </span>
+          </motion.form>
+        ) : (
+          <motion.div
+            key="otp"
+            initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
+            transition={{ duration: 0.18 }}
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+          >
+            <OtpInput value={otp} onChange={setOtp} />
+            <Button variant="primary" disabled={busy || otp.length !== 6} onClick={submitOtp} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
+              {busy ? <><Spinner /> Verifying…</> : "Verify & start journaling"}
+            </Button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setStep("form"); setOtp(""); }}>
+                <ArrowLeft size={14} /> Back
+              </button>
+              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={resend} disabled={cooldown > 0}>
+                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </AuthLayout>
+  );
+}

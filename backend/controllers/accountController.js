@@ -7,7 +7,7 @@ const getUserData = require("../utils/getUserData");
 
 const createAccount = async (req, res) => {
   try {
-    const { accountName, currency, balance } = req.body;
+    const { accountName, currency, balance, accountType } = req.body;
     const userId = req.cookies.userId;
 
     if (!userId) {
@@ -29,6 +29,9 @@ const createAccount = async (req, res) => {
       userId,
       name: accountName,
       currency: currency || "USD",
+      accountType: ["spot", "futures", "paper"].includes(accountType)
+        ? accountType
+        : "spot",
       startingBalance: {
         amount: balance || 0,
         time: new Date(),

@@ -1,4 +1,6 @@
 import "@/styles/globals.css";
+import "@/styles/tokens.css";
+import "@/styles/jx-components.css";
 import * as gtag from "@/utils/gtag";
 import Head from "next/head";
 import { useEffect } from "react";

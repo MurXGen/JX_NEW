@@ -13,6 +13,9 @@ const {
   updateTrade,
   tradeChat,
   deleteTrade,
+  addTradesBulk,
+  addTradeImage,
+  deleteTradeImage,
 } = require("../controllers/tradeController");
 
 router.post(
@@ -20,6 +23,7 @@ router.post(
   upload.fields([
     { name: "openImage", maxCount: 1 },
     { name: "closeImage", maxCount: 1 },
+    { name: "images", maxCount: 4 }, // v2 log-trade modal screenshots
   ]),
   addTrade
 );
@@ -34,6 +38,13 @@ router.put(
 );
 
 router.delete("/delete", deleteTrade);
+
+// v2: bulk CSV import (quick-log rows)
+router.post("/bulk", express.json({ limit: "2mb" }), addTradesBulk);
+
+// v2: per-trade screenshot CRUD (Backblaze-backed)
+router.post("/:id/images", upload.fields([{ name: "image", maxCount: 1 }]), addTradeImage);
+router.delete("/:id/images", express.json(), deleteTradeImage);
 
 router.post("/trade-chat", tradeChat);
 

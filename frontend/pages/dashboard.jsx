@@ -1,252 +1,282 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
-import { calculateStats } from "@/utils/calculateStats";
-import {
-  ArrowLeftRight,
-  ArrowUpRight,
-  ChevronDown,
-  Circle,
-  LucideSwitchCamera,
-  Menu,
-  MenuIcon,
-  PieChart,
-  Settings,
-  Smile,
-  SwitchCamera,
-  SwitchCameraIcon,
-  TrendingDown,
-  TrendingUp,
-  User,
-} from "lucide-react";
-import HeroCards from "@/components/dashboardMobile/HeroCards";
-import { getCurrencySymbol } from "@/utils/currencySymbol";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
+import axios from "axios";
 import Cookies from "js-cookie";
-import AllTradeStats from "@/components/dashboardMobile/AllTradesStats";
-import AllLongShortStats from "@/components/dashboardMobile/AllLongShortStats";
-import AllTickerStats from "@/components/dashboardMobile/AllTickerStats";
-import DailyPnlChart from "@/components/Charts/DailyPnlChart";
-import { processPnLCandles } from "@/utils/processPnLCandles";
-import PnLAreaChart from "@/components/Charts/PnLAreaChart";
-import PNLChart from "@/components/Charts/PnlChart";
-import TagAnalysis from "@/components/Charts/TagAnalysis";
-import TagPerformance from "@/components/Charts/TagPerformance";
-import LongShortVolumes from "@/components/Charts/LongShortVolumes";
-import VolumeChart from "@/components/Charts/AllVolume";
-import TickerAnalysis from "@/components/Tabs/TickerAnalysis";
-import BottomBar from "@/components/Trades/BottomBar";
-import { useRouter } from "next/navigation";
-import { FcSwitchCamera } from "react-icons/fc";
+import {
+  ArrowUpDown,
+  BookOpen,
+  Globe,
+  History,
+  LayoutGrid,
+  Share2,
+} from "lucide-react";
+
+import {
+  Sidebar,
+  Button,
+  AnimatedPanel,
+  LogTradeModal,
+  SettingsPanel,
+  ImportExportPanel,
+  BlogsPanel,
+  TradesLogPanel,
+  JournalsModal,
+  OverviewPanel,
+  MarketsPanel,
+  SharePanel,
+} from "@/components/revampV2";
+
+import Pricing from "@/components/dashboard/PricingModal";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 
-export default function DashboardMobile() {
+import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
+import { getBaseCurrency, getRate, convertTrade } from "@/utils/fx";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+/* Dummy trades shown until real data is connected / when journal is empty */
+const DUMMY_TRADES = [
+  { _id: "d1", symbol: "BTC/USDT", direction: "long", pnl: 1250, totalQuantity: 0.5, openTime: "2026-06-01T07:10:00Z", closeTime: "2026-06-01T10:30:00Z", entryPrice: 61240, exitPrice: 63820, rr: 2.4, source: "auto", images: [1, 2, 3] },
+  { _id: "d2", symbol: "ETH/USDT", direction: "short", pnl: -420, totalQuantity: 4, openTime: "2026-06-02T11:40:00Z", closeTime: "2026-06-02T14:00:00Z", entryPrice: 3420, exitPrice: 3530, rr: 1.2, source: "manual", images: [1, 2] },
+  { _id: "d3", symbol: "SOL/USDT", direction: "long", pnl: 610, totalQuantity: 30, closeTime: "2026-06-02T18:45:00Z", entryPrice: 182.4, exitPrice: 202.7, rr: 1.5, source: "manual", images: [1] },
+  { _id: "d4", symbol: "BTC/USDT", direction: "long", pnl: 980, totalQuantity: 0.3, closeTime: "2026-06-03T09:15:00Z", entryPrice: 60400, exitPrice: 63670, rr: 2.0, source: "auto", images: [] },
+  { _id: "d5", symbol: "XAU/USD", direction: "short", pnl: -260, totalQuantity: 2, closeTime: "2026-06-04T11:20:00Z", entryPrice: 2380, exitPrice: 2510, rr: 1.1, source: "manual", images: [1, 2] },
+  { _id: "d6", symbol: "ETH/USDT", direction: "long", pnl: 1740, totalQuantity: 6, openTime: "2026-06-05T12:20:00Z", closeTime: "2026-06-05T16:05:00Z", entryPrice: 3310, exitPrice: 3600, rr: 3.0, source: "auto", images: [1] },
+  { _id: "d7", symbol: "NIFTY", direction: "long", pnl: 330, totalQuantity: 50, closeTime: "2026-06-05T19:40:00Z", entryPrice: 24180, exitPrice: 24186.6, rr: 2.2, source: "manual", images: [] },
+  { _id: "d8", symbol: "BTC/USDT", direction: "short", pnl: -150, totalQuantity: 0.2, closeTime: "2026-06-06T08:55:00Z", entryPrice: 63900, exitPrice: 64650, rr: 1.0, source: "auto", images: [1] },
+];
+
+const NAV_ITEMS = [
+  { id: "overview", label: "Overview", icon: LayoutGrid },
+  { id: "trades", label: "Trades log", icon: History },
+  { id: "blogs", label: "Learn & News", icon: BookOpen },
+  { id: "markets", label: "Markets", icon: Globe },
+  { id: "share", label: "Share logs", icon: Share2 },
+  { id: "importexport", label: "Import / Export", icon: ArrowUpDown },
+];
+
+export default function Dashboard() {
   const router = useRouter();
-  const [accounts, setAccounts] = useState([]);
-  const [trades, setTrades] = useState([]);
-  const [userPlan, setUserPlan] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const [showSwitchModal, setShowSwitchModal] = useState(false);
+  const [showLogTrade, setShowLogTrade] = useState(false);
+  const [importSignal, setImportSignal] = useState(0);
 
-  const [activeTab, setActiveTab] = useState("Overview");
-  const tabs = ["Overview", "Long/Short", "Ticker"];
+  const [userData, setUserData] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [accountTrades, setAccountTrades] = useState([]);
+  const [currentBalances, setCurrentBalances] = useState({});
+  const [accountSymbols, setAccountSymbols] = useState({});
 
-  const primaryCurrency = accounts.length > 0 ? accounts[0].currency : "usd";
-
-  const currencySymbol = getCurrencySymbol(primaryCurrency);
-
-  const selectedAccountId = Cookies.get("accountId");
-
+  /* ---------- data loading (same flow as old dashboard-web) ---------- */
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const checkWidth = () => {
-        if (window.innerWidth > 600) {
-          router.replace("/dashboard-web");
-        } else {
-          setLoading(false); // allow mobile UI
+    const loadEverything = async () => {
+      setLoading(true);
+      try {
+        const userRes = await axios.get(`${API_BASE}/api/auth/user-info`, {
+          withCredentials: true,
+        });
+        const { userData } = userRes.data;
+        setUserData(userData);
+
+        if (userData) {
+          await saveToIndexedDB("user-data", userData);
+          if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
+          if (userData?.name) localStorage.setItem("userName", userData.name);
         }
-      };
 
-      checkWidth();
-      window.addEventListener("resize", checkWidth);
+        const result = await fetchAccountsAndTrades();
+        if (result.redirectToLogin) {
+          router.push("/login");
+          return;
+        }
 
-      return () => window.removeEventListener("resize", checkWidth);
-    }
-  }, [router]);
-
-  const selectedAccount = useMemo(() => {
-    if (!selectedAccountId) return null;
-    return accounts.find((acc) => acc._id === selectedAccountId) || null;
-  }, [accounts, selectedAccountId]);
-
-  const selectedTrades = useMemo(() => {
-    if (!selectedAccount) return [];
-    return trades.filter((t) => t.accountId === selectedAccount._id);
-  }, [trades, selectedAccount]);
-
-  const currentAccountId = Cookies.get("accountId");
-
-  useEffect(() => {
-    const loadData = async () => {
-      const data = await fetchAccountsAndTrades();
-
-      if (data?.redirectToLogin) {
-        window.location.href = "/login";
-        return;
+        setAccounts(result.accounts || []);
+        setAccountSymbols(result.accountSymbols || {});
+        setCurrentBalances(result.currentBalances || {});
+        setAccountTrades(result.trades || []);
+      } catch (err) {
+        console.error("Load error:", err);
+        const cachedUser = await getFromIndexedDB("user-data");
+        setUserData(cachedUser);
+        if (cachedUser) {
+          const result = await fetchAccountsAndTrades();
+          setAccounts(result.accounts || []);
+          setAccountTrades(result.trades || []);
+        }
+      } finally {
+        setLoading(false);
       }
-
-      setAccounts(data.accounts || []);
-      setTrades(data.trades || []);
-      setUserPlan(data.userPlan || null);
-
-      setLoading(false);
     };
 
-    loadData();
+    loadEverything();
+  }, [router]);
+
+  /* ---------- verification param ---------- */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("isVerified") === "yes") {
+      Cookies.set("isVerified", "yes", {
+        path: "/",
+        sameSite: "Strict",
+        expires: 365000,
+      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
 
-  const stats = useMemo(() => {
-    return calculateStats(selectedTrades);
-  }, [selectedTrades]);
+  /* ---------- derived data ---------- */
+  const selectedAccountId = Cookies.get("accountId");
+  const currentAccount =
+    accounts.find((a) => a._id === selectedAccountId) || accounts[0];
 
-  const totalBalance = useMemo(() => {
-    if (!selectedAccount) return 0;
+  const selectedTrades = useMemo(() => {
+    if (!currentAccount) return [];
+    return accountTrades.filter((t) => t.accountId === currentAccount._id);
+  }, [accountTrades, currentAccount]);
 
-    const starting = selectedAccount.startingBalance?.amount || 0;
+  const usingDummy = selectedTrades.length === 0;
+  const rawTrades = usingDummy ? DUMMY_TRADES : selectedTrades;
 
-    const pnlSum = selectedTrades.reduce(
-      (sum, t) => sum + (Number(t.pnl) || 0),
-      0,
-    );
+  /* ---------- base currency conversion (Settings → Apply) ---------- */
+  const [baseCurrency, setBaseCurrencyState] = useState("USD");
+  const [fxRate, setFxRate] = useState(1);
 
-    return starting + pnlSum;
-  }, [selectedAccount, selectedTrades]);
+  useEffect(() => {
+    const applyCurrency = async (cur) => {
+      setBaseCurrencyState(cur);
+      setFxRate(await getRate(cur));
+    };
+    applyCurrency(getBaseCurrency());
+    const onChange = (e) => applyCurrency(e.detail || getBaseCurrency());
+    window.addEventListener("jx-currency-changed", onChange);
+    return () => window.removeEventListener("jx-currency-changed", onChange);
+  }, []);
 
-  const filteredTrades = useMemo(() => {
-    if (!currentAccountId) return [];
+  const trades = useMemo(
+    () => (fxRate === 1 ? rawTrades : rawTrades.map((t) => convertTrade(t, fxRate))),
+    [rawTrades, fxRate],
+  );
 
-    return trades.filter((trade) => trade.accountId === currentAccountId);
-  }, [trades, currentAccountId]);
+  const currencySymbol = getCurrencySymbol(baseCurrency.toLowerCase());
 
-  const candleData = useMemo(() => {
-    return processPnLCandles(filteredTrades);
-  }, [filteredTrades]);
+  const isProMonthly =
+    userData?.subscription?.plan === "pro" &&
+    userData?.subscription?.type === "one-time";
 
-  const handleEdit = () => {
-    router.push("/create-account?mode=edit");
+  if (loading) return <FullPageLoader />;
+
+  /* ---------- overview tab content (Figma "Dashboard / Desktop") ---------- */
+  const overview = (
+    <OverviewPanel
+      trades={trades}
+      currencySymbol={currencySymbol}
+      userName={userData?.name}
+      usingDummy={usingDummy}
+      startingBalance={
+        usingDummy
+          ? 10000
+          : (currentAccount?.startingBalance?.amount || 0) * fxRate
+      }
+      onLogTrade={() => setShowLogTrade(true)}
+      onImport={() => {
+        setActiveTab("trades");
+        setImportSignal((s) => s + 1); // opens the import modal in Trades log
+      }}
+    />
+  );
+
+  const TAB_CONTENT = {
+    overview,
+    trades: (
+      <TradesLogPanel
+        trades={trades}
+        currencySymbol={currencySymbol}
+        usingDummy={usingDummy}
+        onAddTrade={() => setShowLogTrade(true)}
+        openImportSignal={importSignal}
+        onTradesAdded={(newTrades) =>
+          setAccountTrades((prev) => [...prev, ...(newTrades || [])])
+        }
+        onTradesDeleted={(ids) =>
+          setAccountTrades((prev) => prev.filter((t) => !ids.includes(t._id)))
+        }
+        onTradeUpdated={(trade) =>
+          setAccountTrades((prev) =>
+            prev.map((t) => (t._id === trade._id ? { ...t, ...trade } : t)),
+          )
+        }
+      />
+    ),
+    blogs: <BlogsPanel />,
+    markets: <MarketsPanel trades={trades} />,
+    share: (
+      <SharePanel
+        trades={trades}
+        accountName={currentAccount?.name || "My journal"}
+        currencySymbol={currencySymbol}
+      />
+    ),
+    importexport: <ImportExportPanel trades={trades} />,
+    settings: <SettingsPanel user={userData} />,
+    pricingpage: <Pricing />,
   };
 
-  if (loading) {
-    return <FullPageLoader />;
-  }
-
   return (
-    <>
-      <div
-        className="flexClm dashboard pad_16 gap_32"
-        style={{ paddingTop: "24px" }}
-      >
-        <div className="mob-header flexRow flexRow_stretch">
-          <div className="flexClm">
-            <span className="font_24 font_weight_600 flexRow flex_center gap_12">
-              {selectedAccount && <span>{selectedAccount.name}</span>}
-              <ArrowLeftRight
-                onClick={() => router.push("/accounts")}
-                style={{ color: "var(--primary)", cursor: "pointer" }}
-              />
-            </span>
-            <span className="font_14" style={{ color: "var(--black-50)" }}>
-              Journal Dashboard
-            </span>
-          </div>
-          <button
-            style={{ background: "none", border: "none" }}
-            className="black-text"
-            onClick={() => router.push("/journal-setting")}
-          >
-            <Settings size={24} />
-          </button>
-        </div>
+    <div className="jx-shell">
+      <Sidebar
+        items={NAV_ITEMS}
+        active={activeTab}
+        onChange={setActiveTab}
+        accountName={currentAccount?.name}
+        onAccountSwitch={() => setShowSwitchModal(true)}
+        onLogTrade={() => setShowLogTrade(true)}
+        user={userData}
+        onProfile={() => setActiveTab("settings")}
+        showUpgrade={!isProMonthly}
+        onUpgrade={() => setActiveTab("pricingpage")}
+      />
 
-        {/* Stats */}
-        <HeroCards
-          balance={totalBalance}
-          netPnL={stats.netPnL}
-          winTrades={stats.winTrades}
-          loseTrades={stats.loseTrades}
-          maxProfit={stats.maxProfit}
-          maxLoss={stats.maxLoss}
-          currencySymbol={currencySymbol}
-        />
-
-        {/* Tabs */}
-        <div className="mobile-tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              className={`tab-item ${activeTab === tab ? "active" : ""}`}
-              onClick={() => setActiveTab(tab)}
+      <main className="jx-shell__main">
+        {/* Mobile nav strip (sidebar hidden < 768px) */}
+        <div className="jx-mobile-nav">
+          {[...NAV_ITEMS, { id: "settings", label: "Profile" }].map((item) => (
+            <Button
+              key={item.id}
+              size="sm"
+              variant={activeTab === item.id ? "primary" : "secondary"}
+              onClick={() => setActiveTab(item.id)}
             >
-              {tab}
-            </button>
+              {item.label}
+            </Button>
           ))}
         </div>
 
-        <BottomBar />
+        <AnimatedPanel id={activeTab}>
+          {TAB_CONTENT[activeTab] || overview}
+        </AnimatedPanel>
+      </main>
 
-        {activeTab === "Overview" && (
-          <>
-            <AllTradeStats
-              stats={stats}
-              trades={selectedTrades}
-              currencySymbol={currencySymbol}
-            />
+      {/* Log trade modal (Quick log / Detailed) — blurred backdrop */}
+      <LogTradeModal
+        open={showLogTrade}
+        onClose={() => setShowLogTrade(false)}
+        onSaved={(trade) => trade && setAccountTrades((prev) => [...prev, trade])}
+      />
 
-            <div className="">
-              <TagPerformance
-                tagAnalysis={stats.tagAnalysis}
-                currencySymbol={currencySymbol}
-              />
-            </div>
-            <div className="">
-              <PNLChart dailyData={stats.dailyData} />
-            </div>
-            <div className="">
-              <DailyPnlChart data={candleData} />
-            </div>
-            <div className="">
-              <PnLAreaChart data={candleData} />
-            </div>
-
-            <div className="">
-              <VolumeChart dailyData={stats.dailyVolumeData} />
-            </div>
-          </>
-        )}
-
-        {activeTab === "Long/Short" && (
-          <>
-            <AllLongShortStats
-              trades={selectedTrades}
-              currencySymbol={currencySymbol}
-            />
-            <div className="">
-              <LongShortVolumes dailyData={stats.dailyVolumeData} />
-            </div>
-          </>
-        )}
-
-        {activeTab === "Ticker" && (
-          <>
-            <AllTickerStats
-              trades={filteredTrades}
-              currencySymbol={currencySymbol}
-            />
-            <div className="">
-              <TickerAnalysis trades={filteredTrades} />
-            </div>
-          </>
-        )}
-      </div>
-    </>
+      <JournalsModal
+        open={showSwitchModal}
+        onClose={() => setShowSwitchModal(false)}
+        accounts={accounts}
+        trades={accountTrades}
+        currentBalances={currentBalances}
+        currentAccountId={currentAccount?._id}
+      />
+    </div>
   );
 }

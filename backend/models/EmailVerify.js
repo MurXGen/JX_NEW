@@ -10,6 +10,12 @@ const emailVerificationSchema = new mongoose.Schema(
       index: true,
     },
     otpHash: { type: String, required: true }, // store hashed OTP
+    purpose: {
+      type: String,
+      enum: ["verify", "reset"],
+      default: "verify",
+      index: true,
+    },
     expiresAt: { type: Date, required: true, index: true },
     attempts: { type: Number, default: 0 }, // limit attempts
     resendCount: {

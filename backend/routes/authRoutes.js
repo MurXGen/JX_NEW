@@ -7,12 +7,34 @@ const {
   resendOtp,
   userFetchGoogleAuth,
   updateSubscription,
+  requestPasswordReset,
+  resetPassword,
 } = require("../controllers/authController");
 require("../utils/passport");
 const passport = require("passport");
 const { sendTelegramNotification } = require("../utils/telegramNotifier");
 const createLimiter = require("../utils/rateLimiter");
 const Account = require("../models/Account");
+
+// v2 profile update (avatar → Backblaze)
+const multer = require("multer");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { deleteImageFromB2 } = require("../utils/backblaze");
+const User = require("../models/User");
+
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+});
+
+const s3Profile = new S3Client({
+  region: process.env.B2_REGION,
+  endpoint: process.env.B2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.B2_KEY_ID,
+    secretAccessKey: process.env.B2_APP_KEY,
+  },
+});
 
 // 📌 Email/Password Registration
 router.post("/register", registerUser);
@@ -23,6 +45,10 @@ router.post("/login", loginUser);
 router.post("/verify-otp", verifyOtp);
 
 router.post("/resend-otp", resendOtp);
+
+// 📌 v2: Forgot / reset password (OTP over email)
+router.post("/forgot-password", createLimiter(10), requestPasswordReset);
+router.post("/reset-password", createLimiter(10), resetPassword);
 
 // 📌 Trigger Google OAuth flow
 router.get(
@@ -86,6 +112,65 @@ router.get(
 router.get("/user-info", createLimiter(20), userFetchGoogleAuth);
 
 router.put("/update-subscription", updateSubscription);
+
+// 📌 v2: Update profile — name, base currency, avatar (email is immutable)
+router.put("/update-profile", avatarUpload.single("avatar"), async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (typeof req.body.name === "string" && req.body.name.trim()) {
+      user.name = req.body.name.trim();
+    }
+    if (typeof req.body.baseCurrency === "string" && req.body.baseCurrency.trim()) {
+      user.baseCurrency = req.body.baseCurrency.trim().toUpperCase();
+    }
+
+    // avatar upload → Backblaze (replaces previous one)
+    if (req.file) {
+      if (!req.file.mimetype.startsWith("image/")) {
+        return res.status(400).json({ success: false, message: "Avatar must be an image" });
+      }
+      const safeName = req.file.originalname.replace(/\s+/g, "_");
+      const key = `trades/avatars/${userId}-${Date.now()}-${safeName}`;
+      await s3Profile.send(
+        new PutObjectCommand({
+          Bucket: process.env.B2_BUCKET,
+          Key: key,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype,
+        })
+      );
+      const oldUrl = user.avatarUrl;
+      user.avatarUrl = `https://cdn.journalx.app/${key}`;
+      user.avatarSizeKB = Math.round(req.file.size / 1024);
+      if (oldUrl) deleteImageFromB2(oldUrl); // async cleanup
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Profile updated",
+      profile: {
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        baseCurrency: user.baseCurrency,
+      },
+    });
+  } catch (err) {
+    console.error("Update profile error:", err);
+    res.status(500).json({ success: false, message: "Profile update failed" });
+  }
+});
 
 // router.get('/full', getFullUserData);
 

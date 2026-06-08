@@ -102,6 +102,15 @@ exports.addTrade = async (req, res) => {
       openTime: body.openTime || new Date(),
       closeTime: body.closeTime || null,
 
+      // ✅ Revamp v2 context fields
+      sizeUnit: body.sizeUnit || "",
+      strategy: body.strategy || "",
+      marketCondition: body.marketCondition || "",
+      timeframe: body.timeframe || "",
+      confidence: Number(body.confidence || 0),
+      emotion: body.emotion || "",
+      mistakes: body.mistakes ? JSON.parse(body.mistakes) : [],
+
       userId,
       accountId,
     };
@@ -123,6 +132,20 @@ exports.addTrade = async (req, res) => {
       );
       tradeData.closeImageUrl = url;
       tradeData.closeImageSizeKB = sizeKB;
+    }
+
+    // --- v2 screenshots: up to 4 images, 10MB combined ---
+    if (files?.images?.length) {
+      const totalBytes = files.images.reduce((s, f) => s + f.size, 0);
+      if (files.images.length > 4 || totalBytes > 10 * 1024 * 1024) {
+        return res.status(400).json({
+          success: false,
+          message: "Max 4 screenshots and 10MB total per trade",
+        });
+      }
+      tradeData.images = await Promise.all(
+        files.images.map((f) => handleUpload(f, "trade-images")),
+      );
     }
 
     // --- Save Trade ---
@@ -173,6 +196,18 @@ exports.addTrade = async (req, res) => {
           closeImageUrl: 1,
           // ✅ Include tradeStatus in returned trade
           tradeStatus: 1,
+          // ✅ v2 fields
+          sizeUnit: 1,
+          strategy: 1,
+          marketCondition: 1,
+          timeframe: 1,
+          confidence: 1,
+          emotion: 1,
+          mistakes: 1,
+          images: 1,
+          feeType: 1,
+          feeAmount: 1,
+          rr: 1,
         },
       },
     ];
@@ -235,6 +270,8 @@ exports.updateTrade = async (req, res) => {
       sls: parseJSON(body.sls),
       tps: parseJSON(body.tps),
       reason: parseJSON(body.reason),
+      mistakes: parseJSON(body.mistakes), // v2 — arrives as JSON string
+      confidence: Number(body.confidence || 0),
       rulesFollowed:
         body.rulesFollowed === "true" || body.rulesFollowed === true,
       learnings: body.learnings || "",
@@ -345,6 +382,18 @@ exports.updateTrade = async (req, res) => {
           openImageUrl: 1,
           closeImageUrl: 1,
           tradeStatus: 1,
+          // ✅ v2 fields
+          sizeUnit: 1,
+          strategy: 1,
+          marketCondition: 1,
+          timeframe: 1,
+          confidence: 1,
+          emotion: 1,
+          mistakes: 1,
+          images: 1,
+          feeType: 1,
+          feeAmount: 1,
+          rr: 1,
         },
       },
     ];
@@ -493,10 +542,137 @@ exports.deleteTrade = async (req, res) => {
       userData,
     });
 
-    // ✅ Cleanup images asynchronously
+    // ✅ Cleanup images asynchronously (legacy + v2 screenshots)
     if (openImageUrl) deleteImageFromB2(openImageUrl);
     if (closeImageUrl) deleteImageFromB2(closeImageUrl);
+    if (Array.isArray(trade.images)) {
+      trade.images.forEach((img) => img?.url && deleteImageFromB2(img.url));
+    }
   } catch (err) {
     res.status(500).json({ error: "Failed to delete trade" });
+  }
+};
+
+// --- v2: trade screenshot CRUD (Backblaze) ---
+exports.addTradeImage = async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    const trade = await Trade.findById(req.params.id);
+    if (!userId || !trade || String(trade.userId) !== String(userId)) {
+      return res.status(404).json({ success: false, message: "Trade not found" });
+    }
+    const file = req.files?.image?.[0] || req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: "No image provided" });
+    }
+    const existing = trade.images || [];
+    const totalKB = existing.reduce((s, i) => s + (i.sizeKB || 0), 0);
+    if (existing.length >= 4 || totalKB * 1024 + file.size > 10 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        message: "Max 4 screenshots and 10MB total per trade",
+      });
+    }
+    const uploaded = await handleUpload(file, "trade-images");
+    trade.images = [...existing, uploaded];
+    await trade.save();
+    res.json({ success: true, images: trade.images });
+  } catch (err) {
+    console.error("Add trade image error:", err);
+    res.status(500).json({ success: false, message: "Could not add image" });
+  }
+};
+
+exports.deleteTradeImage = async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    const { url } = req.body;
+    const trade = await Trade.findById(req.params.id);
+    if (!userId || !trade || String(trade.userId) !== String(userId)) {
+      return res.status(404).json({ success: false, message: "Trade not found" });
+    }
+    if (!url) {
+      return res.status(400).json({ success: false, message: "No image url" });
+    }
+    trade.images = (trade.images || []).filter((i) => i.url !== url);
+    await trade.save();
+    deleteImageFromB2(url); // async cleanup
+    res.json({ success: true, images: trade.images });
+  } catch (err) {
+    console.error("Delete trade image error:", err);
+    res.status(500).json({ success: false, message: "Could not delete image" });
+  }
+};
+
+// --- v2: bulk import quick-log trades from CSV ---
+exports.addTradesBulk = async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    const { accountId, trades } = req.body;
+
+    if (!userId || !accountId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
+    }
+    if (!Array.isArray(trades) || trades.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No trades to import" });
+    }
+    if (trades.length > 500) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Max 500 trades per import" });
+    }
+
+    const docs = [];
+    const errors = [];
+    trades.forEach((t, i) => {
+      const symbol = String(t.symbol || "").trim().toUpperCase();
+      const direction = String(t.direction || "").trim().toLowerCase();
+      const pnl = Number(t.pnl);
+      const closeTime = t.closeTime ? new Date(t.closeTime) : new Date();
+      if (!symbol) return errors.push(`Row ${i + 1}: missing symbol`);
+      if (!["long", "short"].includes(direction))
+        return errors.push(`Row ${i + 1}: direction must be long or short`);
+      if (Number.isNaN(pnl)) return errors.push(`Row ${i + 1}: invalid pnl`);
+      if (Number.isNaN(closeTime.getTime()))
+        return errors.push(`Row ${i + 1}: invalid closeTime`);
+
+      docs.push({
+        userId,
+        accountId,
+        symbol,
+        direction,
+        pnl,
+        pnlAfterFee: pnl,
+        quantityUSD: Number(t.size) || 0,
+        totalQuantity: Number(t.size) || 0,
+        leverage: 1,
+        tradeStatus: "quick",
+        openTime: closeTime,
+        closeTime,
+        learnings: String(t.notes || ""),
+        entries: [],
+        exits: [],
+        sls: [],
+        tps: [],
+      });
+    });
+
+    if (errors.length) {
+      return res.status(400).json({ success: false, message: errors[0], errors });
+    }
+
+    const inserted = await Trade.insertMany(docs);
+    res.status(201).json({
+      success: true,
+      message: `${inserted.length} trades imported`,
+      trades: inserted,
+    });
+  } catch (err) {
+    console.error("Bulk import error:", err);
+    res.status(500).json({ success: false, message: "Bulk import failed" });
   }
 };

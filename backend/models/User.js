@@ -6,6 +6,11 @@ const userSchema = new mongoose.Schema(
 
     email: { type: String, required: true, unique: true, index: true },
 
+    // v2 profile
+    avatarUrl: { type: String, default: "" },
+    avatarSizeKB: { type: Number, default: 0 },
+    baseCurrency: { type: String, default: "USD" },
+
     password: {
       type: String,
       required: function () {

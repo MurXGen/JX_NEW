@@ -31,13 +31,14 @@ export const login = async ({ email, password, turnstileToken }) => {
 };
 
 // Account creation remains unchanged
-export const createAccount = (accountName, currency, balance) =>
+export const createAccount = (accountName, currency, balance, accountType = "spot") =>
   axios.post(
     `${API_BASE}/api/account/create`,
     {
       accountName,
       currency,
       balance,
+      accountType,
     },
     {
       withCredentials: true, // ✅ Include cookies for authorization

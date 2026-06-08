@@ -249,7 +249,7 @@ const loginUser = async (req, res) => {
 const verifyOtp = async (req, res) => {
   try {
     const { userId, otp } = req.body;
-    const rec = await EmailVerification.findOne({ userId });
+    const rec = await EmailVerification.findOne({ userId, purpose: "verify" });
 
     if (!rec)
       return res.status(400).json({ message: "No verification request found" });
@@ -287,7 +287,7 @@ const verifyOtp = async (req, res) => {
 
 const resendOtp = async (req, res) => {
   const { userId } = req.body;
-  const rec = await EmailVerification.findOne({ userId });
+  const rec = await EmailVerification.findOne({ userId, purpose: "verify" });
   if (!rec)
     return res.status(400).json({ message: "No verification in progress" });
 
@@ -513,6 +513,95 @@ const checkAuthStatus = (req, res) => {
 //   res.status(200).json({ message: 'Password reset successful' });
 // };
 
+// 🔹 v2: FORGOT PASSWORD — email an OTP (purpose: "reset")
+const requestPasswordReset = async (req, res) => {
+  const { email } = req.body;
+  /* always answer the same way so emails can't be enumerated */
+  const generic = {
+    message: "If that email exists, a reset code is on its way.",
+  };
+  try {
+    if (!email) return res.status(400).json({ message: "Email required" });
+
+    const user = await User.findOne({ email });
+    if (!user || !user.password) return res.json(generic);
+
+    /* throttle: reuse existing record cooldowns */
+    const existing = await EmailVerification.findOne({
+      userId: user._id,
+      purpose: "reset",
+    });
+    if (existing?.nextResendAllowedAt > new Date()) {
+      return res.json(generic);
+    }
+    if (existing) await EmailVerification.deleteOne({ _id: existing._id });
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    await EmailVerification.create({
+      userId: user._id,
+      otpHash,
+      purpose: "reset",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+      nextResendAllowedAt: new Date(Date.now() + 60 * 1000),
+    });
+
+    await sendOtpEmail({ to: user.email, otp, name: user.name });
+    return res.json(generic);
+  } catch (err) {
+    console.error("Forgot password error:", err.message);
+    return res.json(generic);
+  }
+};
+
+// 🔹 v2: RESET PASSWORD — verify OTP + set new password
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    if (String(newPassword).length < 8) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Invalid code" });
+
+    const rec = await EmailVerification.findOne({
+      userId: user._id,
+      purpose: "reset",
+    });
+    if (!rec) return res.status(400).json({ message: "Invalid or expired code" });
+    if (rec.expiresAt < new Date()) {
+      await EmailVerification.deleteOne({ _id: rec._id });
+      return res.status(400).json({ message: "Code expired — request a new one" });
+    }
+
+    const otpHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
+    if (otpHash !== rec.otpHash) {
+      rec.attempts = (rec.attempts || 0) + 1;
+      await rec.save();
+      if (rec.attempts >= 5) {
+        await EmailVerification.deleteOne({ _id: rec._id });
+        return res.status(429).json({ message: "Too many attempts — request a new code" });
+      }
+      return res.status(400).json({ message: "Invalid code" });
+    }
+
+    user.password = await bcrypt.hash(String(newPassword), SALT_ROUNDS);
+    await user.save();
+    await EmailVerification.deleteOne({ _id: rec._id });
+
+    return res.json({ message: "Password reset — you can log in now" });
+  } catch (err) {
+    console.error("Reset password error:", err.message);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -521,9 +610,9 @@ module.exports = {
   verifyOtp,
   userFetchGoogleAuth,
   updateSubscription,
+  requestPasswordReset,
+  resetPassword,
   // verifyUserFromCookie,
   // getFullUserData
-  // resetPassword,
-  // requestPasswordReset,
   // verifyEmail
 };

@@ -6,6 +6,11 @@ const accountSchema = new mongoose.Schema({
 
   name: { type: String, required: true },
   currency: { type: String, default: 'USD' },
+  accountType: {
+    type: String,
+    enum: ['spot', 'futures', 'paper'],
+    default: 'spot',
+  },
 
   startingBalance: {
     amount: { type: Number, required: true },
