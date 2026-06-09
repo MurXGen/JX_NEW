@@ -1728,32 +1728,6 @@ export default function OverviewPanel({
               ))}
             </div>
 
-            {/* day-of-week performance — in its own card to match the layout */}
-            {EDGE.dow.length > 0 && (
-              <div className="jx-card jx-card--flat" style={{ padding: "var(--space-5)" }}>
-                <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                  Day-of-week P&amp;L <InfoTip text="Which weekday you make or lose money" />
-                </span>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: "var(--space-2)", marginTop: "var(--space-3)", height: 96 }}>
-                  {EDGE.dow.map((d) => {
-                    const h = Math.max(6, Math.round((Math.abs(d.pnl) / EDGE.dowMax) * 64));
-                    const pos = d.pnl >= 0;
-                    return (
-                      <Tip key={d.label} block content={`${d.label}: ${k(d.pnl, currencySymbol)} over ${d.n} trade${d.n === 1 ? "" : "s"}`}>
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "help" }}>
-                          <span style={{ font: "var(--text-caption)", fontWeight: 600, color: pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                            {k(d.pnl, currencySymbol)}
-                          </span>
-                          <div style={{ width: "100%", maxWidth: 40, height: h, background: pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: "var(--radius-sm)", transition: "height .8s cubic-bezier(0.16,1,0.3,1)" }} />
-                          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{d.label}</span>
-                        </div>
-                      </Tip>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {EDGE.bestDow && EDGE.bestDow.pnl > 0 && (
               <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
                 <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
@@ -1767,6 +1741,33 @@ export default function OverviewPanel({
           </div>
         )}
       </div>
+
+      {/* ===== Day-of-week P&L (full width) ===== */}
+      {EDGE.dow.length > 0 && (
+        <div className="jx-card">
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
+            <span className="jx-card__title">Day-of-week P&amp;L</span>
+            <InfoTip text="Which weekday you make or lose money" />
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "var(--space-3)", marginTop: "var(--space-4)", height: 240, width: "100%" }}>
+            {EDGE.dow.map((d) => {
+              const h = Math.max(8, Math.round((Math.abs(d.pnl) / EDGE.dowMax) * 185));
+              const pos = d.pnl >= 0;
+              return (
+                <Tip key={d.label} content={`${d.label}: ${k(d.pnl, currencySymbol)} over ${d.n} trade${d.n === 1 ? "" : "s"}`} style={{ flex: 1, minWidth: 0, height: "100%", display: "flex" }}>
+                  <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 8, cursor: "help" }}>
+                    <span style={{ font: "var(--text-small)", fontWeight: 700, color: pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                      {k(d.pnl, currencySymbol)}
+                    </span>
+                    <div style={{ width: "100%", height: h, background: pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: "var(--radius-md)", transition: "height .8s cubic-bezier(0.16,1,0.3,1)" }} />
+                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600 }}>{d.label}</span>
+                  </div>
+                </Tip>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ===== Streaks & achievements ===== */}
       <div>
@@ -1818,8 +1819,8 @@ export default function OverviewPanel({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(120px,1fr))",
-              gap: "var(--space-2)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))",
+              gap: "var(--space-3)",
             }}
           >
             {[
@@ -1844,27 +1845,19 @@ export default function OverviewPanel({
             ].map(([l, v, sub, up]) => (
               <div
                 key={l}
+                className="jx-card jx-card--flat"
                 style={{
-                  padding: "var(--space-3)",
-                  background: "var(--color-bg-surface)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-md)",
+                  padding: "var(--space-4) var(--space-5)",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 2,
+                  gap: 4,
                 }}
               >
+                <span style={LABEL}>{l}</span>
                 <span
                   style={{
-                    font: "var(--text-caption)",
-                    color: "var(--color-text-muted)",
-                  }}
-                >
-                  {l}
-                </span>
-                <span
-                  style={{
-                    font: "var(--text-h3)",
+                    font: "var(--text-h2)",
+                    fontVariantNumeric: "tabular-nums",
                     color:
                       up === undefined
                         ? "var(--color-text-primary)"
