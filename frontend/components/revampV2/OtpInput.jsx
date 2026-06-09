@@ -51,7 +51,10 @@ export default function OtpInput({ value = "", onChange, length = 6, autoFocus =
       style={{
         display: "flex",
         justifyContent: "center",
-        gap: 10,
+        gap: "clamp(6px, 2vw, 10px)",
+        width: "100%",
+        maxWidth: 360,
+        margin: "0 auto",
       }}
     >
       {chars.map((c, i) => (
@@ -78,11 +81,15 @@ export default function OtpInput({ value = "", onChange, length = 6, autoFocus =
               : "var(--color-border-strong)";
           }}
           style={{
-            width: 44,
-            height: 52,
-            flexShrink: 0,
+            // flexible width so the row never overflows narrow screens,
+            // capped so it doesn't get oversized on desktop
+            flex: "1 1 0",
+            minWidth: 0,
+            maxWidth: 52,
+            aspectRatio: "5 / 6",
+            padding: 0,
             textAlign: "center",
-            font: "600 20px var(--jx-font)",
+            font: "600 clamp(16px, 5vw, 20px) var(--jx-font)",
             color: "var(--color-text-primary)",
             background: "var(--color-bg-surface)",
             border: `1.5px solid ${c ? "var(--color-primary)" : "var(--color-border-strong)"}`,

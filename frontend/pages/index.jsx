@@ -218,7 +218,7 @@ export default function Home() {
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
               <a href="/register" style={{ textDecoration: "none" }}><button style={{ ...btnPrimary, padding: "14px 26px", fontSize: 15 }}>Start journaling free <ArrowRight size={16} /></button></a>
-              <a href="/register" style={{ textDecoration: "none" }}><button style={{ ...btnGhost, padding: "14px 26px", fontSize: 15 }}>Try the demo journal</button></a>
+              <a href="/dashboard" style={{ textDecoration: "none" }}><button style={{ ...btnGhost, padding: "14px 26px", fontSize: 15 }}>Try the demo journal</button></a>
             </div>
             <div style={{ display: "flex", gap: 22, justifyContent: "center", flexWrap: "wrap", marginTop: 26, font: "400 13px Poppins", color: C.dim }}>
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} /> Free to start</span>

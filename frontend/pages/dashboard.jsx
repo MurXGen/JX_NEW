@@ -74,6 +74,11 @@ export default function Dashboard() {
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(true); // assume true to avoid flicker; set on mount
+
+  useEffect(() => {
+    setLoggedIn(Cookies.get("isVerified") === "yes");
+  }, []);
   const [showLogTrade, setShowLogTrade] = useState(false);
   const [importSignal, setImportSignal] = useState(0);
   const [, setThemeTick] = useState(0); // re-render the mobile theme icon
@@ -112,13 +117,25 @@ export default function Dashboard() {
         setCurrentBalances(result.currentBalances || {});
         setAccountTrades(result.trades || []);
       } catch (err) {
-        console.error("Load error:", err);
-        const cachedUser = await getFromIndexedDB("user-data");
-        setUserData(cachedUser);
-        if (cachedUser) {
-          const result = await fetchAccountsAndTrades();
-          setAccounts(result.accounts || []);
-          setAccountTrades(result.trades || []);
+        const status = err?.response?.status;
+        // 401 (no session) / 404 (stale userId cookie → user not in DB) just
+        // means "not logged in" → run the dashboard in guest/demo mode.
+        if (status === 401 || status === 404) {
+          try { Cookies.remove("isVerified"); } catch {}
+          setLoggedIn(false);
+        } else {
+          console.warn("Dashboard load failed, using cache:", err?.message);
+        }
+        try {
+          const cachedUser = await getFromIndexedDB("user-data");
+          if (cachedUser) {
+            setUserData(cachedUser);
+            const result = await fetchAccountsAndTrades();
+            setAccounts(result.accounts || []);
+            setAccountTrades(result.trades || []);
+          }
+        } catch (e) {
+          console.warn("Cache fallback failed:", e?.message);
         }
       } finally {
         setLoading(false);
@@ -262,7 +279,21 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="jx-shell">
+    <div
+      className="jx-shell"
+      onClickCapture={(e) => {
+        // Guests can VIEW the demo dashboard, but any interaction routes them
+        // to login. Logged-in users get the normal flow.
+        if (loggedIn) return;
+        const el = e.target.closest(
+          "button, a, input, select, textarea, [role='button']",
+        );
+        if (!el) return;
+        e.preventDefault();
+        e.stopPropagation();
+        router.push("/login?redirect=/dashboard");
+      }}
+    >
       <Sidebar
         items={NAV_ITEMS}
         active={activeTab}
