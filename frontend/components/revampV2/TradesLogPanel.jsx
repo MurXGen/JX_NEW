@@ -13,6 +13,7 @@ import {
   MoreVertical,
   Pencil,
   Plus,
+  SlidersHorizontal,
   Square,
   Trash2,
   Upload,
@@ -398,6 +399,7 @@ export default function TradesLogPanel({
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [toast, setToast] = useState(null);
+  const [filtersOpen, setFiltersOpen] = useState(false); // compact filters popover
   /* confirm dialog: { type: 'delete'|'export', trades: [...] } */
   const [confirm, setConfirm] = useState(null);
 
@@ -581,73 +583,77 @@ export default function TradesLogPanel({
       </Accordion>
 
       {/* ===== All trades header + filters ===== */}
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
-        <span className="jx-card__title">All trades</span>
-        <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{filtered.length} trades</span>
+      {(() => {
+        const directionDD = (
+          <Dropdown value={direction} onChange={setDirection} label="Direction"
+            options={[{ value: "all", label: "Direction: All" }, { value: "long", label: "Long" }, { value: "short", label: "Short" }]}
+            triggerStyle={{ height: 38 }} />
+        );
+        const outcomeDD = (
+          <Dropdown value={outcome} onChange={setOutcome} label="Outcome"
+            options={[{ value: "all", label: "Outcome: All" }, { value: "win", label: "Win" }, { value: "loss", label: "Loss" }]}
+            triggerStyle={{ height: 38 }} />
+        );
+        const sortDD = (
+          <Dropdown value={sort} onChange={setSort} label="Sort by"
+            options={[{ value: "newest", label: "Sort: Newest first" }, { value: "oldest", label: "Oldest first" }, { value: "pnl-high", label: "P&L: high to low" }, { value: "pnl-low", label: "P&L: low to high" }]}
+            triggerStyle={{ height: 38 }} />
+        );
+        return (
+          <div className="jx-tl-header" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "nowrap" }}>
+            <span className="jx-card__title" style={{ whiteSpace: "nowrap" }}>All trades</span>
+            <span className="jx-tl-count" style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>{filtered.length} trades</span>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}>
-          {selFilters > 0 && (
-            <button className="jx-chip jx-chip--selected" onClick={() => { setDirection("all"); setOutcome("all"); }}>
-              Filters {selFilters} · clear
-            </button>
-          )}
-          <div style={{ width: 150 }}>
-            <Dropdown
-              value={direction}
-              onChange={setDirection}
-              label="Direction"
-              options={[
-                { value: "all", label: "Direction: All" },
-                { value: "long", label: "Long" },
-                { value: "short", label: "Short" },
-              ]}
-              triggerStyle={{ height: 38 }}
-            />
+            <div style={{ marginLeft: "auto", display: "flex", gap: "var(--space-2)", alignItems: "center", minWidth: 0 }}>
+              {/* inline filters — desktop */}
+              <div className="jx-tl-filters-inline" style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                {selFilters > 0 && (
+                  <button className="jx-chip jx-chip--selected" onClick={() => { setDirection("all"); setOutcome("all"); }}>Clear ({selFilters})</button>
+                )}
+                <div style={{ width: 150 }}>{directionDD}</div>
+                <div style={{ width: 150 }}>{outcomeDD}</div>
+                <div style={{ width: 175 }}>{sortDD}</div>
+              </div>
+
+              {/* compact filters — small screens */}
+              <div className="jx-tl-filters-compact" style={{ position: "relative" }}>
+                <Button variant={selFilters > 0 ? "primary" : "outline"} size="sm" icon={SlidersHorizontal} onClick={() => setFiltersOpen((o) => !o)}>
+                  Filters{selFilters > 0 ? ` (${selFilters})` : ""}
+                </Button>
+                <AnimatePresence>
+                  {filtersOpen && (
+                    <>
+                      <div onClick={() => setFiltersOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                        style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 41, width: 240, background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)", padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                        {directionDD}
+                        {outcomeDD}
+                        {sortDD}
+                        {selFilters > 0 && (
+                          <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setDirection("all"); setOutcome("all"); }}>Clear filters</button>
+                        )}
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <Button variant={selectMode ? "primary" : "outline"} size="sm" icon={CheckSquare}
+                onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); }}>
+                <span className="jx-tl-selbl">{selectMode ? "Done" : "Select"}</span>
+              </Button>
+              <div className="jx-seg jx-seg--inline">
+                {["cards", "table"].map((v) => (
+                  <button key={v} className={`jx-seg__btn ${view === v ? "jx-seg__btn--active" : ""}`} onClick={() => setView(v)}>
+                    {v === "cards" ? "Cards" : "Table"}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-          <div style={{ width: 150 }}>
-            <Dropdown
-              value={outcome}
-              onChange={setOutcome}
-              label="Outcome"
-              options={[
-                { value: "all", label: "Outcome: All" },
-                { value: "win", label: "Win" },
-                { value: "loss", label: "Loss" },
-              ]}
-              triggerStyle={{ height: 38 }}
-            />
-          </div>
-          <div style={{ width: 175 }}>
-            <Dropdown
-              value={sort}
-              onChange={setSort}
-              label="Sort by"
-              options={[
-                { value: "newest", label: "Sort: Newest first" },
-                { value: "oldest", label: "Oldest first" },
-                { value: "pnl-high", label: "P&L: high to low" },
-                { value: "pnl-low", label: "P&L: low to high" },
-              ]}
-              triggerStyle={{ height: 38 }}
-            />
-          </div>
-          <Button
-            variant={selectMode ? "primary" : "outline"}
-            size="sm"
-            icon={CheckSquare}
-            onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); }}
-          >
-            {selectMode ? "Done" : "Select"}
-          </Button>
-          <div className="jx-seg jx-seg--inline">
-            {["cards", "table"].map((v) => (
-              <button key={v} className={`jx-seg__btn ${view === v ? "jx-seg__btn--active" : ""}`} onClick={() => setView(v)}>
-                {v === "cards" ? "Cards" : "Table"}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* ===== Bulk action bar ===== */}
       <AnimatePresence>

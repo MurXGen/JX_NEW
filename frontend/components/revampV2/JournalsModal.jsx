@@ -64,6 +64,7 @@ export default function JournalsModal({
   const switchTo = (acc) => {
     Cookies.set("accountId", acc._id, { expires: 365 });
     Cookies.set("selectedAccount", acc._id, { expires: 365 });
+    try { localStorage.setItem("jx-account-id", acc._id); } catch {}
     window.location.reload();
   };
 

@@ -465,8 +465,13 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     } else if (!(num(form.entry) && num(form.size))) {
       return flash("danger", "Entry price and position size are required");
     }
-    const accountId = Cookies.get("accountId");
+    // cookie can be cleared/expired; fall back to the durable localStorage copy
+    const accountId =
+      Cookies.get("accountId") ||
+      (typeof window !== "undefined" && localStorage.getItem("jx-account-id"));
     if (!accountId) return flash("danger", "No journal selected — switch journals first");
+    // keep the cookie in sync for the API call
+    if (!Cookies.get("accountId")) Cookies.set("accountId", accountId, { expires: 365 });
 
     /* plan limit: trades per month */
     try {
@@ -544,13 +549,31 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
         : await axios.post(`${API_BASE}/api/trades/addd`, fd, { withCredentials: true });
       const trade = res.data?.trade;
 
-      /* sync IndexedDB cache so the journal updates offline too */
+      /* sync IndexedDB cache so the journal + XP update offline too.
+         XP mirrors the backend formula so it's correct even when the API
+         is rate-limited and we're running on cached data. */
       try {
         const userData = (await getFromIndexedDB("user-data")) || {};
         userData.trades = isEdit
           ? (userData.trades || []).map((t) => (t._id === trade._id ? { ...t, ...trade } : t))
           : [...(userData.trades || []), trade];
+
+        if (!isEdit && Array.isArray(userData.accounts)) {
+          const awardedXp =
+            10 +
+            (num(form.stopLoss) && num(form.takeProfit) ? 20 : 0) +
+            (form.strategy ? 10 : 0) +
+            (form.emotion ? 10 : 0) +
+            (form.notes.trim() ? 10 : 0) +
+            (form.screenshots.length ? 15 : 0);
+          userData.accounts = userData.accounts.map((a) =>
+            a._id === accountId
+              ? { ...a, xp: (a.xp || 0) + awardedXp, xpTrades: (a.xpTrades || 0) + 1 }
+              : a,
+          );
+        }
         await saveToIndexedDB("user-data", userData);
+        window.dispatchEvent(new CustomEvent("jx-xp-changed"));
       } catch (e) {
         console.error("IndexedDB sync failed:", e);
       }
@@ -674,21 +697,22 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
             style={{ width: "min(960px, 96vw)" }}
           >
             {/* ===== Header (fixed across modes) ===== */}
-            <div className="jx-ltmodal__header">
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ font: "var(--text-h2)" }}>
-                  {isEdit ? "Edit trade" : isQuick ? "Quick log" : "Log a trade"}
-                </span>
-                <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                  {isQuick ? "Just the result — log P&L without the full detail." : "Capture the details now — better logs mean sharper analytics later."}
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                <Seg inline items={[{ value: "quick", label: "Quick log" }, { value: "detailed", label: "Detailed" }]} value={mode} onChange={setMode} />
-                <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }} disabled={saving}>
+            <div className="jx-ltmodal__header" style={{ flexDirection: "column", alignItems: "stretch", gap: "var(--space-4)" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-2)" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ font: "var(--text-h2)" }}>
+                    {isEdit ? "Edit trade" : isQuick ? "Quick log" : "Log a trade"}
+                  </span>
+                  <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
+                    {isQuick ? "Just the result — log P&L without the full detail." : "Capture the details now — better logs mean sharper analytics later."}
+                  </span>
+                </div>
+                <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8, flexShrink: 0 }} disabled={saving}>
                   <X size={16} />
                 </button>
               </div>
+              {/* full-width mode tabs */}
+              <Seg items={[{ value: "quick", label: "Quick log" }, { value: "detailed", label: "Detailed" }]} value={mode} onChange={setMode} />
             </div>
 
             {/* ===== Body — same frame, content cross-fades ===== */}
@@ -1075,18 +1099,18 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
             </div>
 
             {/* ===== Footer ===== */}
-            <div className="jx-ltmodal__footer">
+            <div className="jx-ltmodal__footer" style={{ flexDirection: "column", alignItems: "stretch" }}>
               <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
                 <Zap size={14} style={{ color: "var(--yellow-500)" }} />
                 {isQuick ? <>Quick log · +{xp} XP on save</> : <>Trade quality {quality}% · +{xp} XP on save</>}
               </span>
-              <div style={{ display: "flex", gap: "var(--space-3)" }}>
+              <div style={{ display: "flex", gap: "var(--space-3)", width: "100%" }}>
                 {!isEdit && (
-                  <button className="jx-btn jx-btn--ghost" onClick={() => save(true)} disabled={saving}>
+                  <button className="jx-btn jx-btn--ghost" onClick={() => save(true)} disabled={saving} style={{ flex: 1, justifyContent: "center" }}>
                     Save &amp; add another
                   </button>
                 )}
-                <button className="jx-btn jx-btn--primary" onClick={() => save(false)} disabled={saving} style={{ minWidth: 130 }}>
+                <button className="jx-btn jx-btn--primary" onClick={() => save(false)} disabled={saving} style={{ flex: 1, justifyContent: "center" }}>
                   {saving ? <><Spinner /> Saving…</> : <><Check size={16} /> {isEdit ? "Update trade" : "Log trade"}</>}
                 </button>
               </div>

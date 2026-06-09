@@ -601,6 +601,57 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// Activate the one-time 7-day Pro trial (called when onboarding completes).
+// Only grants it if the user has never had a subscription/trial before.
+const activateTrial = async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Don't override an active paid plan or re-grant a used trial.
+    if (user.subscriptionStatus === "active" || user.trialUsed) {
+      return res.json({
+        message: "Trial not applied",
+        subscription: {
+          plan: user.subscriptionPlan,
+          status: user.subscriptionStatus,
+          type: user.subscriptionType,
+          startAt: user.subscriptionStartAt,
+          expiresAt: user.subscriptionExpiresAt,
+        },
+      });
+    }
+
+    const now = new Date();
+    const expires = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    user.subscriptionPlan = "pro";
+    user.subscriptionStatus = "active";
+    user.subscriptionType = "trial";
+    user.subscriptionStartAt = now;
+    user.subscriptionExpiresAt = expires;
+    user.subscriptionCreatedAt = user.subscriptionCreatedAt || now;
+    user.trialUsed = true;
+    await user.save();
+
+    res.json({
+      message: "Trial activated",
+      subscription: {
+        plan: user.subscriptionPlan,
+        status: user.subscriptionStatus,
+        type: user.subscriptionType,
+        startAt: user.subscriptionStartAt,
+        expiresAt: user.subscriptionExpiresAt,
+      },
+    });
+  } catch (err) {
+    console.error("activateTrial error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -609,6 +660,7 @@ module.exports = {
   verifyOtp,
   userFetchGoogleAuth,
   updateSubscription,
+  activateTrial,
   requestPasswordReset,
   resetPassword,
   // verifyUserFromCookie,

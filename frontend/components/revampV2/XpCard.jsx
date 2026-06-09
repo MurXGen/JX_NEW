@@ -10,6 +10,7 @@ import { Flame, Trophy, Zap } from "lucide-react";
 import Badge from "./Badge";
 import Dropdown from "./Dropdown";
 import CountUp from "./CountUp";
+import { getFromIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -37,19 +38,41 @@ export default function XpCard() {
   const [selected, setSelected] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // IndexedDB is the source of truth for instant, rate-limiter-safe reads.
+  const loadFromCache = async () => {
+    try {
+      const ud = await getFromIndexedDB("user-data");
+      const accs = ud?.accounts || [];
+      if (accs.length) {
+        setAccounts(accs);
+        setSelected((prev) => prev || accs[0]?._id || "");
+        return true;
+      }
+    } catch {}
+    return false;
+  };
+
   useEffect(() => {
     (async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/account/xp`, { withCredentials: true });
-        const accs = res.data?.accounts || [];
-        setAccounts(accs);
-        setSelected(accs[0]?._id || "");
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
+      const hadCache = await loadFromCache();
+      // refresh from API only if cache was empty (avoids extra DB hits)
+      if (!hadCache) {
+        try {
+          const res = await axios.get(`${API_BASE}/api/account/xp`, { withCredentials: true });
+          const accs = res.data?.accounts || [];
+          setAccounts(accs);
+          setSelected((prev) => prev || accs[0]?._id || "");
+        } catch (e) {
+          console.error(e);
+        }
       }
+      setLoading(false);
     })();
+
+    const onXp = () => loadFromCache();
+    window.addEventListener("jx-xp-changed", onXp);
+    return () => window.removeEventListener("jx-xp-changed", onXp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const acc = useMemo(() => accounts.find((a) => a._id === selected), [accounts, selected]);

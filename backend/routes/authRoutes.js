@@ -7,6 +7,7 @@ const {
   resendOtp,
   userFetchGoogleAuth,
   updateSubscription,
+  activateTrial,
   requestPasswordReset,
   resetPassword,
 } = require("../controllers/authController");
@@ -50,6 +51,9 @@ router.post("/resend-otp", resendOtp);
 router.post("/forgot-password", createLimiter(10), requestPasswordReset);
 router.post("/reset-password", createLimiter(10), resetPassword);
 
+// 📌 Activate the one-time 7-day Pro trial (onboarding completion)
+router.post("/activate-trial", activateTrial);
+
 // 📌 Trigger Google OAuth flow
 router.get(
   "/google",
@@ -91,7 +95,7 @@ router.get(
 
       const redirectUrl = `${
         process.env.CLIENT_URL || "http://localhost:3000"
-      }/accounts?isVerified=yes`;
+      }/dashboard?isVerified=yes`;
 
       res.redirect(redirectUrl);
     } catch (err) {

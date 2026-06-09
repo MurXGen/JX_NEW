@@ -40,10 +40,11 @@ const createAccount = async (req, res) => {
 
     await account.save();
 
-    // ✅ Set cookie
+    // ✅ Set cookie — long-lived so the selected journal never silently expires
     res.cookie("accountId", account._id.toString(), {
-      sameSite: "lax",
-      maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day in milliseconds
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
     });
 
     const user = await User.findById(userId);
@@ -88,10 +89,11 @@ const updateAccount = async (req, res) => {
 
     await account.save();
 
-    // ✅ Set cookie again if needed
+    // ✅ Set cookie again if needed — long-lived
     res.cookie("accountId", account._id.toString(), {
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
     });
 
     const user = await User.findById(userId);

@@ -508,7 +508,7 @@
     overflow-x: hidden; /* kill the horizontal jitter from wide grids */
     scrollbar-gutter: auto;
     max-width: 100vw;
-    margin-bottom: 100px;
+    margin-bottom: 64px;
   }
   /* nothing inside the scroll area may exceed the viewport */
   .jx-shell__main > * {
@@ -1618,5 +1618,30 @@
 /* mobile journal+theme row: show only the row on phones (the old
    standalone bar rule still hides on desktop) */
 @media (max-width: 768px) {
-  .jx-mobile-journalrow { display: flex !important; }
+  .jx-mobile-journalrow {
+    display: flex !important;
+  }
+}
+
+/* ===== Trade-log header: inline filters on desktop, collapse to a
+   "Filters" popover on smaller screens so the row never wraps ===== */
+.jx-tl-filters-compact {
+  display: none;
+}
+@media (max-width: 980px) {
+  .jx-tl-filters-inline {
+    display: none !important;
+  }
+  .jx-tl-filters-compact {
+    display: block !important;
+  }
+}
+@media (max-width: 560px) {
+  /* tighten the header so title + Filters + Select + view toggle fit one row */
+  .jx-tl-count {
+    display: none;
+  }
+  .jx-tl-selbl {
+    display: none;
+  } /* icon-only Select button */
 }

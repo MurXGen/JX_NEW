@@ -79,6 +79,16 @@ export default function RegisterPage() {
         },
         { withCredentials: true },
       );
+      // brand-new account on this browser → wipe any leftover state from a
+      // previous account so onboarding shows again and no stale data leaks
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        // best-effort: drop the cached IndexedDB store ("JX")
+        if (window.indexedDB?.deleteDatabase) {
+          try { window.indexedDB.deleteDatabase("JX"); } catch {}
+        }
+      } catch {}
       setUserId(res.data?.userId);
       setStep("otp");
       setCooldown(60);

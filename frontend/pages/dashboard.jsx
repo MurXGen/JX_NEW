@@ -29,12 +29,14 @@ import {
   TradesLogPanel,
   JournalsModal,
   SupportModal,
+  PlanBanner,
+  OnboardingModal,
+  UpgradePanel,
   OverviewPanel,
   MarketsPanel,
   SharePanel,
 } from "@/components/revampV2";
 
-import Pricing from "@/components/dashboard/PricingModal";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
@@ -71,6 +73,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLogTrade, setShowLogTrade] = useState(false);
   const [importSignal, setImportSignal] = useState(0);
   const [, setThemeTick] = useState(0); // re-render the mobile theme icon
@@ -138,8 +141,19 @@ export default function Dashboard() {
     }
   }, []);
 
+  /* ---------- first-run onboarding (new users only) ---------- */
+  useEffect(() => {
+    if (typeof window === "undefined" || !userData) return;
+    const onboarded = localStorage.getItem("jx-onboarded");
+    const status = userData?.subscription?.status;
+    // show once, and never to users already on an active plan/trial
+    if (!onboarded && status !== "active") setShowOnboarding(true);
+  }, [userData]);
+
   /* ---------- derived data ---------- */
-  const selectedAccountId = Cookies.get("accountId");
+  const selectedAccountId =
+    Cookies.get("accountId") ||
+    (typeof window !== "undefined" && localStorage.getItem("jx-account-id"));
   const currentAccount =
     accounts.find((a) => a._id === selectedAccountId) || accounts[0];
 
@@ -176,6 +190,16 @@ export default function Dashboard() {
   const isProMonthly =
     userData?.subscription?.plan === "pro" &&
     userData?.subscription?.type === "one-time";
+
+  // Only nudge to upgrade when a dated plan is within 5 days of ending
+  // (covers trial/subscription about to lapse, and already-expired). Lifetime
+  // and a healthy plan with plenty of time left show no CTA.
+  const _sub = userData?.subscription || {};
+  const _isLifetime = (_sub.plan || "").toLowerCase().includes("lifetime");
+  const _daysLeft = _sub.expiresAt
+    ? Math.ceil((new Date(_sub.expiresAt).getTime() - Date.now()) / 864e5)
+    : null;
+  const needsUpgrade = !_isLifetime && _daysLeft != null && _daysLeft <= 5;
 
   if (loading) return <FullPageLoader />;
 
@@ -232,7 +256,7 @@ export default function Dashboard() {
     ),
     importexport: <ImportExportPanel trades={trades} />,
     settings: <SettingsPanel user={userData} />,
-    pricingpage: <Pricing />,
+    pricingpage: <UpgradePanel currentPlan={userData?.subscription?.plan} />,
   };
 
   return (
@@ -247,7 +271,7 @@ export default function Dashboard() {
         user={userData}
         onProfile={() => setActiveTab("settings")}
         onSupport={() => setShowSupport(true)}
-        showUpgrade={!isProMonthly}
+        showUpgrade={needsUpgrade}
         onUpgrade={() => setActiveTab("pricingpage")}
       />
 
@@ -291,6 +315,11 @@ export default function Dashboard() {
           </button>
         </div>
 
+        <PlanBanner
+          subscription={userData?.subscription}
+          onUpgrade={() => setActiveTab("pricingpage")}
+        />
+
         <AnimatedPanel id={activeTab}>
           {TAB_CONTENT[activeTab] || overview}
         </AnimatedPanel>
@@ -325,6 +354,24 @@ export default function Dashboard() {
         onClose={() => setShowSupport(false)}
         user={userData}
         plan={userData?.subscription?.plan || "free"}
+      />
+
+      <OnboardingModal
+        open={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onTrialActivated={async (sub) => {
+          if (!sub) return;
+          setUserData((u) => ({ ...u, subscription: { ...(u?.subscription || {}), ...sub } }));
+          // persist to IndexedDB so Settings + reload-fallback read the trial
+          try {
+            const ud = (await getFromIndexedDB("user-data")) || {};
+            ud.subscription = { ...(ud.subscription || {}), ...sub };
+            await saveToIndexedDB("user-data", ud);
+            window.dispatchEvent(new CustomEvent("jx-sub-changed"));
+          } catch (e) {
+            console.error("trial cache update failed:", e);
+          }
+        }}
       />
     </div>
   );

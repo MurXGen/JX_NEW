@@ -108,6 +108,16 @@ export const getPlanRules = (userData) => {
 
   const normalized = (plan || "free").toLowerCase();
 
+  // ⛔ Dated plan (e.g. trial) whose expiry has passed → FREE, even if the
+  // backend hasn't flipped the status yet (lazy expiry).
+  if (
+    !normalized.includes("lifetime") &&
+    subscription.expiresAt &&
+    new Date(subscription.expiresAt).getTime() < Date.now()
+  ) {
+    return PLAN_RULES.free;
+  }
+
   if (normalized.includes("lifetime")) return PLAN_RULES.lifetime;
   if (normalized.includes("pro")) return PLAN_RULES.pro;
 

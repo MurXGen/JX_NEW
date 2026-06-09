@@ -56,9 +56,12 @@ const userSchema = new mongoose.Schema(
 
     subscriptionType: {
       type: String,
-      enum: ["recurring", "one-time", "none", "lifetime"],
+      enum: ["recurring", "one-time", "none", "lifetime", "trial"],
       default: "none",
     },
+
+    // one-time 7-day Pro trial guard
+    trialUsed: { type: Boolean, default: false },
 
     paddleCustomerId: { type: String },
 

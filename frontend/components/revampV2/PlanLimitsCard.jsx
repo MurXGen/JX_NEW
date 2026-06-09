@@ -68,21 +68,26 @@ export default function PlanLimitsCard() {
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    (async () => {
+    const load = async () => {
       try { setUserData(await getFromIndexedDB("user-data")); } catch {}
-    })();
+    };
+    load();
+    // refresh when the subscription changes (e.g. trial activated)
+    window.addEventListener("jx-sub-changed", load);
+    return () => window.removeEventListener("jx-sub-changed", load);
   }, []);
 
-  const { rules, planName, isTop, usage, sub, status } = useMemo(() => {
+  const { rules, planName, isTop, isTrial, usage, sub, status } = useMemo(() => {
     const rules = getPlanRules(userData);
     const sub = userData?.subscription || {};
     const plan = (sub.plan || "free").toLowerCase();
     const status = sub.status || "none";
+    const isTrial = (sub.type || "").toLowerCase() === "trial";
     const planName =
       status === "active" && plan.includes("lifetime") ? "Lifetime"
       : status === "active" && plan.includes("pro") ? "Pro"
       : "Free";
-    const isTop = planName === "Pro" || planName === "Lifetime";
+    const isTop = status === "active" && (plan.includes("pro") || plan.includes("lifetime"));
 
     const accountId = Cookies.get("accountId");
     const trades = (userData?.trades || []).filter((t) => !accountId || t.accountId === accountId);
@@ -94,7 +99,7 @@ export default function PlanLimitsCard() {
       0,
     );
 
-    return { rules, planName, isTop, usage: { closedThisMonth, accounts, imagesThisMonth }, sub, status };
+    return { rules, planName, isTop, isTrial, usage: { closedThisMonth, accounts, imagesThisMonth }, sub, status };
   }, [userData]);
 
   const L = rules.limits;
@@ -156,7 +161,7 @@ export default function PlanLimitsCard() {
           {sub?.type && (
             <SubItem label="Billing">
               <span style={{ textTransform: "capitalize" }}>
-                {sub.type === "one-time" ? "One-time" : sub.type}
+                {sub.type === "one-time" ? "One-time" : sub.type === "trial" ? "Subscription" : sub.type}
               </span>
             </SubItem>
           )}
