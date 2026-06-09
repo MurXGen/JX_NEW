@@ -7,44 +7,571 @@
       "bio": "Trader and builder. Founder of JournalX — the trading journal that turns your trade history into a measurable edge."
     }
   },
-  "categories": ["Strategy", "Risk", "Psychology", "Journaling", "Markets"],
+  "categories": [
+    "Strategy",
+    "Risk",
+    "Psychology",
+    "Journaling",
+    "Markets"
+  ],
   "posts": [
+    {
+      "slug": "daily-trading-journal-routine",
+      "title": "The 5-Minute Daily Trading Journal Routine That Builds Consistency",
+      "metaTitle": "Daily Trading Journal Routine: A 5-Minute System for Consistency | JournalX",
+      "metaDescription": "Consistency comes from routine, not motivation. Here's a 5-minute daily trading journal routine — pre-market, in-trade and post-session — that compounds into a real edge with the right journaling tool.",
+      "keywords": [
+        "daily trading journal",
+        "trading routine",
+        "trading journal habit",
+        "consistent trading",
+        "journaling tool",
+        "trading discipline"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 7,
+      "date": "2026-06-09",
+      "featured": false,
+      "excerpt": "Consistency isn't about motivation — it's about a routine small enough that you never skip it. Here's a five-minute daily journaling routine that compounds.",
+      "helpful": {
+        "up": 311,
+        "down": 4,
+        "saves": 159
+      },
+      "tags": [
+        "Journaling",
+        "Routine",
+        "Consistency",
+        "Discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Consistency is the holy grail of trading, and traders usually chase it with motivation — which is exactly why they never find it. Motivation is unreliable; routine is not. The fix is a journaling routine so small you genuinely can't talk yourself out of it. Five minutes a day, split across three moments. Here it is."
+        },
+        {
+          "type": "h2",
+          "text": "Pre-market: 90 seconds"
+        },
+        {
+          "type": "p",
+          "text": "Before the session, write one line: what you're watching and the single rule you most want to honour today (for example, 'no trade outside my playbook'). This primes your brain to execute mechanically and gives the end-of-day review something concrete to grade against."
+        },
+        {
+          "type": "h2",
+          "text": "In-trade: 10 seconds per trade"
+        },
+        {
+          "type": "p",
+          "text": "As you take each trade, log it immediately — symbol, P&L, the setup, and how you felt. Do it in the moment, not from memory at night, because the emotion data is only accurate while it's fresh. With a quick-log tool this is genuinely ten seconds and never breaks your focus."
+        },
+        {
+          "type": "h2",
+          "text": "Post-session: 3 minutes"
+        },
+        {
+          "type": "p",
+          "text": "After the close, read the day back. Did you honour your pre-market rule? Tag your best and worst trade. Note one pattern. That's it — no essays. The whole point is that it's short enough to do every single day, because a three-minute review done daily beats a one-hour review done never."
+        },
+        {
+          "type": "quote",
+          "text": "Consistency is just a small routine repeated on the days you don't feel like it."
+        },
+        {
+          "type": "h2",
+          "text": "Weekly: zoom out for 15 minutes"
+        },
+        {
+          "type": "p",
+          "text": "Once a week, step back and look at the aggregate: your equity curve, win rate by setup, P&L by emotion, and discipline score. Pick exactly one thing to change next week. Edges aren't found in one heroic insight — they're filed down, one weekly review at a time."
+        },
+        {
+          "type": "h2",
+          "text": "Why the routine compounds"
+        },
+        {
+          "type": "p",
+          "text": "Each layer feeds the next: the pre-market line sets an intention, the in-trade log captures honest data, the post-session review closes the loop daily, and the weekly zoom-out converts it all into a single improvement. Repeat for a month and consistency stops being something you chase and becomes something you simply do."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX makes the routine almost frictionless: ten-second quick logging keeps in-trade capture honest, the discipline score grades your pre-market rule automatically, and the dashboard's equity-growth candles, emotion breakdowns and win-rate trends make the weekly zoom-out a quick read instead of a chore."
+        },
+        {
+          "type": "why",
+          "text": "Most journals are too slow to support a true daily routine, so the habit collapses. JournalX is built for the ten-second log and the five-minute review — fast enough to sustain every day, deep enough to make the weekly review worth it. That's how a routine turns into consistency, and consistency turns into an edge."
+        }
+      ]
+    },
+    {
+      "slug": "benefits-of-trading-journal",
+      "title": "7 Proven Benefits of Keeping a Trading Journal in 2026",
+      "metaTitle": "7 Benefits of a Trading Journal (Backed by How Pros Trade) | JournalX",
+      "metaDescription": "What are the real benefits of journaling your trades? Seven measurable ways a trading journal improves your win rate, discipline and profitability — and how a modern journaling tool unlocks each one.",
+      "keywords": [
+        "benefits of trading journal",
+        "why keep a trading journal",
+        "trading journal advantages",
+        "journaling tool",
+        "trade tracking benefits",
+        "improve trading"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-06-09",
+      "featured": false,
+      "excerpt": "Journaling is the highest-ROI habit in trading — but only if you know what it's actually doing for you. Here are seven concrete benefits, and how to capture each one.",
+      "helpful": {
+        "up": 402,
+        "down": 7,
+        "saves": 205
+      },
+      "tags": [
+        "Journaling",
+        "Benefits",
+        "Edge",
+        "Discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "\"Keep a trading journal\" is the most common advice in trading and the most commonly ignored, because the benefits sound vague. They aren't. A journal does seven specific, measurable things for your trading — and once you see them spelled out, skipping the habit starts to feel like leaving money on the table. Here are the seven benefits that matter most in 2026."
+        },
+        {
+          "type": "h2",
+          "text": "1. It turns memory into data"
+        },
+        {
+          "type": "p",
+          "text": "Memory is selective and it flatters you — you remember your best trades and quietly forget the impulsive ones. A journal replaces that comforting story with data, so you finally see what you actually do, not what you think you do."
+        },
+        {
+          "type": "h2",
+          "text": "2. It reveals which setups truly make money"
+        },
+        {
+          "type": "p",
+          "text": "Tag every trade with its setup and after a few weeks the journal tells you which patterns carry your account and which ones quietly drain it. Most traders discover they make all their money from two or three setups and lose it on everything else — a finding you can only get from logged data."
+        },
+        {
+          "type": "h2",
+          "text": "3. It makes risk visible"
+        },
+        {
+          "type": "p",
+          "text": "When every trade records your planned stop, your risk, and your realised R-multiple, position sizing stops being a guess. You can see your average win, average loss and expectancy in R — the only unit that's comparable across symbols and timeframes."
+        },
+        {
+          "type": "h2",
+          "text": "4. It exposes the cost of emotion"
+        },
+        {
+          "type": "p",
+          "text": "Capture how you felt at entry and the journal will show you, in dollars, what FOMO and revenge trading cost you. For most traders the overwhelming majority of losses come from one or two emotional states they could simply refuse to trade in."
+        },
+        {
+          "type": "quote",
+          "text": "You can't improve what you refuse to measure — and most traders refuse to measure the one thing that's hurting them."
+        },
+        {
+          "type": "h2",
+          "text": "5. It builds discipline you can track"
+        },
+        {
+          "type": "p",
+          "text": "When 'follow your plan' becomes a tracked metric — followed vs off-plan, scored on every trade — discipline stops being a vague resolution and becomes a number you can watch climb week over week."
+        },
+        {
+          "type": "h2",
+          "text": "6. It accelerates your learning"
+        },
+        {
+          "type": "p",
+          "text": "The market is the most expensive teacher in the world. A journal is how you stop paying tuition twice for the same lesson, compressing months of trial and error into a weekly review that actually changes next week's behaviour."
+        },
+        {
+          "type": "h2",
+          "text": "7. It keeps you accountable"
+        },
+        {
+          "type": "p",
+          "text": "A rising equity curve and an honest record create accountability nothing else does. You trade differently when you know every decision gets logged and reviewed — and that shift alone is often worth more than any single strategy tweak."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX is built to deliver all seven at once: fast logging captures the data, setup and emotion tags reveal what works, the risk engine surfaces R-multiples and expectancy automatically, and the discipline score plus equity-growth candles turn accountability into something you can actually see improving."
+        },
+        {
+          "type": "why",
+          "text": "Plenty of tools store trades; almost none turn them into the seven benefits above without hours of manual work. JournalX does it automatically — measuring decision quality, risk and emotion in one place — so every benefit of journaling is captured the moment you log, not lost in a spreadsheet you never analyse."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-journal-trades-without-spreadsheets",
+      "title": "How to Journal Trades Without Spreadsheets (And Why You Should Stop Using Excel)",
+      "metaTitle": "Trade Journaling Without Spreadsheets: A Better Way in 2026 | JournalX",
+      "metaDescription": "Excel trade journals are slow, error-prone and blind to your psychology. Here's how to journal trades without spreadsheets using a dedicated journaling tool that does the analysis for you.",
+      "keywords": [
+        "trading journal without spreadsheet",
+        "excel trading journal alternative",
+        "stop using excel trading",
+        "trade journal app",
+        "journaling tool",
+        "trading spreadsheet"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-06-09",
+      "featured": false,
+      "excerpt": "Spreadsheets are where good journaling habits go to die. Here's exactly what Excel costs you, and how a dedicated journaling tool fixes every one of those problems.",
+      "helpful": {
+        "up": 347,
+        "down": 6,
+        "saves": 188
+      },
+      "tags": [
+        "Journaling",
+        "Spreadsheets",
+        "Excel",
+        "Tools"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Almost every trader starts journaling in a spreadsheet, and almost every trader quietly stops. Excel feels free and flexible, but it's quietly expensive: it's slow to fill in, easy to break, and fundamentally blind to the things that actually move your results. If your trading journal is a spreadsheet, here's what it's costing you — and how to journal without one."
+        },
+        {
+          "type": "h2",
+          "text": "What a spreadsheet quietly costs you"
+        },
+        {
+          "type": "p",
+          "text": "Three costs add up fast. First, time: logging a single trade — symbol, entry, exit, size, fees, a note, a screenshot link — takes four or five minutes, and that friction is what kills the habit. Second, errors: one mistyped formula or a dragged cell silently corrupts weeks of data and you never notice until your numbers stop making sense. Third, blindness: a spreadsheet stores what you type and nothing more. It has no idea how you felt, whether you followed your plan, or what your discipline looked like at the moment of entry."
+        },
+        {
+          "type": "h2",
+          "text": "The analysis you'll never build by hand"
+        },
+        {
+          "type": "p",
+          "text": "Even a skilled Excel user rarely builds equity-growth candles, R-multiple distributions, emotion-by-emotion win rates, or a colour-coded P&L calendar — because each of those is hours of formula work that breaks the moment your data shifts. So the analysis that would actually change your trading never gets made, and the spreadsheet becomes a graveyard of rows you never look at again."
+        },
+        {
+          "type": "quote",
+          "text": "A spreadsheet records your trades. A journaling tool understands them."
+        },
+        {
+          "type": "h2",
+          "text": "How to journal without spreadsheets"
+        },
+        {
+          "type": "p",
+          "text": "Switching is simpler than it sounds. Pick a dedicated journaling tool, import your existing trades with a CSV (so you lose no history), set your default risk once, and from then on log new trades in seconds. The tool handles the maths — position sizing, R-multiples, profit factor — and produces the analytics automatically. You go from maintaining a spreadsheet to simply reading a dashboard."
+        },
+        {
+          "type": "h2",
+          "text": "What to look for in the replacement"
+        },
+        {
+          "type": "p",
+          "text": "Insist on three things: a genuinely fast log (ten seconds, not minutes), automatic analytics you didn't have to build, and capture of psychology and discipline — not just numbers. A tool that has all three turns the chore of journaling into a feedback loop, which is the entire point."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX replaces the spreadsheet end to end. Import your existing trades with our CSV template so nothing is lost, then log new trades in seconds — or auto-import them from a connected exchange. It computes R-multiples, expectancy and position sizing for you, and produces equity-growth candles, a P&L calendar and behavioural breakdowns automatically, including the emotion and discipline data a spreadsheet can never see."
+        },
+        {
+          "type": "why",
+          "text": "Spreadsheets are slow, fragile and blind to behaviour — the three things that matter most in a journal. JournalX is built to do everything Excel can't: capture decision quality at the moment of entry, calculate the risk maths for you, and turn your history into insight you'd never build by hand. That's why traders who switch rarely go back."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-journal-trades-without-stress",
+      "title": "How to Journal Your Trades Smoothly Without Any Stress (2026 Guide)",
+      "metaTitle": "How to Journal Trades Without Stress — A Simple 2026 System | JournalX",
+      "metaDescription": "Trade journaling feels like a chore? Here's a stress-free, repeatable system to log every trade in seconds with a modern journaling tool — and actually enjoy your weekly review.",
+      "keywords": [
+        "how to journal trades",
+        "stress-free trading journal",
+        "trade journaling habit",
+        "easy trading journal",
+        "journaling tool",
+        "trade log routine"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 7,
+      "date": "2026-06-10",
+      "featured": false,
+      "excerpt": "Most traders quit journaling because they've made it stressful — too many fields, too much guilt, too little payoff. Here's how to make logging effortless so the habit finally sticks.",
+      "helpful": {
+        "up": 388,
+        "down": 5,
+        "saves": 176
+      },
+      "tags": [
+        "Journaling",
+        "Habit",
+        "Stress-free",
+        "Routine"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Almost everyone agrees journaling your trades is a good idea, and almost no one does it consistently. The reason is rarely laziness — it's stress. The journal becomes a place where you're forced to relive bad trades, fill in a dozen fields, and feel guilty about the days you skipped. Make journaling stressful and you'll quit. Make it smooth and you'll do it forever. This guide is about the second path."
+        },
+        {
+          "type": "h2",
+          "text": "Separate logging from reviewing"
+        },
+        {
+          "type": "p",
+          "text": "The single biggest source of journaling stress is trying to analyse a trade at the exact moment you log it. Don't. Logging is a ten-second act of recording what happened; reviewing is a calm, scheduled session where you look for patterns. Keep them apart. When logging is just capture — no judgement, no analysis — the friction and the dread both disappear."
+        },
+        {
+          "type": "h2",
+          "text": "Lower the bar until you can't fail"
+        },
+        {
+          "type": "p",
+          "text": "On a busy or emotional day, the goal isn't a perfect entry — it's any entry. Symbol and P&L is enough. A journal with a quick-log path lets you clear that bar in seconds, which keeps your data complete even on the days you least feel like writing. You can always add detail later; a thin entry today beats a perfect entry you never make."
+        },
+        {
+          "type": "quote",
+          "text": "A messy journal you actually keep beats a beautiful one you abandon."
+        },
+        {
+          "type": "h2",
+          "text": "Make the review something you look forward to"
+        },
+        {
+          "type": "p",
+          "text": "Stress-free journaling needs a payoff, and the payoff is the weekly review. Once a week, spend fifteen minutes reading your trades back: tag your best and worst, notice one pattern, and pick a single thing to change. When the tool turns your logs into a rising equity curve and clear breakdowns, the review stops feeling like homework and starts feeling like watching yourself improve."
+        },
+        {
+          "type": "h2",
+          "text": "Automate everything you can"
+        },
+        {
+          "type": "p",
+          "text": "Every field you don't have to type by hand is stress removed. Connect your exchange so trades import automatically, set your default risk once, and let the tool calculate R-multiples and position sizing for you. The less manual entry there is, the more the journal feels like a dashboard you check and the less like a form you fill."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX is built around exactly this split. Quick Log captures a trade in seconds with zero pressure; Detailed mode is there when you want depth; and exchange auto-import means many trades never need manual entry at all. Your dashboard then does the analysis for you — equity-growth candles, win-rate trends and behavioural breakdowns — so the weekly review is a five-minute look at progress, not an evening of data wrangling."
+        },
+        {
+          "type": "why",
+          "text": "Other journals treat every trade like a full report, which is exactly why they get abandoned. JournalX is designed so the easy path is the default — fast capture now, rich insight later — turning journaling from a stressful obligation into the most rewarding ten seconds of your trading day."
+        }
+      ]
+    },
+    {
+      "slug": "best-trading-journal-tool-2026",
+      "title": "JournalX Review: The #1 Smoothest Trading Journal Tool of 2026",
+      "metaTitle": "Best Trading Journal Tool 2026: JournalX Review (#1 Pick) | JournalX",
+      "metaDescription": "Searching for the best trading journal tool in 2026? Here's why JournalX is rated the #1 smoothest journaling tool — 10-second logging, automatic analytics and discipline scoring across stocks, forex, futures and crypto.",
+      "keywords": [
+        "best trading journal",
+        "trading journal tool",
+        "journaling tool",
+        "best trading journal 2026",
+        "trading journal app",
+        "trade log software",
+        "journalx review"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-06-10",
+      "featured": true,
+      "excerpt": "We compared the trading journals traders actually use in 2026 on speed, analytics and how likely you are to stick with them. One tool kept winning on the metric that matters most — friction. Here's the full breakdown.",
+      "helpful": {
+        "up": 521,
+        "down": 8,
+        "saves": 240
+      },
+      "tags": [
+        "Journaling tool",
+        "Review",
+        "Best of 2026",
+        "Trading journal"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "If you have ever typed \"best trading journal tool\" into a search bar, you already know the problem: every option claims to be the best, and almost none of them tell you the one thing that decides whether a journal actually changes your trading — whether you'll still be using it in three months. After testing the journals traders rely on in 2026 against the metrics that matter, one tool stood out for the reason that matters most. This is the full review."
+        },
+        {
+          "type": "h2",
+          "text": "How we judged the best journaling tool"
+        },
+        {
+          "type": "p",
+          "text": "A trading journal only builds an edge if you use it on every trade, so we weighted our scoring around friction first, then analytics depth, then breadth of markets. Speed to log a single trade, quality of the analytics it produces, how well it captures psychology and risk, whether it imports automatically, and whether it works on mobile — those five factors separate a tool you abandon from a tool that compounds."
+        },
+        {
+          "type": "h2",
+          "text": "Why speed is the deciding factor"
+        },
+        {
+          "type": "p",
+          "text": "Here is the uncomfortable truth about journaling tools: the most powerful analytics in the world are worthless if logging a trade is annoying enough that you skip it on a busy day. The journals that lose traders all lose them the same way — friction. A tool that takes four minutes per trade gets abandoned in two weeks. A tool that takes ten seconds gets used for years. Everything else is secondary to that."
+        },
+        {
+          "type": "quote",
+          "text": "The best trading journal isn't the one with the most features. It's the one you'll still open after a losing week."
+        },
+        {
+          "type": "h2",
+          "text": "Why JournalX took the #1 spot"
+        },
+        {
+          "type": "p",
+          "text": "JournalX wins on the friction metric and then refuses to compromise on depth. A Quick Log captures symbol and P&L in seconds for busy days; a Detailed mode adds entry, exit, stop, target, risk, screenshots and the emotion behind the trade when you want the full picture. Connect a supported exchange and your trades import automatically. The same analytics engine then turns whatever you logged into equity-growth candles, R-multiples, win-rate trends, a P&L calendar, and behavioural breakdowns — without you doing any maths."
+        },
+        {
+          "type": "p",
+          "text": "It also covers every market a modern trader touches — stocks, options, forex, futures and crypto, in any currency — and it is fully responsive, so the ten-second log works just as well from your phone on the train as from your desk. It is free to start with no card required, which means you can test the friction claim yourself before you commit to anything."
+        },
+        {
+          "type": "h2",
+          "text": "What makes it 'smooth'"
+        },
+        {
+          "type": "p",
+          "text": "Smoothness is the sum of small things: a single screen to log, sensible defaults so you're not retyping the same fields, instant analytics that update the moment you save, and a discipline score that appears in real time so journaling feels like progress rather than paperwork. The result is a tool that gets out of your way — which is exactly why traders keep coming back to it."
+        },
+        {
+          "type": "usecase",
+          "text": "Inside JournalX, the moment you log a trade you see a discipline ring score your process — risk set, strategy tagged, emotion captured — and your equity curve redraws instantly. Over weeks, the analytics break your win rate and P&L down by strategy, by emotion, and by whether you followed your plan, so the cost of your worst habits becomes a number you can watch shrink."
+        },
+        {
+          "type": "why",
+          "text": "Spreadsheets are slow and blind, and broker statements are raw rows of numbers. JournalX is the only journal built to scale from a 10-second quick log all the way to full psychology and risk analytics — so the habit survives your busiest weeks and still produces the insight that actually moves your equity curve. That combination of speed and depth is why it's our #1 trading journal tool for 2026."
+        }
+      ]
+    },
     {
       "slug": "pre-trade-checklist-cut-losses-in-half",
       "title": "The 3-Step Pre-Trade Checklist That Cut My Losses in Half",
       "metaTitle": "Pre-Trade Checklist for Traders: Cut Losses in Half | JournalX",
       "metaDescription": "A complete, actionable pre-trade checklist that removes impulse trades and protects your capital. Learn the 3-step routine, the psychology behind it, and how to make it automatic.",
-      "keywords": ["pre-trade checklist", "trading discipline", "risk management", "trading journal", "trading routine", "trading process"],
+      "keywords": [
+        "pre-trade checklist",
+        "trading discipline",
+        "risk management",
+        "trading journal",
+        "trading routine",
+        "trading process"
+      ],
       "category": "Strategy",
       "cover": "/assets/blogs/pre-trade-checklist.svg",
       "minutes": 11,
       "date": "2026-06-08",
-      "featured": true,
+      "featured": false,
       "excerpt": "Most blown accounts don't die from one catastrophic trade — they bleed out from dozens of avoidable decisions. This is the complete pre-trade checklist that fixes it, step by step.",
-      "helpful": { "up": 412, "down": 9, "saves": 188 },
-      "tags": ["Breakout", "Discipline", "Routine", "Process"],
+      "helpful": {
+        "up": 412,
+        "down": 9,
+        "saves": 188
+      },
+      "tags": [
+        "Breakout",
+        "Discipline",
+        "Routine",
+        "Process"
+      ],
       "body": [
-        { "type": "p", "text": "Ask a hundred traders why they lost money last month and most will point at the market — a fakeout, a news spike, a stop run. Almost none will point at the real culprit: the trade they took without a reason, the size that was a little too big, the stop they 'gave room' to. Most blown accounts don't die from a single catastrophic trade. They bleed out slowly, from dozens of small, avoidable decisions made in the heat of the moment." },
-        { "type": "p", "text": "The fix isn't more screen time, a better indicator, or a faster feed. It's a routine you run before every single entry — a pre-trade checklist. In this guide we'll cover why a checklist beats willpower, the exact three checks that matter, how to handle the edge cases, and how to make the whole thing automatic so you actually use it." },
-        { "type": "h2", "text": "Why a checklist beats willpower" },
-        { "type": "p", "text": "Discipline feels like a personality trait — something you either have or you don't. But under pressure, discipline behaves much more like a depleting resource. Psychologists call it ego depletion: the more decisions you force your brain to make in a short window, the worse each subsequent decision gets. By the third hour of staring at charts, your judgment is measurably degraded, even though it doesn't feel that way." },
-        { "type": "p", "text": "A pre-trade checklist solves this by moving the thinking to a calm moment — before money is on the line, before the candle is screaming at you — so execution becomes mechanical. Surgeons and airline pilots don't rely on memory for critical steps; they run a checklist every time, precisely because expertise doesn't protect you from slips under load. The best traders treat entries the same way." },
-        { "type": "quote", "text": "If you can't say why you're entering in one sentence, you don't have a setup — you have an urge." },
-        { "type": "h2", "text": "Step 1 — Is this setup on my playbook?" },
-        { "type": "p", "text": "The first check is the simplest and the most violated: is this exact setup something you have decided, in advance and in writing, that you trade? Not 'it looks like it might go up' — an actual named pattern with defined conditions. Breakout-retest. Failed-auction reversal. Trend pullback to the 20 EMA. If the move in front of you doesn't match a setup on your list, the answer is no, and there is no trade." },
-        { "type": "p", "text": "This single check eliminates the majority of losing trades for most discretionary traders, because the majority of losing trades are not setups at all — they're boredom, FOMO, or revenge wearing the costume of a setup." },
-        { "type": "h2", "text": "Step 2 — Is my risk defined and sized correctly?" },
-        { "type": "p", "text": "The second check has two parts. First: is there a hard stop at a price that invalidates the idea? Not a mental stop — a real one, placed before entry. Second: is your position size set so that if that stop is hit, the loss stays under your per-trade risk limit (most professionals use 0.5–1% of account)?" },
-        { "type": "p", "text": "Sizing is mechanical: Size = (account × risk %) ÷ stop distance. If you can't answer 'what do I lose if I'm wrong?' in dollars before you click, you are not risk-managing — you are gambling with a chart open." },
-        { "type": "h2", "text": "Step 3 — Is the reward worth the risk?" },
-        { "type": "p", "text": "The third check is reward-to-risk. Measure the distance from entry to your realistic target, divide by the distance from entry to your stop. If that ratio is below your minimum (many traders use 1.5 or 2), skip it — even a high win rate can't save a book of 0.5R winners and 1R losers." },
-        { "type": "p", "text": "Three checks. Playbook, risk, reward. If any answer is no, there is no trade. That's the entire system." },
-        { "type": "h2", "text": "Handling the edge cases" },
-        { "type": "p", "text": "What about the setup that's almost there? Treat 'almost' as a no. What about the trade you're sure about? Your certainty is exactly when the checklist matters most — overconfidence is where the biggest losses live. What about fast markets where there's no time? If there's no time to run three checks, there's no time to manage the trade either." },
-        { "type": "h2", "text": "Make it automatic" },
-        { "type": "p", "text": "A checklist you have to remember is a checklist you'll abandon. Put it where you log trades, tick it before every entry, and review at the end of each week how many trades broke a rule and what those trades cost you. Do this for thirty days and it stops feeling like a chore — it becomes as automatic as checking your mirrors before you change lanes." },
-        { "type": "usecase", "text": "JournalX builds this checklist directly into the trade logger. When you log a trade, it scores your discipline in real time — risk set, strategy tagged, emotion captured — and shows a quality ring so you instantly see whether you followed your own rules. Over weeks, the analytics break down your win rate and P&L by whether you followed your plan, so the cost of off-plan trades becomes an exact number you can watch shrink." },
-        { "type": "why", "text": "Spreadsheets capture numbers; they don't capture behaviour. Generic journals log trades after the fact. JournalX is the only journal that scores decision quality at the moment of entry and turns discipline into a tracked metric — so you can improve the one variable that actually drives long-term results: the quality of your process, not the luck of any single trade." }
+        {
+          "type": "p",
+          "text": "Ask a hundred traders why they lost money last month and most will point at the market — a fakeout, a news spike, a stop run. Almost none will point at the real culprit: the trade they took without a reason, the size that was a little too big, the stop they 'gave room' to. Most blown accounts don't die from a single catastrophic trade. They bleed out slowly, from dozens of small, avoidable decisions made in the heat of the moment."
+        },
+        {
+          "type": "p",
+          "text": "The fix isn't more screen time, a better indicator, or a faster feed. It's a routine you run before every single entry — a pre-trade checklist. In this guide we'll cover why a checklist beats willpower, the exact three checks that matter, how to handle the edge cases, and how to make the whole thing automatic so you actually use it."
+        },
+        {
+          "type": "h2",
+          "text": "Why a checklist beats willpower"
+        },
+        {
+          "type": "p",
+          "text": "Discipline feels like a personality trait — something you either have or you don't. But under pressure, discipline behaves much more like a depleting resource. Psychologists call it ego depletion: the more decisions you force your brain to make in a short window, the worse each subsequent decision gets. By the third hour of staring at charts, your judgment is measurably degraded, even though it doesn't feel that way."
+        },
+        {
+          "type": "p",
+          "text": "A pre-trade checklist solves this by moving the thinking to a calm moment — before money is on the line, before the candle is screaming at you — so execution becomes mechanical. Surgeons and airline pilots don't rely on memory for critical steps; they run a checklist every time, precisely because expertise doesn't protect you from slips under load. The best traders treat entries the same way."
+        },
+        {
+          "type": "quote",
+          "text": "If you can't say why you're entering in one sentence, you don't have a setup — you have an urge."
+        },
+        {
+          "type": "h2",
+          "text": "Step 1 — Is this setup on my playbook?"
+        },
+        {
+          "type": "p",
+          "text": "The first check is the simplest and the most violated: is this exact setup something you have decided, in advance and in writing, that you trade? Not 'it looks like it might go up' — an actual named pattern with defined conditions. Breakout-retest. Failed-auction reversal. Trend pullback to the 20 EMA. If the move in front of you doesn't match a setup on your list, the answer is no, and there is no trade."
+        },
+        {
+          "type": "p",
+          "text": "This single check eliminates the majority of losing trades for most discretionary traders, because the majority of losing trades are not setups at all — they're boredom, FOMO, or revenge wearing the costume of a setup."
+        },
+        {
+          "type": "h2",
+          "text": "Step 2 — Is my risk defined and sized correctly?"
+        },
+        {
+          "type": "p",
+          "text": "The second check has two parts. First: is there a hard stop at a price that invalidates the idea? Not a mental stop — a real one, placed before entry. Second: is your position size set so that if that stop is hit, the loss stays under your per-trade risk limit (most professionals use 0.5–1% of account)?"
+        },
+        {
+          "type": "p",
+          "text": "Sizing is mechanical: Size = (account × risk %) ÷ stop distance. If you can't answer 'what do I lose if I'm wrong?' in dollars before you click, you are not risk-managing — you are gambling with a chart open."
+        },
+        {
+          "type": "h2",
+          "text": "Step 3 — Is the reward worth the risk?"
+        },
+        {
+          "type": "p",
+          "text": "The third check is reward-to-risk. Measure the distance from entry to your realistic target, divide by the distance from entry to your stop. If that ratio is below your minimum (many traders use 1.5 or 2), skip it — even a high win rate can't save a book of 0.5R winners and 1R losers."
+        },
+        {
+          "type": "p",
+          "text": "Three checks. Playbook, risk, reward. If any answer is no, there is no trade. That's the entire system."
+        },
+        {
+          "type": "h2",
+          "text": "Handling the edge cases"
+        },
+        {
+          "type": "p",
+          "text": "What about the setup that's almost there? Treat 'almost' as a no. What about the trade you're sure about? Your certainty is exactly when the checklist matters most — overconfidence is where the biggest losses live. What about fast markets where there's no time? If there's no time to run three checks, there's no time to manage the trade either."
+        },
+        {
+          "type": "h2",
+          "text": "Make it automatic"
+        },
+        {
+          "type": "p",
+          "text": "A checklist you have to remember is a checklist you'll abandon. Put it where you log trades, tick it before every entry, and review at the end of each week how many trades broke a rule and what those trades cost you. Do this for thirty days and it stops feeling like a chore — it becomes as automatic as checking your mirrors before you change lanes."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX builds this checklist directly into the trade logger. When you log a trade, it scores your discipline in real time — risk set, strategy tagged, emotion captured — and shows a quality ring so you instantly see whether you followed your own rules. Over weeks, the analytics break down your win rate and P&L by whether you followed your plan, so the cost of off-plan trades becomes an exact number you can watch shrink."
+        },
+        {
+          "type": "why",
+          "text": "Spreadsheets capture numbers; they don't capture behaviour. Generic journals log trades after the fact. JournalX is the only journal that scores decision quality at the moment of entry and turns discipline into a tracked metric — so you can improve the one variable that actually drives long-term results: the quality of your process, not the luck of any single trade."
+        }
       ]
     },
     {
@@ -52,29 +579,83 @@
       "title": "Position Sizing Masterclass: The Fixed-Risk Model That Keeps Accounts Alive",
       "metaTitle": "Fixed-Risk Position Sizing Explained (With Examples) | JournalX",
       "metaDescription": "Stop guessing your position size. A complete guide to the fixed-fractional risk model — the formula, worked examples across markets, the mistakes that quietly blow accounts, and how to automate it.",
-      "keywords": ["position sizing", "fixed risk", "risk per trade", "money management", "trading math", "R-multiple"],
+      "keywords": [
+        "position sizing",
+        "fixed risk",
+        "risk per trade",
+        "money management",
+        "trading math",
+        "R-multiple"
+      ],
       "category": "Risk",
       "cover": "/assets/blogs/position-sizing.svg",
       "minutes": 9,
       "date": "2026-06-07",
       "featured": false,
       "excerpt": "Stop guessing size. Derive it from your stop distance and a fixed percentage of account at risk — the same model professionals use to survive drawdowns and compound steadily.",
-      "helpful": { "up": 287, "down": 4, "saves": 142 },
-      "tags": ["Sizing", "Risk model", "Money management"],
+      "helpful": {
+        "up": 287,
+        "down": 4,
+        "saves": 142
+      },
+      "tags": [
+        "Sizing",
+        "Risk model",
+        "Money management"
+      ],
       "body": [
-        { "type": "p", "text": "Position size is the single most important variable in trading, and it's the one most retail traders never define. They find a setup, pick a number of shares or contracts that 'feels right', and click. That feeling is where accounts go to die. This is a complete guide to the fixed-risk model — the simplest professional framework for deciding exactly how much to trade." },
-        { "type": "h2", "text": "The core formula" },
-        { "type": "p", "text": "Size = (account × risk %) ÷ stop distance. That's the whole model. Risk 1% of a $10,000 account with a $2 stop and you trade 50 units. Change the account, the risk %, or the stop, and the size recalculates — but the dollar amount you can lose stays fixed and known on every trade." },
-        { "type": "h2", "text": "A worked example in crypto" },
-        { "type": "p", "text": "Say BTC is at $61,240 and your invalidation is $60,100 — a $1,140 stop distance. With a $33,600 account and 1% risk ($336), your size is 336 ÷ 1,140 ≈ 0.29 BTC. If you're stopped, you lose $336. If your stop were tighter — say $60,700 — your size would be larger but the dollar loss would be identical. That's the magic: tighter stops let you size up without taking more risk." },
-        { "type": "h2", "text": "A worked example in stocks" },
-        { "type": "p", "text": "A $25,000 account, 0.5% risk ($125), entry at $48.00, stop at $46.50 (a $1.50 stop). Size = 125 ÷ 1.50 ≈ 83 shares. Notice you never started with 'how many shares can I afford' — you started with how much you're willing to lose and let the math hand you the size." },
-        { "type": "h2", "text": "Why fixed-risk survives drawdowns" },
-        { "type": "p", "text": "Because every loss is the same fraction of your account, a losing streak shrinks your position sizes automatically — you bet less when you're losing and more when you're winning, in absolute terms, without ever changing the rule. This is what makes drawdowns survivable and recoveries mathematically possible." },
-        { "type": "h2", "text": "The mistakes that quietly raise your risk" },
-        { "type": "p", "text": "Three habits silently break the model: sizing up after a few wins ('I'm hot'), widening stops to 'give the trade room', and rounding size up instead of down. Each one pushes your real risk per trade above your limit, and your worst day will find every one of them at once." },
-        { "type": "usecase", "text": "In JournalX you set your default risk per trade once. When you log an entry and a stop, it derives the position size and reports your realised R-multiple on every closed trade — so your analytics speak in 'R', the only unit comparable across symbols and timeframes. Your expectancy, average win, and average loss are all expressed in R automatically." },
-        { "type": "why", "text": "Most journals just store the size you typed. JournalX understands the relationship between your stop, your risk, and your size, and surfaces R-multiples, expectancy, and risk-adjusted return without you doing any math. That's the difference between recording trades and actually measuring whether you have an edge." }
+        {
+          "type": "p",
+          "text": "Position size is the single most important variable in trading, and it's the one most retail traders never define. They find a setup, pick a number of shares or contracts that 'feels right', and click. That feeling is where accounts go to die. This is a complete guide to the fixed-risk model — the simplest professional framework for deciding exactly how much to trade."
+        },
+        {
+          "type": "h2",
+          "text": "The core formula"
+        },
+        {
+          "type": "p",
+          "text": "Size = (account × risk %) ÷ stop distance. That's the whole model. Risk 1% of a $10,000 account with a $2 stop and you trade 50 units. Change the account, the risk %, or the stop, and the size recalculates — but the dollar amount you can lose stays fixed and known on every trade."
+        },
+        {
+          "type": "h2",
+          "text": "A worked example in crypto"
+        },
+        {
+          "type": "p",
+          "text": "Say BTC is at $61,240 and your invalidation is $60,100 — a $1,140 stop distance. With a $33,600 account and 1% risk ($336), your size is 336 ÷ 1,140 ≈ 0.29 BTC. If you're stopped, you lose $336. If your stop were tighter — say $60,700 — your size would be larger but the dollar loss would be identical. That's the magic: tighter stops let you size up without taking more risk."
+        },
+        {
+          "type": "h2",
+          "text": "A worked example in stocks"
+        },
+        {
+          "type": "p",
+          "text": "A $25,000 account, 0.5% risk ($125), entry at $48.00, stop at $46.50 (a $1.50 stop). Size = 125 ÷ 1.50 ≈ 83 shares. Notice you never started with 'how many shares can I afford' — you started with how much you're willing to lose and let the math hand you the size."
+        },
+        {
+          "type": "h2",
+          "text": "Why fixed-risk survives drawdowns"
+        },
+        {
+          "type": "p",
+          "text": "Because every loss is the same fraction of your account, a losing streak shrinks your position sizes automatically — you bet less when you're losing and more when you're winning, in absolute terms, without ever changing the rule. This is what makes drawdowns survivable and recoveries mathematically possible."
+        },
+        {
+          "type": "h2",
+          "text": "The mistakes that quietly raise your risk"
+        },
+        {
+          "type": "p",
+          "text": "Three habits silently break the model: sizing up after a few wins ('I'm hot'), widening stops to 'give the trade room', and rounding size up instead of down. Each one pushes your real risk per trade above your limit, and your worst day will find every one of them at once."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX you set your default risk per trade once. When you log an entry and a stop, it derives the position size and reports your realised R-multiple on every closed trade — so your analytics speak in 'R', the only unit comparable across symbols and timeframes. Your expectancy, average win, and average loss are all expressed in R automatically."
+        },
+        {
+          "type": "why",
+          "text": "Most journals just store the size you typed. JournalX understands the relationship between your stop, your risk, and your size, and surfaces R-multiples, expectancy, and risk-adjusted return without you doing any math. That's the difference between recording trades and actually measuring whether you have an edge."
+        }
       ]
     },
     {
@@ -82,27 +663,75 @@
       "title": "Why Your Stop-Loss Placement Is Quietly Costing You Money",
       "metaTitle": "Stop-Loss Placement: Mistakes & Structure-Based Fixes | JournalX",
       "metaDescription": "Stops at obvious levels get hunted. A full guide to structure-based stop placement, volatility buffers, when to move a stop, and how to measure if your stops actually protect your edge.",
-      "keywords": ["stop loss", "stop placement", "liquidity", "risk management", "trade management", "ATR stop"],
+      "keywords": [
+        "stop loss",
+        "stop placement",
+        "liquidity",
+        "risk management",
+        "trade management",
+        "ATR stop"
+      ],
       "category": "Risk",
       "cover": "/assets/blogs/stop-loss.svg",
       "minutes": 8,
       "date": "2026-06-06",
       "featured": false,
       "excerpt": "Stops at obvious levels get hunted. Here's how to place them where they actually protect you, the volatility buffer most traders skip, and how to know if yours are working.",
-      "helpful": { "up": 331, "down": 12, "saves": 167 },
-      "tags": ["Stops", "Structure", "Liquidity"],
+      "helpful": {
+        "up": 331,
+        "down": 12,
+        "saves": 167
+      },
+      "tags": [
+        "Stops",
+        "Structure",
+        "Liquidity"
+      ],
       "body": [
-        { "type": "p", "text": "Few things are more demoralising than getting stopped out to the tick before price runs exactly where you predicted. It feels personal, like the market is hunting you. In a sense, it is — but not because of you specifically. It's because your stop sat in the most obvious place, alongside everyone else's." },
-        { "type": "h2", "text": "Obvious stops are liquidity" },
-        { "type": "p", "text": "Round numbers, the previous swing low, the session low — these are where stop orders cluster, and clusters of stops are pools of liquidity that larger participants are happy to tap. If your stop sits exactly where the crowd's sits, expect the wick that takes you out before the move you expected actually happens." },
-        { "type": "h2", "text": "Place stops beyond invalidation, not at it" },
-        { "type": "p", "text": "Your stop should sit beyond the level that proves your idea wrong — not exactly at it. If your setup is a higher low, the stop belongs below the structure that defines that higher low, plus a buffer for normal noise. A common, objective buffer is a fraction of the Average True Range (ATR): structure minus, say, 0.5×ATR. This keeps you in trades that are merely noisy and out of trades that are genuinely broken." },
-        { "type": "h2", "text": "Wider stop does not mean more risk" },
-        { "type": "p", "text": "Traders resist sensible stops because 'wider stop = bigger loss'. That's only true if you keep size constant. With fixed-risk sizing, a wider stop simply means a smaller position for the same dollar risk. Decouple the two ideas and you can place stops where they belong, not where your size demands." },
-        { "type": "h2", "text": "When to move a stop" },
-        { "type": "p", "text": "Move stops in one direction only: toward profit, and only after structure confirms (a new higher low in an uptrend, for example). Moving a stop further away from price is not 'managing the trade' — it's refusing to take the loss you already planned, and it's one of the most expensive habits in trading." },
-        { "type": "usecase", "text": "JournalX logs your planned stop and your actual exit on every trade, then lets you tag the 'Moved stop' mistake when it happens. The analytics then show you, in dollars and in R, exactly what that habit has cost across your entire history — turning a vague guilt into a number you can watch fall to zero." },
-        { "type": "why", "text": "No spreadsheet connects your planned risk to your realised behaviour. JournalX's mistake-tagging and discipline analytics are built for exactly this — so 'I need to stop moving my stops' becomes a measurable, improvable metric instead of a recurring resolution." }
+        {
+          "type": "p",
+          "text": "Few things are more demoralising than getting stopped out to the tick before price runs exactly where you predicted. It feels personal, like the market is hunting you. In a sense, it is — but not because of you specifically. It's because your stop sat in the most obvious place, alongside everyone else's."
+        },
+        {
+          "type": "h2",
+          "text": "Obvious stops are liquidity"
+        },
+        {
+          "type": "p",
+          "text": "Round numbers, the previous swing low, the session low — these are where stop orders cluster, and clusters of stops are pools of liquidity that larger participants are happy to tap. If your stop sits exactly where the crowd's sits, expect the wick that takes you out before the move you expected actually happens."
+        },
+        {
+          "type": "h2",
+          "text": "Place stops beyond invalidation, not at it"
+        },
+        {
+          "type": "p",
+          "text": "Your stop should sit beyond the level that proves your idea wrong — not exactly at it. If your setup is a higher low, the stop belongs below the structure that defines that higher low, plus a buffer for normal noise. A common, objective buffer is a fraction of the Average True Range (ATR): structure minus, say, 0.5×ATR. This keeps you in trades that are merely noisy and out of trades that are genuinely broken."
+        },
+        {
+          "type": "h2",
+          "text": "Wider stop does not mean more risk"
+        },
+        {
+          "type": "p",
+          "text": "Traders resist sensible stops because 'wider stop = bigger loss'. That's only true if you keep size constant. With fixed-risk sizing, a wider stop simply means a smaller position for the same dollar risk. Decouple the two ideas and you can place stops where they belong, not where your size demands."
+        },
+        {
+          "type": "h2",
+          "text": "When to move a stop"
+        },
+        {
+          "type": "p",
+          "text": "Move stops in one direction only: toward profit, and only after structure confirms (a new higher low in an uptrend, for example). Moving a stop further away from price is not 'managing the trade' — it's refusing to take the loss you already planned, and it's one of the most expensive habits in trading."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX logs your planned stop and your actual exit on every trade, then lets you tag the 'Moved stop' mistake when it happens. The analytics then show you, in dollars and in R, exactly what that habit has cost across your entire history — turning a vague guilt into a number you can watch fall to zero."
+        },
+        {
+          "type": "why",
+          "text": "No spreadsheet connects your planned risk to your realised behaviour. JournalX's mistake-tagging and discipline analytics are built for exactly this — so 'I need to stop moving my stops' becomes a measurable, improvable metric instead of a recurring resolution."
+        }
       ]
     },
     {
@@ -110,28 +739,80 @@
       "title": "Beating Revenge Trading: A Practical Protocol for the 30 Minutes After a Loss",
       "metaTitle": "How to Stop Revenge Trading: A Step-by-Step Protocol | JournalX",
       "metaDescription": "Revenge trading turns one loss into many. A practical protocol to break the tilt loop — naming the state, the 30-minute rule, re-entry criteria — plus how to measure your emotional leaks.",
-      "keywords": ["revenge trading", "trading psychology", "tilt", "emotional control", "trading discipline", "trading mindset"],
+      "keywords": [
+        "revenge trading",
+        "trading psychology",
+        "tilt",
+        "emotional control",
+        "trading discipline",
+        "trading mindset"
+      ],
       "category": "Psychology",
       "cover": "/assets/blogs/revenge-trading.svg",
       "minutes": 7,
       "date": "2026-06-05",
       "featured": false,
       "excerpt": "The loss isn't the problem — the next 30 minutes are. A repeatable protocol for tilt, the science behind why it works, and how to measure which emotional states cost you the most.",
-      "helpful": { "up": 398, "down": 7, "saves": 211 },
-      "tags": ["Psychology", "Tilt", "Emotion", "Mindset"],
+      "helpful": {
+        "up": 398,
+        "down": 7,
+        "saves": 211
+      },
+      "tags": [
+        "Psychology",
+        "Tilt",
+        "Emotion",
+        "Mindset"
+      ],
       "body": [
-        { "type": "p", "text": "Every trader knows the feeling. A clean setup stops out, and within seconds you're back in — bigger, faster, with a thinner thesis — determined to 'get it back'. Twenty minutes later the single loss has become five, and the day that should have cost you 1R has cost you 8. This is revenge trading, and it destroys more accounts than any bad strategy ever has." },
-        { "type": "h2", "text": "Why it happens" },
-        { "type": "p", "text": "A loss triggers a genuine threat response — your amygdala treats the hit to your account like a hit to your safety. Cortisol rises, your time horizon collapses to the next few minutes, and the rational, planning part of your brain goes quiet. You are, neurologically, not the same trader you were an hour ago. Willpower alone rarely wins this fight; structure does." },
-        { "type": "h2", "text": "Step 1 — Name the state" },
-        { "type": "p", "text": "Tilt hides best when it's unnamed. The moment you notice urgency, a need to 'get it back', or shortcuts in your process, say it out loud: this is tilt. Labelling an emotion has been shown to reduce its intensity by re-engaging the prefrontal cortex. You can't manage a state you won't admit you're in." },
-        { "type": "h2", "text": "Step 2 — The 30-minute rule" },
-        { "type": "p", "text": "After any stop-out that stings, you are banned from the buy button for 30 minutes. Stand up, walk, journal the trade you just took, breathe. The market will still be there in half an hour; your edge will not be if you trade angry. This single rule, enforced rigidly, eliminates the cascade that turns one loss into a disaster." },
-        { "type": "quote", "text": "You can't out-trade your own nervous system. You can only out-prepare it." },
-        { "type": "h2", "text": "Step 3 — Re-entry criteria" },
-        { "type": "p", "text": "You may trade again only when you can write down a setup that would exist even if the losing trade had never happened. If every idea you have references the loss — 'it owes me', 'I'll get it back on the next one' — you are still tilted, and the timer resets." },
-        { "type": "usecase", "text": "Every JournalX trade captures your emotion at entry and whether you followed your plan. The dashboard then compares win rate and P&L across 'Calm', 'Confident', 'FOMO' and 'Revenge' states — and most traders are genuinely shocked to find that the overwhelming majority of their losses come from just one or two emotional states they could simply refuse to trade in." },
-        { "type": "why", "text": "Trading-psychology advice is everywhere; measurement is not. JournalX is built so that 'control your emotions' becomes a chart you can act on. The emotional-state breakdown — win rate and expectancy per emotion — is unique to how we model every trade, and it's often the single most eye-opening report a new user sees." }
+        {
+          "type": "p",
+          "text": "Every trader knows the feeling. A clean setup stops out, and within seconds you're back in — bigger, faster, with a thinner thesis — determined to 'get it back'. Twenty minutes later the single loss has become five, and the day that should have cost you 1R has cost you 8. This is revenge trading, and it destroys more accounts than any bad strategy ever has."
+        },
+        {
+          "type": "h2",
+          "text": "Why it happens"
+        },
+        {
+          "type": "p",
+          "text": "A loss triggers a genuine threat response — your amygdala treats the hit to your account like a hit to your safety. Cortisol rises, your time horizon collapses to the next few minutes, and the rational, planning part of your brain goes quiet. You are, neurologically, not the same trader you were an hour ago. Willpower alone rarely wins this fight; structure does."
+        },
+        {
+          "type": "h2",
+          "text": "Step 1 — Name the state"
+        },
+        {
+          "type": "p",
+          "text": "Tilt hides best when it's unnamed. The moment you notice urgency, a need to 'get it back', or shortcuts in your process, say it out loud: this is tilt. Labelling an emotion has been shown to reduce its intensity by re-engaging the prefrontal cortex. You can't manage a state you won't admit you're in."
+        },
+        {
+          "type": "h2",
+          "text": "Step 2 — The 30-minute rule"
+        },
+        {
+          "type": "p",
+          "text": "After any stop-out that stings, you are banned from the buy button for 30 minutes. Stand up, walk, journal the trade you just took, breathe. The market will still be there in half an hour; your edge will not be if you trade angry. This single rule, enforced rigidly, eliminates the cascade that turns one loss into a disaster."
+        },
+        {
+          "type": "quote",
+          "text": "You can't out-trade your own nervous system. You can only out-prepare it."
+        },
+        {
+          "type": "h2",
+          "text": "Step 3 — Re-entry criteria"
+        },
+        {
+          "type": "p",
+          "text": "You may trade again only when you can write down a setup that would exist even if the losing trade had never happened. If every idea you have references the loss — 'it owes me', 'I'll get it back on the next one' — you are still tilted, and the timer resets."
+        },
+        {
+          "type": "usecase",
+          "text": "Every JournalX trade captures your emotion at entry and whether you followed your plan. The dashboard then compares win rate and P&L across 'Calm', 'Confident', 'FOMO' and 'Revenge' states — and most traders are genuinely shocked to find that the overwhelming majority of their losses come from just one or two emotional states they could simply refuse to trade in."
+        },
+        {
+          "type": "why",
+          "text": "Trading-psychology advice is everywhere; measurement is not. JournalX is built so that 'control your emotions' becomes a chart you can act on. The emotional-state breakdown — win rate and expectancy per emotion — is unique to how we model every trade, and it's often the single most eye-opening report a new user sees."
+        }
       ]
     },
     {
@@ -139,27 +820,76 @@
       "title": "Why Every Serious Trader Keeps a Journal (And Why Most Quit Too Early)",
       "metaTitle": "Why You Need a Trading Journal to Build a Real Edge | JournalX",
       "metaDescription": "A trading journal is the fastest path from random results to a repeatable edge. Why journaling works, why most traders abandon it, and how to build a habit that survives your busiest weeks.",
-      "keywords": ["trading journal", "trade tracking", "trading edge", "trade analytics", "why journal trades", "trading habits"],
+      "keywords": [
+        "trading journal",
+        "trade tracking",
+        "trading edge",
+        "trade analytics",
+        "why journal trades",
+        "trading habits"
+      ],
       "category": "Journaling",
       "cover": "/assets/blogs/why-journal.svg",
       "minutes": 8,
       "date": "2026-06-04",
       "featured": false,
       "excerpt": "A journal is the fastest path from random results to a repeatable edge — but only if logging takes seconds, not minutes. Here's how to make the habit stick.",
-      "helpful": { "up": 356, "down": 6, "saves": 199 },
-      "tags": ["Journaling", "Edge", "Habit", "Review"],
+      "helpful": {
+        "up": 356,
+        "down": 6,
+        "saves": 199
+      },
+      "tags": [
+        "Journaling",
+        "Edge",
+        "Habit",
+        "Review"
+      ],
       "body": [
-        { "type": "p", "text": "Ask any consistently profitable trader what changed, and beneath the surface details you'll hear a version of the same answer: they started reviewing their own trades, honestly, on a regular schedule. The market is the most expensive teacher in the world — a journal is how you stop paying tuition twice for the same lesson." },
-        { "type": "h2", "text": "What a journal actually does" },
-        { "type": "p", "text": "A good journal converts a blur of individual trades into patterns you can act on. Which setups actually make money? What time of day do you give it back? Does your win rate collapse after a loss? Are your best trades the ones you held longest, or the ones you cut quickest? None of these questions are answerable from memory — memory is selective, and it flatters us. Data isn't." },
-        { "type": "h2", "text": "Why most traders quit" },
-        { "type": "p", "text": "They start with a spreadsheet. Logging a single trade — symbol, entry, exit, size, fees, a screenshot, a note — takes four or five minutes. Within two weeks the friction wins and the spreadsheet is abandoned, right before it would have started paying off. The problem was never discipline; it was design." },
-        { "type": "h2", "text": "The fix is speed" },
-        { "type": "p", "text": "If logging a trade takes ten seconds, you'll do it forever. If it takes five minutes, you'll quit. Everything about a good journal should be optimised for that first ten seconds: a quick path for busy days, a detailed path for when you want depth, and automation for everything that can be automated." },
-        { "type": "h2", "text": "The weekly review is where the edge is" },
-        { "type": "p", "text": "Logging is only half the loop. Once a week, spend twenty minutes reading your own trades back: tag your best and worst, note one pattern, and pick a single thing to change next week. Edges aren't found in one heroic insight — they're filed down, one weekly review at a time." },
-        { "type": "usecase", "text": "JournalX has a Quick Log mode — symbol, P&L, done — for busy days, and a Detailed mode for full context including risk, psychology and screenshots. Connect an exchange and your trades import automatically. However you log, the same analytics engine turns the data into equity-growth candles, R-multiples and behavioural breakdowns ready for your weekly review." },
-        { "type": "why", "text": "Spreadsheets are slow and blind. Broker statements are raw rows of numbers. JournalX is the only journal that scales from a 10-second quick log to full psychology and risk analytics — so the habit survives your busiest weeks and still produces the insight that actually moves your equity curve." }
+        {
+          "type": "p",
+          "text": "Ask any consistently profitable trader what changed, and beneath the surface details you'll hear a version of the same answer: they started reviewing their own trades, honestly, on a regular schedule. The market is the most expensive teacher in the world — a journal is how you stop paying tuition twice for the same lesson."
+        },
+        {
+          "type": "h2",
+          "text": "What a journal actually does"
+        },
+        {
+          "type": "p",
+          "text": "A good journal converts a blur of individual trades into patterns you can act on. Which setups actually make money? What time of day do you give it back? Does your win rate collapse after a loss? Are your best trades the ones you held longest, or the ones you cut quickest? None of these questions are answerable from memory — memory is selective, and it flatters us. Data isn't."
+        },
+        {
+          "type": "h2",
+          "text": "Why most traders quit"
+        },
+        {
+          "type": "p",
+          "text": "They start with a spreadsheet. Logging a single trade — symbol, entry, exit, size, fees, a screenshot, a note — takes four or five minutes. Within two weeks the friction wins and the spreadsheet is abandoned, right before it would have started paying off. The problem was never discipline; it was design."
+        },
+        {
+          "type": "h2",
+          "text": "The fix is speed"
+        },
+        {
+          "type": "p",
+          "text": "If logging a trade takes ten seconds, you'll do it forever. If it takes five minutes, you'll quit. Everything about a good journal should be optimised for that first ten seconds: a quick path for busy days, a detailed path for when you want depth, and automation for everything that can be automated."
+        },
+        {
+          "type": "h2",
+          "text": "The weekly review is where the edge is"
+        },
+        {
+          "type": "p",
+          "text": "Logging is only half the loop. Once a week, spend twenty minutes reading your own trades back: tag your best and worst, note one pattern, and pick a single thing to change next week. Edges aren't found in one heroic insight — they're filed down, one weekly review at a time."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX has a Quick Log mode — symbol, P&L, done — for busy days, and a Detailed mode for full context including risk, psychology and screenshots. Connect an exchange and your trades import automatically. However you log, the same analytics engine turns the data into equity-growth candles, R-multiples and behavioural breakdowns ready for your weekly review."
+        },
+        {
+          "type": "why",
+          "text": "Spreadsheets are slow and blind. Broker statements are raw rows of numbers. JournalX is the only journal that scales from a 10-second quick log to full psychology and risk analytics — so the habit survives your busiest weeks and still produces the insight that actually moves your equity curve."
+        }
       ]
     }
   ]

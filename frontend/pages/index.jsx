@@ -10,6 +10,7 @@ import { useRouter } from "next/router";
 import Cookies from "js-cookie";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import {
+  Activity,
   ArrowRight,
   BarChart3,
   BrainCircuit,
@@ -17,17 +18,23 @@ import {
   Check,
   Flame,
   LineChart,
+  Percent,
+  Plus,
+  RotateCcw,
   ShieldCheck,
   Sparkles,
   Star,
+  TrendingUp,
+  Trophy,
   Zap,
 } from "lucide-react";
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import { LandingNav, LandingFooter, btnPrimary, btnGhost } from "@/components/landingPage/LandingChrome";
+import { getAllPosts, fmtDate } from "@/utils/blogs";
 
 const SITE_URL = "https://journalx.app";
 const DESC =
-  "JournalX is the all-in-one trading journal for stocks, options, forex, futures & crypto. Log trades in seconds, track risk and psychology, and turn your history into a measurable edge.";
+  "JournalX gets you full trade log analysis in less than 10 seconds. Log trades, track risk and psychology, and increase your profitability — the all-in-one trading journal for stocks, options, forex, futures & crypto.";
 
 const C = { text: "#fff", muted: "#aeb4bc", dim: "#707a8a", surface: "#161a20", border: "rgba(255,255,255,0.08)", yellow: "#fcd535", green: "#2ebd85", red: "#f6465d" };
 
@@ -146,8 +153,195 @@ function Section({ children, style, innerRef }) {
   return <section ref={innerRef} style={{ maxWidth: 1160, margin: "0 auto", padding: "72px 20px", ...style }}>{children}</section>;
 }
 
+/* ===== Interactive analytics demo =====
+   Visitor types a symbol + P&L; the right panel re-computes win rate,
+   total P&L, profit factor and an animated equity curve in real time —
+   a live glimpse of what logging a trade in JournalX feels like. */
+const DEMO_SEED = [
+  { sym: "BTCUSDT", pnl: 320 },
+  { sym: "AAPL", pnl: -110 },
+  { sym: "EURUSD", pnl: 180 },
+  { sym: "NQ", pnl: 240 },
+];
+
+function StatTile({ label, value, color, icon: Icon }) {
+  return (
+    <div className="lp-demo-tile" style={{ background: "#0d1117", border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 13px", minWidth: 0 }}>
+      <div className="lp-demo-tile__label" style={{ display: "flex", alignItems: "center", gap: 5, font: "400 11px Poppins", color: C.dim, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <Icon size={12} style={{ flexShrink: 0 }} /> {label}
+      </div>
+      <motion.div
+        key={String(value)}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        className="lp-demo-tile__val"
+        style={{ font: "700 19px Poppins", letterSpacing: "-0.5px", color: color || C.text, whiteSpace: "nowrap" }}
+      >
+        {value}
+      </motion.div>
+    </div>
+  );
+}
+
+function InteractiveDemo() {
+  const [trades, setTrades] = useState(DEMO_SEED);
+  const [sym, setSym] = useState("");
+  const [pnl, setPnl] = useState("");
+
+  const add = () => {
+    const v = parseFloat(pnl);
+    if (!sym.trim() || Number.isNaN(v)) return;
+    setTrades((t) => [...t, { sym: sym.trim().toUpperCase(), pnl: v }]);
+    setSym("");
+    setPnl("");
+  };
+
+  const total = trades.reduce((s, t) => s + t.pnl, 0);
+  const wins = trades.filter((t) => t.pnl > 0).length;
+  const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0;
+  const grossWin = trades.filter((t) => t.pnl > 0).reduce((s, t) => s + t.pnl, 0);
+  const grossLoss = Math.abs(trades.filter((t) => t.pnl < 0).reduce((s, t) => s + t.pnl, 0));
+  const pf = grossLoss ? grossWin / grossLoss : grossWin > 0 ? 99 : 0;
+
+  let cum = 0;
+  const equity = trades.map((t) => (cum += t.pnl));
+  const maxAbs = Math.max(1, ...equity.map((e) => Math.abs(e)));
+  // numbers above 1250 are abbreviated, e.g. 1250 -> 1.25k, 2000 -> 2k
+  const abbr = (abs) =>
+    abs >= 1250
+      ? `${(abs / 1000).toFixed(2).replace(/\.?0+$/, "")}k`
+      : abs.toLocaleString();
+  const money = (n) => `${n < 0 ? "−" : "+"}$${abbr(Math.abs(n))}`;
+
+  const inputStyle = {
+    background: "#0d1117", border: `1px solid ${C.border}`, borderRadius: 10,
+    padding: "12px 14px", color: C.text, font: "400 14px Poppins",
+    width: "100%", maxWidth: "100%", boxSizing: "border-box", display: "block", outline: "none",
+  };
+
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: 18, display: "grid", gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 20 }} className="lp-demo-grid">
+      {/* left: input */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, font: "600 15px Poppins" }}>
+          Log a trade
+        </div>
+        <p style={{ font: "400 13px/1.6 Poppins", color: C.muted, margin: 0 }}>
+          Type a symbol and a profit or loss, then hit add — watch the analytics on the right update instantly. This is the whole journaling loop, in under 10 seconds.
+        </p>
+        <label style={{ font: "400 12px Poppins", color: C.dim }}>Symbol</label>
+        <input style={inputStyle} placeholder="e.g. BTCUSDT" value={sym} onChange={(e) => setSym(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
+        <label style={{ font: "400 12px Poppins", color: C.dim }}>P&L ($)</label>
+        <input style={inputStyle} type="number" placeholder="e.g. 250 or -90" value={pnl} onChange={(e) => setPnl(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={add} style={{ ...btnPrimary, padding: "12px 18px", flex: 1, justifyContent: "center" }}><Plus size={16} /> Add trade</button>
+          <button onClick={() => setTrades(DEMO_SEED)} title="Reset demo" style={{ ...btnGhost, padding: "12px 14px" }}><RotateCcw size={15} /></button>
+        </div>
+        <div style={{ font: "400 12px Poppins", color: C.dim, marginTop: 2 }}>
+          {trades.length} trade{trades.length === 1 ? "" : "s"} in this demo journal
+        </div>
+      </div>
+
+      {/* right: live analytics */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="lp-demo-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 8 }}>
+          <StatTile label="Net P&L" value={money(total)} color={total >= 0 ? C.green : C.red} icon={TrendingUp} />
+          <StatTile label="Win rate" value={`${winRate}%`} color={C.yellow} icon={Percent} />
+          <StatTile label="Profit factor" value={pf >= 99 ? "∞" : pf.toFixed(2)} color={pf >= 1 ? C.green : C.red} icon={Activity} />
+          <StatTile label="Wins" value={wins} color={C.yellow} icon={Trophy} />
+        </div>
+
+        {/* animated equity curve */}
+        <div style={{ background: "#0d1117", border: `1px solid ${C.border}`, borderRadius: 14, padding: "16px 16px 12px" }}>
+          <div style={{ font: "400 12px Poppins", color: C.dim, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+            Equity curve
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 120 }}>
+            <AnimatePresence initial={false}>
+              {equity.map((e, i) => {
+                const pos = e >= 0;
+                const h = Math.max(6, Math.round((Math.abs(e) / maxAbs) * 104));
+                return (
+                  <motion.div
+                    key={i}
+                    layout
+                    initial={{ opacity: 0, scaleY: 0.2 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    title={`${trades[i].sym}: ${money(trades[i].pnl)}  ·  equity ${money(e)}`}
+                    style={{ flex: 1, minWidth: 0, height: h, transformOrigin: "bottom", borderRadius: 6, background: pos ? C.green : C.red, cursor: "help" }}
+                  />
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </div>
+        <div style={{ font: "400 12px Poppins", color: C.dim, textAlign: "center" }}>
+          In JournalX this also tracks R-multiples, emotion and discipline — automatically.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===== Continuous linear marquee =====
+   Renders its children twice and slides the track left forever, so the
+   loop is seamless. Pauses on hover and respects reduced-motion. */
+function Marquee({ children, duration = 32, fade = true }) {
+  return (
+    <div className="lp-marquee" style={{ position: "relative", overflow: "hidden", width: "100%", maskImage: fade ? "linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)" : undefined, WebkitMaskImage: fade ? "linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)" : undefined }}>
+      <div className="lp-marquee__track" style={{ display: "flex", width: "max-content", animationDuration: `${duration}s` }}>
+        <div className="lp-marquee__row">{children}</div>
+        <div className="lp-marquee__row" aria-hidden="true">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* Platforms a trader can import their trade logs from (auto-sync or CSV). */
+const EXCHANGES = [
+  "Binance", "Bybit", "OKX", "Coinbase", "Kraken", "KuCoin",
+  "Bitget", "MEXC", "Gate.io", "BingX", "Deribit", "CSV import",
+];
+
+function ExchangeChip({ name }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 20px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, font: "600 16px Poppins", color: "#d6dae0", whiteSpace: "nowrap" }}>
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.green, flexShrink: 0 }} />
+      {name}
+    </span>
+  );
+}
+
+const BLOG_ACCENT = {
+  Strategy: "#fcd535", Risk: "#2ebd85", Psychology: "#a78bfa",
+  Journaling: "#38bdf8", Markets: "#fb7185",
+};
+
+function BlogCard({ post }) {
+  const accent = BLOG_ACCENT[post.category] || C.yellow;
+  return (
+    <a href={`/blog/${post.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+      <div style={{ width: 300, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column", height: 188 }}>
+        <div style={{ height: 5, background: accent }} />
+        <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+          <span style={{ display: "inline-flex", alignSelf: "flex-start", padding: "3px 10px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: `1px solid ${C.border}`, font: "600 11px Poppins", color: accent }}>
+            {post.category} · {post.minutes} min
+          </span>
+          <div style={{ font: "600 16px/1.35 Poppins", color: C.text, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{post.title}</div>
+          <div style={{ font: "400 13px/1.5 Poppins", color: C.muted, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{post.excerpt}</div>
+          <span style={{ marginTop: "auto", font: "400 12px Poppins", color: C.dim }}>{fmtDate(post.date)}</span>
+        </div>
+      </div>
+    </a>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
+  const blogPosts = getAllPosts().slice(0, 8);
   const [loading, setLoading] = useState(true);
   const [faq, setFaq] = useState(0);
 
@@ -179,19 +373,19 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>JournalX — The Trading Journal That Builds Your Edge | Stocks, Forex & Crypto</title>
+        <title>JournalX — Get Trade Log Analysis in Less Than 10 Seconds & Increase Your Profitability</title>
         <meta name="description" content={DESC} />
-        <meta name="keywords" content="trading journal, trade journal app, stock trading journal, forex trade log, crypto trading journal, options tracker, futures journal, trade analytics, trading psychology, risk management, R-multiple, position sizing, journalx" />
+        <meta name="keywords" content="trading journal, trade log analysis, get trade analysis in 10 seconds, increase profitability, trade journal app, stock trading journal, forex trade log, crypto trading journal, options tracker, futures journal, trade analytics, trading psychology, risk management, R-multiple, position sizing, journalx" />
         <meta name="author" content="JournalX" />
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
         <link rel="canonical" href={SITE_URL} />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="JournalX — The Trading Journal That Builds Your Edge" />
+        <meta property="og:title" content="JournalX — Trade Log Analysis in Under 10 Seconds. Increase Your Profitability." />
         <meta property="og:description" content={DESC} />
         <meta property="og:url" content={SITE_URL} />
         <meta property="og:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JournalX — The Trading Journal That Builds Your Edge" />
+        <meta name="twitter:title" content="JournalX — Trade Log Analysis in Under 10 Seconds. Increase Your Profitability." />
         <meta name="twitter:description" content={DESC} />
         <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <meta name="theme-color" content="#0d1117" />
@@ -208,13 +402,13 @@ export default function Home() {
           <HeroBackdrop />
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative", zIndex: 1 }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 22 }}>
-              <Sparkles size={14} /> A fresh trading lesson every day on our blog
+              <Sparkles size={14} /> Full trade analysis in under 10 seconds
             </span>
-            <h1 style={{ font: "700 clamp(34px, 6vw, 60px)/1.08 Poppins", margin: "0 auto 18px", maxWidth: 860, letterSpacing: "-1.5px" }}>
-              The trading journal that turns your history into a <span style={{ color: C.yellow }}>measurable edge</span>.
+            <h1 style={{ font: "700 clamp(34px, 6vw, 60px)/1.08 Poppins", margin: "0 auto 18px", maxWidth: 880, letterSpacing: "-1.5px" }}>
+              Get trade log analysis in <span style={{ color: C.yellow }}>less than 10 seconds</span> — and increase your profitability.
             </h1>
-            <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 620, margin: "0 auto 30px" }}>
-              Log trades in seconds. Track risk, psychology and discipline. Watch your equity grow — for stocks, options, forex, futures and crypto.
+            <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 640, margin: "0 auto 30px" }}>
+              JournalX logs your trades in seconds and instantly turns them into the analytics that actually grow an account — win rate, R-multiples, risk and psychology. For stocks, options, forex, futures and crypto.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
               <a href="/register" style={{ textDecoration: "none" }}><button style={{ ...btnPrimary, padding: "14px 26px", fontSize: 15 }}>Start journaling free <ArrowRight size={16} /></button></a>
@@ -235,6 +429,37 @@ export default function Home() {
                 <div style={{ font: "400 13px Poppins", color: C.muted }}>{l}</div>
               </div>
             ))}
+          </motion.div>
+        </Section>
+
+        {/* ===== Import-from trust marquee ===== */}
+        <Section style={{ paddingTop: 8, paddingBottom: 8 }}>
+          <p style={{ textAlign: "center", font: "600 13px Poppins", letterSpacing: 0.6, textTransform: "uppercase", color: C.dim, margin: "0 0 22px" }}>
+            Import your trade logs from your exchange or broker
+          </p>
+          <Marquee duration={34}>
+            {EXCHANGES.map((name) => (
+              <span key={name} style={{ marginRight: 16 }}><ExchangeChip name={name} /></span>
+            ))}
+          </Marquee>
+          <p style={{ textAlign: "center", font: "400 13px Poppins", color: C.dim, margin: "20px 0 0" }}>
+            Auto-sync supported exchanges or upload a CSV — your history imports in minutes.
+          </p>
+        </Section>
+
+        {/* ===== Interactive demo ===== */}
+        <Section style={{ paddingTop: 24 }}>
+          <div id="demo" style={{ scrollMarginTop: 80 }} />
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <h2 style={{ font: "700 clamp(26px,4vw,40px)/1.1 Poppins", margin: "0 0 12px", letterSpacing: "-1px" }}>
+              Try it right now — no signup
+            </h2>
+            <p style={{ font: "400 17px/1.6 Poppins", color: C.muted, maxWidth: 600, margin: "0 auto" }}>
+              Log a trade below and watch a live glimpse of your analytics update in real time. This is exactly how fast journaling feels in JournalX.
+            </p>
+          </div>
+          <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+            <InteractiveDemo />
           </motion.div>
         </Section>
 
@@ -324,6 +549,50 @@ export default function Home() {
           </Section>
         </div>
 
+        {/* ===== From the blog (auto-scrolling) ===== */}
+        <Section style={{ paddingBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 28 }}>
+            <div>
+              <h2 style={{ font: "700 clamp(26px,4vw,38px)/1.1 Poppins", margin: "0 0 8px", letterSpacing: "-1px" }}>Fresh trading lessons every week</h2>
+              <p style={{ font: "400 16px/1.6 Poppins", color: C.muted, margin: 0, maxWidth: 520 }}>Strategy, risk and psychology guides to turn each lesson into a measurable edge.</p>
+            </div>
+            <a href="/blog" style={{ textDecoration: "none" }}><button style={{ ...btnGhost, padding: "12px 20px" }}>Visit the blog <ArrowRight size={15} /></button></a>
+          </div>
+          <Marquee duration={42}>
+            {blogPosts.map((p) => (
+              <span key={p.slug} style={{ marginRight: 18 }}><BlogCard post={p} /></span>
+            ))}
+          </Marquee>
+        </Section>
+
+        {/* ===== SEO long-form: built for every market ===== */}
+        <Section>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }} className="lp-why-grid">
+            <div>
+              <h2 style={{ font: "700 clamp(24px,4vw,34px)/1.15 Poppins", margin: "0 0 16px", letterSpacing: "-1px" }}>
+                The trading journal built for every market
+              </h2>
+              <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: "0 0 14px" }}>
+                Whether you trade stocks, options, forex, futures or crypto, JournalX is the trading journal that adapts to you. Log any instrument in any currency, import your history from a spreadsheet or connect a supported exchange to auto-sync, and let the analytics engine do the rest. No formulas, no manual maths — just your trade log, analysed in under ten seconds.
+              </p>
+              <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: 0 }}>
+                Every trade you record feeds equity-growth candlesticks, R-multiple distributions, a colour-coded P&amp;L calendar and per-strategy breakdowns. The result is a clear, honest picture of where your profitability actually comes from — and exactly which habit is costing you the most.
+              </p>
+            </div>
+            <div>
+              <h2 style={{ font: "700 clamp(24px,4vw,34px)/1.15 Poppins", margin: "0 0 16px", letterSpacing: "-1px" }}>
+                Why a faster journal increases profitability
+              </h2>
+              <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: "0 0 14px" }}>
+                Profitability isn&apos;t found in one perfect trade — it&apos;s built by removing repeated mistakes. But you can only remove a leak you can measure, and you can only measure trades you actually log. That&apos;s why speed matters: when logging takes ten seconds instead of five minutes, you log every trade, your data stays complete, and your weekly review finally tells the truth.
+              </p>
+              <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: 0 }}>
+                JournalX scores your discipline at the moment of entry and tracks how emotion and risk affect your results, turning vague advice like &quot;control your psychology&quot; into a number you can watch improve. Fix one leak at a time and the equity curve responds — that&apos;s the entire compounding loop.
+              </p>
+            </div>
+          </div>
+        </Section>
+
         {/* ===== FAQ ===== */}
         <Section style={{ maxWidth: 760 }}>
           <div style={{ textAlign: "center", marginBottom: 36 }}>
@@ -371,9 +640,33 @@ export default function Home() {
         <LandingFooter />
       </div>
 
+      <style jsx global>{`
+        .lp-marquee__track {
+          animation-name: lp-marquee;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+        .lp-marquee__row { display: flex; align-items: center; }
+        .lp-marquee:hover .lp-marquee__track { animation-play-state: paused; }
+        @keyframes lp-marquee {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .lp-marquee__track { animation: none; }
+        }
+      `}</style>
+
       <style jsx>{`
         @media (max-width: 820px) {
           :global(.lp-why-grid) { grid-template-columns: 1fr !important; gap: 28px !important; }
+          :global(.lp-demo-grid) { grid-template-columns: 1fr !important; gap: 16px !important; padding: 14px !important; }
+        }
+        @media (max-width: 480px) {
+          :global(.lp-demo-stats) { grid-template-columns: repeat(2, minmax(0,1fr)) !important; gap: 8px !important; }
+          :global(.lp-demo-tile) { padding: 10px 12px !important; }
+          :global(.lp-demo-tile__label) { font-size: 10px !important; }
+          :global(.lp-demo-tile__val) { font-size: 17px !important; }
         }
       `}</style>
     </>

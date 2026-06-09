@@ -70,14 +70,14 @@ export default function BlogPost({ post, related }) {
         <meta property="og:title" content={post.metaTitle || post.title} />
         <meta property="og:description" content={post.metaDescription || post.excerpt} />
         <meta property="og:url" content={url} />
-        <meta property="og:image" content={`${SITE_URL}${post.cover}`} />
+        <meta property="og:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <meta property="article:published_time" content={post.date} />
         <meta property="article:author" content={author.name} />
         <meta property="article:section" content={post.category} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={post.metaTitle || post.title} />
         <meta name="twitter:description" content={post.metaDescription || post.excerpt} />
-        <meta name="twitter:image" content={`${SITE_URL}${post.cover}`} />
+        <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd(post)) }} />
       </Head>
 
@@ -103,6 +103,13 @@ export default function BlogPost({ post, related }) {
 
           <h1 style={{ font: "var(--text-h1)", margin: 0 }}>{post.title}</h1>
 
+          {/* SEO lead — uses the meta description as an intro paragraph */}
+          {(post.metaDescription || post.excerpt) && (
+            <p style={{ font: "var(--text-body-lg)", color: "var(--color-text-muted)", margin: 0 }}>
+              {post.metaDescription || post.excerpt}
+            </p>
+          )}
+
           {/* author + share */}
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
             <span style={{ width: 38, height: 38, borderRadius: "50%", background: "var(--color-primary)", color: "var(--color-primary-foreground)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
@@ -117,9 +124,8 @@ export default function BlogPost({ post, related }) {
             </button>
           </div>
 
-          {/* cover */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.cover} alt={post.title} style={{ width: "100%", borderRadius: "var(--radius-lg)", aspectRatio: "1200/500", objectFit: "cover" }} />
+          {/* accent divider (replaces the cover image) */}
+          <div style={{ height: 5, borderRadius: 999, background: "linear-gradient(90deg, var(--yellow-500), var(--color-success))", margin: "var(--space-2) 0" }} />
 
           {/* body + TOC */}
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 220px", gap: "var(--space-6)", alignItems: "start" }} className="jx-blog-grid">
@@ -165,12 +171,11 @@ export default function BlogPost({ post, related }) {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "var(--space-4)" }}>
                 {related.map((p) => (
                   <Link key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
-                    <div className="jx-card jx-card--flat" style={{ padding: 0, overflow: "hidden", cursor: "pointer" }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={p.cover} alt={p.title} style={{ width: "100%", height: 110, objectFit: "cover" }} />
-                      <div style={{ padding: "var(--space-3) var(--space-4)" }}>
+                    <div className="jx-card jx-card--flat" style={{ padding: 0, overflow: "hidden", cursor: "pointer", height: "100%" }}>
+                      <div style={{ height: 5, background: "linear-gradient(90deg, var(--yellow-500), var(--color-success))" }} />
+                      <div style={{ padding: "var(--space-4)" }}>
                         <span className="jx-badge jx-badge--neutral">{p.category}</span>
-                        <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginTop: 6 }}>{p.title}</div>
+                        <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginTop: 8 }}>{p.title}</div>
                       </div>
                     </div>
                   </Link>

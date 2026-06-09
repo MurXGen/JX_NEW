@@ -4,6 +4,7 @@
    unverified accounts drop into the 6-digit OTP step, forgot-password link. */
 
 import { useEffect, useState } from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
@@ -139,10 +140,21 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthLayout
-      title={step === "login" ? "Welcome back" : "Check your email"}
-      subtitle={step === "login" ? "Log in to your trading journal" : `We sent a 6-digit code to ${email}`}
-    >
+    <>
+      <Head>
+        <title>JournalX Login — Sign In to Your Trading Journal | journalx.app</title>
+        <meta name="description" content="Log in to JournalX, the trading journal that gives you trade log analysis in seconds. Access your dashboard, equity curve, R-multiples and discipline analytics at journalx.app." />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://journalx.app/login" />
+        <meta property="og:title" content="JournalX Login — Sign In to Your Trading Journal" />
+        <meta property="og:description" content="Sign in to your JournalX trading journal at journalx.app." />
+        <meta property="og:url" content="https://journalx.app/login" />
+        <meta name="twitter:title" content="JournalX Login — Sign In to Your Trading Journal" />
+      </Head>
+      <AuthLayout
+        title={step === "login" ? "Welcome back" : "Check your email"}
+        subtitle={step === "login" ? "Log in to your trading journal" : `We sent a 6-digit code to ${email}`}
+      >
       <Toast toast={toast} />
       <AnimatePresence mode="wait">
         {step === "login" ? (
@@ -222,6 +234,7 @@ export default function LoginPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </AuthLayout>
+      </AuthLayout>
+    </>
   );
 }

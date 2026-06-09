@@ -4,6 +4,7 @@
    done. Backend: POST /api/auth/forgot-password + /reset-password. */
 
 import { useEffect, useState } from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
@@ -91,6 +92,12 @@ export default function ForgotPasswordPage() {
             : "You're all set — log in with your new password"
       }
     >
+      <Head>
+        <title>Reset Password — JournalX Trading Journal | journalx.app</title>
+        <meta name="description" content="Reset your JournalX password securely at journalx.app and get back to analysing your trades in seconds." />
+        <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href="https://journalx.app/forgot-password" />
+      </Head>
       <Toast toast={toast} />
       <AnimatePresence mode="wait">
         {step === "email" && (

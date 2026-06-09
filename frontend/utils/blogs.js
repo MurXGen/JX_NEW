@@ -41,7 +41,7 @@ export const articleJsonLd = (post) => {
     "@type": "BlogPosting",
     headline: post.title,
     description: post.metaDescription || post.excerpt,
-    image: `${SITE_URL}${post.cover}`,
+    image: `${SITE_URL}/assets/JournalX_Banner.png`,
     datePublished: post.date,
     dateModified: post.date,
     author: { "@type": "Person", name: author.name },

@@ -4,6 +4,7 @@
    Google OAuth, then 6-digit OTP verification. */
 
 import { useEffect, useState } from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
@@ -133,10 +134,21 @@ export default function RegisterPage() {
   };
 
   return (
-    <AuthLayout
-      title={step === "form" ? "Create your account" : "Verify your email"}
-      subtitle={step === "form" ? "Free to start — log your first trade in under a minute" : `We sent a 6-digit code to ${email}`}
-    >
+    <>
+      <Head>
+        <title>JournalX Sign Up — Create Your Free Trading Journal | journalx.app</title>
+        <meta name="description" content="Create your free JournalX account and get trade log analysis in under 10 seconds. Sign up at journalx.app — no card required — and start increasing your profitability today." />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://journalx.app/register" />
+        <meta property="og:title" content="JournalX Sign Up — Create Your Free Trading Journal" />
+        <meta property="og:description" content="Start your free JournalX trading journal at journalx.app — no card required." />
+        <meta property="og:url" content="https://journalx.app/register" />
+        <meta name="twitter:title" content="JournalX Sign Up — Create Your Free Trading Journal" />
+      </Head>
+      <AuthLayout
+        title={step === "form" ? "Create your account" : "Verify your email"}
+        subtitle={step === "form" ? "Free to start — log your first trade in under a minute" : `We sent a 6-digit code to ${email}`}
+      >
       <Toast toast={toast} />
       <AnimatePresence mode="wait">
         {step === "form" ? (
@@ -236,6 +248,7 @@ export default function RegisterPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </AuthLayout>
+      </AuthLayout>
+    </>
   );
 }
