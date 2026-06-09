@@ -819,6 +819,7 @@ export default function TradesLogPanel({
         onEdit={(t) => { setOpenTrade(null); setEditTrade(t); }}
         onDelete={(t) => askDelete([t])}
         onImageClick={(t) => setViewerTrade(t)}
+        onTradeUpdated={(t) => { setOpenTrade(t); onTradeUpdated?.(t); }}
       />
 
       {/* Edit trade — prefilled log modal */}

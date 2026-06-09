@@ -111,6 +111,15 @@ exports.addTrade = async (req, res) => {
       emotion: body.emotion || "",
       mistakes: body.mistakes ? JSON.parse(body.mistakes) : [],
 
+      // ✅ source + chart metadata (chart-logged trades) — tvChart arrives as
+      // a JSON string and must be parsed into the nested object so the
+      // details page can redraw the entry/exit chart
+      source: body.source || "manual",
+      tvChart: (() => {
+        try { return body.tvChart ? JSON.parse(body.tvChart) : undefined; }
+        catch { return undefined; }
+      })(),
+
       userId,
       accountId,
     };
@@ -312,6 +321,13 @@ exports.updateTrade = async (req, res) => {
       closeFeeAmount: Number(body.closeFeeAmount || 0),
       feeAmount: Number(body.feeAmount || 0),
       pnlAfterFee: Number(body.pnlAfterFee || 0),
+
+      // ✅ source + chart metadata (parse tvChart JSON string → object)
+      source: body.source || oldTrade.source || "manual",
+      tvChart: (() => {
+        try { return body.tvChart ? JSON.parse(body.tvChart) : oldTrade.tvChart; }
+        catch { return oldTrade.tvChart; }
+      })(),
 
       // ✅ Time & identifiers
       openTime: body.openTime || oldTrade.openTime,
@@ -616,6 +632,95 @@ exports.deleteTradeImage = async (req, res) => {
   } catch (err) {
     console.error("Delete trade image error:", err);
     res.status(500).json({ success: false, message: "Could not delete image" });
+  }
+};
+
+// --- v2: chart annotation (mark entry/exit on a chart in the details page) ---
+// Free plan is limited to 5 chart logs per calendar month; Pro/Lifetime
+// are unlimited. Only touches chart fields — never the trade's P&L/sizing.
+exports.annotateTrade = async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    const trade = await Trade.findById(req.params.id);
+    if (!trade || String(trade.userId) !== String(userId)) {
+      return res.status(404).json({ success: false, message: "Trade not found" });
+    }
+
+    const { entryPrice, exitPrice, timeframe, symbol, direction, totalQuantity, pnl, stopPrice, takeProfit } = req.body || {};
+    if (!entryPrice) {
+      return res.status(400).json({ success: false, message: "Entry price is required" });
+    }
+
+    // enforce the monthly limit for free users
+    const user = await User.findById(userId);
+    const plan = (user?.subscriptionPlan || "free").toLowerCase();
+    const active = user?.subscriptionStatus === "active";
+    const isPaid = active && (plan.includes("pro") || plan.includes("lifetime"));
+    if (!isPaid) {
+      const start = new Date();
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      const used = await Trade.countDocuments({
+        userId,
+        chartAnnotatedAt: { $gte: start },
+      });
+      if (used >= 5) {
+        return res.status(403).json({
+          success: false,
+          limit: true,
+          message: "Free plan allows 5 chart logs per month. Upgrade for unlimited.",
+        });
+      }
+    }
+
+    const eIn = Number(entryPrice);
+    const xIn = Number(exitPrice) || 0;
+    const slIn = Number(stopPrice) || Number(trade.avgSLPrice) || 0;
+    const tpIn = Number(takeProfit) || Number(trade.avgTPPrice) || 0;
+    const qty = Number(totalQuantity) || Number(trade.totalQuantity) || 0;
+    const dir = (direction || trade.direction || "long").toLowerCase();
+
+    trade.tvChart = {
+      symbol: symbol || trade.symbol,
+      exchange: "BINANCE",
+      timeframe: timeframe || "60",
+      entryTime: trade.openTime || new Date(),
+      exitTime: trade.closeTime || new Date(),
+      entryPrice: eIn,
+      exitPrice: xIn,
+      stopPrice: slIn,
+      takeProfit: tpIn,
+    };
+
+    // also sync the trade's own entry/exit + recompute P&L so the rest of the
+    // app (cards, analytics) reflects the marked prices
+    trade.avgEntryPrice = eIn;
+    if (xIn) trade.avgExitPrice = xIn;
+    if (slIn) trade.avgSLPrice = slIn;
+    if (tpIn) trade.avgTPPrice = tpIn;
+    if (direction) trade.direction = dir;
+    if (Array.isArray(trade.entries) && trade.entries[0]) trade.entries[0].price = eIn;
+    if (xIn && Array.isArray(trade.exits) && trade.exits[0]) trade.exits[0].price = xIn;
+
+    if (pnl !== undefined && pnl !== null && pnl !== "") {
+      trade.pnl = Number(pnl);
+      trade.pnlAfterFee = Number(pnl);
+    } else if (eIn && xIn && qty) {
+      const computed = (xIn - eIn) * qty * (dir === "long" ? 1 : -1);
+      trade.pnl = computed;
+      trade.pnlAfterFee = computed;
+    }
+
+    trade.source = trade.source && trade.source !== "manual" ? trade.source : "tradingview";
+    trade.chartAnnotatedAt = new Date();
+    await trade.save();
+
+    res.json({ success: true, trade });
+  } catch (err) {
+    console.error("Annotate trade error:", err);
+    res.status(500).json({ success: false, message: "Could not save chart" });
   }
 };
 

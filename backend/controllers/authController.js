@@ -79,8 +79,28 @@ const registerUser = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       if (!existingUser.isVerified) {
+        // They registered before but never verified. Refresh their details
+        // and send a FRESH OTP so they can complete verification.
+        if (!googleId) {
+          if (password) existingUser.password = await bcrypt.hash(password, SALT_ROUNDS);
+          if (name) existingUser.name = name;
+          await existingUser.save();
+
+          // replace any pending code with a new one
+          await EmailVerification.deleteMany({ userId: existingUser._id });
+          const otp = String(Math.floor(100000 + Math.random() * 900000));
+          const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+          await EmailVerification.create({
+            userId: existingUser._id,
+            otpHash,
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+            nextResendAllowedAt: new Date(Date.now() + 60 * 1000),
+          });
+          await sendOtpEmail({ to: existingUser.email, otp, name: existingUser.name });
+        }
+
         return res.status(200).json({
-          message: "User exists but not verified. Please verify OTP.",
+          message: "Verification code sent. Please verify OTP.",
           userId: existingUser._id,
           isVerified: false,
         });

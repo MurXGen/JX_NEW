@@ -15,6 +15,7 @@ export const PLAN_RULES = {
       imagesPerTrade: 1, // 1 screenshot per trade
       imageLimitPerMonth: Infinity, // gated per-trade instead of per-month
       maxImageSizeMB: 10,
+      chartLogLimitPerMonth: 5, // chart annotation (entry/exit) — 5 / month
       historyDays: 30,
     },
     features: {
@@ -43,6 +44,7 @@ export const PLAN_RULES = {
       imagesPerTrade: 4,
       imageLimitPerMonth: Infinity,
       maxImageSizeMB: 25,
+      chartLogLimitPerMonth: Infinity,
       historyDays: Infinity,
     },
     features: {
@@ -71,6 +73,7 @@ export const PLAN_RULES = {
       imagesPerTrade: 4,
       imageLimitPerMonth: Infinity,
       maxImageSizeMB: 50,
+      chartLogLimitPerMonth: Infinity,
       historyDays: Infinity,
     },
     features: {
@@ -209,6 +212,56 @@ export const canUploadImage = async (userData, newImageSizeMB) => {
   });
 
   return imagesThisMonth < imageLimitPerMonth;
+};
+
+// Chart annotation (entry/exit marking) — count this month across the
+// active journal. A "chart log" is a trade carrying a chartAnnotatedAt date.
+export const countChartLogsThisMonth = (userData) => {
+  const user = userData?.value || userData;
+  const trades = user?.trades || [];
+  const now = dayjs();
+  const activeAccountId = getActiveAccountId();
+  return trades.filter((t) => {
+    const when = t.chartAnnotatedAt || (t.tvChart ? t.updatedAt || t.createdAt : null);
+    if (!when) return false;
+    if (activeAccountId && t.accountId !== activeAccountId) return false;
+    const d = dayjs(when);
+    return d.isValid() && d.month() === now.month() && d.year() === now.year();
+  }).length;
+};
+
+export const canChartLog = (userData) => {
+  const rules = getPlanRules(userData);
+  const limit = rules.limits.chartLogLimitPerMonth ?? Infinity;
+  if (limit === Infinity) return true;
+  return countChartLogsThisMonth(userData) < limit;
+};
+
+// Trade ids whose chart should be LOCKED (blurred) — for free users who have
+// more chart logs this month than their allowance (e.g. after a downgrade).
+// The earliest `limit` of the month stay unlocked; the rest are gated.
+export const lockedChartTradeIds = (userData) => {
+  const rules = getPlanRules(userData);
+  const limit = rules.limits.chartLogLimitPerMonth ?? Infinity;
+  if (limit === Infinity) return new Set();
+  const user = userData?.value || userData;
+  const trades = user?.trades || [];
+  const now = dayjs();
+  const activeAccountId = getActiveAccountId();
+  const monthLogs = trades
+    .filter((t) => {
+      const when = t.chartAnnotatedAt || (t.tvChart ? t.updatedAt || t.createdAt : null);
+      if (!when) return false;
+      if (activeAccountId && t.accountId !== activeAccountId) return false;
+      const d = dayjs(when);
+      return d.isValid() && d.month() === now.month() && d.year() === now.year();
+    })
+    .sort((a, b) => {
+      const da = new Date(a.chartAnnotatedAt || a.updatedAt || a.createdAt).getTime();
+      const db = new Date(b.chartAnnotatedAt || b.updatedAt || b.createdAt).getTime();
+      return da - db;
+    });
+  return new Set(monthLogs.slice(limit).map((t) => t._id));
 };
 
 // Generic feature flag

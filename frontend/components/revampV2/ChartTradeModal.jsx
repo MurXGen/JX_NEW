@@ -61,10 +61,11 @@ function Spinner() {
   );
 }
 
-export default function ChartTradeModal({ open, onClose, onSaved }) {
+export default function ChartTradeModal({ open, onClose, onSaved, annotateMode = false, initialTrade = null, onAnnotated }) {
   const wrapRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
+  const priceLinesRef = useRef([]);
   const [symbols, setSymbols] = useState(POPULAR);
   const [symbol, setSymbol] = useState("BTCUSDT");
   const [accounts, setAccounts] = useState([]);
@@ -107,6 +108,25 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
     setSize(""); setStop(""); setTp(""); setNotes("");
   };
 
+  /* annotate mode → prefill from the existing trade */
+  useEffect(() => {
+    if (!open || !annotateMode || !initialTrade) return;
+    const t = initialTrade;
+    const e = Number(t.avgEntryPrice ?? t.entries?.[0]?.price) || 0;
+    const x = Number(t.avgExitPrice ?? t.exits?.[0]?.price) || 0;
+    setSymbol(toBinanceSymbol(t.symbol) || (t.symbol || "").toUpperCase() || "BTCUSDT");
+    setDirection((t.direction || "long").toLowerCase());
+    setSizeUnit("asset");
+    setSize(t.totalQuantity ? String(t.totalQuantity) : "");
+    setStop(t.avgSLPrice ? String(t.avgSLPrice) : "");
+    setTp(t.avgTPPrice ? String(t.avgTPPrice) : "");
+    setNotes(t.learnings || "");
+    if (e) setEntry({ price: e, time: null });
+    if (x) setExit({ price: x, time: null });
+    setPhase(e && x ? "done" : e ? "exit" : "entry");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, annotateMode, initialTrade?._id]);
+
   /* (re)load candles when symbol or timeframe changes */
   useEffect(() => {
     if (!open) return;
@@ -115,7 +135,9 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
       setCandles(d || []);
       setLoading(false);
     });
-    setEntry(null); setExit(null); setPhase("entry");
+    // in annotate mode entry/exit are prices that hold across timeframe views
+    if (!annotateMode) { setEntry(null); setExit(null); setPhase("entry"); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbol, tf, open]);
 
   /* build the chart + click handler */
@@ -157,16 +179,28 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
     return () => { window.removeEventListener("resize", onResize); chart.remove(); chartRef.current = null; seriesRef.current = null; };
   }, [candles, open]);
 
-  /* redraw markers + price lines when entry/exit/stop/tp change */
+  /* redraw markers + horizontal price lines when entry/exit/stop/tp change */
   useEffect(() => {
     const s = seriesRef.current;
     if (!s) return;
-    // clear by resetting data markers
+    // bar markers (only when we have a click-time)
     const markers = [];
-    if (entry) markers.push({ time: entry.time, position: direction === "long" ? "belowBar" : "aboveBar", color: direction === "long" ? "#2ebd85" : "#f6465d", shape: direction === "long" ? "arrowUp" : "arrowDown", text: "Entry" });
-    if (exit) markers.push({ time: exit.time, position: direction === "long" ? "aboveBar" : "belowBar", color: "#fcd535", shape: "circle", text: "Exit" });
+    if (entry?.time) markers.push({ time: entry.time, position: direction === "long" ? "belowBar" : "aboveBar", color: direction === "long" ? "#2ebd85" : "#f6465d", shape: direction === "long" ? "arrowUp" : "arrowDown", text: "Entry" });
+    if (exit?.time) markers.push({ time: exit.time, position: direction === "long" ? "aboveBar" : "belowBar", color: "#fcd535", shape: "circle", text: "Exit" });
     s.setMarkers(markers.sort((a, b) => a.time - b.time));
-  }, [entry, exit, direction]);
+
+    // horizontal price lines — show entry/exit/stop/tp even before a click
+    priceLinesRef.current.forEach((l) => { try { s.removePriceLine(l); } catch {} });
+    priceLinesRef.current = [];
+    const add = (price, color, style, title) => {
+      if (!price) return;
+      priceLinesRef.current.push(s.createPriceLine({ price: Number(price), color, lineWidth: 2, lineStyle: style, title }));
+    };
+    if (entry?.price) add(entry.price, direction === "long" ? "#2ebd85" : "#f6465d", 0, "Entry");
+    if (exit?.price) add(exit.price, "#fcd535", 2, "Exit");
+    if (Number(stop)) add(Number(stop), "rgba(246,70,93,0.7)", 1, "SL");
+    if (Number(tp)) add(Number(tp), "rgba(46,189,133,0.7)", 1, "TP");
+  }, [entry, exit, direction, stop, tp, candles]);
 
   /* live calc */
   const calc = useMemo(() => {
@@ -182,7 +216,49 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
     return { assetQty, pnl, retPct, rr, notional };
   }, [entry, exit, size, sizeUnit, direction, stop, tp]);
 
+  /* annotate an existing trade — only updates entry/exit/pnl + chart, not sizing logic */
+  const saveAnnotation = async () => {
+    if (!entry?.price) return flash("danger", "Set your entry price");
+    if (!exit?.price) return flash("danger", "Set your exit price");
+    setSaving(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE}/api/trades/${initialTrade._id}/annotate`,
+        {
+          entryPrice: entry.price,
+          exitPrice: exit.price,
+          timeframe: tf,
+          symbol,
+          direction,
+          totalQuantity: Number(size) || initialTrade.totalQuantity || 0,
+          pnl: calc.pnl ?? undefined,
+          stopPrice: Number(stop) || 0,
+          takeProfit: Number(tp) || 0,
+        },
+        { withCredentials: true },
+      );
+      const updated = res.data?.trade;
+      try {
+        const u = (await getFromIndexedDB("user-data")) || {};
+        u.trades = (u.trades || []).map((x) => (x._id === updated?._id ? { ...x, ...updated } : x));
+        await saveToIndexedDB("user-data", u);
+      } catch {}
+      onAnnotated?.(updated);
+      flash("success", "Chart saved");
+      setTimeout(() => onClose?.(), 800);
+    } catch (err) {
+      if (err?.response?.data?.limit) {
+        flash("danger", "Free plan: 5 chart logs / month reached — upgrade for unlimited");
+      } else {
+        flash("danger", err.response?.data?.message || "Could not save — try again");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const save = async () => {
+    if (annotateMode) return saveAnnotation();
     if (!entry) return flash("danger", "Click the chart to place your entry");
     if (!exit) return flash("danger", "Click again to place your exit");
     if (!Number(size)) return flash("danger", "Enter your position size");
@@ -244,10 +320,12 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
     }
   };
 
-  const phaseHint =
-    phase === "entry" ? "Click the chart to place your ENTRY"
+  const phaseHint = annotateMode
+    ? "Type exact prices or click the chart to set entry & exit"
+    : phase === "entry" ? "Click the chart to place your ENTRY"
     : phase === "exit" ? "Now click to place your EXIT"
     : "Entry & exit set — adjust details and save";
+  const canSave = annotateMode ? !!(entry?.price && exit?.price) : phase === "done";
 
   return (
     <AnimatePresence>
@@ -262,7 +340,7 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
             className="jx-ltmodal" style={{ width: "min(1000px, 96vw)" }}>
             <div className="jx-ltmodal__header">
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ font: "var(--text-h2)" }}>Log a trade on the chart</span>
+                <span style={{ font: "var(--text-h2)" }}>{annotateMode ? "Annotate on chart" : "Log a trade on the chart"}</span>
                 <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>{phaseHint}</span>
               </div>
               <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }} disabled={saving}><X size={16} /></button>
@@ -304,15 +382,17 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
 
               {/* controls side */}
               <div className="jx-ltmodal__rail">
-                <div className="jx-field">
-                  <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Journal</label>
-                  <Dropdown
-                    value={journalId}
-                    onChange={setJournalId}
-                    placeholder="Select a journal"
-                    options={accounts.map((a) => ({ value: a._id, label: a.name }))}
-                  />
-                </div>
+                {!annotateMode && (
+                  <div className="jx-field">
+                    <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Journal</label>
+                    <Dropdown
+                      value={journalId}
+                      onChange={setJournalId}
+                      placeholder="Select a journal"
+                      options={accounts.map((a) => ({ value: a._id, label: a.name }))}
+                    />
+                  </div>
+                )}
 
                 <div className="jx-field">
                   <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Direction</label>
@@ -334,6 +414,24 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
                     <div className="jx-input" style={{ flex: 1, minWidth: 0 }}><input type="number" step="any" placeholder="0.00" value={size} onChange={(e) => setSize(e.target.value)} /></div>
                     <div style={{ width: 92, flexShrink: 0 }}>
                       <Dropdown value={sizeUnit} onChange={setSizeUnit} options={[{ value: "asset", label: "Asset" }, { value: "usd", label: "USD" }]} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* editable entry/exit — type exact prices or click the chart */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)", minWidth: 0 }}>
+                  <div className="jx-field" style={{ minWidth: 0 }}>
+                    <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Entry price</label>
+                    <div className="jx-input" style={{ minWidth: 0 }}>
+                      <input type="number" step="any" placeholder="0.00" value={entry?.price ?? ""}
+                        onChange={(e) => { const v = e.target.value; setEntry(v === "" ? null : { price: round2(v), time: entry?.time ?? null }); }} />
+                    </div>
+                  </div>
+                  <div className="jx-field" style={{ minWidth: 0 }}>
+                    <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Exit price</label>
+                    <div className="jx-input" style={{ minWidth: 0 }}>
+                      <input type="number" step="any" placeholder="0.00" value={exit?.price ?? ""}
+                        onChange={(e) => { const v = e.target.value; setExit(v === "" ? null : { price: round2(v), time: exit?.time ?? null }); }} />
                     </div>
                   </div>
                 </div>
@@ -372,8 +470,8 @@ export default function ChartTradeModal({ open, onClose, onSaved }) {
 
             <div className="jx-ltmodal__footer" style={{ justifyContent: "flex-end" }}>
               <button className="jx-btn jx-btn--ghost" onClick={onClose} disabled={saving}>Cancel</button>
-              <button className="jx-btn jx-btn--primary" onClick={save} disabled={saving || phase !== "done"} style={{ minWidth: 130 }}>
-                {saving ? <><Spinner /> Saving…</> : <><Check size={16} /> Log trade</>}
+              <button className="jx-btn jx-btn--primary" onClick={save} disabled={saving || !canSave} style={{ minWidth: 130 }}>
+                {saving ? <><Spinner /> Saving…</> : <><Check size={16} /> {annotateMode ? "Save chart" : "Log trade"}</>}
               </button>
             </div>
           </motion.div>

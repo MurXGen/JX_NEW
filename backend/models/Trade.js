@@ -188,6 +188,9 @@ const tradeSchema = new mongoose.Schema(
       _id: false,
     },
 
+    // when the entry/exit were marked on a chart in the details page
+    chartAnnotatedAt: { type: Date },
+
     // Calculations
     rr: { type: String, default: "" },
     pnl: { type: Number, default: 0 },

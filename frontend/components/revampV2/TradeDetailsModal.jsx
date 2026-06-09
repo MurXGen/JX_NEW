@@ -3,9 +3,11 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  CandlestickChart,
   Check,
   ChevronRight,
   Clock,
+  Crown,
   Download,
   Flame,
   Image as ImageIcon,
@@ -18,10 +20,17 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import axios from "axios";
 import Badge from "./Badge";
 import Button from "./Button";
+import Dropdown from "./Dropdown";
 import TradeChartMarker from "./TradeChartMarker";
+import ChartTradeModal from "./ChartTradeModal";
 import { getLivePrice } from "@/utils/livePrice";
+import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { getPlanRules, countChartLogsThisMonth, canChartLog, lockedChartTradeIds } from "@/utils/planRestrictions";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /* Figma "Trade Details · Desktop" (22753:54032) — gamified: every
    field captured in the log modal is surfaced. "If you had held"
@@ -119,8 +128,27 @@ export default function TradeDetailsModal({
   onEdit,
   onDelete,
   onImageClick,
+  onTradeUpdated,
 }) {
-  const t = trade || {};
+  // localTrade lets us reflect a freshly-saved chart annotation without a refetch
+  const [localTrade, setLocalTrade] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [showAnnotate, setShowAnnotate] = useState(false);
+
+  useEffect(() => {
+    // reset local copy whenever a different trade opens
+    setLocalTrade(null);
+    setShowAnnotate(false);
+  }, [trade?._id]);
+
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      try { setUserData(await getFromIndexedDB("user-data")); } catch {}
+    })();
+  }, [open]);
+
+  const t = localTrade || trade || {};
   const isLong = t.direction?.toLowerCase() === "long";
   const pnl = Number(t.pnl) || 0;
   const entry = Number(t.avgEntryPrice ?? t.entryPrice ?? t.entries?.[0]?.price) || 0;
@@ -135,6 +163,30 @@ export default function TradeDetailsModal({
   const confidence = Number(t.confidence) || 0;
   const session = detectSession(t.openTime);
   const images = (t.images || []).map((i) => (typeof i === "string" ? { url: i } : i)).filter((i) => i?.url);
+
+  /* ---- chart annotation (mark entry/exit when there are no screenshots) ---- */
+  const hasChart = !!t.tvChart || t.source === "tradingview";
+  const canShowAnnotate = open && images.length === 0 && !hasChart;
+  const chartRules = getPlanRules(userData);
+  const chartLimit = chartRules.limits.chartLogLimitPerMonth ?? Infinity;
+  const chartUsed = countChartLogsThisMonth(userData);
+  const chartAllowed = canChartLog(userData);
+  // free users over their monthly allowance → blur the chart with an upgrade gate
+  const chartLocked = lockedChartTradeIds(userData).has(t._id);
+
+  const onAnnotated = async (updated) => {
+    if (updated) {
+      setLocalTrade(updated);
+      onTradeUpdated?.(updated);
+      try {
+        const ud = (await getFromIndexedDB("user-data")) || {};
+        ud.trades = (ud.trades || []).map((x) => (x._id === updated._id ? { ...x, ...updated } : x));
+        await saveToIndexedDB("user-data", ud);
+        setUserData(ud);
+      } catch {}
+    }
+    setShowAnnotate(false);
+  };
 
   const duration = t.openTime && t.closeTime
     ? (() => {
@@ -207,6 +259,17 @@ export default function TradeDetailsModal({
         </div>
       </div>
     ) : null;
+
+  // a labelled field with a graceful empty state — keeps the edge &
+  // psychology grid aligned even when some values are missing
+  const field = (label, node) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{label}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        {node ?? <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>—</span>}
+      </div>
+    </div>
+  );
 
   return (
     <AnimatePresence>
@@ -332,33 +395,43 @@ export default function TradeDetailsModal({
                   </div>
                 )}
 
-                {/* your edge & psychology — gamified */}
-                <div className="jx-card jx-card--flat" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                  <div style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Your edge & psychology</div>
-                  <div style={{ display: "flex", gap: "var(--space-4)", flexWrap: "wrap" }}>
-                    {chipRow("Strategy", strategy ? [strategy] : null, "brand")}
-                    {chipRow("Market", t.marketCondition ? [t.marketCondition] : null)}
-                    {chipRow("Timeframe", t.timeframe ? [t.timeframe] : null)}
-                    {chipRow("Emotion at entry", t.emotion ? [t.emotion] : null, "brand")}
+                {/* your edge & psychology */}
+                <div className="jx-card jx-card--flat" style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                  <div style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Your edge &amp; psychology</div>
+
+                  {/* aligned grid of context fields */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "var(--space-4)" }}>
+                    {field("Strategy", strategy ? <Badge variant="brand">{strategy}</Badge> : null)}
+                    {field("Market", t.marketCondition ? <Badge variant="neutral">{t.marketCondition}</Badge> : null)}
+                    {field("Timeframe", t.timeframe ? <Badge variant="neutral">{t.timeframe}</Badge> : null)}
+                    {field("Emotion at entry", t.emotion ? <Badge variant="brand">{t.emotion}</Badge> : null)}
+                    {field(
+                      "Confidence",
+                      confidence > 0 ? (
+                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Star key={n} size={14} fill={n <= confidence ? "var(--color-primary)" : "none"} color={n <= confidence ? "var(--yellow-500)" : "var(--color-border-strong)"} />
+                          ))}
+                          <span style={{ font: "var(--text-caption)", fontWeight: 600, marginLeft: 4 }}>
+                            {confidence <= 2 ? "Low" : confidence === 3 ? "Medium" : "High"}
+                          </span>
+                        </span>
+                      ) : null,
+                    )}
+                    {field(
+                      "Followed the plan?",
+                      <Badge variant={t.rulesFollowed ? "success" : "danger"}>
+                        {t.rulesFollowed ? <><Check size={11} /> Yes</> : "No"}
+                      </Badge>,
+                    )}
                   </div>
-                  {confidence > 0 && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginRight: 4 }}>Confidence</span>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <Star key={n} size={16} fill={n <= confidence ? "var(--color-primary)" : "none"} color={n <= confidence ? "var(--yellow-500)" : "var(--color-border-strong)"} />
-                      ))}
-                      <span style={{ font: "var(--text-small)", fontWeight: 600 }}>
-                        {confidence <= 2 ? "Low" : confidence === 3 ? "Medium" : "High"}
-                      </span>
+
+                  {/* mistakes span full width when present */}
+                  {t.mistakes?.length > 0 && (
+                    <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "var(--space-3)" }}>
+                      {chipRow("Mistakes to avoid", t.mistakes, "danger")}
                     </div>
                   )}
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
-                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Followed the plan?</span>
-                    <Badge variant={t.rulesFollowed ? "success" : "danger"}>
-                      {t.rulesFollowed ? <><Check size={11} /> Yes — disciplined</> : "No — review this one"}
-                    </Badge>
-                  </div>
-                  {chipRow("Mistakes", t.mistakes?.length ? t.mistakes : null, "danger")}
                 </div>
 
                 {/* notes */}
@@ -374,9 +447,65 @@ export default function TradeDetailsModal({
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
                       <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Chart — entry &amp; exit</span>
-                      <Badge variant="brand">TradingView</Badge>
+                      <Badge variant="brand">Read-only</Badge>
                     </div>
-                    <TradeChartMarker trade={t} />
+                    {chartLocked ? (
+                      <div style={{ position: "relative", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
+                        <div style={{ filter: "blur(7px)", pointerEvents: "none", userSelect: "none" }} aria-hidden="true">
+                          <TradeChartMarker trade={t} />
+                        </div>
+                        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-3)", textAlign: "center", padding: "var(--space-4)", background: "color-mix(in srgb, var(--color-bg-surface) 55%, transparent)" }}>
+                          <span style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Crown size={22} />
+                          </span>
+                          <span style={{ font: "var(--text-body-md)", fontWeight: 600, maxWidth: 320 }}>
+                            You&apos;ve used your 5 free chart logs this month
+                          </span>
+                          <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)", maxWidth: 320 }}>
+                            Upgrade to Pro to view unlimited chart logs.
+                          </span>
+                          <a href="/pricing" style={{ textDecoration: "none" }}>
+                            <Button variant="primary" size="sm" icon={Crown}>Upgrade to view</Button>
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <TradeChartMarker trade={t} />
+                    )}
+                  </div>
+                )}
+
+                {/* chart annotation — only when there are no screenshots & no chart yet */}
+                {canShowAnnotate && (
+                  <div className="jx-card jx-card--flat">
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)", flexWrap: "wrap", gap: 8 }}>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                        <CandlestickChart size={16} style={{ color: "var(--yellow-500)" }} /> Annotate on chart
+                      </span>
+                      {chartLimit !== Infinity && (
+                        <Badge variant={chartAllowed ? "neutral" : "danger"}>
+                          {Math.min(chartUsed, chartLimit)} / {chartLimit} this month
+                        </Badge>
+                      )}
+                    </div>
+                    <p style={{ margin: "0 0 var(--space-3)", font: "var(--text-small)", color: "var(--color-text-muted)" }}>
+                      No screenshot? Open the live chart for {t.symbol || "this symbol"} with your entry &amp; exit prefilled — adjust by typing or clicking, switch timeframes, and save a read-only chart. P&amp;L updates with your marks.
+                    </p>
+                    {chartAllowed ? (
+                      <Button variant="primary" icon={CandlestickChart} onClick={() => setShowAnnotate(true)}>
+                        Annotate on chart
+                      </Button>
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap", padding: "var(--space-3) var(--space-4)", background: "var(--color-primary-subtle)", border: "1px solid var(--color-primary)", borderRadius: "var(--radius-md)" }}>
+                        <Crown size={18} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />
+                        <span style={{ flex: 1, minWidth: 160, font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+                          You&apos;ve used all {chartLimit} chart logs this month. Upgrade to Pro for unlimited chart logging.
+                        </span>
+                        <a href="/pricing" style={{ textDecoration: "none" }}>
+                          <Button variant="primary" size="sm">Upgrade</Button>
+                        </a>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -479,6 +608,15 @@ export default function TradeDetailsModal({
               </div>
             </div>
           </motion.div>
+
+          {/* annotate-on-chart (interactive) — opens over the details modal */}
+          <ChartTradeModal
+            open={showAnnotate}
+            annotateMode
+            initialTrade={t}
+            onClose={() => setShowAnnotate(false)}
+            onAnnotated={onAnnotated}
+          />
         </motion.div>
       )}
     </AnimatePresence>

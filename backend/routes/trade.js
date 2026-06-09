@@ -16,6 +16,7 @@ const {
   addTradesBulk,
   addTradeImage,
   deleteTradeImage,
+  annotateTrade,
 } = require("../controllers/tradeController");
 
 router.post(
@@ -45,6 +46,9 @@ router.post("/bulk", express.json({ limit: "2mb" }), addTradesBulk);
 // v2: per-trade screenshot CRUD (Backblaze-backed)
 router.post("/:id/images", upload.fields([{ name: "image", maxCount: 1 }]), addTradeImage);
 router.delete("/:id/images", express.json(), deleteTradeImage);
+
+// v2: chart annotation (mark entry/exit) on an existing trade
+router.post("/:id/annotate", express.json(), annotateTrade);
 
 router.post("/trade-chat", tradeChat);
 

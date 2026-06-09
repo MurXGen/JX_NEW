@@ -98,11 +98,21 @@ export default function TradeChartMarker({ trade, height = 280 }) {
       let data = await fetchKlines(trade.symbol, interval, t0 - pad, t1 + pad);
       if (disposed) return;
       if (!data || data.length < 3) {
-        data = synthSeries(entry, exit, t0 - pad, t1 + pad);
+        // synthSeries needs t0 < t1, otherwise it produces descending times
+        const a = Math.min(t0, t1) || Date.now() - 864e5;
+        const b = Math.max(t0, t1) || Date.now();
+        data = synthSeries(entry, exit, a - pad, b + pad);
         setStatus("synthetic");
       } else {
         setStatus("live");
       }
+      // lightweight-charts requires strictly-ascending, de-duplicated times
+      const seen = new Set();
+      data = (data || [])
+        .filter((d) => d && Number.isFinite(d.time))
+        .sort((p, q) => p.time - q.time)
+        .filter((d) => (seen.has(d.time) ? false : (seen.add(d.time), true)));
+      if (!data.length) return;
       series.setData(data);
 
       // price lines for SL / TP

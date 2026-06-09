@@ -98,8 +98,13 @@ export default function PlanLimitsCard() {
       (n, t) => n + (t.openImageUrl ? 1 : 0) + (t.closeImageUrl ? 1 : 0) + (Array.isArray(t.images) ? t.images.length : 0),
       0,
     );
+    // chart logs (entry/exit annotations) used this month
+    const chartLogsThisMonth = trades.filter((t) => {
+      const when = t.chartAnnotatedAt || (t.tvChart ? t.updatedAt || t.createdAt : null);
+      return when && sameMonth(when);
+    }).length;
 
-    return { rules, planName, isTop, isTrial, usage: { closedThisMonth, accounts, imagesThisMonth }, sub, status };
+    return { rules, planName, isTop, isTrial, usage: { closedThisMonth, accounts, imagesThisMonth, chartLogsThisMonth }, sub, status };
   }, [userData]);
 
   const L = rules.limits;
@@ -183,6 +188,7 @@ export default function PlanLimitsCard() {
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
         <LimitBar label="Trades this month" used={usage.closedThisMonth} limit={L.tradeLimitPerMonth} note="Resets at the start of each month" />
         <LimitBar label="Journals" used={usage.accounts} limit={L.accountLimit} />
+        <LimitBar label="Chart logs this month" used={usage.chartLogsThisMonth} limit={L.chartLogLimitPerMonth} note="Mark entry/exit on a chart when you have no screenshot" />
         {/* images are gated per trade, not per month */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", font: "var(--text-small)" }}>
           <span style={{ fontWeight: 600 }}>Screenshots per trade</span>
