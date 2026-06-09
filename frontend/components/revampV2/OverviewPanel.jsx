@@ -8,7 +8,19 @@ import Button from "./Button";
 import CountUp from "./CountUp";
 import Tip from "./Tip";
 import SampleDataBanner from "./SampleDataBanner";
+import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
 import { jxEase } from "./easing";
+
+/* sections the user can show/hide on the overview dashboard */
+const OVERVIEW_SECTIONS = [
+  { id: "progress", label: "Progress cards" },
+  { id: "sessions", label: "Session performance" },
+  { id: "edge", label: "Your trading edge" },
+  { id: "dayOfWeek", label: "Day-of-week P&L" },
+  { id: "streaks", label: "Streaks & achievements" },
+  { id: "keyMetrics", label: "Key metrics" },
+  { id: "analytics", label: "Analytics" },
+];
 
 /* ---- chart morphing: animate between datasets on range switches ---- */
 const resample = (arr, n) => {
@@ -1262,6 +1274,10 @@ export default function OverviewPanel({
     },
   ];
 
+  const { hidden, toggle, reset, isVisible } = useHiddenSections(
+    "jx-overview-sections",
+  );
+
   return (
     <div
       style={{
@@ -1301,11 +1317,25 @@ export default function OverviewPanel({
         </div>
         {/* hide the header CTA while on sample data — the banner below
             carries the primary Import / Log actions (avoids double CTA) */}
-        {!usingDummy && (
-          <Button variant="primary" icon={Plus} onClick={onLogTrade}>
-            Log a trade
-          </Button>
-        )}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+          }}
+        >
+          <CustomizeSections
+            sections={OVERVIEW_SECTIONS}
+            hidden={hidden}
+            onToggle={toggle}
+            onReset={reset}
+          />
+          {!usingDummy && (
+            <Button variant="primary" icon={Plus} onClick={onLogTrade}>
+              Log a trade
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* sample-data nudge */}
@@ -1418,6 +1448,7 @@ export default function OverviewPanel({
       </div>
 
       {/* ===== Progress cards ===== */}
+      {isVisible("progress") && (
       <div
         style={{
           display: "grid",
@@ -1597,8 +1628,10 @@ export default function OverviewPanel({
           </span>
         </div>
       </div>
+      )}
 
       {/* ===== Session performance ===== */}
+      {isVisible("sessions") && (
       <div className="jx-card">
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
           <span className="jx-card__title">Session performance</span>
@@ -1687,8 +1720,10 @@ export default function OverviewPanel({
           </>
         )}
       </div>
+      )}
 
       {/* ===== Trader edge ===== */}
+      {isVisible("edge") && (
       <div className="jx-card">
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
           <span className="jx-card__title">Your trading edge</span>
@@ -1741,9 +1776,10 @@ export default function OverviewPanel({
           </div>
         )}
       </div>
+      )}
 
       {/* ===== Day-of-week P&L (full width) ===== */}
-      {EDGE.dow.length > 0 && (
+      {isVisible("dayOfWeek") && EDGE.dow.length > 0 && (
         <div className="jx-card">
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
             <span className="jx-card__title">Day-of-week P&amp;L</span>
@@ -1770,6 +1806,8 @@ export default function OverviewPanel({
       )}
 
       {/* ===== Streaks & achievements ===== */}
+      {isVisible("streaks") && (
+      <>
       <div>
         <span className="jx-card__title">Streaks &amp; achievements</span>
         <div
@@ -1960,8 +1998,12 @@ export default function OverviewPanel({
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* ===== Key metrics ===== */}
+      {isVisible("keyMetrics") && (
+      <>
       <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
         Key metrics <InfoTip text="Headline stats across all closed trades" />
       </span>
@@ -2009,8 +2051,12 @@ export default function OverviewPanel({
           </div>
         ))}
       </div>
+      </>
+      )}
 
       {/* ===== Analytics ===== */}
+      {isVisible("analytics") && (
+      <>
       <div>
         <span className="jx-card__title">Analytics</span>
         <div
@@ -2620,6 +2666,8 @@ export default function OverviewPanel({
           </div>
         </div>
       </div>
+      </>
+      )}
 
       <style jsx>{`
         @media (max-width: 980px) {

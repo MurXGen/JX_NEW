@@ -34,11 +34,19 @@ import ImageViewerModal from "./ImageViewerModal";
 import LogTradeModal from "./LogTradeModal";
 import SampleDataBanner from "./SampleDataBanner";
 import ChartTradeModal from "./ChartTradeModal";
+import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
 import { generateShareCard } from "./shareCard";
 import { CandlestickChart } from "lucide-react";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+/* sections the user can show/hide on the trades log */
+const TRADESLOG_SECTIONS = [
+  { id: "performance", label: "Performance" },
+  { id: "calendar", label: "Calendar & heatmap" },
+  { id: "allTrades", label: "All trades table" },
+];
 
 /* Figma "Trades / List · Desktop" (22740:52184 / 22740:52315) +
    "Trades log — Table view" (22831:53489). */
@@ -533,6 +541,10 @@ export default function TradesLogPanel({
   const selectedTrades = filtered.filter((t) => selected.has(t._id));
   const selFilters = (direction !== "all" ? 1 : 0) + (outcome !== "all" ? 1 : 0);
 
+  const { hidden, toggle, reset, isVisible } = useHiddenSections(
+    "jx-tradeslog-sections",
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
       <Toast toast={toast} />
@@ -548,13 +560,21 @@ export default function TradesLogPanel({
         </div>
         {/* hide header actions while on sample data — the banner below carries
             the primary Import / Log actions (avoids duplicate CTAs) */}
-        {!usingDummy && (
-          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-            <Button variant="outline" icon={CandlestickChart} onClick={() => setShowChartTrade(true)}>Log on chart</Button>
-            <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)}>Import trades</Button>
-            <Button variant="primary" icon={Plus} onClick={onAddTrade}>Add trade</Button>
-          </div>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
+          <CustomizeSections
+            sections={TRADESLOG_SECTIONS}
+            hidden={hidden}
+            onToggle={toggle}
+            onReset={reset}
+          />
+          {!usingDummy && (
+            <>
+              <Button variant="outline" icon={CandlestickChart} onClick={() => setShowChartTrade(true)}>Log on chart</Button>
+              <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)}>Import trades</Button>
+              <Button variant="primary" icon={Plus} onClick={onAddTrade}>Add trade</Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* sample-data nudge */}
@@ -563,6 +583,7 @@ export default function TradesLogPanel({
       )}
 
       {/* ===== Performance (accordion) ===== */}
+      {isVisible("performance") && (
       <Accordion id="trades-performance" title="Performance">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "var(--space-4)" }}>
           {[
@@ -579,16 +600,21 @@ export default function TradesLogPanel({
           ))}
         </div>
       </Accordion>
+      )}
 
       {/* ===== Calendar & heatmap (accordion) ===== */}
+      {isVisible("calendar") && (
       <Accordion id="trades-calendar" title="Calendar & heatmap">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "var(--space-4)" }}>
           <PnlCalendar trades={closed} sym={currencySymbol} />
           <TradesHeatmap trades={closed} sym={currencySymbol} />
         </div>
       </Accordion>
+      )}
 
-      {/* ===== All trades header + filters ===== */}
+      {/* ===== All trades (header, filters, bulk bar, views) ===== */}
+      {isVisible("allTrades") && (
+      <>
       {(() => {
         const directionDD = (
           <Dropdown value={direction} onChange={setDirection} label="Direction"
@@ -821,6 +847,8 @@ export default function TradesLogPanel({
           )}
         </motion.div>
       </AnimatePresence>
+      </>
+      )}
 
       {/* Trade details (gamified) */}
       <TradeDetailsModal
