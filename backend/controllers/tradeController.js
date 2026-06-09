@@ -751,14 +751,32 @@ exports.addTradesBulk = async (req, res) => {
     trades.forEach((t, i) => {
       const symbol = String(t.symbol || "").trim().toUpperCase();
       const direction = String(t.direction || "").trim().toLowerCase();
-      const pnl = Number(t.pnl);
-      const closeTime = t.closeTime ? new Date(t.closeTime) : new Date();
+      const closeTimeRaw = t.closeTime ? new Date(t.closeTime) : null;
       if (!symbol) return errors.push(`Row ${i + 1}: missing symbol`);
       if (!["long", "short"].includes(direction))
         return errors.push(`Row ${i + 1}: direction must be long or short`);
-      if (Number.isNaN(pnl)) return errors.push(`Row ${i + 1}: invalid pnl`);
-      if (Number.isNaN(closeTime.getTime()))
+      if (closeTimeRaw && Number.isNaN(closeTimeRaw.getTime()))
         return errors.push(`Row ${i + 1}: invalid closeTime`);
+
+      // optional detail fields
+      const size = Number(t.size) || 0;
+      const entry = Number(t.entry) || 0;
+      const exit = Number(t.exit) || 0;
+      const sl = Number(t.stopLoss) || 0;
+      const tp = Number(t.takeProfit) || 0;
+      const dirMul = direction === "long" ? 1 : -1;
+
+      // P&L: use given value, else derive from entry/exit/size
+      let pnl = Number(t.pnl);
+      if (Number.isNaN(pnl)) {
+        pnl = entry && exit && size ? (exit - entry) * size * dirMul : 0;
+      }
+
+      const hasPnl = t.pnl !== undefined && t.pnl !== "" && !Number.isNaN(Number(t.pnl));
+      // closed if there's an exit or a P&L; running if only an entry; else quick
+      const tradeStatus = exit || hasPnl ? "closed" : entry ? "running" : "quick";
+      const closeTime = closeTimeRaw || (tradeStatus === "running" ? null : new Date());
+      const openTime = t.openTime ? new Date(t.openTime) : closeTime || new Date();
 
       docs.push({
         userId,
@@ -767,17 +785,23 @@ exports.addTradesBulk = async (req, res) => {
         direction,
         pnl,
         pnlAfterFee: pnl,
-        quantityUSD: Number(t.size) || 0,
-        totalQuantity: Number(t.size) || 0,
+        quantityUSD: size,
+        totalQuantity: size,
         leverage: 1,
-        tradeStatus: "quick",
-        openTime: closeTime,
+        tradeStatus,
+        openTime,
         closeTime,
         learnings: String(t.notes || ""),
-        entries: [],
-        exits: [],
-        sls: [],
-        tps: [],
+        strategy: String(t.strategy || ""),
+        emotion: String(t.emotion || ""),
+        avgEntryPrice: entry,
+        avgExitPrice: exit,
+        avgSLPrice: sl,
+        avgTPPrice: tp,
+        entries: entry ? [{ price: entry, allocation: 100, quantity: size }] : [],
+        exits: exit ? [{ mode: "price", price: exit, allocation: 100, quantity: size }] : [],
+        sls: sl ? [{ mode: "price", price: sl, allocation: 100 }] : [],
+        tps: tp ? [{ mode: "price", price: tp, allocation: 100 }] : [],
       });
     });
 

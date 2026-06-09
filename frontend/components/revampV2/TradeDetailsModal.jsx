@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CandlestickChart,
@@ -210,32 +210,44 @@ export default function TradeDetailsModal({
   quality = Math.min(100, isQuickLog ? Math.min(quality, 45) : quality);
   const xp = checks.reduce((s, c) => s + (c.ok ? c.xp : 0), 0) + (isQuickLog ? 20 : 0);
 
-  /* "If you had held" — LIVE price from Binance (30s refresh) with a
+  const isRunning = t.tradeStatus === "running";
+
+  /* LIVE price from Binance (faster refresh for running trades) with a
      deterministic simulation fallback for non-crypto symbols */
   const [live, setLive] = useState(null);
+  const [liveDir, setLiveDir] = useState(0); // +1 up, -1 down, 0 flat — drives the flash
+  const prevPriceRef = useRef(null);
   useEffect(() => {
     if (!open || !trade) {
       setLive(null);
+      prevPriceRef.current = null;
+      setLiveDir(0);
       return;
     }
     let stopped = false;
     const load = async () => {
       const price = await getLivePrice(trade.symbol || trade.ticker);
-      if (!stopped && price) setLive({ price, at: new Date() });
+      if (stopped || !price) return;
+      const prev = prevPriceRef.current;
+      if (prev != null && price !== prev) setLiveDir(price > prev ? 1 : -1);
+      prevPriceRef.current = price;
+      setLive({ price, at: new Date() });
     };
     load();
-    const id = setInterval(load, 30_000);
+    const id = setInterval(load, isRunning ? 8_000 : 30_000);
     return () => {
       stopped = true;
       clearInterval(id);
     };
-  }, [open, trade]);
+  }, [open, trade, isRunning]);
 
   const drift = ((String(t._id || t.symbol || "x").split("").reduce((s, c) => s + c.charCodeAt(0), 0) % 9) - 2) / 100;
   const isLiveHeld = !!live?.price;
-  const heldPrice = isLiveHeld ? live.price : exit * (1 + drift);
+  const heldPrice = isLiveHeld ? live.price : (exit || entry) * (1 + drift);
   const heldPnl = entry && size ? (heldPrice - entry) * size * (isLong ? 1 : -1) : null;
   const heldDelta = heldPnl != null ? heldPnl - pnl : null;
+  // unrealized return for a running position
+  const liveRetPct = entry ? ((heldPrice - entry) / entry) * 100 * (isLong ? 1 : -1) : null;
 
   const stats = [
     ["Entry", entry ? `$${fmt(entry)}` : "—"],
@@ -350,8 +362,66 @@ export default function TradeDetailsModal({
                   </div>
                 )}
 
-                {/* if you had held — simulated */}
-                {heldPnl != null && (
+                {/* live position — running trade vs current price */}
+                {isRunning && heldPnl != null && (
+                  <div className="jx-card jx-card--flat">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                      <div>
+                        <div style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Live position</div>
+                        <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>This trade is open — tracking live P&amp;L vs your entry</div>
+                      </div>
+                      {isLiveHeld ? (
+                        <span className="jx-badge jx-badge--success" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ repeat: Infinity, duration: 1.6 }} style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor", display: "inline-block" }} />
+                          Live · {live.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      ) : (
+                        <span className="jx-badge jx-badge--neutral">● Simulated · no live feed for this symbol</span>
+                      )}
+                    </div>
+                    <div className="jx-held-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "var(--space-3)", marginTop: "var(--space-3)" }}>
+                      <div style={{ background: "var(--color-bg-muted)", borderRadius: "var(--radius-md)", padding: "var(--space-4)" }}>
+                        <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Your entry</div>
+                        <div style={{ font: "var(--text-h2)" }}>${fmt(entry)}</div>
+                        <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                          {isLong ? "Long" : "Short"}{size ? ` · ${fmt(size, 2)} units` : ""}
+                        </span>
+                      </div>
+                      <motion.div animate={{ x: liveDir > 0 ? 2 : liveDir < 0 ? -2 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 18 }} style={{ color: liveDir > 0 ? "var(--color-success)" : liveDir < 0 ? "var(--color-danger)" : "var(--color-text-muted)" }}>
+                        {liveDir > 0 ? <TrendingUp size={18} /> : liveDir < 0 ? <TrendingUp size={18} style={{ transform: "rotate(180deg)" }} /> : <ChevronRight size={18} />}
+                      </motion.div>
+                      <div style={{ background: "var(--color-primary-subtle)", border: "1px solid var(--color-primary)", borderRadius: "var(--radius-md)", padding: "var(--space-4)", overflow: "hidden" }}>
+                        <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Live price</div>
+                        <AnimatePresence mode="popLayout" initial={false}>
+                          <motion.div
+                            key={Math.round(heldPrice * 100)}
+                            initial={{ opacity: 0, y: liveDir < 0 ? -14 : 14 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: liveDir < 0 ? 14 : -14 }}
+                            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+                            style={{ font: "var(--text-h2)", color: liveDir > 0 ? "var(--color-success-strong)" : liveDir < 0 ? "var(--color-danger-strong)" : "var(--color-text-primary)" }}
+                          >
+                            ${fmt(heldPrice)}
+                          </motion.div>
+                        </AnimatePresence>
+                        <span style={{ font: "var(--text-caption)", color: heldPnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
+                          Unrealized {kf(heldPnl, currencySymbol)}{liveRetPct != null ? ` · ${liveRetPct >= 0 ? "+" : ""}${fmt(liveRetPct, 2)}%` : ""}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="jx-banner jx-banner--warn" style={{ marginTop: "var(--space-3)" }}>
+                      <TrendingUp size={15} style={{ color: "var(--yellow-500)" }} />
+                      <span style={{ font: "var(--text-small)" }}>
+                        {heldPnl >= 0
+                          ? <>You&apos;re <strong>up {kf(heldPnl, currencySymbol)}</strong> on this open position. Set a target or trail your stop to lock it in.</>
+                          : <>You&apos;re <strong>down {kf(Math.abs(heldPnl), currencySymbol)}</strong> on this open position — check it&apos;s still within your planned risk.</>}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* if you had held — closed trades */}
+                {!isRunning && heldPnl != null && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-2)" }}>
                       <div>

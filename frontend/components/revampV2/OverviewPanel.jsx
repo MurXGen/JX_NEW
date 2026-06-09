@@ -56,6 +56,54 @@ function useMorph(values, duration = 0.7) {
 
 const BAR_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 
+/* short, plain explanations for the Key-metrics tiles */
+const KPI_TIPS = {
+  "Net P&L (all-time)": "Total realised profit/loss, all trades",
+  "Total trades": "Trades logged in this journal",
+  "Average win": "Average profit on winning trades",
+  "Average loss": "Average loss on losing trades",
+  "Largest win": "Your single best trade",
+  "Avg hold time": "Median time held per trade",
+  "Sharpe ratio": "Return per unit of volatility — higher is steadier",
+  "Win streak": "Current run of consecutive wins",
+};
+
+/* tiny info icon + tooltip for analytics labels (kept short & plain) */
+function InfoTip({ text }) {
+  return (
+    <Tip content={text}>
+      <Info size={13} style={{ color: "var(--color-text-muted)", cursor: "help", verticalAlign: "middle", flexShrink: 0 }} />
+    </Tip>
+  );
+}
+
+/* format a UTC hour-of-day as the viewer's LOCAL time, e.g. 8 → "1:30 PM" */
+const localFromUtcHour = (h) => {
+  const d = new Date();
+  d.setUTCHours(h % 24, 0, 0, 0);
+  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+};
+const localTz = () => {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "local"; } catch { return "local"; }
+};
+
+/* live local + UTC clock — isolated so it doesn't re-render the whole panel */
+function LiveClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const local = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const utc = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+  return (
+    <div style={{ display: "flex", gap: "var(--space-4)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+      <span>Local <strong style={{ color: "var(--color-text-primary)" }}>{local}</strong> · {localTz()}</span>
+      <span>UTC <strong style={{ color: "var(--color-text-primary)" }}>{utc}</strong></span>
+    </div>
+  );
+}
+
 /* ---- Profit-day celebration: gradient stars + confetti rising and
    fading from bottom to top. Rendered only when today is in profit. ---- */
 function Celebration() {
@@ -1029,6 +1077,82 @@ export default function OverviewPanel({
     };
   }, [closed]);
 
+  /* ---- session performance (which trading session is most profitable) ----
+     Buckets each closed trade by the UTC hour of its open time into the four
+     major FX sessions, then ranks them by net P&L. */
+  const SESSIONS = useMemo(() => {
+    const defs = [
+      { id: "sydney", label: "Sydney", emoji: "🌙", window: "21:00–23:59 UTC", lo: 21, hi: 24, test: (h) => h >= 21 },
+      { id: "asia", label: "Asia (Tokyo)", emoji: "🗾", window: "00:00–07:59 UTC", lo: 0, hi: 8, test: (h) => h >= 0 && h < 8 },
+      { id: "london", label: "London", emoji: "🇬🇧", window: "08:00–12:59 UTC", lo: 8, hi: 13, test: (h) => h >= 8 && h < 13 },
+      { id: "newyork", label: "New York", emoji: "🗽", window: "13:00–20:59 UTC", lo: 13, hi: 21, test: (h) => h >= 13 && h < 21 },
+    ];
+    const acc = Object.fromEntries(defs.map((d) => [d.id, { ...d, trades: 0, wins: 0, pnl: 0 }]));
+    closed.forEach((t) => {
+      const when = t.openTime || t.closeTime;
+      if (!when) return;
+      const h = new Date(when).getUTCHours();
+      const def = defs.find((d) => d.test(h));
+      if (!def) return;
+      const a = acc[def.id];
+      a.trades += 1;
+      a.pnl += Number(t.pnl) || 0;
+      if (Number(t.pnl) > 0) a.wins += 1;
+    });
+    const list = defs.map((d) => {
+      const a = acc[d.id];
+      return { ...a, winRate: a.trades ? (a.wins / a.trades) * 100 : 0 };
+    });
+    const traded = list.filter((s) => s.trades > 0);
+    const maxAbs = Math.max(1, ...traded.map((s) => Math.abs(s.pnl)));
+    const best = traded.length ? traded.reduce((m, s) => (s.pnl > m.pnl ? s : m)) : null;
+    const worst = traded.length ? traded.reduce((m, s) => (s.pnl < m.pnl ? s : m)) : null;
+    return { list, traded, best, worst, maxAbs, totalTraded: traded.length };
+  }, [closed]);
+
+  /* ---- trader edge: the metrics that actually predict long-term results ---- */
+  const EDGE = useMemo(() => {
+    const pnls = closed.map((t) => Number(t.pnl) || 0);
+    const total = pnls.length;
+    const wins = pnls.filter((p) => p > 0);
+    const losses = pnls.filter((p) => p < 0);
+    const net = pnls.reduce((s, p) => s + p, 0);
+    const winRate = total ? wins.length / total : 0;
+    const avgWin = wins.length ? wins.reduce((s, p) => s + p, 0) / wins.length : 0;
+    const avgLoss = losses.length ? Math.abs(losses.reduce((s, p) => s + p, 0) / losses.length) : 0;
+    const expectancy = total ? net / total : 0; // $ per trade
+    const payoff = avgLoss ? avgWin / avgLoss : null; // reward:risk realised
+    // expectancy in R (avg loss = 1R)
+    const expectancyR = avgLoss ? (winRate * avgWin - (1 - winRate) * avgLoss) / avgLoss : null;
+
+    // max drawdown on the cumulative equity curve
+    let run = 0, peak = 0, maxDD = 0, peakAtMax = 0;
+    pnls.forEach((p) => {
+      run += p;
+      if (run > peak) peak = run;
+      const dd = peak - run;
+      if (dd > maxDD) { maxDD = dd; peakAtMax = peak; }
+    });
+    const maxDDPct = peakAtMax > 0 ? (maxDD / peakAtMax) * 100 : 0;
+    const recovery = maxDD > 0 ? net / maxDD : null; // recovery factor
+
+    // day-of-week performance (by close day)
+    const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const byDow = DOW.map(() => ({ pnl: 0, n: 0 }));
+    closed.forEach((t) => {
+      const d = new Date(t.closeTime || t.openTime);
+      if (Number.isNaN(d.getTime())) return;
+      const k = d.getDay();
+      byDow[k].pnl += Number(t.pnl) || 0;
+      byDow[k].n += 1;
+    });
+    const dow = DOW.map((label, i) => ({ label, ...byDow[i] })).filter((d) => d.n > 0);
+    const dowMax = Math.max(1, ...dow.map((d) => Math.abs(d.pnl)));
+    const bestDow = dow.length ? dow.reduce((m, d) => (d.pnl > m.pnl ? d : m)) : null;
+
+    return { total, net, winRate: winRate * 100, expectancy, payoff, expectancyR, maxDD, maxDDPct, recovery, dow, dowMax, bestDow };
+  }, [closed]);
+
   /* cumulative series for its own range tab (+ per-point tooltips) */
   const [cumSeries, cumTips] = useMemo(() => {
     const list = inWindow(closed, pnlRange);
@@ -1309,7 +1433,7 @@ export default function OverviewPanel({
             gap: "var(--space-2)",
           }}
         >
-          <span style={LABEL}>Win rate</span>
+          <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>Win rate <InfoTip text="Share of closed trades that ended in profit" /></span>
           <Tip
             content={`${S.winCount} wins ÷ ${S.winCount + S.lossCount} closed trades`}
           >
@@ -1343,7 +1467,7 @@ export default function OverviewPanel({
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={LABEL}>Monthly goal</span>
+            <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>Monthly goal <InfoTip text="Progress to your monthly profit target" /></span>
             <span
               style={{
                 font: "var(--text-caption)",
@@ -1395,7 +1519,7 @@ export default function OverviewPanel({
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={LABEL}>Profit factor</span>
+            <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>Profit factor <InfoTip text="Gross profit ÷ gross loss; above 1 is profitable" /></span>
             <span
               style={{
                 font: "var(--text-caption)",
@@ -1445,7 +1569,7 @@ export default function OverviewPanel({
             gap: "var(--space-2)",
           }}
         >
-          <span style={LABEL}>Discipline</span>
+          <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>Discipline <InfoTip text="Share of trades where you followed your plan" /></span>
           <span style={{ font: "var(--text-stat)", letterSpacing: "-1px" }}>
             {S.discipline.plannedN + S.discipline.unplannedN > 0
               ? `${fmt((S.discipline.plannedN / (S.discipline.plannedN + S.discipline.unplannedN)) * 100, 0)}%`
@@ -1472,6 +1596,176 @@ export default function OverviewPanel({
               ` · avg confidence ${fmt(S.discipline.avgConfidence, 1)}★`}
           </span>
         </div>
+      </div>
+
+      {/* ===== Session performance ===== */}
+      <div className="jx-card">
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
+          <span className="jx-card__title">Session performance</span>
+          <InfoTip text="P&L grouped by trading session, by open time" />
+        </div>
+        <div style={{ font: "var(--text-small)", color: "var(--color-text-muted)", marginBottom: "var(--space-3)" }}>
+          When your P&amp;L is maximised across Asia, London &amp; New York.
+        </div>
+
+        {/* live local + UTC clock */}
+        <div style={{ marginBottom: "var(--space-4)" }}>
+          <LiveClock />
+        </div>
+
+        {SESSIONS.totalTraded === 0 ? (
+          <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
+            Log a few trades to see which session suits you best.
+          </span>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--space-3)" }}>
+              {SESSIONS.list.map((s) => {
+                const pos = s.pnl >= 0;
+                const pct = Math.round((Math.abs(s.pnl) / SESSIONS.maxAbs) * 100);
+                const isBest = SESSIONS.best && s.id === SESSIONS.best.id && s.pnl > 0;
+                const traded = s.trades > 0;
+                return (
+                  <div
+                    key={s.id}
+                    className="jx-card jx-card--flat"
+                    style={{
+                      padding: "var(--space-4)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "var(--space-2)",
+                      border: isBest ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+                      background: isBest ? "var(--color-primary-subtle)" : "var(--color-bg-surface)",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 6, font: "var(--text-body-md)", fontWeight: 600 }}>
+                        <span>{s.emoji}</span> {s.label}
+                      </span>
+                      {isBest && <Badge variant="success">Best</Badge>}
+                    </div>
+                    {/* UTC + local time ranges */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                      <span>{s.window.replace(" UTC", "")} UTC</span>
+                      <span>Local {localFromUtcHour(s.lo)}–{localFromUtcHour(s.hi)}</span>
+                    </div>
+                    {/* net P&L + bar */}
+                    <span style={{ font: "var(--text-h3)", fontWeight: 700, color: !traded ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                      {traded ? k(s.pnl, currencySymbol) : "—"}
+                    </span>
+                    <div style={{ height: 6, background: "var(--color-bg-muted)", borderRadius: 999, position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", inset: 0, width: `${traded ? pct : 0}%`, background: pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: 999, transition: "width .8s cubic-bezier(0.16,1,0.3,1)" }} />
+                    </div>
+                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                      {traded ? `${s.trades} trade${s.trades === 1 ? "" : "s"} · ${fmt(s.winRate, 0)}% win` : "No trades yet"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* suggestion */}
+            <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start", marginTop: "var(--space-4)" }}>
+              <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
+              <span style={{ font: "var(--text-caption)" }}>
+                {SESSIONS.best && SESSIONS.best.pnl > 0 ? (
+                  <>
+                    Your best window is <strong>{SESSIONS.best.window.replace(" UTC", "")} UTC</strong>
+                    {" "}(your local <strong>{localFromUtcHour(SESSIONS.best.lo)}–{localFromUtcHour(SESSIONS.best.hi)}</strong>) —
+                    the <strong>{SESSIONS.best.label}</strong> session, where you&apos;re up
+                    {" "}{k(SESSIONS.best.pnl, currencySymbol)} at {fmt(SESSIONS.best.winRate, 0)}% win rate.
+                    Trade your A+ setups then
+                    {SESSIONS.worst && SESSIONS.worst.pnl < 0
+                      ? <> — and go lighter during <strong>{SESSIONS.worst.label}</strong> ({SESSIONS.worst.window.replace(" UTC", "")} UTC), down {k(SESSIONS.worst.pnl, currencySymbol)}.</>
+                      : "."}
+                  </>
+                ) : (
+                  <>No session is clearly profitable yet. Keep logging with timestamps so we can pinpoint your best UTC window.</>
+                )}
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ===== Trader edge ===== */}
+      <div className="jx-card">
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
+          <span className="jx-card__title">Your trading edge</span>
+          <InfoTip text="Metrics that predict long-term results" />
+        </div>
+        <div style={{ font: "var(--text-small)", color: "var(--color-text-muted)", marginBottom: "var(--space-4)" }}>
+          Beyond P&amp;L — is your system actually profitable and survivable?
+        </div>
+
+        {EDGE.total === 0 ? (
+          <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>Log trades to reveal your edge metrics.</span>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+            {/* metric tiles — same style as Key metrics for consistency */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "var(--space-4)" }}>
+              {[
+                { label: "Expectancy / trade", value: k(EDGE.expectancy, currencySymbol), sub: "per trade", up: EDGE.expectancy >= 0, tip: "Average $ you make per trade" },
+                { label: "Expectancy (R)", value: EDGE.expectancyR == null ? "—" : `${EDGE.expectancyR >= 0 ? "+" : ""}${fmt(EDGE.expectancyR, 2)}R`, sub: "per unit risked", up: (EDGE.expectancyR || 0) >= 0, tip: "Profit per unit of risk; above 0 is +EV" },
+                { label: "Payoff (R:R)", value: EDGE.payoff == null ? "—" : `${fmt(EDGE.payoff, 2)}×`, sub: "reward vs risk", up: (EDGE.payoff || 0) >= 1, tip: "Average win ÷ average loss" },
+                { label: "Max drawdown", value: k(-EDGE.maxDD, currencySymbol).replace("+", ""), sub: `${fmt(EDGE.maxDDPct, 1)}% of peak`, up: false, tip: "Largest peak-to-valley drop in equity" },
+                { label: "Recovery factor", value: EDGE.recovery == null ? "—" : `${fmt(EDGE.recovery, 2)}×`, sub: "net ÷ drawdown", up: (EDGE.recovery || 0) >= 2, tip: "Net profit ÷ max drawdown; higher is resilient" },
+                { label: "Win rate", value: `${fmt(EDGE.winRate, 1)}%`, sub: "of all trades", up: EDGE.winRate >= 50, tip: "Share of trades that were profitable" },
+              ].map((m) => (
+                <div
+                  key={m.label}
+                  className="jx-card"
+                  style={{ padding: "var(--space-4) var(--space-5)", display: "flex", flexDirection: "column", gap: 4 }}
+                >
+                  <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    {m.label} <InfoTip text={m.tip} />
+                  </span>
+                  <span style={{ font: "var(--text-h2)", fontVariantNumeric: "tabular-nums", color: m.up ? "var(--color-success-strong)" : "var(--color-text-primary)" }}>
+                    {m.value}
+                  </span>
+                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{m.sub}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* day-of-week performance — in its own card to match the layout */}
+            {EDGE.dow.length > 0 && (
+              <div className="jx-card jx-card--flat" style={{ padding: "var(--space-5)" }}>
+                <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  Day-of-week P&amp;L <InfoTip text="Which weekday you make or lose money" />
+                </span>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: "var(--space-2)", marginTop: "var(--space-3)", height: 96 }}>
+                  {EDGE.dow.map((d) => {
+                    const h = Math.max(6, Math.round((Math.abs(d.pnl) / EDGE.dowMax) * 64));
+                    const pos = d.pnl >= 0;
+                    return (
+                      <Tip key={d.label} block content={`${d.label}: ${k(d.pnl, currencySymbol)} over ${d.n} trade${d.n === 1 ? "" : "s"}`}>
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "help" }}>
+                          <span style={{ font: "var(--text-caption)", fontWeight: 600, color: pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                            {k(d.pnl, currencySymbol)}
+                          </span>
+                          <div style={{ width: "100%", maxWidth: 40, height: h, background: pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: "var(--radius-sm)", transition: "height .8s cubic-bezier(0.16,1,0.3,1)" }} />
+                          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{d.label}</span>
+                        </div>
+                      </Tip>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {EDGE.bestDow && EDGE.bestDow.pnl > 0 && (
+              <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
+                <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
+                <span style={{ font: "var(--text-caption)" }}>
+                  {EDGE.expectancy >= 0
+                    ? <>Your system is <strong>+EV</strong> at {k(EDGE.expectancy, currencySymbol)}/trade. <strong>{EDGE.bestDow.label}</strong> is your strongest day — and keep risk per trade well under your {k(-EDGE.maxDD, currencySymbol).replace("+", "")} max drawdown.</>
+                    : <>Your average trade is currently <strong>negative</strong> ({k(EDGE.expectancy, currencySymbol)}). Focus on raising your payoff (cut losers faster, let winners run) before sizing up.</>}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ===== Streaks & achievements ===== */}
@@ -1675,7 +1969,9 @@ export default function OverviewPanel({
       </div>
 
       {/* ===== Key metrics ===== */}
-      <span className="jx-card__title">Key metrics</span>
+      <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        Key metrics <InfoTip text="Headline stats across all closed trades" />
+      </span>
       <div
         style={{
           display: "grid",
@@ -1695,7 +1991,9 @@ export default function OverviewPanel({
               gap: 4,
             }}
           >
-            <span style={LABEL}>{m.label}</span>
+            <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>
+              {m.label} {KPI_TIPS[m.label] && <InfoTip text={KPI_TIPS[m.label]} />}
+            </span>
             <Tip content={`${m.label} — ${m.sub}`}>
               <span style={{ font: "var(--text-h2)", cursor: "help" }}>
                 {m.value}
@@ -1777,9 +2075,9 @@ export default function OverviewPanel({
                 >
                   <div>
                     <div
-                      style={{ font: "var(--text-body-md)", fontWeight: 600 }}
+                      style={{ font: "var(--text-body-md)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}
                     >
-                      Equity growth
+                      Equity growth <InfoTip text="Balance over time: start + cumulative P&L" />
                     </div>
                     <div style={{ font: "var(--text-h2)" }}>
                       <CountUp
@@ -1851,11 +2149,7 @@ export default function OverviewPanel({
               <div>
                 <div style={{ font: "var(--text-body-md)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                   Cumulative P&L
-                  <Tip
-                    content={"Your running total profit & loss — each closed trade's P&L added on top of the last.\nA steadily rising line means your account is growing over time; dips show drawdowns."}
-                  >
-                    <Info size={14} style={{ color: "var(--color-text-muted)", cursor: "help" }} />
-                  </Tip>
+                  <InfoTip text="Running total of every closed trade's P&L" />
                 </div>
                 <div style={{ font: "var(--text-h2)" }}>
                   {k(cumSeries[cumSeries.length - 1] || 0, currencySymbol)} net
@@ -1897,8 +2191,8 @@ export default function OverviewPanel({
               }}
             >
               <div>
-                <div style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
-                  Daily P&L
+                <div style={{ font: "var(--text-body-md)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                  Daily P&L <InfoTip text="Net profit/loss for each day" />
                 </div>
                 <div style={{ font: "var(--text-h2)" }}>
                   {k(
@@ -1951,8 +2245,8 @@ export default function OverviewPanel({
               }}
             >
               <div>
-                <div style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
-                  Win rate trend
+                <div style={{ font: "var(--text-body-md)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                  Win rate trend <InfoTip text="How your win rate moves over time" />
                 </div>
                 <div style={{ font: "var(--text-h2)" }}>
                   {wrSeries.length
@@ -1990,9 +2284,12 @@ export default function OverviewPanel({
                 font: "var(--text-body-md)",
                 fontWeight: 600,
                 marginBottom: "var(--space-3)",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
-              P&L by strategy
+              P&L by strategy <InfoTip text="Which strategies make or lose money" />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {S.stratList.map(([name, v]) => (
@@ -2094,11 +2391,7 @@ export default function OverviewPanel({
               }}
             >
               Asset allocation
-              <Tip
-                content={"How your traded value is split across symbols (by entry price × size).\nHover a slice or a row to see its share. Smaller positions are grouped into “Other”."}
-              >
-                <Info size={14} style={{ color: "var(--color-text-muted)", cursor: "help" }} />
-              </Tip>
+              <InfoTip text="Share of traded value by symbol" />
             </div>
             <div
               style={{
@@ -2166,9 +2459,12 @@ export default function OverviewPanel({
                 font: "var(--text-body-md)",
                 fontWeight: 600,
                 marginBottom: "var(--space-3)",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
-              P&L by symbol
+              P&L by symbol <InfoTip text="Net profit/loss per instrument" />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {S.symPnl.slice(0, 6).map(([sym, v]) => (
@@ -2307,8 +2603,8 @@ export default function OverviewPanel({
                 gap: "var(--space-2)",
               }}
             >
-              <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
-                Volume traded
+              <span style={{ font: "var(--text-body-md)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                Volume traded <InfoTip text="Total notional traded (price × size)" />
               </span>
             </div>
             <div style={{ font: "var(--text-h2)", marginTop: 4 }}>

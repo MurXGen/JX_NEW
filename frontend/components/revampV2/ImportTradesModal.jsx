@@ -24,10 +24,17 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 /* Figma "Import trades" modal — CSV template (quick-log columns),
    parse + validate with papaparse, then bulk POST /api/trades/bulk. */
 
-const TEMPLATE_COLUMNS = ["symbol", "direction", "pnl", "size", "closeTime", "notes"];
+/* Required: symbol, direction. Everything else is optional — fill only the
+   quick-log basics (pnl/size) or go deeper with entry/exit/SL/TP, strategy
+   and emotion. */
+const TEMPLATE_COLUMNS = [
+  "symbol", "direction", "pnl", "size", "openTime", "closeTime",
+  "entry", "exit", "stopLoss", "takeProfit", "strategy", "emotion", "notes",
+];
 const TEMPLATE_ROWS = [
-  ["BTC/USDT", "long", "1250", "0.5", "2026-06-01 14:30", "Breakout retest"],
-  ["ETH/USDT", "short", "-420", "4", "2026-06-02 10:05", ""],
+  ["BTC/USDT", "long", "1250", "0.5", "2026-06-01 10:00", "2026-06-01 14:30", "61240", "63740", "60000", "65000", "Breakout", "Confident", "Breakout retest"],
+  ["ETH/USDT", "short", "-420", "4", "", "2026-06-02 10:05", "", "", "", "", "", "FOMO", "Chased the move"],
+  ["SOL/USDT", "long", "", "30", "2026-06-03 09:00", "", "182.4", "", "175", "210", "Trend-follow", "Calm"],
 ];
 
 function Spinner() {
@@ -79,20 +86,42 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
       const n = i + 2; // header is row 1
       const symbol = String(r.symbol || "").trim();
       const direction = String(r.direction || "").trim().toLowerCase();
+      const hasPnl = String(r.pnl ?? "").trim() !== "";
       const pnl = Number(r.pnl);
+      const entry = Number(r.entry) || 0;
+      const exit = Number(r.exit) || 0;
+      const size = Number(r.size) || 0;
       const closeTime = r.closeTime ? new Date(r.closeTime) : null;
-      if (!symbol && !r.direction && !r.pnl) return; // blank line
+      const openTime = r.openTime ? new Date(r.openTime) : null;
+      // blank line
+      if (!symbol && !r.direction && !hasPnl && !r.entry) return;
       if (!symbol) errs.push(`Row ${n}: symbol is missing`);
       if (!["long", "short"].includes(direction)) errs.push(`Row ${n}: direction must be "long" or "short"`);
-      if (r.pnl === "" || Number.isNaN(pnl)) errs.push(`Row ${n}: pnl must be a number`);
+      // P&L optional — required only if we can't derive it and there's no entry-only (running)
+      if (hasPnl && Number.isNaN(pnl)) errs.push(`Row ${n}: pnl must be a number`);
+      if (!hasPnl && !entry) errs.push(`Row ${n}: add a pnl, or an entry price for an open trade`);
       if (closeTime && Number.isNaN(closeTime.getTime())) errs.push(`Row ${n}: closeTime is not a valid date`);
+      if (openTime && Number.isNaN(openTime.getTime())) errs.push(`Row ${n}: openTime is not a valid date`);
+
+      const dirMul = direction === "long" ? 1 : -1;
+      const computedPnl = hasPnl && !Number.isNaN(pnl)
+        ? pnl
+        : entry && exit && size ? (exit - entry) * size * dirMul : 0;
+
       clean.push({
         symbol: symbol.toUpperCase(),
         direction,
-        pnl,
-        size: Number(r.size) || 0,
-        closeTime: closeTime && !Number.isNaN(closeTime.getTime()) ? closeTime.toISOString() : new Date().toISOString(),
+        pnl: computedPnl,
+        size,
+        entry, exit,
+        stopLoss: Number(r.stopLoss) || 0,
+        takeProfit: Number(r.takeProfit) || 0,
+        strategy: String(r.strategy || "").trim(),
+        emotion: String(r.emotion || "").trim(),
+        openTime: openTime && !Number.isNaN(openTime.getTime()) ? openTime.toISOString() : "",
+        closeTime: closeTime && !Number.isNaN(closeTime.getTime()) ? closeTime.toISOString() : "",
         notes: String(r.notes || ""),
+        _running: !hasPnl && !exit && !!entry,
       });
     });
     return { errs, clean };
@@ -115,8 +144,20 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
   };
 
   const doImport = async () => {
-    const accountId = Cookies.get("accountId");
-    if (!accountId) return flash("danger", "No journal selected");
+    // resolve the journal: cookie → localStorage → first journal in cache
+    let accountId =
+      Cookies.get("accountId") ||
+      (typeof window !== "undefined" && localStorage.getItem("jx-account-id"));
+    if (!accountId) {
+      try {
+        const ud = await getFromIndexedDB("user-data");
+        accountId = ud?.accounts?.[0]?._id || "";
+      } catch {}
+    }
+    if (!accountId) return flash("danger", "No journal found — create a journal first");
+    // persist so the rest of the app stays in sync
+    Cookies.set("accountId", accountId, { expires: 365 });
+    try { localStorage.setItem("jx-account-id", accountId); } catch {}
 
     /* plan limit: free plans can't bulk-import beyond their monthly cap */
     try {

@@ -549,6 +549,68 @@
   background: var(--color-bg-muted);
 }
 
+/* ===== Trades-log table — responsive, pinned actions, polished ===== */
+.jx-table--log {
+  /* keep columns comfortable; the wrapper scrolls horizontally on small screens
+     so R:R and prices never squash */
+  min-width: 820px;
+}
+.jx-table--log th {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--color-bg-muted);
+  white-space: nowrap;
+}
+.jx-table--log th:first-child { border-top-left-radius: var(--radius-lg); }
+.jx-table--log td {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+.jx-table--log tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--color-bg-muted) 35%, transparent);
+}
+.jx-table--log tbody tr:hover {
+  background: var(--color-primary-subtle);
+}
+
+/* pin the actions column to the right edge */
+.jx-table--log th:last-child,
+.jx-table--log td:last-child {
+  position: sticky;
+  right: 0;
+  width: 56px;
+  text-align: center;
+}
+.jx-table--log th:last-child {
+  background: var(--color-bg-muted);
+  border-top-right-radius: var(--radius-lg);
+}
+.jx-table--log tbody td:last-child {
+  background: var(--color-bg-surface);
+}
+.jx-table--log tbody tr:nth-child(even) td:last-child {
+  background: color-mix(in srgb, var(--color-bg-muted) 35%, var(--color-bg-surface));
+}
+.jx-table--log tbody tr:hover td:last-child {
+  background: color-mix(in srgb, var(--color-primary-subtle) 100%, var(--color-bg-surface));
+}
+/* soft shadow so the pinned column reads as floating above the scroll */
+.jx-table--log th:last-child::before,
+.jx-table--log td:last-child::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  transform: translateX(-100%);
+  background: linear-gradient(to left, color-mix(in srgb, var(--color-text-primary) 9%, transparent), transparent);
+  pointer-events: none;
+}
+
 /* ================= Progress (win/loss) ================= */
 .jx-progress {
   display: flex;
@@ -1646,9 +1708,28 @@
   } /* icon-only Select button */
 }
 
-/* ===== Onboarding guide modal — mobile: stack nav buttons full width ===== */
+/* ===== Onboarding guide modal — mobile: stepper at the top, content
+   centred in the middle, CTAs pinned to the bottom (full-height) ===== */
 @media (max-width: 600px) {
+  .jx-onb-modal {
+    display: flex !important;
+    flex-direction: column;
+  }
+  .jx-onb-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .jx-onb-dots { margin-top: var(--space-2); }
+  .jx-onb-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* vertically centre the step content */
+  }
   .jx-onb-nav {
+    margin-top: auto !important; /* pin to the bottom */
     flex-direction: column-reverse !important;
     align-items: stretch !important;
   }

@@ -117,7 +117,7 @@ export default function OnboardingModal({ open, onClose, onTrialActivated }) {
       {open && (
         <motion.div className="jx-modal-overlay jx-modal-overlay--blur" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.div
-            className="jx-ltmodal jx-ltmodal--narrow"
+            className="jx-ltmodal jx-ltmodal--narrow jx-onb-modal"
             style={{ width: "min(460px, 96vw)", padding: "var(--space-6)" }}
             initial={{ opacity: 0, scale: 0.95, y: 18 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -137,31 +137,34 @@ export default function OnboardingModal({ open, onClose, onTrialActivated }) {
                 </Button>
               </div>
             ) : (
-              <>
-                {/* progress dots */}
-                <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: "var(--space-5)" }}>
+              <div className="jx-onb-body">
+                {/* progress dots — top */}
+                <div className="jx-onb-dots" style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: "var(--space-5)" }}>
                   {STEPS.map((_, idx) => (
                     <span key={idx} style={{ width: idx === i ? 22 : 8, height: 8, borderRadius: 999, background: idx === i ? "var(--color-primary)" : "var(--color-border-strong)", transition: "all .25s ease" }} />
                   ))}
                 </div>
 
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: 24 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -24 }}
-                    transition={{ duration: 0.22 }}
-                    style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}
-                  >
-                    <span style={{ width: 64, height: 64, borderRadius: "var(--radius-lg)", background: `${step.accent}1f`, color: step.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <step.icon size={30} />
-                    </span>
-                    <CandleArt colors={step.art} />
-                    <span style={{ font: "var(--text-h3)", fontWeight: 700 }}>{step.title}</span>
-                    <span style={{ font: "var(--text-body)", color: "var(--color-text-secondary)", maxWidth: 360 }}>{step.body}</span>
-                  </motion.div>
-                </AnimatePresence>
+                {/* step content — middle */}
+                <div className="jx-onb-step">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: 24 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -24 }}
+                      transition={{ duration: 0.22 }}
+                      style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}
+                    >
+                      <span style={{ width: 64, height: 64, borderRadius: "var(--radius-lg)", background: `${step.accent}1f`, color: step.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <step.icon size={30} />
+                      </span>
+                      <CandleArt colors={step.art} />
+                      <span style={{ font: "var(--text-h3)", fontWeight: 700 }}>{step.title}</span>
+                      <span style={{ font: "var(--text-body)", color: "var(--color-text-secondary)", maxWidth: 360 }}>{step.body}</span>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
 
                 <div className="jx-onb-nav" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "var(--space-6)", gap: "var(--space-2)" }}>
                   <button className="jx-btn jx-btn--ghost jx-btn--sm jx-onb-back" onClick={() => (i === 0 ? skip() : setI(i - 1))} disabled={finishing}>
@@ -171,7 +174,7 @@ export default function OnboardingModal({ open, onClose, onTrialActivated }) {
                     {finishing ? "Activating…" : last ? "Finish" : "Next"} {!finishing && <ArrowRight size={15} />}
                   </Button>
                 </div>
-              </>
+              </div>
             )}
           </motion.div>
         </motion.div>

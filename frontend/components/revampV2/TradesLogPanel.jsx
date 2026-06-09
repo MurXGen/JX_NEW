@@ -16,6 +16,8 @@ import {
   SlidersHorizontal,
   Square,
   Trash2,
+  TrendingDown,
+  TrendingUp,
   Upload,
   User,
   X,
@@ -742,13 +744,19 @@ export default function TradesLogPanel({
               ))}
             </div>
           ) : (
-            <div className="jx-card" style={{ padding: 0, overflowX: "auto" }}>
-              <table className="jx-table">
+            <div className="jx-card jx-table-wrap" style={{ padding: 0, overflowX: "auto" }}>
+              <table className="jx-table jx-table--log">
                 <thead>
                   <tr>
                     {selectMode && <th style={{ width: 36 }} />}
-                    <th>Pair</th><th>Side</th><th>Entry</th><th>Exit</th><th>Size</th>
-                    <th>P&L</th><th>R : R</th><th>Date</th><th>Img</th><th />
+                    <th>Pair</th><th>Side</th>
+                    <th style={{ textAlign: "right" }}>Entry</th>
+                    <th style={{ textAlign: "right" }}>Exit</th>
+                    <th style={{ textAlign: "right" }}>Size</th>
+                    <th style={{ textAlign: "right" }}>P&L</th>
+                    <th style={{ textAlign: "center" }}>R : R</th>
+                    <th>Date</th><th style={{ textAlign: "center" }}>Img</th>
+                    <th style={{ textAlign: "center" }}>···</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -770,27 +778,31 @@ export default function TradesLogPanel({
                             </span>
                           </td>
                         )}
-                        <td style={{ fontWeight: 600 }}>{t.symbol || t.ticker || "—"}</td>
-                        <td><Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge></td>
-                        <td>{entry ? `$${fmt(entry)}` : "—"}</td>
-                        <td>{exit ? `$${fmt(exit)}` : "—"}</td>
-                        <td>{qty(t.totalQuantity)}</td>
-                        <td style={{ fontWeight: 600, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                        <td style={{ fontWeight: 700 }}>{t.symbol || t.ticker || "—"}</td>
+                        <td><Badge variant={isLong ? "success" : "danger"} icon={isLong ? TrendingUp : TrendingDown}>{isLong ? "Long" : "Short"}</Badge></td>
+                        <td style={{ textAlign: "right" }}>{entry ? `$${fmt(entry)}` : "—"}</td>
+                        <td style={{ textAlign: "right" }}>{exit ? `$${fmt(exit)}` : "—"}</td>
+                        <td style={{ textAlign: "right" }}>{qty(t.totalQuantity)}</td>
+                        <td style={{ textAlign: "right", fontWeight: 700, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
                           {money(pnl, currencySymbol)}
                         </td>
-                        <td>{t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}</td>
+                        <td style={{ textAlign: "center" }}>
+                          {t.rr ? (
+                            <Badge variant="neutral">{String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`}</Badge>
+                          ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
+                        </td>
                         <td style={{ color: "var(--color-text-muted)" }}>
                           {new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })} ·{" "}
                           {new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </td>
-                        <td onClick={(e) => { e.stopPropagation(); setViewerTrade(t); }}>
+                        <td style={{ textAlign: "center" }} onClick={(e) => { e.stopPropagation(); setViewerTrade(t); }}>
                           {t.images?.length ? (
                             <span className="jx-badge jx-badge--neutral" style={{ cursor: "zoom-in" }}>
                               <ImageIcon size={11} /> {t.images.length}
                             </span>
-                          ) : "—"}
+                          ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
                         </td>
-                        <td>
+                        <td style={{ textAlign: "center" }}>
                           {!selectMode && (
                             <RowMenu
                               onEdit={() => setEditTrade(t)}
