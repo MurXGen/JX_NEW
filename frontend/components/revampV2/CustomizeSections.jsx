@@ -60,12 +60,14 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset 
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
+            className="jx-customize-pop"
             style={{
               position: "absolute",
               right: 0,
               top: "calc(100% + 6px)",
               zIndex: 60,
               width: 260,
+              maxWidth: "calc(100vw - 24px)",
               maxHeight: 360,
               overflowY: "auto",
               background: "var(--color-bg-elevated)",

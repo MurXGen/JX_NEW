@@ -998,6 +998,18 @@
   }
 }
 @media (max-width: 600px) {
+  /* Customize-sections popover: anchor to the right viewport edge so it
+     never overflows off-screen on phones (overrides the inline absolute). */
+  .jx-customize-pop {
+    position: fixed !important;
+    right: 12px !important;
+    left: 12px !important;
+    bottom: 12px !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: 60vh !important;
+  }
   .jx-modal-overlay {
     padding: 0;
     align-items: flex-end;
