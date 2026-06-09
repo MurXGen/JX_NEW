@@ -544,11 +544,15 @@ export default function TradesLogPanel({
             {usingDummy && <> <Badge variant="brand">Sample data</Badge></>}
           </div>
         </div>
-        <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-          <Button variant="outline" icon={CandlestickChart} onClick={() => setShowChartTrade(true)}>Log on chart</Button>
-          <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)}>Import trades</Button>
-          <Button variant="primary" icon={Plus} onClick={onAddTrade}>Add trade</Button>
-        </div>
+        {/* hide header actions while on sample data — the banner below carries
+            the primary Import / Log actions (avoids duplicate CTAs) */}
+        {!usingDummy && (
+          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <Button variant="outline" icon={CandlestickChart} onClick={() => setShowChartTrade(true)}>Log on chart</Button>
+            <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)}>Import trades</Button>
+            <Button variant="primary" icon={Plus} onClick={onAddTrade}>Add trade</Button>
+          </div>
+        )}
       </div>
 
       {/* sample-data nudge */}
@@ -821,6 +825,7 @@ export default function TradesLogPanel({
       <LogTradeModal
         open={!!editTrade}
         initialTrade={editTrade}
+        currentAccountId={editTrade?.accountId}
         onClose={() => setEditTrade(null)}
         onSaved={(trade, meta) => {
           if (meta?.updated) onTradeUpdated?.(trade);

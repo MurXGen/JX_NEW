@@ -137,6 +137,11 @@ export default function Dashboard() {
         sameSite: "Strict",
         expires: 365000,
       });
+      // brand-new Google signup → force the onboarding guide to show
+      if (params.get("newUser") === "1") {
+        try { localStorage.removeItem("jx-onboarded"); } catch {}
+        setShowOnboarding(true);
+      }
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -337,6 +342,8 @@ export default function Dashboard() {
       <LogTradeModal
         open={showLogTrade}
         onClose={() => setShowLogTrade(false)}
+        currentAccountId={currentAccount?._id}
+        onNoJournal={() => setShowSwitchModal(true)}
         onSaved={(trade) => trade && setAccountTrades((prev) => [...prev, trade])}
       />
 

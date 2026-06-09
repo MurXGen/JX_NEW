@@ -1175,9 +1175,13 @@ export default function OverviewPanel({
             )}
           </div>
         </div>
-        <Button variant="primary" icon={Plus} onClick={onLogTrade}>
-          Log a trade
-        </Button>
+        {/* hide the header CTA while on sample data — the banner below
+            carries the primary Import / Log actions (avoids double CTA) */}
+        {!usingDummy && (
+          <Button variant="primary" icon={Plus} onClick={onLogTrade}>
+            Log a trade
+          </Button>
+        )}
       </div>
 
       {/* sample-data nudge */}

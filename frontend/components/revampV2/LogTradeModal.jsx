@@ -277,7 +277,7 @@ const tradeToForm = (t) => {
   };
 };
 
-export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initialTrade = null }) {
+export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initialTrade = null, currentAccountId = null, onNoJournal }) {
   const isEdit = !!initialTrade?._id;
   const [mode, setMode] = useState("detailed");
   const [form, setForm] = useState(EMPTY);
@@ -465,13 +465,22 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     } else if (!(num(form.entry) && num(form.size))) {
       return flash("danger", "Entry price and position size are required");
     }
-    // cookie can be cleared/expired; fall back to the durable localStorage copy
+    // Prefer the journal the dashboard is currently showing, then the cookie,
+    // then the durable localStorage copy.
     const accountId =
+      currentAccountId ||
       Cookies.get("accountId") ||
       (typeof window !== "undefined" && localStorage.getItem("jx-account-id"));
-    if (!accountId) return flash("danger", "No journal selected — switch journals first");
-    // keep the cookie in sync for the API call
-    if (!Cookies.get("accountId")) Cookies.set("accountId", accountId, { expires: 365 });
+    if (!accountId) {
+      // genuinely no journal — send them to pick/create one
+      flash("danger", "Select a journal to log into first");
+      onClose?.();
+      onNoJournal?.();
+      return;
+    }
+    // keep cookie + localStorage in sync for the API call and future logs
+    Cookies.set("accountId", accountId, { expires: 365 });
+    try { localStorage.setItem("jx-account-id", accountId); } catch {}
 
     /* plan limit: trades per month */
     try {

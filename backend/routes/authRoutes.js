@@ -93,11 +93,9 @@ router.get(
         status: "success",
       });
 
-      const redirectUrl = `${
-        process.env.CLIENT_URL || "http://localhost:3000"
-      }/dashboard?isVerified=yes`;
-
-      res.redirect(redirectUrl);
+      const base = process.env.CLIENT_URL || "http://localhost:3000";
+      const newUserFlag = req.user?.isNewUser ? "&newUser=1" : "";
+      res.redirect(`${base}/dashboard?isVerified=yes${newUserFlag}`);
     } catch (err) {
       console.error("Google OAuth Error:", err.message);
 

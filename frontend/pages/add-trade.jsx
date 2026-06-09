@@ -52,6 +52,7 @@ export default function AddTradePage() {
       <LogTradeModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        onNoJournal={() => router.push("/accounts")}
         onSaved={(trade) => console.log("[add-trade] trade saved:", trade?._id)}
       />
 

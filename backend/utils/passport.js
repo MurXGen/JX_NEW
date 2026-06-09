@@ -21,7 +21,7 @@ passport.use(
           const expiry = new Date(now);
           expiry.setDate(expiry.getDate() + 7);
 
-          // ✅ Create user
+          // ✅ Create user with a 7-day Pro trial
           user = await User.create({
             name: profile.displayName,
             email: profile.emails[0].value,
@@ -29,10 +29,11 @@ passport.use(
             googleId: profile.id,
             subscriptionPlan: "pro",
             subscriptionStatus: "active",
-            subscriptionType: "one-time",
+            subscriptionType: "trial",
             subscriptionStartAt: now,
             subscriptionExpiresAt: expiry,
             subscriptionCreatedAt: now,
+            trialUsed: true,
             isVerified: true,
           });
 
@@ -51,6 +52,7 @@ passport.use(
 
           // attach account to user object for callback
           user.defaultAccountId = defaultAccount._id;
+          user.isNewUser = true; // signals the callback to trigger onboarding
         }
 
         return done(null, user);
