@@ -1004,11 +1004,13 @@
     position: fixed !important;
     right: 12px !important;
     left: 12px !important;
-    bottom: 12px !important;
+    /* sit above the fixed bottom nav (jx-bottombar, ~64px + safe area) */
+    bottom: calc(76px + env(safe-area-inset-bottom)) !important;
     top: auto !important;
     width: auto !important;
     max-width: none !important;
     max-height: 60vh !important;
+    z-index: 950 !important;
   }
   .jx-modal-overlay {
     padding: 0;
