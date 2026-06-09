@@ -3,9 +3,10 @@
 /* Shared nav + footer for the v2 marketing pages (landing, pricing).
    Uses the jx design tokens; theme-independent dark marketing skin. */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Menu, X } from "lucide-react";
+import Cookies from "js-cookie";
 
 const NAV = [
   { label: "Features", href: "/#features" },
@@ -16,6 +17,13 @@ const NAV = [
 
 export function LandingNav() {
   const [open, setOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  // detect auth on the client only (avoids SSR/hydration mismatch)
+  useEffect(() => {
+    setLoggedIn(Cookies.get("isVerified") === "yes");
+  }, []);
+
   return (
     <header
       style={{
@@ -40,10 +48,18 @@ export function LandingNav() {
         </nav>
 
         <div className="lp-navcta" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-          <a href="/login" style={{ textDecoration: "none", color: "#fff", font: "500 14px Poppins, sans-serif" }}>Log in</a>
-          <a href="/register" style={{ textDecoration: "none" }}>
-            <button style={btnPrimary}>Start free <ArrowRight size={15} /></button>
-          </a>
+          {loggedIn ? (
+            <a href="/dashboard" style={{ textDecoration: "none" }}>
+              <button style={btnPrimary}>Go to dashboard <ArrowRight size={15} /></button>
+            </a>
+          ) : (
+            <>
+              <a href="/login" style={{ textDecoration: "none", color: "#fff", font: "500 14px Poppins, sans-serif" }}>Log in</a>
+              <a href="/register" style={{ textDecoration: "none" }}>
+                <button style={btnPrimary}>Start free <ArrowRight size={15} /></button>
+              </a>
+            </>
+          )}
         </div>
 
         <button className="lp-burger" onClick={() => setOpen((o) => !o)} aria-label="Menu" style={{ display: "none", marginLeft: "auto", background: "none", border: "none", color: "#fff", cursor: "pointer" }}>
@@ -62,10 +78,18 @@ export function LandingNav() {
               {NAV.map((n) => (
                 <a key={n.label} href={n.href} onClick={() => setOpen(false)} style={{ textDecoration: "none", color: "#aeb4bc", font: "500 15px Poppins", padding: "10px 0" }}>{n.label}</a>
               ))}
-              <a href="/login" style={{ textDecoration: "none", color: "#fff", font: "500 15px Poppins", padding: "10px 0" }}>Log in</a>
-              <a href="/register" style={{ textDecoration: "none", marginTop: 6 }}>
-                <button style={{ ...btnPrimary, width: "100%", justifyContent: "center" }}>Start free</button>
-              </a>
+              {loggedIn ? (
+                <a href="/dashboard" style={{ textDecoration: "none", marginTop: 6 }}>
+                  <button style={{ ...btnPrimary, width: "100%", justifyContent: "center" }}>Go to dashboard</button>
+                </a>
+              ) : (
+                <>
+                  <a href="/login" style={{ textDecoration: "none", color: "#fff", font: "500 15px Poppins", padding: "10px 0" }}>Log in</a>
+                  <a href="/register" style={{ textDecoration: "none", marginTop: 6 }}>
+                    <button style={{ ...btnPrimary, width: "100%", justifyContent: "center" }}>Start free</button>
+                  </a>
+                </>
+              )}
             </div>
           </motion.div>
         )}
