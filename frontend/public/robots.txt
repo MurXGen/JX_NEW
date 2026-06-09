@@ -1,3 +1,6 @@
+# JournalX — https://journalx.app
+# AI/LLM crawlers welcome. Structured site guide: https://journalx.app/llms.txt
+
 User-agent: *
 Allow: /
 
