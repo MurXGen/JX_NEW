@@ -95,20 +95,20 @@ const registerUser = async (req, res) => {
       : undefined;
 
     const now = new Date();
+    const trialExpiry = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    // ✅ Create new user — starts on the FREE plan (limits apply).
-    // Upgrade to Pro/Lifetime happens via checkout.
+    // ✅ Create new user — Pro active for 7 days (same as Google sign-up).
     const user = new User({
       name,
       email,
       password: hashedPassword,
       googleId: googleId || undefined,
       isVerified: false,
-      subscriptionPlan: "free",
-      subscriptionStatus: "none",
-      subscriptionType: undefined,
-      subscriptionStartAt: undefined,
-      subscriptionExpiresAt: undefined,
+      subscriptionPlan: "pro",
+      subscriptionStatus: "active",
+      subscriptionType: "one-time",
+      subscriptionStartAt: now,
+      subscriptionExpiresAt: trialExpiry,
       subscriptionCreatedAt: now,
     });
     await user.save();
@@ -611,10 +611,10 @@ const activateTrial = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Don't override an active paid plan or re-grant a used trial.
-    if (user.subscriptionStatus === "active" || user.trialUsed) {
+    // Don't override an already-active plan (also prevents re-granting).
+    if (user.subscriptionStatus === "active") {
       return res.json({
-        message: "Trial not applied",
+        message: "Already active",
         subscription: {
           plan: user.subscriptionPlan,
           status: user.subscriptionStatus,
@@ -625,15 +625,15 @@ const activateTrial = async (req, res) => {
       });
     }
 
+    // Pro active for 7 days (no separate "trial" type — just a dated Pro plan)
     const now = new Date();
     const expires = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     user.subscriptionPlan = "pro";
     user.subscriptionStatus = "active";
-    user.subscriptionType = "trial";
+    user.subscriptionType = "one-time";
     user.subscriptionStartAt = now;
     user.subscriptionExpiresAt = expires;
     user.subscriptionCreatedAt = user.subscriptionCreatedAt || now;
-    user.trialUsed = true;
     await user.save();
 
     res.json({

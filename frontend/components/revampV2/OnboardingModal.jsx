@@ -163,11 +163,11 @@ export default function OnboardingModal({ open, onClose, onTrialActivated }) {
                   </motion.div>
                 </AnimatePresence>
 
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "var(--space-6)" }}>
-                  <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => (i === 0 ? skip() : setI(i - 1))} disabled={finishing}>
+                <div className="jx-onb-nav" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "var(--space-6)", gap: "var(--space-2)" }}>
+                  <button className="jx-btn jx-btn--ghost jx-btn--sm jx-onb-back" onClick={() => (i === 0 ? skip() : setI(i - 1))} disabled={finishing}>
                     {i === 0 ? "Skip" : (<><ArrowLeft size={15} /> Previous</>)}
                   </button>
-                  <Button variant="primary" onClick={() => (last ? finish() : setI(i + 1))} disabled={finishing}>
+                  <Button variant="primary" onClick={() => (last ? finish() : setI(i + 1))} disabled={finishing} className="jx-onb-next">
                     {finishing ? "Activating…" : last ? "Finish" : "Next"} {!finishing && <ArrowRight size={15} />}
                   </Button>
                 </div>

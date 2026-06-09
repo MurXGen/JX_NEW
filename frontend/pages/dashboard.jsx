@@ -128,8 +128,9 @@ export default function Dashboard() {
     loadEverything();
   }, [router]);
 
-  /* ---------- verification param ---------- */
+  /* ---------- verification param + onboarding trigger ---------- */
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("isVerified") === "yes") {
       Cookies.set("isVerified", "yes", {
@@ -137,23 +138,19 @@ export default function Dashboard() {
         sameSite: "Strict",
         expires: 365000,
       });
-      // brand-new Google signup → force the onboarding guide to show
+      // brand-new Google signup → mark for onboarding
       if (params.get("newUser") === "1") {
-        try { localStorage.removeItem("jx-onboarded"); } catch {}
-        setShowOnboarding(true);
+        try { localStorage.setItem("jx-show-onboarding", "1"); } catch {}
       }
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+    // Onboarding shows ONLY right after a registration (manual OTP verify or
+    // Google new-user), never on a normal login. The marker is consumed once.
+    if (localStorage.getItem("jx-show-onboarding") === "1") {
+      setShowOnboarding(true);
+      try { localStorage.removeItem("jx-show-onboarding"); } catch {}
+    }
   }, []);
-
-  /* ---------- first-run onboarding (new users only) ---------- */
-  useEffect(() => {
-    if (typeof window === "undefined" || !userData) return;
-    const onboarded = localStorage.getItem("jx-onboarded");
-    const status = userData?.subscription?.status;
-    // show once, and never to users already on an active plan/trial
-    if (!onboarded && status !== "active") setShowOnboarding(true);
-  }, [userData]);
 
   /* ---------- derived data ---------- */
   const selectedAccountId =

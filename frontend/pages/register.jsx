@@ -111,6 +111,8 @@ export default function RegisterPage() {
     try {
       await axios.post(`${API_BASE}/api/auth/verify-otp`, { userId, otp }, { withCredentials: true });
       Cookies.set("isVerified", "yes", { path: "/", sameSite: "Strict", expires: 365000 });
+      // signal the dashboard to show the onboarding guide (registration only)
+      try { localStorage.setItem("jx-show-onboarding", "1"); } catch {}
       flash("success", "You're in — welcome to JournalX!");
       setTimeout(() => router.push("/dashboard"), 800);
     } catch (err) {

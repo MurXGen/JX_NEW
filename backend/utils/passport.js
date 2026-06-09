@@ -21,7 +21,7 @@ passport.use(
           const expiry = new Date(now);
           expiry.setDate(expiry.getDate() + 7);
 
-          // ✅ Create user with a 7-day Pro trial
+          // ✅ Create user — Pro active for 7 days
           user = await User.create({
             name: profile.displayName,
             email: profile.emails[0].value,
@@ -29,11 +29,10 @@ passport.use(
             googleId: profile.id,
             subscriptionPlan: "pro",
             subscriptionStatus: "active",
-            subscriptionType: "trial",
+            subscriptionType: "one-time",
             subscriptionStartAt: now,
             subscriptionExpiresAt: expiry,
             subscriptionCreatedAt: now,
-            trialUsed: true,
             isVerified: true,
           });
 
