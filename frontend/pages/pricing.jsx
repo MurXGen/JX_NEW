@@ -17,8 +17,23 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import Cookies from "js-cookie";
 import PaddleLoader from "../components/payments/PaddleLoader";
 import { LandingNav, LandingFooter } from "@/components/landingPage/LandingChrome";
+
+/* small inline spinner for button loading states */
+function BtnSpinner({ color = "currentColor" }) {
+  return (
+    <motion.span
+      animate={{ rotate: 360 }}
+      transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+      style={{
+        width: 16, height: 16, borderRadius: "50%", display: "inline-block", flexShrink: 0,
+        border: `2px solid color-mix(in srgb, ${color} 30%, transparent)`, borderTopColor: color,
+      }}
+    />
+  );
+}
 
 import {
   PLANS_FEATURES,
@@ -33,6 +48,7 @@ export default function Pricing() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [hoveredPlan, setHoveredPlan] = useState(null);
+  const [payLoading, setPayLoading] = useState(null); // which payment option is loading
   // Start with USD so SSR and first client render match; detect after mount.
   const [currency, setCurrency] = useState("USD");
   const router = useRouter();
@@ -146,42 +162,44 @@ export default function Pricing() {
   };
 
   const handlePlanClick = (planKey) => {
+    // Not logged in → send them to login first (return to pricing after).
+    if (Cookies.get("isVerified") !== "yes") {
+      router.push("/login?redirect=/pricing");
+      return;
+    }
     setSelectedPlan(planKey);
     setIsModalOpen(true);
   };
 
-  const handlePaymentOptionClick = (option) => {
-    if (!selectedPlan) return;
+  const handlePaymentOptionClick = async (option) => {
+    if (!selectedPlan || payLoading) return;
 
     const planConfig = plans[selectedPlan];
-    setIsModalOpen(false);
 
-    switch (option) {
-      case "cards_paypal":
-        if (planConfig.paddlePriceId) {
-          openPaddleCheckout(planConfig.paddlePriceId);
-        }
-        break;
-      case "crypto":
-        router.push({
-          pathname: "/cryptobillingpage",
-          query: {
-            planName: planConfig.planName,
-            period: planConfig.period,
-            amount: planConfig.amount,
-          },
-        });
-        break;
-      // case "binance":
-      //   router.push({
-      //     pathname: "/payments/binance",
-      //     query: {
-      //       planName: planConfig.planName,
-      //       period: planConfig.period,
-      //       amount: planConfig.amount,
-      //     },
-      //   });
-      //   break;
+    if (option === "crypto") {
+      // loader stays on the crypto button until the navigation happens
+      setPayLoading("crypto");
+      router.push({
+        pathname: "/cryptobillingpage",
+        query: {
+          planName: planConfig.planName,
+          period: planConfig.period,
+          amount: planConfig.amount,
+        },
+      });
+      return;
+    }
+
+    if (option === "cards_paypal") {
+      // show the loader immediately and keep it visible (modal stays open)
+      // until Paddle's overlay has been opened, then close.
+      setPayLoading("cards_paypal");
+      try {
+        await openPaddleCheckout(planConfig.paddlePriceId);
+      } finally {
+        setPayLoading(null);
+        setIsModalOpen(false);
+      }
     }
   };
 
@@ -319,10 +337,11 @@ export default function Pricing() {
         createPortal(
           <PaymentModal
             isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => !payLoading && setIsModalOpen(false)}
             planTitle={plans[selectedPlan]?.title || ""}
             planPrice={plans[selectedPlan]?.price || ""}
             onPaymentOptionClick={handlePaymentOptionClick}
+            loadingOption={payLoading}
           />,
           document.body,
         )}
@@ -431,8 +450,10 @@ function PaymentModal({
   planTitle,
   planPrice,
   onPaymentOptionClick,
+  loadingOption,
 }) {
   if (!isOpen) return null;
+  const busy = !!loadingOption;
 
   const paymentOptions = [
     {
@@ -465,7 +486,7 @@ function PaymentModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
+      onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose?.()}
       style={{ fontFamily: "var(--jx-font)" }}
     >
       <motion.div
@@ -487,7 +508,7 @@ function PaymentModal({
                   Select your preferred payment method
                 </p>
               </div>
-              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}>
+              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} disabled={busy} aria-label="Close" style={{ padding: 8, opacity: busy ? 0.5 : 1, cursor: busy ? "not-allowed" : "pointer" }}>
                 <X size={16} />
               </button>
             </div>
@@ -511,23 +532,28 @@ function PaymentModal({
 
             {/* Options */}
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-              {paymentOptions.map((option, index) => (
+              {paymentOptions.map((option, index) => {
+                const isLoading = loadingOption === option.id;
+                return (
                 <motion.button
                   key={option.id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.06 }}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.99 }}
+                  whileHover={busy ? undefined : { y: -2 }}
+                  whileTap={busy ? undefined : { scale: 0.99 }}
+                  disabled={busy}
                   onClick={() => onPaymentOptionClick(option.id)}
                   style={{
                     display: "flex", alignItems: "center", gap: "var(--space-3)", textAlign: "left",
-                    padding: "var(--space-4)", borderRadius: "var(--radius-md)", cursor: "pointer",
-                    background: "var(--color-bg-surface)", border: "1px solid var(--color-border)",
+                    padding: "var(--space-4)", borderRadius: "var(--radius-md)",
+                    cursor: busy ? (isLoading ? "progress" : "not-allowed") : "pointer",
+                    opacity: busy && !isLoading ? 0.55 : 1,
+                    background: "var(--color-bg-surface)", border: `1px solid ${isLoading ? option.accent : "var(--color-border)"}`,
                     color: "var(--color-text-primary)", transition: "border-color .15s ease",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = option.accent)}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}
+                  onMouseEnter={(e) => !busy && (e.currentTarget.style.borderColor = option.accent)}
+                  onMouseLeave={(e) => !busy && (e.currentTarget.style.borderColor = "var(--color-border)")}
                 >
                   <span
                     style={{
@@ -555,9 +581,12 @@ function PaymentModal({
                       ))}
                     </span>
                   </span>
-                  <ArrowRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                  {isLoading
+                    ? <BtnSpinner color={option.accent} />
+                    : <ArrowRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />}
                 </motion.button>
-              ))}
+                );
+              })}
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
