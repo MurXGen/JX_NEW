@@ -18,6 +18,7 @@ import Dropdown from "./Dropdown";
 import Toast from "./Toast";
 import { toBinanceSymbol } from "@/utils/livePrice";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
@@ -304,6 +305,7 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
     try {
       const res = await axios.post(`${API_BASE}/api/trades/addd`, fd, { withCredentials: true });
       const trade = res.data?.trade;
+      if (trade) logTradeToSheet(tradeToSheetPayload(trade, "chart"));
       try {
         const u = (await getFromIndexedDB("user-data")) || {};
         u.trades = [...(u.trades || []), trade];

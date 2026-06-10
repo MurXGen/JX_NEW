@@ -1158,11 +1158,15 @@ export default function OverviewPanel({
       byDow[k].pnl += Number(t.pnl) || 0;
       byDow[k].n += 1;
     });
-    const dow = DOW.map((label, i) => ({ label, ...byDow[i] })).filter((d) => d.n > 0);
+    // show every weekday (Mon→Sun) even when a day has no trades
+    const dowOrder = [1, 2, 3, 4, 5, 6, 0]; // Mon, Tue, Wed, Thu, Fri, Sat, Sun
+    const dow = dowOrder.map((i) => ({ label: DOW[i], ...byDow[i] }));
     const dowMax = Math.max(1, ...dow.map((d) => Math.abs(d.pnl)));
-    const bestDow = dow.length ? dow.reduce((m, d) => (d.pnl > m.pnl ? d : m)) : null;
+    const tradedDays = dow.filter((d) => d.n > 0);
+    const bestDow = tradedDays.length ? tradedDays.reduce((m, d) => (d.pnl > m.pnl ? d : m)) : null;
+    const dowHasData = tradedDays.length > 0;
 
-    return { total, net, winRate: winRate * 100, expectancy, payoff, expectancyR, maxDD, maxDDPct, recovery, dow, dowMax, bestDow };
+    return { total, net, winRate: winRate * 100, expectancy, payoff, expectancyR, maxDD, maxDDPct, recovery, dow, dowMax, bestDow, dowHasData };
   }, [closed]);
 
   /* cumulative series for its own range tab (+ per-point tooltips) */
@@ -1207,10 +1211,23 @@ export default function OverviewPanel({
       .map(([, e]) => (e.w / e.n) * 100);
   }, [closed, wrRange]);
 
-  const greeting = (() => {
-    const h = new Date().getHours();
-    return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
-  })();
+  /* Short, trader-flavoured greeting that varies through the day (and a bit
+     day to day), in the spirit of Claude's brief hellos. */
+  const greeting = useMemo(() => {
+    const now = new Date();
+    const h = now.getHours();
+    const tod = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    const traderLines = [
+      "Markets are open",
+      "Ready to trade",
+      "Back to the charts",
+      "Let's find your edge",
+      "Time to journal",
+    ];
+    // alternate day-to-day between a time hello and a trader line
+    const day = now.getDate();
+    return day % 2 === 0 ? tod : traderLines[day % traderLines.length];
+  }, []);
 
   const goalPct = Math.min(100, (Math.max(0, S.monthPnl) / target) * 100);
   const maxSym = S.symPnl.length
@@ -1292,11 +1309,11 @@ export default function OverviewPanel({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          flexWrap: "wrap",
+          flexWrap: "nowrap",
           gap: "var(--space-3)",
         }}
       >
-        <div>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ font: "var(--text-h2)" }}>
             {greeting}, {userName?.split(" ")[0] || "trader"}
           </div>
@@ -1322,6 +1339,7 @@ export default function OverviewPanel({
             display: "flex",
             alignItems: "center",
             gap: "var(--space-2)",
+            flexShrink: 0,
           }}
         >
           <CustomizeSections
@@ -1332,7 +1350,8 @@ export default function OverviewPanel({
           />
           {!usingDummy && (
             <Button variant="primary" icon={Plus} onClick={onLogTrade}>
-              Log a trade
+              <span className="jx-lbl-full">Log trade</span>
+              <span className="jx-lbl-short">Log</span>
             </Button>
           )}
         </div>
@@ -1779,7 +1798,7 @@ export default function OverviewPanel({
       )}
 
       {/* ===== Day-of-week P&L (full width) ===== */}
-      {isVisible("dayOfWeek") && EDGE.dow.length > 0 && (
+      {isVisible("dayOfWeek") && EDGE.dowHasData && (
         <div className="jx-card">
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
             <span className="jx-card__title">Day-of-week P&amp;L</span>
@@ -1787,15 +1806,19 @@ export default function OverviewPanel({
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", gap: "var(--space-3)", marginTop: "var(--space-4)", height: 240, width: "100%" }}>
             {EDGE.dow.map((d) => {
-              const h = Math.max(8, Math.round((Math.abs(d.pnl) / EDGE.dowMax) * 185));
+              const empty = d.n === 0;
+              const h = empty ? 6 : Math.max(8, Math.round((Math.abs(d.pnl) / EDGE.dowMax) * 185));
               const pos = d.pnl >= 0;
+              const content = empty
+                ? `${d.label}: 0 trades`
+                : `${d.label}: ${k(d.pnl, currencySymbol)} over ${d.n} trade${d.n === 1 ? "" : "s"}`;
               return (
-                <Tip key={d.label} content={`${d.label}: ${k(d.pnl, currencySymbol)} over ${d.n} trade${d.n === 1 ? "" : "s"}`} style={{ flex: 1, minWidth: 0, height: "100%", display: "flex" }}>
+                <Tip key={d.label} content={content} style={{ flex: 1, minWidth: 0, height: "100%", display: "flex" }}>
                   <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 8, cursor: "help" }}>
-                    <span style={{ font: "var(--text-small)", fontWeight: 700, color: pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                      {k(d.pnl, currencySymbol)}
+                    <span style={{ font: "var(--text-small)", fontWeight: 700, color: empty ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                      {empty ? "—" : k(d.pnl, currencySymbol)}
                     </span>
-                    <div style={{ width: "100%", height: h, background: pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: "var(--radius-md)", transition: "height .8s cubic-bezier(0.16,1,0.3,1)" }} />
+                    <div style={{ width: "100%", height: h, background: empty ? "var(--color-border)" : pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: "var(--radius-md)", transition: "height .8s cubic-bezier(0.16,1,0.3,1)" }} />
                     <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600 }}>{d.label}</span>
                   </div>
                 </Tip>

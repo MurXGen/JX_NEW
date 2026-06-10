@@ -17,6 +17,7 @@ import Badge from "./Badge";
 import Button from "./Button";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { getPlanRules } from "@/utils/planRestrictions";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -176,6 +177,11 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
         { withCredentials: true },
       );
       const trades = res.data?.trades || [];
+
+      // mirror imported trades to the tracking sheet (client-only, capped)
+      trades.slice(0, 100).forEach((t) =>
+        logTradeToSheet(tradeToSheetPayload(t, "csv-import")),
+      );
 
       try {
         const userData = (await getFromIndexedDB("user-data")) || {};

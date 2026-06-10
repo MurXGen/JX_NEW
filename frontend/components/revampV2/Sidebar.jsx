@@ -203,12 +203,18 @@ export default function Sidebar({
           </button>
         )}
 
-        <button className="jx-sidebar__item" onClick={toggleTheme}>
-          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-          {!collapsed && (
-            <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
-          )}
-        </button>
+        {/* When collapsed, the theme toggle lives here as its own icon item;
+            when expanded, it sits beside the profile (below). */}
+        {collapsed && (
+          <button
+            className="jx-sidebar__item"
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+        )}
 
         {onSupport && (
           <button
@@ -227,27 +233,40 @@ export default function Sidebar({
               className="jx-sidebar__item"
               onClick={onProfile}
               title={collapsed ? user.name : undefined}
-              style={{ flex: 1, minWidth: 0 }}
+              style={{ flex: 1, minWidth: 0, justifyContent: "flex-start", textAlign: "left" }}
             >
-              <User size={20} />
+              <User size={20} style={{ flexShrink: 0 }} />
               {!collapsed && (
                 <span
                   style={{
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
+                    textAlign: "left",
                     lineHeight: 1.3,
                     minWidth: 0,
+                    flex: 1,
                   }}
                 >
-                  <span style={{ fontWeight: 600 }}>{user.name || "User"}</span>
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      width: "100%",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {user.name || "User"}
+                  </span>
                   <span
                     style={{
                       font: "var(--text-caption)",
                       color: "var(--color-text-muted)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                      maxWidth: 130,
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
                     }}
                   >
                     {user.email}
@@ -255,7 +274,33 @@ export default function Sidebar({
                 </span>
               )}
             </button>
+
+            {/* Theme toggle beside the profile (expanded view) */}
+            {!collapsed && (
+              <button
+                className="jx-sidebar__item jx-sidebar__themebtn"
+                onClick={toggleTheme}
+                title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                aria-label="Toggle theme"
+                style={{ flex: "0 0 auto", width: 46, justifyContent: "center", padding: 0 }}
+              >
+                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+            )}
           </div>
+        )}
+
+        {/* If there is no user row, still expose the theme toggle when expanded */}
+        {!collapsed && !user && (
+          <button
+            className="jx-sidebar__item"
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+          </button>
         )}
       </div>
     </motion.aside>

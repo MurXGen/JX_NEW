@@ -51,8 +51,8 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset 
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <Button variant="outline" size="sm" icon={SlidersHorizontal} onClick={() => setOpen((o) => !o)}>
-        Customize
+      <Button variant="outline" icon={SlidersHorizontal} onClick={() => setOpen((o) => !o)} aria-label="Customize sections">
+        <span className="jx-lbl-full">Customize</span>
       </Button>
       <AnimatePresence>
         {open && (

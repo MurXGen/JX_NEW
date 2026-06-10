@@ -569,9 +569,18 @@ export default function TradesLogPanel({
           />
           {!usingDummy && (
             <>
-              <Button variant="outline" icon={CandlestickChart} onClick={() => setShowChartTrade(true)}>Log on chart</Button>
-              <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)}>Import trades</Button>
-              <Button variant="primary" icon={Plus} onClick={onAddTrade}>Add trade</Button>
+              <Button variant="outline" icon={CandlestickChart} onClick={() => setShowChartTrade(true)} aria-label="Log on chart">
+                <span className="jx-lbl-full">Log on chart</span>
+                <span className="jx-lbl-short">Chart</span>
+              </Button>
+              <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)} aria-label="Import trades">
+                <span className="jx-lbl-full">Import trades</span>
+                <span className="jx-lbl-short">Import</span>
+              </Button>
+              <Button variant="primary" icon={Plus} onClick={onAddTrade} aria-label="Add trade">
+                <span className="jx-lbl-full">Add trade</span>
+                <span className="jx-lbl-short">Add</span>
+              </Button>
             </>
           )}
         </div>

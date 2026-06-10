@@ -997,6 +997,19 @@
     border-top: 1px solid var(--color-border);
   }
 }
+/* Responsive label helpers — show full text on desktop, short on mobile */
+.jx-lbl-short {
+  display: none;
+}
+@media (max-width: 600px) {
+  .jx-lbl-full {
+    display: none !important;
+  }
+  .jx-lbl-short {
+    display: inline !important;
+  }
+}
+
 @media (max-width: 600px) {
   /* Customize-sections popover: anchor to the right viewport edge so it
      never overflows off-screen on phones (overrides the inline absolute). */

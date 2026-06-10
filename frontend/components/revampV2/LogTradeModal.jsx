@@ -31,6 +31,7 @@ import DateTimePicker from "./DateTimePicker";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { canAddTrade, getPlanRules } from "@/utils/planRestrictions";
+import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -557,6 +558,11 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
         ? await axios.put(`${API_BASE}/api/trades/update/${initialTrade._id}`, fd, { withCredentials: true })
         : await axios.post(`${API_BASE}/api/trades/addd`, fd, { withCredentials: true });
       const trade = res.data?.trade;
+
+      // mirror new trades to the tracking sheet (fire-and-forget, client-only)
+      if (!isEdit && trade) {
+        logTradeToSheet(tradeToSheetPayload(trade, "manual"));
+      }
 
       /* sync IndexedDB cache so the journal + XP update offline too.
          XP mirrors the backend formula so it's correct even when the API
