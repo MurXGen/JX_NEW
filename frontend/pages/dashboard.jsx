@@ -43,6 +43,7 @@ import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { getBaseCurrency, getRate, convertTrade } from "@/utils/fx";
+import { connectDrive, warmDriveConnection, isDriveConnected, isDriveConfigured } from "@/utils/driveBackup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -99,11 +100,17 @@ export default function Dashboard() {
         });
         const { userData } = userRes.data;
         setUserData(userData);
+        // a successful user-info means we're authenticated → enable normal
+        // (non-guest) interaction so in-app modals/buttons aren't intercepted.
+        if (userData) setLoggedIn(true);
 
         if (userData) {
           await saveToIndexedDB("user-data", userData);
           if (userData?.plans) await saveToIndexedDB("plans", userData.plans);
           if (userData?.name) localStorage.setItem("userName", userData.name);
+          // silently warm the Drive token so background auto-backups work
+          // without any popup for already-connected users.
+          if (isDriveConfigured()) warmDriveConnection();
         }
 
         const result = await fetchAccountsAndTrades();
@@ -155,9 +162,20 @@ export default function Dashboard() {
         sameSite: "Strict",
         expires: 365000,
       });
+      // mark as logged in immediately so the guest click-guard doesn't
+      // intercept onboarding (Next/Finish) right after signup.
+      setLoggedIn(true);
       // brand-new Google signup → mark for onboarding
       if (params.get("newUser") === "1") {
         try { localStorage.setItem("jx-show-onboarding", "1"); } catch {}
+      }
+      // Fresh login/register: connect Google Drive now (alongside auth) so
+      // backups never prompt later. If already connected, just refresh the
+      // token silently. (If the browser blocks this popup, the first manual
+      // Backup click — a user gesture — will connect instead.)
+      if (isDriveConfigured()) {
+        if (isDriveConnected()) warmDriveConnection();
+        else connectDrive().catch(() => {});
       }
       window.history.replaceState({}, document.title, window.location.pathname);
     }

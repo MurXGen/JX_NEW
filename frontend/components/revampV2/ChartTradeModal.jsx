@@ -19,6 +19,7 @@ import Toast from "./Toast";
 import { toBinanceSymbol } from "@/utils/livePrice";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
+import { scheduleAutoBackup } from "@/utils/driveBackup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
@@ -311,6 +312,7 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
         u.trades = [...(u.trades || []), trade];
         await saveToIndexedDB("user-data", u);
       } catch {}
+      scheduleAutoBackup();
       onSaved?.(trade);
       flash("success", "Trade logged from chart");
       setTimeout(() => onClose?.(), 900);

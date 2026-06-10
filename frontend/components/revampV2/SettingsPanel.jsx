@@ -278,7 +278,9 @@ export default function SettingsPanel({ user }) {
   const doBackup = async () => {
     setBackingUp(true);
     try {
-      const when = await backupToDrive();
+      // interactive:true → uses the silent token when already connected (no
+      // popup); only prompts if Drive was never connected.
+      const when = await backupToDrive({ interactive: true });
       setLastBackup(when);
       flash("success", "Backup saved to Google Drive");
     } catch (e) {
@@ -297,7 +299,7 @@ export default function SettingsPanel({ user }) {
     if (!window.confirm("Restore will replace your current local data with your last Google Drive backup. Continue?")) return;
     setRestoring(true);
     try {
-      const { restoredAt } = await restoreFromDrive();
+      const { restoredAt } = await restoreFromDrive({ interactive: true });
       setLastRestore(restoredAt);
       flash("success", "Data restored from Drive — reloading…");
       setTimeout(() => window.location.reload(), 1200);
@@ -306,9 +308,11 @@ export default function SettingsPanel({ user }) {
         "danger",
         e.message === "no-backup"
           ? "No backup found on your Drive yet"
-          : e.message === "not-configured"
-            ? "Google Drive backup isn't configured yet"
-            : e.message || "Restore failed — try again",
+          : e.message === "in-progress"
+            ? "A restore is already running"
+            : e.message === "not-configured"
+              ? "Google Drive backup isn't configured yet"
+              : e.message || "Restore failed — try again",
       );
     } finally {
       setRestoring(false);

@@ -18,6 +18,7 @@ import Button from "./Button";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
+import { scheduleAutoBackup } from "@/utils/driveBackup";
 import { getPlanRules } from "@/utils/planRestrictions";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -190,6 +191,9 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
       } catch (e) {
         console.error("IndexedDB sync failed:", e);
       }
+
+      // one background Drive backup after the whole import (debounced, silent)
+      scheduleAutoBackup();
 
       onImported?.(trades);
       flash("success", `${trades.length} trades imported`);

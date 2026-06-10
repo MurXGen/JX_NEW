@@ -32,6 +32,7 @@ import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { canAddTrade, getPlanRules } from "@/utils/planRestrictions";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
+import { scheduleAutoBackup } from "@/utils/driveBackup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -592,6 +593,9 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
       } catch (e) {
         console.error("IndexedDB sync failed:", e);
       }
+
+      // background Drive backup (debounced, silent, no loader)
+      scheduleAutoBackup();
 
       onSaved?.(trade, { updated: isEdit });
       onSubmit?.(trade);
