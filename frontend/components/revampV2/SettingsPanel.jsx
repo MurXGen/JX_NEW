@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { LogOut, Upload, X } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import Dropdown from "./Dropdown";
@@ -14,6 +14,7 @@ import XpCard from "./XpCard";
 import PlanLimitsCard from "./PlanLimitsCard";
 import { useTheme } from "./Sidebar";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { backupToDrive, restoreFromDrive, isDriveConfigured } from "@/utils/driveBackup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const CURRENCIES = ["USD", "USDT", "EUR", "INR", "GBP"];
@@ -77,6 +78,36 @@ function Avatar({ url, name, size = 40 }) {
   );
 }
 
+/* Resize + compress an image File into a small JPEG data URL so the avatar
+   works and persists entirely client-side (no backend dependency). */
+function compressImage(file, max = 256, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read failed"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("decode failed"));
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 /* ---------------- avatar upload modal ---------------- */
 function AvatarModal({ open, currentUrl, name, onClose, onSaved }) {
   const fileRef = useRef(null);
@@ -98,16 +129,33 @@ function AvatarModal({ open, currentUrl, name, onClose, onSaved }) {
     if (!file) return setError("Choose an image first");
     setSaving(true);
     try {
-      const fd = new FormData();
-      fd.append("avatar", file);
-      const res = await axios.put(`${API_BASE}/api/auth/update-profile`, fd, { withCredentials: true });
-      onSaved?.(res.data?.profile);
+      // Always produce a compressed local data URL so the photo is saved
+      // and shown even if the backend upload isn't available.
+      let dataUrl = "";
+      try {
+        dataUrl = await compressImage(file, 256, 0.85);
+      } catch {
+        dataUrl = preview || "";
+      }
+
+      // Best-effort server upload (keeps cross-device sync when supported).
+      let serverUrl = "";
+      try {
+        const fd = new FormData();
+        fd.append("avatar", file);
+        const res = await axios.put(`${API_BASE}/api/auth/update-profile`, fd, { withCredentials: true });
+        serverUrl = res.data?.profile?.avatarUrl || "";
+      } catch (e) {
+        console.warn("Avatar server upload unavailable, using local image:", e?.message);
+      }
+
+      onSaved?.({ avatarUrl: serverUrl || dataUrl });
       setFile(null);
       setPreview(null);
       onClose?.();
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Upload failed — try again");
+      setError("Upload failed — try again");
     } finally {
       setSaving(false);
     }
@@ -191,12 +239,20 @@ export default function SettingsPanel({ user }) {
   const [autoSync, setAutoSync] = useState(true);
   const [lastSync, setLastSync] = useState(null);
 
+  /* backup & restore (Google Drive) */
+  const driveReady = isDriveConfigured();
+  const [lastBackup, setLastBackup] = useState(null);
+  const [lastRestore, setLastRestore] = useState(null);
+  const [backingUp, setBackingUp] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
   useEffect(() => {
     (async () => {
       try {
         const userData = await getFromIndexedDB("user-data");
         setAccounts(userData?.accounts || []);
-        if (userData?.avatarUrl && !user?.avatarUrl) setAvatarUrl(userData.avatarUrl);
+        const cachedAvatar = userData?.avatarUrl || (typeof window !== "undefined" && localStorage.getItem("jx-avatar")) || "";
+        if (cachedAvatar && !user?.avatarUrl) setAvatarUrl(cachedAvatar);
       } catch {}
     })();
     if (user?.name) {
@@ -209,7 +265,55 @@ export default function SettingsPanel({ user }) {
     setBinanceConnected(!!localStorage.getItem("binance_api_key"));
     setAutoSync(localStorage.getItem("binance_auto_sync") !== "0");
     setLastSync(localStorage.getItem("binance_last_sync"));
+    setLastBackup(localStorage.getItem("jx-last-backup"));
+    setLastRestore(localStorage.getItem("jx-last-restore"));
   }, [user]);
+
+  const fmtWhen = (iso) => {
+    if (!iso) return "Never";
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "Never" : d.toLocaleString();
+  };
+
+  const doBackup = async () => {
+    setBackingUp(true);
+    try {
+      const when = await backupToDrive();
+      setLastBackup(when);
+      flash("success", "Backup saved to Google Drive");
+    } catch (e) {
+      flash(
+        "danger",
+        e.message === "not-configured"
+          ? "Google Drive backup isn't configured yet"
+          : e.message || "Backup failed — try again",
+      );
+    } finally {
+      setBackingUp(false);
+    }
+  };
+
+  const doRestore = async () => {
+    if (!window.confirm("Restore will replace your current local data with your last Google Drive backup. Continue?")) return;
+    setRestoring(true);
+    try {
+      const { restoredAt } = await restoreFromDrive();
+      setLastRestore(restoredAt);
+      flash("success", "Data restored from Drive — reloading…");
+      setTimeout(() => window.location.reload(), 1200);
+    } catch (e) {
+      flash(
+        "danger",
+        e.message === "no-backup"
+          ? "No backup found on your Drive yet"
+          : e.message === "not-configured"
+            ? "Google Drive backup isn't configured yet"
+            : e.message || "Restore failed — try again",
+      );
+    } finally {
+      setRestoring(false);
+    }
+  };
 
   const saveProfile = async () => {
     if (!name.trim()) return flash("danger", "Name can't be empty");
@@ -236,11 +340,16 @@ export default function SettingsPanel({ user }) {
   };
 
   const onAvatarSaved = async (profile) => {
-    setAvatarUrl(profile?.avatarUrl || "");
+    const url = profile?.avatarUrl || "";
+    setAvatarUrl(url);
     try {
       const userData = (await getFromIndexedDB("user-data")) || {};
-      await saveToIndexedDB("user-data", { ...userData, avatarUrl: profile?.avatarUrl });
+      await saveToIndexedDB("user-data", { ...userData, avatarUrl: url });
     } catch {}
+    try {
+      if (url) localStorage.setItem("jx-avatar", url);
+    } catch {}
+    window.dispatchEvent(new CustomEvent("jx-avatar-changed", { detail: url }));
     flash("success", "Profile photo updated");
   };
 
@@ -399,6 +508,58 @@ export default function SettingsPanel({ user }) {
             <input value="Fixed fractional" disabled readOnly />
           </div>
         </Row>
+      </div>
+
+      {/* ===== Backup & restore (Google Drive) ===== */}
+      <div className="jx-card">
+        <div className="jx-card__title">Backup &amp; restore</div>
+        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
+          Save a private copy of your journal to your Google Drive, and restore it on any device.
+        </div>
+
+        <Row title="Back up to Google Drive" sub={`Last backup: ${fmtWhen(lastBackup)}`}>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={CloudUpload}
+            onClick={doBackup}
+            disabled={!driveReady || backingUp || restoring}
+          >
+            {backingUp ? <><Spinner /> Backing up…</> : "Back up now"}
+          </Button>
+        </Row>
+
+        <Row title="Restore from Google Drive" sub={`Last restore: ${fmtWhen(lastRestore)}`}>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={CloudDownload}
+            onClick={doRestore}
+            disabled={!driveReady || backingUp || restoring}
+          >
+            {restoring ? <><Spinner /> Restoring…</> : "Restore"}
+          </Button>
+        </Row>
+
+        {!driveReady && (
+          <div
+            style={{
+              marginTop: "var(--space-2)",
+              padding: "var(--space-3)",
+              borderRadius: "var(--radius-md)",
+              background: "var(--color-bg-muted)",
+              border: "1px solid var(--color-border)",
+              font: "var(--text-caption)",
+              color: "var(--color-text-muted)",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <HardDriveDownload size={14} />
+            Google Drive backup isn&apos;t configured yet. Add a Google OAuth Client ID to enable it.
+          </div>
+        )}
       </div>
 
       {/* ===== Notifications (disabled) ===== */}
