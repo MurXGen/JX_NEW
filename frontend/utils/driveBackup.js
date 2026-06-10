@@ -26,7 +26,12 @@ const FILE_NAME = "journalx-backup.json";
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 const CONNECTED_KEY = "jx-drive-connected";
 
-export const isDriveConfigured = () => !!CLIENT_ID;
+/* Master switch — Drive backup is disabled for now. Flip to true (and make
+   sure the Drive API is enabled on the Google Cloud project) to re-enable the
+   Settings card, background auto-backup, and login-time connect. */
+const BACKUP_ENABLED = false;
+
+export const isDriveConfigured = () => BACKUP_ENABLED && !!CLIENT_ID;
 export const isDriveConnected = () => {
   try { return localStorage.getItem(CONNECTED_KEY) === "1"; } catch { return false; }
 };
@@ -83,7 +88,7 @@ let tokenExp = 0;
 
 async function getValidToken({ interactive } = {}) {
   if (cachedToken && Date.now() < tokenExp - 60000) return cachedToken;
-  if (!CLIENT_ID) throw new Error("not-configured");
+  if (!isDriveConfigured()) throw new Error("not-configured");
   await loadGis();
   try {
     const resp = await requestToken(""); // silent
@@ -104,26 +109,37 @@ async function getValidToken({ interactive } = {}) {
 /* Explicitly connect (used at login/register or first manual action). Shows the
    Google consent popup if needed; resolves true once connected. */
 export async function connectDrive() {
-  if (!CLIENT_ID) return false;
+  if (!isDriveConfigured()) return false;
   try { await getValidToken({ interactive: true }); return true; }
   catch { return false; }
 }
 
 /* Silently warm the connection on load — no popup. Returns true if connected. */
 export async function warmDriveConnection() {
-  if (!CLIENT_ID) return false;
+  if (!isDriveConfigured()) return false;
   try { await getValidToken({ interactive: false }); return true; }
   catch { return false; }
 }
 
 /* ---------- Drive REST ---------- */
+/* surface the real Google error (status + message) instead of a generic one */
+async function driveError(res, fallback) {
+  let detail = "";
+  try {
+    const body = await res.json();
+    detail = body?.error?.message || body?.error_description || "";
+  } catch {}
+  const msg = `${fallback} (${res.status}${detail ? `: ${detail}` : ""})`;
+  return new Error(msg);
+}
+
 async function findBackupFile(token) {
   const url =
     "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder" +
     `&q=${encodeURIComponent(`name='${FILE_NAME}'`)}` +
     "&fields=files(id,modifiedTime)&pageSize=1";
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  if (!res.ok) throw new Error("Could not read Drive");
+  if (!res.ok) throw await driveError(res, "Could not read Drive");
   const json = await res.json();
   return json.files && json.files[0];
 }
@@ -150,7 +166,7 @@ async function uploadBackup(token, existingId, contentString) {
     },
     body,
   });
-  if (!res.ok) throw new Error("Backup upload failed");
+  if (!res.ok) throw await driveError(res, "Backup upload failed");
   return res.json();
 }
 
@@ -172,7 +188,7 @@ function dedupeUserData(data) {
 
 /* ---------- public: backup ---------- */
 export async function backupToDrive({ interactive = false } = {}) {
-  if (!CLIENT_ID) throw new Error("not-configured");
+  if (!isDriveConfigured()) throw new Error("not-configured");
   const token = await getValidToken({ interactive });
 
   const userData = dedupeUserData((await getFromIndexedDB("user-data")) || {});
@@ -196,7 +212,7 @@ export async function backupToDrive({ interactive = false } = {}) {
 let backupTimer = null;
 let backupInFlight = false;
 export function scheduleAutoBackup(delay = 4000) {
-  if (typeof window === "undefined" || !CLIENT_ID) return;
+  if (typeof window === "undefined" || !isDriveConfigured()) return;
   if (!isDriveConnected()) return; // only once the user has connected Drive
   clearTimeout(backupTimer);
   backupTimer = setTimeout(async () => {
@@ -211,7 +227,7 @@ export function scheduleAutoBackup(delay = 4000) {
 /* ---------- public: restore (replace + dedupe, guarded) ---------- */
 let restoreInProgress = false;
 export async function restoreFromDrive({ interactive = true } = {}) {
-  if (!CLIENT_ID) throw new Error("not-configured");
+  if (!isDriveConfigured()) throw new Error("not-configured");
   if (restoreInProgress) throw new Error("in-progress");
   restoreInProgress = true;
   try {
@@ -223,7 +239,7 @@ export async function restoreFromDrive({ interactive = true } = {}) {
       `https://www.googleapis.com/drive/v3/files/${existing.id}?alt=media`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
-    if (!res.ok) throw new Error("Could not download backup");
+    if (!res.ok) throw await driveError(res, "Could not download backup");
     const parsed = await res.json();
     const data = dedupeUserData(parsed && parsed.data);
     if (!data) throw new Error("Backup is empty or invalid");

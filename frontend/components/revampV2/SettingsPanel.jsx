@@ -515,6 +515,7 @@ export default function SettingsPanel({ user }) {
       </div>
 
       {/* ===== Backup & restore (Google Drive) ===== */}
+      {driveReady && (
       <div className="jx-card">
         <div className="jx-card__title">Backup &amp; restore</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
@@ -565,6 +566,7 @@ export default function SettingsPanel({ user }) {
           </div>
         )}
       </div>
+      )}
 
       {/* ===== Notifications (disabled) ===== */}
       <div className="jx-card" style={{ position: "relative" }}>
