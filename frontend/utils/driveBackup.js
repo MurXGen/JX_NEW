@@ -26,26 +26,37 @@ const FILE_NAME = "journalx-backup.json";
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 const CONNECTED_KEY = "jx-drive-connected";
 
-/* Master switch — Drive backup is disabled for now. Flip to true (and make
-   sure the Drive API is enabled on the Google Cloud project) to re-enable the
+/* Master switch — Drive backup is enabled (Drive API enabled + OAuth app
+   published on the Google Cloud project). Set to false to fully disable the
    Settings card, background auto-backup, and login-time connect. */
 const BACKUP_ENABLED = false;
 
 export const isDriveConfigured = () => BACKUP_ENABLED && !!CLIENT_ID;
 export const isDriveConnected = () => {
-  try { return localStorage.getItem(CONNECTED_KEY) === "1"; } catch { return false; }
+  try {
+    return localStorage.getItem(CONNECTED_KEY) === "1";
+  } catch {
+    return false;
+  }
 };
-const markConnected = () => { try { localStorage.setItem(CONNECTED_KEY, "1"); } catch {} };
+const markConnected = () => {
+  try {
+    localStorage.setItem(CONNECTED_KEY, "1");
+  } catch {}
+};
 
 /* ---------- GIS loader ---------- */
 let gisPromise = null;
 function loadGis() {
-  if (typeof window === "undefined") return Promise.reject(new Error("no-window"));
+  if (typeof window === "undefined")
+    return Promise.reject(new Error("no-window"));
   if (window.google?.accounts?.oauth2) return Promise.resolve();
   if (gisPromise) return gisPromise;
   gisPromise = new Promise((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = GIS_SRC; s.async = true; s.defer = true;
+    s.src = GIS_SRC;
+    s.async = true;
+    s.defer = true;
     s.onload = () => resolve();
     s.onerror = () => reject(new Error("Could not load Google sign-in"));
     document.head.appendChild(s);
@@ -57,7 +68,8 @@ function loadGis() {
    prompt:undefined = default (consent popup the first time). */
 function requestToken(prompt) {
   return new Promise((resolve, reject) => {
-    if (!window.google?.accounts?.oauth2) return reject(new Error("GIS not ready"));
+    if (!window.google?.accounts?.oauth2)
+      return reject(new Error("GIS not ready"));
     let settled = false;
     try {
       const client = window.google.accounts.oauth2.initTokenClient({
@@ -75,7 +87,9 @@ function requestToken(prompt) {
       });
       client.requestAccessToken(prompt !== undefined ? { prompt } : {});
       // guard: if GIS never calls back (e.g. silent with no grant), fail fast
-      setTimeout(() => { if (!settled) reject(new Error("auth-timeout")); }, 60000);
+      setTimeout(() => {
+        if (!settled) reject(new Error("auth-timeout"));
+      }, 60000);
     } catch (e) {
       reject(e);
     }
@@ -110,15 +124,23 @@ async function getValidToken({ interactive } = {}) {
    Google consent popup if needed; resolves true once connected. */
 export async function connectDrive() {
   if (!isDriveConfigured()) return false;
-  try { await getValidToken({ interactive: true }); return true; }
-  catch { return false; }
+  try {
+    await getValidToken({ interactive: true });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /* Silently warm the connection on load — no popup. Returns true if connected. */
 export async function warmDriveConnection() {
   if (!isDriveConfigured()) return false;
-  try { await getValidToken({ interactive: false }); return true; }
-  catch { return false; }
+  try {
+    await getValidToken({ interactive: false });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /* ---------- Drive REST ---------- */
@@ -138,7 +160,9 @@ async function findBackupFile(token) {
     "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder" +
     `&q=${encodeURIComponent(`name='${FILE_NAME}'`)}` +
     "&fields=files(id,modifiedTime)&pageSize=1";
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   if (!res.ok) throw await driveError(res, "Could not read Drive");
   const json = await res.json();
   return json.files && json.files[0];
@@ -148,7 +172,11 @@ async function uploadBackup(token, existingId, contentString) {
   const boundary = "jxbnd" + Math.random().toString(16).slice(2);
   const metadata = existingId
     ? { name: FILE_NAME, mimeType: "application/json" }
-    : { name: FILE_NAME, mimeType: "application/json", parents: ["appDataFolder"] };
+    : {
+        name: FILE_NAME,
+        mimeType: "application/json",
+        parents: ["appDataFolder"],
+      };
   const body =
     `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
     JSON.stringify(metadata) +
@@ -203,7 +231,9 @@ export async function backupToDrive({ interactive = false } = {}) {
   await uploadBackup(token, existing && existing.id, payload);
 
   const when = new Date().toISOString();
-  try { localStorage.setItem("jx-last-backup", when); } catch {}
+  try {
+    localStorage.setItem("jx-last-backup", when);
+  } catch {}
   window.dispatchEvent(new CustomEvent("jx-backup-done", { detail: when }));
   return when;
 }
@@ -218,9 +248,13 @@ export function scheduleAutoBackup(delay = 4000) {
   backupTimer = setTimeout(async () => {
     if (backupInFlight) return;
     backupInFlight = true;
-    try { await backupToDrive({ interactive: false }); }
-    catch { /* silent — auto-backup must never disturb the user */ }
-    finally { backupInFlight = false; }
+    try {
+      await backupToDrive({ interactive: false });
+    } catch {
+      /* silent — auto-backup must never disturb the user */
+    } finally {
+      backupInFlight = false;
+    }
   }, delay);
 }
 
@@ -253,7 +287,11 @@ export async function restoreFromDrive({ interactive = true } = {}) {
       if (data.name) localStorage.setItem("userName", data.name);
       if (data.avatarUrl) localStorage.setItem("jx-avatar", data.avatarUrl);
     } catch {}
-    return { restoredAt, savedAt: parsed.savedAt || null, trades: (data.trades || []).length };
+    return {
+      restoredAt,
+      savedAt: parsed.savedAt || null,
+      trades: (data.trades || []).length,
+    };
   } finally {
     restoreInProgress = false;
   }

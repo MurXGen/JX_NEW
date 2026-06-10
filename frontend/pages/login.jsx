@@ -48,7 +48,8 @@ function GoogleButton() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [step, setStep] = useState("login"); // login | otp
+  const [step, setStep] = useState("login"); // login | codeRequest | otp
+  const [otpMode, setOtpMode] = useState("verify"); // verify (unverified acct) | login (passwordless)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -57,6 +58,9 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [captchaToken, setCaptchaToken] = useState("");
+  const [codeCaptcha, setCodeCaptcha] = useState(""); // captcha for "send login code"
+  const [otpCaptcha, setOtpCaptcha] = useState(""); // captcha for verifying the login code
+  const [otpCaptchaKey, setOtpCaptchaKey] = useState(0); // bump to refresh the otp captcha
   const [toast, setToast] = useState(null);
   const flash = (type, msg, ms = 3500) => {
     setToast({ type, msg });
@@ -99,6 +103,7 @@ export default function LoginPage() {
       if (err.response?.status === 403 && data?.userId) {
         /* not verified yet → OTP step */
         setOtpUserId(data.userId);
+        setOtpMode("verify");
         setStep("otp");
         try {
           await axios.post(`${API_BASE}/api/auth/resend-otp`, { userId: data.userId }, { withCredentials: true });
@@ -115,15 +120,54 @@ export default function LoginPage() {
     }
   };
 
+  // request a passwordless login code for an existing account
+  const requestLoginCode = async () => {
+    if (!email.trim()) return flash("danger", "Enter your email first");
+    if (!codeCaptcha) return flash("danger", "Please complete the captcha first");
+    setBusy(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE}/api/auth/login-otp/request`,
+        { email: email.trim(), turnstileToken: codeCaptcha },
+        { withCredentials: true },
+      );
+      setOtpUserId(res.data?.userId);
+      setOtpMode("login");
+      setOtp("");
+      setOtpCaptcha("");
+      setStep("otp");
+      setCooldown(60);
+      flash("success", "We emailed you a login code");
+    } catch (err) {
+      flash("danger", err.response?.data?.message || "Could not send code");
+      setCodeCaptcha(""); // force a fresh captcha on retry
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const submitOtp = async () => {
     if (otp.length !== 6) return flash("danger", "Enter the 6-digit code");
     setBusy(true);
     try {
-      await axios.post(`${API_BASE}/api/auth/verify-otp`, { userId: otpUserId, otp }, { withCredentials: true });
-      flash("success", "Email verified — welcome back!");
-      setTimeout(() => finishLogin(null), 700);
+      if (otpMode === "login") {
+        if (!otpCaptcha) { setBusy(false); return flash("danger", "Please complete the captcha first"); }
+        const res = await axios.post(
+          `${API_BASE}/api/auth/login-otp/verify`,
+          { userId: otpUserId, otp, turnstileToken: otpCaptcha },
+          { withCredentials: true },
+        );
+        flash("success", "Welcome back!");
+        setTimeout(() => finishLogin(res.data?.userData), 700);
+      } else {
+        await axios.post(`${API_BASE}/api/auth/verify-otp`, { userId: otpUserId, otp }, { withCredentials: true });
+        flash("success", "Email verified — welcome back!");
+        setTimeout(() => finishLogin(null), 700);
+      }
     } catch (err) {
       flash("danger", err.response?.data?.message || "Invalid code");
+      // login captcha tokens are single-use — refresh after a failed attempt
+      if (otpMode === "login") { setOtpCaptcha(""); setOtpCaptchaKey((k) => k + 1); }
     } finally {
       setBusy(false);
     }
@@ -131,9 +175,20 @@ export default function LoginPage() {
 
   const resend = async () => {
     try {
-      const res = await axios.post(`${API_BASE}/api/auth/resend-otp`, { userId: otpUserId }, { withCredentials: true });
-      setCooldown(60);
-      flash("success", `Code resent${res.data?.remaining != null ? ` · ${res.data.remaining} left` : ""}`);
+      if (otpMode === "login") {
+        if (!otpCaptcha) return flash("danger", "Please complete the captcha first");
+        const res = await axios.post(`${API_BASE}/api/auth/login-otp/request`, { email: email.trim(), turnstileToken: otpCaptcha }, { withCredentials: true });
+        if (res.data?.userId) setOtpUserId(res.data.userId);
+        setCooldown(60);
+        // consumed the token — refresh so the verify step gets a fresh one
+        setOtpCaptcha("");
+        setOtpCaptchaKey((k) => k + 1);
+        flash("success", "Login code resent");
+      } else {
+        const res = await axios.post(`${API_BASE}/api/auth/resend-otp`, { userId: otpUserId }, { withCredentials: true });
+        setCooldown(60);
+        flash("success", `Code resent${res.data?.remaining != null ? ` · ${res.data.remaining} left` : ""}`);
+      }
     } catch (err) {
       flash("danger", err.response?.data?.message || "Could not resend");
     }
@@ -152,8 +207,14 @@ export default function LoginPage() {
         <meta name="twitter:title" content="JournalX Login — Sign In to Your Trading Journal" />
       </Head>
       <AuthLayout
-        title={step === "login" ? "Welcome back" : "Check your email"}
-        subtitle={step === "login" ? "Log in to your trading journal" : `We sent a 6-digit code to ${email}`}
+        title={step === "login" ? "Welcome back" : step === "codeRequest" ? "Log in with a code" : "Check your email"}
+        subtitle={
+          step === "login"
+            ? "Log in to your trading journal"
+            : step === "codeRequest"
+              ? "We'll email you a one-time login code — no password needed"
+              : `We sent a 6-digit code to ${email}`
+        }
       >
       <Toast toast={toast} />
       <AnimatePresence mode="wait">
@@ -207,11 +268,58 @@ export default function LoginPage() {
 
             <GoogleButton />
 
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => { setOtpMode("login"); setOtp(""); setStep("codeRequest"); }}
+              style={{ width: "100%", justifyContent: "center" }}
+            >
+              Log in with an email code
+            </Button>
+
             <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", textAlign: "center" }}>
               New to JournalX?{" "}
               <a href="/register" style={{ color: "var(--yellow-600)", fontWeight: 600, textDecoration: "none" }}>Create an account</a>
             </span>
           </motion.form>
+        ) : step === "codeRequest" ? (
+          <motion.div
+            key="codeRequest"
+            initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
+            transition={{ duration: 0.18 }}
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+          >
+            <div className="jx-field">
+              <label className="jx-field__label">Email</label>
+              <div className="jx-input">
+                <span className="jx-input__icon"><Mail size={15} /></span>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && requestLoginCode()}
+                />
+              </div>
+            </div>
+
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setCodeCaptcha(token)}
+              onExpire={() => setCodeCaptcha("")}
+              onError={() => setCodeCaptcha("")}
+              options={{ size: "flexible" }}
+            />
+
+            <Button variant="primary" disabled={busy || !email.trim() || !codeCaptcha} onClick={requestLoginCode} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
+              {busy ? <><Spinner /> Sending…</> : "Send login code"}
+            </Button>
+
+            <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setStep("login"); setOtp(""); setCodeCaptcha(""); }} style={{ alignSelf: "center" }}>
+              <ArrowLeft size={14} /> Back to password login
+            </button>
+          </motion.div>
         ) : (
           <motion.div
             key="otp"
@@ -220,11 +328,21 @@ export default function LoginPage() {
             style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
           >
             <OtpInput value={otp} onChange={setOtp} />
-            <Button variant="primary" disabled={busy || otp.length !== 6} onClick={submitOtp} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
+            {otpMode === "login" && (
+              <Turnstile
+                key={otpCaptchaKey}
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setOtpCaptcha(token)}
+                onExpire={() => setOtpCaptcha("")}
+                onError={() => setOtpCaptcha("")}
+                options={{ size: "flexible" }}
+              />
+            )}
+            <Button variant="primary" disabled={busy || otp.length !== 6 || (otpMode === "login" && !otpCaptcha)} onClick={submitOtp} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
               {busy ? <><Spinner /> Verifying…</> : "Verify & log in"}
             </Button>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setStep("login"); setOtp(""); }}>
+              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setStep(otpMode === "login" ? "codeRequest" : "login"); setOtp(""); }}>
                 <ArrowLeft size={14} /> Back
               </button>
               <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={resend} disabled={cooldown > 0}>

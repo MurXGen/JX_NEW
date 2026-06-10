@@ -12,7 +12,7 @@ const emailVerificationSchema = new mongoose.Schema(
     otpHash: { type: String, required: true }, // store hashed OTP
     purpose: {
       type: String,
-      enum: ["verify", "reset"],
+      enum: ["verify", "reset", "login"],
       default: "verify",
       index: true,
     },

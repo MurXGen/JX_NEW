@@ -5,6 +5,8 @@ const {
   loginUser,
   verifyOtp,
   resendOtp,
+  requestLoginOtp,
+  verifyLoginOtp,
   userFetchGoogleAuth,
   updateSubscription,
   activateTrial,
@@ -46,6 +48,10 @@ router.post("/login", loginUser);
 router.post("/verify-otp", verifyOtp);
 
 router.post("/resend-otp", resendOtp);
+
+// 📌 v2: Passwordless login via email OTP (existing accounts, manual or Google)
+router.post("/login-otp/request", createLimiter(10), requestLoginOtp);
+router.post("/login-otp/verify", createLimiter(20), verifyLoginOtp);
 
 // 📌 v2: Forgot / reset password (OTP over email)
 router.post("/forgot-password", createLimiter(10), requestPasswordReset);

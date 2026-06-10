@@ -672,12 +672,123 @@ const activateTrial = async (req, res) => {
   }
 };
 
+// 🔹 v2: LOGIN WITH OTP — request a one-time code for an existing account
+// (works for both password and Google accounts).
+const requestLoginOtp = async (req, res) => {
+  try {
+    const { email, turnstileToken } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!isHuman)
+      return res
+        .status(403)
+        .json({ message: "Captcha verification failed. Refresh and try again" });
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "No account found with that email. Please register first." });
+    }
+
+    // throttle using the existing login record's cooldown
+    const existing = await EmailVerification.findOne({
+      userId: user._id,
+      purpose: "login",
+    });
+    if (existing?.nextResendAllowedAt > new Date()) {
+      return res
+        .status(429)
+        .json({ message: "Please wait a moment before requesting another code." });
+    }
+    if (existing) await EmailVerification.deleteOne({ _id: existing._id });
+
+    const otp = await generateOTP();
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    await EmailVerification.create({
+      userId: user._id,
+      otpHash,
+      purpose: "login",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+      nextResendAllowedAt: new Date(Date.now() + 60 * 1000), // 60s cooldown
+    });
+
+    await sendOtpEmail({ to: user.email, otp, name: user.name });
+    return res.json({ message: "Login code sent to your email", userId: user._id });
+  } catch (err) {
+    console.error("Login OTP request error:", err.message);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// 🔹 v2: LOGIN WITH OTP — verify the code and start a session
+const verifyLoginOtp = async (req, res) => {
+  try {
+    const { userId, otp, turnstileToken } = req.body;
+    if (!userId || !otp) return res.status(400).json({ message: "Code is required" });
+
+    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!isHuman)
+      return res
+        .status(403)
+        .json({ message: "Captcha verification failed. Refresh and try again" });
+
+    const rec = await EmailVerification.findOne({ userId, purpose: "login" });
+    if (!rec)
+      return res.status(400).json({ message: "No login request found — request a new code" });
+    if (rec.expiresAt < new Date()) {
+      await EmailVerification.deleteOne({ _id: rec._id });
+      return res.status(400).json({ message: "Code expired — request a new one" });
+    }
+
+    const otpHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
+    if (otpHash !== rec.otpHash) {
+      rec.attempts = (rec.attempts || 0) + 1;
+      await rec.save();
+      if (rec.attempts >= 5) {
+        await EmailVerification.deleteOne({ _id: rec._id });
+        return res.status(429).json({ message: "Too many attempts — request a new code" });
+      }
+      return res.status(400).json({ message: "Invalid code" });
+    }
+
+    await EmailVerification.deleteOne({ _id: rec._id });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Account not found" });
+
+    // a valid email code proves ownership → ensure the account is verified
+    if (!user.isVerified) {
+      user.isVerified = true;
+      user.verifiedAt = new Date();
+      await user.save();
+    }
+
+    setUserIdCookie(res, user._id);
+    await sendTelegramNotification({
+      name: user.name,
+      email: user.email,
+      type: "login",
+      status: "success",
+    });
+
+    const userData = await getUserData(user);
+    return res.json({ message: "Login successful", isVerified: "yes", userData });
+  } catch (err) {
+    console.error("Login OTP verify error:", err.message);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   checkAuthStatus,
   resendOtp,
   verifyOtp,
+  requestLoginOtp,
+  verifyLoginOtp,
   userFetchGoogleAuth,
   updateSubscription,
   activateTrial,
