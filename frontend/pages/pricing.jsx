@@ -23,6 +23,7 @@ import { LandingNav, LandingFooter } from "@/components/landingPage/LandingChrom
 import {
   PLANS_FEATURES,
   getUserCurrency,
+  detectCurrencyByIP,
   buildPlansConfig,
   PLANS_CONFIG,
 } from "@/utils/plans";
@@ -38,7 +39,15 @@ export default function Pricing() {
 
   useEffect(() => {
     setIsClient(true);
+    // instant best-guess, then refine by IP-based location
     setCurrency(getUserCurrency());
+    let active = true;
+    detectCurrencyByIP().then((c) => {
+      if (active) setCurrency(c);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const plans = buildPlansConfig(currency);

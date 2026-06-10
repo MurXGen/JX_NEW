@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import Button from "./Button";
 import PaddleLoader from "@/components/payments/PaddleLoader";
-import { buildPlansConfig, getUserCurrency, PLANS_FEATURES } from "@/utils/plans";
+import { buildPlansConfig, getUserCurrency, detectCurrencyByIP, PLANS_FEATURES } from "@/utils/plans";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -71,6 +71,13 @@ export default function UpgradePanel({ currentPlan }) {
 
   useEffect(() => {
     setCurrency(getUserCurrency());
+    let active = true;
+    detectCurrencyByIP().then((c) => {
+      if (active) setCurrency(c);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const plans = buildPlansConfig(currency);

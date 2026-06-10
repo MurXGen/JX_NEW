@@ -3,9 +3,132 @@
 /* Shared chrome + body renderer for public blog pages and the
    dashboard Learn & News panel. */
 
-import { ArrowRight, Lightbulb, Sparkles, ThumbsUp, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, BarChart2, Check, CheckCircle2, Circle, HelpCircle, Lightbulb, RotateCcw, Sparkles, ThumbsUp, TrendingUp, X } from "lucide-react";
 
 const SITE_URL = "https://journalx.app";
+
+/* ===== Interactive activity blocks =====
+   A small game/quiz/poll/checklist a reader can play near the top of an
+   article. Driven entirely by the JSON `body` block, e.g.
+   { type:"activity", kind:"quiz", title, prompt, options, correct, explain }
+   { type:"activity", kind:"poll", title, prompt, options:[{label,response}] }
+   { type:"activity", kind:"checklist", title, prompt, items, bands:[{min,text}] } */
+function ActivityShell({ icon: Icon, title, children }) {
+  return (
+    <div className="jx-card" style={{ border: "1px solid var(--color-primary)", background: "var(--color-primary-subtle)", padding: "var(--space-5)", margin: "var(--space-2) 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "var(--space-3)" }}>
+        <span style={{ display: "inline-flex", width: 30, height: 30, borderRadius: 8, background: "var(--color-primary)", color: "var(--color-primary-foreground)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon size={16} />
+        </span>
+        <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: "var(--color-text-primary)" }}>{title}</span>
+        <span style={{ marginLeft: "auto", font: "var(--text-caption)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "var(--yellow-600)", background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: 999, padding: "3px 10px" }}>
+          Interactive
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function QuizActivity({ block }) {
+  const [sel, setSel] = useState(null);
+  const done = sel !== null;
+  const right = done && sel === block.correct;
+  return (
+    <ActivityShell icon={HelpCircle} title={block.title || "Quick challenge"}>
+      <p style={{ margin: "0 0 var(--space-3)", font: "var(--text-body)", color: "var(--color-text-primary)", fontWeight: 600 }}>{block.prompt}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {block.options.map((opt, i) => {
+          const chosen = sel === i;
+          const isCorrect = i === block.correct;
+          let border = "1px solid var(--color-border)";
+          let bg = "var(--color-bg-surface)";
+          if (done && isCorrect) { border = "1px solid var(--color-success)"; bg = "var(--color-success-subtle)"; }
+          else if (chosen && !isCorrect) { border = "1px solid var(--color-danger)"; bg = "var(--color-danger-subtle)"; }
+          return (
+            <button key={i} type="button" disabled={done} onClick={() => setSel(i)}
+              style={{ display: "flex", alignItems: "center", gap: 10, textAlign: "left", border, background: bg, color: "var(--color-text-primary)", borderRadius: "var(--radius-md)", padding: "12px 14px", font: "var(--text-body)", cursor: done ? "default" : "pointer", width: "100%" }}>
+              <span style={{ flex: 1 }}>{opt}</span>
+              {done && isCorrect && <Check size={16} style={{ color: "var(--color-success-strong)" }} />}
+              {chosen && !isCorrect && <X size={16} style={{ color: "var(--color-danger-strong)" }} />}
+            </button>
+          );
+        })}
+      </div>
+      {done && (
+        <p style={{ margin: "var(--space-3) 0 0", font: "var(--text-body)", color: "var(--color-text-secondary)" }}>
+          <strong style={{ color: right ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>{right ? "Correct — " : "Not quite — "}</strong>
+          {block.explain}
+        </p>
+      )}
+    </ActivityShell>
+  );
+}
+
+function PollActivity({ block }) {
+  const [sel, setSel] = useState(null);
+  return (
+    <ActivityShell icon={BarChart2} title={block.title || "Quick poll"}>
+      <p style={{ margin: "0 0 var(--space-3)", font: "var(--text-body)", color: "var(--color-text-primary)", fontWeight: 600 }}>{block.prompt}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {block.options.map((opt, i) => {
+          const chosen = sel === i;
+          return (
+            <button key={i} type="button" onClick={() => setSel(i)}
+              style={{ textAlign: "left", border: chosen ? "1px solid var(--color-primary)" : "1px solid var(--color-border)", background: chosen ? "var(--color-primary-subtle)" : "var(--color-bg-surface)", color: "var(--color-text-primary)", borderRadius: "var(--radius-md)", padding: "12px 14px", font: "var(--text-body)", cursor: "pointer", width: "100%" }}>
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+      {sel !== null && (
+        <p style={{ margin: "var(--space-3) 0 0", font: "var(--text-body)", color: "var(--color-text-secondary)" }}>
+          {block.options[sel].response}
+        </p>
+      )}
+    </ActivityShell>
+  );
+}
+
+function ChecklistActivity({ block }) {
+  const [checked, setChecked] = useState(() => new Set());
+  const toggle = (i) => setChecked((prev) => {
+    const next = new Set(prev);
+    next.has(i) ? next.delete(i) : next.add(i);
+    return next;
+  });
+  const n = checked.size;
+  const bands = [...(block.bands || [])].sort((a, b) => a.min - b.min);
+  const band = bands.filter((b) => n >= b.min).pop();
+  return (
+    <ActivityShell icon={CheckCircle2} title={block.title || "Score yourself"}>
+      <p style={{ margin: "0 0 var(--space-3)", font: "var(--text-body)", color: "var(--color-text-primary)", fontWeight: 600 }}>{block.prompt}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {block.items.map((it, i) => {
+          const on = checked.has(i);
+          return (
+            <button key={i} type="button" onClick={() => toggle(i)}
+              style={{ display: "flex", alignItems: "center", gap: 10, textAlign: "left", border: on ? "1px solid var(--color-success)" : "1px solid var(--color-border)", background: on ? "var(--color-success-subtle)" : "var(--color-bg-surface)", color: "var(--color-text-primary)", borderRadius: "var(--radius-md)", padding: "12px 14px", font: "var(--text-body)", cursor: "pointer", width: "100%" }}>
+              {on ? <CheckCircle2 size={16} style={{ color: "var(--color-success-strong)", flexShrink: 0 }} /> : <Circle size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />}
+              <span style={{ flex: 1 }}>{it}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ marginTop: "var(--space-3)", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: "var(--color-text-primary)" }}>{n} / {block.items.length}</span>
+        {band && <span style={{ font: "var(--text-body)", color: "var(--color-text-secondary)" }}>{band.text}</span>}
+      </div>
+    </ActivityShell>
+  );
+}
+
+function ActivityBlock({ block }) {
+  if (block.kind === "poll") return <PollActivity block={block} />;
+  if (block.kind === "checklist") return <ChecklistActivity block={block} />;
+  return <QuizActivity block={block} />;
+}
 
 export function BlogTopbar() {
   return (
@@ -41,6 +164,8 @@ export function BlogBody({ body = [] }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", font: "var(--text-body-lg)", color: "var(--color-text-secondary)" }}>
       {body.map((block, i) => {
+        if (block.type === "activity")
+          return <ActivityBlock key={i} block={block} />;
         if (block.type === "h2")
           return <h2 key={i} style={{ font: "var(--text-h2)", color: "var(--color-text-primary)", margin: "var(--space-3) 0 0" }}>{block.text}</h2>;
         if (block.type === "quote")

@@ -36,6 +36,9 @@ export const PRICE_LABELS = {
   INR: { free: "₹0", monthly: "₹149", yearly: "₹1,499", lifetime: "₹7,999" },
 };
 
+/* Quick, synchronous best-guess from the browser locale/timezone. Used for
+   the very first client render so prices appear instantly, before the more
+   accurate IP lookup resolves. Also the offline fallback. */
 export const getUserCurrency = () => {
   if (typeof window === "undefined") return "USD";
   const locale = navigator.language || "";
@@ -44,6 +47,38 @@ export const getUserCurrency = () => {
   if (timeZone.includes("Asia/Calcutta") || timeZone.includes("Asia/Kolkata")) return "INR";
   return "USD";
 };
+
+/* Accurate location-based currency: looks up the visitor's country by IP and
+   returns INR for India, USD for everywhere else. Falls back to the
+   locale/timezone guess if the lookup fails or is blocked. Always wrapped in
+   try/catch so pricing never breaks if the geo service is unavailable. */
+export async function detectCurrencyByIP() {
+  if (typeof window === "undefined") return "USD";
+
+  const fetchCountry = async (url, pick) => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      if (!res.ok) return "";
+      const data = await res.json();
+      return String(pick(data) || "").toUpperCase();
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  try {
+    // primary provider
+    let cc = await fetchCountry("https://ipapi.co/json/", (d) => d.country_code || d.country);
+    // fallback provider if the first returns nothing
+    if (!cc) cc = await fetchCountry("https://ipwho.is/", (d) => d.country_code);
+    if (cc) return cc === "IN" || cc === "IND" ? "INR" : "USD";
+  } catch {
+    /* network blocked / aborted — fall through to heuristic */
+  }
+  return getUserCurrency();
+}
 
 /* Build the plan config for a given currency. Defaults to USD so SSR and the
    first client render match (avoids hydration mismatch). */
