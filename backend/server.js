@@ -17,6 +17,7 @@ const bookxTelegram = require("./routes/bookxTelegram");
 const paddleRoute = require("./routes/paddleWebhook");
 const thebookxpayments = require("./routes/thebookxpayments");
 const integrationsRoutes = require("./routes/integrations");
+const supportRoutes = require("./routes/support");
 
 // Rate limiter
 const createLimiter = require("./utils/rateLimiter");
@@ -100,6 +101,7 @@ app.use("/api/trades", createLimiter(40), tradeRoutes);
 const { revenuecatWebhook } = require("./controllers/revenuecatController");
 app.post("/api/payments/revenuecat/webhook", express.json(), revenuecatWebhook);
 app.use("/api/integrations", integrationsRoutes);
+app.use("/api/support", supportRoutes);
 
 app.use(
   "/api/payments/webhook",

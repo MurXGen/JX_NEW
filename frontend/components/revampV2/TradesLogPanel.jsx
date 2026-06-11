@@ -107,7 +107,7 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            className="jx-dd__panel"
+            className="jx-dd__panel jx-row-menu__panel"
             style={{ left: "auto", right: 0, minWidth: 160 }}
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

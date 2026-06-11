@@ -35,19 +35,40 @@ const GOOGLE_FORM = {
   },
 };
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { LifeBuoy, Send, X } from "lucide-react";
+import { Clock, LifeBuoy, Loader2, Send, X } from "lucide-react";
 import Button from "./Button";
 
 const CATEGORIES = ["Support", "Feedback", "Bug report", "Feature request", "Other"];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function SupportModal({ open, onClose, user, plan = "free" }) {
   const [category, setCategory] = useState("Support");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("idle"); // idle | sending | done | error
+  const [tickets, setTickets] = useState([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
 
   const configured = Boolean(GOOGLE_FORM.actionUrl && GOOGLE_FORM.entries.message);
+
+  // load the user's open (unresolved) tickets from the support sheet
+  const loadTickets = useCallback(async () => {
+    setLoadingTickets(true);
+    try {
+      const r = await fetch(`${API_BASE}/api/support/tickets`, { credentials: "include" });
+      const d = await r.json();
+      setTickets(Array.isArray(d?.tickets) ? d.tickets : []);
+    } catch {
+      setTickets([]);
+    } finally {
+      setLoadingTickets(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) loadTickets();
+  }, [open, loadTickets]);
 
   const reset = () => {
     setCategory("Support");
@@ -92,6 +113,8 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
         window.open(`mailto:officialjournalx@gmail.com?subject=${subject}&body=${body}`, "_blank");
       }
       setStatus("done");
+      // the Form → Sheet write takes a moment to land; refresh the list shortly
+      setTimeout(loadTickets, 4000);
     } catch {
       setStatus("error");
     }
@@ -150,6 +173,31 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
               </div>
             ) : (
               <form onSubmit={submit} style={{ padding: "var(--space-5) var(--space-6) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                {/* the user's open (unresolved) requests, from the support sheet */}
+                {(loadingTickets || tickets.length > 0) && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", padding: "var(--space-3)", borderRadius: "var(--radius-md)", background: "var(--color-bg-muted)", border: "1px solid var(--color-border)" }}>
+                    <span style={{ font: "var(--text-small)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                      <Clock size={13} /> Your open requests
+                      {loadingTickets && <Loader2 size={12} className="jx-spin" style={{ marginLeft: 4 }} />}
+                    </span>
+                    {tickets.map((tk, i) => (
+                      <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2, padding: "8px 10px", borderRadius: "var(--radius-sm)", background: "var(--color-bg-surface)", border: "1px solid var(--color-border)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {tk.category ? <span className="jx-badge jx-badge--neutral">{tk.category}</span> : null}
+                          <span style={{ marginLeft: "auto", font: "var(--text-caption)", color: "var(--yellow-500)", fontWeight: 600 }}>Pending review</span>
+                        </div>
+                        <span style={{ font: "var(--text-small)", color: "var(--color-text-secondary)" }}>{tk.message}</span>
+                        {tk.date ? <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{tk.date}</span> : null}
+                      </div>
+                    ))}
+                    {!loadingTickets && (
+                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                        A request disappears here once our team responds to it.
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
                   <label style={{ font: "var(--text-body-md)", fontWeight: 600 }}>What&apos;s this about?</label>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
