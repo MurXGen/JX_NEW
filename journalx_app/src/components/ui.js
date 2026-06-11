@@ -9,8 +9,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CheckCircle2, AlertCircle, Info as InfoIcon } from "lucide-react-native";
 import { MotionView } from "./motion";
 import { useTheme } from "../theme/ThemeProvider";
+import { font } from "../theme/typography";
 
 export function Card({ children, style, flat }) {
   const { theme } = useTheme();
@@ -78,7 +80,7 @@ export function Button({
       ) : (
         <>
           {Icon ? <Icon size={18} color={p.fg} /> : null}
-          <Text style={{ color: p.fg, fontWeight: "600", fontSize: theme.font.body }}>
+          <Text style={{ color: p.fg, fontFamily: font(600), fontSize: theme.font.body }}>
             {title}
           </Text>
         </>
@@ -92,7 +94,7 @@ export function Field({ label, children }) {
   return (
     <View style={{ gap: 6 }}>
       {label ? (
-        <Text style={{ color: theme.text.secondary, fontSize: theme.font.small, fontWeight: "600" }}>
+        <Text style={{ color: theme.text.secondary, fontSize: theme.font.small, fontFamily: font(600) }}>
           {label}
         </Text>
       ) : null}
@@ -118,6 +120,7 @@ export function Input({ value, onChangeText, placeholder, ...rest }) {
         paddingVertical: 12,
         color: theme.text.primary,
         fontSize: theme.font.body,
+        fontFamily: font(400),
       }}
       {...rest}
     />
@@ -135,7 +138,7 @@ export function Badge({ children, tone = "neutral" }) {
   const t = tones[tone] || tones.neutral;
   return (
     <View style={{ backgroundColor: t.bg, borderRadius: theme.radius.pill, paddingHorizontal: 10, paddingVertical: 3, alignSelf: "flex-start" }}>
-      <Text style={{ color: t.fg, fontSize: theme.font.caption, fontWeight: "700" }}>{children}</Text>
+      <Text style={{ color: t.fg, fontSize: theme.font.caption, fontFamily: font(700) }}>{children}</Text>
     </View>
   );
 }
@@ -151,36 +154,40 @@ export function Toast({ toast }) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   if (!toast) return null;
-  const colors = {
-    success: theme.success,
-    danger: theme.danger,
-    info: theme.primary,
+  const map = {
+    success: { color: theme.success, Icon: CheckCircle2 },
+    danger: { color: theme.danger, Icon: AlertCircle },
+    info: { color: theme.yellow[400], Icon: InfoIcon },
   };
-  const accent = colors[toast.type] || theme.borderStrong;
+  const { color, Icon } = map[toast.type] || map.info;
   return (
     <MotionView
       style={{
         position: "absolute",
-        // sit below the status bar / notch so the text is never hidden
         top: insets.top + 10,
         left: 16,
         right: 16,
         zIndex: 1000,
         elevation: 24,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
         backgroundColor: theme.bg.elevated,
-        borderColor: accent,
+        borderColor: theme.border,
         borderWidth: 1,
-        borderLeftWidth: 4,
-        borderRadius: theme.radius.md,
-        paddingVertical: 14,
-        paddingHorizontal: 16,
+        borderRadius: 14,
+        paddingVertical: 13,
+        paddingHorizontal: 14,
         shadowColor: "#000",
-        shadowOpacity: 0.18,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.16,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 8 },
       }}
     >
-      <Text style={{ color: theme.text.primary, fontSize: theme.font.body, fontWeight: "600" }}>
+      <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: `${color}22`, alignItems: "center", justifyContent: "center" }}>
+        <Icon size={17} color={color} />
+      </View>
+      <Text style={{ flex: 1, color: theme.text.primary, fontSize: theme.font.small, fontFamily: font(500), lineHeight: 19 }}>
         {toast.msg}
       </Text>
     </MotionView>
@@ -189,9 +196,9 @@ export function Toast({ toast }) {
 
 export function H1({ children, style }) {
   const { theme } = useTheme();
-  return <Text style={[{ color: theme.text.primary, fontSize: theme.font.h2, fontWeight: "700" }, style]}>{children}</Text>;
+  return <Text style={[{ color: theme.text.primary, fontSize: theme.font.h2, fontFamily: font(700) }, style]}>{children}</Text>;
 }
 export function Muted({ children, style }) {
   const { theme } = useTheme();
-  return <Text style={[{ color: theme.text.muted, fontSize: theme.font.body }, style]}>{children}</Text>;
+  return <Text style={[{ color: theme.text.muted, fontSize: theme.font.body, fontFamily: font(400) }, style]}>{children}</Text>;
 }

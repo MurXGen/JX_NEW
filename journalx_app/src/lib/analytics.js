@@ -51,6 +51,33 @@ export function computeStats(trades = []) {
 
   const biggestWin = wins.length ? Math.max(...wins.map((t) => t.pnl)) : 0;
 
+  // max drawdown from the equity curve (peak-to-valley)
+  let peak = 0;
+  let maxDD = 0;
+  equity.forEach((v) => {
+    if (v > peak) peak = v;
+    maxDD = Math.max(maxDD, peak - v);
+  });
+
+  // trading sessions by open-time UTC hour
+  const SESS = [
+    { id: "asia", label: "Asia", lo: 0, hi: 8 },
+    { id: "london", label: "London", lo: 8, hi: 13 },
+    { id: "newyork", label: "New York", lo: 13, hi: 21 },
+    { id: "sydney", label: "Sydney", lo: 21, hi: 24 },
+  ].map((s) => ({ ...s, pnl: 0, n: 0 }));
+  closed.forEach((t) => {
+    const d = new Date(t.openTime || t.closeTime);
+    if (Number.isNaN(d.getTime())) return;
+    const h = d.getUTCHours();
+    const s = SESS.find((x) => h >= x.lo && h < x.hi);
+    if (s) { s.pnl += t.pnl; s.n += 1; }
+  });
+  const sessionsHaveData = SESS.some((s) => s.n > 0);
+  const bestSession = sessionsHaveData
+    ? SESS.filter((s) => s.n > 0).reduce((m, s) => (s.pnl > m.pnl ? s : m))
+    : null;
+
   return {
     n,
     net,
@@ -64,5 +91,9 @@ export function computeStats(trades = []) {
     dowHasData,
     streak,
     biggestWin,
+    maxDD,
+    sessions: SESS,
+    sessionsHaveData,
+    bestSession,
   };
 }

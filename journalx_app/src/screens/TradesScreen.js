@@ -6,6 +6,8 @@ import { ChevronDown, Plus, TrendingDown, TrendingUp } from "lucide-react-native
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
 import { H1, Muted, Badge, Card } from "../components/ui";
+import { font } from "../theme/typography";
+import { money } from "../lib/format";
 
 function JournalSwitcher() {
   const { theme } = useTheme();
@@ -83,13 +85,39 @@ export default function TradesScreen({ navigation }) {
   const { theme } = useTheme();
   const { trades, currentAccount, refresh } = useApp();
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState("all"); // all | win | loss
 
   const sorted = [...trades].sort(
     (a, b) => new Date(b.closeTime || b.openTime || 0) - new Date(a.closeTime || a.openTime || 0),
   );
+  const filtered = sorted.filter((t) => {
+    const pnl = Number(t.pnl) || 0;
+    if (filter === "win") return pnl > 0;
+    if (filter === "loss") return pnl < 0;
+    return true;
+  });
   const currency = currentAccount?.currency === "INR" ? "₹" : "$";
+  const net = filtered.reduce((s, t) => s + (Number(t.pnl) || 0), 0);
 
   const onRefresh = async () => { setRefreshing(true); await refresh(); setRefreshing(false); };
+
+  const Chip = ({ id, label }) => {
+    const active = filter === id;
+    return (
+      <Pressable
+        onPress={() => setFilter(id)}
+        style={{
+          paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999,
+          backgroundColor: active ? theme.primary : theme.bg.muted,
+          borderColor: active ? theme.primary : theme.border, borderWidth: 1,
+        }}
+      >
+        <Text style={{ fontFamily: font(600), fontSize: theme.font.small, color: active ? theme.primaryText : theme.text.secondary }}>
+          {label}
+        </Text>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg.canvas }} edges={["top"]}>
@@ -101,14 +129,25 @@ export default function TradesScreen({ navigation }) {
             style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: theme.primary, borderRadius: theme.radius.md, paddingHorizontal: 14, paddingVertical: 9 }}
           >
             <Plus size={16} color={theme.primaryText} />
-            <Text style={{ color: theme.primaryText, fontWeight: "700" }}>Log</Text>
+            <Text style={{ color: theme.primaryText, fontFamily: font(700) }}>Log</Text>
           </Pressable>
         </View>
         <JournalSwitcher />
+
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Chip id="all" label="All" />
+            <Chip id="win" label="Wins" />
+            <Chip id="loss" label="Losses" />
+          </View>
+          <Text style={{ fontFamily: font(700), fontSize: theme.font.body, color: net >= 0 ? theme.successStrong : theme.dangerStrong }}>
+            {money(net, currency)}
+          </Text>
+        </View>
       </View>
 
       <FlatList
-        data={sorted}
+        data={filtered}
         keyExtractor={(t, i) => t._id || String(i)}
         contentContainerStyle={{ paddingHorizontal: theme.space[5], paddingBottom: theme.space[8] }}
         renderItem={({ item, index }) => (
