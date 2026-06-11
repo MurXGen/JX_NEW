@@ -9,6 +9,7 @@ const Plan = require("../models/Plan");
 const getUserData = require("../utils/getUserData");
 const axios = require("axios");
 const { sendTelegramNotification } = require("../utils/telegramNotifier");
+const { signAppToken } = require("../utils/appToken");
 
 const detectCurrencyFromTimezone = (timezone) => {
   if (!timezone) return "USD";
@@ -16,6 +17,12 @@ const detectCurrencyFromTimezone = (timezone) => {
 };
 
 const SALT_ROUNDS = 10;
+
+// App clients (native mobile) skip the web-only Turnstile and are gated by
+// Google Play Integrity instead. TODO: verify a Play Integrity token here.
+function isAppClient(req) {
+  return req && req.headers && req.headers["x-app-client"] === "1";
+}
 
 async function verifyTurnstileToken(token, ip) {
   if (!token) return false;
@@ -209,11 +216,13 @@ const loginUser = async (req, res) => {
   const { email, password, turnstileToken } = req.body;
 
   try {
-    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
-    if (!isHuman)
-      return res.status(403).json({
-        message: "Captcha verification failed. Refresh and try again",
-      });
+    if (!isAppClient(req)) {
+      const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+      if (!isHuman)
+        return res.status(403).json({
+          message: "Captcha verification failed. Refresh and try again",
+        });
+    }
 
     if (!validateEmailCredentials(email, password, res)) return;
 
@@ -250,6 +259,7 @@ const loginUser = async (req, res) => {
       message: "Login successful",
       isVerified: "yes",
       userData,
+      token: signAppToken(user._id), // used by the mobile app; web ignores it
     });
   } catch (err) {
     console.error("Login Error:", err.message);
@@ -298,7 +308,7 @@ const verifyOtp = async (req, res) => {
     // Optionally set cookie to log in immediately
     setUserIdCookie(res, userId);
 
-    return res.json({ message: "Email verified" });
+    return res.json({ message: "Email verified", token: signAppToken(userId) });
   } catch (err) {
     return res.status(500).json({ message: "Server error" });
   }
@@ -679,11 +689,13 @@ const requestLoginOtp = async (req, res) => {
     const { email, turnstileToken } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
-    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
-    if (!isHuman)
-      return res
-        .status(403)
-        .json({ message: "Captcha verification failed. Refresh and try again" });
+    if (!isAppClient(req)) {
+      const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+      if (!isHuman)
+        return res
+          .status(403)
+          .json({ message: "Captcha verification failed. Refresh and try again" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -728,11 +740,13 @@ const verifyLoginOtp = async (req, res) => {
     const { userId, otp, turnstileToken } = req.body;
     if (!userId || !otp) return res.status(400).json({ message: "Code is required" });
 
-    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
-    if (!isHuman)
-      return res
-        .status(403)
-        .json({ message: "Captcha verification failed. Refresh and try again" });
+    if (!isAppClient(req)) {
+      const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+      if (!isHuman)
+        return res
+          .status(403)
+          .json({ message: "Captcha verification failed. Refresh and try again" });
+    }
 
     const rec = await EmailVerification.findOne({ userId, purpose: "login" });
     if (!rec)
@@ -774,9 +788,100 @@ const verifyLoginOtp = async (req, res) => {
     });
 
     const userData = await getUserData(user);
-    return res.json({ message: "Login successful", isVerified: "yes", userData });
+    return res.json({
+      message: "Login successful",
+      isVerified: "yes",
+      userData,
+      token: signAppToken(user._id),
+    });
   } catch (err) {
     console.error("Login OTP verify error:", err.message);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// 🔹 v2: NATIVE GOOGLE SIGN-IN (mobile app)
+// The app obtains a Google ID token via @react-native-google-signin and posts
+// it here. We verify it with Google, find/create the user (same defaults as
+// the web OAuth flow), and return an app JWT + userData.
+const googleNativeAuth = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ message: "idToken is required" });
+
+    // verify the token directly with Google (no extra dependency needed)
+    let payload;
+    try {
+      const { data } = await axios.get(
+        "https://oauth2.googleapis.com/tokeninfo",
+        { params: { id_token: idToken } },
+      );
+      payload = data;
+    } catch {
+      return res.status(401).json({ message: "Invalid Google token" });
+    }
+
+    const email = payload.email;
+    const emailVerified = payload.email_verified === "true" || payload.email_verified === true;
+    if (!email || !emailVerified) {
+      return res.status(401).json({ message: "Google email not verified" });
+    }
+
+    // optional audience check against our known client IDs
+    const allowedAud = [
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_ANDROID_CLIENT_ID,
+      process.env.GOOGLE_WEB_CLIENT_ID,
+    ].filter(Boolean);
+    if (allowedAud.length && payload.aud && !allowedAud.includes(payload.aud)) {
+      return res.status(401).json({ message: "Token audience mismatch" });
+    }
+
+    let user = await User.findOne({ email });
+    let isNewUser = false;
+    if (!user) {
+      isNewUser = true;
+      const now = new Date();
+      const expiry = new Date(now);
+      expiry.setDate(expiry.getDate() + 7);
+      user = await User.create({
+        name: payload.name || email.split("@")[0],
+        email,
+        googleId: payload.sub,
+        subscriptionPlan: "pro",
+        subscriptionStatus: "active",
+        subscriptionType: "one-time",
+        subscriptionStartAt: now,
+        subscriptionExpiresAt: expiry,
+        subscriptionCreatedAt: now,
+        isVerified: true,
+      });
+      const defaultAccount = new Account({
+        userId: user._id,
+        name: "Default Journal",
+        currency: "USD",
+        startingBalance: { amount: 0, time: new Date() },
+      });
+      await defaultAccount.save();
+    } else if (!user.googleId) {
+      user.googleId = payload.sub;
+      if (!user.isVerified) {
+        user.isVerified = true;
+        user.verifiedAt = new Date();
+      }
+      await user.save();
+    }
+
+    const userData = await getUserData(user);
+    return res.json({
+      message: "Login successful",
+      isVerified: "yes",
+      isNewUser,
+      userData,
+      token: signAppToken(user._id),
+    });
+  } catch (err) {
+    console.error("Native Google auth error:", err.message);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -789,6 +894,7 @@ module.exports = {
   verifyOtp,
   requestLoginOtp,
   verifyLoginOtp,
+  googleNativeAuth,
   userFetchGoogleAuth,
   updateSubscription,
   activateTrial,

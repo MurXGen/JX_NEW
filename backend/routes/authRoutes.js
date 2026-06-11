@@ -7,6 +7,7 @@ const {
   resendOtp,
   requestLoginOtp,
   verifyLoginOtp,
+  googleNativeAuth,
   userFetchGoogleAuth,
   updateSubscription,
   activateTrial,
@@ -52,6 +53,9 @@ router.post("/resend-otp", resendOtp);
 // 📌 v2: Passwordless login via email OTP (existing accounts, manual or Google)
 router.post("/login-otp/request", createLimiter(10), requestLoginOtp);
 router.post("/login-otp/verify", createLimiter(20), verifyLoginOtp);
+
+// 📌 Mobile app: native Google sign-in (verifies Google ID token → app JWT)
+router.post("/google/native", createLimiter(20), googleNativeAuth);
 
 // 📌 v2: Forgot / reset password (OTP over email)
 router.post("/forgot-password", createLimiter(10), requestPasswordReset);

@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "JournalX",
+    "slug": "journalx",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "journalx",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0d1117"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.journalx.mobile"
+    },
+    "android": {
+      "package": "app.journalx.mobile"
+    },
+    "plugins": ["expo-secure-store", "@react-native-google-signin/google-signin"],
+    "extra": {
+      "apiBase": "https://api.journalx.app",
+      "googleWebClientId": "785226561862-31c1s81vv7qsvq8da5d7bgd35rsttqpk.apps.googleusercontent.com",
+      "revenueCatAndroidKey": "REPLACE_WITH_REVENUECAT_ANDROID_PUBLIC_SDK_KEY",
+      "proEntitlement": "pro"
+    }
+  }
+}

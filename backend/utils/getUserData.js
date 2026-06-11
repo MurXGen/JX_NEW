@@ -81,6 +81,7 @@ async function getUserData(user) {
       plan: user.subscriptionPlan,
       status: user.subscriptionStatus,
       type: user.subscriptionType,
+      source: user.subscriptionSource,
       startAt: user.subscriptionStartAt,
       expiresAt: user.subscriptionExpiresAt,
       createdAt: user.subscriptionCreatedAt,

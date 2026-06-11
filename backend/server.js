@@ -67,6 +67,11 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 
+/* Mobile app auth: if a valid app JWT is present (Authorization: Bearer …),
+   populate req.cookies.userId from it so all routes work for the app. The web
+   cookie flow is unaffected. Must run after cookieParser. */
+app.use(require("./middleware/bearerToCookie"));
+
 /* =======================
    PASSPORT
 ======================= */
@@ -89,6 +94,11 @@ mongoose
 app.use("/api/auth", createLimiter(20), authRoutes);
 app.use("/api/account", createLimiter(20), accountRoutes);
 app.use("/api/trades", createLimiter(40), tradeRoutes);
+
+// RevenueCat (Google Play subscriptions) webhook — keeps subscription state in
+// sync with in-app purchases from the mobile app.
+const { revenuecatWebhook } = require("./controllers/revenuecatController");
+app.post("/api/payments/revenuecat/webhook", express.json(), revenuecatWebhook);
 app.use("/api/integrations", integrationsRoutes);
 
 app.use(

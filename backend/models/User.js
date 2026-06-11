@@ -65,6 +65,13 @@ const userSchema = new mongoose.Schema(
 
     paddleCustomerId: { type: String },
 
+    // where the active subscription was purchased (web Paddle, app Play, crypto)
+    subscriptionSource: {
+      type: String,
+      enum: ["paddle", "play", "crypto", "none"],
+      default: "none",
+    },
+
     lastBillingDate: { type: Date },
     nextBillingDate: { type: Date },
 
