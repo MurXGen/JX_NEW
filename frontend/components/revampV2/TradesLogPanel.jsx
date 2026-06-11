@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Download,
   Image as ImageIcon,
+  Loader2,
   MoreVertical,
   Pencil,
   Plus,
@@ -95,10 +96,11 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
     <span className="jx-dd" ref={ref} onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
-        className="jx-btn jx-btn--ghost jx-btn--sm"
-        style={{ padding: 5 }}
+        className="jx-btn jx-btn--secondary jx-btn--sm"
+        style={{ padding: 6, borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", background: "var(--color-bg-muted)" }}
         onClick={() => setOpen((o) => !o)}
         aria-label="Trade actions"
+        title="Edit, export or delete this trade"
       >
         <MoreVertical size={15} />
       </button>
@@ -133,7 +135,7 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
   const imgs = t.images?.length || 0;
   return (
     <div
-      className="jx-card"
+      className="jx-card jx-trade-card"
       onClick={() => (selectMode ? onToggleSelect() : onOpen?.(t))}
       style={{
         padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)",
@@ -181,6 +183,11 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
           {t.closeTime && new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
         <Badge variant={pnl >= 0 ? "success" : "danger"}>{pnl >= 0 ? "Win" : "Loss"}</Badge>
+        {!selectMode && (
+          <span title="Open details" style={{ display: "flex", alignItems: "center", color: "var(--yellow-500)" }}>
+            <ChevronRight size={18} strokeWidth={2.5} />
+          </span>
+        )}
       </div>
     </div>
   );
@@ -404,6 +411,14 @@ export default function TradesLogPanel({
   const [outcome, setOutcome] = useState("all");
   const [sort, setSort] = useState("newest");
   const [openTrade, setOpenTrade] = useState(null);
+  const [opening, setOpening] = useState(false);
+  // show an instant loader on click — the details modal (chart, etc.) mounts
+  // with a slight delay, so paint a spinner before it appears.
+  const handleOpen = (t) => {
+    setOpening(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => setOpenTrade(t)));
+  };
+  useEffect(() => { if (openTrade) setOpening(false); }, [openTrade]);
   const [showImport, setShowImport] = useState(false);
   const [showChartTrade, setShowChartTrade] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
@@ -759,7 +774,7 @@ export default function TradesLogPanel({
                         key={t._id || i}
                         t={t}
                         sym={currencySymbol}
-                        onOpen={setOpenTrade}
+                        onOpen={handleOpen}
                         selectMode={selectMode}
                         selected={selected.has(t._id)}
                         onToggleSelect={() => toggleSelect(t._id)}
@@ -803,7 +818,7 @@ export default function TradesLogPanel({
                     return (
                       <tr
                         key={t._id || i}
-                        onClick={() => (selectMode ? toggleSelect(t._id) : setOpenTrade(t))}
+                        onClick={() => (selectMode ? toggleSelect(t._id) : handleOpen(t))}
                         style={{ cursor: "pointer", background: selected.has(t._id) ? "var(--color-primary-subtle)" : undefined }}
                       >
                         {selectMode && (
@@ -839,12 +854,15 @@ export default function TradesLogPanel({
                         </td>
                         <td style={{ textAlign: "center" }}>
                           {!selectMode && (
-                            <RowMenu
-                              onEdit={() => setEditTrade(t)}
-                              onExport={() => askExport([t])}
-                              onShareCard={() => shareCard(t)}
-                              onDelete={() => askDelete([t])}
-                            />
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <RowMenu
+                                onEdit={() => setEditTrade(t)}
+                                onExport={() => askExport([t])}
+                                onShareCard={() => shareCard(t)}
+                                onDelete={() => askDelete([t])}
+                              />
+                              <ChevronRight size={16} strokeWidth={2.5} style={{ color: "var(--yellow-500)" }} />
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -857,6 +875,16 @@ export default function TradesLogPanel({
         </motion.div>
       </AnimatePresence>
       </>
+      )}
+
+      {/* instant loader while the details modal mounts */}
+      {opening && (
+        <div className="jx-modal-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+            <Loader2 size={30} className="jx-spin" style={{ color: "var(--yellow-500)" }} />
+            <span style={{ font: "var(--text-small)", color: "var(--color-text-secondary)" }}>Opening trade…</span>
+          </div>
+        </div>
       )}
 
       {/* Trade details (gamified) */}

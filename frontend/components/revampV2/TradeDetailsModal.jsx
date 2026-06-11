@@ -26,6 +26,7 @@ import Button from "./Button";
 import Dropdown from "./Dropdown";
 import TradeChartMarker from "./TradeChartMarker";
 import ChartTradeModal from "./ChartTradeModal";
+import TvChart from "./TvChart";
 import { getLivePrice } from "@/utils/livePrice";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getPlanRules, countChartLogsThisMonth, canChartLog, lockedChartTradeIds } from "@/utils/planRestrictions";
@@ -511,6 +512,18 @@ export default function TradeDetailsModal({
                     {t.learnings || "No notes were logged for this trade."}
                   </p>
                 </div>
+
+                {/* Live chart — works for any instrument (stocks, forex, XAUUSD,
+                    futures, indices, crypto) via TradingView */}
+                {(t.symbol || t.ticker) && (
+                  <div className="jx-card jx-card--flat">
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Live chart · {t.symbol || t.ticker}</span>
+                      <Badge variant="neutral">TradingView</Badge>
+                    </div>
+                    <TvChart symbol={t.symbol || t.ticker} height={420} />
+                  </div>
+                )}
 
                 {/* TradingView-marked chart (when sourced from TV / no screenshots) */}
                 {(t.source === "tradingview" || (t.tvChart && images.length === 0)) && (

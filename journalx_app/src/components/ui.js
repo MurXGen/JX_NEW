@@ -129,15 +129,17 @@ export function Input({ value, onChangeText, placeholder, ...rest }) {
 
 export function Badge({ children, tone = "neutral" }) {
   const { theme } = useTheme();
+  const brand = { bg: theme.accent.subtle, fg: theme.accent.text, border: theme.accent.border };
   const tones = {
     neutral: { bg: theme.bg.muted, fg: theme.text.secondary },
-    brand: { bg: theme.primarySubtle, fg: theme.yellow[600] },
+    brand,
     success: { bg: theme.successSubtle, fg: theme.successStrong },
     danger: { bg: theme.dangerSubtle, fg: theme.dangerStrong },
+    warn: brand,
   };
   const t = tones[tone] || tones.neutral;
   return (
-    <View style={{ backgroundColor: t.bg, borderRadius: theme.radius.pill, paddingHorizontal: 10, paddingVertical: 3, alignSelf: "flex-start" }}>
+    <View style={{ backgroundColor: t.bg, borderRadius: theme.radius.pill, paddingHorizontal: 10, paddingVertical: 3, alignSelf: "flex-start", borderWidth: t.border ? 1 : 0, borderColor: t.border || "transparent" }}>
       <Text style={{ color: t.fg, fontSize: theme.font.caption, fontFamily: font(700) }}>{children}</Text>
     </View>
   );

@@ -59,12 +59,18 @@ export function AppProvider({ children }) {
     }
   }, []);
 
+  // true only right after a brand-new registration (Google native isNewUser) —
+  // drives the one-time onboarding guide. Never set on a normal login.
+  const [justRegistered, setJustRegistered] = useState(false);
+  const clearJustRegistered = useCallback(() => setJustRegistered(false), []);
+
   // called by every successful auth path
-  const completeLogin = useCallback(async ({ token: t, userData: data }) => {
+  const completeLogin = useCallback(async ({ token: t, userData: data, isNewUser }) => {
     if (t) {
       await saveToken(t);
       setToken(t);
     }
+    if (isNewUser) setJustRegistered(true);
     if (data) {
       setUserData(data);
       await saveToStore(KEYS.userData, data);
@@ -79,6 +85,7 @@ export function AppProvider({ children }) {
     removeItem(KEYS.userData);
     setToken(null);
     setUserData(null);
+    setJustRegistered(false);
   }, []);
 
   // ---- subscription helper (status shown from the user data we already have) ----
@@ -136,6 +143,14 @@ export function AppProvider({ children }) {
     refresh().catch(() => {});
   }, [refresh]);
 
+  // replace the cached userData (e.g. after creating a journal, which returns
+  // the full refreshed userData from the backend)
+  const applyUserData = useCallback((data) => {
+    if (!data) return;
+    setUserData(data);
+    saveToStore(KEYS.userData, data);
+  }, []);
+
   const value = useMemo(
     () => ({
       booting,
@@ -148,11 +163,14 @@ export function AppProvider({ children }) {
       selectAccount,
       trades,
       addTradeLocal,
+      applyUserData,
       refresh,
       completeLogin,
       logout,
+      justRegistered,
+      clearJustRegistered,
     }),
-    [booting, token, userData, subscription, accounts, currentAccount, selectAccount, trades, addTradeLocal, refresh, completeLogin, logout],
+    [booting, token, userData, subscription, accounts, currentAccount, selectAccount, trades, addTradeLocal, applyUserData, refresh, completeLogin, logout, justRegistered, clearJustRegistered],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

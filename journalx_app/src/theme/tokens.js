@@ -55,6 +55,8 @@ export const lightTheme = {
   primarySubtle: "rgba(252,213,53,0.14)",
   successSubtle: "rgba(46,189,133,0.12)",
   dangerSubtle: "rgba(246,70,93,0.12)",
+  // readable brand accent for badges/text on LIGHT surfaces (dark gold + warm tint)
+  accent: { text: "#8a6300", subtle: "rgba(240,185,11,0.20)", border: "rgba(201,148,0,0.40)" },
 };
 
 export const darkTheme = {
@@ -79,6 +81,8 @@ export const darkTheme = {
   primarySubtle: "rgba(252,213,53,0.12)",
   successSubtle: "rgba(46,189,133,0.14)",
   dangerSubtle: "rgba(246,70,93,0.14)",
+  // brand accent on DARK surfaces — bright yellow reads well here
+  accent: { text: "#fcd535", subtle: "rgba(252,213,53,0.18)", border: "rgba(252,213,53,0.45)" },
 };
 
 export const getTheme = (mode) => (mode === "light" ? lightTheme : darkTheme);

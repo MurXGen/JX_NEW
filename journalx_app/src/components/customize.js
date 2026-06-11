@@ -71,7 +71,7 @@ export function CustomizeButton({ sections, hidden, onToggle, onReset }) {
               );
             })}
             <Pressable onPress={onReset} style={{ marginTop: theme.space[3], alignSelf: "flex-start" }}>
-              <Text style={{ fontFamily: font(600), fontSize: theme.font.small, color: theme.yellow[600] }}>Reset</Text>
+              <Text style={{ fontFamily: font(600), fontSize: theme.font.small, color: theme.accent.text }}>Reset</Text>
             </Pressable>
           </Pressable>
         </Pressable>

@@ -10,7 +10,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0d1117"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.journalx.mobile"
@@ -18,7 +20,11 @@
     "android": {
       "package": "app.journalx.mobile"
     },
-    "plugins": ["expo-secure-store", "@react-native-google-signin/google-signin"],
+    "plugins": [
+      "expo-secure-store",
+      "@react-native-google-signin/google-signin",
+      "expo-font"
+    ],
     "extra": {
       "apiBase": "https://api.journalx.app",
       "googleWebClientId": "785226561862-31c1s81vv7qsvq8da5d7bgd35rsttqpk.apps.googleusercontent.com",

@@ -856,6 +856,9 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
                               <input type="number" step="any" placeholder="1" value={form.leverage} onChange={(e) => set("leverage", e.target.value)} />
                               <span className="jx-input__addon">×</span>
                             </div>
+                            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: 4, display: "block" }}>
+                              Leave as 1 if you don&apos;t use leverage (spot). Entry &amp; exit are prices per unit — use the size USD toggle to enter a dollar amount.
+                            </span>
                           </Field>
                           <Field label="Fees">
                             <div style={{ display: "flex", gap: "var(--space-2)" }}>

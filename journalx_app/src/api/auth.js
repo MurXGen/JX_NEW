@@ -26,6 +26,9 @@ export const googleNative = (idToken) =>
 export const fetchUserInfo = () =>
   api.get("/auth/user-info").then((r) => r.data?.userData);
 
+export const updateProfile = (name, baseCurrency) =>
+  api.put("/auth/update-profile", { name, ...(baseCurrency ? { baseCurrency } : {}) }).then((r) => r.data);
+
 /*
  NOTE: password login + native Google also expect a Cloudflare Turnstile token
  on web. On the app we skip Turnstile and rely on Google Play Integrity instead

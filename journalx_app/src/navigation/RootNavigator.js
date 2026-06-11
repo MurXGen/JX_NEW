@@ -1,15 +1,17 @@
 import React from "react";
-import { View, ActivityIndicator } from "react-native";
-import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/native";
+import { Pressable, View, ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { NavigationContainer, DefaultTheme, DarkTheme, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { LayoutDashboard, ListChecks, Settings as SettingsIcon } from "lucide-react-native";
+import { CandlestickChart, LayoutDashboard, ListChecks, Settings as SettingsIcon, Zap } from "lucide-react-native";
 
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../theme/ThemeProvider";
 import LoginScreen from "../screens/LoginScreen";
 import OverviewScreen from "../screens/OverviewScreen";
 import TradesScreen from "../screens/TradesScreen";
+import MarketsScreen from "../screens/MarketsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import LogTradeScreen from "../screens/LogTradeScreen";
 import TradeDetailsScreen from "../screens/TradeDetailsScreen";
@@ -18,8 +20,31 @@ import UpgradeScreen from "../screens/UpgradeScreen";
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+/* center quick-log FAB (thunder), raised above the bar */
+function QuickFab() {
+  const { theme } = useTheme();
+  const navigation = useNavigation();
+  return (
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      <Pressable
+        onPress={() => navigation.navigate("LogTrade")}
+        style={{
+          width: 56, height: 56, borderRadius: 28, marginTop: -22,
+          backgroundColor: theme.primary, alignItems: "center", justifyContent: "center",
+          shadowColor: theme.primary, shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 8,
+          borderWidth: 3, borderColor: theme.bg.surface,
+        }}
+      >
+        <Zap size={24} color={theme.primaryText} fill={theme.primaryText} />
+      </Pressable>
+    </View>
+  );
+}
+
 function AppTabs() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const barHeight = 58 + insets.bottom;
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -29,20 +54,42 @@ function AppTabs() {
         tabBarStyle: {
           backgroundColor: theme.bg.surface,
           borderTopColor: theme.border,
+          borderTopWidth: 1,
+          height: barHeight,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 8),
+          elevation: 12,
+          shadowColor: "#000",
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: -2 },
         },
-        tabBarIcon: ({ color, size }) => {
-          const Icon =
-            route.name === "Overview"
-              ? LayoutDashboard
-              : route.name === "Trades"
-                ? ListChecks
-                : SettingsIcon;
-          return <Icon size={size} color={color} />;
+        tabBarLabelStyle: {
+          fontFamily: "Poppins_500Medium",
+          fontSize: 11,
+          marginTop: 2,
+        },
+        tabBarIconStyle: { marginTop: 2 },
+        tabBarIcon: ({ color, focused }) => {
+          const map = {
+            Overview: LayoutDashboard,
+            Trades: ListChecks,
+            Markets: CandlestickChart,
+            Settings: SettingsIcon,
+          };
+          const Icon = map[route.name] || LayoutDashboard;
+          return <Icon size={focused ? 23 : 21} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Overview" component={OverviewScreen} />
       <Tab.Screen name="Trades" component={TradesScreen} />
+      <Tab.Screen
+        name="Quick"
+        component={OverviewScreen}
+        options={{ tabBarButton: () => <QuickFab />, tabBarLabel: () => null }}
+      />
+      <Tab.Screen name="Markets" component={MarketsScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );

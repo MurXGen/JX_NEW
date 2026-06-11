@@ -14,6 +14,7 @@ import {
 
 import { ThemeProvider } from "./src/theme/ThemeProvider";
 import { AppProvider } from "./src/context/AppContext";
+import { TooltipProvider } from "./src/components/Tooltip";
 import RootNavigator from "./src/navigation/RootNavigator";
 
 // make Poppins the default font for every <Text> (per-component weights still
@@ -39,8 +40,10 @@ export default function App() {
       <SafeAreaProvider>
         <ThemeProvider>
           <AppProvider>
-            <StatusBar style="auto" />
-            <RootNavigator />
+            <TooltipProvider>
+              <StatusBar style="auto" />
+              <RootNavigator />
+            </TooltipProvider>
           </AppProvider>
         </ThemeProvider>
       </SafeAreaProvider>

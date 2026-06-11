@@ -5,12 +5,22 @@ import { Check, Crown, X } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
 import { Button, Card, H1, Muted, Badge, Toast } from "../components/ui";
+import { font } from "../theme/typography";
 import {
   isPurchasesAvailable,
   getProOffering,
   purchasePro,
   restorePurchases,
 } from "../lib/purchases";
+
+function SubRow({ theme, label, value, last }) {
+  return (
+    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomColor: theme.border, borderBottomWidth: last ? 0 : 1 }}>
+      <Text style={{ color: theme.text.muted, fontSize: theme.font.body }}>{label}</Text>
+      <Text style={{ color: theme.text.primary, fontSize: theme.font.body, fontFamily: font(700) }}>{value}</Text>
+    </View>
+  );
+}
 
 const PRO_FEATURES = [
   "Unlimited trades",
@@ -84,19 +94,50 @@ export default function UpgradeScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={{ padding: theme.space[5], paddingTop: 0, gap: theme.space[4] }}>
         {subscription.isPro ? (
-          <Card style={{ alignItems: "center", gap: 8 }}>
-            <Crown size={30} color={theme.yellow[400]} />
-            <Text style={{ color: theme.text.primary, fontSize: theme.font.h3, fontWeight: "700" }}>
-              You&apos;re on {subscription.plan === "lifetime" ? "Lifetime" : "Pro"}
-            </Text>
-            <Badge tone="success">{subscription.status}</Badge>
-            {subscription.expiresAt && subscription.plan !== "lifetime" && (
-              <Muted>Renews / expires {subscription.expiresAt.toLocaleDateString()}</Muted>
-            )}
-            {subscription.source === "paddle" && (
-              <Muted>Managed on the web (Paddle) — manage it there.</Muted>
-            )}
-          </Card>
+          <>
+            {/* status header */}
+            <Card style={{ padding: 0, overflow: "hidden" }}>
+              <View style={{ backgroundColor: theme.primarySubtle, padding: theme.space[5], alignItems: "center", gap: 6 }}>
+                <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: theme.bg.surface, alignItems: "center", justifyContent: "center" }}>
+                  <Crown size={28} color={theme.yellow[400]} />
+                </View>
+                <Text style={{ color: theme.text.primary, fontSize: theme.font.h3, fontFamily: "Poppins_700Bold" }}>
+                  You&apos;re on {subscription.plan === "lifetime" ? "Lifetime" : "Pro"}
+                </Text>
+                <Badge tone="success">{subscription.status}</Badge>
+              </View>
+              <View style={{ padding: theme.space[5] }}>
+                <SubRow theme={theme} label="Plan" value={subscription.plan === "lifetime" ? "Lifetime" : "Pro Monthly"} />
+                <SubRow theme={theme} label="Status" value={subscription.status} />
+                {subscription.plan !== "lifetime" && subscription.expiresAt && (
+                  <SubRow theme={theme} label="Renews / expires" value={subscription.expiresAt.toLocaleDateString()} />
+                )}
+                {subscription.daysLeft != null && subscription.plan !== "lifetime" && (
+                  <SubRow theme={theme} label="Days left" value={`${subscription.daysLeft}`} />
+                )}
+                <SubRow theme={theme} label="Billed via" value={subscription.source === "play" ? "Google Play" : subscription.source === "paddle" ? "Web (Paddle)" : "—"} last />
+              </View>
+            </Card>
+
+            {/* what's included */}
+            <Card>
+              <Text style={{ color: theme.text.primary, fontFamily: "Poppins_700Bold", fontSize: theme.font.title, marginBottom: theme.space[3] }}>Your plan includes</Text>
+              <View style={{ gap: 10 }}>
+                {PRO_FEATURES.map((f) => (
+                  <View key={f} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <Check size={16} color={theme.success} />
+                    <Text style={{ color: theme.text.secondary, fontSize: theme.font.body }}>{f}</Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
+
+            {subscription.source === "play" ? (
+              <Muted style={{ textAlign: "center" }}>Manage or cancel anytime in the Google Play Store → Subscriptions.</Muted>
+            ) : subscription.source === "paddle" ? (
+              <Muted style={{ textAlign: "center" }}>This subscription is managed on the web — manage it from journalx.app.</Muted>
+            ) : null}
+          </>
         ) : (
           <>
             <Card style={{ gap: theme.space[3] }}>
