@@ -14,6 +14,7 @@ import {
   Settings,
   Share2,
 } from "lucide-react";
+import { useSupportBadge } from "./useSupportBadge";
 
 /**
  * BottomBar — mobile-only bottom navigation (hidden on desktop).
@@ -34,9 +35,10 @@ const MORE = [
   { id: "settings", label: "Profile & settings", icon: Settings },
 ];
 
-export default function BottomBar({ active, onChange, onLogTrade, onSupport }) {
+export default function BottomBar({ active, onChange, onLogTrade, onSupport, user }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreActive = MORE.some((m) => m.id === active);
+  const { showDot: supportDot, markViewed: markSupportViewed } = useSupportBadge(user?.email);
 
   const go = (id) => {
     setMoreOpen(false);
@@ -45,8 +47,20 @@ export default function BottomBar({ active, onChange, onLogTrade, onSupport }) {
 
   const openSupport = () => {
     setMoreOpen(false);
+    markSupportViewed();
     onSupport?.();
   };
+
+  const RedDot = ({ offset = 2 }) => (
+    <span
+      aria-label="New response"
+      style={{
+        position: "absolute", top: offset, right: offset, width: 8, height: 8,
+        borderRadius: "50%", background: "var(--color-danger)",
+        border: "2px solid var(--color-bg-surface)",
+      }}
+    />
+  );
 
   const item = ({ id, label, icon: Icon }, isActive) => (
     <button
@@ -95,8 +109,12 @@ export default function BottomBar({ active, onChange, onLogTrade, onSupport }) {
                   type="button"
                   className="jx-dd__option"
                   onClick={openSupport}
+                  style={{ position: "relative" }}
                 >
                   <LifeBuoy size={16} /> Support &amp; feedback
+                  {supportDot && (
+                    <span style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: "var(--color-danger)" }} />
+                  )}
                 </button>
               )}
             </motion.div>
@@ -127,8 +145,12 @@ export default function BottomBar({ active, onChange, onLogTrade, onSupport }) {
           type="button"
           className={`jx-bottombar__item ${moreActive || moreOpen ? "jx-bottombar__item--active" : ""}`}
           onClick={() => setMoreOpen((o) => !o)}
+          style={{ position: "relative" }}
         >
-          <MoreHorizontal size={20} />
+          <span style={{ position: "relative", display: "inline-flex" }}>
+            <MoreHorizontal size={20} />
+            {supportDot && !moreOpen && <RedDot offset={-3} />}
+          </span>
           <span>More</span>
         </button>
       </nav>

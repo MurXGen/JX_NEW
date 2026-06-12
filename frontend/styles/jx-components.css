@@ -250,6 +250,143 @@
     transition: none;
   }
 }
+
+/* ============================================================
+   Premium glassmorphism — dashboard overview (scoped)
+   ============================================================ */
+.jx-overview-premium {
+  position: relative;
+  isolation: isolate;
+}
+/* soft ambient gradient glow behind the whole dashboard */
+.jx-overview-premium::before {
+  content: "";
+  position: absolute;
+  top: -70px;
+  left: -40px;
+  right: -40px;
+  height: 460px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 60% at 14% 0%, rgba(252, 213, 53, 0.20), transparent 60%),
+    radial-gradient(46% 56% at 88% 4%, rgba(99, 140, 255, 0.15), transparent 62%),
+    radial-gradient(42% 52% at 62% 0%, rgba(46, 189, 133, 0.12), transparent 60%);
+  filter: blur(22px);
+}
+/* frosted glass cards (light) */
+.jx-overview-premium .jx-card:not(.jx-card--flat) {
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.55));
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 10px 30px -8px rgba(15, 23, 41, 0.16),
+    0 2px 8px rgba(15, 23, 41, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.26s ease, border-color 0.26s ease;
+}
+.jx-overview-premium .jx-card:not(.jx-card--flat):hover {
+  transform: translateY(-2px);
+  border-color: rgba(252, 213, 53, 0.5);
+  box-shadow:
+    0 18px 46px -10px rgba(15, 23, 41, 0.22),
+    0 4px 12px rgba(15, 23, 41, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+/* nested flat cards: lighter frosted panel */
+.jx-overview-premium .jx-card--flat {
+  background: rgba(255, 255, 255, 0.4);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--radius-lg);
+}
+/* gradient greeting headline */
+.jx-overview-premium > div:first-child .jx-overview-greeting,
+.jx-overview-premium .jx-overview-greeting {
+  background: linear-gradient(92deg, var(--color-text-primary), var(--yellow-500));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ---- dark theme ---- */
+[data-theme="dark"] .jx-overview-premium::before {
+  background:
+    radial-gradient(50% 60% at 14% 0%, rgba(252, 213, 53, 0.16), transparent 60%),
+    radial-gradient(46% 56% at 88% 4%, rgba(99, 140, 255, 0.18), transparent 62%),
+    radial-gradient(42% 52% at 62% 0%, rgba(46, 189, 133, 0.13), transparent 60%);
+}
+[data-theme="dark"] .jx-overview-premium .jx-card:not(.jx-card--flat) {
+  background: linear-gradient(155deg, rgba(46, 51, 60, 0.74), rgba(28, 32, 38, 0.5));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 16px 40px -12px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .jx-overview-premium .jx-card:not(.jx-card--flat):hover {
+  border-color: rgba(252, 213, 53, 0.42);
+  box-shadow:
+    0 22px 56px -14px rgba(0, 0, 0, 0.62),
+    0 4px 14px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .jx-overview-premium .jx-card--flat {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+[data-theme="dark"] .jx-overview-premium .jx-overview-greeting {
+  background: linear-gradient(92deg, #ffffff, var(--yellow-300));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  .jx-overview-premium .jx-card {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Site-wide premium glass + gradient (applies to all pages)
+   ============================================================ */
+/* ambient gradient wash behind the whole app */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 46% at 6% 2%, rgba(252, 213, 53, 0.10), transparent 60%),
+    radial-gradient(40% 44% at 96% 0%, rgba(99, 140, 255, 0.08), transparent 62%),
+    radial-gradient(52% 50% at 50% 102%, rgba(46, 189, 133, 0.06), transparent 60%);
+}
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(38% 46% at 6% 2%, rgba(252, 213, 53, 0.09), transparent 60%),
+    radial-gradient(40% 44% at 96% 0%, rgba(99, 140, 255, 0.12), transparent 62%),
+    radial-gradient(52% 50% at 50% 102%, rgba(46, 189, 133, 0.08), transparent 60%);
+}
+/* frosted glass cards everywhere */
+.jx-card {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.56));
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(15, 23, 41, 0.07);
+  box-shadow: 0 8px 24px -10px rgba(15, 23, 41, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+[data-theme="dark"] .jx-card {
+  background: linear-gradient(160deg, rgba(45, 50, 58, 0.62), rgba(30, 34, 40, 0.44));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
 /* row action menu — full-width mobile bottom sheet (web only) */
 @media (max-width: 640px) {
   .jx-row-menu__panel {
@@ -833,21 +970,24 @@
 .jx-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(24, 26, 32, 0.55);
+  background: rgba(16, 18, 24, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: var(--space-4);
+  /* heavier frosted backdrop for a premium feel */
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
   /* globals.css pins body { color: var(--black) }, which the modal would
      otherwise inherit (black text, invisible in dark mode). Force the
      theme-aware token so all modal text flips with the theme. */
   color: var(--color-text-primary);
 }
 .jx-modal-overlay--blur {
-  background: rgba(24, 26, 32, 0.35);
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
+  background: rgba(16, 18, 24, 0.42);
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
 }
 
 /* Journal rows (Journals Modal) */
@@ -999,15 +1139,23 @@
 
 /* ================= Log Trade modal ================= */
 .jx-ltmodal {
-  background: var(--color-bg-surface);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.8));
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
   color: var(--color-text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 24px 70px -16px rgba(15, 23, 41, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.8);
   width: min(960px, 96vw);
   max-height: 92vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+[data-theme="dark"] .jx-ltmodal {
+  background: linear-gradient(160deg, rgba(40, 45, 53, 0.92), rgba(26, 30, 36, 0.82));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 28px 80px -16px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 .jx-ltmodal--narrow {
   width: min(480px, 96vw);

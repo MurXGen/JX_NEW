@@ -382,6 +382,7 @@ export default function Dashboard() {
         onChange={setActiveTab}
         onLogTrade={() => setShowLogTrade(true)}
         onSupport={() => setShowSupport(true)}
+        user={userData}
       />
 
       {/* Log trade modal (Quick log / Detailed) — blurred backdrop */}

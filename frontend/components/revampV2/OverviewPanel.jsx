@@ -778,6 +778,46 @@ export default function OverviewPanel({
     };
   }, [closed, heroRange]);
 
+  /* a confidence / encouragement line for the Total profit card, based on
+     recent daily performance — so a rough patch doesn't crush momentum. */
+  const encourage = useMemo(() => {
+    if (!closed.length) return null;
+    const byDay = new Map();
+    closed.forEach((t) => {
+      const d = new Date(t.closeTime);
+      if (Number.isNaN(d.getTime())) return;
+      const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      byDay.set(key, (byDay.get(key) || 0) + (Number(t.pnl) || 0));
+    });
+    const days = [...byDay.entries()].sort((a, b) => a[0] - b[0]); // [ts, net] asc
+    if (!days.length) return null;
+    const now = Date.now();
+    const ago = (n) => now - n * 864e5;
+    const between = (lo, hi) => days.filter(([ts]) => ts >= lo && ts < hi).reduce((s, [, v]) => s + v, 0);
+    const last7 = between(ago(7), now + 864e5);
+    const prev7 = between(ago(14), ago(7));
+
+    let greenStreak = 0;
+    for (let i = days.length - 1; i >= 0; i--) { if (days[i][1] > 0) greenStreak++; else break; }
+    const lastDayNet = days[days.length - 1][1];
+    let priorStreak = 0;
+    if (lastDayNet < 0) {
+      for (let i = days.length - 2; i >= 0; i--) { if (days[i][1] > 0) priorStreak++; else break; }
+    }
+
+    if (prev7 < 0 && last7 > 0)
+      return { tone: "success", text: "Nice turnaround — you're green over the last 7 days after a rough patch. Keep doing what's working. 💪" };
+    if (lastDayNet < 0 && priorStreak >= 3)
+      return { tone: "info", text: `One red day after ${priorStreak} green ones doesn't undo your edge — trust your process and stay disciplined. 🧠` };
+    if (greenStreak >= 3)
+      return { tone: "success", text: `🔥 ${greenStreak} green days in a row — momentum is on your side. Protect your gains and keep risk tight.` };
+    if (lastDayNet < 0 && last7 > 0)
+      return { tone: "info", text: "A down day inside a winning week is normal — zoom out, the trend is still your friend." };
+    if (last7 < 0)
+      return { tone: "warn", text: "Drawdowns happen to every trader. Focus on flawless execution, not the scoreboard — the P&L follows. 🌱" };
+    return null;
+  }, [closed]);
+
   /* ---- all-time + per-window analytics ---- */
   const S = useMemo(() => {
     const win = inWindow(closed, analyticsRange);
@@ -1297,6 +1337,7 @@ export default function OverviewPanel({
 
   return (
     <div
+      className="jx-overview-premium"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -1314,7 +1355,7 @@ export default function OverviewPanel({
         }}
       >
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ font: "var(--text-h2)" }}>
+          <div className="jx-overview-greeting" style={{ font: "var(--text-h2)", width: "fit-content" }}>
             {greeting}, {userName?.split(" ")[0] || "trader"}
           </div>
           <div
@@ -1457,6 +1498,32 @@ export default function OverviewPanel({
               </span>
             ))}
           </div>
+          {encourage && (
+            <div
+              style={{
+                marginTop: "var(--space-3)",
+                padding: "10px 12px",
+                borderRadius: "var(--radius-md)",
+                font: "var(--text-small)",
+                color: "var(--color-text-secondary)",
+                background:
+                  encourage.tone === "success"
+                    ? "var(--color-success-subtle)"
+                    : encourage.tone === "warn"
+                      ? "var(--color-bg-muted)"
+                      : "var(--color-primary-subtle)",
+                borderLeft: `3px solid ${
+                  encourage.tone === "success"
+                    ? "var(--color-success)"
+                    : encourage.tone === "warn"
+                      ? "var(--color-border-strong)"
+                      : "var(--color-primary)"
+                }`,
+              }}
+            >
+              {encourage.text}
+            </div>
+          )}
         </div>
         <div style={{ position: "relative", zIndex: 1, minWidth: 0 }}>
           <AreaChart

@@ -39,6 +39,7 @@ import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, LifeBuoy, Loader2, Send, X } from "lucide-react";
 import Button from "./Button";
+import { responsesSignature, SUPPORT_LS_KEY, SUPPORT_VIEWS_TO_DISMISS } from "./useSupportBadge";
 
 const CATEGORIES = ["Support", "Feedback", "Bug report", "Feature request", "Other"];
 
@@ -100,6 +101,8 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
   const [status, setStatus] = useState("idle"); // idle | sending | done | error
   const [tickets, setTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
+  // once a user has viewed the modal enough times, hide answered tickets too
+  const [hideAnswered, setHideAnswered] = useState(false);
 
   const configured = Boolean(GOOGLE_FORM.actionUrl && GOOGLE_FORM.entries.message);
 
@@ -111,7 +114,16 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
       // cache-bust so freshly-answered tickets drop off promptly
       const r = await fetch(`${SHEET_CSV}&t=${Date.now()}`);
       const csv = await r.text();
-      setTickets(ticketsForUser(csv, user.email));
+      const data = ticketsForUser(csv, user.email);
+      setTickets(data);
+      // if the user has already viewed these responses enough times, hide them
+      const sig = responsesSignature(data.filter((t) => t.response).map((t) => t.response));
+      let seenEnough = false;
+      try {
+        const st = JSON.parse(localStorage.getItem(SUPPORT_LS_KEY) || "{}");
+        seenEnough = st.sig === sig && (st.views || 0) > SUPPORT_VIEWS_TO_DISMISS;
+      } catch {}
+      setHideAnswered(seenEnough);
     } catch {
       setTickets([]);
     } finally {
@@ -216,7 +228,7 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
             </div>
 
             {status === "done" ? (
-              <div style={{ padding: "var(--space-8) var(--space-6)", textAlign: "center", display: "flex", flexDirection: "column", gap: "var(--space-3)", alignItems: "center" }}>
+              <div style={{ padding: "var(--space-8) var(--space-6)", textAlign: "center", display: "flex", flexDirection: "column", gap: "var(--space-3)", alignItems: "center", flex: "1 1 auto", minHeight: 0, overflowY: "auto" }}>
                 <span style={{ font: "var(--text-h2)" }}>🎉</span>
                 <span style={{ font: "var(--text-title)", fontWeight: 600 }}>Thanks for reaching out!</span>
                 <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)", maxWidth: 320 }}>
@@ -225,15 +237,17 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
                 <Button variant="primary" onClick={close} style={{ marginTop: "var(--space-2)" }}>Done</Button>
               </div>
             ) : (
-              <form onSubmit={submit} style={{ padding: "var(--space-5) var(--space-6) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+              <form onSubmit={submit} style={{ padding: "var(--space-5) var(--space-6) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)", flex: "1 1 auto", minHeight: 0, overflowY: "auto" }}>
                 {/* the user's requests + our team's responses, from the support sheet */}
-                {(loadingTickets || tickets.length > 0) && (
+                {(() => {
+                  const visibleTickets = hideAnswered ? tickets.filter((t) => !t.response) : tickets;
+                  return (loadingTickets || visibleTickets.length > 0) ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", padding: "var(--space-3)", borderRadius: "var(--radius-md)", background: "var(--color-bg-muted)", border: "1px solid var(--color-border)" }}>
                     <span style={{ font: "var(--text-small)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                       <Clock size={13} /> Your requests &amp; responses
                       {loadingTickets && <Loader2 size={12} className="jx-spin" style={{ marginLeft: 4 }} />}
                     </span>
-                    {tickets.map((tk, i) => {
+                    {visibleTickets.map((tk, i) => {
                       const answered = !!tk.response;
                       return (
                         <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6, padding: "10px", borderRadius: "var(--radius-sm)", background: "var(--color-bg-surface)", border: "1px solid var(--color-border)" }}>
@@ -255,7 +269,8 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
                       );
                     })}
                   </div>
-                )}
+                  ) : null;
+                })()}
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
                   <label style={{ font: "var(--text-body-md)", fontWeight: 600 }}>What&apos;s this about?</label>

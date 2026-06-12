@@ -14,6 +14,7 @@ import {
   User,
 } from "lucide-react";
 import Button from "./Button";
+import { useSupportBadge } from "./useSupportBadge";
 
 export function useTheme() {
   const [theme, setTheme] = useState("dark");
@@ -61,6 +62,7 @@ export default function Sidebar({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { showDot: supportDot, markViewed: markSupportViewed } = useSupportBadge(user?.email);
 
   useEffect(() => {
     setCollapsed(localStorage.getItem("jx-sidebar-collapsed") === "1");
@@ -219,11 +221,24 @@ export default function Sidebar({
         {onSupport && (
           <button
             className="jx-sidebar__item"
-            onClick={onSupport}
+            onClick={() => { markSupportViewed(); onSupport(); }}
             title={collapsed ? "Support & feedback" : undefined}
+            style={{ justifyContent: "flex-start", textAlign: "left" }}
           >
-            <LifeBuoy size={20} />
-            {!collapsed && <span>Support &amp; feedback</span>}
+            <span style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
+              <LifeBuoy size={20} />
+              {supportDot && (
+                <span
+                  aria-label="New response"
+                  style={{
+                    position: "absolute", top: -3, right: -3, width: 9, height: 9,
+                    borderRadius: "50%", background: "var(--color-danger)",
+                    border: "2px solid var(--color-bg-surface)", boxShadow: "0 0 0 1px var(--color-danger)",
+                  }}
+                />
+              )}
+            </span>
+            {!collapsed && <span style={{ flex: 1, textAlign: "left" }}>Support &amp; feedback</span>}
           </button>
         )}
 
