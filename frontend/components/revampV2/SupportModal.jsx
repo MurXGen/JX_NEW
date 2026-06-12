@@ -66,7 +66,8 @@ function parseCsv(text) {
 }
 const idxOf = (headers, ...keys) => headers.findIndex((h) => keys.some((k) => h.includes(k)));
 
-/* read the user's UNRESOLVED tickets (rows where "response" is still empty) */
+/* read the user's tickets — show their message and our reply (if any).
+   The "Responses" column holds the team's reply; empty = still pending. */
 function ticketsForUser(csv, email) {
   const rows = parseCsv(csv);
   if (rows.length < 2) return [];
@@ -83,11 +84,10 @@ function ticketsForUser(csv, email) {
     const row = rows[i];
     const rEmail = iEmail >= 0 ? String(row[iEmail] || "").trim().toLowerCase() : "";
     if (!me || rEmail !== me) continue;
-    const response = iResp >= 0 ? String(row[iResp] || "").trim() : "";
-    if (response) continue; // a response was given → resolved → hide
     out.push({
       category: iCat >= 0 ? String(row[iCat] || "").trim() : "",
       message: iMsg >= 0 ? String(row[iMsg] || "").trim() : "",
+      response: iResp >= 0 ? String(row[iResp] || "").trim() : "",
       date: iTime >= 0 ? String(row[iTime] || "").trim() : "",
     });
   }
@@ -226,28 +226,34 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
               </div>
             ) : (
               <form onSubmit={submit} style={{ padding: "var(--space-5) var(--space-6) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-                {/* the user's open (unresolved) requests, from the support sheet */}
+                {/* the user's requests + our team's responses, from the support sheet */}
                 {(loadingTickets || tickets.length > 0) && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", padding: "var(--space-3)", borderRadius: "var(--radius-md)", background: "var(--color-bg-muted)", border: "1px solid var(--color-border)" }}>
                     <span style={{ font: "var(--text-small)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                      <Clock size={13} /> Your open requests
+                      <Clock size={13} /> Your requests &amp; responses
                       {loadingTickets && <Loader2 size={12} className="jx-spin" style={{ marginLeft: 4 }} />}
                     </span>
-                    {tickets.map((tk, i) => (
-                      <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2, padding: "8px 10px", borderRadius: "var(--radius-sm)", background: "var(--color-bg-surface)", border: "1px solid var(--color-border)" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          {tk.category ? <span className="jx-badge jx-badge--neutral">{tk.category}</span> : null}
-                          <span style={{ marginLeft: "auto", font: "var(--text-caption)", color: "var(--yellow-500)", fontWeight: 600 }}>Pending review</span>
+                    {tickets.map((tk, i) => {
+                      const answered = !!tk.response;
+                      return (
+                        <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6, padding: "10px", borderRadius: "var(--radius-sm)", background: "var(--color-bg-surface)", border: "1px solid var(--color-border)" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            {tk.category ? <span className="jx-badge jx-badge--neutral">{tk.category}</span> : null}
+                            <span style={{ marginLeft: "auto", font: "var(--text-caption)", fontWeight: 600, color: answered ? "var(--color-success-strong)" : "var(--yellow-500)" }}>
+                              {answered ? "Answered" : "Pending review"}
+                            </span>
+                          </div>
+                          <span style={{ font: "var(--text-small)", color: "var(--color-text-secondary)" }}>{tk.message}</span>
+                          {answered && (
+                            <div style={{ borderLeft: "3px solid var(--color-primary)", paddingLeft: 10, background: "var(--color-primary-subtle)", borderRadius: "0 var(--radius-sm) var(--radius-sm) 0", padding: "8px 10px" }}>
+                              <span style={{ display: "block", font: "var(--text-caption)", fontWeight: 600, color: "var(--yellow-500)", marginBottom: 2 }}>JournalX team</span>
+                              <span style={{ font: "var(--text-small)", color: "var(--color-text-primary)" }}>{tk.response}</span>
+                            </div>
+                          )}
+                          {tk.date ? <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{tk.date}</span> : null}
                         </div>
-                        <span style={{ font: "var(--text-small)", color: "var(--color-text-secondary)" }}>{tk.message}</span>
-                        {tk.date ? <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{tk.date}</span> : null}
-                      </div>
-                    ))}
-                    {!loadingTickets && (
-                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                        A request disappears here once our team responds to it.
-                      </span>
-                    )}
+                      );
+                    })}
                   </div>
                 )}
 
