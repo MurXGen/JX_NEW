@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ImageIcon, Pencil, Plus, X, Target, ShieldAlert, TrendingDown, TrendingUp } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
-import { Badge } from "../components/ui";
+import { Badge, Grad, GlassBackdrop } from "../components/ui";
+import GradientBackground from "../components/GradientBackground";
 import { AnimatedProgress } from "../components/charts";
 import TvChart from "../components/TvChart";
 import ImageModal from "../components/ImageModal";
@@ -68,7 +69,8 @@ export default function TradeDetailsScreen({ route, navigation }) {
   const confidence = Number(trade.confidence) || 0;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: t.bg.canvas }}>
+    <GradientBackground>
+    <SafeAreaView style={{ flex: 1 }}>
       <ImageModal
         visible={showImages}
         onClose={() => setShowImages(false)}
@@ -78,7 +80,7 @@ export default function TradeDetailsScreen({ route, navigation }) {
       />
 
       {/* header */}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: t.space[5], paddingVertical: t.space[4], borderBottomColor: t.border, borderBottomWidth: 1 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: t.space[5], paddingVertical: t.space[4], borderBottomColor: t.glass.border, borderBottomWidth: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Text style={{ fontFamily: font(800), fontSize: t.font.h2, color: t.text.primary }}>{trade.symbol || trade.ticker || "Trade"}</Text>
           <Badge tone={isLong ? "success" : "danger"}>{isLong ? "LONG" : "SHORT"}</Badge>
@@ -86,7 +88,8 @@ export default function TradeDetailsScreen({ route, navigation }) {
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           {trade._id ? (
-            <Pressable onPress={() => navigation.navigate("LogTrade", { trade })} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: t.primary, borderRadius: t.radius.md, paddingHorizontal: 12, paddingVertical: 8 }}>
+            <Pressable onPress={() => navigation.navigate("LogTrade", { trade })} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: t.radius.md, paddingHorizontal: 12, paddingVertical: 8, overflow: "hidden", shadowColor: t.primary, shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 }}>
+              <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
               <Pencil size={14} color={t.primaryText} />
               <Text style={{ color: t.primaryText, fontFamily: font(700), fontSize: t.font.small }}>Edit</Text>
             </Pressable>
@@ -253,6 +256,7 @@ export default function TradeDetailsScreen({ route, navigation }) {
         </Panel>
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -263,20 +267,24 @@ function abbr(n) {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
-/* card panel */
+/* card panel — frosted glass */
 function Panel({ t, children, noPad }) {
   return (
-    <View style={{ backgroundColor: t.bg.surface, borderColor: t.border, borderWidth: 1, borderRadius: t.radius.lg, padding: noPad ? 0 : t.space[4] }}>
+    <View style={{ borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.xl, padding: noPad ? 0 : t.space[4], overflow: "hidden" }}>
+      <GlassBackdrop />
+      <Grad colors={[t.glass.highlight, "rgba(255,255,255,0)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1.5 }} />
       {children}
     </View>
   );
 }
 
-/* bento stat tile */
+/* bento stat tile — soft gradient wash */
 function Tile({ t, label, value, color, wide }) {
   return (
-    <View style={{ flexGrow: 1, flexBasis: wide ? "100%" : "30%", minWidth: wide ? "100%" : 96, backgroundColor: t.bg.muted, borderColor: t.border, borderWidth: 1, borderRadius: t.radius.md, paddingVertical: 10, paddingHorizontal: 12 }}>
-      <Text style={{ color: t.text.muted, fontSize: t.font.caption, marginBottom: 3 }}>{label}</Text>
+    <View style={{ flexGrow: 1, flexBasis: wide ? "100%" : "30%", minWidth: wide ? "100%" : 96, borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.md, paddingVertical: 10, paddingHorizontal: 12, overflow: "hidden" }}>
+      <GlassBackdrop />
+      <Grad colors={t.gradients.sheen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+      <Text style={{ color: t.text.muted, fontSize: t.font.caption, marginBottom: 3, fontFamily: font(600), letterSpacing: 0.5, textTransform: "uppercase" }}>{label}</Text>
       <Text numberOfLines={1} style={{ color: color || t.text.primary, fontSize: t.font.bodyMd, fontFamily: font(700) }}>{String(value)}</Text>
     </View>
   );

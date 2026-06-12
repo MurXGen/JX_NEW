@@ -10,7 +10,8 @@ import {
 } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
-import { Toast } from "../components/ui";
+import { Toast, Grad, GlassBackdrop } from "../components/ui";
+import GradientBackground from "../components/GradientBackground";
 import { font } from "../theme/typography";
 import { money, currencySymbol, fmt } from "../lib/format";
 import { computeTrade, num, detectSession } from "../lib/tradeCalc";
@@ -197,7 +198,8 @@ export default function LogTradeScreen({ navigation, route }) {
   const assetLabel = form.symbol ? form.symbol.split("/")[0].slice(0, 5) : "Asset";
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: t.bg.canvas }}>
+    <GradientBackground>
+    <SafeAreaView style={{ flex: 1 }}>
       <Toast toast={toast} />
       {busy && (
         <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center" }}>
@@ -395,19 +397,21 @@ export default function LogTradeScreen({ navigation, route }) {
           {/* ===== Preview ===== */}
           <Preview t={t} form={form} calc={calc} pnl={previewPnl} sym={sym} quality={quality} timeframeValue={timeframeValue} />
 
-          <Pressable onPress={save} disabled={busy} style={{ backgroundColor: t.primary, borderRadius: t.radius.md, paddingVertical: 15, alignItems: "center", opacity: busy ? 0.6 : 1 }}>
+          <Pressable onPress={save} disabled={busy} style={{ borderRadius: t.radius.md, paddingVertical: 15, alignItems: "center", opacity: busy ? 0.6 : 1, overflow: "hidden", shadowColor: t.primary, shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}>
+            <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
             <Text style={{ color: t.primaryText, fontFamily: font(700), fontSize: t.font.bodyMd }}>{busy ? "Saving…" : editing ? "Save changes" : "Save trade"}</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 /* ---------------- primitives ---------------- */
 function Muted2({ t, children }) { return <Text style={{ color: t.text.muted, fontSize: t.font.small }}>{children}</Text>; }
 function Box({ t, children, style }) {
-  return <View style={[{ backgroundColor: t.bg.canvas, borderColor: t.border, borderWidth: 1, borderRadius: t.radius.md }, style]}>{children}</View>;
+  return <View style={[{ backgroundColor: t.glass.input, borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.md }, style]}>{children}</View>;
 }
 function FieldLabel({ t, label, children, flex }) {
   return (
@@ -430,12 +434,13 @@ function NumBox({ t, value, onChangeText, placeholder, right }) {
 }
 function Seg({ t, items, value, onChange }) {
   return (
-    <View style={{ flexDirection: "row", backgroundColor: t.bg.muted, borderRadius: t.radius.md, padding: 4 }}>
+    <View style={{ flexDirection: "row", backgroundColor: t.glass.input, borderWidth: 1, borderColor: t.glass.border, borderRadius: t.radius.pill, padding: 4 }}>
       {items.map((it) => {
         const active = it.value === value;
         return (
-          <Pressable key={it.value} onPress={() => onChange(it.value)} style={{ flex: 1, paddingVertical: 9, borderRadius: t.radius.sm, backgroundColor: active ? t.bg.surface : "transparent", alignItems: "center" }}>
-            <Text style={{ color: active ? t.text.primary : t.text.muted, fontFamily: font(600), fontSize: t.font.body }}>{it.label}</Text>
+          <Pressable key={it.value} onPress={() => onChange(it.value)} style={{ flex: 1, paddingVertical: 9, borderRadius: t.radius.pill, overflow: "hidden", alignItems: "center" }}>
+            {active && <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />}
+            <Text style={{ color: active ? t.primaryText : t.text.muted, fontFamily: font(600), fontSize: t.font.body }}>{it.label}</Text>
           </Pressable>
         );
       })}
@@ -487,7 +492,7 @@ function DirButtons({ t, value, onChange }) {
       {opts.map(([dir, title, sub, Icon, color]) => {
         const active = value === dir;
         return (
-          <Pressable key={dir} onPress={() => onChange(dir)} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderRadius: t.radius.md, borderWidth: 1.5, borderColor: active ? color : t.border, backgroundColor: active ? `${color}15` : t.bg.canvas }}>
+          <Pressable key={dir} onPress={() => onChange(dir)} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderRadius: t.radius.md, borderWidth: 1.5, borderColor: active ? color : t.glass.border, backgroundColor: active ? `${color}15` : t.glass.input }}>
             <Icon size={18} color={active ? color : t.text.muted} />
             <View>
               <Text style={{ fontFamily: font(700), color: active ? color : t.text.primary }}>{title}</Text>
@@ -567,7 +572,9 @@ function SectTitle({ t, icon: Icon, title, hint }) {
 }
 function SectionCard({ t, icon, title, hint, children }) {
   return (
-    <View style={{ backgroundColor: t.bg.surface, borderColor: t.border, borderWidth: 1, borderRadius: t.radius.lg, padding: t.space[4], gap: t.space[4] }}>
+    <View style={{ borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.xl, padding: t.space[4], gap: t.space[4], overflow: "hidden" }}>
+      <GlassBackdrop />
+      <Grad colors={[t.glass.highlight, "rgba(255,255,255,0)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1.5 }} />
       <SectTitle t={t} icon={icon} title={title} hint={hint} />
       {children}
     </View>
@@ -610,7 +617,7 @@ function TimeFieldInner({ t, value, onChange }) {
   return (
     <View style={{ gap: 6 }}>
       <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-        <Pressable onPress={open} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: t.bg.canvas, borderColor: t.border, borderWidth: 1, borderRadius: t.radius.md, paddingVertical: 12, paddingHorizontal: 14 }}>
+        <Pressable onPress={open} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: t.glass.input, borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.md, paddingVertical: 12, paddingHorizontal: 14 }}>
           <Clock size={14} color={t.text.muted} />
           <Text style={{ color: value ? t.text.primary : t.text.muted, fontFamily: font(500), fontSize: t.font.small, flex: 1 }}>{display}</Text>
         </Pressable>
@@ -669,7 +676,9 @@ function Preview({ t, form, calc, pnl, sym, quality, timeframeValue }) {
     ["Timeframe", timeframeValue || "—"],
   ];
   return (
-    <View style={{ backgroundColor: t.bg.muted, borderColor: t.borderStrong, borderWidth: 1, borderRadius: t.radius.lg, padding: t.space[4], gap: 10 }}>
+    <View style={{ borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.xl, padding: t.space[4], gap: 10, overflow: "hidden" }}>
+      <GlassBackdrop strong />
+      <Grad colors={t.gradients.statBrand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text style={{ fontFamily: font(700), fontSize: t.font.bodyMd, color: t.text.primary }}>Preview</Text>
         <Text style={{ fontFamily: font(600), fontSize: t.font.caption, color: t.text.muted }}>Quality {quality}%</Text>

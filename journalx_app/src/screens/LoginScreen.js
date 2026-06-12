@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Sparkles, Star, TrendingUp, Globe2 } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
-import { Button, Field, Input, Toast, Muted } from "../components/ui";
+import { Button, Field, Input, Toast, Muted, Grad, GlassCard } from "../components/ui";
+import GradientBackground from "../components/GradientBackground";
 import { MotionView } from "../components/motion";
 import { font } from "../theme/typography";
 import * as authApi from "../api/auth";
@@ -116,7 +117,8 @@ export default function LoginScreen() {
         : `Enter the 6-digit code sent to ${email}`;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg.canvas }}>
+    <GradientBackground>
+    <SafeAreaView style={{ flex: 1 }}>
       <Toast toast={toast} />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1, padding: theme.space[6], justifyContent: "space-between" }}>
@@ -126,10 +128,12 @@ export default function LoginScreen() {
               <View
                 style={{
                   width: 64, height: 64, borderRadius: 18, marginBottom: theme.space[4],
-                  backgroundColor: theme.primarySubtle, alignItems: "center", justifyContent: "center",
+                  alignItems: "center", justifyContent: "center", overflow: "hidden",
+                  shadowColor: theme.primary, shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 10,
                 }}
               >
-                <Sparkles size={28} color={theme.yellow[400]} />
+                <Grad colors={theme.gradients.brandStrong} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+                <Sparkles size={28} color={theme.primaryText} />
               </View>
               <Text style={{ fontFamily: font(800), fontSize: 30, color: theme.text.primary }}>
                 Journal<Text style={{ color: theme.yellow[300] }}>X</Text>
@@ -140,8 +144,9 @@ export default function LoginScreen() {
             </View>
           </MotionView>
 
-          {/* form */}
+          {/* form — centered glass card over the aurora backdrop */}
           <MotionView delay={90}>
+            <GlassCard>
             <Text style={{ fontFamily: font(700), fontSize: theme.font.h2, color: theme.text.primary }}>{title}</Text>
             <Muted style={{ marginBottom: theme.space[5] }}>{subtitle}</Muted>
 
@@ -179,6 +184,7 @@ export default function LoginScreen() {
                 <Button title="Back" variant="ghost" onPress={() => { setMode("codeRequest"); setOtp(""); }} />
               </View>
             )}
+            </GlassCard>
           </MotionView>
 
           {/* achievements / trust strip */}
@@ -192,7 +198,10 @@ export default function LoginScreen() {
             >
               {ACHIEVEMENTS.map(({ icon: Icon, label }) => (
                 <View key={label} style={{ alignItems: "center", flex: 1, gap: 6 }}>
-                  <Icon size={18} color={theme.yellow[400]} />
+                  <View style={{ width: 34, height: 34, borderRadius: 12, overflow: "hidden", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: theme.glass.border }}>
+                    <Grad colors={theme.gradients.statBrand} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+                    <Icon size={16} color={theme.yellow[400]} />
+                  </View>
                   <Text style={{ fontFamily: font(600), fontSize: 11, color: theme.text.muted, textAlign: "center" }}>
                     {label}
                   </Text>
@@ -203,5 +212,6 @@ export default function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }

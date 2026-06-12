@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Check, Crown, X } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
-import { Button, Card, H1, Muted, Badge, Toast } from "../components/ui";
+import { Button, Card, H1, Muted, Badge, Toast, Grad, GlassBackdrop } from "../components/ui";
+import GradientBackground from "../components/GradientBackground";
 import { font } from "../theme/typography";
 import {
   isPurchasesAvailable,
@@ -83,7 +84,8 @@ export default function UpgradeScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg.canvas }}>
+    <GradientBackground>
+    <SafeAreaView style={{ flex: 1 }}>
       <Toast toast={toast} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: theme.space[5] }}>
         <H1>Upgrade</H1>
@@ -97,9 +99,11 @@ export default function UpgradeScreen({ navigation }) {
           <>
             {/* status header */}
             <Card style={{ padding: 0, overflow: "hidden" }}>
-              <View style={{ backgroundColor: theme.primarySubtle, padding: theme.space[5], alignItems: "center", gap: 6 }}>
-                <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: theme.bg.surface, alignItems: "center", justifyContent: "center" }}>
-                  <Crown size={28} color={theme.yellow[400]} />
+              <View style={{ padding: theme.space[5], alignItems: "center", gap: 6, overflow: "hidden" }}>
+                <Grad colors={theme.gradients.statBrand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+                <View style={{ width: 56, height: 56, borderRadius: 16, overflow: "hidden", alignItems: "center", justifyContent: "center", shadowColor: theme.primary, shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 8 }}>
+                  <Grad colors={theme.gradients.brandStrong} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+                  <Crown size={28} color={theme.primaryText} />
                 </View>
                 <Text style={{ color: theme.text.primary, fontSize: theme.font.h3, fontFamily: "Poppins_700Bold" }}>
                   You&apos;re on {subscription.plan === "lifetime" ? "Lifetime" : "Pro"}
@@ -140,24 +144,38 @@ export default function UpgradeScreen({ navigation }) {
           </>
         ) : (
           <>
-            <Card style={{ gap: theme.space[3] }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <Crown size={22} color={theme.yellow[400]} />
-                <Text style={{ color: theme.text.primary, fontSize: theme.font.h3, fontWeight: "800" }}>JournalX Pro</Text>
-              </View>
-              <Text style={{ color: theme.text.primary, fontSize: theme.font.h1, fontWeight: "800" }}>
-                {offering?.priceString || (loadingOffer ? "…" : "—")}
-                <Text style={{ color: theme.text.muted, fontSize: theme.font.body, fontWeight: "400" }}>  / month</Text>
-              </Text>
-              <View style={{ gap: 10, marginTop: 4 }}>
-                {PRO_FEATURES.map((f) => (
-                  <View key={f} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                    <Check size={16} color={theme.success} />
-                    <Text style={{ color: theme.text.secondary, fontSize: theme.font.body }}>{f}</Text>
+            {/* hero pricing card — brand-gradient border wrap (the "popular" plan) */}
+            <Grad
+              colors={theme.gradients.brand}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ borderRadius: theme.radius.xl + 1.5, padding: 1.5, shadowColor: theme.primary, shadowOpacity: 0.3, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}
+            >
+              <View style={{ borderRadius: theme.radius.xl, overflow: "hidden", padding: theme.space[5], gap: theme.space[3], backgroundColor: theme.bg.canvas }}>
+                <GlassBackdrop strong />
+                <Grad colors={theme.gradients.statBrand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 12, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+                    <Grad colors={theme.gradients.brandStrong} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+                    <Crown size={20} color={theme.primaryText} />
                   </View>
-                ))}
+                  <Text style={{ color: theme.text.primary, fontSize: theme.font.h3, fontWeight: "800" }}>JournalX Pro</Text>
+                  <View style={{ marginLeft: "auto" }}><Badge tone="brand">MOST POPULAR</Badge></View>
+                </View>
+                <Text style={{ color: theme.text.primary, fontSize: theme.font.h1, fontWeight: "800" }}>
+                  {offering?.priceString || (loadingOffer ? "…" : "—")}
+                  <Text style={{ color: theme.text.muted, fontSize: theme.font.body, fontWeight: "400" }}>  / month</Text>
+                </Text>
+                <View style={{ gap: 10, marginTop: 4 }}>
+                  {PRO_FEATURES.map((f) => (
+                    <View key={f} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                      <Check size={16} color={theme.success} />
+                      <Text style={{ color: theme.text.secondary, fontSize: theme.font.body }}>{f}</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
-            </Card>
+            </Grad>
 
             {available ? (
               <>
@@ -184,5 +202,6 @@ export default function UpgradeScreen({ navigation }) {
         )}
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }

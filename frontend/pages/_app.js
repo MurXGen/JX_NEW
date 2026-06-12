@@ -78,25 +78,31 @@ export default function MyApp({ Component, pageProps }) {
         />
 
         {/* Open Graph / Facebook — absolute URLs required by crawlers */}
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="JournalX" />
-        <meta property="og:locale" content="en_US" />
-        <meta property="og:url" content="https://journalx.app" />
+        {/* `key` props let individual pages override these without
+            emitting duplicate og:* tags (next/head dedupes by key). */}
+        <meta key="og:type" property="og:type" content="website" />
+        <meta key="og:site_name" property="og:site_name" content="JournalX" />
+        <meta key="og:locale" property="og:locale" content="en_US" />
+        <meta key="og:url" property="og:url" content="https://journalx.app" />
         <meta
+          key="og:title"
           property="og:title"
           content="JournalX – Smarter Trading Journal for Stocks, Options, Forex & Crypto"
         />
         <meta
+          key="og:description"
           property="og:description"
           content="Track, review, and refine your trades across markets. JournalX helps you discover performance insights, identify patterns, and improve your trading discipline."
         />
         <meta
+          key="og:image"
           property="og:image"
           content="https://journalx.app/assets/JournalX_Banner.png"
         />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta key="og:image:width" property="og:image:width" content="1200" />
+        <meta key="og:image:height" property="og:image:height" content="630" />
         <meta
+          key="og:image:alt"
           property="og:image:alt"
           content="JournalX — trading journal and analytics dashboard"
         />

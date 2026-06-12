@@ -11,6 +11,15 @@ export const yellow = {
   600: "#fcd535", // brand text accent (matches the web change)
 };
 
+/* Gradients shared by both palettes — built strictly from the existing brand
+   colours (yellow #fcd535/#f0b90b, success #2ebd85, danger #f6465d). */
+const sharedGradients = {
+  brand: ["#fcd535", "#f0b90b"],
+  brandStrong: ["#f8de85", "#fcd535", "#f0b90b"],
+  success: ["#2ebd85", "#1a9e6e"],
+  danger: ["#f6465d", "#e23048"],
+};
+
 const shared = {
   yellow,
   brand: "#fcd535",
@@ -57,6 +66,27 @@ export const lightTheme = {
   dangerSubtle: "rgba(246,70,93,0.12)",
   // readable brand accent for badges/text on LIGHT surfaces (dark gold + warm tint)
   accent: { text: "#8a6300", subtle: "rgba(240,185,11,0.20)", border: "rgba(201,148,0,0.40)" },
+  // glassmorphism — white-based frosted surfaces for light mode
+  glass: {
+    surface: "rgba(255,255,255,0.62)",
+    surfaceStrong: "rgba(255,255,255,0.88)",
+    input: "rgba(255,255,255,0.78)",
+    border: "rgba(18,22,28,0.10)",
+    highlight: "rgba(255,255,255,0.95)",
+    blurTint: "light",
+    blurIntensity: 40,
+  },
+  gradients: {
+    ...sharedGradients,
+    canvas: ["#f7f8fa", "#eef1f6", "#f7f8fa"],
+    sheen: ["rgba(255,255,255,0.70)", "rgba(255,255,255,0)"],
+    blobBrand: ["rgba(252,213,53,0.32)", "rgba(252,213,53,0)"],
+    blobSuccess: ["rgba(46,189,133,0.18)", "rgba(46,189,133,0)"],
+    blobDanger: ["rgba(246,70,93,0.14)", "rgba(246,70,93,0)"],
+    statBrand: ["rgba(252,213,53,0.22)", "rgba(240,185,11,0.05)"],
+    statSuccess: ["rgba(46,189,133,0.16)", "rgba(46,189,133,0.03)"],
+    statDanger: ["rgba(246,70,93,0.16)", "rgba(246,70,93,0.03)"],
+  },
 };
 
 export const darkTheme = {
@@ -83,6 +113,27 @@ export const darkTheme = {
   dangerSubtle: "rgba(246,70,93,0.14)",
   // brand accent on DARK surfaces — bright yellow reads well here
   accent: { text: "#fcd535", subtle: "rgba(252,213,53,0.18)", border: "rgba(252,213,53,0.45)" },
+  // glassmorphism — translucent dark-navy frosted surfaces
+  glass: {
+    surface: "rgba(22,26,32,0.55)",
+    surfaceStrong: "rgba(22,26,32,0.78)",
+    input: "rgba(13,17,23,0.50)",
+    border: "rgba(255,255,255,0.12)",
+    highlight: "rgba(255,255,255,0.06)",
+    blurTint: "dark",
+    blurIntensity: 40,
+  },
+  gradients: {
+    ...sharedGradients,
+    canvas: ["#0d1117", "#11161f", "#0d1117"],
+    sheen: ["rgba(255,255,255,0.06)", "rgba(255,255,255,0)"],
+    blobBrand: ["rgba(252,213,53,0.20)", "rgba(252,213,53,0)"],
+    blobSuccess: ["rgba(46,189,133,0.16)", "rgba(46,189,133,0)"],
+    blobDanger: ["rgba(246,70,93,0.12)", "rgba(246,70,93,0)"],
+    statBrand: ["rgba(252,213,53,0.16)", "rgba(240,185,11,0.03)"],
+    statSuccess: ["rgba(46,189,133,0.18)", "rgba(46,189,133,0.04)"],
+    statDanger: ["rgba(246,70,93,0.18)", "rgba(246,70,93,0.04)"],
+  },
 };
 
 export const getTheme = (mode) => (mode === "light" ? lightTheme : darkTheme);

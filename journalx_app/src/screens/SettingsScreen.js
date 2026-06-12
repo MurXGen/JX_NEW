@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Check, ChevronRight, Crown, LifeBuoy, Moon, Pencil, Plus, Sun, Wallet, X } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
-import { Card, H1, Muted, Badge, Button, Toast } from "../components/ui";
+import { Card, H1, Muted, Badge, Button, Toast, Grad, GlassBackdrop, SectionLabel } from "../components/ui";
+import GradientBackground from "../components/GradientBackground";
 import { AnimatedProgress } from "../components/charts";
 import SupportModal from "../components/SupportModal";
 import { font } from "../theme/typography";
@@ -115,20 +116,23 @@ export default function SettingsScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg.canvas }} edges={["top"]}>
+    <GradientBackground>
+    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <Toast toast={toast} />
-      <ScrollView contentContainerStyle={{ padding: theme.space[5], gap: theme.space[4] }}>
+      <ScrollView contentContainerStyle={{ padding: theme.space[5], gap: theme.space[4], paddingBottom: 120 }}>
         <H1>Settings</H1>
 
         {/* Profile */}
-        <Card>
+        <SectionLabel>Account</SectionLabel>
+        <Card style={{ marginTop: -theme.space[2] }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: theme.primarySubtle, alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ color: theme.accent.text, fontFamily: font(700), fontSize: 24 }}>{initials}</Text>
+            <View style={{ width: 56, height: 56, borderRadius: 28, overflow: "hidden", alignItems: "center", justifyContent: "center", shadowColor: theme.primary, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}>
+              <Grad colors={theme.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+              <Text style={{ color: theme.primaryText, fontFamily: font(700), fontSize: 24 }}>{initials}</Text>
             </View>
             <View style={{ flex: 1 }}>
               {editingName ? (
-                <View style={{ backgroundColor: theme.bg.surface, borderColor: theme.border, borderWidth: 1, borderRadius: theme.radius.md }}>
+                <View style={{ backgroundColor: theme.glass.input, borderColor: theme.glass.border, borderWidth: 1, borderRadius: theme.radius.md }}>
                   <TextInput
                     value={profileName}
                     onChangeText={setProfileName}
@@ -161,10 +165,12 @@ export default function SettingsScreen({ navigation }) {
         </Card>
 
         {/* Journals */}
-        <Card>
+        <SectionLabel>Journals</SectionLabel>
+        <Card style={{ marginTop: -theme.space[2] }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: theme.space[2] }}>
             <Text style={{ color: theme.text.primary, fontFamily: font(700), fontSize: theme.font.title }}>Journals</Text>
-            <Pressable onPress={() => setShowCreate(true)} style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: theme.primary, borderRadius: theme.radius.md, paddingHorizontal: 12, paddingVertical: 7 }}>
+            <Pressable onPress={() => setShowCreate(true)} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderRadius: theme.radius.md, paddingHorizontal: 12, paddingVertical: 7, overflow: "hidden" }}>
+              <Grad colors={theme.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
               <Plus size={15} color={theme.primaryText} />
               <Text style={{ color: theme.primaryText, fontFamily: font(700), fontSize: theme.font.small }}>New</Text>
             </Pressable>
@@ -191,7 +197,8 @@ export default function SettingsScreen({ navigation }) {
         </Card>
 
         {/* Subscription */}
-        <Card>
+        <SectionLabel>Plan & billing</SectionLabel>
+        <Card style={{ marginTop: -theme.space[2] }}>
           <Text style={{ color: theme.text.primary, fontFamily: font(700), fontSize: theme.font.title, marginBottom: 8 }}>Subscription</Text>
           <Row label="Current plan"><Badge tone={subscription.isPro ? "brand" : "neutral"}>{planLabel}</Badge></Row>
           <Row label="Status"><Badge tone={subscription.status === "active" ? "success" : "neutral"}>{subscription.status}</Badge></Row>
@@ -208,7 +215,8 @@ export default function SettingsScreen({ navigation }) {
             <LimitBar label="Journals" used={usedJournals} max={limits.journals} theme={theme} />
             <Row label="Screenshots per trade"><Muted>{limits.imagesPerTrade === Infinity ? "Unlimited" : `Up to ${limits.imagesPerTrade}`}</Muted></Row>
             {!subscription.isPro && (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: theme.primarySubtle, borderRadius: theme.radius.md, padding: 10 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: theme.radius.md, padding: 10, overflow: "hidden", borderWidth: 1, borderColor: theme.accent.border }}>
+                <Grad colors={theme.gradients.statBrand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
                 <Crown size={16} color={theme.accent.text} />
                 <Text style={{ flex: 1, color: theme.text.secondary, fontSize: theme.font.caption }}>Upgrade to Pro for unlimited trades, journals & screenshots.</Text>
               </View>
@@ -219,7 +227,8 @@ export default function SettingsScreen({ navigation }) {
         </Card>
 
         {/* Appearance */}
-        <Card>
+        <SectionLabel>Preferences</SectionLabel>
+        <Card style={{ marginTop: -theme.space[2] }}>
           <Text style={{ color: theme.text.primary, fontFamily: font(700), fontSize: theme.font.title, marginBottom: 4 }}>Appearance</Text>
           <Row label={`Theme · ${mode}`}>
             <Button title={mode === "dark" ? "Light" : "Dark"} variant="outline" icon={mode === "dark" ? Sun : Moon} onPress={toggleTheme} />
@@ -251,17 +260,18 @@ export default function SettingsScreen({ navigation }) {
         plan={subscription.isPro ? (subscription.plan === "lifetime" ? "lifetime" : "pro") : "free"}
       />
 
-      {/* Create journal modal */}
+      {/* Create journal modal — frosted glass sheet */}
       <Modal visible={showCreate} transparent animationType="slide" onRequestClose={() => !creating && setShowCreate(false)}>
         <Pressable onPress={() => !creating && setShowCreate(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <Pressable onPress={() => {}} style={{ backgroundColor: theme.bg.elevated, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: theme.space[5], paddingBottom: theme.space[8], gap: theme.space[4] }}>
+          <Pressable onPress={() => {}} style={{ borderTopLeftRadius: 22, borderTopRightRadius: 22, overflow: "hidden", borderWidth: 1, borderColor: theme.glass.border, padding: theme.space[5], paddingBottom: theme.space[8], gap: theme.space[4] }}>
+            <GlassBackdrop strong />
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <Text style={{ fontFamily: font(700), fontSize: theme.font.title, color: theme.text.primary }}>New journal</Text>
               <Pressable onPress={() => !creating && setShowCreate(false)} hitSlop={10}><X size={22} color={theme.text.muted} /></Pressable>
             </View>
             <View style={{ gap: 6 }}>
               <Text style={{ color: theme.text.secondary, fontSize: theme.font.small, fontFamily: font(500) }}>Name</Text>
-              <View style={{ backgroundColor: theme.bg.surface, borderColor: theme.border, borderWidth: 1, borderRadius: theme.radius.md }}>
+              <View style={{ backgroundColor: theme.glass.input, borderColor: theme.glass.border, borderWidth: 1, borderRadius: theme.radius.md }}>
                 <TextInput value={name} onChangeText={setName} placeholder="e.g. Crypto swing" placeholderTextColor={theme.text.muted} style={{ color: theme.text.primary, fontFamily: font(500), paddingVertical: 12, paddingHorizontal: 14 }} />
               </View>
             </View>
@@ -278,7 +288,8 @@ export default function SettingsScreen({ navigation }) {
                 })}
               </View>
             </View>
-            <Pressable onPress={create} disabled={creating} style={{ backgroundColor: theme.primary, borderRadius: theme.radius.md, paddingVertical: 14, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, opacity: creating ? 0.7 : 1 }}>
+            <Pressable onPress={create} disabled={creating} style={{ borderRadius: theme.radius.md, paddingVertical: 14, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, opacity: creating ? 0.7 : 1, overflow: "hidden" }}>
+              <Grad colors={theme.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
               {creating && <ActivityIndicator size="small" color={theme.primaryText} />}
               <Text style={{ color: theme.primaryText, fontFamily: font(700), fontSize: theme.font.bodyMd }}>{creating ? "Creating…" : "Create journal"}</Text>
             </Pressable>
@@ -286,5 +297,6 @@ export default function SettingsScreen({ navigation }) {
         </Pressable>
       </Modal>
     </SafeAreaView>
+    </GradientBackground>
   );
 }

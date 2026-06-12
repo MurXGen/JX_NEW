@@ -51,7 +51,7 @@ export default function PnlCalendar({ trades = [], sym = "$" }) {
 
       <View style={{ flexDirection: "row", marginBottom: 6 }}>
         {WD.map((d, i) => (
-          <Text key={i} style={{ flex: 1, textAlign: "center", fontFamily: font(600), fontSize: 11, color: theme.text.muted }}>{d}</Text>
+          <Text key={i} style={{ flex: 1, textAlign: "center", fontFamily: font(700), fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: theme.text.muted }}>{d}</Text>
         ))}
       </View>
 
@@ -64,7 +64,7 @@ export default function PnlCalendar({ trades = [], sym = "$" }) {
           const fg = !has ? theme.text.muted : pos ? theme.successStrong : theme.dangerStrong;
           return (
             <View key={i} style={{ width: `${100 / 7}%`, aspectRatio: 1, padding: 2 }}>
-              <View style={{ flex: 1, borderRadius: 8, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}>
+              <View style={{ flex: 1, borderRadius: 8, backgroundColor: bg, borderWidth: has ? 1 : 0, borderColor: pos ? "rgba(46,189,133,0.35)" : "rgba(246,70,93,0.35)", alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ fontFamily: font(has ? 700 : 400), fontSize: 12, color: has ? fg : theme.text.secondary }}>{c.day}</Text>
                 {has && (
                   <Text style={{ fontFamily: font(600), fontSize: 8, color: fg }} numberOfLines={1}>
@@ -78,9 +78,11 @@ export default function PnlCalendar({ trades = [], sym = "$" }) {
       </View>
 
       {view.hasData && (
-        <Text style={{ marginTop: theme.space[3], textAlign: "right", fontFamily: font(700), color: view.monthNet >= 0 ? theme.successStrong : theme.dangerStrong }}>
-          Month: {money(view.monthNet, sym)}
-        </Text>
+        <View style={{ marginTop: theme.space[3], alignSelf: "flex-end", borderRadius: theme.radius.pill, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: view.monthNet >= 0 ? theme.successSubtle : theme.dangerSubtle }}>
+          <Text style={{ fontFamily: font(700), fontSize: theme.font.small, color: view.monthNet >= 0 ? theme.successStrong : theme.dangerStrong }}>
+            Month: {money(view.monthNet, sym)}
+          </Text>
+        </View>
       )}
     </View>
   );

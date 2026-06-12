@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { LifeBuoy, Send, X } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
+import { Grad, GlassBackdrop } from "./ui";
 import { font } from "../theme/typography";
 
 // Same form + entry IDs as the web version (frontend/components/revampV2/SupportModal.jsx)
@@ -69,10 +70,12 @@ export default function SupportModal({ visible, onClose, user, plan = "free" }) 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={close}>
       <Pressable onPress={close} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-        <Pressable onPress={() => {}} style={{ backgroundColor: theme.bg.elevated, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingBottom: theme.space[8], maxHeight: "88%" }}>
+        <Pressable onPress={() => {}} style={{ borderTopLeftRadius: 22, borderTopRightRadius: 22, overflow: "hidden", borderWidth: 1, borderColor: theme.glass.border, paddingBottom: theme.space[8], maxHeight: "88%" }}>
+          <GlassBackdrop strong />
           {/* header */}
           <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space[3], padding: theme.space[5], paddingBottom: theme.space[3] }}>
-            <View style={{ width: 38, height: 38, borderRadius: theme.radius.md, backgroundColor: theme.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 38, height: 38, borderRadius: theme.radius.md, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+              <Grad colors={theme.gradients.statBrand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
               <LifeBuoy size={18} color={theme.yellow[500]} />
             </View>
             <View style={{ flex: 1 }}>
@@ -91,7 +94,8 @@ export default function SupportModal({ visible, onClose, user, plan = "free" }) 
               <Text style={{ fontFamily: font(400), fontSize: theme.font.body, color: theme.text.muted, textAlign: "center" }}>
                 Your {category.toLowerCase()} has been received. We'll get back to you at {user?.email || "your email"} if a reply is needed.
               </Text>
-              <Pressable onPress={close} style={{ marginTop: 6, backgroundColor: theme.primary, borderRadius: theme.radius.md, paddingVertical: 13, paddingHorizontal: 40 }}>
+              <Pressable onPress={close} style={{ marginTop: 6, borderRadius: theme.radius.md, paddingVertical: 13, paddingHorizontal: 40, overflow: "hidden" }}>
+                <Grad colors={theme.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
                 <Text style={{ color: theme.primaryText, fontFamily: font(700), fontSize: theme.font.bodyMd }}>Done</Text>
               </Pressable>
             </View>
@@ -113,7 +117,7 @@ export default function SupportModal({ visible, onClose, user, plan = "free" }) 
 
               <View style={{ gap: theme.space[2] }}>
                 <Text style={{ fontFamily: font(600), fontSize: theme.font.bodyMd, color: theme.text.primary }}>Message</Text>
-                <View style={{ backgroundColor: theme.bg.surface, borderColor: theme.border, borderWidth: 1, borderRadius: theme.radius.md }}>
+                <View style={{ backgroundColor: theme.glass.input, borderColor: theme.glass.border, borderWidth: 1, borderRadius: theme.radius.md }}>
                   <TextInput
                     value={message}
                     onChangeText={setMessage}
@@ -142,8 +146,9 @@ export default function SupportModal({ visible, onClose, user, plan = "free" }) 
               <Pressable
                 onPress={submit}
                 disabled={!message.trim() || status === "sending"}
-                style={{ backgroundColor: theme.primary, borderRadius: theme.radius.md, paddingVertical: 14, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, opacity: !message.trim() || status === "sending" ? 0.6 : 1 }}
+                style={{ borderRadius: theme.radius.md, paddingVertical: 14, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, opacity: !message.trim() || status === "sending" ? 0.6 : 1, overflow: "hidden" }}
               >
+                <Grad colors={theme.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
                 {status === "sending" ? <ActivityIndicator size="small" color={theme.primaryText} /> : <Send size={16} color={theme.primaryText} />}
                 <Text style={{ color: theme.primaryText, fontFamily: font(700), fontSize: theme.font.bodyMd }}>{status === "sending" ? "Sending…" : "Send message"}</Text>
               </Pressable>

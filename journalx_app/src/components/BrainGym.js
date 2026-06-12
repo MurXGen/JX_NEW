@@ -7,6 +7,8 @@ import { Modal, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Brain, Calculator, Trophy, X, Zap } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
+import { Grad, GlassBackdrop } from "./ui";
+import GradientBackground from "./GradientBackground";
 import { font } from "../theme/typography";
 import { getGameScores, recordGameScore } from "../lib/gameScores";
 
@@ -338,15 +340,19 @@ export default function BrainGym() {
         {cards.map((c) => {
           const best = scores[c.id]?.best || 0;
           return (
-            <Pressable key={c.id} onPress={() => setOpen(c.id)} style={{ flex: 1, backgroundColor: t.bg.surface, borderColor: t.border, borderWidth: 1, borderRadius: t.radius.lg, padding: t.space[4], gap: 10 }}>
-              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: t.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+            <Pressable key={c.id} onPress={() => setOpen(c.id)} style={{ flex: 1, borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.xl, padding: t.space[4], gap: 10, overflow: "hidden" }}>
+              <GlassBackdrop />
+              <Grad colors={[t.glass.highlight, "rgba(255,255,255,0)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1.5 }} />
+              <View style={{ width: 40, height: 40, borderRadius: 12, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+                <Grad colors={[`${c.accent}33`, `${c.accent}0d`]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
                 <c.icon size={20} color={c.accent} />
               </View>
               <Text style={{ color: t.text.primary, fontFamily: font(700), fontSize: t.font.bodyMd }}>{c.title}</Text>
               <Text style={{ color: t.text.muted, fontSize: t.font.caption, lineHeight: 16 }}>{c.desc}</Text>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 2 }}>
                 <Text style={{ color: t.text.secondary, fontFamily: font(600), fontSize: t.font.caption }}>Best {best}</Text>
-                <View style={{ backgroundColor: t.primary, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}>
+                <View style={{ borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, overflow: "hidden" }}>
+                  <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
                   <Text style={{ color: t.primaryText, fontFamily: font(700), fontSize: t.font.caption }}>Play</Text>
                 </View>
               </View>
@@ -357,14 +363,16 @@ export default function BrainGym() {
 
       {/* full-screen game modal */}
       <Modal visible={!!open} animationType="slide" onRequestClose={() => setOpen(null)} presentationStyle="fullScreen">
-        <SafeAreaView style={{ flex: 1, backgroundColor: t.bg.canvas }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: t.space[5], paddingVertical: t.space[3], borderBottomColor: t.border, borderBottomWidth: 1 }}>
+        <GradientBackground>
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: t.space[5], paddingVertical: t.space[3], borderBottomColor: t.glass.border, borderBottomWidth: 1 }}>
             <Text style={{ color: t.text.primary, fontFamily: font(700), fontSize: t.font.title }}>{open === "calc" ? "Quick Calc" : "Reflex Trainer"}</Text>
             <Pressable onPress={() => setOpen(null)} hitSlop={10}><X size={24} color={t.text.muted} /></Pressable>
           </View>
           {open === "reflex" && <ReflexGame t={t} onFinish={refreshScores} />}
           {open === "calc" && <QuickCalcGame t={t} onFinish={refreshScores} />}
         </SafeAreaView>
+        </GradientBackground>
       </Modal>
     </View>
   );

@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Activity, Award, BarChart3, CalendarDays, Flame, Info, LineChart, PieChart, Target, TrendingUp } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
-import { H1, Muted, Badge } from "../components/ui";
+import { H1, Muted, Badge, Grad, GlassBackdrop } from "../components/ui";
+import GradientBackground from "../components/GradientBackground";
 import { MotionView } from "../components/motion";
 import { useTip } from "../components/Tooltip";
 import Accordion from "../components/Accordion";
@@ -85,11 +86,12 @@ export default function OverviewScreen() {
   const onRefresh = async () => { setRefreshing(true); await refresh(); setRefreshing(false); };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: t.bg.canvas }} edges={["top"]}>
+    <GradientBackground>
+    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <OnboardingModal visible={justRegistered} onDone={finishGuide} />
 
       <ScrollView
-        contentContainerStyle={{ padding: t.space[5], gap: t.space[4] }}
+        contentContainerStyle={{ padding: t.space[5], gap: t.space[4], paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.text.muted} />}
       >
         <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: t.space[3] }}>
@@ -100,9 +102,17 @@ export default function OverviewScreen() {
           <CustomizeButton sections={SECTIONS} hidden={hidden} onToggle={toggle} onReset={reset} />
         </View>
 
-        {/* ===== Total profit hero (area chart + its own timeframe tabs) ===== */}
+        {/* ===== Total profit hero — glass card with tone-matched glow ===== */}
         <MotionView delay={40}>
-          <View style={{ borderRadius: t.radius.lg, padding: t.space[5], overflow: "hidden", borderWidth: 1, borderColor: heroProfit ? t.success : t.border, backgroundColor: t.bg.surface }}>
+          <View style={{ borderRadius: t.radius.xl, padding: t.space[5], overflow: "hidden", borderWidth: 1, borderColor: heroProfit ? t.success : t.glass.border }}>
+            <GlassBackdrop />
+            <Grad
+              colors={heroProfit ? t.gradients.statSuccess : heroNet < 0 ? t.gradients.statDanger : t.gradients.sheen}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              pointerEvents="none"
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+            />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
               <Text style={{ color: t.text.muted, fontSize: t.font.small, fontFamily: font(500) }}>Total profit</Text>
               <InfoTip t={t} onPress={(e) => info(TIP.net, e)} />
@@ -259,18 +269,20 @@ export default function OverviewScreen() {
         <ConfettiCannon count={120} origin={{ x: SCREEN_W / 2, y: -10 }} fadeOut autoStart explosionSpeed={350} fallSpeed={2800} />
       ); })()}
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 /* ---- small components ---- */
 function TimeframeTabs({ t, value, onChange }) {
   return (
-    <View style={{ flexDirection: "row", backgroundColor: t.bg.muted, borderRadius: t.radius.md, padding: 3 }}>
+    <View style={{ flexDirection: "row", backgroundColor: t.glass.input, borderWidth: 1, borderColor: t.glass.border, borderRadius: t.radius.pill, padding: 3 }}>
       {RANGES.map((r) => {
         const active = r === value;
         return (
-          <Pressable key={r} onPress={() => onChange(r)} style={{ flex: 1, paddingVertical: 8, borderRadius: t.radius.sm, backgroundColor: active ? t.bg.surface : "transparent", alignItems: "center" }}>
-            <Text style={{ color: active ? t.text.primary : t.text.muted, fontFamily: font(active ? 700 : 500), fontSize: t.font.small }}>{r}</Text>
+          <Pressable key={r} onPress={() => onChange(r)} style={{ flex: 1, paddingVertical: 8, borderRadius: t.radius.pill, overflow: "hidden", alignItems: "center" }}>
+            {active && <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />}
+            <Text style={{ color: active ? t.primaryText : t.text.muted, fontFamily: font(active ? 700 : 500), fontSize: t.font.small }}>{r}</Text>
           </Pressable>
         );
       })}
@@ -281,11 +293,15 @@ function InfoTip({ t, onPress }) {
   return <Pressable onPress={onPress} hitSlop={8}><Info size={13} color={t.text.muted} /></Pressable>;
 }
 function KpiTile({ t, i, label, value, color, tip, onInfo }) {
+  // alternate soft gradient washes built from the brand palette
+  const washes = [t.gradients.statBrand, t.gradients.statSuccess, t.gradients.sheen, t.gradients.statBrand];
   return (
     <MotionView delay={i * 60} style={{ flexGrow: 1, flexBasis: "47%" }}>
-      <View style={{ backgroundColor: t.bg.surface, borderColor: t.border, borderWidth: 1, borderRadius: t.radius.lg, padding: t.space[4] }}>
+      <View style={{ borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.xl, padding: t.space[4], overflow: "hidden" }}>
+        <GlassBackdrop />
+        <Grad colors={washes[i % washes.length]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 6 }}>
-          <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{label}</Text>
+          <Text style={{ color: t.text.muted, fontSize: t.font.caption, fontFamily: font(600), letterSpacing: 0.6, textTransform: "uppercase" }}>{label}</Text>
           {tip ? <InfoTip t={t} onPress={() => onInfo(tip)} /> : null}
         </View>
         <Text style={{ color: color || t.text.primary, fontSize: t.font.h2, fontFamily: font(700) }}>{value}</Text>
@@ -306,7 +322,8 @@ function BarRow({ t, label, pct, value, color, onInfo, delay }) {
 }
 function Momentum({ t, label, value, sub }) {
   return (
-    <View style={{ flexGrow: 1, flexBasis: "30%", backgroundColor: t.bg.muted, borderRadius: t.radius.md, borderWidth: 1, borderColor: t.border, paddingVertical: 10, paddingHorizontal: 12 }}>
+    <View style={{ flexGrow: 1, flexBasis: "30%", borderRadius: t.radius.md, borderWidth: 1, borderColor: t.glass.border, paddingVertical: 10, paddingHorizontal: 12, overflow: "hidden" }}>
+      <Grad colors={t.gradients.statBrand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
       <Text style={{ color: t.text.muted, fontSize: t.font.caption, marginBottom: 3 }}>{label}</Text>
       <Text numberOfLines={1} style={{ color: t.text.primary, fontFamily: font(700), fontSize: t.font.bodyMd }}>{value}</Text>
       {!!sub && <Text style={{ color: t.text.muted, fontSize: 10, marginTop: 1 }}>{sub}</Text>}

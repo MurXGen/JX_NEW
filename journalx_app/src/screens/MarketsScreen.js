@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider";
 import { H1, Muted } from "../components/ui";
+import GradientBackground from "../components/GradientBackground";
 import { font } from "../theme/typography";
 
 let WebView = null;
@@ -54,13 +55,16 @@ export default function MarketsScreen() {
 </body></html>`;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg.canvas }} edges={["top"]}>
+    <GradientBackground>
+    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <View style={{ paddingHorizontal: theme.space[5], paddingTop: theme.space[3], paddingBottom: theme.space[2] }}>
         <H1>Markets</H1>
         <Muted>Live indices, forex, metals and crypto.</Muted>
       </View>
       {WebView ? (
-        <WebView source={{ html }} originWhitelist={["*"]} javaScriptEnabled domStorageEnabled style={{ flex: 1, backgroundColor: theme.bg.canvas }} />
+        <View style={{ flex: 1, marginHorizontal: theme.space[4], marginBottom: 96, borderRadius: theme.radius.xl, overflow: "hidden", borderWidth: 1, borderColor: theme.glass.border }}>
+          <WebView source={{ html }} originWhitelist={["*"]} javaScriptEnabled domStorageEnabled style={{ flex: 1, backgroundColor: theme.bg.canvas }} />
+        </View>
       ) : (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
           <Text style={{ color: theme.text.muted, fontFamily: font(500), textAlign: "center" }}>
@@ -69,5 +73,6 @@ export default function MarketsScreen() {
         </View>
       )}
     </SafeAreaView>
+    </GradientBackground>
   );
 }

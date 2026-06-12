@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Image, LayoutAnimation, Modal, Pressable, RefreshControl, ScrollView, Share, Text, View } from "react-native";
+import { Alert, FlatList, Image, LayoutAnimation, Modal, Platform, Pressable, RefreshControl, Share, Text, UIManager, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MotionView } from "../components/motion";
-import { Activity, ArrowDownUp, BarChart3, CalendarDays, Check, CheckSquare, ChevronDown, ChevronRight, Clock, Download, FileDown, ImageIcon, LayoutGrid, LayoutList, ListChecks, Plus, SlidersHorizontal, Square, Trash2, TrendingDown, TrendingUp, X } from "lucide-react-native";
+import { Activity, ArrowDownUp, BarChart3, CalendarDays, Check, CheckSquare, ChevronDown, ChevronRight, Clock, Download, FileDown, ImageIcon, LayoutGrid, List, ListChecks, Plus, SlidersHorizontal, Square, Trash2, TrendingDown, TrendingUp, X } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
-import { Muted, Badge, Card } from "../components/ui";
+import { Muted, Badge, Button, Card, Grad, GlassBackdrop } from "../components/ui";
+import GradientBackground from "../components/GradientBackground";
 import { CustomizeButton, useHiddenSections } from "../components/customize";
 import Accordion from "../components/Accordion";
 import PnlCalendar from "../components/PnlCalendar";
@@ -14,8 +15,15 @@ import ImageModal from "../components/ImageModal";
 import { deleteTrade, importTradesBulk } from "../api/trades";
 import { computeStats, filterByRange, RANGES } from "../lib/analytics";
 import { csvToTrades, SAMPLE_HEADERS } from "../lib/csv";
+import { getItem, setItem } from "../lib/storage";
 import { font } from "../theme/typography";
 import { money, currencySymbol, fmt } from "../lib/format";
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const VIEW_KEY = "jx-trades-view";
 
 const SECTIONS = [
   { id: "performance", label: "Performance" },
@@ -97,125 +105,175 @@ function durationStr(open, close) {
   return `${Math.round(h / 24)}d`;
 }
 
-/* Trade card.
-   - `feature` (Grid view): big image-forward card, one per row.
-   - default (Cards view): compact list row with a small thumbnail. */
-function TradeRow({ t, trade, index, sym, onOpen, onImages, selectMode, selected, last, feature }) {
+const ABS_FILL = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 };
+
+/* tiny tag pill for strategy / timeframe / emotion */
+function TagPill({ t, label }) {
+  return (
+    <View style={{ backgroundColor: t.glass.input, borderColor: t.glass.border, borderWidth: 1, borderRadius: t.radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
+      <Text numberOfLines={1} style={{ color: t.text.secondary, fontFamily: font(500), fontSize: t.font.caption }}>{label}</Text>
+    </View>
+  );
+}
+
+/* small R-multiple / return badge tinted by sign */
+function RPill({ t, rMult }) {
+  const up = rMult >= 0;
+  return (
+    <View style={{ backgroundColor: up ? t.successSubtle : t.dangerSubtle, borderRadius: t.radius.pill, paddingHorizontal: 8, paddingVertical: 2 }}>
+      <Text style={{ color: up ? t.successStrong : t.dangerStrong, fontFamily: font(700), fontSize: t.font.caption }}>{`${up ? "+" : ""}${fmt(rMult, 1)}R`}</Text>
+    </View>
+  );
+}
+
+/* ===== Premium glass trade card (list view) — gradient P&L wash + left
+   accent bar, symbol + direction pill, R badge, time/duration, tag pills. ===== */
+function TradeRow({ t, trade, index, sym, onOpen, onImages, selectMode, selected, last }) {
   const pnl = Number(trade.pnl) || 0;
   const isLong = (trade.direction || "").toLowerCase() === "long";
   const up = pnl >= 0;
   const running = !trade.closeTime && trade.tradeStatus === "running";
   const isQuick = (trade.tradeStatus || "") === "quick";
   const thumb = firstImg(trade);
-  // date lives on the day-group header now; show the exit time-of-day instead
+  // date lives on the day-group header; show the exit time-of-day instead
   const exitTime = trade.closeTime ? new Date(trade.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
 
   const notional = Number(trade.quantityUSD) || 0;
   const retPct = trade.retPct != null ? Number(trade.retPct) : (notional ? (pnl / notional) * 100 : null);
   const rMult = trade.realizedR != null && Number.isFinite(Number(trade.realizedR)) ? Number(trade.realizedR) : null;
   const dur = durationStr(trade.openTime, trade.closeTime);
-  const meta = [trade.strategy, trade.timeframe].filter(Boolean).join(" · ");
-  const subText = retPct != null
-    ? `${retPct >= 0 ? "+" : ""}${fmt(retPct, 1)}%${rMult != null ? ` · ${rMult >= 0 ? "+" : ""}${fmt(rMult, 1)}R` : ""}`
-    : (rMult != null ? `${rMult >= 0 ? "+" : ""}${fmt(rMult, 1)}R` : "");
+  const tags = [trade.strategy, trade.timeframe, trade.emotion].filter(Boolean);
 
-  /* ===== compact list row (Cards view) ===== */
-  if (!feature) {
-    const accent = running ? t.text.muted : up ? t.success : t.danger;
-    return (
-      <MotionView delay={Math.min(index, 10) * 30}>
-        <Pressable onPress={onOpen} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 11, paddingVertical: 12, paddingLeft: 10, borderBottomColor: t.border, borderBottomWidth: last ? 0 : 1, opacity: pressed ? 0.6 : 1 })}>
-          <View style={{ position: "absolute", left: 0, top: 12, bottom: 12, width: 3, borderRadius: 3, backgroundColor: accent }} />
-          {selectMode ? (selected ? <CheckSquare size={20} color={t.primary} /> : <Square size={20} color={t.text.muted} />) : null}
-          <Pressable onPress={selectMode ? onOpen : onImages} style={{ width: 48, height: 48, borderRadius: 12, overflow: "hidden", backgroundColor: t.bg.muted, alignItems: "center", justifyContent: "center" }}>
-            {thumb ? <Image source={{ uri: thumb }} style={{ width: 48, height: 48 }} /> : <ImageIcon size={18} color={t.text.muted} />}
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-              <Text style={{ color: t.text.primary, fontFamily: font(700), fontSize: t.font.bodyMd }}>{trade.symbol || trade.ticker || "—"}</Text>
-              <Badge tone={isLong ? "success" : "danger"}>{isLong ? "LONG" : "SHORT"}</Badge>
-              {running && <Badge tone="neutral">OPEN</Badge>}
-              {isQuick && <Badge tone="warn">QUICK</Badge>}
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 3 }}>
-              {exitTime ? <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{exitTime}</Text> : null}
-              {dur && (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                  <Clock size={11} color={t.text.muted} />
-                  <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{dur}</Text>
-                </View>
-              )}
-              {!!meta && <Text numberOfLines={1} style={{ flex: 1, color: t.text.muted, fontSize: t.font.caption }}>{meta}</Text>}
-            </View>
-          </View>
-          <View style={{ alignItems: "flex-end" }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              {up ? <TrendingUp size={15} color={t.success} /> : <TrendingDown size={15} color={t.danger} />}
-              <Text style={{ color: up ? t.successStrong : t.dangerStrong, fontFamily: font(700), fontSize: t.font.bodyMd }}>{money(pnl, sym)}</Text>
-            </View>
-            {!!subText && <Text style={{ color: t.text.muted, fontSize: t.font.caption, marginTop: 2 }}>{subText}</Text>}
-          </View>
-          {!selectMode && <ChevronRight size={18} color={t.text.muted} style={{ marginLeft: 2 }} />}
-        </Pressable>
-      </MotionView>
-    );
-  }
+  const wash = running ? t.gradients.sheen : up ? t.gradients.statSuccess : t.gradients.statDanger;
+  const accent = running ? [t.borderStrong, t.border] : up ? t.gradients.success : t.gradients.danger;
 
-  /* ===== big image-forward card (Grid view) ===== */
-  const bannerH = 168;
   return (
-    <MotionView delay={Math.min(index, 10) * 35}>
+    <MotionView delay={Math.min(index, 12) * 36}>
       <Pressable
         onPress={onOpen}
         style={({ pressed }) => ({
-          borderRadius: 16, overflow: "hidden", marginBottom: last ? 0 : 14,
-          backgroundColor: t.bg.surface, borderWidth: 1, borderColor: selected ? t.primary : t.border,
-          transform: [{ scale: pressed ? 0.985 : 1 }],
+          borderRadius: t.radius.lg,
+          overflow: "hidden",
+          borderWidth: 1,
+          borderColor: selected ? t.primary : t.glass.border,
+          backgroundColor: t.glass.surface,
+          marginBottom: last ? 0 : 10,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
         })}
       >
-        <Pressable onPress={selectMode ? onOpen : onImages} style={{ height: bannerH, backgroundColor: t.bg.canvas }}>
-          {thumb ? (
-            <Image source={{ uri: thumb }} style={{ width: "100%", height: bannerH }} resizeMode="cover" />
-          ) : (
-            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", margin: 10, borderRadius: 12, borderWidth: 1.5, borderStyle: "dashed", borderColor: t.borderStrong, gap: 6 }}>
-              <ImageIcon size={28} color={t.text.muted} />
-              <Text style={{ color: t.text.muted, fontFamily: font(600), fontSize: t.font.small }}>Tap to add screenshots</Text>
-            </View>
-          )}
-          <View style={{ position: "absolute", top: 10, left: 10, flexDirection: "row", gap: 6 }}>
-            <View style={{ backgroundColor: isLong ? "rgba(16,185,129,0.92)" : "rgba(239,68,68,0.92)", borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 }}>
-              <Text style={{ color: "#fff", fontFamily: font(700), fontSize: t.font.caption }}>{isLong ? "LONG" : "SHORT"}</Text>
-            </View>
-            {running && <View style={{ backgroundColor: "rgba(0,0,0,0.55)", borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 }}><Text style={{ color: "#fff", fontFamily: font(700), fontSize: t.font.caption }}>OPEN</Text></View>}
-            {isQuick && <View style={{ backgroundColor: "rgba(0,0,0,0.55)", borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 }}><Text style={{ color: "#fff", fontFamily: font(700), fontSize: t.font.caption }}>QUICK</Text></View>}
-          </View>
-          <View style={{ position: "absolute", top: 10, right: 10, flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: up ? "rgba(16,185,129,0.95)" : "rgba(239,68,68,0.95)", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
-            {up ? <TrendingUp size={13} color="#fff" /> : <TrendingDown size={13} color="#fff" />}
-            <Text style={{ color: "#fff", fontFamily: font(700), fontSize: t.font.small }}>{money(pnl, sym)}</Text>
-          </View>
-          {selectMode && (
-            <View style={{ position: "absolute", bottom: 10, right: 10, backgroundColor: "rgba(0,0,0,0.45)", borderRadius: 999, padding: 3 }}>
-              {selected ? <CheckSquare size={22} color={t.primaryText} fill={t.primary} /> : <Square size={22} color="#fff" />}
-            </View>
-          )}
-        </Pressable>
-        <View style={{ padding: 12, gap: 6 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <Text numberOfLines={1} style={{ flex: 1, color: t.text.primary, fontFamily: font(800), fontSize: t.font.bodyMd }}>{trade.symbol || trade.ticker || "—"}</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              {!!subText && <Text style={{ color: up ? t.successStrong : t.dangerStrong, fontFamily: font(700), fontSize: t.font.small }}>{subText}</Text>}
-              {!selectMode && <ChevronRight size={16} color={t.text.muted} />}
-            </View>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            {exitTime ? <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{exitTime}</Text> : null}
-            {dur && (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                <Clock size={11} color={t.text.muted} />
-                <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{dur}</Text>
+        {/* P&L tint wash + left accent bar */}
+        <Grad colors={wash} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={ABS_FILL} />
+        <Grad colors={accent} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} pointerEvents="none" style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3 }} />
+
+        <View style={{ paddingVertical: 12, paddingLeft: 14, paddingRight: 12, gap: 9 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
+            {selectMode ? (selected ? <CheckSquare size={20} color={t.primary} /> : <Square size={20} color={t.text.muted} />) : null}
+            <Pressable onPress={selectMode ? onOpen : onImages} style={{ width: 44, height: 44, borderRadius: 12, overflow: "hidden", backgroundColor: t.bg.muted, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: t.glass.border }}>
+              {thumb ? <Image source={{ uri: thumb }} style={{ width: 44, height: 44 }} /> : <ImageIcon size={17} color={t.text.muted} />}
+            </Pressable>
+
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                <Text style={{ color: t.text.primary, fontFamily: font(800), fontSize: t.font.bodyMd }}>{trade.symbol || trade.ticker || "—"}</Text>
+                <Badge tone={isLong ? "success" : "danger"}>{isLong ? "LONG" : "SHORT"}</Badge>
+                {running && <Badge tone="neutral">OPEN</Badge>}
+                {isQuick && <Badge tone="warn">QUICK</Badge>}
               </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
+                {exitTime ? <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{exitTime}</Text> : null}
+                {dur && (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                    <Clock size={11} color={t.text.muted} />
+                    <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{dur}</Text>
+                  </View>
+                )}
+                {retPct != null && (
+                  <Text style={{ color: t.text.muted, fontFamily: font(500), fontSize: t.font.caption }}>{`${retPct >= 0 ? "+" : ""}${fmt(retPct, 1)}%`}</Text>
+                )}
+              </View>
+            </View>
+
+            <View style={{ alignItems: "flex-end", gap: 4 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                {up ? <TrendingUp size={15} color={t.success} /> : <TrendingDown size={15} color={t.danger} />}
+                <Text style={{ color: up ? t.successStrong : t.dangerStrong, fontFamily: font(800), fontSize: t.font.bodyMd }}>{money(pnl, sym)}</Text>
+              </View>
+              {rMult != null && <RPill t={t} rMult={rMult} />}
+            </View>
+            {!selectMode && <ChevronRight size={17} color={t.text.muted} style={{ marginLeft: 2 }} />}
+          </View>
+
+          {tags.length > 0 && (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, paddingLeft: selectMode ? 31 : 0 }}>
+              {tags.map((tag, i) => <TagPill key={`${tag}-${i}`} t={t} label={tag} />)}
+            </View>
+          )}
+        </View>
+      </Pressable>
+    </MotionView>
+  );
+}
+
+/* ===== Compact 2-column stat card (grid view) — symbol, direction pill,
+   prominent P&L, date/time. Flat grid, so the date lives on each card. ===== */
+function GridCard({ t, trade, index, sym, onOpen, onImages, selectMode, selected }) {
+  const pnl = Number(trade.pnl) || 0;
+  const isLong = (trade.direction || "").toLowerCase() === "long";
+  const up = pnl >= 0;
+  const running = !trade.closeTime && trade.tradeStatus === "running";
+  const isQuick = (trade.tradeStatus || "") === "quick";
+  const thumb = firstImg(trade);
+  const rMult = trade.realizedR != null && Number.isFinite(Number(trade.realizedR)) ? Number(trade.realizedR) : null;
+
+  const d = new Date(trade.closeTime || trade.openTime || NaN);
+  const dateStr = Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+  const timeStr = trade.closeTime ? new Date(trade.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
+
+  const wash = running ? t.gradients.sheen : up ? t.gradients.statSuccess : t.gradients.statDanger;
+  const accent = running ? [t.borderStrong, t.border] : up ? t.gradients.success : t.gradients.danger;
+
+  return (
+    <MotionView delay={Math.min(index, 12) * 30} style={{ flex: 1 }}>
+      <Pressable
+        onPress={onOpen}
+        style={({ pressed }) => ({
+          flex: 1,
+          borderRadius: t.radius.lg,
+          overflow: "hidden",
+          borderWidth: 1,
+          borderColor: selected ? t.primary : t.glass.border,
+          backgroundColor: t.glass.surface,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+        })}
+      >
+        <Grad colors={wash} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={ABS_FILL} />
+        <Grad colors={accent} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3 }} />
+
+        <View style={{ padding: 12, paddingTop: 13, gap: 7 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Badge tone={isLong ? "success" : "danger"}>{isLong ? "LONG" : "SHORT"}</Badge>
+            {selectMode ? (
+              selected ? <CheckSquare size={19} color={t.primary} /> : <Square size={19} color={t.text.muted} />
+            ) : thumb ? (
+              <Pressable onPress={onImages} hitSlop={6} style={{ width: 28, height: 28, borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: t.glass.border }}>
+                <Image source={{ uri: thumb }} style={{ width: 28, height: 28 }} />
+              </Pressable>
+            ) : (
+              <ChevronRight size={15} color={t.text.muted} />
             )}
-            {!!meta && <Text numberOfLines={1} style={{ flex: 1, textAlign: "right", color: t.text.muted, fontSize: t.font.caption }}>{meta}</Text>}
+          </View>
+
+          <Text numberOfLines={1} style={{ color: t.text.primary, fontFamily: font(800), fontSize: t.font.bodyMd }}>{trade.symbol || trade.ticker || "—"}</Text>
+
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <Text numberOfLines={1} style={{ color: up ? t.successStrong : t.dangerStrong, fontFamily: font(800), fontSize: t.font.title }}>{money(pnl, sym)}</Text>
+            {rMult != null && <RPill t={t} rMult={rMult} />}
+          </View>
+
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+            <Text numberOfLines={1} style={{ flex: 1, color: t.text.muted, fontSize: t.font.caption }}>{dateStr}{timeStr ? ` · ${timeStr}` : ""}</Text>
+            {running && <Badge tone="neutral">OPEN</Badge>}
+            {isQuick && <Badge tone="warn">QUICK</Badge>}
           </View>
         </View>
       </Pressable>
@@ -223,42 +281,43 @@ function TradeRow({ t, trade, index, sym, onOpen, onImages, selectMode, selected
   );
 }
 
-/* collapsible per-date box; trades render as compact rows or big cards */
-function DateGroup({ t, grp, sym, view, selectMode, selected, onToggleSelect, onOpenTrade, onImages }) {
+/* collapsible per-date box (list view) — trades render as glass cards */
+function DateGroup({ t, grp, index, sym, selectMode, selected, onToggleSelect, onOpenTrade, onImages }) {
   const [open, setOpen] = useState(true);
   const toggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.create(220, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     setOpen((o) => !o);
   };
-  const feature = view === "grid";
   return (
-    <Card flat style={{ padding: t.space[3] }}>
-      {/* day header (tap to collapse) */}
-      <Pressable onPress={toggle} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: open ? 8 : 0, marginBottom: open ? 10 : 0, borderBottomColor: t.border, borderBottomWidth: open ? 1 : 0 }}>
-        <Text style={{ fontFamily: font(700), fontSize: t.font.small, color: t.text.secondary, letterSpacing: 0.3 }}>{grp.label}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Text style={{ fontFamily: font(500), fontSize: t.font.caption, color: t.text.muted }}>{grp.items.length} {grp.items.length === 1 ? "trade" : "trades"}</Text>
-          <View style={{ backgroundColor: grp.net >= 0 ? t.successSubtle : t.dangerSubtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
-            <Text style={{ fontFamily: font(700), fontSize: t.font.caption, color: grp.net >= 0 ? t.successStrong : t.dangerStrong }}>{money(grp.net, sym)}</Text>
+    <MotionView delay={Math.min(index, 8) * 45}>
+      <Card style={{ padding: t.space[3] }}>
+        {/* day header (tap to collapse) */}
+        <Pressable onPress={toggle} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: open ? 8 : 0, marginBottom: open ? 10 : 0, borderBottomColor: t.border, borderBottomWidth: open ? 1 : 0 }}>
+          <Text style={{ fontFamily: font(700), fontSize: t.font.small, color: t.text.secondary, letterSpacing: 0.3 }}>{grp.label}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={{ fontFamily: font(500), fontSize: t.font.caption, color: t.text.muted }}>{grp.items.length} {grp.items.length === 1 ? "trade" : "trades"}</Text>
+            <View style={{ backgroundColor: grp.net >= 0 ? t.successSubtle : t.dangerSubtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+              <Text style={{ fontFamily: font(700), fontSize: t.font.caption, color: grp.net >= 0 ? t.successStrong : t.dangerStrong }}>{money(grp.net, sym)}</Text>
+            </View>
+            <View style={{ transform: [{ rotate: open ? "180deg" : "0deg" }] }}>
+              <ChevronDown size={16} color={t.text.muted} />
+            </View>
           </View>
-          <View style={{ transform: [{ rotate: open ? "180deg" : "0deg" }] }}>
-            <ChevronDown size={16} color={t.text.muted} />
-          </View>
-        </View>
-      </Pressable>
+        </Pressable>
 
-      {open && (
-        <View>
-          {grp.items.map((item, i) => (
-            <TradeRow key={item._id || `${grp.label}-${i}`} t={t} trade={item} index={i} sym={sym} feature={feature}
-              last={i === grp.items.length - 1}
-              selectMode={selectMode} selected={selected.has(item._id)}
-              onOpen={() => (selectMode ? onToggleSelect(item._id) : onOpenTrade(item))}
-              onImages={() => onImages(item)} />
-          ))}
-        </View>
-      )}
-    </Card>
+        {open && (
+          <View>
+            {grp.items.map((item, i) => (
+              <TradeRow key={item._id || `${grp.label}-${i}`} t={t} trade={item} index={i} sym={sym}
+                last={i === grp.items.length - 1}
+                selectMode={selectMode} selected={selected.has(item._id)}
+                onOpen={() => (selectMode ? onToggleSelect(item._id) : onOpenTrade(item))}
+                onImages={() => onImages(item)} />
+            ))}
+          </View>
+        )}
+      </Card>
+    </MotionView>
   );
 }
 
@@ -273,10 +332,66 @@ function FChip({ t, active, label, onPress }) {
 
 function KpiTile({ theme, label, value, color }) {
   return (
-    <View style={{ flexGrow: 1, flexBasis: "47%", backgroundColor: theme.bg.surface, borderColor: theme.border, borderWidth: 1, borderRadius: theme.radius.md, padding: theme.space[4] }}>
-      <Text style={{ color: theme.text.muted, fontSize: theme.font.caption, marginBottom: 6 }}>{label}</Text>
+    <View style={{ flexGrow: 1, flexBasis: "47%", borderColor: theme.glass.border, borderWidth: 1, borderRadius: theme.radius.lg, padding: theme.space[4], overflow: "hidden" }}>
+      <Grad colors={theme.gradients.sheen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+      <Text style={{ color: theme.text.muted, fontSize: theme.font.caption, marginBottom: 6, fontFamily: font(600), letterSpacing: 0.6, textTransform: "uppercase" }}>{label}</Text>
       <Text style={{ color: color || theme.text.primary, fontSize: theme.font.h3, fontFamily: font(700) }}>{value}</Text>
     </View>
+  );
+}
+
+/* LIST / GRID segmented icon toggle */
+function ViewToggle({ t, view, onChange }) {
+  const opts = [
+    { id: "cards", Icon: List, label: "List view" },
+    { id: "grid", Icon: LayoutGrid, label: "Grid view" },
+  ];
+  return (
+    <View style={{ flexDirection: "row", backgroundColor: t.glass.input, borderRadius: t.radius.pill, borderWidth: 1, borderColor: t.glass.border, padding: 3, gap: 2 }}>
+      {opts.map(({ id, Icon, label }) => {
+        const active = view === id;
+        return (
+          <Pressable
+            key={id}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            onPress={() => onChange(id)}
+            style={({ pressed }) => ({
+              width: 40, height: 30, borderRadius: t.radius.pill, overflow: "hidden",
+              alignItems: "center", justifyContent: "center",
+              transform: [{ scale: pressed ? 0.94 : 1 }],
+            })}
+          >
+            {active && <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={ABS_FILL} />}
+            <Icon size={15} color={active ? t.primaryText : t.text.secondary} />
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/* glass empty state — icon, copy, CTA */
+function EmptyTrades({ t, hasAny, onLog, onClear }) {
+  return (
+    <MotionView>
+      <Card style={{ alignItems: "center", paddingVertical: t.space[7], gap: 10 }}>
+        <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: t.primarySubtle, borderWidth: 1, borderColor: t.accent.border, alignItems: "center", justifyContent: "center" }}>
+          <BarChart3 size={26} color={t.accent.text} />
+        </View>
+        <Text style={{ fontFamily: font(700), fontSize: t.font.title, color: t.text.primary }}>
+          {hasAny ? "No trades match" : "No trades yet"}
+        </Text>
+        <Muted style={{ fontSize: t.font.small, textAlign: "center", maxWidth: 260 }}>
+          {hasAny ? "Try clearing your filters or widening the date range." : "Log your first trade and start building your edge."}
+        </Muted>
+        {hasAny ? (
+          <Button title="Clear filters" variant="secondary" onPress={onClear} style={{ marginTop: 6, paddingVertical: 10 }} />
+        ) : (
+          <Button title="Log first trade" icon={Plus} onPress={onLog} style={{ marginTop: 6, paddingVertical: 10 }} />
+        )}
+      </Card>
+    </MotionView>
   );
 }
 
@@ -290,13 +405,26 @@ export default function TradesScreen({ navigation }) {
   const [sort, setSort] = useState("newest");
   const [range, setRange] = useState("ALL");
   const [sheet, setSheet] = useState(null); // null | "filter" | "sort"
-  const [view, setView] = useState("cards"); // cards | grid
+  const [view, setView] = useState(() => (getItem(VIEW_KEY) === "grid" ? "grid" : "cards")); // cards | grid
   const [imgTrade, setImgTrade] = useState(null);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState(() => new Set());
   const [working, setWorking] = useState(false);
   const [importing, setImporting] = useState(false);
   const { hidden, toggle, reset, isVisible } = useHiddenSections("jx-trades-hidden");
+
+  const animateLayout = () =>
+    LayoutAnimation.configureNext(LayoutAnimation.create(220, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+  const changeView = (v) => {
+    if (v === view) return;
+    animateLayout();
+    setView(v);
+    setItem(VIEW_KEY, v);
+  };
+  const setFilterAnim = (v) => { animateLayout(); setFilter(v); };
+  const setDirectionAnim = (v) => { animateLayout(); setDirection(v); };
+  const setSortAnim = (v) => { animateLayout(); setSort(v); };
+  const setRangeAnim = (v) => { animateLayout(); setRange(v); };
 
   const sym = currencySymbol(currentAccount?.currency);
   const ranged = useMemo(() => filterByRange(trades, range), [trades, range]);
@@ -423,139 +551,174 @@ export default function TradesScreen({ navigation }) {
   };
 
   const RangeTabs = () => (
-    <View style={{ flexDirection: "row", backgroundColor: t.bg.muted, borderRadius: t.radius.md, padding: 3 }}>
+    <View style={{ flexDirection: "row", backgroundColor: t.glass.input, borderWidth: 1, borderColor: t.glass.border, borderRadius: t.radius.pill, padding: 3 }}>
       {RANGES.map((r) => {
         const active = r === range;
         return (
-          <Pressable key={r} onPress={() => setRange(r)} style={{ flex: 1, paddingVertical: 7, borderRadius: t.radius.sm, backgroundColor: active ? t.bg.surface : "transparent", alignItems: "center" }}>
-            <Text style={{ color: active ? t.text.primary : t.text.muted, fontFamily: font(active ? 700 : 500), fontSize: t.font.small }}>{r}</Text>
+          <Pressable key={r} onPress={() => setRangeAnim(r)} style={{ flex: 1, paddingVertical: 7, borderRadius: t.radius.pill, overflow: "hidden", alignItems: "center" }}>
+            {active && <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />}
+            <Text style={{ color: active ? t.primaryText : t.text.muted, fontFamily: font(active ? 700 : 500), fontSize: t.font.small }}>{r}</Text>
           </Pressable>
         );
       })}
     </View>
   );
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: t.bg.canvas }} edges={["top"]}>
-      <ImageModal visible={!!imgTrade} onClose={() => setImgTrade(null)} tradeId={imgTrade?._id} initialImages={imgTrade ? imgUrls(imgTrade) : []} onChange={() => refresh().catch(() => {})} />
+  const showTrades = isVisible("trades");
+  const isGrid = view === "grid";
 
-      <ScrollView contentContainerStyle={{ padding: t.space[5], gap: t.space[4], paddingBottom: t.space[8] }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.text.muted} />}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ fontFamily: font(700), fontSize: t.font.h2, color: t.text.primary }}>Trades</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <CustomizeButton sections={SECTIONS} hidden={hidden} onToggle={toggle} onReset={reset} />
-            <Pressable onPress={importCsv} disabled={importing} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border, opacity: importing ? 0.6 : 1 }}>
-              <FileDown size={16} color={t.text.secondary} />
-            </Pressable>
-            <Pressable onPress={() => navigation.navigate("LogTrade")} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: t.primary, borderRadius: t.radius.md, paddingHorizontal: 14, paddingVertical: 9 }}>
-              <Plus size={16} color={t.primaryText} />
-              <Text style={{ color: t.primaryText, fontFamily: font(700) }}>Log</Text>
+  /* grid data padded to an even count so the last card doesn't stretch */
+  const gridData = useMemo(
+    () => (filtered.length % 2 ? [...filtered, { __empty: true }] : filtered),
+    [filtered]
+  );
+  const listData = showTrades ? (isGrid ? gridData : groups) : [];
+
+  const header = (
+    <View style={{ gap: t.space[4] }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <Text style={{ fontFamily: font(700), fontSize: t.font.h2, color: t.text.primary }}>Trades</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <CustomizeButton sections={SECTIONS} hidden={hidden} onToggle={toggle} onReset={reset} />
+          <Pressable onPress={importCsv} disabled={importing} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border, opacity: importing ? 0.6 : 1 }}>
+            <FileDown size={16} color={t.text.secondary} />
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate("LogTrade")} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: t.radius.md, paddingHorizontal: 14, paddingVertical: 9, overflow: "hidden", shadowColor: t.primary, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}>
+            <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+            <Plus size={16} color={t.primaryText} />
+            <Text style={{ color: t.primaryText, fontFamily: font(700) }}>Log</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <JournalSwitcher />
+      <RangeTabs />
+
+      {isVisible("performance") && (
+        <Accordion title="Performance" icon={BarChart3}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: t.space[3] }}>
+            <KpiTile theme={t} label="Total trades" value={s.n} />
+            <KpiTile theme={t} label="Win rate" value={`${s.winRate}%`} color={t.yellow[400]} />
+            <KpiTile theme={t} label="Net P&L" value={money(s.net, sym)} color={s.net >= 0 ? t.successStrong : t.dangerStrong} />
+            <KpiTile theme={t} label="Profit factor" value={pf} color={s.profitFactor >= 1 ? t.successStrong : t.dangerStrong} />
+          </View>
+        </Accordion>
+      )}
+
+      {isVisible("calendar") && (
+        <Accordion title="Calendar" icon={CalendarDays}>
+          <PnlCalendar trades={trades} sym={sym} />
+        </Accordion>
+      )}
+
+      {isVisible("heatmap") && (
+        <Accordion title="Activity heatmap" icon={Activity}>
+          <Heatmap trades={trades} />
+        </Accordion>
+      )}
+
+      {showTrades && (
+        <View style={{ gap: t.space[3] }}>
+          {/* row 1: title + net + select */}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <ListChecks size={18} color={t.text.primary} />
+              <Text style={{ fontFamily: font(700), fontSize: t.font.title, color: t.text.primary }}>All trades</Text>
+              <Text style={{ fontFamily: font(700), fontSize: t.font.small, color: filterNet >= 0 ? t.successStrong : t.dangerStrong }}>{money(filterNet, sym)}</Text>
+            </View>
+            <Pressable onPress={() => (selectMode ? exitSelect() : setSelectMode(true))} style={{ paddingHorizontal: 6 }}>
+              <Text style={{ fontFamily: font(600), fontSize: t.font.small, color: t.accent.text }}>{selectMode ? "Done" : "Select"}</Text>
             </Pressable>
           </View>
-        </View>
 
-        <JournalSwitcher />
-        <RangeTabs />
-
-        {isVisible("performance") && (
-          <Accordion title="Performance" icon={BarChart3}>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: t.space[3] }}>
-              <KpiTile theme={t} label="Total trades" value={s.n} />
-              <KpiTile theme={t} label="Win rate" value={`${s.winRate}%`} color={t.yellow[400]} />
-              <KpiTile theme={t} label="Net P&L" value={money(s.net, sym)} color={s.net >= 0 ? t.successStrong : t.dangerStrong} />
-              <KpiTile theme={t} label="Profit factor" value={pf} color={s.profitFactor >= 1 ? t.successStrong : t.dangerStrong} />
-            </View>
-          </Accordion>
-        )}
-
-        {isVisible("calendar") && (
-          <Accordion title="Calendar" icon={CalendarDays}>
-            <PnlCalendar trades={trades} sym={sym} />
-          </Accordion>
-        )}
-
-        {isVisible("heatmap") && (
-          <Accordion title="Activity heatmap" icon={Activity}>
-            <Heatmap trades={trades} />
-          </Accordion>
-        )}
-
-        {isVisible("trades") && (
-          <View style={{ gap: t.space[3] }}>
-            {/* row 1: title + net + select */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <ListChecks size={18} color={t.text.primary} />
-                <Text style={{ fontFamily: font(700), fontSize: t.font.title, color: t.text.primary }}>All trades</Text>
-                <Text style={{ fontFamily: font(700), fontSize: t.font.small, color: filterNet >= 0 ? t.successStrong : t.dangerStrong }}>{money(filterNet, sym)}</Text>
-              </View>
-              <Pressable onPress={() => (selectMode ? exitSelect() : setSelectMode(true))} style={{ paddingHorizontal: 6 }}>
-                <Text style={{ fontFamily: font(600), fontSize: t.font.small, color: t.accent.text }}>{selectMode ? "Done" : "Select"}</Text>
+          {/* row 2: view toggle (left) + filter/sort (right) */}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <ViewToggle t={t} view={view} onChange={changeView} />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Pressable onPress={() => setSheet("filter")} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: activeFilters ? t.primarySubtle : t.bg.muted, borderWidth: 1, borderColor: activeFilters ? t.primary : t.border }}>
+                <SlidersHorizontal size={16} color={activeFilters ? t.accent.text : t.text.secondary} />
+                {activeFilters > 0 && (
+                  <View style={{ position: "absolute", top: -5, right: -5, minWidth: 16, height: 16, paddingHorizontal: 3, borderRadius: 8, backgroundColor: t.primary, alignItems: "center", justifyContent: "center" }}>
+                    <Text style={{ color: t.primaryText, fontFamily: font(700), fontSize: 9 }}>{activeFilters}</Text>
+                  </View>
+                )}
+              </Pressable>
+              <Pressable onPress={() => setSheet("sort")} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border }}>
+                <ArrowDownUp size={16} color={t.text.secondary} />
               </Pressable>
             </View>
-
-            {/* row 2: view toggle (left) + filter/sort (right) */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-              <View style={{ flexDirection: "row", backgroundColor: t.bg.muted, borderRadius: t.radius.md, borderWidth: 1, borderColor: t.border, overflow: "hidden" }}>
-                <Pressable onPress={() => setView("cards")} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 36, backgroundColor: view === "cards" ? t.primary : "transparent" }}>
-                  <LayoutList size={15} color={view === "cards" ? t.primaryText : t.text.secondary} />
-                  <Text style={{ fontFamily: font(600), fontSize: t.font.caption, color: view === "cards" ? t.primaryText : t.text.secondary }}>Cards</Text>
-                </Pressable>
-                <Pressable onPress={() => setView("grid")} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 36, backgroundColor: view === "grid" ? t.primary : "transparent" }}>
-                  <LayoutGrid size={15} color={view === "grid" ? t.primaryText : t.text.secondary} />
-                  <Text style={{ fontFamily: font(600), fontSize: t.font.caption, color: view === "grid" ? t.primaryText : t.text.secondary }}>Grid</Text>
-                </Pressable>
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <Pressable onPress={() => setSheet("filter")} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: activeFilters ? t.primarySubtle : t.bg.muted, borderWidth: 1, borderColor: activeFilters ? t.primary : t.border }}>
-                  <SlidersHorizontal size={16} color={activeFilters ? t.accent.text : t.text.secondary} />
-                  {activeFilters > 0 && (
-                    <View style={{ position: "absolute", top: -5, right: -5, minWidth: 16, height: 16, paddingHorizontal: 3, borderRadius: 8, backgroundColor: t.primary, alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ color: t.primaryText, fontFamily: font(700), fontSize: 9 }}>{activeFilters}</Text>
-                    </View>
-                  )}
-                </Pressable>
-                <Pressable onPress={() => setSheet("sort")} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border }}>
-                  <ArrowDownUp size={16} color={t.text.secondary} />
-                </Pressable>
-              </View>
-            </View>
-
-            {/* bulk action bar */}
-            {selectMode && selected.size > 0 && (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: t.bg.muted, borderRadius: t.radius.md, padding: 10 }}>
-                <Text style={{ flex: 1, fontFamily: font(700), fontSize: t.font.small, color: t.text.primary }}>{selected.size} selected</Text>
-                <Pressable onPress={exportSelected} disabled={working} style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 7, borderRadius: t.radius.sm, backgroundColor: t.bg.surface, borderWidth: 1, borderColor: t.border }}>
-                  <Download size={14} color={t.text.secondary} /><Text style={{ fontFamily: font(600), fontSize: t.font.caption, color: t.text.secondary }}>Export</Text>
-                </Pressable>
-                <Pressable onPress={deleteSelected} disabled={working} style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 7, borderRadius: t.radius.sm, backgroundColor: t.dangerSubtle }}>
-                  <Trash2 size={14} color={t.dangerStrong} /><Text style={{ fontFamily: font(600), fontSize: t.font.caption, color: t.dangerStrong }}>{working ? "…" : "Delete"}</Text>
-                </Pressable>
-              </View>
-            )}
-
-            {/* one collapsible box per date, with extra spacing between dates */}
-            {filtered.length === 0 ? (
-              <Card><View style={{ alignItems: "center", paddingVertical: t.space[5] }}><Muted>No trades in this range/filter.</Muted></View></Card>
-            ) : (
-              <View style={{ gap: t.space[5] }}>
-                {groups.map((grp) => (
-                  <DateGroup key={grp.label} t={t} grp={grp} sym={sym} view={view}
-                    selectMode={selectMode} selected={selected}
-                    onToggleSelect={toggleSelect}
-                    onOpenTrade={(item) => navigation.navigate("TradeDetails", { trade: item })}
-                    onImages={(item) => setImgTrade(item)} />
-                ))}
-              </View>
-            )}
           </View>
-        )}
-      </ScrollView>
 
-      {/* filter / sort bottom sheet */}
+          {/* bulk action bar */}
+          {selectMode && selected.size > 0 && (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: t.bg.muted, borderRadius: t.radius.md, padding: 10 }}>
+              <Text style={{ flex: 1, fontFamily: font(700), fontSize: t.font.small, color: t.text.primary }}>{selected.size} selected</Text>
+              <Pressable onPress={exportSelected} disabled={working} style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 7, borderRadius: t.radius.sm, backgroundColor: t.bg.surface, borderWidth: 1, borderColor: t.border }}>
+                <Download size={14} color={t.text.secondary} /><Text style={{ fontFamily: font(600), fontSize: t.font.caption, color: t.text.secondary }}>Export</Text>
+              </Pressable>
+              <Pressable onPress={deleteSelected} disabled={working} style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 7, borderRadius: t.radius.sm, backgroundColor: t.dangerSubtle }}>
+                <Trash2 size={14} color={t.dangerStrong} /><Text style={{ fontFamily: font(600), fontSize: t.font.caption, color: t.dangerStrong }}>{working ? "…" : "Delete"}</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  );
+
+  const openTrade = (item) => navigation.navigate("TradeDetails", { trade: item });
+
+  const renderItem = ({ item, index }) => {
+    if (isGrid) {
+      if (item.__empty) return <View style={{ flex: 1 }} />;
+      return (
+        <GridCard t={t} trade={item} index={index} sym={sym}
+          selectMode={selectMode} selected={selected.has(item._id)}
+          onOpen={() => (selectMode ? toggleSelect(item._id) : openTrade(item))}
+          onImages={() => setImgTrade(item)} />
+      );
+    }
+    return (
+      <View style={{ marginBottom: t.space[4] }}>
+        <DateGroup t={t} grp={item} index={index} sym={sym}
+          selectMode={selectMode} selected={selected}
+          onToggleSelect={toggleSelect}
+          onOpenTrade={openTrade}
+          onImages={(tr) => setImgTrade(tr)} />
+      </View>
+    );
+  };
+
+  return (
+    <GradientBackground>
+    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+      <ImageModal visible={!!imgTrade} onClose={() => setImgTrade(null)} tradeId={imgTrade?._id} initialImages={imgTrade ? imgUrls(imgTrade) : []} onChange={() => refresh().catch(() => {})} />
+
+      {/* key-switched FlatList: 1-col grouped cards ↔ 2-col compact grid */}
+      <FlatList
+        key={view}
+        data={listData}
+        keyExtractor={(item, i) => (isGrid ? (item.__empty ? "__empty" : item._id || `tr-${i}`) : item.label)}
+        renderItem={renderItem}
+        numColumns={isGrid ? 2 : 1}
+        columnWrapperStyle={isGrid ? { gap: t.space[3], marginBottom: t.space[3] } : undefined}
+        ListHeaderComponent={header}
+        ListHeaderComponentStyle={{ marginBottom: showTrades ? t.space[3] : 0 }}
+        ListEmptyComponent={showTrades ? (
+          <EmptyTrades t={t} hasAny={trades.length > 0}
+            onLog={() => navigation.navigate("LogTrade")}
+            onClear={() => { animateLayout(); setFilter("all"); setDirection("all"); setRange("ALL"); }} />
+        ) : null}
+        contentContainerStyle={{ padding: t.space[5], paddingBottom: 120 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.text.muted} />}
+        showsVerticalScrollIndicator={false}
+      />
+
+      {/* filter / sort bottom sheet — frosted glass */}
       <Modal visible={!!sheet} transparent animationType="slide" onRequestClose={() => setSheet(null)}>
         <Pressable onPress={() => setSheet(null)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <Pressable onPress={() => {}} style={{ backgroundColor: t.bg.elevated, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: t.space[5], paddingBottom: t.space[8], gap: t.space[4] }}>
+          <Pressable onPress={() => {}} style={{ borderTopLeftRadius: 22, borderTopRightRadius: 22, overflow: "hidden", borderWidth: 1, borderColor: t.glass.border, padding: t.space[5], paddingBottom: t.space[8], gap: t.space[4] }}>
+            <GlassBackdrop strong />
             <View style={{ alignItems: "center", marginBottom: 2 }}>
               <View style={{ width: 38, height: 4, borderRadius: 2, backgroundColor: t.border }} />
             </View>
@@ -569,7 +732,7 @@ export default function TradesScreen({ navigation }) {
                 {SORTS.map((o) => {
                   const active = sort === o.id;
                   return (
-                    <Pressable key={o.id} onPress={() => { setSort(o.id); setSheet(null); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13, paddingHorizontal: 12, borderRadius: t.radius.md, backgroundColor: active ? t.primarySubtle : "transparent" }}>
+                    <Pressable key={o.id} onPress={() => { setSortAnim(o.id); setSheet(null); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13, paddingHorizontal: 12, borderRadius: t.radius.md, backgroundColor: active ? t.primarySubtle : "transparent" }}>
                       <Text style={{ fontFamily: font(active ? 700 : 500), fontSize: t.font.body, color: active ? t.accent.text : t.text.primary }}>{o.label}</Text>
                       {active && <Check size={18} color={t.accent.text} />}
                     </Pressable>
@@ -583,21 +746,21 @@ export default function TradesScreen({ navigation }) {
                 <View style={{ gap: t.space[2] }}>
                   <Text style={{ fontFamily: font(600), fontSize: t.font.small, color: t.text.secondary }}>Outcome</Text>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                    <FChip t={t} active={filter === "all"} label="All" onPress={() => setFilter("all")} />
-                    <FChip t={t} active={filter === "win"} label="Wins" onPress={() => setFilter("win")} />
-                    <FChip t={t} active={filter === "loss"} label="Losses" onPress={() => setFilter("loss")} />
+                    <FChip t={t} active={filter === "all"} label="All" onPress={() => setFilterAnim("all")} />
+                    <FChip t={t} active={filter === "win"} label="Wins" onPress={() => setFilterAnim("win")} />
+                    <FChip t={t} active={filter === "loss"} label="Losses" onPress={() => setFilterAnim("loss")} />
                   </View>
                 </View>
                 <View style={{ gap: t.space[2] }}>
                   <Text style={{ fontFamily: font(600), fontSize: t.font.small, color: t.text.secondary }}>Direction</Text>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                    <FChip t={t} active={direction === "all"} label="All" onPress={() => setDirection("all")} />
-                    <FChip t={t} active={direction === "long"} label="Long" onPress={() => setDirection("long")} />
-                    <FChip t={t} active={direction === "short"} label="Short" onPress={() => setDirection("short")} />
+                    <FChip t={t} active={direction === "all"} label="All" onPress={() => setDirectionAnim("all")} />
+                    <FChip t={t} active={direction === "long"} label="Long" onPress={() => setDirectionAnim("long")} />
+                    <FChip t={t} active={direction === "short"} label="Short" onPress={() => setDirectionAnim("short")} />
                   </View>
                 </View>
                 <View style={{ flexDirection: "row", gap: 10, marginTop: 2 }}>
-                  <Pressable onPress={() => { setFilter("all"); setDirection("all"); }} style={{ flex: 1, paddingVertical: 13, borderRadius: t.radius.md, alignItems: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border }}>
+                  <Pressable onPress={() => { setFilterAnim("all"); setDirection("all"); }} style={{ flex: 1, paddingVertical: 13, borderRadius: t.radius.md, alignItems: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border }}>
                     <Text style={{ fontFamily: font(600), fontSize: t.font.body, color: t.text.secondary }}>Reset</Text>
                   </Pressable>
                   <Pressable onPress={() => setSheet(null)} style={{ flex: 1, paddingVertical: 13, borderRadius: t.radius.md, alignItems: "center", backgroundColor: t.primary }}>
@@ -610,5 +773,6 @@ export default function TradesScreen({ navigation }) {
         </Pressable>
       </Modal>
     </SafeAreaView>
+    </GradientBackground>
   );
 }

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { SlidersHorizontal, Check, X } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
+import { GlassBackdrop } from "./ui";
 import { getItem, setItem } from "../lib/storage";
 import { font } from "../theme/typography";
 
@@ -30,7 +31,8 @@ export function CustomizeButton({ sections, hidden, onToggle, onReset }) {
         onPress={() => setOpen(true)}
         style={{
           flexDirection: "row", alignItems: "center", gap: 6,
-          borderColor: theme.borderStrong, borderWidth: 1, borderRadius: theme.radius.md,
+          borderColor: theme.glass.border, borderWidth: 1, borderRadius: theme.radius.pill,
+          backgroundColor: theme.glass.surface,
           paddingHorizontal: 12, paddingVertical: 8,
         }}
       >
@@ -42,8 +44,9 @@ export function CustomizeButton({ sections, hidden, onToggle, onReset }) {
         <Pressable onPress={() => setOpen(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
           <Pressable
             onPress={() => {}}
-            style={{ backgroundColor: theme.bg.elevated, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: theme.space[5], paddingBottom: theme.space[8] }}
+            style={{ borderTopLeftRadius: 22, borderTopRightRadius: 22, overflow: "hidden", borderWidth: 1, borderColor: theme.glass.border, padding: theme.space[5], paddingBottom: theme.space[8] }}
           >
+            <GlassBackdrop strong />
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: theme.space[4] }}>
               <Text style={{ fontFamily: font(700), fontSize: theme.font.title, color: theme.text.primary }}>Show sections</Text>
               <Pressable onPress={() => setOpen(false)} hitSlop={10}><X size={22} color={theme.text.muted} /></Pressable>

@@ -5,7 +5,8 @@ import { Dimensions, Modal, Pressable, ScrollView, Text, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BarChart3, PlusCircle, Sparkles, Wallet } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
-import { Button } from "./ui";
+import { Button, Grad } from "./ui";
+import GradientBackground from "./GradientBackground";
 import { MotionView } from "./motion";
 import { font } from "../theme/typography";
 
@@ -32,7 +33,8 @@ export default function OnboardingModal({ visible, onDone }) {
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onDone}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg.canvas }}>
+      <GradientBackground>
+      <SafeAreaView style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: theme.space[5] }}>
           <Pressable onPress={onDone} hitSlop={10}>
             <Text style={{ color: theme.text.muted, fontFamily: font(600), fontSize: theme.font.body }}>Skip</Text>
@@ -51,7 +53,8 @@ export default function OnboardingModal({ visible, onDone }) {
             <View key={s.title} style={{ width, alignItems: "center", justifyContent: "center", padding: theme.space[7] }}>
               <MotionView delay={60}>
                 <View style={{ alignItems: "center", gap: theme.space[4] }}>
-                  <View style={{ width: 96, height: 96, borderRadius: 28, backgroundColor: `${s.accent}22`, alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ width: 96, height: 96, borderRadius: 28, overflow: "hidden", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: theme.glass.border, shadowColor: s.accent, shadowOpacity: 0.35, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}>
+                    <Grad colors={[`${s.accent}33`, `${s.accent}0d`]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
                     <s.icon size={44} color={s.accent} />
                   </View>
                   <Text style={{ fontFamily: font(800), fontSize: theme.font.h1, color: theme.text.primary, textAlign: "center" }}>
@@ -83,6 +86,7 @@ export default function OnboardingModal({ visible, onDone }) {
           <Button title={last ? "Start journaling" : "Next"} onPress={next} icon={last ? Sparkles : undefined} />
         </View>
       </SafeAreaView>
+      </GradientBackground>
     </Modal>
   );
 }

@@ -1,9 +1,11 @@
-/* Base UI primitives for JournalX mobile — themed to match the web app.
-   Kept in one file for Phase 0; can be split as the library grows. */
+/* Base UI primitives for JournalX mobile — premium glassmorphic + gradient
+   edition. Every primitive keeps its original API; new exports: Grad,
+   GlassBackdrop, GlassCard, SectionLabel. */
 import React from "react";
 import {
   ActivityIndicator,
   Pressable,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -14,24 +16,96 @@ import { MotionView } from "./motion";
 import { useTheme } from "../theme/ThemeProvider";
 import { font } from "../theme/typography";
 
-export function Card({ children, style, flat }) {
+/* expo-linear-gradient / expo-blur are lazy-loaded so the app still runs
+   (with graceful solid-colour fallbacks) before `npx expo install` is run. */
+let LinearGradient = null;
+try { LinearGradient = require("expo-linear-gradient").LinearGradient; } catch {}
+let BlurView = null;
+try { BlurView = require("expo-blur").BlurView; } catch {}
+
+/* ---- Grad: LinearGradient with a solid-colour fallback ---- */
+export function Grad({ colors, start, end, locations, style, children, ...rest }) {
+  if (LinearGradient) {
+    return (
+      <LinearGradient
+        colors={colors}
+        start={start || { x: 0, y: 0 }}
+        end={end || { x: 1, y: 1 }}
+        locations={locations}
+        style={style}
+        {...rest}
+      >
+        {children}
+      </LinearGradient>
+    );
+  }
+  return (
+    <View style={[{ backgroundColor: colors?.[0] }, style]} {...rest}>
+      {children}
+    </View>
+  );
+}
+
+/* ---- GlassBackdrop: absolute-fill frosted layer (blur + translucent tint).
+   Use inside any rounded container with overflow:"hidden". ---- */
+export function GlassBackdrop({ strong, style }) {
   const { theme } = useTheme();
+  const g = theme.glass;
+  return (
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, style]}>
+      {BlurView ? (
+        <BlurView
+          tint={g.blurTint}
+          intensity={g.blurIntensity}
+          experimentalBlurMethod="dimezisBlurView"
+          style={StyleSheet.absoluteFill}
+        />
+      ) : null}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: strong ? g.surfaceStrong : g.surface }]} />
+    </View>
+  );
+}
+
+/* ---- GlassCard: frosted card — blur/translucent bg, 1px glass border,
+   radius.xl and a subtle top highlight line. ---- */
+export function GlassCard({ children, style, flat, strong, noPad }) {
+  const { theme } = useTheme();
+  const g = theme.glass;
   return (
     <View
       style={[
         {
-          backgroundColor: theme.bg.surface,
-          borderColor: theme.border,
+          borderColor: g.border,
           borderWidth: 1,
-          borderRadius: theme.radius.lg,
-          padding: theme.space[5],
+          borderRadius: theme.radius.xl,
+          overflow: "hidden",
+          padding: noPad ? 0 : theme.space[5],
         },
-        flat && { backgroundColor: theme.bg.muted },
+        flat && { backgroundColor: theme.bg.muted, borderColor: theme.border },
         style,
       ]}
     >
+      {!flat && <GlassBackdrop strong={strong} />}
+      {!flat && (
+        <Grad
+          colors={[g.highlight, "rgba(255,255,255,0)"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          pointerEvents="none"
+          style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1.5 }}
+        />
+      )}
       {children}
     </View>
+  );
+}
+
+/* Card — now renders glass by default; `flat` keeps the muted solid look. */
+export function Card({ children, style, flat }) {
+  return (
+    <GlassCard flat={flat} style={style}>
+      {children}
+    </GlassCard>
   );
 }
 
@@ -54,13 +128,24 @@ export function Button({
   };
   const p = palettes[variant] || palettes.primary;
   const isDisabled = disabled || loading;
+  const grad =
+    variant === "primary" ? theme.gradients.brand : variant === "danger" ? theme.gradients.danger : null;
+  const glow = grad
+    ? {
+        shadowColor: variant === "primary" ? theme.primary : theme.danger,
+        shadowOpacity: 0.35,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 6,
+      }
+    : null;
 
   return (
     <Pressable
       onPress={isDisabled ? undefined : onPress}
       style={({ pressed }) => [
         {
-          backgroundColor: p.bg,
+          backgroundColor: grad ? "transparent" : p.bg,
           borderColor: p.border,
           borderWidth: 1,
           borderRadius: theme.radius.md,
@@ -70,11 +155,22 @@ export function Button({
           alignItems: "center",
           justifyContent: "center",
           gap: 8,
+          overflow: "hidden",
           opacity: isDisabled ? 0.55 : pressed ? 0.85 : 1,
         },
+        !isDisabled && glow,
         style,
       ]}
     >
+      {grad ? (
+        <Grad
+          colors={grad}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          pointerEvents="none"
+          style={StyleSheet.absoluteFill}
+        />
+      ) : null}
       {loading ? (
         <ActivityIndicator size="small" color={p.fg} />
       ) : (
@@ -112,8 +208,8 @@ export function Input({ value, onChangeText, placeholder, ...rest }) {
       placeholder={placeholder}
       placeholderTextColor={theme.text.muted}
       style={{
-        backgroundColor: theme.bg.surface,
-        borderColor: theme.border,
+        backgroundColor: theme.glass.input,
+        borderColor: theme.glass.border,
         borderWidth: 1,
         borderRadius: theme.radius.md,
         paddingHorizontal: 14,
@@ -142,6 +238,27 @@ export function Badge({ children, tone = "neutral" }) {
     <View style={{ backgroundColor: t.bg, borderRadius: theme.radius.pill, paddingHorizontal: 10, paddingVertical: 3, alignSelf: "flex-start", borderWidth: t.border ? 1 : 0, borderColor: t.border || "transparent" }}>
       <Text style={{ color: t.fg, fontSize: theme.font.caption, fontFamily: font(700) }}>{children}</Text>
     </View>
+  );
+}
+
+/* Uppercase letter-spaced section caption for grouping screen content. */
+export function SectionLabel({ children, style }) {
+  const { theme } = useTheme();
+  return (
+    <Text
+      style={[
+        {
+          color: theme.text.muted,
+          fontSize: theme.font.caption,
+          fontFamily: font(700),
+          letterSpacing: 1.2,
+          textTransform: "uppercase",
+        },
+        style,
+      ]}
+    >
+      {children}
+    </Text>
   );
 }
 
@@ -174,10 +291,10 @@ export function Toast({ toast }) {
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
-        backgroundColor: theme.bg.elevated,
-        borderColor: theme.border,
+        borderColor: theme.glass.border,
         borderWidth: 1,
         borderRadius: 14,
+        overflow: "hidden",
         paddingVertical: 13,
         paddingHorizontal: 14,
         shadowColor: "#000",
@@ -186,6 +303,7 @@ export function Toast({ toast }) {
         shadowOffset: { width: 0, height: 8 },
       }}
     >
+      <GlassBackdrop strong />
       <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: `${color}22`, alignItems: "center", justifyContent: "center" }}>
         <Icon size={17} color={color} />
       </View>
