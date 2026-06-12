@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Flame, Info, Plus } from "lucide-react";
+import { Flame, Info, Plus, Sparkles, Sprout, TrendingUp } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import CountUp from "./CountUp";
@@ -805,16 +805,19 @@ export default function OverviewPanel({
       for (let i = days.length - 2; i >= 0; i--) { if (days[i][1] > 0) priorStreak++; else break; }
     }
 
+    const recent = days.slice(-7).map(([, v]) => v);
+    const base = { recent };
+
     if (prev7 < 0 && last7 > 0)
-      return { tone: "success", text: "Nice turnaround — you're green over the last 7 days after a rough patch. Keep doing what's working. 💪" };
+      return { ...base, tone: "success", icon: "up", title: "Strong turnaround", text: "Green over the last 7 days after a rough patch — keep doing what's working. 💪" };
     if (lastDayNet < 0 && priorStreak >= 3)
-      return { tone: "info", text: `One red day after ${priorStreak} green ones doesn't undo your edge — trust your process and stay disciplined. 🧠` };
+      return { ...base, tone: "info", icon: "spark", title: "Stay confident", text: `One red day after ${priorStreak} green ones doesn't undo your edge — trust your process.` };
     if (greenStreak >= 3)
-      return { tone: "success", text: `🔥 ${greenStreak} green days in a row — momentum is on your side. Protect your gains and keep risk tight.` };
+      return { ...base, tone: "success", icon: "flame", title: `${greenStreak}-day green streak`, text: "Momentum is on your side — protect your gains and keep risk tight." };
     if (lastDayNet < 0 && last7 > 0)
-      return { tone: "info", text: "A down day inside a winning week is normal — zoom out, the trend is still your friend." };
+      return { ...base, tone: "info", icon: "up", title: "Zoom out", text: "A down day inside a winning week is normal — the trend is still your friend." };
     if (last7 < 0)
-      return { tone: "warn", text: "Drawdowns happen to every trader. Focus on flawless execution, not the scoreboard — the P&L follows. 🌱" };
+      return { ...base, tone: "warn", icon: "sprout", title: "Trust the process", text: "Drawdowns happen to every trader. Focus on flawless execution — the P&L follows." };
     return null;
   }, [closed]);
 
@@ -1498,32 +1501,85 @@ export default function OverviewPanel({
               </span>
             ))}
           </div>
-          {encourage && (
-            <div
-              style={{
-                marginTop: "var(--space-3)",
-                padding: "10px 12px",
-                borderRadius: "var(--radius-md)",
-                font: "var(--text-small)",
-                color: "var(--color-text-secondary)",
-                background:
-                  encourage.tone === "success"
-                    ? "var(--color-success-subtle)"
-                    : encourage.tone === "warn"
-                      ? "var(--color-bg-muted)"
-                      : "var(--color-primary-subtle)",
-                borderLeft: `3px solid ${
-                  encourage.tone === "success"
-                    ? "var(--color-success)"
-                    : encourage.tone === "warn"
-                      ? "var(--color-border-strong)"
-                      : "var(--color-primary)"
-                }`,
-              }}
-            >
-              {encourage.text}
-            </div>
-          )}
+          {encourage && (() => {
+            const accent =
+              encourage.tone === "success" ? "var(--color-success)"
+              : encourage.tone === "warn" ? "var(--color-text-secondary)"
+              : "var(--color-primary)";
+            const bg =
+              encourage.tone === "success" ? "var(--color-success-subtle)"
+              : encourage.tone === "warn" ? "var(--color-bg-muted)"
+              : "var(--color-primary-subtle)";
+            const Icon =
+              encourage.icon === "flame" ? Flame
+              : encourage.icon === "spark" ? Sparkles
+              : encourage.icon === "sprout" ? Sprout
+              : TrendingUp;
+            const bars = encourage.recent || [];
+            const max = Math.max(1, ...bars.map((v) => Math.abs(v)));
+            return (
+              <div
+                style={{
+                  marginTop: "var(--space-3)",
+                  padding: "12px 14px",
+                  borderRadius: "var(--radius-lg)",
+                  background: bg,
+                  border: `1px solid ${accent}33`,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--space-3)",
+                }}
+              >
+                <span
+                  style={{
+                    width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: `${accent}22`, color: accent,
+                  }}
+                >
+                  <Icon size={19} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ font: "var(--text-small)", fontWeight: 700, color: "var(--color-text-primary)" }}>
+                    {encourage.title}
+                  </div>
+                  <div style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+                    {encourage.text}
+                  </div>
+                </div>
+                {bars.length > 1 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 3, height: 34, flexShrink: 0 }}>
+                    {bars.map((v, i) => {
+                      const h = Math.max(4, Math.round((Math.abs(v) / max) * 30));
+                      const up = v >= 0;
+                      return (
+                        <span
+                          key={i}
+                          title={k(v, currencySymbol)}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: up ? "flex-end" : "flex-start",
+                            height: "100%",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 5,
+                              height: h,
+                              borderRadius: 2,
+                              background: up ? "var(--color-success)" : "var(--color-danger)",
+                              opacity: 0.55 + 0.45 * (Math.abs(v) / max),
+                            }}
+                          />
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
         <div style={{ position: "relative", zIndex: 1, minWidth: 0 }}>
           <AreaChart
