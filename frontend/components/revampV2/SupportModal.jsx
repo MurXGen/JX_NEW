@@ -41,7 +41,58 @@ import { Clock, LifeBuoy, Loader2, Send, X } from "lucide-react";
 import Button from "./Button";
 
 const CATEGORIES = ["Support", "Feedback", "Bug report", "Feature request", "Other"];
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
+// the support sheet, published to the web as CSV (read directly in the browser)
+const SHEET_CSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbYjCOa_wP4sOeuqHLEWvU_caNxc1CwPBt2ssjEKcHwCKvZwqycSw5vSImh-mYnHlu6c7oaxS6RwP5/pub?output=csv";
+
+/* tiny CSV parser (quotes, escaped quotes, embedded commas/newlines) */
+function parseCsv(text) {
+  const rows = [];
+  let row = [], field = "", inQ = false;
+  const s = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (inQ) {
+      if (c === '"') { if (s[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else if (c === '"') inQ = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n") { row.push(field); field = ""; rows.push(row); row = []; }
+    else field += c;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows.filter((r) => r.some((c) => String(c).trim() !== ""));
+}
+const idxOf = (headers, ...keys) => headers.findIndex((h) => keys.some((k) => h.includes(k)));
+
+/* read the user's UNRESOLVED tickets (rows where "response" is still empty) */
+function ticketsForUser(csv, email) {
+  const rows = parseCsv(csv);
+  if (rows.length < 2) return [];
+  const headers = rows[0].map((h) => String(h).trim().toLowerCase());
+  const iEmail = idxOf(headers, "email");
+  let iMsg = headers.findIndex((h) => h.includes("support message"));
+  if (iMsg === -1) iMsg = idxOf(headers, "message");
+  const iResp = idxOf(headers, "response", "resolution", "reply");
+  const iCat = idxOf(headers, "category");
+  const iTime = idxOf(headers, "timestamp", "date");
+  const me = String(email || "").trim().toLowerCase();
+  const out = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const rEmail = iEmail >= 0 ? String(row[iEmail] || "").trim().toLowerCase() : "";
+    if (!me || rEmail !== me) continue;
+    const response = iResp >= 0 ? String(row[iResp] || "").trim() : "";
+    if (response) continue; // a response was given → resolved → hide
+    out.push({
+      category: iCat >= 0 ? String(row[iCat] || "").trim() : "",
+      message: iMsg >= 0 ? String(row[iMsg] || "").trim() : "",
+      date: iTime >= 0 ? String(row[iTime] || "").trim() : "",
+    });
+  }
+  return out.reverse(); // newest first
+}
 
 export default function SupportModal({ open, onClose, user, plan = "free" }) {
   const [category, setCategory] = useState("Support");
@@ -54,17 +105,19 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
 
   // load the user's open (unresolved) tickets from the support sheet
   const loadTickets = useCallback(async () => {
+    if (!user?.email) { setTickets([]); return; }
     setLoadingTickets(true);
     try {
-      const r = await fetch(`${API_BASE}/api/support/tickets`, { credentials: "include" });
-      const d = await r.json();
-      setTickets(Array.isArray(d?.tickets) ? d.tickets : []);
+      // cache-bust so freshly-answered tickets drop off promptly
+      const r = await fetch(`${SHEET_CSV}&t=${Date.now()}`);
+      const csv = await r.text();
+      setTickets(ticketsForUser(csv, user.email));
     } catch {
       setTickets([]);
     } finally {
       setLoadingTickets(false);
     }
-  }, []);
+  }, [user?.email]);
 
   useEffect(() => {
     if (open) loadTickets();
