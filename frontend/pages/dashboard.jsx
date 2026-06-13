@@ -38,6 +38,7 @@ import {
 } from "@/components/revampV2";
 
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import { MobileInstallBanner } from "@/components/pwa/InstallPwa";
 
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
@@ -208,14 +209,23 @@ export default function Dashboard() {
 
   useEffect(() => {
     const applyCurrency = async (cur) => {
-      setBaseCurrencyState(cur);
-      setFxRate(await getRate(cur));
+      const c = (cur || "USD").toUpperCase();
+      setBaseCurrencyState(c);
+      setFxRate(await getRate(c));
     };
-    applyCurrency(getBaseCurrency());
+    // The active journal's currency drives the dashboard; persist it so the
+    // Settings → Trading preferences "Base currency" reflects the same value.
+    const journalCur = currentAccount?.currency;
+    if (journalCur) {
+      try { localStorage.setItem("jx-base-currency", journalCur.toUpperCase()); } catch {}
+      applyCurrency(journalCur);
+    } else {
+      applyCurrency(getBaseCurrency());
+    }
     const onChange = (e) => applyCurrency(e.detail || getBaseCurrency());
     window.addEventListener("jx-currency-changed", onChange);
     return () => window.removeEventListener("jx-currency-changed", onChange);
-  }, []);
+  }, [currentAccount?._id, currentAccount?.currency]);
 
   const trades = useMemo(
     () => (fxRate === 1 ? rawTrades : rawTrades.map((t) => convertTrade(t, fxRate))),
@@ -268,6 +278,7 @@ export default function Dashboard() {
         currencySymbol={currencySymbol}
         usingDummy={usingDummy}
         onAddTrade={() => setShowLogTrade(true)}
+        onOpenTab={setActiveTab}
         openImportSignal={importSignal}
         onTradesAdded={(newTrades) =>
           setAccountTrades((prev) => [...prev, ...(newTrades || [])])
@@ -327,6 +338,11 @@ export default function Dashboard() {
       />
 
       <main className="jx-shell__main">
+        {/* Mobile-only install prompt (desktop uses the sidebar item) */}
+        <div className="jx-pwa-banner-wrap">
+          <MobileInstallBanner />
+        </div>
+
         {/* Mobile-only top bar: journal switcher + theme toggle (sidebar hidden < 768px) */}
         <div className="jx-mobile-journalrow" style={{ display: "none", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
           <button

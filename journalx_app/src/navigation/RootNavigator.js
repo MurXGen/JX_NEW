@@ -9,6 +9,7 @@ import { CandlestickChart, LayoutDashboard, ListChecks, Settings as SettingsIcon
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../theme/ThemeProvider";
 import { Grad, GlassBackdrop } from "../components/ui";
+import { PressableScale } from "../components/motion";
 import LoginScreen from "../screens/LoginScreen";
 import OverviewScreen from "../screens/OverviewScreen";
 import TradesScreen from "../screens/TradesScreen";
@@ -27,18 +28,18 @@ function QuickFab() {
   const navigation = useNavigation();
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Pressable
+      <PressableScale
         onPress={() => navigation.navigate("LogTrade")}
+        scaleTo={0.9}
         style={{
           width: 56, height: 56, borderRadius: 28, marginTop: -22,
-          alignItems: "center", justifyContent: "center", overflow: "hidden",
+          alignItems: "center", justifyContent: "center", backgroundColor: theme.primary,
           shadowColor: theme.primary, shadowOpacity: 0.5, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 10,
-          borderWidth: 2, borderColor: theme.glass.border,
+          borderWidth: 2, borderColor: theme.bg.surface,
         }}
       >
-        <Grad colors={theme.gradients.brandStrong} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={StyleSheet.absoluteFill} />
         <Zap size={24} color={theme.primaryText} fill={theme.primaryText} />
-      </Pressable>
+      </PressableScale>
     </View>
   );
 }

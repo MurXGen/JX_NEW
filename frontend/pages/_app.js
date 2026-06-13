@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import BackgroundBinanceSync from "@/api/BackgroundBinanceSync";
 import { DataProvider } from "@/api/DataContext";
+import PwaSplash from "@/components/pwa/PwaSplash";
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -179,6 +180,7 @@ export default function MyApp({ Component, pageProps }) {
           </>
         )}
       </Head>
+      <PwaSplash />
       <DataProvider>
         <BackgroundBinanceSync />
         <Component {...pageProps} />

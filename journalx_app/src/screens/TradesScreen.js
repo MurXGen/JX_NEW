@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Alert, FlatList, Image, LayoutAnimation, Modal, Platform, Pressable, RefreshControl, Share, Text, UIManager, View } from "react-native";
+import { Alert, FlatList, Image, LayoutAnimation, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, Text, UIManager, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MotionView } from "../components/motion";
 import { Activity, ArrowDownUp, BarChart3, CalendarDays, Check, CheckSquare, ChevronDown, ChevronRight, Clock, Download, FileDown, ImageIcon, LayoutGrid, List, ListChecks, Plus, SlidersHorizontal, Square, Trash2, TrendingDown, TrendingUp, X } from "lucide-react-native";
@@ -133,81 +133,46 @@ function TradeRow({ t, trade, index, sym, onOpen, onImages, selectMode, selected
   const isLong = (trade.direction || "").toLowerCase() === "long";
   const up = pnl >= 0;
   const running = !trade.closeTime && trade.tradeStatus === "running";
-  const isQuick = (trade.tradeStatus || "") === "quick";
   const thumb = firstImg(trade);
-  // date lives on the day-group header; show the exit time-of-day instead
-  const exitTime = trade.closeTime ? new Date(trade.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
-
-  const notional = Number(trade.quantityUSD) || 0;
-  const retPct = trade.retPct != null ? Number(trade.retPct) : (notional ? (pnl / notional) * 100 : null);
-  const rMult = trade.realizedR != null && Number.isFinite(Number(trade.realizedR)) ? Number(trade.realizedR) : null;
-  const dur = durationStr(trade.openTime, trade.closeTime);
-  const tags = [trade.strategy, trade.timeframe, trade.emotion].filter(Boolean);
-
-  const wash = running ? t.gradients.sheen : up ? t.gradients.statSuccess : t.gradients.statDanger;
-  const accent = running ? [t.borderStrong, t.border] : up ? t.gradients.success : t.gradients.danger;
+  const d = new Date(trade.closeTime || trade.openTime || NaN);
+  const when = Number.isNaN(d.getTime())
+    ? ""
+    : `${d.toLocaleDateString("en-US", { day: "numeric", month: "short" })}, ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  const dirLabel = running ? "Open" : isLong ? "Long" : "Short";
+  const tag = running ? "Open" : up ? "Win" : "Loss";
+  const tagColor = running ? t.text.secondary : up ? t.successStrong : t.dangerStrong;
+  const tagBg = running ? t.bg.muted : up ? t.successSubtle : t.dangerSubtle;
 
   return (
-    <MotionView delay={Math.min(index, 12) * 36}>
+    <MotionView delay={Math.min(index, 12) * 26}>
       <Pressable
         onPress={onOpen}
         style={({ pressed }) => ({
-          borderRadius: t.radius.lg,
-          overflow: "hidden",
-          borderWidth: 1,
-          borderColor: selected ? t.primary : t.glass.border,
-          backgroundColor: t.glass.surface,
-          marginBottom: last ? 0 : 10,
-          transform: [{ scale: pressed ? 0.98 : 1 }],
+          flexDirection: "row", alignItems: "center", gap: 12,
+          paddingVertical: 12,
+          borderBottomWidth: last ? 0 : 1, borderBottomColor: t.border,
+          opacity: pressed ? 0.6 : 1,
         })}
       >
-        {/* P&L tint wash + left accent bar */}
-        <Grad colors={wash} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={ABS_FILL} />
-        <Grad colors={accent} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} pointerEvents="none" style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3 }} />
+        {selectMode ? (selected ? <CheckSquare size={20} color={t.primary} /> : <Square size={20} color={t.text.muted} />) : null}
+        {/* leading thumbnail — tap opens the screenshots sheet */}
+        <Pressable onPress={selectMode ? onOpen : onImages} style={{ width: 46, height: 46, borderRadius: 12, overflow: "hidden", backgroundColor: t.bg.muted, alignItems: "center", justifyContent: "center" }}>
+          {thumb ? <Image source={{ uri: thumb }} style={{ width: 46, height: 46 }} /> : <ImageIcon size={18} color={t.text.muted} />}
+        </Pressable>
 
-        <View style={{ paddingVertical: 12, paddingLeft: 14, paddingRight: 12, gap: 9 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
-            {selectMode ? (selected ? <CheckSquare size={20} color={t.primary} /> : <Square size={20} color={t.text.muted} />) : null}
-            <Pressable onPress={selectMode ? onOpen : onImages} style={{ width: 44, height: 44, borderRadius: 12, overflow: "hidden", backgroundColor: t.bg.muted, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: t.glass.border }}>
-              {thumb ? <Image source={{ uri: thumb }} style={{ width: 44, height: 44 }} /> : <ImageIcon size={17} color={t.text.muted} />}
-            </Pressable>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: t.text.primary, fontFamily: font(700), fontSize: t.font.bodyMd }}>{trade.symbol || trade.ticker || "—"}</Text>
+          <Text style={{ color: t.text.muted, fontSize: t.font.caption, marginTop: 3 }}>{when ? `${when} · ${dirLabel}` : dirLabel}</Text>
+        </View>
 
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                <Text style={{ color: t.text.primary, fontFamily: font(800), fontSize: t.font.bodyMd }}>{trade.symbol || trade.ticker || "—"}</Text>
-                <Badge tone={isLong ? "success" : "danger"}>{isLong ? "LONG" : "SHORT"}</Badge>
-                {running && <Badge tone="neutral">OPEN</Badge>}
-                {isQuick && <Badge tone="warn">QUICK</Badge>}
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
-                {exitTime ? <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{exitTime}</Text> : null}
-                {dur && (
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                    <Clock size={11} color={t.text.muted} />
-                    <Text style={{ color: t.text.muted, fontSize: t.font.caption }}>{dur}</Text>
-                  </View>
-                )}
-                {retPct != null && (
-                  <Text style={{ color: t.text.muted, fontFamily: font(500), fontSize: t.font.caption }}>{`${retPct >= 0 ? "+" : ""}${fmt(retPct, 1)}%`}</Text>
-                )}
-              </View>
-            </View>
-
-            <View style={{ alignItems: "flex-end", gap: 4 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                {up ? <TrendingUp size={15} color={t.success} /> : <TrendingDown size={15} color={t.danger} />}
-                <Text style={{ color: up ? t.successStrong : t.dangerStrong, fontFamily: font(800), fontSize: t.font.bodyMd }}>{money(pnl, sym)}</Text>
-              </View>
-              {rMult != null && <RPill t={t} rMult={rMult} />}
-            </View>
-            {!selectMode && <ChevronRight size={17} color={t.text.muted} style={{ marginLeft: 2 }} />}
+        <View style={{ alignItems: "flex-end", gap: 6 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Text style={{ color: up ? t.successStrong : t.dangerStrong, fontFamily: font(800), fontSize: t.font.bodyMd }}>{money(pnl, sym)}</Text>
+            {up ? <TrendingUp size={14} color={t.successStrong} /> : <TrendingDown size={14} color={t.dangerStrong} />}
           </View>
-
-          {tags.length > 0 && (
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, paddingLeft: selectMode ? 31 : 0 }}>
-              {tags.map((tag, i) => <TagPill key={`${tag}-${i}`} t={t} label={tag} />)}
-            </View>
-          )}
+          <View style={{ backgroundColor: tagBg, borderRadius: t.radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
+            <Text style={{ color: tagColor, fontFamily: font(700), fontSize: t.font.caption }}>{tag}</Text>
+          </View>
         </View>
       </Pressable>
     </MotionView>
@@ -321,12 +286,39 @@ function DateGroup({ t, grp, index, sym, selectMode, selected, onToggleSelect, o
   );
 }
 
-/* pill filter chip */
-function FChip({ t, active, label, onPress }) {
+/* sheet selection chip — soft yellow tint when active (reference style) */
+function SheetChip({ t, label, active, onPress }) {
   return (
-    <Pressable onPress={onPress} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, backgroundColor: active ? t.primary : t.bg.muted, borderColor: active ? t.primary : t.border, borderWidth: 1 }}>
-      <Text style={{ fontFamily: font(600), fontSize: t.font.small, color: active ? t.primaryText : t.text.secondary }}>{label}</Text>
+    <Pressable onPress={onPress} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: t.radius.pill, backgroundColor: active ? t.primarySubtle : t.bg.surface, borderWidth: 1, borderColor: active ? t.accent.border : t.border }}>
+      <Text style={{ fontFamily: font(active ? 700 : 600), fontSize: t.font.small, color: active ? t.accent.text : t.text.secondary }}>{label}</Text>
     </Pressable>
+  );
+}
+
+/* outlined filter pill on the trades toolbar (Filter / Sort / Date) */
+function FilterPill({ t, icon: Icon, label, onPress, active, caret }) {
+  return (
+    <Pressable onPress={onPress} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: t.radius.pill, backgroundColor: active ? t.primarySubtle : t.bg.surface, borderWidth: 1, borderColor: active ? t.accent.border : t.border }}>
+      {Icon && <Icon size={14} color={active ? t.accent.text : t.text.secondary} />}
+      <Text style={{ fontFamily: font(600), fontSize: t.font.small, color: active ? t.accent.text : t.text.secondary }}>{label}</Text>
+      {caret && <ChevronDown size={14} color={active ? t.accent.text : t.text.muted} />}
+    </Pressable>
+  );
+}
+
+/* single analytics summary card — 4 stats divided by hairlines (reference) */
+function StatCard({ t, items }) {
+  return (
+    <Card style={{ paddingVertical: t.space[4], paddingHorizontal: t.space[2] }}>
+      <View style={{ flexDirection: "row" }}>
+        {items.map((it, i) => (
+          <View key={it.label} style={{ flex: 1, alignItems: "center", paddingHorizontal: 4, borderLeftWidth: i === 0 ? 0 : 1, borderLeftColor: t.border }}>
+            <Text style={{ color: t.text.muted, fontSize: 10, fontFamily: font(600), letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 6, textAlign: "center" }}>{it.label}</Text>
+            <Text numberOfLines={1} style={{ color: it.color || t.text.primary, fontFamily: font(800), fontSize: t.font.bodyMd }}>{it.value}</Text>
+          </View>
+        ))}
+      </View>
+    </Card>
   );
 }
 
@@ -466,6 +458,10 @@ export default function TradesScreen({ navigation }) {
   const filterNet = filtered.reduce((acc, tr) => acc + (Number(tr.pnl) || 0), 0);
   const activeFilters = (filter !== "all" ? 1 : 0) + (direction !== "all" ? 1 : 0);
   const pf = s.profitFactor === Infinity ? "∞" : fmt(s.profitFactor, 2);
+  const monthLabel = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const rrVal = s.avgLoss > 0 ? s.avgWin / s.avgLoss : 0;
+  const rrLabel = rrVal > 0 ? `1 : ${fmt(rrVal, 1)}` : "—";
+  const dateActive = range !== "ALL";
 
   const onRefresh = async () => { setRefreshing(true); await refresh(); setRefreshing(false); };
 
@@ -576,33 +572,31 @@ export default function TradesScreen({ navigation }) {
 
   const header = (
     <View style={{ gap: t.space[4] }}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Text style={{ fontFamily: font(700), fontSize: t.font.h2, color: t.text.primary }}>Trades</Text>
+      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <View>
+          <Text style={{ fontFamily: font(800), fontSize: t.font.h1, color: t.text.primary, letterSpacing: -0.5 }}>Trades</Text>
+          <Text style={{ fontFamily: font(500), fontSize: t.font.small, color: t.text.muted, marginTop: 2 }}>{s.n} {s.n === 1 ? "trade" : "trades"} · {monthLabel}</Text>
+        </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <CustomizeButton sections={SECTIONS} hidden={hidden} onToggle={toggle} onReset={reset} />
           <Pressable onPress={importCsv} disabled={importing} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border, opacity: importing ? 0.6 : 1 }}>
             <FileDown size={16} color={t.text.secondary} />
           </Pressable>
-          <Pressable onPress={() => navigation.navigate("LogTrade")} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: t.radius.md, paddingHorizontal: 14, paddingVertical: 9, overflow: "hidden", shadowColor: t.primary, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}>
-            <Grad colors={t.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
-            <Plus size={16} color={t.primaryText} />
-            <Text style={{ color: t.primaryText, fontFamily: font(700) }}>Log</Text>
-          </Pressable>
         </View>
       </View>
 
       <JournalSwitcher />
-      <RangeTabs />
 
       {isVisible("performance") && (
-        <Accordion title="Performance" icon={BarChart3}>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: t.space[3] }}>
-            <KpiTile theme={t} label="Total trades" value={s.n} />
-            <KpiTile theme={t} label="Win rate" value={`${s.winRate}%`} color={t.yellow[400]} />
-            <KpiTile theme={t} label="Net P&L" value={money(s.net, sym)} color={s.net >= 0 ? t.successStrong : t.dangerStrong} />
-            <KpiTile theme={t} label="Profit factor" value={pf} color={s.profitFactor >= 1 ? t.successStrong : t.dangerStrong} />
-          </View>
-        </Accordion>
+        <StatCard
+          t={t}
+          items={[
+            { label: "Net P&L", value: money(s.net, sym), color: s.net >= 0 ? t.successStrong : t.dangerStrong },
+            { label: "Win rate", value: `${s.winRate}%` },
+            { label: "Trades", value: `${s.n}` },
+            { label: "Avg R:R", value: rrLabel },
+          ]}
+        />
       )}
 
       {isVisible("calendar") && (
@@ -631,22 +625,11 @@ export default function TradesScreen({ navigation }) {
             </Pressable>
           </View>
 
-          {/* row 2: view toggle (left) + filter/sort (right) */}
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <ViewToggle t={t} view={view} onChange={changeView} />
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Pressable onPress={() => setSheet("filter")} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: activeFilters ? t.primarySubtle : t.bg.muted, borderWidth: 1, borderColor: activeFilters ? t.primary : t.border }}>
-                <SlidersHorizontal size={16} color={activeFilters ? t.accent.text : t.text.secondary} />
-                {activeFilters > 0 && (
-                  <View style={{ position: "absolute", top: -5, right: -5, minWidth: 16, height: 16, paddingHorizontal: 3, borderRadius: 8, backgroundColor: t.primary, alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ color: t.primaryText, fontFamily: font(700), fontSize: 9 }}>{activeFilters}</Text>
-                  </View>
-                )}
-              </Pressable>
-              <Pressable onPress={() => setSheet("sort")} style={{ width: 38, height: 38, borderRadius: t.radius.md, alignItems: "center", justifyContent: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border }}>
-                <ArrowDownUp size={16} color={t.text.secondary} />
-              </Pressable>
-            </View>
+          {/* filter pills — Filter / Sort / Date, all open the filter sheet */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <FilterPill t={t} icon={SlidersHorizontal} label={activeFilters ? `Filter · ${activeFilters}` : "Filter"} active={activeFilters > 0} onPress={() => setSheet("filter")} />
+            <FilterPill t={t} icon={ArrowDownUp} label="Sort" caret active={sort !== "newest"} onPress={() => setSheet("filter")} />
+            <FilterPill t={t} icon={CalendarDays} label="Date" active={dateActive} onPress={() => setSheet("filter")} />
           </View>
 
           {/* bulk action bar */}
@@ -692,7 +675,7 @@ export default function TradesScreen({ navigation }) {
   return (
     <GradientBackground>
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
-      <ImageModal visible={!!imgTrade} onClose={() => setImgTrade(null)} tradeId={imgTrade?._id} initialImages={imgTrade ? imgUrls(imgTrade) : []} onChange={() => refresh().catch(() => {})} />
+      <ImageModal visible={!!imgTrade} onClose={() => setImgTrade(null)} tradeId={imgTrade?._id} trade={imgTrade} initialImages={imgTrade ? imgUrls(imgTrade) : []} onChange={() => refresh().catch(() => {})} />
 
       {/* key-switched FlatList: 1-col grouped cards ↔ 2-col compact grid */}
       <FlatList
@@ -714,61 +697,61 @@ export default function TradesScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* filter / sort bottom sheet — frosted glass */}
+      {/* Filters bottom sheet (Direction / Outcome / Sort / Date range) */}
       <Modal visible={!!sheet} transparent animationType="slide" onRequestClose={() => setSheet(null)}>
         <Pressable onPress={() => setSheet(null)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <Pressable onPress={() => {}} style={{ borderTopLeftRadius: 22, borderTopRightRadius: 22, overflow: "hidden", borderWidth: 1, borderColor: t.glass.border, padding: t.space[5], paddingBottom: t.space[8], gap: t.space[4] }}>
-            <GlassBackdrop strong />
-            <View style={{ alignItems: "center", marginBottom: 2 }}>
-              <View style={{ width: 38, height: 4, borderRadius: 2, backgroundColor: t.border }} />
+          <Pressable onPress={() => {}} style={{ backgroundColor: t.bg.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: t.border, maxHeight: "86%" }}>
+            <View style={{ alignItems: "center", paddingTop: 10 }}>
+              <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: t.border }} />
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-              <Text style={{ fontFamily: font(700), fontSize: t.font.title, color: t.text.primary }}>{sheet === "sort" ? "Sort by" : "Filter"}</Text>
-              <Pressable onPress={() => setSheet(null)} hitSlop={10}><X size={20} color={t.text.muted} /></Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: t.space[5], paddingTop: t.space[3] }}>
+              <Text style={{ fontFamily: font(800), fontSize: t.font.h3, color: t.text.primary }}>Filters</Text>
+              <Pressable onPress={() => { animateLayout(); setFilter("all"); setDirection("all"); setSort("newest"); setRange("ALL"); }} hitSlop={8}>
+                <Text style={{ fontFamily: font(600), fontSize: t.font.body, color: t.accent.text }}>Reset</Text>
+              </Pressable>
             </View>
 
-            {sheet === "sort" && (
-              <View style={{ gap: 4 }}>
-                {SORTS.map((o) => {
-                  const active = sort === o.id;
-                  return (
-                    <Pressable key={o.id} onPress={() => { setSortAnim(o.id); setSheet(null); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13, paddingHorizontal: 12, borderRadius: t.radius.md, backgroundColor: active ? t.primarySubtle : "transparent" }}>
-                      <Text style={{ fontFamily: font(active ? 700 : 500), fontSize: t.font.body, color: active ? t.accent.text : t.text.primary }}>{o.label}</Text>
-                      {active && <Check size={18} color={t.accent.text} />}
-                    </Pressable>
-                  );
-                })}
+            <ScrollView contentContainerStyle={{ paddingHorizontal: t.space[5], paddingTop: t.space[4], paddingBottom: t.space[4], gap: t.space[5] }} keyboardShouldPersistTaps="handled">
+              <View style={{ gap: t.space[3] }}>
+                <Text style={{ fontFamily: font(700), fontSize: t.font.caption, color: t.text.muted, letterSpacing: 0.6 }}>DIRECTION</Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                  <SheetChip t={t} label="Long" active={direction === "long"} onPress={() => setDirectionAnim(direction === "long" ? "all" : "long")} />
+                  <SheetChip t={t} label="Short" active={direction === "short"} onPress={() => setDirectionAnim(direction === "short" ? "all" : "short")} />
+                </View>
               </View>
-            )}
 
-            {sheet === "filter" && (
-              <View style={{ gap: t.space[4] }}>
-                <View style={{ gap: t.space[2] }}>
-                  <Text style={{ fontFamily: font(600), fontSize: t.font.small, color: t.text.secondary }}>Outcome</Text>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                    <FChip t={t} active={filter === "all"} label="All" onPress={() => setFilterAnim("all")} />
-                    <FChip t={t} active={filter === "win"} label="Wins" onPress={() => setFilterAnim("win")} />
-                    <FChip t={t} active={filter === "loss"} label="Losses" onPress={() => setFilterAnim("loss")} />
-                  </View>
-                </View>
-                <View style={{ gap: t.space[2] }}>
-                  <Text style={{ fontFamily: font(600), fontSize: t.font.small, color: t.text.secondary }}>Direction</Text>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                    <FChip t={t} active={direction === "all"} label="All" onPress={() => setDirectionAnim("all")} />
-                    <FChip t={t} active={direction === "long"} label="Long" onPress={() => setDirectionAnim("long")} />
-                    <FChip t={t} active={direction === "short"} label="Short" onPress={() => setDirectionAnim("short")} />
-                  </View>
-                </View>
-                <View style={{ flexDirection: "row", gap: 10, marginTop: 2 }}>
-                  <Pressable onPress={() => { setFilterAnim("all"); setDirection("all"); }} style={{ flex: 1, paddingVertical: 13, borderRadius: t.radius.md, alignItems: "center", backgroundColor: t.bg.muted, borderWidth: 1, borderColor: t.border }}>
-                    <Text style={{ fontFamily: font(600), fontSize: t.font.body, color: t.text.secondary }}>Reset</Text>
-                  </Pressable>
-                  <Pressable onPress={() => setSheet(null)} style={{ flex: 1, paddingVertical: 13, borderRadius: t.radius.md, alignItems: "center", backgroundColor: t.primary }}>
-                    <Text style={{ fontFamily: font(700), fontSize: t.font.body, color: t.primaryText }}>Show {filtered.length}</Text>
-                  </Pressable>
+              <View style={{ gap: t.space[3] }}>
+                <Text style={{ fontFamily: font(700), fontSize: t.font.caption, color: t.text.muted, letterSpacing: 0.6 }}>OUTCOME</Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                  <SheetChip t={t} label="Win" active={filter === "win"} onPress={() => setFilterAnim(filter === "win" ? "all" : "win")} />
+                  <SheetChip t={t} label="Loss" active={filter === "loss"} onPress={() => setFilterAnim(filter === "loss" ? "all" : "loss")} />
                 </View>
               </View>
-            )}
+
+              <View style={{ gap: t.space[3] }}>
+                <Text style={{ fontFamily: font(700), fontSize: t.font.caption, color: t.text.muted, letterSpacing: 0.6 }}>SORT BY</Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                  {[["newest", "Newest"], ["oldest", "Oldest"], ["pnl-high", "Highest P&L"], ["pnl-low", "Lowest P&L"]].map(([id, label]) => (
+                    <SheetChip key={id} t={t} label={label} active={sort === id} onPress={() => setSortAnim(id)} />
+                  ))}
+                </View>
+              </View>
+
+              <View style={{ gap: t.space[3] }}>
+                <Text style={{ fontFamily: font(700), fontSize: t.font.caption, color: t.text.muted, letterSpacing: 0.6 }}>DATE RANGE</Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                  {[["1D", "Today"], ["1W", "This week"], ["1M", "This month"], ["ALL", "All time"]].map(([id, label]) => (
+                    <SheetChip key={id} t={t} label={label} active={range === id} onPress={() => setRangeAnim(id)} />
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+
+            <View style={{ padding: t.space[5], paddingTop: t.space[3], borderTopWidth: 1, borderTopColor: t.border }}>
+              <Pressable onPress={() => setSheet(null)} style={{ backgroundColor: t.primary, borderRadius: t.radius.md, paddingVertical: 16, alignItems: "center" }}>
+                <Text style={{ color: t.primaryText, fontFamily: font(800), fontSize: t.font.bodyMd }}>Apply Filters</Text>
+              </Pressable>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>

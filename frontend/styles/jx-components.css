@@ -1926,6 +1926,16 @@ body::before {
   }
 }
 
+/* PWA install banner: phones only (desktop uses the sidebar item) */
+.jx-pwa-banner-wrap {
+  display: none;
+}
+@media (max-width: 768px) {
+  .jx-pwa-banner-wrap {
+    display: block;
+  }
+}
+
 /* ===== Trade-log header: inline filters on desktop, collapse to a
    "Filters" popover on smaller screens so the row never wraps ===== */
 .jx-tl-filters-compact {

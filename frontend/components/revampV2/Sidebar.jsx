@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Button from "./Button";
 import { useSupportBadge } from "./useSupportBadge";
+import { SidebarInstallButton } from "@/components/pwa/InstallPwa";
 
 export function useTheme() {
   const [theme, setTheme] = useState("dark");
@@ -84,17 +85,14 @@ export default function Sidebar({
       {/* Brand */}
       <div className="jx-sidebar__brand">
         {collapsed ? (
-          /* Collapsed: "JX" wordmark by default, expand icon on hover */
+          /* Collapsed: show the expand control directly */
           <button
             className="jx-sidebar__logobtn"
             onClick={toggleCollapsed}
             aria-label="Expand sidebar"
             title="Expand sidebar"
           >
-            <span className="jx-sidebar__logomark">
-              J<strong style={{ color: "var(--yellow-500)" }}>X</strong>
-            </span>
-            <PanelLeftOpen size={18} className="jx-sidebar__expandicon" />
+            <PanelLeftOpen size={20} color="var(--color-text-primary)" />
           </button>
         ) : (
           <>
@@ -107,7 +105,7 @@ export default function Sidebar({
               aria-label="Collapse sidebar"
               style={{ padding: 6 }}
             >
-              <PanelLeftClose size={18} />
+              <PanelLeftClose size={18} color="var(--color-text-primary)" />
             </button>
           </>
         )}
@@ -165,14 +163,26 @@ export default function Sidebar({
 
       {/* Log trade CTA */}
       {onLogTrade && (
-        <Button
-          variant="primary"
-          icon={PlusCircle}
-          onClick={onLogTrade}
-          style={{ width: "100%", justifyContent: "center" }}
-        >
-          {!collapsed && "Log a trade"}
-        </Button>
+        collapsed ? (
+          <button
+            className="jx-btn jx-btn--primary"
+            onClick={onLogTrade}
+            aria-label="Log a trade"
+            title="Log a trade"
+            style={{ width: 44, height: 44, padding: 0, alignSelf: "center", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+          >
+            <PlusCircle size={20} />
+          </button>
+        ) : (
+          <Button
+            variant="primary"
+            icon={PlusCircle}
+            onClick={onLogTrade}
+            style={{ width: "100%", justifyContent: "center" }}
+          >
+            Log a trade
+          </Button>
+        )
       )}
 
       {!collapsed && <span className="jx-sidebar__section">Menu</span>}
@@ -194,6 +204,9 @@ export default function Sidebar({
 
       {/* Footer */}
       <div className="jx-sidebar__footer">
+        {/* Install as PWA — only renders when installable & not yet installed */}
+        <SidebarInstallButton collapsed={collapsed} />
+
         {showUpgrade && (
           <button
             className="jx-sidebar__item"

@@ -66,15 +66,15 @@ export const lightTheme = {
   dangerSubtle: "rgba(246,70,93,0.12)",
   // readable brand accent for badges/text on LIGHT surfaces (dark gold + warm tint)
   accent: { text: "#8a6300", subtle: "rgba(240,185,11,0.20)", border: "rgba(201,148,0,0.40)" },
-  // glassmorphism — white-based frosted surfaces for light mode
+  // solid surfaces (clean, non-glass) — kept under `glass.*` for API stability
   glass: {
-    surface: "rgba(255,255,255,0.62)",
-    surfaceStrong: "rgba(255,255,255,0.88)",
-    input: "rgba(255,255,255,0.78)",
-    border: "rgba(18,22,28,0.10)",
-    highlight: "rgba(255,255,255,0.95)",
+    surface: "#ffffff",
+    surfaceStrong: "#ffffff",
+    input: "#f0f1f3",
+    border: "#e6e8eb",
+    highlight: "transparent",
     blurTint: "light",
-    blurIntensity: 40,
+    blurIntensity: 0,
   },
   gradients: {
     ...sharedGradients,
@@ -113,15 +113,15 @@ export const darkTheme = {
   dangerSubtle: "rgba(246,70,93,0.14)",
   // brand accent on DARK surfaces — bright yellow reads well here
   accent: { text: "#fcd535", subtle: "rgba(252,213,53,0.18)", border: "rgba(252,213,53,0.45)" },
-  // glassmorphism — translucent dark-navy frosted surfaces
+  // solid surfaces (clean, non-glass) — kept under `glass.*` for API stability
   glass: {
-    surface: "rgba(22,26,32,0.55)",
-    surfaceStrong: "rgba(22,26,32,0.78)",
-    input: "rgba(13,17,23,0.50)",
-    border: "rgba(255,255,255,0.12)",
-    highlight: "rgba(255,255,255,0.06)",
+    surface: "#161a20",
+    surfaceStrong: "#1c222b",
+    input: "#222831",
+    border: "rgba(255,255,255,0.08)",
+    highlight: "transparent",
     blurTint: "dark",
-    blurIntensity: 40,
+    blurIntensity: 0,
   },
   gradients: {
     ...sharedGradients,

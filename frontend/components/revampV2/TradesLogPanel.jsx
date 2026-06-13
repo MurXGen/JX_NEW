@@ -8,11 +8,14 @@ import {
   CheckSquare,
   ChevronLeft,
   ChevronRight,
+  BookOpen,
   Download,
+  Gamepad2,
   Image as ImageIcon,
   Loader2,
   MoreVertical,
   Pencil,
+  Wind,
   Plus,
   SlidersHorizontal,
   Square,
@@ -405,6 +408,7 @@ export default function TradesLogPanel({
   onTradesDeleted,
   onTradeUpdated,
   openImportSignal = 0,
+  onOpenTab,
 }) {
   const [view, setView] = useState("cards");
   const [direction, setDirection] = useState("all");
@@ -442,6 +446,58 @@ export default function TradesLogPanel({
   };
 
   const closed = useMemo(() => trades.filter((t) => t.closeTime), [trades]);
+
+  /* ---- overtrading / tilt detector (wellness nudge) ----
+     Anchored to the user's most recent activity (works on historical data):
+     a burst of trades within an hour, an unusually heavy day, or a run of
+     losses are all classic overtrading / revenge-trading signals. */
+  const overtrading = useMemo(() => {
+    const ts = trades
+      .map((t) => new Date(t.closeTime || t.openTime).getTime())
+      .filter((n) => !Number.isNaN(n))
+      .sort((a, b) => a - b);
+    if (ts.length < 4) return null;
+    const last = ts[ts.length - 1];
+    const within1h = ts.filter((x) => last - x <= 60 * 60 * 1000).length;
+
+    const byDay = {};
+    ts.forEach((x) => {
+      const d = new Date(x);
+      const k = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      byDay[k] = (byDay[k] || 0) + 1;
+    });
+    const counts = Object.values(byDay);
+    const avgDay = counts.reduce((a, b) => a + b, 0) / counts.length;
+    const lk = (() => { const d = new Date(last); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
+    const lastDayCount = byDay[lk] || 0;
+
+    const closedSorted = [...closed].sort((a, b) => new Date(a.closeTime) - new Date(b.closeTime));
+    let lossStreak = 0;
+    for (let i = closedSorted.length - 1; i >= 0; i--) {
+      if ((Number(closedSorted[i].pnl) || 0) < 0) lossStreak++; else break;
+    }
+
+    const reasons = [];
+    if (within1h >= 4) reasons.push(`${within1h} trades within an hour`);
+    if (lastDayCount >= Math.max(6, Math.ceil(avgDay * 2.5))) reasons.push(`${lastDayCount} trades in a single day`);
+    if (lossStreak >= 3) reasons.push(`${lossStreak} losses in a row`);
+    if (!reasons.length) return null;
+    return { reasons, severity: reasons.length };
+  }, [trades, closed]);
+
+  // dismiss the nudge for the rest of the day (kept gentle, not naggy)
+  const [otDismissed, setOtDismissed] = useState(false);
+  useEffect(() => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      if (localStorage.getItem("jx-overtrade-dismissed") === today) setOtDismissed(true);
+    } catch {}
+  }, []);
+  const dismissOt = () => {
+    try { localStorage.setItem("jx-overtrade-dismissed", new Date().toISOString().slice(0, 10)); } catch {}
+    setOtDismissed(true);
+  };
+  const showOvertrading = overtrading && !otDismissed;
 
   const stats = useMemo(() => {
     const total = closed.length;
@@ -563,6 +619,68 @@ export default function TradesLogPanel({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
       <Toast toast={toast} />
+
+      {/* ===== overtrading / wellness nudge ===== */}
+      {showOvertrading && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="jx-card"
+          style={{
+            background: "color-mix(in srgb, var(--color-primary) 8%, var(--color-bg-surface))",
+            border: "1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border))",
+            display: "flex", gap: "var(--space-3)", alignItems: "flex-start",
+            padding: "var(--space-4)",
+          }}
+        >
+          <span
+            style={{
+              width: 40, height: 40, borderRadius: "var(--radius-md)", flexShrink: 0,
+              background: "var(--color-primary-subtle)", color: "var(--yellow-500)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <Wind size={20} />
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ font: "var(--text-body-md)", fontWeight: 700 }}>It feels like you&apos;re overtrading 🌿</span>
+              <button
+                onClick={dismissOt}
+                aria-label="Dismiss"
+                style={{ marginLeft: "auto", background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: 4, lineHeight: 0 }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <p style={{ font: "var(--text-small)", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>
+              {overtrading.reasons.join(" · ")}. The best trade is often the one you don&apos;t take — step away, breathe,
+              and let the next clean setup come to you. Protect your capital and your calm.
+            </p>
+            <div style={{ display: "flex", gap: "var(--space-2)", marginTop: "var(--space-3)", flexWrap: "wrap" }}>
+              <button
+                className="jx-btn jx-btn--primary jx-btn--sm"
+                onClick={() => { dismissOt(); onOpenTab?.("blogs"); }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <Gamepad2 size={15} /> Play a calming game
+              </button>
+              <a href="/blog" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <BookOpen size={15} /> Read on discipline
+                </button>
+              </a>
+              <button
+                className="jx-btn jx-btn--ghost jx-btn--sm"
+                onClick={dismissOt}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                I&apos;m taking a break
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-3)" }}>

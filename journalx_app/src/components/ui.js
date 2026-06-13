@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CheckCircle2, AlertCircle, Info as InfoIcon } from "lucide-react-native";
-import { MotionView } from "./motion";
+import { MotionView, PressableScale } from "./motion";
 import { useTheme } from "../theme/ThemeProvider";
 import { font } from "../theme/typography";
 
@@ -25,20 +25,7 @@ try { BlurView = require("expo-blur").BlurView; } catch {}
 
 /* ---- Grad: LinearGradient with a solid-colour fallback ---- */
 export function Grad({ colors, start, end, locations, style, children, ...rest }) {
-  if (LinearGradient) {
-    return (
-      <LinearGradient
-        colors={colors}
-        start={start || { x: 0, y: 0 }}
-        end={end || { x: 1, y: 1 }}
-        locations={locations}
-        style={style}
-        {...rest}
-      >
-        {children}
-      </LinearGradient>
-    );
-  }
+  // Gradients are disabled app-wide — render a SOLID fill of the first colour.
   return (
     <View style={[{ backgroundColor: colors?.[0] }, style]} {...rest}>
       {children}
@@ -51,18 +38,9 @@ export function Grad({ colors, start, end, locations, style, children, ...rest }
 export function GlassBackdrop({ strong, style }) {
   const { theme } = useTheme();
   const g = theme.glass;
+  // solid surface fill — no blur/translucency (clean MobiKwik/Lens look)
   return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, style]}>
-      {BlurView ? (
-        <BlurView
-          tint={g.blurTint}
-          intensity={g.blurIntensity}
-          experimentalBlurMethod="dimezisBlurView"
-          style={StyleSheet.absoluteFill}
-        />
-      ) : null}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: strong ? g.surfaceStrong : g.surface }]} />
-    </View>
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: strong ? g.surfaceStrong : g.surface }, style]} />
   );
 }
 
@@ -70,31 +48,21 @@ export function GlassBackdrop({ strong, style }) {
    radius.xl and a subtle top highlight line. ---- */
 export function GlassCard({ children, style, flat, strong, noPad }) {
   const { theme } = useTheme();
-  const g = theme.glass;
+  // clean SOLID card: white (light) / surface (dark), hairline border, no blur,
+  // no sheen, no heavy shadow — matches the reference UI.
   return (
     <View
       style={[
         {
-          borderColor: g.border,
+          backgroundColor: flat ? theme.bg.muted : theme.bg.surface,
+          borderColor: theme.border,
           borderWidth: 1,
-          borderRadius: theme.radius.xl,
-          overflow: "hidden",
+          borderRadius: theme.radius.lg,
           padding: noPad ? 0 : theme.space[5],
         },
-        flat && { backgroundColor: theme.bg.muted, borderColor: theme.border },
         style,
       ]}
     >
-      {!flat && <GlassBackdrop strong={strong} />}
-      {!flat && (
-        <Grad
-          colors={[g.highlight, "rgba(255,255,255,0)"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          pointerEvents="none"
-          style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1.5 }}
-        />
-      )}
       {children}
     </View>
   );
@@ -128,24 +96,16 @@ export function Button({
   };
   const p = palettes[variant] || palettes.primary;
   const isDisabled = disabled || loading;
-  const grad =
-    variant === "primary" ? theme.gradients.brand : variant === "danger" ? theme.gradients.danger : null;
-  const glow = grad
-    ? {
-        shadowColor: variant === "primary" ? theme.primary : theme.danger,
-        shadowOpacity: 0.35,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 6 },
-        elevation: 6,
-      }
-    : null;
 
+  // solid buttons + Telegram-style spring press & light haptic
   return (
-    <Pressable
+    <PressableScale
       onPress={isDisabled ? undefined : onPress}
-      style={({ pressed }) => [
+      disabled={isDisabled}
+      haptic={!isDisabled}
+      style={[
         {
-          backgroundColor: grad ? "transparent" : p.bg,
+          backgroundColor: p.bg,
           borderColor: p.border,
           borderWidth: 1,
           borderRadius: theme.radius.md,
@@ -155,22 +115,11 @@ export function Button({
           alignItems: "center",
           justifyContent: "center",
           gap: 8,
-          overflow: "hidden",
-          opacity: isDisabled ? 0.55 : pressed ? 0.85 : 1,
+          opacity: isDisabled ? 0.55 : 1,
         },
-        !isDisabled && glow,
         style,
       ]}
     >
-      {grad ? (
-        <Grad
-          colors={grad}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          pointerEvents="none"
-          style={StyleSheet.absoluteFill}
-        />
-      ) : null}
       {loading ? (
         <ActivityIndicator size="small" color={p.fg} />
       ) : (
@@ -181,7 +130,7 @@ export function Button({
           </Text>
         </>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 

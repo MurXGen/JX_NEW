@@ -1,43 +1,35 @@
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Sparkles, Star, TrendingUp, Globe2 } from "lucide-react-native";
+import { Sparkles } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../context/AppContext";
-import { Button, Field, Input, Toast, Muted, Grad, GlassCard } from "../components/ui";
-import GradientBackground from "../components/GradientBackground";
+import { Button, Field, Input, Toast, Muted } from "../components/ui";
 import { MotionView } from "../components/motion";
 import { font } from "../theme/typography";
 import * as authApi from "../api/auth";
 import { apiErrorMessage } from "../lib/error";
+import { successHaptic, errorHaptic } from "../lib/haptics";
 import Constants from "expo-constants";
 
-/* Native Google Sign-In is lazy-loaded (not available in Expo Go). */
 function getGoogleSignin() {
   try {
     const mod = require("@react-native-google-signin/google-signin");
     const GoogleSignin = mod.GoogleSignin;
-    GoogleSignin.configure({
-      webClientId: Constants.expoConfig?.extra?.googleWebClientId,
-      offlineAccess: false,
-    });
+    GoogleSignin.configure({ webClientId: Constants.expoConfig?.extra?.googleWebClientId, offlineAccess: false });
     return GoogleSignin;
   } catch {
     return null;
   }
 }
 
-const ACHIEVEMENTS = [
-  { icon: TrendingUp, label: "250k+ trades logged" },
-  { icon: Star, label: "4.8★ trader rating" },
-  { icon: Globe2, label: "All markets" },
-];
-
 export default function LoginScreen() {
-  const { theme } = useTheme();
+  const { theme: t } = useTheme();
   const { completeLogin } = useApp();
 
-  const [mode, setMode] = useState("password"); // password | codeRequest | codeVerify
+  // login | register | codeRequest | codeVerify | registerVerify
+  const [mode, setMode] = useState("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -45,7 +37,11 @@ export default function LoginScreen() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const flash = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3500); };
+  const flash = (type, msg) => {
+    setToast({ type, msg });
+    type === "danger" ? errorHaptic() : successHaptic();
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const doPasswordLogin = async () => {
     if (!email.trim() || !password) return flash("danger", "Enter your email and password");
@@ -54,11 +50,30 @@ export default function LoginScreen() {
       const data = await authApi.login(email.trim(), password);
       if (!data?.token) flash("danger", "Logged in but server sent no token — set JWT_SECRET on the backend.");
       else await completeLogin(data);
-    } catch (e) {
-      flash("danger", apiErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
+    } catch (e) { flash("danger", apiErrorMessage(e)); } finally { setBusy(false); }
+  };
+
+  const doRegister = async () => {
+    if (!name.trim()) return flash("danger", "Enter your name");
+    if (!email.trim()) return flash("danger", "Enter your email");
+    if (!password || password.length < 6) return flash("danger", "Password must be at least 6 characters");
+    setBusy(true);
+    try {
+      const data = await authApi.register(name.trim(), email.trim(), password);
+      setOtpUserId(data?.userId);
+      setOtp("");
+      setMode("registerVerify");
+      flash("success", "We emailed you a verification code");
+    } catch (e) { flash("danger", apiErrorMessage(e)); } finally { setBusy(false); }
+  };
+
+  const verifyRegister = async () => {
+    if (otp.length !== 6) return flash("danger", "Enter the 6-digit code");
+    setBusy(true);
+    try {
+      const data = await authApi.verifyOtp(otpUserId, otp);
+      await completeLogin({ ...data, isNewUser: true });
+    } catch (e) { flash("danger", apiErrorMessage(e)); } finally { setBusy(false); }
   };
 
   const sendCode = async () => {
@@ -67,13 +82,10 @@ export default function LoginScreen() {
     try {
       const data = await authApi.requestLoginOtp(email.trim());
       setOtpUserId(data?.userId);
+      setOtp("");
       setMode("codeVerify");
       flash("success", "We emailed you a login code");
-    } catch (e) {
-      flash("danger", apiErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
+    } catch (e) { flash("danger", apiErrorMessage(e)); } finally { setBusy(false); }
   };
 
   const verifyCode = async () => {
@@ -82,16 +94,12 @@ export default function LoginScreen() {
     try {
       const data = await authApi.verifyLoginOtp(otpUserId, otp);
       await completeLogin(data);
-    } catch (e) {
-      flash("danger", apiErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
+    } catch (e) { flash("danger", apiErrorMessage(e)); } finally { setBusy(false); }
   };
 
   const googleLogin = async () => {
     const GoogleSignin = getGoogleSignin();
-    if (!GoogleSignin) return flash("danger", "Google sign-in needs the app build (not Expo Go). Use email or code login here.");
+    if (!GoogleSignin) return flash("danger", "Google sign-in needs the app build (not Expo Go). Use email here.");
     setBusy(true);
     try {
       await GoogleSignin.hasPlayServices();
@@ -100,118 +108,99 @@ export default function LoginScreen() {
       if (!idToken) throw new Error("No Google token");
       const data = await authApi.googleNative(idToken);
       await completeLogin(data);
-    } catch (e) {
-      flash("danger", apiErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
+    } catch (e) { flash("danger", apiErrorMessage(e)); } finally { setBusy(false); }
   };
 
-  const title =
-    mode === "password" ? "Welcome back" : mode === "codeRequest" ? "Log in with a code" : "Check your email";
-  const subtitle =
-    mode === "password"
-      ? "Log in to your trading journal"
-      : mode === "codeRequest"
-        ? "We'll email you a one-time login code"
-        : `Enter the 6-digit code sent to ${email}`;
+  const copy = {
+    login: { title: "Welcome back", sub: "Log in to your trading journal" },
+    register: { title: "Create your account", sub: "Start journaling your trades in seconds" },
+    codeRequest: { title: "Log in with a code", sub: "We'll email you a one-time login code" },
+    codeVerify: { title: "Check your email", sub: `Enter the 6-digit code sent to ${email}` },
+    registerVerify: { title: "Verify your email", sub: `Enter the 6-digit code sent to ${email}` },
+  }[mode];
+
+  const isVerify = mode === "codeVerify" || mode === "registerVerify";
 
   return (
-    <GradientBackground>
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: t.bg.canvas }}>
       <Toast toast={toast} />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: theme.space[6], justifyContent: "space-between" }}>
-          {/* hero */}
+        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: t.space[6], justifyContent: "center" }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          {/* brand */}
           <MotionView delay={0}>
-            <View style={{ alignItems: "center", marginTop: theme.space[6], marginBottom: theme.space[7] }}>
-              <View
-                style={{
-                  width: 64, height: 64, borderRadius: 18, marginBottom: theme.space[4],
-                  alignItems: "center", justifyContent: "center", overflow: "hidden",
-                  shadowColor: theme.primary, shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 10,
-                }}
-              >
-                <Grad colors={theme.gradients.brandStrong} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
-                <Sparkles size={28} color={theme.primaryText} />
+            <View style={{ alignItems: "center", marginBottom: t.space[7] }}>
+              <View style={{ width: 66, height: 66, borderRadius: 20, backgroundColor: t.primary, alignItems: "center", justifyContent: "center", marginBottom: t.space[4] }}>
+                <Sparkles size={28} color={t.primaryText} />
               </View>
-              <Text style={{ fontFamily: font(800), fontSize: 30, color: theme.text.primary }}>
-                Journal<Text style={{ color: theme.yellow[300] }}>X</Text>
+              <Text style={{ fontFamily: font(800), fontSize: 30, color: t.text.primary }}>
+                Journal<Text style={{ color: t.yellow[400] }}>X</Text>
               </Text>
-              <Muted style={{ marginTop: 4, textAlign: "center" }}>
-                Trade log analysis in under 10 seconds
-              </Muted>
+              <Muted style={{ marginTop: 4, textAlign: "center" }}>Trade log analysis in under 10 seconds</Muted>
             </View>
           </MotionView>
 
-          {/* form — centered glass card over the aurora backdrop */}
+          {/* form */}
           <MotionView delay={90}>
-            <GlassCard>
-            <Text style={{ fontFamily: font(700), fontSize: theme.font.h2, color: theme.text.primary }}>{title}</Text>
-            <Muted style={{ marginBottom: theme.space[5] }}>{subtitle}</Muted>
+            <View style={{ backgroundColor: t.bg.surface, borderColor: t.border, borderWidth: 1, borderRadius: t.radius.xl, padding: t.space[5] }}>
+              <Text style={{ fontFamily: font(800), fontSize: t.font.h2, color: t.text.primary }}>{copy.title}</Text>
+              <Muted style={{ marginBottom: t.space[5], marginTop: 2 }}>{copy.sub}</Muted>
 
-            {mode === "password" && (
-              <View style={{ gap: theme.space[4] }}>
-                <Field label="Email">
-                  <Input value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" />
-                </Field>
-                <Field label="Password">
-                  <Input value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
-                </Field>
-                <Button title="Log in" onPress={doPasswordLogin} loading={busy} />
-                <Button title="Log in with an email code" variant="ghost" onPress={() => setMode("codeRequest")} />
-                <Button title="Continue with Google" variant="outline" onPress={googleLogin} />
-              </View>
-            )}
-
-            {mode === "codeRequest" && (
-              <View style={{ gap: theme.space[4] }}>
-                <Field label="Email">
-                  <Input value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" />
-                </Field>
-                <Button title="Send login code" onPress={sendCode} loading={busy} />
-                <Button title="Back to password login" variant="ghost" onPress={() => setMode("password")} />
-              </View>
-            )}
-
-            {mode === "codeVerify" && (
-              <View style={{ gap: theme.space[4] }}>
-                <Field label="6-digit code">
-                  <Input value={otp} onChangeText={(t) => setOtp(t.replace(/[^0-9]/g, "").slice(0, 6))} placeholder="123456" keyboardType="number-pad" />
-                </Field>
-                <Button title="Verify & log in" onPress={verifyCode} loading={busy} />
-                <Button title="Resend code" variant="ghost" onPress={sendCode} />
-                <Button title="Back" variant="ghost" onPress={() => { setMode("codeRequest"); setOtp(""); }} />
-              </View>
-            )}
-            </GlassCard>
-          </MotionView>
-
-          {/* achievements / trust strip */}
-          <MotionView delay={200}>
-            <View
-              style={{
-                flexDirection: "row", justifyContent: "space-around", alignItems: "center",
-                marginTop: theme.space[7], paddingTop: theme.space[5],
-                borderTopColor: theme.border, borderTopWidth: 1,
-              }}
-            >
-              {ACHIEVEMENTS.map(({ icon: Icon, label }) => (
-                <View key={label} style={{ alignItems: "center", flex: 1, gap: 6 }}>
-                  <View style={{ width: 34, height: 34, borderRadius: 12, overflow: "hidden", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: theme.glass.border }}>
-                    <Grad colors={theme.gradients.statBrand} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
-                    <Icon size={16} color={theme.yellow[400]} />
-                  </View>
-                  <Text style={{ fontFamily: font(600), fontSize: 11, color: theme.text.muted, textAlign: "center" }}>
-                    {label}
-                  </Text>
+              {mode === "login" && (
+                <View style={{ gap: t.space[4] }}>
+                  <Field label="Email"><Input value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" /></Field>
+                  <Field label="Password"><Input value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry /></Field>
+                  <Button title="Log in" onPress={doPasswordLogin} loading={busy} />
+                  <Button title="Log in with an email code" variant="ghost" onPress={() => setMode("codeRequest")} />
+                  <Button title="Continue with Google" variant="outline" onPress={googleLogin} />
                 </View>
-              ))}
+              )}
+
+              {mode === "register" && (
+                <View style={{ gap: t.space[4] }}>
+                  <Field label="Name"><Input value={name} onChangeText={setName} placeholder="Your name" autoCapitalize="words" /></Field>
+                  <Field label="Email"><Input value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" /></Field>
+                  <Field label="Password"><Input value={password} onChangeText={setPassword} placeholder="At least 6 characters" secureTextEntry /></Field>
+                  <Button title="Create account" onPress={doRegister} loading={busy} />
+                  <Button title="Continue with Google" variant="outline" onPress={googleLogin} />
+                </View>
+              )}
+
+              {mode === "codeRequest" && (
+                <View style={{ gap: t.space[4] }}>
+                  <Field label="Email"><Input value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" /></Field>
+                  <Button title="Send login code" onPress={sendCode} loading={busy} />
+                  <Button title="Back to password login" variant="ghost" onPress={() => setMode("login")} />
+                </View>
+              )}
+
+              {isVerify && (
+                <View style={{ gap: t.space[4] }}>
+                  <Field label="6-digit code"><Input value={otp} onChangeText={(v) => setOtp(v.replace(/[^0-9]/g, "").slice(0, 6))} placeholder="123456" keyboardType="number-pad" /></Field>
+                  <Button title="Verify & continue" onPress={mode === "registerVerify" ? verifyRegister : verifyCode} loading={busy} />
+                  <Button title="Resend code" variant="ghost" onPress={mode === "registerVerify" ? doRegister : sendCode} />
+                  <Button title="Back" variant="ghost" onPress={() => { setOtp(""); setMode(mode === "registerVerify" ? "register" : "codeRequest"); }} />
+                </View>
+              )}
             </View>
           </MotionView>
+
+          {/* switch login / register */}
+          {(mode === "login" || mode === "register" || mode === "codeRequest") && (
+            <MotionView delay={170}>
+              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6, marginTop: t.space[5] }}>
+                <Text style={{ color: t.text.muted, fontSize: t.font.body }}>
+                  {mode === "register" ? "Already have an account?" : "New to JournalX?"}
+                </Text>
+                <Pressable onPress={() => { setMode(mode === "register" ? "login" : "register"); setOtp(""); }} hitSlop={8}>
+                  <Text style={{ color: t.accent.text, fontFamily: font(700), fontSize: t.font.body }}>
+                    {mode === "register" ? "Log in" : "Create account"}
+                  </Text>
+                </Pressable>
+              </View>
+            </MotionView>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-    </GradientBackground>
   );
 }

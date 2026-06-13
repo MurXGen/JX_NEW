@@ -9,7 +9,7 @@ import GradientBackground from "../components/GradientBackground";
 import { AnimatedProgress } from "../components/charts";
 import SupportModal from "../components/SupportModal";
 import { font } from "../theme/typography";
-import { createAccount } from "../api/account";
+import { createAccount, updateAccount } from "../api/account";
 import { updateProfile } from "../api/auth";
 import { apiErrorMessage } from "../lib/error";
 import { currencySymbol, money } from "../lib/format";
@@ -61,10 +61,23 @@ export default function SettingsScreen({ navigation }) {
   const [toast, setToast] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
+  const [editingAcct, setEditingAcct] = useState(null); // null = create, else edit
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("USD");
+  const [balance, setBalance] = useState("");
   const [creating, setCreating] = useState(false);
   const flash = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3000); };
+
+  const openNew = () => {
+    setEditingAcct(null); setName(""); setCurrency("USD"); setBalance(""); setShowCreate(true);
+  };
+  const openEdit = (a) => {
+    setEditingAcct(a);
+    setName(a.name || "");
+    setCurrency(a.currency || "USD");
+    setBalance(String(a.startingBalance?.amount ?? 0));
+    setShowCreate(true);
+  };
 
   // editable profile name
   const [editingName, setEditingName] = useState(false);
@@ -94,20 +107,25 @@ export default function SettingsScreen({ navigation }) {
   const usedJournals = accounts.length;
   const initials = (userData?.name || userData?.email || "U").trim().charAt(0).toUpperCase();
 
-  const create = async () => {
+  const save = async () => {
     if (!name.trim()) return flash("danger", "Enter a journal name");
+    const bal = Number(balance) || 0;
     setCreating(true);
     try {
-      const res = await createAccount(name.trim(), currency, 0);
-      if (res?.userData) {
-        applyUserData(res.userData);
-        // select the newly created journal (last one returned)
-        const created = (res.userData.accounts || []).find((a) => a.name === name.trim());
-        if (created) selectAccount(created._id);
+      if (editingAcct) {
+        const res = await updateAccount(editingAcct._id, name.trim(), currency, bal);
+        if (res?.userData) applyUserData(res.userData);
+        flash("success", "Journal updated");
+      } else {
+        const res = await createAccount(name.trim(), currency, bal);
+        if (res?.userData) {
+          applyUserData(res.userData);
+          const created = (res.userData.accounts || []).find((a) => a.name === name.trim());
+          if (created) selectAccount(created._id);
+        }
+        flash("success", "Journal created");
       }
-      flash("success", "Journal created");
-      setName("");
-      setTimeout(() => setShowCreate(false), 500);
+      setTimeout(() => setShowCreate(false), 400);
     } catch (e) {
       flash("danger", apiErrorMessage(e));
     } finally {
@@ -169,7 +187,7 @@ export default function SettingsScreen({ navigation }) {
         <Card style={{ marginTop: -theme.space[2] }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: theme.space[2] }}>
             <Text style={{ color: theme.text.primary, fontFamily: font(700), fontSize: theme.font.title }}>Journals</Text>
-            <Pressable onPress={() => setShowCreate(true)} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderRadius: theme.radius.md, paddingHorizontal: 12, paddingVertical: 7, overflow: "hidden" }}>
+            <Pressable onPress={openNew} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderRadius: theme.radius.md, paddingHorizontal: 12, paddingVertical: 7, overflow: "hidden" }}>
               <Grad colors={theme.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
               <Plus size={15} color={theme.primaryText} />
               <Text style={{ color: theme.primaryText, fontFamily: font(700), fontSize: theme.font.small }}>New</Text>
@@ -191,6 +209,9 @@ export default function SettingsScreen({ navigation }) {
                   </Text>
                 </View>
                 {active ? <Check size={18} color={theme.success} /> : <Text style={{ color: theme.accent.text, fontFamily: font(600), fontSize: theme.font.small }}>Switch</Text>}
+                <Pressable onPress={() => openEdit(a)} hitSlop={8} style={{ width: 34, height: 34, borderRadius: 9, backgroundColor: theme.bg.muted, alignItems: "center", justifyContent: "center", marginLeft: 4 }}>
+                  <Pencil size={15} color={theme.text.secondary} />
+                </Pressable>
               </Pressable>
             );
           })}
@@ -266,7 +287,7 @@ export default function SettingsScreen({ navigation }) {
           <Pressable onPress={() => {}} style={{ borderTopLeftRadius: 22, borderTopRightRadius: 22, overflow: "hidden", borderWidth: 1, borderColor: theme.glass.border, padding: theme.space[5], paddingBottom: theme.space[8], gap: theme.space[4] }}>
             <GlassBackdrop strong />
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <Text style={{ fontFamily: font(700), fontSize: theme.font.title, color: theme.text.primary }}>New journal</Text>
+              <Text style={{ fontFamily: font(700), fontSize: theme.font.title, color: theme.text.primary }}>{editingAcct ? "Edit journal" : "New journal"}</Text>
               <Pressable onPress={() => !creating && setShowCreate(false)} hitSlop={10}><X size={22} color={theme.text.muted} /></Pressable>
             </View>
             <View style={{ gap: 6 }}>
@@ -288,10 +309,17 @@ export default function SettingsScreen({ navigation }) {
                 })}
               </View>
             </View>
-            <Pressable onPress={create} disabled={creating} style={{ borderRadius: theme.radius.md, paddingVertical: 14, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, opacity: creating ? 0.7 : 1, overflow: "hidden" }}>
+            <View style={{ gap: 6 }}>
+              <Text style={{ color: theme.text.secondary, fontSize: theme.font.small, fontFamily: font(500) }}>Starting balance ({currencySymbol(currency)})</Text>
+              <View style={{ backgroundColor: theme.glass.input, borderColor: theme.glass.border, borderWidth: 1, borderRadius: theme.radius.md }}>
+                <TextInput value={balance} onChangeText={(v) => setBalance(v.replace(/[^0-9.]/g, ""))} placeholder="0" keyboardType="numbers-and-punctuation" placeholderTextColor={theme.text.muted} style={{ color: theme.text.primary, fontFamily: font(500), paddingVertical: 12, paddingHorizontal: 14 }} />
+              </View>
+              {editingAcct && <Text style={{ color: theme.text.muted, fontSize: theme.font.caption }}>Changing the starting balance adjusts your journal balance; it doesn&apos;t alter logged trades.</Text>}
+            </View>
+            <Pressable onPress={save} disabled={creating} style={{ borderRadius: theme.radius.md, paddingVertical: 14, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, opacity: creating ? 0.7 : 1, overflow: "hidden" }}>
               <Grad colors={theme.gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
               {creating && <ActivityIndicator size="small" color={theme.primaryText} />}
-              <Text style={{ color: theme.primaryText, fontFamily: font(700), fontSize: theme.font.bodyMd }}>{creating ? "Creating…" : "Create journal"}</Text>
+              <Text style={{ color: theme.primaryText, fontFamily: font(700), fontSize: theme.font.bodyMd }}>{creating ? "Saving…" : editingAcct ? "Save changes" : "Create journal"}</Text>
             </Pressable>
           </Pressable>
         </Pressable>

@@ -492,7 +492,7 @@ const MONTH_PNL = [
 ];
 
 const tooltipStyle = {
-  background: "rgba(13,17,23,0.92)",
+  background: "rgba(13,17,23,0.96)",
   border: `1px solid ${C.border}`,
   borderRadius: 10,
   fontFamily: "Poppins, sans-serif",
@@ -500,6 +500,10 @@ const tooltipStyle = {
   color: C.text,
   boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
 };
+/* recharts colours the tooltip label + items independently of contentStyle —
+   force them light so they read on the dark tooltip card */
+const tooltipLabelStyle = { color: "#eaecef", fontWeight: 600, marginBottom: 2 };
+const tooltipItemStyle = { color: "#eaecef" };
 
 /* Mounts its children only once scrolled into view, so recharts'
    built-in entrance animations replay exactly when the visitor arrives. */
@@ -550,7 +554,7 @@ function WinLossPie() {
             <Cell key={s.name} fill={s.color} />
           ))}
         </Pie>
-        <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: C.text }} formatter={(v, n) => [`${v}%`, n]} />
+        <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} formatter={(v, n) => [`${v}%`, n]} />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -570,7 +574,7 @@ function EquityArea() {
         <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
         <XAxis dataKey="d" tick={{ fill: C.dim, fontSize: 10, fontFamily: "Poppins" }} axisLine={false} tickLine={false} interval={2} />
         <YAxis tick={{ fill: C.dim, fontSize: 10, fontFamily: "Poppins" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}`} />
-        <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: C.yellow }} formatter={(v) => [`$${v.toLocaleString()}`, "Equity"]} />
+        <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={{ color: C.yellow }} formatter={(v) => [`$${v.toLocaleString()}`, "Equity"]} />
         <Area type="monotone" dataKey="v" stroke={C.yellow} strokeWidth={2.5} fill="url(#lpEquityFill)" isAnimationActive={!reduced} animationDuration={1400} animationBegin={200} dot={false} activeDot={{ r: 4, fill: C.yellow, stroke: C.canvas }} />
       </AreaChart>
     </ResponsiveContainer>
@@ -585,7 +589,7 @@ function MonthlyBars() {
         <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
         <XAxis dataKey="m" tick={{ fill: C.dim, fontSize: 10, fontFamily: "Poppins" }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fill: C.dim, fontSize: 10, fontFamily: "Poppins" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
-        <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} contentStyle={tooltipStyle} formatter={(v) => [`${v < 0 ? "−" : "+"}$${Math.abs(v).toLocaleString()}`, "P&L"]} />
+        <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} formatter={(v) => [`${v < 0 ? "−" : "+"}$${Math.abs(v).toLocaleString()}`, "P&L"]} />
         <Bar dataKey="v" radius={[6, 6, 2, 2]} isAnimationActive={!reduced} animationDuration={1000} animationBegin={250}>
           {MONTH_PNL.map((m) => (
             <Cell key={m.m} fill={m.v >= 0 ? C.green : C.red} />

@@ -8,24 +8,26 @@ import {
   Check,
   ChevronDown,
   ChevronLeft,
+  Pencil,
   Plus,
   Search,
   Wallet,
   X,
 } from "lucide-react";
 import Button from "./Button";
-import { createAccount } from "@/api/auth";
+import { createAccount, updateAccount } from "@/api/auth";
 import { canAddAccount, getPlanRules } from "@/utils/planRestrictions";
 import { getFromIndexedDB } from "@/utils/indexedDB";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
 
 /* Figma "Journals Modal" (22811:53855) — two views:
    list (switch/manage) ⇄ create journal. Blurred backdrop,
    framer-motion entrance. Switching sets the account cookie and
    reloads; create calls POST /api/account/create. */
 
-const fmt = (v) => {
+const fmt = (v, sym = "$") => {
   const a = Math.abs(v);
-  return a >= 1000 ? `$${(a / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 })}k` : `$${a.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+  return a >= 1000 ? `${sym}${(a / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 })}k` : `${sym}${a.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 };
 
 const ACCENTS = ["#fcd535", "#2ebd85", "#3b82f6", "#8b5cf6", "#f6465d"];
@@ -51,6 +53,21 @@ export default function JournalsModal({
   const [type, setType] = useState("Spot");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [editingId, setEditingId] = useState(null); // null = create, else edit
+
+  const startCreate = () => {
+    setEditingId(null); setName(""); setBalance(""); setCurrency("USD"); setType("Spot"); setError(null);
+    setView("create");
+  };
+  const startEdit = (acc) => {
+    setEditingId(acc._id);
+    setName(acc.name || "");
+    setBalance(String(acc.startingBalance?.amount ?? ""));
+    setCurrency((acc.currency || "USD").toUpperCase());
+    setType((acc.accountType || "Spot").replace(/^\w/, (c) => c.toUpperCase()));
+    setError(null);
+    setView("create");
+  };
 
   const pnlByAccount = useMemo(() => {
     const m = {};
@@ -64,12 +81,38 @@ export default function JournalsModal({
   const switchTo = (acc) => {
     Cookies.set("accountId", acc._id, { expires: 365 });
     Cookies.set("selectedAccount", acc._id, { expires: 365 });
-    try { localStorage.setItem("jx-account-id", acc._id); } catch {}
+    try {
+      localStorage.setItem("jx-account-id", acc._id);
+      // dashboard + settings follow the active journal's currency
+      if (acc.currency) localStorage.setItem("jx-base-currency", acc.currency.toUpperCase());
+    } catch {}
     window.location.reload();
   };
 
-  const create = async () => {
+  const save = async () => {
     if (!name.trim()) return setError("Give your journal a name");
+
+    /* edit path — update name/currency/balance, then refresh */
+    if (editingId) {
+      setSaving(true);
+      setError(null);
+      try {
+        await updateAccount(editingId, name.trim(), currency.toLowerCase(), Number(balance) || 0);
+        // the journal being edited drives the dashboard currency if it's the active one
+        try {
+          if (editingId === currentAccountId && currency) {
+            localStorage.setItem("jx-base-currency", currency.toUpperCase());
+          }
+        } catch {}
+        onClose?.();
+        window.location.reload();
+      } catch (e) {
+        console.error(e);
+        setError("Could not save changes — try again");
+        setSaving(false);
+      }
+      return;
+    }
 
     /* plan limit: account/journal count */
     try {
@@ -93,6 +136,10 @@ export default function JournalsModal({
         Number(balance) || 0,
         type.toLowerCase(),
       );
+      // the freshly created journal becomes active → dashboard shows its currency
+      try {
+        if (currency) localStorage.setItem("jx-base-currency", currency.toUpperCase());
+      } catch {}
       onClose?.(); // close the modal once the response is in
       window.location.reload(); // then refresh data with the new journal selected
     } catch (e) {
@@ -156,11 +203,13 @@ export default function JournalsModal({
                       const bal = currentBalances?.[acc.name] ?? acc.startingBalance?.amount ?? 0;
                       const pnl = pnlByAccount[acc._id] || 0;
                       const accColor = ACCENTS[i % ACCENTS.length];
+                      const sym = getCurrencySymbol((acc.currency || "USD").toLowerCase());
                       return (
+                        <div key={acc._id} style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                         <button
-                          key={acc._id}
                           className={`jx-journalrow ${active ? "jx-journalrow--active" : ""}`}
                           onClick={() => !active && switchTo(acc)}
+                          style={{ flex: 1, minWidth: 0 }}
                         >
                           <span
                             style={{
@@ -181,9 +230,9 @@ export default function JournalsModal({
                             </span>
                           </span>
                           <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                            <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{fmt(bal)}</span>
+                            <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{fmt(bal, sym)}</span>
                             <span style={{ font: "var(--text-caption)", color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
-                              {pnl >= 0 ? "+" : "−"}{fmt(pnl).replace("$", "$")} all-time
+                              {pnl >= 0 ? "+" : "−"}{fmt(pnl, sym)} all-time
                             </span>
                           </span>
                           <span
@@ -198,13 +247,23 @@ export default function JournalsModal({
                             {active && <Check size={13} />}
                           </span>
                         </button>
+                        <button
+                          className="jx-btn jx-btn--secondary jx-btn--sm"
+                          onClick={() => startEdit(acc)}
+                          aria-label={`Edit ${acc.name}`}
+                          title="Edit journal"
+                          style={{ padding: 9, flexShrink: 0 }}
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        </div>
                       );
                     })}
                   </div>
 
                   {/* footer CTA */}
                   <div style={{ padding: "0 var(--space-6) var(--space-6)" }}>
-                    <Button variant="primary" icon={Plus} style={{ width: "100%", justifyContent: "center" }} onClick={() => setView("create")}>
+                    <Button variant="primary" icon={Plus} style={{ width: "100%", justifyContent: "center" }} onClick={startCreate}>
                       Create journal
                     </Button>
                   </div>
@@ -224,7 +283,7 @@ export default function JournalsModal({
                       <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => setView("list")} aria-label="Back" style={{ padding: 8, borderRadius: "50%" }}>
                         <ChevronLeft size={16} />
                       </button>
-                      <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Create journal</span>
+                      <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>{editingId ? "Edit journal" : "Create journal"}</span>
                     </div>
                     <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}>
                       <X size={16} />
@@ -268,16 +327,18 @@ export default function JournalsModal({
                       </div>
                     </div>
 
-                    <div className="jx-field">
-                      <span className="jx-sidebar__section" style={{ padding: 0 }}>Account type</span>
-                      <div className="jx-seg">
-                        {TYPES.map((t) => (
-                          <button key={t} className={`jx-seg__btn ${type === t ? "jx-seg__btn--active" : ""}`} onClick={() => setType(t)}>
-                            {t}
-                          </button>
-                        ))}
+                    {!editingId && (
+                      <div className="jx-field">
+                        <span className="jx-sidebar__section" style={{ padding: 0 }}>Account type</span>
+                        <div className="jx-seg">
+                          {TYPES.map((t) => (
+                            <button key={t} className={`jx-seg__btn ${type === t ? "jx-seg__btn--active" : ""}`} onClick={() => setType(t)}>
+                              {t}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                   </div>
 
@@ -286,7 +347,7 @@ export default function JournalsModal({
                     <button className="jx-btn jx-btn--ghost" onClick={() => setView("list")}>
                       Cancel
                     </button>
-                    <Button variant="primary" onClick={create} disabled={saving} style={{ minWidth: 150 }}>
+                    <Button variant="primary" onClick={save} disabled={saving} style={{ minWidth: 150 }}>
                       {saving ? (
                         <>
                           <motion.span
@@ -298,10 +359,10 @@ export default function JournalsModal({
                               borderTopColor: "currentColor",
                             }}
                           />
-                          Creating…
+                          {editingId ? "Saving…" : "Creating…"}
                         </>
                       ) : (
-                        "Create journal"
+                        editingId ? "Save changes" : "Create journal"
                       )}
                     </Button>
                   </div>

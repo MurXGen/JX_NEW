@@ -14,6 +14,7 @@ import { jxEase } from "./easing";
 /* sections the user can show/hide on the overview dashboard */
 const OVERVIEW_SECTIONS = [
   { id: "progress", label: "Progress cards" },
+  { id: "pace", label: "Trading pace & composure" },
   { id: "sessions", label: "Session performance" },
   { id: "edge", label: "Your trading edge" },
   { id: "dayOfWeek", label: "Day-of-week P&L" },
@@ -728,6 +729,71 @@ export default function OverviewPanel({
         .sort((a, b) => new Date(a.closeTime) - new Date(b.closeTime)),
     [trades],
   );
+
+  /* ---- trading pace & composure (overtrading vs calm) ---- */
+  const pace = useMemo(() => {
+    const ts = trades
+      .map((t) => new Date(t.closeTime || t.openTime).getTime())
+      .filter((n) => !Number.isNaN(n))
+      .sort((a, b) => a - b);
+    if (ts.length < 3) return null;
+
+    // per-day counts
+    const byDay = {};
+    ts.forEach((x) => {
+      const d = new Date(x);
+      const k = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      byDay[k] = (byDay[k] || 0) + 1;
+    });
+    const counts = Object.values(byDay);
+    const days = counts.length;
+    const avgDay = counts.reduce((a, b) => a + b, 0) / days;
+    const busiest = Math.max(...counts);
+
+    // densest 60-min window (rolling)
+    let maxHour = 1;
+    for (let i = 0; i < ts.length; i++) {
+      let j = i;
+      while (j < ts.length && ts[j] - ts[i] <= 3600000) j++;
+      maxHour = Math.max(maxHour, j - i);
+    }
+
+    // revenge rate: a trade opened within 30 min after a losing close
+    const cl = closed; // sorted asc
+    let revenge = 0, eligible = 0;
+    for (let i = 1; i < cl.length; i++) {
+      const prev = cl[i - 1];
+      const gap = new Date(cl[i].closeTime || cl[i].openTime) - new Date(prev.closeTime);
+      if ((Number(prev.pnl) || 0) < 0) {
+        eligible++;
+        if (gap <= 30 * 60 * 1000) revenge++;
+      }
+    }
+    const revengeRate = eligible ? revenge / eligible : 0;
+    const heavyDays = counts.filter((c) => c >= Math.max(5, avgDay * 2)).length;
+    const heavyRatio = days ? heavyDays / days : 0;
+
+    // composure score (100 = calm, disciplined pace)
+    let score = 100;
+    if (maxHour >= 4) score -= Math.min(40, (maxHour - 3) * 12);
+    score -= Math.min(30, revengeRate * 60);
+    score -= Math.min(25, heavyRatio * 60);
+    score = Math.max(0, Math.round(score));
+
+    const band =
+      score >= 75 ? { label: "Calm & disciplined", tone: "success", emoji: "🌿" }
+      : score >= 55 ? { label: "Balanced", tone: "success", emoji: "🙂" }
+      : score >= 35 ? { label: "Elevated pace", tone: "warn", emoji: "⚠️" }
+      : { label: "Overtrading risk", tone: "danger", emoji: "🔥" };
+
+    const tip =
+      score >= 75 ? "Your pace looks healthy — keep waiting for clean setups."
+      : score >= 55 ? "Mostly steady. Watch for clusters of quick trades after a loss."
+      : score >= 35 ? "You're trading fast in bursts. Add a short pause between trades."
+      : "Frequent rapid-fire and post-loss trades. Step back, breathe, and trade only A+ setups.";
+
+    return { score, band, tip, avgDay, busiest, maxHour, revengeRate, heavyDays };
+  }, [trades, closed]);
 
   /* ---- today's realized P&L (drives profit celebration) ---- */
   const todayPnl = useMemo(() => {
@@ -1771,6 +1837,63 @@ export default function OverviewPanel({
         </div>
       </div>
       )}
+
+      {/* ===== Trading pace & composure (overtrading vs calm) ===== */}
+      {isVisible("pace") && pace && (() => {
+        const toneColor =
+          pace.band.tone === "success" ? "var(--color-success-strong)"
+          : pace.band.tone === "warn" ? "var(--yellow-500)"
+          : "var(--color-danger-strong)";
+        const toneBg =
+          pace.band.tone === "success" ? "var(--color-success-subtle)"
+          : pace.band.tone === "warn" ? "var(--color-primary-subtle)"
+          : "var(--color-danger-subtle)";
+        const tiles = [
+          ["Trades / day", fmt(pace.avgDay, 1)],
+          ["Busiest day", `${pace.busiest}`],
+          ["Most in 1 hr", `${pace.maxHour}`],
+          ["Post-loss rushes", `${Math.round(pace.revengeRate * 100)}%`],
+        ];
+        return (
+          <div className="jx-card">
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-3)" }}>
+              <span className="jx-card__title">Trading pace</span>
+              <InfoTip text="How fast and how often you trade — a calm, selective pace usually beats rapid-fire trading." />
+              <span
+                style={{
+                  marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "4px 10px", borderRadius: 999, background: toneBg, color: toneColor,
+                  font: "var(--text-caption)", fontWeight: 700,
+                }}
+              >
+                {pace.band.emoji} {pace.band.label}
+              </span>
+            </div>
+
+            {/* composure meter */}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+              <span style={{ font: "var(--text-h2)", color: toneColor }}>{pace.score}</span>
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>/ 100 composure</span>
+            </div>
+            <div style={{ height: 8, borderRadius: 999, background: "var(--color-bg-muted)", overflow: "hidden", margin: "8px 0 var(--space-3)" }}>
+              <div style={{ width: `${pace.score}%`, height: "100%", background: toneColor, borderRadius: 999 }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "var(--space-2)" }}>
+              {tiles.map(([l, v]) => (
+                <div key={l} style={{ background: "var(--color-bg-muted)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "var(--space-3)" }}>
+                  <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{l}</div>
+                  <div style={{ font: "var(--text-body-md)", fontWeight: 700, marginTop: 2 }}>{v}</div>
+                </div>
+              ))}
+            </div>
+
+            <p style={{ font: "var(--text-small)", color: "var(--color-text-secondary)", margin: "var(--space-3) 0 0" }}>
+              {pace.tip}
+            </p>
+          </div>
+        );
+      })()}
 
       {/* ===== Session performance ===== */}
       {isVisible("sessions") && (
