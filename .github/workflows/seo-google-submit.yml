@@ -1,0 +1,45 @@
+name: SEO — Submit sitemap to Google
+
+# Runs daily on GitHub's servers (no need for your laptop/app to be open).
+# Submits https://journalx.app/sitemap.xml to Search Console and, if enabled,
+# notifies the Indexing API about blog posts updated in the last couple of days.
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC daily (GitHub cron is always UTC)
+  workflow_dispatch: {} # lets you run it manually from the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seo-google-submit
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: scripts/seo
+        run: npm install --no-audit --no-fund
+
+      - name: Submit sitemap (and index new posts)
+        working-directory: scripts/seo
+        env:
+          # Non-secret config → set these as repository VARIABLES
+          GSC_SITE_URL: ${{ vars.GSC_SITE_URL }}
+          GSC_SITEMAP_URL: ${{ vars.GSC_SITEMAP_URL }}
+          GSC_USE_INDEXING_API: ${{ vars.GSC_USE_INDEXING_API }}
+          GSC_INDEX_WINDOW_DAYS: ${{ vars.GSC_INDEX_WINDOW_DAYS }}
+          # Secret → set this as a repository SECRET (full service-account JSON)
+          GSC_SERVICE_ACCOUNT_KEY: ${{ secrets.GSC_SERVICE_ACCOUNT_KEY }}
+        run: node google-search-submit.mjs

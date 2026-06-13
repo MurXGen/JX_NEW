@@ -72,9 +72,9 @@ import {
 } from "@/utils/plans";
 
 const SITE_URL = "https://journalx.app";
-const TITLE = "JournalX — Trading Journal & Trade Analytics App";
+const TITLE = "JournalX — Trading Journal for Funded & Prop Firm Traders";
 const DESC =
-  "The trading journal that analyzes your trades in under 10 seconds. Track win rate, risk & psychology across stocks, forex, futures & crypto. Start free — no card.";
+  "Advanced trading journal for funded & prop firm traders. Deep analytics on win rate, risk, drawdown & psychology across forex, futures, stocks & crypto. Start free — no card.";
 
 const C = {
   text: "#fff",
@@ -439,14 +439,15 @@ const FEATURES = [
   { icon: Zap, title: "Log trades in seconds", body: "Quick log for P&L-only, or full detail with entries, risk, screenshots and emotions. Connect an exchange and trades import automatically." },
   { icon: BarChart3, title: "Analytics that find your edge", body: "Equity growth candles, P&L calendars, R-multiples, win rate trends, and per-strategy breakdowns — all computed from your real trades." },
   { icon: BrainCircuit, title: "Master your psychology", body: "Tag emotion and discipline on every trade. See exactly how much tilt and FOMO cost you, and where your real edge comes from." },
-  { icon: ShieldCheck, title: "Risk, measured", body: "Fixed-risk position sizing, planned vs realised R:R, and profit factor — the metrics that actually keep accounts alive." },
+  { icon: ShieldCheck, title: "Protect your funded account", body: "Fixed-risk position sizing, planned vs realised R:R, profit factor and drawdown tracking — the metrics that keep funded and prop firm accounts alive." },
   { icon: CalendarDays, title: "See every day at a glance", body: "A colour-coded P&L calendar and activity heatmap make your consistency (or lack of it) impossible to ignore." },
   { icon: LineChartIcon, title: "Live market context", body: "Ticker tape, heatmaps, economic calendar and news — plus an 'if you'd held' live price check on closed trades." },
 ];
 
 const WHY = [
+  ["Built for funded & prop firm traders", "Drawdown and consistency tracking most journals ignore"],
   ["Log a trade in 10 seconds", "Spreadsheets take minutes per trade — so you quit"],
-  ["Discipline scored at entry", "Generic journals only record numbers after the fact"],
+  ["Discipline scored on every trade", "Generic journals only record numbers after the fact"],
   ["Emotion & mistake analytics", "Broker statements have none of this"],
   ["Equity growth candlesticks", "Most tools show a flat P&L line"],
   ["Auto-import from exchanges", "Manual CSV wrangling everywhere else"],
@@ -467,6 +468,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   ["Is JournalX free?", "Yes — you can start free with no card required, and every paid plan starts with a 7-day free trial. Paid plans unlock advanced analytics and higher limits."],
+  ["Is JournalX good for funded and prop firm traders?", "Yes — JournalX is built for funded and prop firm traders. Track your drawdown, monitor consistency, and use psychology and discipline analytics to protect your funded account and pass evaluations with firms like FTMO, Topstep and Apex."],
   ["Which markets does it support?", "Stocks, options, forex, futures and crypto — log any instrument, in any currency."],
   ["Can I import my existing trades?", "Yes. Import a CSV with our template, or connect a supported exchange to auto-sync your trade history."],
   ["Do you store my exchange keys safely?", "We only ever use read-only API keys, stored locally on your device, purely to fetch your trades."],
@@ -762,9 +764,21 @@ function Marquee({ children, duration = 32, fade = true }) {
 }
 
 const EXCHANGES = [
-  "Binance", "Bybit", "OKX", "Coinbase", "Kraken", "KuCoin",
-  "Bitget", "MEXC", "Gate.io", "BingX", "Deribit", "CSV import",
+  // Stocks & options brokers
+  "Interactive Brokers", "Thinkorswim", "Charles Schwab", "E*TRADE",
+  "Webull", "Robinhood", "Fidelity", "Tastytrade",
+  // Futures
+  "NinjaTrader", "Tradovate", "AMP Futures",
+  // Forex / CFD
+  "MetaTrader 4", "MetaTrader 5", "OANDA", "cTrader", "IG",
+  // Crypto
+  "Binance", "Bybit", "Coinbase", "Kraken", "OKX",
+  // Works with everything
+  "CSV import",
 ];
+
+/* Asset classes JournalX supports — shown as tags above the broker marquee */
+const MARKET_TAGS = ["Stocks", "Options", "Futures", "Forex", "Crypto", "CFDs"];
 
 function ExchangeChip({ name }) {
   return (
@@ -777,7 +791,7 @@ function ExchangeChip({ name }) {
 
 const BLOG_ACCENT = {
   Strategy: "#fcd535", Risk: "#2ebd85", Psychology: "#a78bfa",
-  Journaling: "#38bdf8", Markets: "#fb7185",
+  Journaling: "#38bdf8", Markets: "#fb7185", Funded: "#34d399",
 };
 
 function BlogCard({ post }) {
@@ -968,7 +982,7 @@ export default function Home({ posts = [] }) {
     name: "JournalX",
     url: SITE_URL,
     logo: `${SITE_URL}/assets/JournalX_Favicon.png`,
-    description: "JournalX builds the all-in-one trading journal for stocks, options, forex, futures and crypto traders.",
+    description: "JournalX builds the advanced trading journal for funded and prop firm traders, across forex, futures, stocks, options and crypto.",
   };
   const appLd = {
     "@context": "https://schema.org",
@@ -979,6 +993,18 @@ export default function Home({ posts = [] }) {
     description: DESC,
     url: SITE_URL,
     image: `${SITE_URL}/assets/JournalX_Banner.png`,
+    audience: {
+      "@type": "Audience",
+      audienceType: "Funded traders, prop firm traders, forex, futures, stock, options and crypto traders",
+    },
+    featureList: [
+      "In-depth trade-log analysis and pattern detection",
+      "Funded & prop firm account tracking with drawdown alerts",
+      "Trading psychology, emotion and discipline scoring",
+      "Win rate, R-multiple, profit factor and equity curve analytics",
+      "Auto-import from exchanges and CSV",
+      "P&L calendar and per-strategy breakdowns",
+    ],
     aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", ratingCount: "1240" },
     offers: {
       "@type": "AggregateOffer",
@@ -1019,7 +1045,7 @@ export default function Home({ posts = [] }) {
       <Head>
         <title>{TITLE}</title>
         <meta name="description" content={DESC} />
-        <meta name="keywords" content="trading journal, trade journal app, trading journal software, trade log analysis, stock trading journal, forex trading journal, crypto trading journal, futures journal, options tracker, trade analytics, trading psychology, risk management, R-multiple, win rate tracker, equity curve, journalx" />
+        <meta name="keywords" content="trading journal, trading journal for funded traders, prop firm trading journal, funded account journal, FTMO journal, trading psychology app, trade journal app, trading journal software, trade analytics software, forex trading journal, futures trading journal, crypto trading journal, stock trading journal, options trading journal, trade analytics, risk management, drawdown tracker, R-multiple, win rate tracker, equity curve, journalx" />
         <meta name="author" content="JournalX" />
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
         <link rel="canonical" href={SITE_URL} />
@@ -1067,7 +1093,7 @@ export default function Home({ posts = [] }) {
                 </span>
               </h1>
               <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 640, margin: "0 auto 30px" }}>
-                JournalX logs your trades in seconds and instantly turns them into the analytics that actually grow an account — win rate, R-multiples, risk and psychology. For stocks, options, forex, futures and crypto.
+                JournalX turns every trade into the analytics that actually grow an account — win rate, R-multiples, risk, drawdown and psychology, all computed from your real trade log. Built for funded and prop firm traders, across forex, futures, stocks, options and crypto.
               </p>
               <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
                 <a href="/register" style={{ textDecoration: "none" }}>
@@ -1113,16 +1139,24 @@ export default function Home({ posts = [] }) {
                 </div>
               ))}
             </motion.div>
-            <p style={{ textAlign: "center", font: "600 13px Poppins", letterSpacing: 0.6, textTransform: "uppercase", color: C.dim, margin: "0 0 22px" }}>
-              Import your trade logs from your exchange or broker
+            <p style={{ textAlign: "center", font: "600 13px Poppins", letterSpacing: 0.6, textTransform: "uppercase", color: C.dim, margin: "0 0 14px" }}>
+              Import your trade logs from any exchange or broker
             </p>
+            {/* Asset-class tags — JournalX isn't crypto-only */}
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, margin: "0 auto 24px", maxWidth: 560 }}>
+              {MARKET_TAGS.map((m) => (
+                <span key={m} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 13px", borderRadius: 999, background: "rgba(252,213,53,0.08)", border: "1px solid rgba(252,213,53,0.22)", font: "600 12.5px Poppins", color: C.yellow }}>
+                  {m}
+                </span>
+              ))}
+            </div>
             <Marquee duration={34}>
               {EXCHANGES.map((name) => (
                 <span key={name} style={{ marginRight: 16 }}><ExchangeChip name={name} /></span>
               ))}
             </Marquee>
             <p style={{ textAlign: "center", font: "400 13px Poppins", color: C.dim, margin: "20px 0 0" }}>
-              Auto-sync supported exchanges or upload a CSV — your history imports in minutes.
+              Auto-sync supported exchanges, connect your broker, or upload a CSV from any platform — your history imports in minutes.
             </p>
           </Section>
 
@@ -1286,24 +1320,24 @@ export default function Home({ posts = [] }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }} className="lp-why-grid">
               <article>
                 <h2 style={{ font: "700 clamp(24px,4vw,34px)/1.15 Poppins", margin: "0 0 16px", letterSpacing: "-1px" }}>
-                  The trading journal built for every market
+                  The trading journal built for funded and prop firm traders
                 </h2>
                 <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: "0 0 14px" }}>
-                  Whether you trade stocks, options, forex, futures or crypto, JournalX is the trading journal that adapts to you. Log any instrument in any currency, import your history from a spreadsheet or connect a supported exchange to auto-sync, and let the analytics engine do the rest. No formulas, no manual maths — just your trade log, analysed in under ten seconds.
+                  Funded and prop firm traders don&apos;t just need profit — they need to stay inside the rules. JournalX is the trading journal built to protect a funded account: track your trailing and daily drawdown, watch your consistency, and get deep, data-driven insight into the overtrading, revenge trading and tilt that end most evaluations. Whether you&apos;re passing an FTMO, Topstep or Apex challenge or scaling a funded account, your discipline becomes a number you can actually manage.
                 </p>
                 <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: 0 }}>
-                  Every trade you record feeds equity-growth candlesticks, R-multiple distributions, a colour-coded P&amp;L calendar and per-strategy breakdowns. The result is a clear, honest picture of where your profitability actually comes from — and exactly which habit is costing you the most.
+                  It still works for every market you trade. Log forex, futures, stocks, options or crypto in any currency, import your history from a spreadsheet or auto-sync a supported exchange, and let the analytics engine feed equity-growth candlesticks, R-multiple distributions, a colour-coded P&amp;L calendar and per-strategy breakdowns — analysed in under ten seconds.
                 </p>
               </article>
               <article>
                 <h2 style={{ font: "700 clamp(24px,4vw,34px)/1.15 Poppins", margin: "0 0 16px", letterSpacing: "-1px" }}>
-                  Why a faster journal increases profitability
+                  Why deeper analytics increase profitability
                 </h2>
                 <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: "0 0 14px" }}>
                   Profitability isn&apos;t found in one perfect trade — it&apos;s built by removing repeated mistakes. But you can only remove a leak you can measure, and you can only measure trades you actually log. That&apos;s why speed matters: when logging takes ten seconds instead of five minutes, you log every trade, your data stays complete, and your weekly review finally tells the truth.
                 </p>
                 <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: 0 }}>
-                  JournalX scores your discipline at the moment of entry and tracks how emotion and risk affect your results, turning vague advice like &quot;control your psychology&quot; into a number you can watch improve. Fix one leak at a time and the equity curve responds — that&apos;s the entire compounding loop.
+                  JournalX scores your discipline at the moment of entry using purpose-built analytics, and surfaces how emotion, risk and drawdown affect your results — turning vague advice like &quot;control your trading psychology&quot; into a number you can watch improve. Every metric is computed from your real trade log, not estimated. Fix one leak at a time and the equity curve responds — that&apos;s the entire compounding loop.
                 </p>
               </article>
             </div>

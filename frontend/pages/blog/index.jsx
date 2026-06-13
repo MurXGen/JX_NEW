@@ -20,7 +20,10 @@ import {
 } from "@/utils/blogs";
 
 const CAT_DESC =
-  "Trading strategy, risk management, psychology and journaling guides from JournalX — learn to build a measurable edge with the best trading journal tool.";
+  "Trading journal guides on funded & prop firm trading, psychology, risk and strategy from JournalX — learn to protect your account and build a measurable, data-backed edge.";
+
+const BLOG_KEYWORDS =
+  "trading journal blog, funded trader tips, prop firm trading, how to pass a funded account challenge, trailing drawdown, trading psychology, risk management, revenge trading, trade journaling, FTMO journal";
 
 /* Per-category accent colors so cards stay visual without any images. */
 const CAT_META = {
@@ -29,6 +32,7 @@ const CAT_META = {
   Psychology: { from: "#a78bfa", to: "#7c5cff" },
   Journaling: { from: "#38bdf8", to: "#2563eb" },
   Markets: { from: "#fb7185", to: "#e11d48" },
+  Funded: { from: "#34d399", to: "#0ea5e9" },
 };
 const catMeta = (c) => CAT_META[c] || { from: "#fcd535", to: "#f6a609" };
 
@@ -51,20 +55,35 @@ export default function BlogIndex() {
   return (
     <>
       <Head>
-        <title>JournalX Blog — Trading Strategy, Risk & Psychology Guides</title>
+        <title>Trading Journal Blog — Funded Trading, Psychology & Risk | JournalX</title>
         <meta name="description" content={CAT_DESC} />
+        <meta name="keywords" content={BLOG_KEYWORDS} />
         <link rel="canonical" href={`${SITE_URL}/blog`} />
-        <meta name="robots" content="index, follow" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="JournalX Blog — Trading insights & journaling guides" />
+        <meta property="og:site_name" content="JournalX" />
+        <meta property="og:title" content="JournalX Blog — Funded trading, psychology & journaling guides" />
         <meta property="og:description" content={CAT_DESC} />
         <meta property="og:url" content={`${SITE_URL}/blog`} />
         <meta property="og:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JournalX Blog — Trading insights & journaling guides" />
+        <meta name="twitter:title" content="JournalX Blog — Funded trading, psychology & journaling guides" />
         <meta name="twitter:description" content={CAT_DESC} />
         <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogListJsonLd()) }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+                { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+              ],
+            }),
+          }}
+        />
       </Head>
 
       <div style={{ minHeight: "100vh", background: "var(--color-bg-canvas)", fontFamily: "var(--jx-font)", color: "var(--color-text-primary)" }}>
@@ -73,9 +92,9 @@ export default function BlogIndex() {
         <main style={{ maxWidth: 1040, margin: "0 auto", padding: "var(--space-8) var(--space-4) 96px", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
           {/* hero */}
           <div>
-            <h1 style={{ font: "var(--text-h1)", margin: 0 }}>The JournalX Blog</h1>
-            <p style={{ font: "var(--text-body-lg)", color: "var(--color-text-muted)", maxWidth: 560 }}>
-              High-leverage lessons on strategy, risk and trading psychology — and how to turn each one into a measurable edge.
+            <h1 style={{ font: "var(--text-h1)", margin: 0 }}>The JournalX Trading Journal Blog</h1>
+            <p style={{ font: "var(--text-body-lg)", color: "var(--color-text-muted)", maxWidth: 600 }}>
+              High-leverage lessons for funded and prop firm traders — strategy, risk, trading psychology and journaling across forex, futures, stocks and crypto, and how to turn each one into a measurable edge.
             </p>
           </div>
 

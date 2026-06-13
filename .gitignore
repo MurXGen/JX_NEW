@@ -24,3 +24,11 @@ yarn-error.log*
 # --- OS / Editor files ---
 .DS_Store
 Thumbs.db
+
+# --- SEO: never commit Google service-account keys ---
+scripts/seo/*.json
+!scripts/seo/package.json
+!scripts/seo/package-lock.json
+service-account*.json
+*.gsc-key.json
+gsc-*.json

@@ -79,6 +79,21 @@ export default function BlogPost({ post, related }) {
         <meta name="twitter:description" content={post.metaDescription || post.excerpt} />
         <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd(post)) }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+                { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+                { "@type": "ListItem", position: 3, name: post.category, item: `${SITE_URL}/blog?category=${encodeURIComponent(post.category)}` },
+                { "@type": "ListItem", position: 4, name: post.title, item: url },
+              ],
+            }),
+          }}
+        />
       </Head>
 
       <div style={{ minHeight: "100vh", background: "var(--color-bg-canvas)", fontFamily: "var(--jx-font)", color: "var(--color-text-primary)" }}>

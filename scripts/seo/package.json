@@ -1,0 +1,14 @@
+{
+  "name": "journalx-seo-submit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Submit the JournalX sitemap to Google Search Console and notify the Indexing API of new blog posts.",
+  "scripts": {
+    "submit": "node google-search-submit.mjs",
+    "submit:index": "node google-search-submit.mjs --index-new"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
+}

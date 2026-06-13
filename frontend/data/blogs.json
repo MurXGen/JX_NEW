@@ -12,7 +12,8 @@
     "Risk",
     "Psychology",
     "Journaling",
-    "Markets"
+    "Markets",
+    "Funded"
   ],
   "posts": [
     {
@@ -34,19 +35,67 @@
       "date": "2026-06-12",
       "featured": false,
       "excerpt": "Most accounts don't blow up from bad entries — they blow up from oversized ones. Here's the position-sizing math the pros use to make any single loss survivable.",
-      "helpful": { "up": 412, "down": 9, "saves": 221 },
-      "tags": ["Risk", "Position sizing", "1% rule", "Stop loss"],
+      "helpful": {
+        "up": 412,
+        "down": 9,
+        "saves": 221
+      },
+      "tags": [
+        "Risk",
+        "Position sizing",
+        "1% rule",
+        "Stop loss"
+      ],
       "body": [
-        { "type": "p", "text": "Ask a profitable trader what keeps them in the game and almost none of them will say their entries. They'll say risk per trade. Position sizing is the single decision that turns a string of losses into a survivable drawdown instead of an account-ending event." },
-        { "type": "h2", "text": "What the 1% risk rule actually means" },
-        { "type": "p", "text": "The rule is simple: never risk more than 1% of your account on a single trade. On a $10,000 account that's $100 of risk per trade — not a $100 position, but a maximum $100 loss if your stop is hit. The position size flexes to keep that loss constant." },
-        { "type": "h2", "text": "The position-sizing formula" },
-        { "type": "p", "text": "Position size = (Account × Risk %) ÷ (Entry − Stop). Example: $10,000 account, 1% risk = $100. If you enter at $50 with a stop at $48, your risk per share is $2, so you buy 50 shares. Stop gets hit, you lose $100 — exactly 1%. Widen the stop to $46 and your size drops to 25 shares to keep the same $100 risk." },
-        { "type": "quote", "text": "Amateurs ask 'how much can I make?' Professionals ask 'how much can I lose?' — and then size accordingly." },
-        { "type": "p", "text": "Risking a fixed percentage also means your size scales with your account: you compound automatically as you grow and you de-risk automatically when you draw down. No emotional sizing decisions in the heat of the moment." },
-        { "type": "why", "text": "JournalX calculates your risk per trade and R-multiple automatically from your entry, stop and size — so you can instantly see when you broke your own 1% rule, which is usually right before your worst losses." },
-        { "type": "activity", "kind": "checklist", "title": "Is your sizing actually disciplined?", "prompt": "Tick the ones that are true for your last 10 trades:", "items": ["I set a stop before entering every trade", "My risk per trade was roughly the same each time", "No single loss was more than ~1–2% of my account", "I sized down when the stop was wider, not just bought a round number", "I never moved my stop to avoid taking the planned loss"] },
-        { "type": "p", "text": "If you couldn't tick most of those, your edge isn't the problem — your sizing is. Fix that first and everything else gets easier." }
+        {
+          "type": "p",
+          "text": "Ask a profitable trader what keeps them in the game and almost none of them will say their entries. They'll say risk per trade. Position sizing is the single decision that turns a string of losses into a survivable drawdown instead of an account-ending event."
+        },
+        {
+          "type": "h2",
+          "text": "What the 1% risk rule actually means"
+        },
+        {
+          "type": "p",
+          "text": "The rule is simple: never risk more than 1% of your account on a single trade. On a $10,000 account that's $100 of risk per trade — not a $100 position, but a maximum $100 loss if your stop is hit. The position size flexes to keep that loss constant."
+        },
+        {
+          "type": "h2",
+          "text": "The position-sizing formula"
+        },
+        {
+          "type": "p",
+          "text": "Position size = (Account × Risk %) ÷ (Entry − Stop). Example: $10,000 account, 1% risk = $100. If you enter at $50 with a stop at $48, your risk per share is $2, so you buy 50 shares. Stop gets hit, you lose $100 — exactly 1%. Widen the stop to $46 and your size drops to 25 shares to keep the same $100 risk."
+        },
+        {
+          "type": "quote",
+          "text": "Amateurs ask 'how much can I make?' Professionals ask 'how much can I lose?' — and then size accordingly."
+        },
+        {
+          "type": "p",
+          "text": "Risking a fixed percentage also means your size scales with your account: you compound automatically as you grow and you de-risk automatically when you draw down. No emotional sizing decisions in the heat of the moment."
+        },
+        {
+          "type": "why",
+          "text": "JournalX calculates your risk per trade and R-multiple automatically from your entry, stop and size — so you can instantly see when you broke your own 1% rule, which is usually right before your worst losses."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Is your sizing actually disciplined?",
+          "prompt": "Tick the ones that are true for your last 10 trades:",
+          "items": [
+            "I set a stop before entering every trade",
+            "My risk per trade was roughly the same each time",
+            "No single loss was more than ~1–2% of my account",
+            "I sized down when the stop was wider, not just bought a round number",
+            "I never moved my stop to avoid taking the planned loss"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "If you couldn't tick most of those, your edge isn't the problem — your sizing is. Fix that first and everything else gets easier."
+        }
       ]
     },
     {
@@ -68,20 +117,71 @@
       "date": "2026-06-12",
       "featured": false,
       "excerpt": "Your strategy can be profitable and you can still lose — because the person executing it is afraid, greedy, or out for revenge. Here's how to spot and disarm all three.",
-      "helpful": { "up": 388, "down": 11, "saves": 196 },
-      "tags": ["Psychology", "Discipline", "Revenge trading", "Emotions"],
+      "helpful": {
+        "up": 388,
+        "down": 11,
+        "saves": 196
+      },
+      "tags": [
+        "Psychology",
+        "Discipline",
+        "Revenge trading",
+        "Emotions"
+      ],
       "body": [
-        { "type": "p", "text": "A backtested edge assumes a robot executes it. You are not a robot. The gap between a strategy's results and your results is almost entirely psychology — and it shows up as three recurring villains." },
-        { "type": "h2", "text": "Fear: the trades you didn't take" },
-        { "type": "p", "text": "Fear makes you skip valid setups after a loss, cut winners early, and hesitate at entry until the move is gone. The damage is invisible in your P&L because it's the profit you never captured. The fix is mechanical rules you trust more than your in-the-moment nerves." },
-        { "type": "h2", "text": "Greed: the trades you oversized" },
-        { "type": "p", "text": "Greed shows up as moving targets, adding to winners past your plan, and sizing up because you 'feel' it. One greedy trade can erase a week of disciplined ones." },
-        { "type": "h2", "text": "Revenge: the trades you should never have taken" },
-        { "type": "p", "text": "The revenge trade comes minutes after a loss: bigger size, no setup, pure emotion trying to 'win it back'. It is the single most expensive habit in retail trading." },
-        { "type": "quote", "text": "You don't rise to the level of your strategy — you fall to the level of your emotional discipline." },
-        { "type": "usecase", "text": "JournalX lets you tag the emotion behind every trade and then shows your win rate and P&L grouped by emotion. Most traders are shocked to learn their 'FOMO' and 'revenge' tags are deeply red — the data makes the leak impossible to ignore." },
-        { "type": "activity", "kind": "checklist", "title": "Which villain is costing you most?", "prompt": "Be honest — tick what happened in your last losing week:", "items": ["I skipped a setup that would have worked", "I cut a winner early out of fear", "I added size because I 'felt' it", "I took a trade within minutes of a loss to get even", "I moved a stop or target on emotion"] },
-        { "type": "p", "text": "Name the villain, tag it on every trade, and review weekly. What gets measured gets managed — and emotions are no exception." }
+        {
+          "type": "p",
+          "text": "A backtested edge assumes a robot executes it. You are not a robot. The gap between a strategy's results and your results is almost entirely psychology — and it shows up as three recurring villains."
+        },
+        {
+          "type": "h2",
+          "text": "Fear: the trades you didn't take"
+        },
+        {
+          "type": "p",
+          "text": "Fear makes you skip valid setups after a loss, cut winners early, and hesitate at entry until the move is gone. The damage is invisible in your P&L because it's the profit you never captured. The fix is mechanical rules you trust more than your in-the-moment nerves."
+        },
+        {
+          "type": "h2",
+          "text": "Greed: the trades you oversized"
+        },
+        {
+          "type": "p",
+          "text": "Greed shows up as moving targets, adding to winners past your plan, and sizing up because you 'feel' it. One greedy trade can erase a week of disciplined ones."
+        },
+        {
+          "type": "h2",
+          "text": "Revenge: the trades you should never have taken"
+        },
+        {
+          "type": "p",
+          "text": "The revenge trade comes minutes after a loss: bigger size, no setup, pure emotion trying to 'win it back'. It is the single most expensive habit in retail trading."
+        },
+        {
+          "type": "quote",
+          "text": "You don't rise to the level of your strategy — you fall to the level of your emotional discipline."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX lets you tag the emotion behind every trade and then shows your win rate and P&L grouped by emotion. Most traders are shocked to learn their 'FOMO' and 'revenge' tags are deeply red — the data makes the leak impossible to ignore."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Which villain is costing you most?",
+          "prompt": "Be honest — tick what happened in your last losing week:",
+          "items": [
+            "I skipped a setup that would have worked",
+            "I cut a winner early out of fear",
+            "I added size because I 'felt' it",
+            "I took a trade within minutes of a loss to get even",
+            "I moved a stop or target on emotion"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Name the villain, tag it on every trade, and review weekly. What gets measured gets managed — and emotions are no exception."
+        }
       ]
     },
     {
@@ -103,22 +203,79 @@
       "date": "2026-06-12",
       "featured": false,
       "excerpt": "A trade journal only works if it's built to answer questions. Here's exactly what to log, how to review it, and the mistakes that make most journals useless.",
-      "helpful": { "up": 401, "down": 7, "saves": 248 },
-      "tags": ["Journaling", "Trade review", "Process", "Edge"],
+      "helpful": {
+        "up": 401,
+        "down": 7,
+        "saves": 248
+      },
+      "tags": [
+        "Journaling",
+        "Trade review",
+        "Process",
+        "Edge"
+      ],
       "body": [
-        { "type": "p", "text": "Most trading journals fail for one reason: they record what happened but never answer why. A good journal is a question-answering machine. Build it backwards from the questions you want to answer." },
-        { "type": "h2", "text": "Step 1 — Log the objective facts" },
-        { "type": "p", "text": "Symbol, direction, entry, exit, stop, target, position size and time. These are non-negotiable and should take seconds. If logging is slow, you'll stop doing it." },
-        { "type": "h2", "text": "Step 2 — Log the decision context" },
-        { "type": "p", "text": "Strategy/setup, market condition, timeframe, your confidence (1–5), and the emotion you felt at entry. This is the layer that turns a spreadsheet into insight — it's how you discover that your 'breakout' trades in 'volatile' markets while 'FOMO' is your worst combination." },
-        { "type": "h2", "text": "Step 3 — Log the lesson" },
-        { "type": "p", "text": "One sentence: what would you repeat, and what would you avoid? Attach a screenshot of the chart. Future-you reviewing 50 of these will see patterns present-you can't." },
-        { "type": "quote", "text": "A trade you don't review is a tuition payment with no lesson attached." },
-        { "type": "h2", "text": "Step 4 — Review weekly, not per-trade" },
-        { "type": "p", "text": "Individual trades are noise. Patterns live in batches. Once a week, sort by setup, by emotion, by day of week and by session. Cut what's consistently red, do more of what's consistently green." },
-        { "type": "why", "text": "JournalX captures all three layers in one fast form and then auto-builds the reviews for you — win rate by setup, P&L by emotion, day-of-week and session breakdowns, R-multiples and discipline scoring — so the weekly review takes minutes, not hours." },
-        { "type": "activity", "kind": "checklist", "title": "Does your journal answer these?", "prompt": "A useful journal can answer all of these instantly. Tick the ones yours can:", "items": ["Which setup makes me the most money?", "Which emotion costs me the most?", "What's my best and worst day of the week?", "What's my average win vs average loss?", "Did I follow my plan on each trade?"] },
-        { "type": "p", "text": "If you ticked fewer than three, your journal is a diary, not a tool. Restructure it around the questions and it starts paying for itself." }
+        {
+          "type": "p",
+          "text": "Most trading journals fail for one reason: they record what happened but never answer why. A good journal is a question-answering machine. Build it backwards from the questions you want to answer."
+        },
+        {
+          "type": "h2",
+          "text": "Step 1 — Log the objective facts"
+        },
+        {
+          "type": "p",
+          "text": "Symbol, direction, entry, exit, stop, target, position size and time. These are non-negotiable and should take seconds. If logging is slow, you'll stop doing it."
+        },
+        {
+          "type": "h2",
+          "text": "Step 2 — Log the decision context"
+        },
+        {
+          "type": "p",
+          "text": "Strategy/setup, market condition, timeframe, your confidence (1–5), and the emotion you felt at entry. This is the layer that turns a spreadsheet into insight — it's how you discover that your 'breakout' trades in 'volatile' markets while 'FOMO' is your worst combination."
+        },
+        {
+          "type": "h2",
+          "text": "Step 3 — Log the lesson"
+        },
+        {
+          "type": "p",
+          "text": "One sentence: what would you repeat, and what would you avoid? Attach a screenshot of the chart. Future-you reviewing 50 of these will see patterns present-you can't."
+        },
+        {
+          "type": "quote",
+          "text": "A trade you don't review is a tuition payment with no lesson attached."
+        },
+        {
+          "type": "h2",
+          "text": "Step 4 — Review weekly, not per-trade"
+        },
+        {
+          "type": "p",
+          "text": "Individual trades are noise. Patterns live in batches. Once a week, sort by setup, by emotion, by day of week and by session. Cut what's consistently red, do more of what's consistently green."
+        },
+        {
+          "type": "why",
+          "text": "JournalX captures all three layers in one fast form and then auto-builds the reviews for you — win rate by setup, P&L by emotion, day-of-week and session breakdowns, R-multiples and discipline scoring — so the weekly review takes minutes, not hours."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Does your journal answer these?",
+          "prompt": "A useful journal can answer all of these instantly. Tick the ones yours can:",
+          "items": [
+            "Which setup makes me the most money?",
+            "Which emotion costs me the most?",
+            "What's my best and worst day of the week?",
+            "What's my average win vs average loss?",
+            "Did I follow my plan on each trade?"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "If you ticked fewer than three, your journal is a diary, not a tool. Restructure it around the questions and it starts paying for itself."
+        }
       ]
     },
     {
@@ -140,19 +297,67 @@
       "date": "2026-06-12",
       "featured": false,
       "excerpt": "You can win 40% of your trades and get rich, or win 70% and go broke. Win rate alone is meaningless — R-multiple and expectancy are the metrics that tell the truth.",
-      "helpful": { "up": 376, "down": 6, "saves": 210 },
-      "tags": ["Strategy", "R-multiple", "Expectancy", "Metrics"],
+      "helpful": {
+        "up": 376,
+        "down": 6,
+        "saves": 210
+      },
+      "tags": [
+        "Strategy",
+        "R-multiple",
+        "Expectancy",
+        "Metrics"
+      ],
       "body": [
-        { "type": "p", "text": "Traders obsess over win rate because it feels like a grade. But a high win rate with tiny wins and huge losses is a slow-motion blow-up. Two metrics cut through the illusion: R-multiple and expectancy." },
-        { "type": "h2", "text": "R-multiple: measuring trades in units of risk" },
-        { "type": "p", "text": "1R is the amount you risked on a trade. If you risk $100 and make $300, that's +3R. Lose the full stop, that's −1R. Measuring every trade in R makes them comparable regardless of size, symbol or account, and it's the foundation of every serious performance metric." },
-        { "type": "h2", "text": "Expectancy: your edge in one number" },
-        { "type": "p", "text": "Expectancy = (Win% × Average win in R) − (Loss% × Average loss in R). A positive number means each trade is, on average, profitable. Example: win 40% at +3R and lose 60% at −1R → (0.4 × 3) − (0.6 × 1) = 1.2 − 0.6 = +0.6R per trade. A 40% win rate that prints money." },
-        { "type": "quote", "text": "It's not how often you're right that pays you — it's how much you make when you're right versus how little you lose when you're wrong." },
-        { "type": "p", "text": "Flip it: win 70% at +1R and lose 30% at −3R → (0.7 × 1) − (0.3 × 3) = 0.7 − 0.9 = −0.2R. A 70% win rate that quietly drains the account. This is why win rate without R is dangerous." },
-        { "type": "usecase", "text": "JournalX computes R-multiple, expectancy, profit factor and average win/loss for every journal automatically — so you stop guessing whether your strategy has a real edge and start seeing it as a single, honest number." },
-        { "type": "activity", "kind": "checklist", "title": "Do you know your own numbers?", "prompt": "Tick the ones you can state right now without checking:", "items": ["My average win in R", "My average loss in R", "My expectancy per trade", "My profit factor", "Whether my edge is positive over my last 50 trades"] },
-        { "type": "p", "text": "If you can't answer these, you're trading on vibes. Track R and expectancy and you'll finally know whether to scale up, fix the strategy, or stop." }
+        {
+          "type": "p",
+          "text": "Traders obsess over win rate because it feels like a grade. But a high win rate with tiny wins and huge losses is a slow-motion blow-up. Two metrics cut through the illusion: R-multiple and expectancy."
+        },
+        {
+          "type": "h2",
+          "text": "R-multiple: measuring trades in units of risk"
+        },
+        {
+          "type": "p",
+          "text": "1R is the amount you risked on a trade. If you risk $100 and make $300, that's +3R. Lose the full stop, that's −1R. Measuring every trade in R makes them comparable regardless of size, symbol or account, and it's the foundation of every serious performance metric."
+        },
+        {
+          "type": "h2",
+          "text": "Expectancy: your edge in one number"
+        },
+        {
+          "type": "p",
+          "text": "Expectancy = (Win% × Average win in R) − (Loss% × Average loss in R). A positive number means each trade is, on average, profitable. Example: win 40% at +3R and lose 60% at −1R → (0.4 × 3) − (0.6 × 1) = 1.2 − 0.6 = +0.6R per trade. A 40% win rate that prints money."
+        },
+        {
+          "type": "quote",
+          "text": "It's not how often you're right that pays you — it's how much you make when you're right versus how little you lose when you're wrong."
+        },
+        {
+          "type": "p",
+          "text": "Flip it: win 70% at +1R and lose 30% at −3R → (0.7 × 1) − (0.3 × 3) = 0.7 − 0.9 = −0.2R. A 70% win rate that quietly drains the account. This is why win rate without R is dangerous."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX computes R-multiple, expectancy, profit factor and average win/loss for every journal automatically — so you stop guessing whether your strategy has a real edge and start seeing it as a single, honest number."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Do you know your own numbers?",
+          "prompt": "Tick the ones you can state right now without checking:",
+          "items": [
+            "My average win in R",
+            "My average loss in R",
+            "My expectancy per trade",
+            "My profit factor",
+            "Whether my edge is positive over my last 50 trades"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "If you can't answer these, you're trading on vibes. Track R and expectancy and you'll finally know whether to scale up, fix the strategy, or stop."
+        }
       ]
     },
     {
@@ -174,22 +379,79 @@
       "date": "2026-06-12",
       "featured": false,
       "excerpt": "There are dozens of trading journals — and most are glorified spreadsheets. Here's the checklist that separates a tool that grows your account from one you'll abandon in a week.",
-      "helpful": { "up": 364, "down": 10, "saves": 188 },
-      "tags": ["Journaling", "Tools", "Buyer's guide", "2026"],
+      "helpful": {
+        "up": 364,
+        "down": 10,
+        "saves": 188
+      },
+      "tags": [
+        "Journaling",
+        "Tools",
+        "Buyer's guide",
+        "2026"
+      ],
       "body": [
-        { "type": "p", "text": "A trading journal is only valuable if you actually use it and it actually changes your behavior. Most fail one of those tests. Use this checklist before you commit to any tool in 2026." },
-        { "type": "h2", "text": "1. Logging has to be fast" },
-        { "type": "p", "text": "If logging a trade takes more than a few seconds, you'll quit within two weeks. Look for quick-log, broker import, and sensible defaults. Friction is the enemy of consistency." },
-        { "type": "h2", "text": "2. Real analytics, not just a table" },
-        { "type": "p", "text": "A list of trades is a spreadsheet. You want win rate by setup, P&L by day and session, equity curve, R-multiple distribution, profit factor and drawdown — computed for you." },
-        { "type": "h2", "text": "3. Risk and psychology tracking" },
-        { "type": "p", "text": "The biggest leaks are sizing and emotion. A journal that captures risk per trade and the emotion behind it — and then reports on them — finds money the others miss." },
-        { "type": "h2", "text": "4. It works on every market and device" },
-        { "type": "p", "text": "Stocks, options, forex, futures and crypto, on web and mobile. Your edge doesn't care what you trade, and neither should your journal." },
-        { "type": "quote", "text": "The best journal isn't the one with the most features — it's the one you'll still be using in six months." },
-        { "type": "why", "text": "JournalX was built around exactly this checklist: log a trade in seconds, get web-version-grade analytics instantly, track risk and psychology automatically, and use it free across every market on web and mobile." },
-        { "type": "activity", "kind": "checklist", "title": "Score your current journal", "prompt": "Tick every box your current tool genuinely ticks:", "items": ["I can log a trade in under 10 seconds", "It shows win rate by setup and emotion", "It calculates R-multiple and expectancy for me", "It works on mobile and desktop", "I've actually used it every week for the last month"] },
-        { "type": "p", "text": "Three or fewer ticks means your journal is holding you back. The right tool turns trade history into a measurable edge — that's the whole point." }
+        {
+          "type": "p",
+          "text": "A trading journal is only valuable if you actually use it and it actually changes your behavior. Most fail one of those tests. Use this checklist before you commit to any tool in 2026."
+        },
+        {
+          "type": "h2",
+          "text": "1. Logging has to be fast"
+        },
+        {
+          "type": "p",
+          "text": "If logging a trade takes more than a few seconds, you'll quit within two weeks. Look for quick-log, broker import, and sensible defaults. Friction is the enemy of consistency."
+        },
+        {
+          "type": "h2",
+          "text": "2. Real analytics, not just a table"
+        },
+        {
+          "type": "p",
+          "text": "A list of trades is a spreadsheet. You want win rate by setup, P&L by day and session, equity curve, R-multiple distribution, profit factor and drawdown — computed for you."
+        },
+        {
+          "type": "h2",
+          "text": "3. Risk and psychology tracking"
+        },
+        {
+          "type": "p",
+          "text": "The biggest leaks are sizing and emotion. A journal that captures risk per trade and the emotion behind it — and then reports on them — finds money the others miss."
+        },
+        {
+          "type": "h2",
+          "text": "4. It works on every market and device"
+        },
+        {
+          "type": "p",
+          "text": "Stocks, options, forex, futures and crypto, on web and mobile. Your edge doesn't care what you trade, and neither should your journal."
+        },
+        {
+          "type": "quote",
+          "text": "The best journal isn't the one with the most features — it's the one you'll still be using in six months."
+        },
+        {
+          "type": "why",
+          "text": "JournalX was built around exactly this checklist: log a trade in seconds, get web-version-grade analytics instantly, track risk and psychology automatically, and use it free across every market on web and mobile."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Score your current journal",
+          "prompt": "Tick every box your current tool genuinely ticks:",
+          "items": [
+            "I can log a trade in under 10 seconds",
+            "It shows win rate by setup and emotion",
+            "It calculates R-multiple and expectancy for me",
+            "It works on mobile and desktop",
+            "I've actually used it every week for the last month"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Three or fewer ticks means your journal is holding you back. The right tool turns trade history into a measurable edge — that's the whole point."
+        }
       ]
     },
     {
@@ -2011,6 +2273,499 @@
         {
           "type": "why",
           "text": "Spreadsheets are slow and blind. Broker statements are raw rows of numbers. JournalX is the only journal that scales from a 10-second quick log to full psychology and risk analytics — so the habit survives your busiest weeks and still produces the insight that actually moves your equity curve."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-pass-a-funded-account-challenge",
+      "title": "How to Pass a Funded Account Challenge (Without Blowing It on Day 3)",
+      "metaTitle": "How to Pass a Funded Account Challenge | JournalX",
+      "metaDescription": "A trader's playbook for passing a prop firm challenge — the rules that actually fail people, the daily routine that works, and how to journal an FTMO, Topstep or Apex evaluation.",
+      "keywords": [
+        "how to pass a funded account challenge",
+        "prop firm challenge",
+        "pass FTMO",
+        "funded trader evaluation",
+        "prop firm trading journal",
+        "funded account rules"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-06-13",
+      "featured": false,
+      "excerpt": "Most traders don't fail a funded challenge because they can't trade. They fail because they break a rule they forgot existed. Here's the playbook that keeps you inside the lines.",
+      "helpful": {
+        "up": 308,
+        "down": 7,
+        "saves": 196
+      },
+      "tags": [
+        "Funded",
+        "Prop firm",
+        "FTMO",
+        "Discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Let's be honest about why funded challenges are hard. It isn't the profit target. A 8–10% target over a month or two is genuinely achievable for a trader with an edge. What gets people is everything around the target: the daily loss limit, the trailing drawdown, the consistency rules, and the quiet pressure of trading someone else's money with a deadline attached."
+        },
+        {
+          "type": "p",
+          "text": "I've watched dozens of traders — and plenty of my own attempts — die on day three of a challenge, not day thirty. Here's the playbook that actually works, broken into the things that matter."
+        },
+        {
+          "type": "h2",
+          "text": "Know the three rules that fail people"
+        },
+        {
+          "type": "p",
+          "text": "Before you place a single trade, write down the three numbers that can end your account: the maximum daily loss, the maximum overall (or trailing) drawdown, and the minimum trading days. Almost every blown challenge is a violation of one of those three — usually the daily loss, hit during a revenge spiral after a couple of red trades."
+        },
+        {
+          "type": "p",
+          "text": "The profit target is the goal you aim for. These three are the walls you must never touch. Treat them with completely different mental weight."
+        },
+        {
+          "type": "quote",
+          "text": "You don't pass a challenge by hitting the target faster. You pass it by making it mathematically impossible to break a rule."
+        },
+        {
+          "type": "h2",
+          "text": "Size for the daily loss, not the target"
+        },
+        {
+          "type": "p",
+          "text": "Here's the mindset shift: don't size your trades around how quickly you can reach the profit target. Size them so that even a string of losses can't put you near your daily loss limit. If your daily loss limit is $500, risking $250 a trade means two losers ends your day. Risk $100 and you've got five swings before you're anywhere near trouble."
+        },
+        {
+          "type": "p",
+          "text": "Slower is survivable. Survivable passes challenges."
+        },
+        {
+          "type": "h2",
+          "text": "Trade fewer days, on purpose"
+        },
+        {
+          "type": "p",
+          "text": "You do not need to trade every day to pass. You need a small number of clean, A+ days. One of the most reliable ways to fail is boredom trading on a flat market because you feel like you 'should' be doing something. Decide in advance what your setup looks like, and give yourself full permission to do nothing on days it doesn't appear."
+        },
+        {
+          "type": "h2",
+          "text": "Have a hard stop for the day"
+        },
+        {
+          "type": "p",
+          "text": "Pick a daily loss number that's well inside the firm's limit — say, half of it — and when you hit it, you're done. Close the platform. The traders who pass treat their personal daily stop as sacred, because the firm's official limit is the cliff edge, and you never want to be trading near a cliff edge with real money on the line."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX you can set your funded account's rules — daily loss, trailing drawdown, profit target — and watch a live tracker show how much room you have left before each line. Your equity curve and drawdown are computed from your real trade log, so you always know exactly where you stand in the challenge instead of guessing in a spreadsheet at 2am."
+        },
+        {
+          "type": "h2",
+          "text": "Journal every day of the challenge"
+        },
+        {
+          "type": "p",
+          "text": "Treat the evaluation like a logged campaign, not a vibe. After each session write down: did I follow my rules, what was my emotional state, and how close did I come to a limit? Patterns show up fast — like the fact that your worst days almost always follow a missed-target morning, or that Fridays wreck you. Once you can see the pattern, you can cut it."
+        },
+        {
+          "type": "why",
+          "text": "Most journals just store numbers after the fact. JournalX scores your discipline at the moment of entry and tracks how emotion and risk move your results, so an evaluation becomes a series of measurable, improvable days — not a coin flip you hope lands right."
+        },
+        {
+          "type": "h2",
+          "text": "The boring truth"
+        },
+        {
+          "type": "p",
+          "text": "Passing a funded challenge is less about brilliance and more about being relentlessly boring with risk while your edge plays out. Protect the three walls, size small, trade your setup, log everything. Do that and the target tends to take care of itself."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-not-blow-a-funded-account",
+      "title": "How to Not Blow a Funded Account: 7 Rules That Keep You Paid",
+      "metaTitle": "How to Not Blow a Funded Account — 7 Rules | JournalX",
+      "metaDescription": "Passing the challenge is the easy part — keeping the funded account is where most traders fail. Seven rules to protect your funded account, your drawdown, and your payouts.",
+      "keywords": [
+        "how to not blow a funded account",
+        "protect funded account",
+        "funded account rules",
+        "prop firm payout",
+        "trailing drawdown",
+        "funded trader discipline"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-06-13",
+      "featured": false,
+      "excerpt": "Getting funded feels like the finish line. It's actually the starting line — and the drawdown rules are stricter now that it's real. Here are seven rules that keep funded traders funded.",
+      "helpful": {
+        "up": 271,
+        "down": 6,
+        "saves": 184
+      },
+      "tags": [
+        "Funded",
+        "Prop firm",
+        "Risk",
+        "Payout"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "There's a strange grief that hits the day after you blow a funded account. You passed the hard part. You were, on paper, a funded trader. And then a single bad afternoon — usually one you can replay move by move — took it all back."
+        },
+        {
+          "type": "p",
+          "text": "Keeping a funded account is a different skill from passing the challenge. The pressure changes, the money is real, and the temptation to push size on a 'sure thing' is constant. These are the seven rules that keep funded traders inside the lines."
+        },
+        {
+          "type": "h2",
+          "text": "1. Respect the trailing drawdown like it's alive"
+        },
+        {
+          "type": "p",
+          "text": "On many funded accounts the drawdown trails your highest balance, which means a good week quietly tightens your floor. Always know your current drawdown line, not the one from when you started. This single misunderstanding ends more funded accounts than bad trades do."
+        },
+        {
+          "type": "h2",
+          "text": "2. Bank profit early and often"
+        },
+        {
+          "type": "p",
+          "text": "Take payouts when you're eligible. A withdrawn profit is a profit that can never be given back to the market. Traders who leave everything on the account 'to scale faster' are the ones who hand it all back in one bad swing."
+        },
+        {
+          "type": "quote",
+          "text": "The goal of a funded account isn't to be impressive. It's to be paid, repeatedly, for a long time."
+        },
+        {
+          "type": "h2",
+          "text": "3. Cut your size after a payout reset"
+        },
+        {
+          "type": "p",
+          "text": "Right after a withdrawal or a new account phase, your cushion is smallest. That's exactly when traders feel invincible and size up. Do the opposite — trade your smallest size when your buffer is thinnest, and let the buffer rebuild before you press."
+        },
+        {
+          "type": "h2",
+          "text": "4. Define a daily stop and obey it"
+        },
+        {
+          "type": "p",
+          "text": "Pick a daily loss you can absorb without emotion, and stop the moment you hit it. The account-killer is never the first loss — it's the fourth trade taken to 'make back' the third. A hard daily stop quietly removes the entire revenge-trading spiral from your day."
+        },
+        {
+          "type": "h2",
+          "text": "5. Trade one strategy, not your mood"
+        },
+        {
+          "type": "p",
+          "text": "Funded capital is not the place to experiment. Pick the setup that earned you the account and trade only that. New ideas belong on a demo or a personal account, never on the funded one you depend on."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX lets you load your funded account's exact rules and shows your live drawdown buffer, daily loss used, and consistency at a glance — all computed from your logged trades. Instead of mentally tracking your trailing floor, you can see it, so you stop trading before the rule does it for you."
+        },
+        {
+          "type": "h2",
+          "text": "6. Watch your consistency, not just your P&L"
+        },
+        {
+          "type": "p",
+          "text": "Many firms require that no single day makes up too large a share of your profit. You can be green overall and still fail a payout review because one lucky day was too big. Spread your performance across days deliberately — and track the distribution, not just the total."
+        },
+        {
+          "type": "h2",
+          "text": "7. Log the trades you almost regret"
+        },
+        {
+          "type": "p",
+          "text": "The most valuable journal entries are the ones where you broke a rule but got away with it. Those are the near-misses that become account-enders next time. Write them down while the relief is fresh, and they stop repeating."
+        },
+        {
+          "type": "why",
+          "text": "JournalX is built for funded and prop firm traders specifically — drawdown tracking, consistency analytics, and discipline scoring that ordinary journals and broker statements simply don't have. It turns 'protect the account' from a vague worry into numbers you can actually watch and manage."
+        },
+        {
+          "type": "p",
+          "text": "Funded trading is a long game of not dying. Master these seven rules and you stop being a trader who gets funded — and become one who stays funded."
+        }
+      ]
+    },
+    {
+      "slug": "trailing-drawdown-explained",
+      "title": "Trailing Drawdown Explained: The Prop Firm Rule That Ends Most Accounts",
+      "metaTitle": "Trailing Drawdown Explained for Prop Firm Traders | JournalX",
+      "metaDescription": "Trailing drawdown is the prop firm rule that quietly ends the most funded accounts. Here's exactly how it works, with examples, and how to never get caught by it.",
+      "keywords": [
+        "trailing drawdown explained",
+        "trailing drawdown",
+        "max drawdown prop firm",
+        "end of day drawdown",
+        "funded account rules",
+        "prop firm drawdown"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 7,
+      "date": "2026-06-12",
+      "featured": false,
+      "excerpt": "More funded accounts die to a misunderstood drawdown rule than to bad trading. Here's how trailing drawdown actually works — with the example that makes it click.",
+      "helpful": {
+        "up": 244,
+        "down": 5,
+        "saves": 171
+      },
+      "tags": [
+        "Funded",
+        "Prop firm",
+        "Drawdown",
+        "Risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "If you trade funded capital and you only half-understand your drawdown rule, you are one good morning away from a confusing, expensive surprise. Trailing drawdown is the rule that catches more traders than any losing streak ever will — not because it's unfair, but because it moves while you're not looking."
+        },
+        {
+          "type": "h2",
+          "text": "Static vs trailing drawdown"
+        },
+        {
+          "type": "p",
+          "text": "A static (or 'absolute') drawdown sets one fixed floor. If you start a $50,000 account with a $2,000 drawdown, your account can never drop below $48,000 — and that line never moves. Simple."
+        },
+        {
+          "type": "p",
+          "text": "A trailing drawdown is different: the floor follows your balance (or sometimes your equity) upward as you make money. It rises with your gains but does not fall back when you give some back. That asymmetry is the whole trap."
+        },
+        {
+          "type": "h2",
+          "text": "The example that makes it click"
+        },
+        {
+          "type": "p",
+          "text": "Say you have a $50,000 account with a $2,000 trailing drawdown, so your starting floor is $48,000. You have a great session and run the balance to $53,000. Your floor has now trailed up to $51,000. You're still 'up' $3,000 on the account — but you now have only $2,000 of room before you breach, not $5,000."
+        },
+        {
+          "type": "quote",
+          "text": "Trailing drawdown punishes giving back gains far more harshly than it ever rewards making them. Plan your size around the floor, not the profit."
+        },
+        {
+          "type": "h2",
+          "text": "End-of-day vs intraday trailing"
+        },
+        {
+          "type": "p",
+          "text": "Read the fine print on when the floor updates. Some firms trail at the end of each day based on your closing balance — your open, unrealised spikes don't move the floor. Others trail intraday on equity, meaning a big unrealised winner you don't bank can ratchet your floor up and then trap you when price comes back. These behave completely differently, and trading the wrong assumption is how good days turn into blown accounts."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX tracks your trailing drawdown floor for you as your logged balance changes, and shows exactly how much room you have left right now. No mental arithmetic, no stale spreadsheet — your current floor and remaining buffer are computed from your real trade history every time you log a trade."
+        },
+        {
+          "type": "h2",
+          "text": "How to never get caught"
+        },
+        {
+          "type": "p",
+          "text": "Three habits keep you safe. First, always quote your buffer from your current floor, not your starting one. Second, bank profits so your peak-driven floor reflects money you actually kept. Third, shrink your size as your buffer shrinks — when you're close to the line, that is precisely the time to trade smaller, not to swing for the recovery."
+        },
+        {
+          "type": "why",
+          "text": "Because JournalX is built for funded and prop firm traders, the drawdown line isn't an afterthought — it's front and centre, updated from your trades, so the rule that ends most accounts becomes one you can simply see coming."
+        },
+        {
+          "type": "p",
+          "text": "Trailing drawdown isn't out to get you. It just moves quietly. Know exactly how yours works, watch the floor instead of the profit, and it stops being the thing that ends your account."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-recover-from-a-big-trading-loss",
+      "title": "How to Recover From a Big Trading Loss (Mentally and on the Charts)",
+      "metaTitle": "How to Recover From a Big Trading Loss | JournalX",
+      "metaDescription": "A big loss hurts twice — in your account and in your head. Here's how to recover from a major trading loss without revenge trading your way into a deeper hole.",
+      "keywords": [
+        "how to recover from a big trading loss",
+        "recover trading loss",
+        "trading drawdown psychology",
+        "revenge trading",
+        "trading after a loss",
+        "trading mindset"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-06-11",
+      "featured": false,
+      "excerpt": "The trade is closed but the damage isn't done yet. What you do in the 48 hours after a big loss decides whether it was tuition or the start of a spiral. Here's how to recover.",
+      "helpful": {
+        "up": 263,
+        "down": 8,
+        "saves": 158
+      },
+      "tags": [
+        "Psychology",
+        "Discipline",
+        "Drawdown",
+        "Recovery"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Everyone tells you a big loss is 'part of the game.' True, and completely useless in the moment your stomach drops and you're staring at a red number that took weeks to earn and minutes to lose. The loss itself is rarely the real problem. The real problem is the next few hours — and what you do with them."
+        },
+        {
+          "type": "h2",
+          "text": "Stop trading. Actually stop."
+        },
+        {
+          "type": "p",
+          "text": "The single most expensive mistake after a big loss is trying to win it back immediately. That urge is revenge trading wearing the disguise of 'recovery,' and it is how a bad day becomes a blown account. Close the platform. Walk away from the screen. The market will be there tomorrow; your capital might not be if you keep clicking."
+        },
+        {
+          "type": "quote",
+          "text": "A loss is tuition. A revenge trade is setting the rest of your account on fire to feel warm for a minute."
+        },
+        {
+          "type": "h2",
+          "text": "Separate the money from the mistake"
+        },
+        {
+          "type": "p",
+          "text": "Ask one clean question: was this a process loss or a discipline loss? A process loss is a trade you'd take again — you followed your plan and the market didn't cooperate. That's just variance; let it go. A discipline loss is one where you broke your own rules — oversized, no stop, chased an entry. Those are the ones to sit with, because those are the ones you can actually fix."
+        },
+        {
+          "type": "usecase",
+          "text": "This is where a journal earns its keep. In JournalX every trade carries your risk, your plan, and your emotional tags, so when you review a painful loss you can see immediately whether you followed your process or abandoned it. The numbers — computed from your real trades — tell you the truth your memory won't."
+        },
+        {
+          "type": "h2",
+          "text": "Shrink your size before you come back"
+        },
+        {
+          "type": "p",
+          "text": "When you do return, come back smaller than feels necessary. Confidence is rebuilt with a series of small, clean, rule-following wins — not with one heroic trade. Trading minimum size for a few sessions lets you re-prove your process to yourself without risking the rest of your account on a shaky mindset."
+        },
+        {
+          "type": "h2",
+          "text": "Write the honest post-mortem"
+        },
+        {
+          "type": "p",
+          "text": "Before the memory fades, write down what happened: the setup, the size, the emotion, and the exact moment it went wrong. Not to punish yourself — to extract the lesson so the loss buys you something. The traders who recover fastest are the ones who turn each big loss into a single, specific rule they never break again."
+        },
+        {
+          "type": "why",
+          "text": "Most journals only record the result. JournalX records the behaviour — emotion, discipline, and risk on every trade — so a brutal loss becomes data you can learn from instead of a wound you just carry into the next session."
+        },
+        {
+          "type": "h2",
+          "text": "Zoom out"
+        },
+        {
+          "type": "p",
+          "text": "One trade, even a big one, is a single data point in a career of thousands. Pull up your equity curve over months, not hours, and a loss that felt fatal usually looks like a normal dip in a longer climb. Perspective isn't a platitude here — it's literally visible in your own data once you've been logging it."
+        },
+        {
+          "type": "p",
+          "text": "Recover slowly, on purpose. Stop, diagnose, shrink, log, and zoom out. Do that and the loss becomes the most useful trade you've made all year."
+        }
+      ]
+    },
+    {
+      "slug": "fomo-trading-why-you-chase-and-how-to-stop",
+      "title": "FOMO Trading: Why You Keep Chasing (and How to Actually Stop)",
+      "metaTitle": "FOMO Trading: Why You Chase and How to Stop | JournalX",
+      "metaDescription": "FOMO is the most expensive emotion in trading. Here's why you chase entries you swore you'd skip — and a practical, journal-based way to finally stop.",
+      "keywords": [
+        "FOMO trading",
+        "fear of missing out trading",
+        "chasing trades",
+        "trading psychology",
+        "stop chasing entries",
+        "emotional trading"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 7,
+      "date": "2026-06-10",
+      "featured": false,
+      "excerpt": "You watched the setup, decided to wait, and then chased it three candles later anyway. FOMO isn't a willpower problem — it's a measurement problem. Here's how to fix it.",
+      "helpful": {
+        "up": 229,
+        "down": 6,
+        "saves": 147
+      },
+      "tags": [
+        "Psychology",
+        "FOMO",
+        "Discipline",
+        "Emotional trading"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "You know the feeling. The move you'd been watching finally takes off — without you. Your plan said wait for the pullback. But the candles are green and loud and leaving, and some animal part of your brain screams that this is the one you can't miss. So you click. And you buy the exact top of the move you should have skipped."
+        },
+        {
+          "type": "p",
+          "text": "That's FOMO, the fear of missing out, and it is quietly one of the most expensive habits in trading. The good news: it's far more fixable than it feels, because it leaves fingerprints all over your data."
+        },
+        {
+          "type": "h2",
+          "text": "Why chasing feels so rational in the moment"
+        },
+        {
+          "type": "p",
+          "text": "FOMO hijacks the same wiring as any other scarcity signal. A fast move reads to your brain as a closing door, and a closing door triggers urgency that overrides the calm plan you wrote when nothing was happening. The cruel part is that the feeling peaks exactly when the trade is worst — late, extended, and far from your intended entry."
+        },
+        {
+          "type": "quote",
+          "text": "FOMO doesn't make you miss good trades. It makes you take bad versions of trades you'd already decided to skip."
+        },
+        {
+          "type": "h2",
+          "text": "The reframe that helps"
+        },
+        {
+          "type": "p",
+          "text": "There is no such thing as 'the one you can't miss.' The market produces setups endlessly; missing one costs you nothing but the imaginary profit of a trade you never actually had. Internalising that opportunity is infinite is the single most calming belief a trader can hold. A missed trade is not a loss. A chased trade often is."
+        },
+        {
+          "type": "h2",
+          "text": "Make the rule physical"
+        },
+        {
+          "type": "p",
+          "text": "Vague intentions lose to live candles. Concrete rules win. Define your entry precisely — the exact level, the exact trigger — and write it down before the move. If price is already past your level, the trade is gone, full stop. Having the rule in writing turns an emotional decision into a simple yes/no check."
+        },
+        {
+          "type": "usecase",
+          "text": "Tag your chased entries in JournalX and something uncomfortable but useful happens: you can finally see what FOMO costs you. The analytics — computed from your real trades — will show your chased trades almost certainly have a worse win rate and worse R-multiple than your planned ones. Once 'FOMO loses me money' is a number on your dashboard instead of a vague feeling, the urge gets a lot easier to ignore."
+        },
+        {
+          "type": "h2",
+          "text": "Use the pause"
+        },
+        {
+          "type": "p",
+          "text": "Build a five-second gap between the urge and the click. Ask: is this my level, or am I chasing? That tiny pause is enough for the rational part of your brain to catch up with the reactive part. Most chased trades simply don't survive being questioned out loud."
+        },
+        {
+          "type": "why",
+          "text": "JournalX scores discipline at the moment of entry and lets you tag the emotion behind every trade, so impulses like FOMO stop being invisible. You don't fix what you can't measure — and a journal built around behaviour, not just P&L, is how you finally measure it."
+        },
+        {
+          "type": "p",
+          "text": "FOMO isn't a character flaw, and you won't beat it with willpower alone. Beat it with proof. Log your chased trades, watch what they cost, and let your own numbers talk you out of the next bad click."
         }
       ]
     }
