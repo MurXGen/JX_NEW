@@ -29,7 +29,10 @@
       "apiBase": "https://api.journalx.app",
       "googleWebClientId": "785226561862-31c1s81vv7qsvq8da5d7bgd35rsttqpk.apps.googleusercontent.com",
       "revenueCatAndroidKey": "REPLACE_WITH_REVENUECAT_ANDROID_PUBLIC_SDK_KEY",
-      "proEntitlement": "pro"
+      "proEntitlement": "pro",
+      "eas": {
+        "projectId": "336e18d7-9359-46c3-bf98-abe791621652"
+      }
     }
   }
 }

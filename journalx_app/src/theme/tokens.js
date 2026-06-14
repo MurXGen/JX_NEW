@@ -66,6 +66,17 @@ export const lightTheme = {
   dangerSubtle: "rgba(246,70,93,0.12)",
   // readable brand accent for badges/text on LIGHT surfaces (dark gold + warm tint)
   accent: { text: "#8a6300", subtle: "rgba(240,185,11,0.20)", border: "rgba(201,148,0,0.40)" },
+  /* Telegram-style grouped UI (iOS inset-list look) — LIGHT */
+  tg: {
+    groupedBg: "#f2f3f5",       // page background behind grouped sections
+    cell: "#ffffff",            // a row/cell surface
+    cellPressed: "#e7e9ee",     // row highlight on press
+    separator: "rgba(60,60,67,0.16)", // hairline between rows (inset)
+    tint: "#c99400",            // interactive accent (brand gold, readable on white)
+    destructive: "#f6465d",     // destructive action text
+    headerText: "#707a8a",      // section header (uppercase) + footer caption
+    chevron: "#c2c6cd",         // disclosure chevron
+  },
   // solid surfaces (clean, non-glass) — kept under `glass.*` for API stability
   glass: {
     surface: "#ffffff",
@@ -113,6 +124,17 @@ export const darkTheme = {
   dangerSubtle: "rgba(246,70,93,0.14)",
   // brand accent on DARK surfaces — bright yellow reads well here
   accent: { text: "#fcd535", subtle: "rgba(252,213,53,0.18)", border: "rgba(252,213,53,0.45)" },
+  /* Telegram-style grouped UI (iOS inset-list look) — DARK */
+  tg: {
+    groupedBg: "#0d1117",       // page background behind grouped sections
+    cell: "#161a20",            // a row/cell surface
+    cellPressed: "#222831",     // row highlight on press
+    separator: "rgba(255,255,255,0.09)", // hairline between rows (inset)
+    tint: "#fcd535",            // interactive accent (bright gold on dark)
+    destructive: "#f6465d",     // destructive action text
+    headerText: "#8b929d",      // section header (uppercase) + footer caption
+    chevron: "#5b626d",         // disclosure chevron
+  },
   // solid surfaces (clean, non-glass) — kept under `glass.*` for API stability
   glass: {
     surface: "#161a20",

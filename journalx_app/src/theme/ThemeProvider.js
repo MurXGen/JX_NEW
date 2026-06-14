@@ -6,13 +6,11 @@ import { getItem, setItem, KEYS } from "../lib/storage";
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const system = useColorScheme();
-  const [mode, setMode] = useState(getItem(KEYS.theme) || system || "dark");
-
-  useEffect(() => {
-    // if the user hasn't chosen explicitly, follow the system scheme
-    if (!getItem(KEYS.theme) && system) setMode(system);
-  }, [system]);
+  useColorScheme(); // kept so the app re-renders on system changes
+  // Default to the white (light) theme. We intentionally do NOT follow the
+  // system scheme by default — light is the brand default. An explicit choice
+  // the user made (saved under KEYS.theme) always wins and is restored here.
+  const [mode, setMode] = useState(getItem(KEYS.theme) || "light");
 
   const setThemeMode = (next) => {
     setMode(next);

@@ -5,6 +5,7 @@ const Account = require("../models/Account");
 const Trade = require("../models/Trade"); // new separate model
 const EmailVerification = require("../models/EmailVerify");
 const { sendOtpEmail } = require("../mail/sendOtpEmail");
+const { sendLifecycleEmail, verifyUnsubToken } = require("../mail/lifecycleEmails");
 const Plan = require("../models/Plan");
 const getUserData = require("../utils/getUserData");
 const axios = require("axios");
@@ -299,11 +300,27 @@ const verifyOtp = async (req, res) => {
     }
 
     // Mark verified
-    await User.findByIdAndUpdate(userId, {
-      isVerified: true,
-      verifiedAt: new Date(),
-    });
+    const verifiedUser = await User.findByIdAndUpdate(
+      userId,
+      { isVerified: true, verifiedAt: new Date() },
+      { new: true },
+    );
     await EmailVerification.deleteOne({ _id: rec._id });
+
+    // Fire the welcome email instantly (non-blocking). Only stamp welcomeAt on
+    // success so the onboarding scheduler can retry if this send fails.
+    if (verifiedUser && !verifiedUser.emailOptOut && !verifiedUser?.lifecycle?.welcomeAt) {
+      sendLifecycleEmail("welcome", verifiedUser)
+        .then((ok) => {
+          if (ok) {
+            return User.updateOne(
+              { _id: userId, "lifecycle.welcomeAt": { $exists: false } },
+              { $set: { "lifecycle.welcomeAt": new Date() } },
+            );
+          }
+        })
+        .catch(() => {});
+    }
 
     // Optionally set cookie to log in immediately
     setUserIdCookie(res, userId);
@@ -886,12 +903,41 @@ const googleNativeAuth = async (req, res) => {
   }
 };
 
+/* One-click unsubscribe from onboarding/lifecycle emails. Linked from the
+   footer of every lifecycle email: /api/auth/email/unsubscribe?u=<id>&t=<token>.
+   The token is an HMAC of the userId so no auth/session is needed. */
+const unsubscribeEmails = async (req, res) => {
+  const { u: userId, t: token } = req.query;
+  const page = (title, msg) => `<!doctype html><html><head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/><title>${title}</title></head>
+    <body style="margin:0;background:#f2f3f5;font-family:Poppins,Arial,sans-serif;">
+      <div style="max-width:460px;margin:64px auto;background:#fff;border:1px solid #e6e8eb;border-radius:16px;padding:32px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:#12161c;margin-bottom:14px;">Journal<span style="color:#f0b90b;">X</span></div>
+        <h1 style="font-size:18px;color:#12161c;margin:0 0 8px;">${title}</h1>
+        <p style="font-size:14px;color:#707a8a;line-height:1.6;margin:0;">${msg}</p>
+        <a href="${(() => { const u = process.env.APP_PUBLIC_URL || process.env.CLIENT_URL; return (!u || /localhost|127\.0\.0\.1/i.test(u)) ? "https://journalx.app" : u.replace(/\/+$/, ""); })()}"
+           style="display:inline-block;margin-top:20px;padding:11px 22px;background:#f0b90b;color:#1e2329;font-weight:600;text-decoration:none;border-radius:10px;">Back to JournalX</a>
+      </div>
+    </body></html>`;
+
+  try {
+    if (!verifyUnsubToken(userId, token)) {
+      return res.status(400).send(page("Invalid link", "This unsubscribe link is invalid or has expired."));
+    }
+    await User.updateOne({ _id: userId }, { $set: { emailOptOut: true } });
+    return res.send(page("You're unsubscribed", "You won't receive onboarding emails from JournalX anymore. Account and security emails (like verification codes) will still be sent."));
+  } catch (err) {
+    return res.status(500).send(page("Something went wrong", "We couldn't process your request. Please try again later."));
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   checkAuthStatus,
   resendOtp,
   verifyOtp,
+  unsubscribeEmails,
   requestLoginOtp,
   verifyLoginOtp,
   googleNativeAuth,

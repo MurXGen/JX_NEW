@@ -142,10 +142,13 @@ app.use((req, res) => {
 ======================= */
 
 const { initTelegramWebhook } = require("./utils/telegramSetup");
+const { startOnboardingScheduler } = require("./jobs/onboardingReminders");
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🌐 Server running on http://localhost:${PORT}`);
   // Register the Telegram webhook so Mark-as-Paid/Failed buttons reach us.
   initTelegramWebhook();
+  // Start the onboarding-email drip (welcome + day 1 / 3 / 7 nudges).
+  startOnboardingScheduler();
 });

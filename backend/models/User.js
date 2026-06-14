@@ -34,6 +34,19 @@ const userSchema = new mongoose.Schema(
     verifiedAt: { type: Date },
 
     //------------------------------------------------------------------
+    // ✉️ Lifecycle / onboarding emails
+    //   emailOptOut → user unsubscribed from non-essential emails
+    //   lifecycle.*At → timestamp each onboarding email was sent (dedupe)
+    //------------------------------------------------------------------
+    emailOptOut: { type: Boolean, default: false },
+    lifecycle: {
+      welcomeAt: { type: Date },
+      day1At: { type: Date },
+      day3At: { type: Date },
+      day7At: { type: Date },
+    },
+
+    //------------------------------------------------------------------
     // 🔥 Subscription System
     //------------------------------------------------------------------
 

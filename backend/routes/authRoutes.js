@@ -13,6 +13,7 @@ const {
   activateTrial,
   requestPasswordReset,
   resetPassword,
+  unsubscribeEmails,
 } = require("../controllers/authController");
 require("../utils/passport");
 const passport = require("passport");
@@ -63,6 +64,9 @@ router.post("/reset-password", createLimiter(10), resetPassword);
 
 // 📌 Activate the one-time 7-day Pro trial (onboarding completion)
 router.post("/activate-trial", activateTrial);
+
+// 📌 One-click unsubscribe from onboarding/lifecycle emails (token-signed link)
+router.get("/email/unsubscribe", unsubscribeEmails);
 
 // 📌 Trigger Google OAuth flow
 router.get(
