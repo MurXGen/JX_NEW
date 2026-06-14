@@ -192,6 +192,31 @@ export function BlogBody({ body = [] }) {
               <p style={{ margin: 0, font: "var(--text-body)", color: "var(--color-text-secondary)" }}>{block.text}</p>
             </div>
           );
+        if (block.type === "table")
+          return (
+            <div key={i} style={{ overflowX: "auto", margin: "var(--space-2) 0" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", font: "var(--text-body)", color: "var(--color-text-secondary)" }}>
+                {block.headers?.length > 0 && (
+                  <thead>
+                    <tr>
+                      {block.headers.map((h, j) => (
+                        <th key={j} style={{ textAlign: "left", padding: "10px 12px", borderBottom: "2px solid var(--color-border, rgba(120,120,120,0.3))", color: "var(--color-text-primary)", font: "var(--text-body-md)", fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                )}
+                <tbody>
+                  {(block.rows || []).map((row, r) => (
+                    <tr key={r}>
+                      {row.map((cell, c) => (
+                        <td key={c} style={{ padding: "10px 12px", borderBottom: "1px solid var(--color-border, rgba(120,120,120,0.18))", verticalAlign: "top", fontWeight: c === 0 ? 600 : 400, color: c === 0 ? "var(--color-text-primary)" : "var(--color-text-secondary)" }}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
         return <p key={i} style={{ margin: 0 }}>{block.text}</p>;
       })}
     </div>

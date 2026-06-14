@@ -94,6 +94,56 @@ export default function BlogPost({ post, related }) {
             }),
           }}
         />
+        {post.faqs?.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: post.faqs.map((f) => ({
+                  "@type": "Question",
+                  name: f.q,
+                  acceptedAnswer: { "@type": "Answer", text: f.a },
+                })),
+              }),
+            }}
+          />
+        )}
+        {post.reviews?.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "ItemList",
+                name: post.title,
+                itemListElement: post.reviews.map((rv, idx) => ({
+                  "@type": "ListItem",
+                  position: idx + 1,
+                  item: {
+                    "@type": "Review",
+                    name: `${rv.name} — editorial review`,
+                    itemReviewed: {
+                      "@type": "SoftwareApplication",
+                      name: rv.name,
+                      applicationCategory: "FinanceApplication",
+                      operatingSystem: "Web",
+                    },
+                    reviewRating: {
+                      "@type": "Rating",
+                      ratingValue: rv.rating,
+                      bestRating: 5,
+                      worstRating: 1,
+                    },
+                    author: { "@type": "Organization", name: "JournalX" },
+                    reviewBody: rv.note || "",
+                  },
+                })),
+              }),
+            }}
+          />
+        )}
       </Head>
 
       <div style={{ minHeight: "100vh", background: "var(--color-bg-canvas)", fontFamily: "var(--jx-font)", color: "var(--color-text-primary)" }}>
@@ -146,6 +196,19 @@ export default function BlogPost({ post, related }) {
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 220px", gap: "var(--space-6)", alignItems: "start" }} className="jx-blog-grid">
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
               <BlogBody body={post.body} />
+
+              {post.faqs?.length > 0 && (
+                <section style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginTop: "var(--space-4)" }}>
+                  <h2 style={{ font: "var(--text-h2)", color: "var(--color-text-primary)", margin: 0 }}>Frequently asked questions</h2>
+                  {post.faqs.map((f) => (
+                    <div key={f.q} className="jx-card jx-card--flat" style={{ padding: "var(--space-4)" }}>
+                      <h3 style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-text-primary)", margin: "0 0 6px" }}>{f.q}</h3>
+                      <p style={{ font: "var(--text-body)", color: "var(--color-text-secondary)", margin: 0 }}>{f.a}</p>
+                    </div>
+                  ))}
+                </section>
+              )}
+
               <HelpfulRow helpful={post.helpful} />
               {post.tags?.length > 0 && (
                 <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
