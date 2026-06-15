@@ -27,6 +27,25 @@ const pickPublic = (candidates, fallback) => {
 const APP_URL = pickPublic([process.env.APP_PUBLIC_URL, process.env.CLIENT_URL], "https://journalx.app");
 const API_URL = pickPublic([process.env.API_PUBLIC_URL, process.env.API_URL], "https://api.journalx.app");
 const FROM = `JournalX <${process.env.EMAIL_FROM}>`;
+
+/* Should lifecycle emails actually go out?  We DON'T trust NODE_ENV alone here
+   because local .env files often set NODE_ENV=production with a live Resend key
+   — running locally would then email real users. Rules:
+     ONBOARDING_LIVE=true   → always send (explicit on)
+     ONBOARDING_LIVE=false  → never send (explicit off)
+     otherwise              → send only when we detect a real hosted env
+                              (Railway sets RAILWAY_* automatically); local = off
+   This is the single switch both the scheduler and the inline welcome use. */
+function isLiveEnv() {
+  const flag = String(process.env.ONBOARDING_LIVE || "").toLowerCase();
+  if (flag === "true") return true;
+  if (flag === "false") return false;
+  return !!(
+    process.env.RAILWAY_ENVIRONMENT ||
+    process.env.RAILWAY_PROJECT_ID ||
+    process.env.RAILWAY_SERVICE_ID
+  );
+}
 const BRAND = { gold: "#f0b90b", goldSoft: "#fcd535", ink: "#12161c", muted: "#707a8a", bg: "#f2f3f5", card: "#ffffff", border: "#e6e8eb" };
 
 /* ---- unsubscribe token (HMAC of userId, no DB lookup needed to verify) ---- */
@@ -157,6 +176,10 @@ function buildEmail(stage, user) {
 async function sendLifecycleEmail(stage, user) {
   try {
     if (!user?.email) return false;
+    if (!isLiveEnv()) {
+      console.log(`[lifecycle] SKIPPED (non-live env) — would send "${stage}" to ${user.email}. Set ONBOARDING_LIVE=true to enable.`);
+      return false;
+    }
     const { subject, html, text } = buildEmail(stage, user);
     await resend.emails.send({ from: FROM, to: user.email, subject, html, text });
     return true;
@@ -166,4 +189,4 @@ async function sendLifecycleEmail(stage, user) {
   }
 }
 
-module.exports = { sendLifecycleEmail, verifyUnsubToken, unsubToken, unsubscribeUrl };
+module.exports = { sendLifecycleEmail, verifyUnsubToken, unsubToken, unsubscribeUrl, isLiveEnv };

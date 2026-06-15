@@ -22,7 +22,7 @@
 */
 const User = require("../models/User");
 const Trade = require("../models/Trade");
-const { sendLifecycleEmail } = require("../mail/lifecycleEmails");
+const { sendLifecycleEmail, isLiveEnv } = require("../mail/lifecycleEmails");
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -102,6 +102,10 @@ function startOnboardingScheduler() {
   }
   if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
     console.warn("[onboarding] RESEND_API_KEY / EMAIL_FROM not set — scheduler not started");
+    return;
+  }
+  if (!isLiveEnv()) {
+    console.log("[onboarding] non-live env (local) — scheduler not started. Set ONBOARDING_LIVE=true to enable.");
     return;
   }
   const minutes = Math.max(5, parseInt(process.env.ONBOARDING_INTERVAL_MIN || "30", 10) || 30);
