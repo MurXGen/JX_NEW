@@ -2,20 +2,47 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const Order = require("../models/Orders");
 
-// 🔐 Verify Paddle signature
+// 🔐 Verify Paddle (Billing) webhook signature.
+//   Header format:  Paddle-Signature: ts=<unix>;h1=<hmac>[;h1=<hmac>...]
+//   Signed payload: `${ts}:${rawRequestBody}`  (HMAC-SHA256 with the secret key)
+//   We compare our HMAC against the h1 value(s) using a length-guarded
+//   timing-safe comparison. Requires req.body to still be the RAW Buffer.
 function verifyPaddleSignature(req) {
-  const signature = req.headers["paddle-signature"];
-  if (!signature) return false;
+  try {
+    const header = req.headers["paddle-signature"];
+    const secret = process.env.PADDLE_WEBHOOK_SECRET;
+    if (!header || !secret) return false;
 
-  const secret = process.env.PADDLE_WEBHOOK_SECRET;
-  const payload = req.body;
+    // parse "ts=...;h1=...;h1=..."
+    const parsed = { h1: [] };
+    for (const part of String(header).split(";")) {
+      const idx = part.indexOf("=");
+      if (idx === -1) continue;
+      const key = part.slice(0, idx).trim();
+      const val = part.slice(idx + 1).trim();
+      if (key === "ts") parsed.ts = val;
+      else if (key === "h1") parsed.h1.push(val);
+    }
+    if (!parsed.ts || parsed.h1.length === 0) return false;
 
-  const computed = crypto
-    .createHmac("sha256", secret)
-    .update(payload)
-    .digest("hex");
+    // raw body MUST be the unparsed bytes for this to match
+    const raw = Buffer.isBuffer(req.body) ? req.body.toString("utf8") : String(req.body);
+    const signedPayload = `${parsed.ts}:${raw}`;
+    const computed = crypto.createHmac("sha256", secret).update(signedPayload).digest("hex");
+    const computedBuf = Buffer.from(computed, "hex");
 
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(computed));
+    return parsed.h1.some((h) => {
+      try {
+        const hBuf = Buffer.from(h, "hex");
+        return hBuf.length === computedBuf.length && crypto.timingSafeEqual(hBuf, computedBuf);
+      } catch {
+        return false;
+      }
+    });
+  } catch (err) {
+    console.error("❌ Paddle signature verification error:", err.message);
+    return false;
+  }
 }
 
 exports.handlePaddleWebhook = async (req, res) => {

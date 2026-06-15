@@ -378,6 +378,13 @@ export default function SettingsPanel({ user }) {
     flash("success", "Binance disconnected");
   };
 
+  const logout = () => {
+    Cookies.remove("userId");
+    Cookies.remove("accountId");
+    Cookies.remove("isVerified");
+    window.location.href = "/login";
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", width: "100%" }}>
       <Toast toast={toast} />
@@ -389,12 +396,32 @@ export default function SettingsPanel({ user }) {
         </div>
       </div>
 
-      {/* ===== Plan & limits ===== */}
-      <PlanLimitsCard />
-
-      {/* ===== Profile ===== */}
+      {/* ===== Profile (top) ===== */}
       <div className="jx-card">
-        <div className="jx-card__title">Profile</div>
+        <div className="jx-card__title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-2)" }}>
+          <span>Profile</span>
+          <button
+            className="jx-btn jx-btn--outline jx-btn--sm"
+            onClick={logout}
+            style={{ color: "var(--color-danger)", borderColor: "var(--color-danger)" }}
+          >
+            <LogOut size={15} /> Log out
+          </button>
+        </div>
+
+        {/* identity header — user details at a glance */}
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", padding: "var(--space-2) 0 var(--space-4)" }}>
+          <Avatar url={avatarUrl} name={name} size={54} />
+          <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+            <span style={{ font: "var(--text-h3)", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {name || "Your name"}
+            </span>
+            <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {user?.email || ""}
+            </span>
+          </div>
+        </div>
+
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>How you appear across JournalX.</div>
 
         <Row title="Profile photo" sub="PNG or JPG, up to 2MB">
@@ -427,6 +454,9 @@ export default function SettingsPanel({ user }) {
           </button>
         </div>
       </div>
+
+      {/* ===== Plan & limits (below profile) ===== */}
+      <PlanLimitsCard />
 
       {/* ===== Trading preferences ===== */}
       <div className="jx-card">
@@ -648,27 +678,6 @@ export default function SettingsPanel({ user }) {
 
       {/* ===== XP ===== */}
       <XpCard />
-
-      {/* ===== Account / session ===== */}
-      <div className="jx-card">
-        <div className="jx-card__title">Account</div>
-        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Manage your session.</div>
-        <Row title="Log out" sub="Sign out of JournalX on this device">
-          <Button
-            variant="outline"
-            size="sm"
-            icon={LogOut}
-            onClick={() => {
-              Cookies.remove("userId");
-              Cookies.remove("accountId");
-              Cookies.remove("isVerified");
-              window.location.href = "/login";
-            }}
-          >
-            Log out
-          </Button>
-        </Row>
-      </div>
 
       {/* ===== Danger zone ===== */}
       <div className="jx-card" style={{ borderColor: "var(--color-danger)" }}>

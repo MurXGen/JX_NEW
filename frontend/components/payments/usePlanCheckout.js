@@ -31,10 +31,12 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
       return;
     }
     let userId;
+    let email;
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`, { credentials: "include" });
       const json = await res.json();
       userId = json?.userData?.userId || json?.userData?._id || json?.userId;
+      email = json?.userData?.email || json?.email;
     } catch (e) {
       console.error("Could not resolve user for checkout:", e);
     }
@@ -42,11 +44,31 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
       router.push(`/login?redirect=${encodeURIComponent(loginRedirect)}`);
       return;
     }
+
+    // Pre-fill the buyer's email so logged-in users don't retype it (like
+    // UltraTrader). IMPORTANT: we deliberately do NOT pass a partial address.
+    // Paddle ignores ALL prefill if the address is incomplete (e.g. a country
+    // that requires a postal code, like India, without one) — so passing only
+    // a valid email guarantees the email prefills; Paddle auto-detects country
+    // by IP and only asks for ZIP where required.
+    const customer = email && /\S+@\S+\.\S+/.test(email) ? { email } : undefined;
+
+    // Match the checkout chrome to the user's current theme for a premium feel.
+    let theme = "light";
+    try { theme = localStorage.getItem("theme") === "dark" ? "dark" : "light"; } catch {}
+
     try {
       window.Paddle.Checkout.open({
         items: [{ priceId, quantity: 1 }],
         customData: { userId },
-        settings: { displayMode: "overlay" },
+        ...(customer ? { customer } : {}),
+        settings: {
+          displayMode: "overlay",
+          theme,
+          allowLogout: false, // hide "Not you? Change" — we already know the user
+          showAddDiscounts: true,
+          showAddTaxId: true,
+        },
         successCallback: () => startSubscriptionPolling(),
         closeCallback: () => startSubscriptionPolling(),
       });

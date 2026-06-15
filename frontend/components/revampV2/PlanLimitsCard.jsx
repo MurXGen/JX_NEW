@@ -117,6 +117,8 @@ export default function PlanLimitsCard() {
   const expiresStr = fmtDate(sub?.expiresAt);
   const isActive = status === "active";
   const isLifetime = planName === "Lifetime";
+  // Pro (active, non-lifetime) → offer the one-time Lifetime upgrade.
+  const isPro = isActive && !isLifetime && (sub?.plan || "").toLowerCase().includes("pro");
   // days remaining (only meaningful for an active, dated subscription)
   const daysLeft =
     isActive && sub?.expiresAt
@@ -133,6 +135,11 @@ export default function PlanLimitsCard() {
         {!isTop && (
           <a href="/pricing" style={{ marginLeft: "auto", textDecoration: "none" }}>
             <Button variant="primary" size="sm" icon={Crown}>Upgrade</Button>
+          </a>
+        )}
+        {isPro && (
+          <a href="/pricing?plan=lifetime" style={{ marginLeft: "auto", textDecoration: "none" }}>
+            <Button variant="primary" size="sm" icon={Crown}>Get Lifetime</Button>
           </a>
         )}
       </div>
@@ -221,6 +228,36 @@ export default function PlanLimitsCard() {
           </span>
           <a href="/pricing" style={{ textDecoration: "none" }}>
             <Button variant="primary" icon={ArrowRight}>See plans</Button>
+          </a>
+        </div>
+      )}
+
+      {/* Pro users → nudge to the one-time Lifetime plan */}
+      {isPro && (
+        <div
+          style={{
+            marginTop: "var(--space-4)",
+            background: "var(--color-primary-subtle)",
+            border: "1px solid var(--color-primary)",
+            borderRadius: "var(--radius-md)",
+            padding: "var(--space-4)",
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-3)",
+            flexWrap: "wrap",
+          }}
+        >
+          <Crown size={20} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />
+          <span style={{ flex: 1, minWidth: 180 }}>
+            <span style={{ font: "var(--text-body-md)", fontWeight: 600, display: "block" }}>
+              Own JournalX forever with Lifetime
+            </span>
+            <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+              Pay once, no more renewals. Keep every Pro feature plus all future updates — for life.
+            </span>
+          </span>
+          <a href="/pricing?plan=lifetime" style={{ textDecoration: "none" }}>
+            <Button variant="primary" icon={ArrowRight}>Get Lifetime</Button>
           </a>
         </div>
       )}

@@ -57,9 +57,14 @@ app.options("*", cors());
    BODY PARSER
 ======================= */
 
+// Webhook routes need the RAW body for signature verification, so skip the
+// JSON parser for them. NOTE: the Paddle Billing webhook is mounted at
+// /api/pricingpad/webhook — it must be listed here or express.json() would
+// consume the body and break Paddle's signature check.
+const RAW_BODY_PREFIXES = ["/api/paddle", "/api/pricingpad", "/api/payments/webhook"];
 app.use((req, res, next) => {
-  if (req.originalUrl.startsWith("/api/paddle")) {
-    next(); // raw body for paddle webhook
+  if (RAW_BODY_PREFIXES.some((p) => req.originalUrl.startsWith(p))) {
+    next(); // keep raw body for webhook signature verification
   } else {
     express.json()(req, res, next);
   }

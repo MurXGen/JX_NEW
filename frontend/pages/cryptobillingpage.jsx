@@ -45,6 +45,19 @@ const NETWORK_ADDRESSES = {
   ton: "UQAGm_9b3_y6hjIshL2A-XZ36Cp7RW_tOX3NoVnxdOA94S-Z",
 };
 
+/* Staged verification steps shown while we poll the chain. They advance on an
+   interval so the user sees a real, professional verification pipeline. The
+   last step (network confirmations) holds until the backend actually confirms
+   the deposit — at which point the flow moves to success. */
+const VERIFY_STEPS = [
+  { key: "connect", label: "Connecting to {network}", sub: "Opening a secure node connection" },
+  { key: "scan", label: "Scanning the blockchain", sub: "Searching for a transfer to your deposit address" },
+  { key: "detect", label: "Detecting your transaction", sub: "Matching the amount and sender" },
+  { key: "confirm", label: "Awaiting network confirmations", sub: "Confirming the block on-chain" },
+  { key: "activate", label: "Activating your subscription", sub: "Finalizing your account" },
+];
+const VERIFY_HOLD_AT = 3; // hold on "Awaiting confirmations" until real success
+
 export default function CryptoBillingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -57,6 +70,7 @@ export default function CryptoBillingPage() {
   const [showModal, setShowModal] = useState(false);
   const [planData, setPlanData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [verifyStage, setVerifyStage] = useState(0); // staged verification index
 
   const planName = searchParams.get("planName");
   const period = searchParams.get("period");
@@ -138,6 +152,25 @@ export default function CryptoBillingPage() {
       return () => clearInterval(interval);
     }
   }, [paymentStatus, planData, router]);
+
+  // staged verification animation — advances on an interval while we poll the
+  // chain, then holds on "Awaiting confirmations" until real success arrives.
+  useEffect(() => {
+    if (paymentStatus !== "processing") {
+      setVerifyStage(0);
+      return;
+    }
+    setVerifyStage(0);
+    const iv = setInterval(() => {
+      setVerifyStage((s) => (s >= VERIFY_HOLD_AT ? VERIFY_HOLD_AT : s + 1));
+    }, 2200);
+    return () => clearInterval(iv);
+  }, [paymentStatus]);
+
+  // when payment succeeds, flash all steps complete before the redirect
+  useEffect(() => {
+    if (paymentStatus === "success") setVerifyStage(VERIFY_STEPS.length);
+  }, [paymentStatus]);
 
   const copyToClipboard = async (text) => {
     try {
@@ -640,38 +673,99 @@ export default function CryptoBillingPage() {
               )}
 
               {paymentStatus === "processing" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-                  <div style={{ display: "flex", gap: 4 }}>
-                    {[0, 1, 2, 3].map((bi) => {
-                      const elapsed = 300 - processingTime;
-                      let fill = 0;
-                      if (bi === 0) fill = (elapsed / 30) * 100;
-                      else if (bi === 1) fill = ((elapsed - 30) / 30) * 100;
-                      else if (bi === 2) fill = ((elapsed - 60) / 30) * 100;
-                      else fill = ((elapsed - 90) / 180) * 100;
-                      fill = Math.max(0, Math.min(100, fill));
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+                  {/* header: animated scanner + live timer */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                    <span className="cb-scanner">
+                      <ShieldCheck size={22} />
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Verifying your payment</div>
+                      <div style={{ font: "var(--text-small)", ...muted }}>
+                        Securely confirming your USDT transfer on {selectedNetworkData?.name || "the blockchain"}.
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6,
+                        padding: "4px 10px", borderRadius: 999, background: "var(--color-bg-muted)",
+                        font: "var(--text-caption)", fontWeight: 600, fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      <Clock size={13} style={{ ...muted }} />
+                      {Math.floor(processingTime / 60)}:{(processingTime % 60).toString().padStart(2, "0")}
+                    </span>
+                  </div>
+
+                  {/* overall progress bar (elapsed / 5 min) */}
+                  <div style={{ height: 5, background: "var(--color-bg-muted)", borderRadius: 999, overflow: "hidden" }}>
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${Math.max(4, Math.min(100, ((300 - processingTime) / 300) * 100))}%`,
+                        background: "linear-gradient(90deg, var(--color-primary), var(--color-success))",
+                        transition: "width 1s linear",
+                      }}
+                    />
+                  </div>
+
+                  {/* staged verification checklist */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    {VERIFY_STEPS.map((st, i) => {
+                      const done = i < verifyStage;
+                      const active = i === verifyStage;
+                      const label = st.label.replace("{network}", selectedNetworkData?.name || "the network");
                       return (
-                        <div key={bi} style={{ flex: 1, height: 6, background: "var(--color-bg-muted)", borderRadius: 999, overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${fill}%`, background: "var(--color-success)", transition: "width 1s linear" }} />
+                        <div
+                          key={st.key}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 12, padding: "9px 4px",
+                            opacity: done || active ? 1 : 0.45, transition: "opacity .3s ease",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              background: done ? "var(--color-success)" : active ? "var(--color-primary-subtle)" : "var(--color-bg-muted)",
+                            }}
+                          >
+                            {done ? (
+                              <Check size={14} style={{ color: "#fff" }} />
+                            ) : active ? (
+                              <Loader2 size={14} className="jx-spin" style={{ color: "var(--yellow-500)" }} />
+                            ) : (
+                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-text-muted)" }} />
+                            )}
+                          </span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ font: "var(--text-body-md)", fontWeight: active ? 600 : 500, color: done || active ? "var(--color-text-primary)" : "var(--color-text-muted)" }}>
+                              {label}
+                            </div>
+                            {active && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                style={{ font: "var(--text-caption)", ...muted, overflow: "hidden" }}
+                              >
+                                {st.sub}
+                                <span className="cb-dots"><span>.</span><span>.</span><span>.</span></span>
+                              </motion.div>
+                            )}
+                          </div>
+                          {done && (
+                            <span style={{ flexShrink: 0, font: "var(--text-caption)", color: "var(--color-success-strong)", fontWeight: 600 }}>
+                              Done
+                            </span>
+                          )}
                         </div>
                       );
                     })}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
-                    <div>
-                      <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Verifying payment…</div>
-                      <div style={{ font: "var(--text-small)", ...muted }}>Checking the blockchain for your deposit.</div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
-                        {Math.floor(processingTime / 60)}:{(processingTime % 60).toString().padStart(2, "0")}
-                      </span>
-                      <Loader2 size={18} className="jx-spin" style={{ color: "var(--yellow-500)" }} />
-                    </div>
-                  </div>
+
                   <div style={{ height: 1, background: "var(--color-border)" }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", ...muted }}>
-                    <Clock size={14} /> This may take up to 5 minutes — please keep this page open.
+                    <Shield size={14} style={{ color: "var(--color-success)" }} /> Verification is automatic — please keep this page open. It can take a few minutes.
                   </div>
                   {errorMessage && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--color-danger-subtle)", borderRadius: "var(--radius-md)", font: "var(--text-caption)", color: "var(--color-danger-strong)" }}>
@@ -710,6 +804,31 @@ export default function CryptoBillingPage() {
       <style jsx global>{`
         .jx-spin { animation: jx-spin 0.9s linear infinite; }
         @keyframes jx-spin { to { transform: rotate(360deg); } }
+
+        /* pulsing radar scanner used in the verification modal */
+        .cb-scanner {
+          position: relative;
+          width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--color-primary-subtle); color: var(--yellow-500);
+        }
+        .cb-scanner::before, .cb-scanner::after {
+          content: ""; position: absolute; inset: 0; border-radius: 50%;
+          border: 2px solid var(--color-primary); opacity: 0;
+          animation: cb-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .cb-scanner::after { animation-delay: 0.9s; }
+        @keyframes cb-ping {
+          0% { transform: scale(1); opacity: 0.6; }
+          100% { transform: scale(1.85); opacity: 0; }
+        }
+
+        /* animated "..." after the active step's subtitle */
+        .cb-dots span { animation: cb-blink 1.4s infinite both; }
+        .cb-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .cb-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes cb-blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
         @media (max-width: 760px) {
           .cb-grid { grid-template-columns: 1fr !important; }
           .cb-grid > div:last-child { position: static !important; }

@@ -80,6 +80,30 @@ export async function detectCurrencyByIP() {
   return getUserCurrency();
 }
 
+/* Visitor's ISO-2 country code by IP (e.g. "IN", "US"). Used to pre-fill the
+   Paddle checkout so logged-in users don't re-enter their country. Returns ""
+   if it can't be determined (checkout just asks, as before). */
+export async function detectCountryByIP() {
+  if (typeof window === "undefined") return "";
+  const fetchCC = async (url, pick) => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2500);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      if (!res.ok) return "";
+      const data = await res.json();
+      return String(pick(data) || "").toUpperCase().slice(0, 2);
+    } catch {
+      return "";
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  let cc = await fetchCC("https://ipapi.co/json/", (d) => d.country_code || d.country);
+  if (!cc) cc = await fetchCC("https://ipwho.is/", (d) => d.country_code);
+  return cc || "";
+}
+
 /* Build the plan config for a given currency. Defaults to USD so SSR and the
    first client render match (avoids hydration mismatch). */
 export function buildPlansConfig(currency = "USD") {
