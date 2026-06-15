@@ -93,7 +93,8 @@ exports.handlePaddleWebhook = async (req, res) => {
 
     // 3️⃣ Determine plan
     const item = data.items?.[0] || {};
-    const priceId = item.price?.id;
+    // price can be at item.price (transaction.completed) or via line_items.
+    const priceId = item.price?.id || data.details?.line_items?.[0]?.price_id;
     // For one-time / lifetime prices Paddle sends billing_cycle: null.
     // Recurring prices have billing_cycle.interval = "month" | "year".
     const billingCycle = item.price?.billing_cycle;
@@ -128,12 +129,20 @@ exports.handlePaddleWebhook = async (req, res) => {
       `🧾 Paddle txn — priceId=${priceId} cycle=${billingCycle?.interval || "none"} → plan=${plan}/${type}`,
     );
 
-    // 4️⃣ Create Order
+    // Unknown price (couldn't classify) — don't downgrade a user; just ack.
+    if (plan === "free") {
+      console.warn(`⚠️ Paddle txn with unrecognised price ${priceId} — not changing ${user.email}.`);
+      return res.status(200).json({ received: true, matched: true, changed: false });
+    }
+
+    // 4️⃣ Create Order — totals live under data.details.totals (top-level
+    // data.totals does NOT exist on transaction.completed; reading it crashes).
+    const grandTotal = data.details?.totals?.grand_total ?? data.details?.totals?.total ?? "0";
     const order = await Order.create({
       userId: user._id,
       planId: plan,
-      amount: data.totals.total / 100,
-      currency: data.currency_code,
+      amount: Number(grandTotal || 0) / 100,
+      currency: data.currency_code || "USD",
       period: plan === "lifetime" ? "lifetime" : "monthly",
       paymentType: type,
       status: "paid",
@@ -148,7 +157,7 @@ exports.handlePaddleWebhook = async (req, res) => {
     user.subscriptionStartAt = new Date(data.created_at);
     user.subscriptionExpiresAt = expiresAt;
     user.subscriptionCreatedAt = new Date();
-    user.paddleCustomerId = data.customer?.id;
+    user.paddleCustomerId = data.customer_id || data.customer?.id;
 
     user.orders.push({
       orderId: order._id,
