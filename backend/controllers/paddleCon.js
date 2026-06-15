@@ -47,22 +47,38 @@ function verifyPaddleSignature(req) {
 }
 
 exports.handlePaddleWebhook = async (req, res) => {
+  console.log("━━━━━━━━━━ [PADDLE-WH] incoming webhook ━━━━━━━━━━");
   try {
     // 1️⃣ Verify signature
-    if (!verifyPaddleSignature(req)) {
-      console.error("❌ Invalid Paddle signature");
+    const sigOk = verifyPaddleSignature(req);
+    console.log(`[PADDLE-WH] signature valid: ${sigOk} | secret set: ${!!process.env.PADDLE_WEBHOOK_SECRET}`);
+    if (!sigOk) {
+      console.error("❌ [PADDLE-WH] Invalid Paddle signature — rejecting (check PADDLE_WEBHOOK_SECRET matches THIS destination)");
       return res.status(401).send("Invalid signature");
     }
 
     const event = JSON.parse(req.body.toString());
-    console.log("📩 Paddle webhook:", event.event_type);
+    console.log(`[PADDLE-WH] event_type: ${event.event_type} | event_id: ${event.event_id || "n/a"}`);
 
     // 2️⃣ Only handle successful payments
     if (event.event_type !== "transaction.completed") {
+      console.log(`[PADDLE-WH] ignoring (not transaction.completed)`);
       return res.status(200).send("Ignored");
     }
 
     const data = event.data;
+    console.log("[PADDLE-WH] txn diagnostics:", JSON.stringify({
+      transactionId: data?.id,
+      custom_data: data?.custom_data,
+      customer_id: data?.customer_id,
+      inline_customer_email: data?.customer?.email || null,
+      priceId: data?.items?.[0]?.price?.id || data?.details?.line_items?.[0]?.price_id || null,
+      billing_cycle: data?.items?.[0]?.price?.billing_cycle || null,
+      currency: data?.currency_code,
+      grand_total: data?.details?.totals?.grand_total,
+      paddle_api_key_set: !!process.env.PADDLE_API_KEY,
+      paddle_environment: process.env.PADDLE_ENVIRONMENT || "(unset → sandbox)",
+    }));
 
     /**
      * data.custom_data.userId  ← YOU sent this from frontend
@@ -79,24 +95,33 @@ exports.handlePaddleWebhook = async (req, res) => {
     let user = null;
     if (userId) {
       try { user = await User.findById(userId); } catch { /* invalid id */ }
+      console.log(`[PADDLE-WH] lookup by custom_data.userId=${userId} → matched: ${!!user}`);
+    } else {
+      console.log("[PADDLE-WH] no custom_data.userId present (checkout didn't attach it)");
     }
     if (!user && customerEmail) {
       user = await User.findOne({ email: customerEmail });
+      console.log(`[PADDLE-WH] lookup by inline email=${customerEmail} → matched: ${!!user}`);
     }
     // Last resort: the transaction payload has no email, only customer_id —
     // resolve the email via the Paddle API and match. Needs PADDLE_API_KEY +
     // PADDLE_ENVIRONMENT to match the environment the payment was made in.
     if (!user && data.customer_id && process.env.PADDLE_API_KEY) {
       try {
+        console.log(`[PADDLE-WH] resolving email via Paddle API for customer_id=${data.customer_id} ...`);
         const cust = await paddle.getCustomer(data.customer_id);
         const apiEmail = (cust?.data?.email || "").toLowerCase();
         if (apiEmail) {
           user = await User.findOne({ email: apiEmail });
-          console.log(`🔎 Resolved Paddle customer ${data.customer_id} → ${apiEmail} (matched: ${!!user})`);
+          console.log(`🔎 [PADDLE-WH] Paddle API → ${apiEmail} (user matched: ${!!user})`);
+        } else {
+          console.warn("[PADDLE-WH] Paddle API returned no email for that customer_id");
         }
       } catch (e) {
-        console.error("Paddle getCustomer lookup failed:", e?.response?.data || e.message);
+        console.error("❌ [PADDLE-WH] Paddle getCustomer failed:", e?.response?.status, JSON.stringify(e?.response?.data) || e.message);
       }
+    } else if (!user && data.customer_id && !process.env.PADDLE_API_KEY) {
+      console.warn("[PADDLE-WH] PADDLE_API_KEY not set → cannot resolve email from customer_id");
     }
     if (!user) {
       // Nothing to update (e.g. Paddle simulation or an unknown customer).
@@ -154,6 +179,7 @@ exports.handlePaddleWebhook = async (req, res) => {
     // 4️⃣ Create Order — totals live under data.details.totals (top-level
     // data.totals does NOT exist on transaction.completed; reading it crashes).
     const grandTotal = data.details?.totals?.grand_total ?? data.details?.totals?.total ?? "0";
+    console.log(`[PADDLE-WH] creating order for ${user.email}: plan=${plan} type=${type} amount=${Number(grandTotal || 0) / 100} ${data.currency_code}`);
     const order = await Order.create({
       userId: user._id,
       planId: plan,
@@ -182,11 +208,12 @@ exports.handlePaddleWebhook = async (req, res) => {
 
     await user.save();
 
-    console.log("✅ User subscription updated:", user.email);
+    console.log(`✅ [PADDLE-WH] User subscription updated: ${user.email} → ${plan}/${type} (status active)`);
 
     return res.status(200).json({ received: true });
   } catch (err) {
-    console.error("❌ Paddle webhook error:", err);
+    console.error("❌ [PADDLE-WH] handler error:", err?.message);
+    console.error(err?.stack || err);
     res.status(500).send("Webhook error");
   }
 };
