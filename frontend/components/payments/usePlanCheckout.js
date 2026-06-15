@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
 import { getUserCurrency, detectCurrencyByIP, buildPlansConfig } from "@/utils/plans";
+import { saveToIndexedDB } from "@/utils/indexedDB";
 
 export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
   const router = useRouter();
@@ -80,18 +81,26 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
 
   const startSubscriptionPolling = () => {
     let attempts = 0;
-    const maxAttempts = 12;
+    const maxAttempts = 24; // ~2 min — webhooks can lag a little after payment
     const interval = setInterval(async () => {
       attempts++;
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`, { credentials: "include" });
         const json = await res.json();
+        const userData = json?.userData || json;
         const status =
-          json?.userData?.subscription?.status ??
+          userData?.subscription?.status ??
           json?.subscription?.status ??
-          json?.subscriptionStatus;
-        if (status === "active") {
+          userData?.subscriptionStatus;
+        const plan = (userData?.subscription?.plan || "").toLowerCase();
+        if (status === "active" && (plan.includes("pro") || plan.includes("lifetime"))) {
           clearInterval(interval);
+          // refresh the cached user-data so the dashboard / Plan card reflect
+          // the new plan immediately (they read from IndexedDB, not the server)
+          try {
+            if (userData) await saveToIndexedDB("user-data", userData);
+            window.dispatchEvent(new CustomEvent("jx-sub-changed"));
+          } catch {}
           router.push("/dashboard");
         }
       } catch (err) {

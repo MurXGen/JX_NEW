@@ -69,42 +69,64 @@ exports.handlePaddleWebhook = async (req, res) => {
      * data.items[0].price.id
      */
 
+    // Resolve the user: prefer the userId we sent in custom_data, then fall
+    // back to matching Paddle's customer email. (Paddle's webhook *simulator*
+    // sends custom_data: null, so this also stops simulations failing.)
     const userId = data.custom_data?.userId;
-    if (!userId) {
-      console.error("❌ userId missing in custom_data");
-      return res.status(400).send("Missing userId");
-    }
+    const customerEmail = (data.customer?.email || "").toLowerCase();
 
-    const user = await User.findById(userId);
+    let user = null;
+    if (userId) {
+      try { user = await User.findById(userId); } catch { /* invalid id */ }
+    }
+    if (!user && customerEmail) {
+      user = await User.findOne({ email: customerEmail });
+    }
     if (!user) {
-      console.error("❌ User not found:", userId);
-      return res.status(404).send("User not found");
+      // Nothing to update (e.g. Paddle simulation or an unknown customer).
+      // Return 200 so Paddle doesn't retry/flag it; just log for visibility.
+      console.warn(
+        `⚠️ Paddle transaction.completed with no matching user (userId=${userId || "none"}, email=${customerEmail || "none"}) — ignoring.`,
+      );
+      return res.status(200).json({ received: true, matched: false });
     }
 
     // 3️⃣ Determine plan
-    const priceId = data.items[0].price.id;
+    const item = data.items?.[0] || {};
+    const priceId = item.price?.id;
+    // For one-time / lifetime prices Paddle sends billing_cycle: null.
+    // Recurring prices have billing_cycle.interval = "month" | "year".
+    const billingCycle = item.price?.billing_cycle;
+    const endsAt = data.billing_period?.ends_at ? new Date(data.billing_period.ends_at) : null;
+
+    const isMonthlyId = !!priceId && priceId === process.env.PADDLE_MONTHLY_PRICE_ID;
+    const isYearlyId = !!priceId && priceId === process.env.PADDLE_YEARLY_PRICE_ID;
+    const isLifetimeId = !!priceId && priceId === process.env.PADDLE_LIFETIME_PRICE_ID;
 
     let plan = "free";
     let type = "none";
     let expiresAt = null;
 
-    if (priceId === process.env.PADDLE_MONTHLY_PRICE_ID) {
-      plan = "pro";
-      type = "recurring";
-      expiresAt = new Date(data.billing_period?.ends_at);
-    }
-
-    if (priceId === process.env.PADDLE_YEARLY_PRICE_ID) {
-      plan = "pro";
-      type = "recurring";
-      expiresAt = new Date(data.billing_period?.ends_at);
-    }
-
-    if (priceId === process.env.PADDLE_LIFETIME_PRICE_ID) {
+    if (isLifetimeId || (!isMonthlyId && !isYearlyId && !billingCycle)) {
+      // explicit lifetime price, OR any one-time price (no billing cycle) we
+      // didn't recognise by ID — treat as lifetime so a config mismatch never
+      // silently downgrades a paying customer.
       plan = "lifetime";
       type = "lifetime";
-      expiresAt = null; // lifetime never expires
+      expiresAt = null;
+    } else if (isYearlyId || billingCycle?.interval === "year") {
+      plan = "pro";
+      type = "recurring";
+      expiresAt = endsAt;
+    } else if (isMonthlyId || billingCycle?.interval === "month") {
+      plan = "pro";
+      type = "recurring";
+      expiresAt = endsAt;
     }
+
+    console.log(
+      `🧾 Paddle txn — priceId=${priceId} cycle=${billingCycle?.interval || "none"} → plan=${plan}/${type}`,
+    );
 
     // 4️⃣ Create Order
     const order = await Order.create({
@@ -122,10 +144,11 @@ exports.handlePaddleWebhook = async (req, res) => {
     user.subscriptionPlan = plan;
     user.subscriptionType = type;
     user.subscriptionStatus = "active";
+    user.subscriptionSource = "paddle"; // so we can tell what upgraded the user
     user.subscriptionStartAt = new Date(data.created_at);
     user.subscriptionExpiresAt = expiresAt;
     user.subscriptionCreatedAt = new Date();
-    user.paddleCustomerId = data.customer.id;
+    user.paddleCustomerId = data.customer?.id;
 
     user.orders.push({
       orderId: order._id,
