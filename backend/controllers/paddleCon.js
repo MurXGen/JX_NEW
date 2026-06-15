@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const User = require("../models/User");
 const Order = require("../models/Orders");
+const { paddle } = require("../utils/paddle");
 
 // 🔐 Verify Paddle (Billing) webhook signature.
 //   Header format:  Paddle-Signature: ts=<unix>;h1=<hmac>[;h1=<hmac>...]
@@ -81,6 +82,21 @@ exports.handlePaddleWebhook = async (req, res) => {
     }
     if (!user && customerEmail) {
       user = await User.findOne({ email: customerEmail });
+    }
+    // Last resort: the transaction payload has no email, only customer_id —
+    // resolve the email via the Paddle API and match. Needs PADDLE_API_KEY +
+    // PADDLE_ENVIRONMENT to match the environment the payment was made in.
+    if (!user && data.customer_id && process.env.PADDLE_API_KEY) {
+      try {
+        const cust = await paddle.getCustomer(data.customer_id);
+        const apiEmail = (cust?.data?.email || "").toLowerCase();
+        if (apiEmail) {
+          user = await User.findOne({ email: apiEmail });
+          console.log(`🔎 Resolved Paddle customer ${data.customer_id} → ${apiEmail} (matched: ${!!user})`);
+        }
+      } catch (e) {
+        console.error("Paddle getCustomer lookup failed:", e?.response?.data || e.message);
+      }
     }
     if (!user) {
       // Nothing to update (e.g. Paddle simulation or an unknown customer).

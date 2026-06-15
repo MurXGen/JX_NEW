@@ -67,6 +67,12 @@ class PaddleService {
     return true;
   }
 
+  // Get a customer (used to resolve their email from a webhook's customer_id)
+  async getCustomer(customerId) {
+    const response = await this.client.get(`/customers/${customerId}`);
+    return response.data; // { data: { id, email, ... } }
+  }
+
   // Get transaction details
   async getTransaction(transactionId) {
     try {

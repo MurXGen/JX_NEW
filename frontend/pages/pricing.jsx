@@ -80,14 +80,17 @@ export default function Pricing() {
 
     // The Paddle webhook activates the subscription via custom_data.userId.
     // The userId cookie is httpOnly (not readable here), so fetch it from the
-    // authenticated user-info endpoint instead.
+    // authenticated user-info endpoint instead. We also grab the email to
+    // prefill the checkout (and as a server-side fallback to match the user).
     let userId;
+    let email;
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`, {
         credentials: "include",
       });
       const json = await res.json();
       userId = json?.userData?.userId || json?.userData?._id || json?.userId;
+      email = json?.userData?.email || json?.email;
     } catch (e) {
       console.error("Could not resolve user for checkout:", e);
     }
@@ -97,12 +100,19 @@ export default function Pricing() {
       return;
     }
 
+    // valid email only → Paddle ignores ALL prefill if any field is invalid
+    const customer = email && /\S+@\S+\.\S+/.test(email) ? { email } : undefined;
+    let theme = "light";
+    try { theme = localStorage.getItem("theme") === "dark" ? "dark" : "light"; } catch {}
+
     try {
       window.Paddle.Checkout.open({
         items: [{ priceId, quantity: 1 }],
         // attaches userId to transaction.completed → handlePaddleWebhook
         customData: { userId },
-        settings: { displayMode: "overlay" },
+        // prefill buyer email (so it's not retyped) + carry it for matching
+        ...(customer ? { customer } : {}),
+        settings: { displayMode: "overlay", theme, allowLogout: false },
 
         successCallback: () => {
           console.log("⚡ Payment successCallback triggered");
