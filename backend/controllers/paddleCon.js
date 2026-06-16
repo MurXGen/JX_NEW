@@ -176,6 +176,24 @@ exports.handlePaddleWebhook = async (req, res) => {
       return res.status(200).json({ received: true, matched: true, changed: false });
     }
 
+    // Lifetime is permanent: never let a later recurring/monthly event (e.g. an
+    // old still-active subscription firing a renewal) downgrade a lifetime user.
+    if (user.subscriptionPlan === "lifetime" && plan !== "lifetime") {
+      console.log(`[PADDLE-WH] ${user.email} is already lifetime — ignoring ${plan}/${type} event (no downgrade).`);
+      // still log the order for records, but don't touch the subscription
+      await Order.create({
+        userId: user._id,
+        planId: plan,
+        amount: Number((data.details?.totals?.grand_total ?? data.details?.totals?.total) || 0) / 100,
+        currency: data.currency_code || "USD",
+        period: plan === "lifetime" ? "lifetime" : "monthly",
+        paymentType: type,
+        status: "paid",
+        meta: data,
+      }).catch(() => {});
+      return res.status(200).json({ received: true, matched: true, changed: false, reason: "lifetime-sticky" });
+    }
+
     // 4️⃣ Create Order — totals live under data.details.totals (top-level
     // data.totals does NOT exist on transaction.completed; reading it crashes).
     const grandTotal = data.details?.totals?.grand_total ?? data.details?.totals?.total ?? "0";

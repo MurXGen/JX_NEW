@@ -43,12 +43,14 @@ module.exports.updateUserAfterCryptoPayment = async (user, order) => {
 
   // COMMON FIELDS
   user.subscriptionStatus = "active";
+  user.subscriptionSource = "crypto"; // reflect the actual payment method
   user.subscriptionStartAt = new Date();
   user.subscriptionCreatedAt = new Date();
   user.lastBillingDate = null;
   user.nextBillingDate = null;
 
   user.markModified("subscriptionStatus");
+  user.markModified("subscriptionSource");
   user.markModified("subscriptionStartAt");
   user.markModified("subscriptionCreatedAt");
   user.markModified("lastBillingDate");
