@@ -76,6 +76,71 @@ function Field({ label, children }) {
   );
 }
 
+/* Timing input: either full date/time pickers, or a simple "just duration"
+   (mins/hours) on an optional date. mode = "quick" | "detailed". */
+function TimingInput({ form, set, mode }) {
+  const dur = form.useDuration;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+      <div className="jx-seg jx-seg--inline" style={{ alignSelf: "flex-start" }}>
+        <button type="button" className={`jx-seg__btn ${!dur ? "jx-seg__btn--active" : ""}`} onClick={() => set("useDuration", false)}>
+          Date &amp; time
+        </button>
+        <button type="button" className={`jx-seg__btn ${dur ? "jx-seg__btn--active" : ""}`} onClick={() => set("useDuration", true)}>
+          Just duration
+        </button>
+      </div>
+
+      {dur ? (
+        <div className="jx-form-grid">
+          <Field label="Date · optional (defaults to today)">
+            <div className="jx-input">
+              <input type="date" value={form.tradeDate} onChange={(e) => set("tradeDate", e.target.value)} />
+            </div>
+          </Field>
+          <Field label="Trade duration">
+            <div style={{ display: "flex", gap: 8 }}>
+              <div className="jx-input" style={{ flex: 1 }}>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder={form.durationUnit === "hour" ? "e.g. 2.5" : "e.g. 45"}
+                  value={form.durationVal}
+                  onChange={(e) => set("durationVal", e.target.value)}
+                />
+              </div>
+              <div className="jx-seg jx-seg--inline">
+                {[["min", "Mins"], ["hour", "Hours"]].map(([u, lbl]) => (
+                  <button
+                    key={u}
+                    type="button"
+                    className={`jx-seg__btn ${form.durationUnit === u ? "jx-seg__btn--active" : ""}`}
+                    onClick={() => set("durationUnit", u)}
+                  >
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </Field>
+        </div>
+      ) : mode === "quick" ? (
+        <DateTimePicker value={form.exitTime} onChange={(v) => set("exitTime", v)} />
+      ) : (
+        <div className="jx-form-grid">
+          <Field label="Entry date & time">
+            <DateTimePicker value={form.entryTime} onChange={(v) => set("entryTime", v)} />
+          </Field>
+          <Field label="Exit date & time">
+            <DateTimePicker value={form.exitTime} onChange={(v) => set("exitTime", v)} />
+          </Field>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Chip({ selected, onClick, children }) {
   return (
     <button type="button" className={`jx-chip ${selected ? "jx-chip--selected" : ""}`} onClick={onClick}>
@@ -202,6 +267,12 @@ const EMPTY = {
   takeProfit: "",
   entryTime: "",
   exitTime: "",
+  // Simple timing: log just a duration (mins/hours) on a chosen date instead
+  // of full entry/exit timestamps. Date is optional → defaults to today.
+  useDuration: false,
+  durationVal: "",
+  durationUnit: "min", // "min" | "hour"
+  tradeDate: "",
   strategy: null,
   market: null,
   timeframe: null,
@@ -499,14 +570,31 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     const isQuickPnl = mode === "quick" && form.logMethod === "pnl";
     const pnl = isQuickPnl ? Number(form.netPnl) : calc.pnl ?? 0;
     const hasExit = !!num(form.exit);
-    const openTime = form.entryTime ? new Date(form.entryTime).toISOString() : new Date().toISOString();
-    const closeTime = form.exitTime
-      ? new Date(form.exitTime).toISOString()
-      : isQuickPnl || hasExit
-        ? new Date().toISOString()
-        : "";
-    const durationHrs =
-      openTime && closeTime ? Math.max(0, (new Date(closeTime) - new Date(openTime)) / 36e5) : 0;
+
+    let openTime, closeTime, durationHrs;
+    if (form.useDuration) {
+      // Simple mode: a duration on a chosen date (defaults to today). We anchor
+      // the close at noon on that date and back-date the open by the duration,
+      // so the trade lands on the right day and the duration is preserved.
+      const dateStr = form.tradeDate || new Date().toISOString().slice(0, 10); // yyyy-mm-dd
+      const close = new Date(`${dateStr}T12:00:00`);
+      durationHrs =
+        form.durationUnit === "hour"
+          ? Math.max(0, num(form.durationVal) || 0)
+          : Math.max(0, (num(form.durationVal) || 0) / 60);
+      const open = new Date(close.getTime() - durationHrs * 36e5);
+      openTime = open.toISOString();
+      closeTime = close.toISOString();
+    } else {
+      openTime = form.entryTime ? new Date(form.entryTime).toISOString() : new Date().toISOString();
+      closeTime = form.exitTime
+        ? new Date(form.exitTime).toISOString()
+        : isQuickPnl || hasExit
+          ? new Date().toISOString()
+          : "";
+      durationHrs =
+        openTime && closeTime ? Math.max(0, (new Date(closeTime) - new Date(openTime)) / 36e5) : 0;
+    }
 
     const fd = new FormData();
     fd.append("accountId", accountId);
@@ -789,8 +877,8 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
                           </div>
                         )}
 
-                        <Field label="Date & time">
-                          <DateTimePicker value={form.exitTime} onChange={(v) => set("exitTime", v)} />
+                        <Field label="When">
+                          <TimingInput form={form} set={set} mode="quick" />
                         </Field>
 
                         {quickOutcome && (
@@ -928,14 +1016,7 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
                         )}
 
                         <Sect icon={Clock} title="Timing" hint="Auto session tag" />
-                        <div className="jx-form-grid">
-                          <Field label="Entry date & time">
-                            <DateTimePicker value={form.entryTime} onChange={(v) => set("entryTime", v)} />
-                          </Field>
-                          <Field label="Exit date & time">
-                            <DateTimePicker value={form.exitTime} onChange={(v) => set("exitTime", v)} />
-                          </Field>
-                        </div>
+                        <TimingInput form={form} set={set} mode="detailed" />
                         <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
                           {session && (
                             <span className="jx-chip" style={{ cursor: "default" }}>

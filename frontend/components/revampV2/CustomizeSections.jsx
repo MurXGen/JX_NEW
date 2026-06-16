@@ -8,13 +8,19 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Eye, EyeOff, SlidersHorizontal } from "lucide-react";
 import Button from "./Button";
 
-export function useHiddenSections(key) {
-  const [hidden, setHidden] = useState(() => new Set());
+export function useHiddenSections(key, defaultHidden = []) {
+  const [hidden, setHidden] = useState(() => new Set(defaultHidden));
 
   useEffect(() => {
     try {
-      setHidden(new Set(JSON.parse(localStorage.getItem(key) || "[]")));
-    } catch {}
+      const raw = localStorage.getItem(key);
+      // No saved choice yet → apply the default-hidden set. Once the user
+      // customizes, their saved choice (including re-enabled sections) wins.
+      setHidden(raw == null ? new Set(defaultHidden) : new Set(JSON.parse(raw)));
+    } catch {
+      setHidden(new Set(defaultHidden));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   const persist = (next) => {
@@ -28,7 +34,8 @@ export function useHiddenSections(key) {
       return next;
     });
   const reset = () => {
-    setHidden(new Set());
+    // back to defaults (drops any saved customization)
+    setHidden(new Set(defaultHidden));
     try { localStorage.removeItem(key); } catch {}
   };
 

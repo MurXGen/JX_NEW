@@ -14,7 +14,13 @@ import { jxEase } from "./easing";
 /* sections the user can show/hide on the overview dashboard */
 const OVERVIEW_SECTIONS = [
   { id: "progress", label: "Progress cards" },
+  { id: "capital", label: "Capital growth (to 2×)" },
   { id: "pace", label: "Trading pace & composure" },
+  { id: "payoff", label: "Payoff (avg win vs loss)" },
+  { id: "drawdown", label: "Drawdown & risk" },
+  { id: "holdtime", label: "Hold time (winners vs losers)" },
+  { id: "revenge", label: "Revenge-trading cost" },
+  { id: "timeframe", label: "Timeframe analysis" },
   { id: "sessions", label: "Session performance" },
   { id: "edge", label: "Your trading edge" },
   { id: "dayOfWeek", label: "Day-of-week P&L" },
@@ -694,6 +700,17 @@ const inWindow = (trades, rangeKey) => {
   return trades.filter((t) => new Date(t.closeTime).getTime() >= from);
 };
 
+/* compact human duration from milliseconds */
+const fmtDur = (ms) => {
+  if (!ms || ms <= 0) return "—";
+  const m = ms / 60000;
+  if (m < 60) return `${Math.round(m)}m`;
+  const h = m / 60;
+  if (h < 24) return `${h < 10 ? h.toFixed(1) : Math.round(h)}h`;
+  const d = h / 24;
+  return `${d < 10 ? d.toFixed(1) : Math.round(d)}d`;
+};
+
 /* ================================================================ */
 export default function OverviewPanel({
   trades = [],
@@ -1338,6 +1355,121 @@ export default function OverviewPanel({
     return day % 2 === 0 ? tod : traderLines[day % traderLines.length];
   }, []);
 
+  /* ---- capital growth toward doubling (gamified) ---- */
+  const capital = useMemo(() => {
+    const base = Number(startingBalance) || 0;
+    const netAll = closed.reduce((s, t) => s + (Number(t.pnl) || 0), 0);
+    // 100% = capital doubled (profit equals the starting balance)
+    const growthPct = base > 0 ? (netAll / base) * 100 : 0;
+    const milestones = [25, 50, 75, 100];
+    const reachedCount = milestones.filter((m) => growthPct >= m).length;
+    const nextMs = milestones.find((m) => growthPct < m) ?? null;
+    const amountToNext =
+      nextMs != null && base > 0 ? (nextMs / 100) * base - netAll : 0;
+    const tier =
+      growthPct >= 100 ? { label: "Capital doubled!", emoji: "💎", color: "var(--color-success-strong)" }
+      : growthPct >= 75 ? { label: "Almost doubled", emoji: "🥇", color: "var(--yellow-500)" }
+      : growthPct >= 50 ? { label: "Halfway there", emoji: "🥈", color: "var(--color-primary)" }
+      : growthPct >= 25 ? { label: "Climbing", emoji: "🥉", color: "var(--color-primary)" }
+      : growthPct > 0 ? { label: "Building up", emoji: "🌱", color: "var(--color-success)" }
+      : { label: "Getting started", emoji: "🚀", color: "var(--color-text-muted)" };
+    return { base, netAll, growthPct, milestones, reachedCount, nextMs, amountToNext, tier };
+  }, [closed, startingBalance]);
+
+  /* ---- timeframe usage (which timeframes they trade most) ---- */
+  const timeframes = useMemo(() => {
+    const map = new Map(); // key (lower) -> { display, count, pnl }
+    closed.forEach((t) => {
+      const raw = (t.timeframe || "").toString().trim();
+      if (!raw) return;
+      const key = raw.toLowerCase();
+      const cur = map.get(key) || { display: key, count: 0, pnl: 0 };
+      cur.count += 1;
+      cur.pnl += Number(t.pnl) || 0;
+      map.set(key, cur);
+    });
+    // always show these defaults even at zero
+    ["5m", "15m", "1h"].forEach((d) => {
+      if (!map.has(d)) map.set(d, { display: d, count: 0, pnl: 0 });
+    });
+    const total = [...map.values()].reduce((s, x) => s + x.count, 0);
+    // nice label: 1h → 1H, 1d → 1D (keep minutes lowercase)
+    const pretty = (k) => k.replace(/h$/, "H").replace(/d$/, "D");
+    const arr = [...map.values()]
+      .map((x) => ({ ...x, display: pretty(x.display), pct: total ? (x.count / total) * 100 : 0 }))
+      .sort((a, b) => b.count - a.count || a.display.localeCompare(b.display));
+    const most = arr.find((x) => x.count > 0) || null;
+    const tradedCount = arr.filter((x) => x.count > 0).length;
+    return { arr, total, most, tradedCount };
+  }, [closed]);
+
+  /* ---- payoff & expectancy (avg win vs avg loss) ---- */
+  const payoff = useMemo(() => {
+    const pnls = closed.map((t) => Number(t.pnl) || 0);
+    if (!pnls.length) return null;
+    const wins = pnls.filter((p) => p > 0);
+    const losses = pnls.filter((p) => p < 0);
+    const avgWin = wins.length ? wins.reduce((s, p) => s + p, 0) / wins.length : 0;
+    const avgLoss = losses.length ? Math.abs(losses.reduce((s, p) => s + p, 0) / losses.length) : 0;
+    const payoffRatio = avgLoss > 0 ? avgWin / avgLoss : (avgWin > 0 ? Infinity : 0);
+    const winRate = pnls.length ? wins.length / pnls.length : 0;
+    const expectancy = pnls.reduce((s, p) => s + p, 0) / pnls.length;
+    return { avgWin, avgLoss, payoffRatio, winRate, expectancy, wins: wins.length, losses: losses.length };
+  }, [closed]);
+
+  /* ---- drawdown (peak-to-trough on equity) ---- */
+  const drawdown = useMemo(() => {
+    if (!closed.length) return null;
+    const base = Number(startingBalance) || 0;
+    let eq = base, peak = base, maxDD = 0, maxDDpct = 0;
+    closed.forEach((t) => {
+      eq += Number(t.pnl) || 0;
+      if (eq > peak) peak = eq;
+      const dd = peak - eq;
+      if (dd > maxDD) { maxDD = dd; maxDDpct = peak > 0 ? (dd / peak) * 100 : 0; }
+    });
+    const curDD = peak - eq;
+    const curDDpct = peak > 0 ? (curDD / peak) * 100 : 0;
+    return { base, eq, peak, maxDD, maxDDpct, curDD, curDDpct, hasPct: base > 0 };
+  }, [closed, startingBalance]);
+
+  /* ---- disposition effect: hold time of winners vs losers ---- */
+  const holdTime = useMemo(() => {
+    const dur = (t) => {
+      const o = new Date(t.openTime || 0).getTime();
+      const c = new Date(t.closeTime || 0).getTime();
+      const d = c - o;
+      return o && c && d > 0 ? d : 0;
+    };
+    const w = closed.filter((t) => (Number(t.pnl) || 0) > 0).map(dur).filter((d) => d > 0);
+    const l = closed.filter((t) => (Number(t.pnl) || 0) < 0).map(dur).filter((d) => d > 0);
+    if (w.length < 2 || l.length < 2) return null;
+    const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
+    const winAvg = avg(w), lossAvg = avg(l);
+    return { winAvg, lossAvg, ratio: winAvg > 0 ? lossAvg / winAvg : 0, holdsLosersLonger: lossAvg > winAvg * 1.1 };
+  }, [closed]);
+
+  /* ---- revenge trading cost (trades within 30m after a loss) ---- */
+  const revenge = useMemo(() => {
+    const cl = closed; // sorted asc
+    let revPnl = 0, revCount = 0, calmPnl = 0, calmCount = 0, revWins = 0;
+    for (let i = 0; i < cl.length; i++) {
+      const prev = cl[i - 1];
+      const gap = prev ? new Date(cl[i].openTime || cl[i].closeTime) - new Date(prev.closeTime) : Infinity;
+      const isRevenge = prev && (Number(prev.pnl) || 0) < 0 && gap <= 30 * 60 * 1000;
+      const p = Number(cl[i].pnl) || 0;
+      if (isRevenge) { revPnl += p; revCount++; if (p > 0) revWins++; }
+      else { calmPnl += p; calmCount++; }
+    }
+    if (revCount === 0) return null;
+    return {
+      revPnl, revCount, calmPnl, calmCount,
+      avgRev: revPnl / revCount,
+      avgCalm: calmCount ? calmPnl / calmCount : 0,
+      revWinRate: revCount ? revWins / revCount : 0,
+    };
+  }, [closed]);
+
   const goalPct = Math.min(100, (Math.max(0, S.monthPnl) / target) * 100);
   const maxSym = S.symPnl.length
     ? Math.max(...S.symPnl.map(([, v]) => Math.abs(v)), 1)
@@ -1402,6 +1534,7 @@ export default function OverviewPanel({
 
   const { hidden, toggle, reset, isVisible } = useHiddenSections(
     "jx-overview-sections",
+    ["drawdown", "revenge"], // hidden by default; users can enable in Customize
   );
 
   return (
@@ -1838,6 +1971,101 @@ export default function OverviewPanel({
       </div>
       )}
 
+      {/* ===== Capital growth toward doubling (gamified) ===== */}
+      {isVisible("capital") && (
+        <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              Capital growth <InfoTip text="Progress toward doubling your starting balance (100% = 2×). Based on net P&L." />
+            </span>
+            <span
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "4px 12px", borderRadius: 999,
+                background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
+                font: "var(--text-caption)", fontWeight: 700, color: capital.tier.color,
+              }}
+            >
+              <span style={{ fontSize: 15 }}>{capital.tier.emoji}</span> {capital.tier.label}
+            </span>
+          </div>
+
+          {capital.base > 0 ? (
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                <span style={{ font: "var(--text-stat)", letterSpacing: "-1px", color: capital.growthPct >= 0 ? "var(--color-text-primary)" : "var(--color-danger-strong)" }}>
+                  <CountUp value={capital.growthPct} format={(v) => `${v >= 0 ? "" : ""}${fmt(v, 1)}%`} />
+                </span>
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                  of the way to 2× · {currencySymbol}{fmt(capital.netAll, 0)} / {currencySymbol}{fmt(capital.base, 0)}
+                </span>
+              </div>
+
+              {/* milestone progress bar with ticks at 25/50/75/100 */}
+              <div style={{ position: "relative", height: 12, marginTop: 2 }}>
+                <div className="jx-progress" style={{ height: 12, borderRadius: 999 }}>
+                  <div
+                    style={{
+                      width: `${Math.min(100, Math.max(0, capital.growthPct))}%`,
+                      height: "100%",
+                      borderRadius: 999,
+                      background: "linear-gradient(90deg, var(--color-primary), var(--color-success))",
+                      transition: `width 0.9s ${BAR_EASE}`,
+                    }}
+                  />
+                </div>
+                {[25, 50, 75, 100].map((m) => (
+                  <span
+                    key={m}
+                    title={`${m}%`}
+                    style={{
+                      position: "absolute", top: -2, left: `calc(${m}% - 1px)`,
+                      width: 2, height: 16,
+                      background: capital.growthPct >= m ? "var(--color-success-strong)" : "var(--color-border-strong)",
+                      borderRadius: 2,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* milestone chips */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {capital.milestones.map((m) => {
+                  const done = capital.growthPct >= m;
+                  return (
+                    <span
+                      key={m}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        padding: "4px 10px", borderRadius: 999,
+                        font: "var(--text-caption)", fontWeight: 600,
+                        background: done ? "var(--color-success-subtle)" : "var(--color-bg-muted)",
+                        color: done ? "var(--color-success-strong)" : "var(--color-text-muted)",
+                        border: `1px solid ${done ? "var(--color-success)" : "var(--color-border)"}`,
+                      }}
+                    >
+                      {done ? "✓" : "○"} {m}%
+                    </span>
+                  );
+                })}
+              </div>
+
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                {capital.growthPct >= 100
+                  ? "🎉 You've doubled your starting capital — outstanding discipline."
+                  : capital.nextMs != null
+                    ? `${currencySymbol}${fmt(Math.max(0, capital.amountToNext), 0)} more in net profit to hit the ${capital.nextMs}% milestone.`
+                    : "Keep logging trades to track your growth."}
+              </span>
+            </>
+          ) : (
+            <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
+              Set your journal&apos;s starting balance to track progress toward doubling your capital.
+            </span>
+          )}
+        </div>
+      )}
+
       {/* ===== Trading pace & composure (overtrading vs calm) ===== */}
       {isVisible("pace") && pace && (() => {
         const toneColor =
@@ -1894,6 +2122,220 @@ export default function OverviewPanel({
           </div>
         );
       })()}
+
+      {/* ===== Payoff & Drawdown (risk) — two-up grid ===== */}
+      {(isVisible("payoff") || isVisible("drawdown")) && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "var(--space-4)" }}>
+          {isVisible("payoff") && payoff && (() => {
+            const maxAvg = Math.max(payoff.avgWin, payoff.avgLoss, 1);
+            const lossBigger = payoff.avgLoss > payoff.avgWin && payoff.avgWin > 0;
+            return (
+              <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  Payoff <InfoTip text="Average win vs average loss. A high win rate still loses money if your losses are bigger than your wins." />
+                </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ width: 64, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Avg win</span>
+                    <div className="jx-progress" style={{ flex: 1, height: 10 }}>
+                      <div style={{ width: `${(payoff.avgWin / maxAvg) * 100}%`, height: "100%", borderRadius: 999, background: "var(--color-success)", transition: `width 0.9s ${BAR_EASE}` }} />
+                    </div>
+                    <span style={{ width: 72, textAlign: "right", font: "var(--text-caption)", fontWeight: 700, color: "var(--color-success-strong)" }}>{k(payoff.avgWin, currencySymbol)}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ width: 64, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Avg loss</span>
+                    <div className="jx-progress" style={{ flex: 1, height: 10 }}>
+                      <div style={{ width: `${(payoff.avgLoss / maxAvg) * 100}%`, height: "100%", borderRadius: 999, background: "var(--color-danger)", transition: `width 0.9s ${BAR_EASE}` }} />
+                    </div>
+                    <span style={{ width: 72, textAlign: "right", font: "var(--text-caption)", fontWeight: 700, color: "var(--color-danger-strong)" }}>{k(payoff.avgLoss, currencySymbol)}</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "var(--space-5)", flexWrap: "wrap" }}>
+                  <div>
+                    <span style={LABEL}>Payoff ratio</span>
+                    <div style={{ font: "var(--text-h3)", fontWeight: 700, color: payoff.payoffRatio >= 1 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                      {payoff.payoffRatio === Infinity ? "∞" : `${fmt(payoff.payoffRatio, 2)} : 1`}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={LABEL}>Win / loss</span>
+                    <div style={{ font: "var(--text-h3)", fontWeight: 700 }}>
+                      {payoff.wins} W · {payoff.losses} L
+                    </div>
+                  </div>
+                </div>
+                <span style={{ font: "var(--text-caption)", color: lossBigger ? "var(--color-danger-strong)" : "var(--color-text-muted)" }}>
+                  {lossBigger
+                    ? "⚠️ Your average loss is bigger than your average win — tighten stops or let winners run longer."
+                    : "Your average win is bigger than your average loss — keep risk consistent."}
+                </span>
+              </div>
+            );
+          })()}
+
+          {isVisible("drawdown") && drawdown && (
+            <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                Drawdown &amp; risk <InfoTip text="The biggest drop from an equity peak. Large drawdowns usually come from oversizing or revenge trading." />
+              </span>
+              <div style={{ display: "flex", gap: "var(--space-5)", flexWrap: "wrap" }}>
+                <div>
+                  <span style={LABEL}>Max drawdown</span>
+                  <div style={{ font: "var(--text-stat)", letterSpacing: "-1px", color: "var(--color-danger-strong)" }}>
+                    {drawdown.hasPct ? `${fmt(drawdown.maxDDpct, 1)}%` : k(drawdown.maxDD, currencySymbol)}
+                  </div>
+                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                    {drawdown.hasPct ? `${k(drawdown.maxDD, currencySymbol)} from peak` : "peak-to-trough"}
+                  </span>
+                </div>
+                <div>
+                  <span style={LABEL}>Current drawdown</span>
+                  <div style={{ font: "var(--text-stat)", letterSpacing: "-1px", color: drawdown.curDD > 0 ? "var(--color-danger-strong)" : "var(--color-success-strong)" }}>
+                    {drawdown.curDD > 0 ? (drawdown.hasPct ? `${fmt(drawdown.curDDpct, 1)}%` : k(drawdown.curDD, currencySymbol)) : "At peak"}
+                  </div>
+                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                    {drawdown.curDD > 0 ? "below your equity high" : "you're at a new high 🎉"}
+                  </span>
+                </div>
+              </div>
+              {drawdown.maxDD > 0 && (
+                <div>
+                  <div className="jx-progress" style={{ height: 8 }}>
+                    <div style={{ width: `${drawdown.maxDD > 0 ? Math.min(100, (drawdown.curDD / drawdown.maxDD) * 100) : 0}%`, height: "100%", borderRadius: 999, background: "var(--color-danger)", transition: `width 0.9s ${BAR_EASE}` }} />
+                  </div>
+                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>current vs your worst drawdown</span>
+                </div>
+              )}
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                Keep risk per trade small (1–2%) so a losing streak never draws your account down too far.
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ===== Hold time: disposition effect ===== */}
+      {isVisible("holdtime") && holdTime && (() => {
+        const maxDur = Math.max(holdTime.winAvg, holdTime.lossAvg, 1);
+        return (
+          <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+            <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              Hold time — winners vs losers <InfoTip text="Traders tend to hold losers too long and cut winners too early (the disposition effect). Aim to hold winners at least as long as losers." />
+            </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 72, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Winners</span>
+                <div className="jx-progress" style={{ flex: 1, height: 10 }}>
+                  <div style={{ width: `${(holdTime.winAvg / maxDur) * 100}%`, height: "100%", borderRadius: 999, background: "var(--color-success)", transition: `width 0.9s ${BAR_EASE}` }} />
+                </div>
+                <span style={{ width: 56, textAlign: "right", font: "var(--text-caption)", fontWeight: 700 }}>{fmtDur(holdTime.winAvg)}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 72, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Losers</span>
+                <div className="jx-progress" style={{ flex: 1, height: 10 }}>
+                  <div style={{ width: `${(holdTime.lossAvg / maxDur) * 100}%`, height: "100%", borderRadius: 999, background: "var(--color-danger)", transition: `width 0.9s ${BAR_EASE}` }} />
+                </div>
+                <span style={{ width: 56, textAlign: "right", font: "var(--text-caption)", fontWeight: 700 }}>{fmtDur(holdTime.lossAvg)}</span>
+              </div>
+            </div>
+            <span style={{ font: "var(--text-caption)", color: holdTime.holdsLosersLonger ? "var(--color-danger-strong)" : "var(--color-text-muted)" }}>
+              {holdTime.holdsLosersLonger
+                ? `⚠️ You hold losers about ${fmt(holdTime.ratio, 1)}× longer than winners — a classic sign of loss aversion. Cut losers at your stop and give winners room.`
+                : "Healthy — you're not clinging to losing trades. Keep letting winners run."}
+            </span>
+          </div>
+        );
+      })()}
+
+      {/* ===== Revenge trading cost ===== */}
+      {isVisible("revenge") && revenge && (
+        <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Revenge-trading cost <InfoTip text="P&L from trades you opened within 30 minutes of a loss — often impulsive 'win it back' trades." />
+          </span>
+          <div style={{ display: "flex", gap: "var(--space-5)", flexWrap: "wrap" }}>
+            <div>
+              <span style={LABEL}>From revenge trades</span>
+              <div style={{ font: "var(--text-stat)", letterSpacing: "-1px", color: revenge.revPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                {k(revenge.revPnl, currencySymbol)}
+              </div>
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{revenge.revCount} trades · {fmt(revenge.revWinRate * 100, 0)}% win</span>
+            </div>
+            <div>
+              <span style={LABEL}>Avg / revenge trade</span>
+              <div style={{ font: "var(--text-h3)", fontWeight: 700, color: revenge.avgRev >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                {k(revenge.avgRev, currencySymbol)}
+              </div>
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>vs {k(revenge.avgCalm, currencySymbol)} on calm trades</span>
+            </div>
+          </div>
+          <span style={{ font: "var(--text-caption)", color: revenge.revPnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-muted)" }}>
+            {revenge.revPnl < 0
+              ? `These impulsive trades cost you ${k(Math.abs(revenge.revPnl), currencySymbol)}. After a loss, step away for a few minutes before the next trade.`
+              : "Your post-loss trades are holding up — but a short pause after a red trade keeps it that way."}
+          </span>
+        </div>
+      )}
+
+      {/* ===== Timeframe analysis (which timeframes they trade most) ===== */}
+      {isVisible("timeframe") && (
+        <div className="jx-card">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap", marginBottom: "var(--space-3)" }}>
+            <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              Timeframe analysis <InfoTip text="How your closed trades are spread across timeframes — so you can see where you trade the most." />
+            </span>
+            {timeframes.most && timeframes.most.count > 0 && (
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                Most traded: <strong style={{ color: "var(--color-text-primary)" }}>{timeframes.most.display}</strong>
+              </span>
+            )}
+          </div>
+
+          {timeframes.total === 0 ? (
+            <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
+              Log trades with a timeframe to see your distribution here.
+            </span>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              {timeframes.arr.map((tf) => {
+                const isTop = timeframes.most && tf.display === timeframes.most.display && tf.count > 0;
+                return (
+                  <div key={tf.display} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                    <span style={{
+                      flexShrink: 0, width: 44, textAlign: "center",
+                      padding: "4px 0", borderRadius: "var(--radius-sm)",
+                      font: "var(--text-caption)", fontWeight: 700,
+                      background: isTop ? "var(--color-primary-subtle)" : "var(--color-bg-muted)",
+                      color: isTop ? "var(--yellow-500)" : "var(--color-text-secondary)",
+                    }}>
+                      {tf.display}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="jx-progress" style={{ height: 10, borderRadius: 999 }}>
+                        <div style={{
+                          width: `${Math.max(tf.count > 0 ? 3 : 0, tf.pct)}%`,
+                          height: "100%", borderRadius: 999,
+                          background: isTop ? "var(--color-primary)" : "var(--color-border-strong)",
+                          transition: `width 0.9s ${BAR_EASE}`,
+                        }} />
+                      </div>
+                    </div>
+                    <span style={{ flexShrink: 0, width: 96, textAlign: "right", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                      {tf.count} {tf.count === 1 ? "trade" : "trades"} · {fmt(tf.pct, 0)}%
+                    </span>
+                    <span style={{
+                      flexShrink: 0, width: 64, textAlign: "right", font: "var(--text-caption)", fontWeight: 600,
+                      color: tf.pnl > 0 ? "var(--color-success-strong)" : tf.pnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-muted)",
+                    }}>
+                      {tf.count > 0 ? k(tf.pnl, currencySymbol) : "—"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ===== Session performance ===== */}
       {isVisible("sessions") && (

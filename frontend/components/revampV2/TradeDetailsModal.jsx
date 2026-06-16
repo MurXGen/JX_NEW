@@ -250,10 +250,16 @@ export default function TradeDetailsModal({
   // unrealized return for a running position
   const liveRetPct = entry ? ((heldPrice - entry) / entry) * 100 * (isLong ? 1 : -1) : null;
 
+  const feeVal = Number(t.feeAmount) || 0;
+  const grossPnl = pnl + feeVal; // stored pnl is already NET (gross − fee)
   const stats = [
     ["Entry", entry ? `$${fmt(entry)}` : "—"],
     ["Exit", exit ? `$${fmt(exit)}` : "—"],
     ["Size", size != null ? fmt(size, 2) : "—"],
+    // show gross only when a fee was logged, so the deduction is transparent
+    ...(feeVal > 0
+      ? [["Gross P&L", kf(grossPnl, currencySymbol), grossPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)"]]
+      : []),
     ["Net P&L", kf(pnl, currencySymbol), pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)"],
     ["Return", retPct != null ? `${retPct >= 0 ? "+" : ""}${fmt(retPct, 1)}%` : "—", retPct != null ? (retPct >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)") : undefined],
     ["R : R", t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"],
