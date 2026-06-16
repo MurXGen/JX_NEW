@@ -1926,6 +1926,28 @@ body::before {
   }
 }
 
+/* Trade-details edit/delete actions: comfortably sized on desktop, and
+   full-width stretched (like submit buttons) on mobile. */
+.jx-td-action {
+  padding: 11px 18px;
+  font-size: var(--text-body-md);
+}
+@media (max-width: 600px) {
+  .jx-td-actionbar {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .jx-td-actionbar .jx-td-action {
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 13px 16px; /* match submit-button height */
+  }
+  .jx-td-actionbar .jx-td-close {
+    order: -1; /* close sits on its own line, top-right feel */
+    margin-left: auto;
+  }
+}
+
 /* PWA install banner: phones only (desktop uses the sidebar item) */
 .jx-pwa-banner-wrap {
   display: none;

@@ -9,7 +9,7 @@ export default function RiskDisclaimer() {
       path="/risk-disclaimer"
       updated="June 8, 2026"
       description="Important risk disclaimer for JournalX. Trading involves substantial risk of loss. JournalX is a journaling and analytics tool, not financial advice."
-      intro="Please read this Risk Disclaimer carefully. It applies to your use of JournalX and all information, analytics, and projections provided by the Service."
+      intro="Please read this Risk Disclaimer carefully. It applies to your use of JournalX and all information, analytics, and projections provided by the Service. JournalX is a journaling and analytics software tool only — it does not provide any financial service, does not execute trades or hold funds, and nothing in the Service is financial advice."
       sections={[
         {
           h: "1. Trading Involves Risk",
@@ -18,9 +18,10 @@ export default function RiskDisclaimer() {
           ],
         },
         {
-          h: "2. Not Financial Advice",
+          h: "2. Not Financial Advice & No Financial Services",
           body: [
             "JournalX is a trade-journaling and analytics tool. The Service, including all metrics, statistics, charts, projections, forecasts, and “if you had held” estimates, is provided for informational and educational purposes only. Nothing in the Service constitutes financial, investment, tax, accounting, or legal advice, nor a recommendation or solicitation to buy, sell, or hold any instrument.",
+            "JournalX provides no financial services of any kind. We are not a broker, dealer, exchange, investment adviser, financial adviser, portfolio manager, fund, bank, money services business, or fiduciary. We do not execute, place, or settle trades; we do not hold, transmit, or manage your money, securities, or crypto-assets; and we do not manage portfolios on your behalf. All trades are placed by you through your own broker or exchange, at your own discretion and risk.",
           ],
         },
         {

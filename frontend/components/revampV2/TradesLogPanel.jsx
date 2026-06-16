@@ -42,6 +42,7 @@ import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
 import { generateShareCard } from "./shareCard";
 import { CandlestickChart } from "lucide-react";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { compactNumber } from "@/utils/formatNumbers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -58,11 +59,8 @@ const TRADESLOG_SECTIONS = [
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
 /* quantity / size — max 2 decimals (avoids 0.293838…) */
 const qty = (v) => (v == null || v === "" ? "—" : Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }));
-const money = (v, sym = "$") => {
-  const a = Math.abs(v);
-  const s = a >= 1000 ? `${sym}${fmt(a / 1000, 2)}k` : `${sym}${fmt(a)}`;
-  return `${v < 0 ? "−" : "+"}${s}`;
-};
+const money = (v, sym = "$") =>
+  `${v < 0 ? "−" : "+"}${sym}${compactNumber(Math.abs(v))}`;
 
 function dayLabel(date) {
   const d = new Date(date);

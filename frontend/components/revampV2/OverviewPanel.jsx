@@ -9,6 +9,7 @@ import CountUp from "./CountUp";
 import Tip from "./Tip";
 import SampleDataBanner from "./SampleDataBanner";
 import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
+import { compactNumber } from "@/utils/formatNumbers";
 import { jxEase } from "./easing";
 
 /* sections the user can show/hide on the overview dashboard */
@@ -231,14 +232,8 @@ function Celebration() {
 
 const fmt = (v, d = 2) =>
   Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
-const k = (v, sym = "$") => {
-  const a = Math.abs(v);
-  const s =
-    a >= 1000
-      ? `${sym}${fmt(a / 1000, 2)}k`
-      : `${sym}${fmt(a, a < 10 ? 2 : 0)}`;
-  return `${v < 0 ? "−" : "+"}${s}`;
-};
+const k = (v, sym = "$") =>
+  `${v < 0 ? "−" : "+"}${sym}${compactNumber(Math.abs(v))}`;
 
 /* ---------------- SVG chart primitives ---------------- */
 

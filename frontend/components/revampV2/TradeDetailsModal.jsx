@@ -209,7 +209,6 @@ export default function TradeDetailsModal({
   if (entry && exit && size) quality += 25;
   quality += checks.reduce((s, c) => s + (c.ok ? c.xp : 0), 0);
   quality = Math.min(100, isQuickLog ? Math.min(quality, 45) : quality);
-  const xp = checks.reduce((s, c) => s + (c.ok ? c.xp : 0), 0) + (isQuickLog ? 20 : 0);
 
   const isRunning = t.tradeStatus === "running";
 
@@ -324,11 +323,11 @@ export default function TradeDetailsModal({
                   Opened {dt(t.openTime)} → Closed {dt(t.closeTime)}
                 </span>
               </div>
-              <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-                <Button variant="outline" size="sm" icon={Pencil} onClick={() => onEdit?.(t)}>Edit trade</Button>
-                <Button variant="danger-outline" size="sm" icon={Trash2} onClick={() => onDelete?.(t)}>Delete</Button>
-                <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}>
-                  <X size={16} />
+              <div className="jx-td-actionbar" style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                <Button className="jx-td-action" variant="outline" icon={Pencil} onClick={() => onEdit?.(t)}>Edit trade</Button>
+                <Button className="jx-td-action" variant="danger-outline" icon={Trash2} onClick={() => onDelete?.(t)}>Delete</Button>
+                <button className="jx-btn jx-btn--secondary jx-td-close" onClick={onClose} aria-label="Close" style={{ padding: 10 }}>
+                  <X size={18} />
                 </button>
               </div>
             </div>
@@ -632,7 +631,6 @@ export default function TradeDetailsModal({
                   <span style={{ font: "var(--text-title)" }}>
                     {quality >= 70 ? "Strong log" : quality >= 40 ? "Good log" : "Basic log"}
                   </span>
-                  <span className="jx-badge jx-badge--brand"><Zap size={11} /> +{xp} XP earned</span>
                   <div style={{ width: "100%", marginTop: 4 }}>
                     {checks.map((c) => (
                       <div key={c.label} className={`jx-xp-row ${c.ok ? "" : "jx-xp-row--off"}`}>
@@ -640,7 +638,7 @@ export default function TradeDetailsModal({
                           <Check size={13} style={{ color: c.ok ? "var(--color-success)" : "var(--color-text-disabled)" }} />
                           {c.label}
                         </span>
-                        <span>+{c.xp}</span>
+                        <span>{c.ok ? "✓" : "—"}</span>
                       </div>
                     ))}
                   </div>

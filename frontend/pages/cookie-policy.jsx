@@ -9,7 +9,7 @@ export default function CookiePolicy() {
       path="/cookie-policy"
       updated="June 8, 2026"
       description="How JournalX uses cookies and local storage to keep you signed in, remember your preferences, and understand product usage."
-      intro="This Cookie Policy explains how JournalX uses cookies, local storage, and similar technologies when you use our website and applications, and the choices available to you."
+      intro="This Cookie Policy explains how JournalX uses cookies, local storage, and similar technologies when you use our website and applications, and the choices available to you. JournalX is a journaling and analytics software tool only and does not provide financial services."
       sections={[
         {
           h: "1. What Are Cookies",

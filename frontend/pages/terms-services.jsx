@@ -9,7 +9,7 @@ export default function TermsOfService() {
       path="/terms-services"
       updated="June 8, 2026"
       description="The Terms of Service governing your use of JournalX, including acceptable use, subscriptions, disclaimers, and limitation of liability."
-      intro="These Terms of Service (“Terms”) form a binding agreement between you and JournalX governing your access to and use of the JournalX website, applications, and services (collectively, the “Service”). By creating an account or using the Service, you agree to these Terms. If you do not agree, you must not use the Service."
+      intro="These Terms of Service (“Terms”) form a binding agreement between you and JournalX governing your access to and use of the JournalX website, applications, and services (collectively, the “Service”). By creating an account or using the Service, you agree to these Terms. If you do not agree, you must not use the Service. JournalX is a journaling and analytics software tool only — it is not a financial service, broker, exchange, or adviser, it does not execute trades or hold funds, and nothing in the Service constitutes financial advice."
       sections={[
         {
           h: "1. Eligibility",
@@ -49,9 +49,17 @@ export default function TermsOfService() {
           ],
         },
         {
-          h: "6. Not Financial Advice",
+          h: "6. Nature of the Service — Software Tool, Not a Financial Service",
           body: [
-            "JournalX is a trade-journaling and analytics tool. Nothing in the Service constitutes financial, investment, tax, or legal advice, a recommendation, or a solicitation to buy or sell any instrument. All analytics, statistics, projections, and “if you had held” estimates are informational only and may be inaccurate. You are solely responsible for your trading decisions. See our Risk Disclaimer for more.",
+            "JournalX is a software application that helps you record, organise, and analyse your own trading activity — in short, a trade journal and analytics tool. JournalX is not a financial services provider. We are not a broker, dealer, exchange, investment adviser, financial adviser, portfolio manager, fund, bank, money services business, payment institution, or fiduciary, and we do not provide any regulated financial service.",
+            "In particular, JournalX does not:",
+            [
+              "execute, place, route, or settle any trade or order;",
+              "hold, custody, transmit, or manage your money, securities, or crypto-assets;",
+              "access your brokerage or exchange accounts other than, where you choose, through read-only connections; or",
+              "provide financial, investment, brokerage, custody, tax, accounting, or legal advice, recommendations, or solicitations.",
+            ],
+            "All analytics, statistics, projections, and “if you had held” estimates are provided for informational and educational purposes only and may be inaccurate. Every trade and decision is made by you, through your own broker or exchange, entirely at your own discretion and risk. See our Risk Disclaimer for more.",
           ],
         },
         {

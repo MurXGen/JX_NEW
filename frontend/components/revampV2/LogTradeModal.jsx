@@ -505,7 +505,6 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     return Math.min(100, q);
   }, [mode, form, checks]);
 
-  const xp = mode === "quick" ? 20 : checks.reduce((s, c) => s + (c.ok ? c.xp : 0), 0);
   const qualityLabel = quality >= 70 ? "Strong log" : quality >= 40 ? "Good log" : "Basic log";
   const missing = checks.find((c) => !c.ok);
   const session = detectSession(form.entryTime);
@@ -653,31 +652,13 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
         logTradeToSheet(tradeToSheetPayload(trade, "manual"));
       }
 
-      /* sync IndexedDB cache so the journal + XP update offline too.
-         XP mirrors the backend formula so it's correct even when the API
-         is rate-limited and we're running on cached data. */
+      /* sync IndexedDB cache so the journal updates offline too. */
       try {
         const userData = (await getFromIndexedDB("user-data")) || {};
         userData.trades = isEdit
           ? (userData.trades || []).map((t) => (t._id === trade._id ? { ...t, ...trade } : t))
           : [...(userData.trades || []), trade];
-
-        if (!isEdit && Array.isArray(userData.accounts)) {
-          const awardedXp =
-            10 +
-            (num(form.stopLoss) && num(form.takeProfit) ? 20 : 0) +
-            (form.strategy ? 10 : 0) +
-            (form.emotion ? 10 : 0) +
-            (form.notes.trim() ? 10 : 0) +
-            (form.screenshots.length ? 15 : 0);
-          userData.accounts = userData.accounts.map((a) =>
-            a._id === accountId
-              ? { ...a, xp: (a.xp || 0) + awardedXp, xpTrades: (a.xpTrades || 0) + 1 }
-              : a,
-          );
-        }
         await saveToIndexedDB("user-data", userData);
-        window.dispatchEvent(new CustomEvent("jx-xp-changed"));
       } catch (e) {
         console.error("IndexedDB sync failed:", e);
       }
@@ -687,7 +668,7 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
 
       onSaved?.(trade, { updated: isEdit });
       onSubmit?.(trade);
-      flash("success", isEdit ? "Trade updated" : `Trade logged · +${xp} XP`);
+      flash("success", isEdit ? "Trade updated" : "Trade logged");
       if (addAnother && !isEdit) setForm(EMPTY);
       else setTimeout(() => onClose?.(), 900);
     } catch (err) {
@@ -1150,9 +1131,9 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
                   <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)" }}>
                     <div className="jx-xp-row" style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>
                       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Zap size={14} style={{ color: "var(--yellow-500)" }} /> You&apos;ll earn
+                        <Zap size={14} style={{ color: "var(--yellow-500)" }} /> Log completeness
                       </span>
-                      <span>+{xp} XP</span>
+                      <span>{quality}%</span>
                     </div>
                     {checks.map((c) => (
                       <div key={c.label} className={`jx-xp-row ${c.ok ? "" : "jx-xp-row--off"}`}>
@@ -1160,7 +1141,7 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
                           <Check size={13} style={{ color: c.ok ? "var(--color-success)" : "var(--color-text-disabled)" }} />
                           {c.label}
                         </span>
-                        <span>+{c.xp}</span>
+                        <span>{c.ok ? "✓" : "—"}</span>
                       </div>
                     ))}
                   </div>
@@ -1205,7 +1186,7 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
             <div className="jx-ltmodal__footer" style={{ flexDirection: "column", alignItems: "stretch" }}>
               <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
                 <Zap size={14} style={{ color: "var(--yellow-500)" }} />
-                {isQuick ? <>Quick log · +{xp} XP on save</> : <>Trade quality {quality}% · +{xp} XP on save</>}
+                {isQuick ? <>Quick log</> : <>Trade quality {quality}%</>}
               </span>
               <div style={{ display: "flex", gap: "var(--space-3)", width: "100%" }}>
                 {!isEdit && (

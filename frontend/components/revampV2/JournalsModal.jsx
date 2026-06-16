@@ -19,16 +19,14 @@ import { createAccount, updateAccount } from "@/api/auth";
 import { canAddAccount, getPlanRules } from "@/utils/planRestrictions";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
+import { compactNumber } from "@/utils/formatNumbers";
 
 /* Figma "Journals Modal" (22811:53855) — two views:
    list (switch/manage) ⇄ create journal. Blurred backdrop,
    framer-motion entrance. Switching sets the account cookie and
    reloads; create calls POST /api/account/create. */
 
-const fmt = (v, sym = "$") => {
-  const a = Math.abs(v);
-  return a >= 1000 ? `${sym}${(a / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 })}k` : `${sym}${a.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-};
+const fmt = (v, sym = "$") => `${sym}${compactNumber(Math.abs(v))}`;
 
 const ACCENTS = ["#fcd535", "#2ebd85", "#3b82f6", "#8b5cf6", "#f6465d"];
 const TYPES = ["Spot", "Futures", "Paper"];

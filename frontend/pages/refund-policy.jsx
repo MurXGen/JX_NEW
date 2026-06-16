@@ -9,7 +9,7 @@ export default function RefundPolicy() {
       path="/refund-policy"
       updated="June 8, 2026"
       description="JournalX Refund & Cancellation Policy — how subscriptions, renewals, lifetime purchases, and refund requests are handled."
-      intro="This Refund & Cancellation Policy explains how billing, cancellations, and refunds work for JournalX subscriptions and one-time purchases. By purchasing a plan, you agree to the terms set out below in addition to our Terms of Service."
+      intro="This Refund & Cancellation Policy explains how billing, cancellations, and refunds work for JournalX subscriptions and one-time purchases. By purchasing a plan, you agree to the terms set out below in addition to our Terms of Service. JournalX is a software subscription for journaling and analysing your own trades — it is a software tool, not a financial product or financial service, and your purchase is for access to that software only."
       sections={[
         {
           h: "1. Free Plan",
