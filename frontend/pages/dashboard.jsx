@@ -63,7 +63,7 @@ const DUMMY_TRADES = [
 const NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutGrid },
   { id: "trades", label: "Trades log", icon: History },
-  { id: "blogs", label: "Trader Gym", icon: BookOpen },
+  { id: "blogs", label: "Learn & Focus", icon: BookOpen },
   { id: "markets", label: "Markets", icon: Globe },
   { id: "share", label: "Share logs", icon: Share2 },
   { id: "importexport", label: "Import / Export", icon: ArrowUpDown },

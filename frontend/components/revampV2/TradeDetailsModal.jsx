@@ -323,11 +323,11 @@ export default function TradeDetailsModal({
                   Opened {dt(t.openTime)} → Closed {dt(t.closeTime)}
                 </span>
               </div>
-              <div className="jx-td-actionbar" style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-                <Button className="jx-td-action" variant="outline" icon={Pencil} onClick={() => onEdit?.(t)}>Edit trade</Button>
-                <Button className="jx-td-action" variant="danger-outline" icon={Trash2} onClick={() => onDelete?.(t)}>Delete</Button>
-                <button className="jx-btn jx-btn--secondary jx-td-close" onClick={onClose} aria-label="Close" style={{ padding: 10 }}>
-                  <X size={18} />
+              <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                <Button variant="outline" size="sm" icon={Pencil} onClick={() => onEdit?.(t)}>Edit trade</Button>
+                <Button variant="danger-outline" size="sm" icon={Trash2} onClick={() => onDelete?.(t)}>Delete</Button>
+                <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}>
+                  <X size={16} />
                 </button>
               </div>
             </div>

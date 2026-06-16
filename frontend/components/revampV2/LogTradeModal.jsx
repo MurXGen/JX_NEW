@@ -41,16 +41,29 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 function Seg({ items, value, onChange, inline }) {
   return (
     <div className={`jx-seg ${inline ? "jx-seg--inline" : ""}`}>
-      {items.map((it) => (
-        <button
-          key={it.value}
-          type="button"
-          className={`jx-seg__btn ${value === it.value ? "jx-seg__btn--active" : ""}`}
-          onClick={() => onChange(it.value)}
-        >
-          {it.label}
-        </button>
-      ))}
+      {items.map((it) => {
+        const Icon = it.icon;
+        const active = value === it.value;
+        return (
+          <button
+            key={it.value}
+            type="button"
+            title={it.title || it.label}
+            aria-label={it.title || it.label}
+            className={`jx-seg__btn ${active ? "jx-seg__btn--active" : ""}`}
+            onClick={() => onChange(it.value)}
+          >
+            {Icon && (
+              <Icon
+                size={16}
+                className={it.glow ? "jx-seg__glow" : undefined}
+                style={it.glow ? { color: "var(--yellow-500)" } : undefined}
+              />
+            )}
+            {it.label && <span>{it.label}</span>}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -59,7 +72,9 @@ function Sect({ icon: Icon, title, hint }) {
   return (
     <div className="jx-sect">
       <div className="jx-sect__left">
-        <span className="jx-sect__icon"><Icon size={15} /></span>
+        <span className="jx-sect__icon">
+          <Icon size={15} />
+        </span>
         <span className="jx-sect__title">{title}</span>
       </div>
       {hint && <span className="jx-sect__hint">{hint}</span>}
@@ -70,7 +85,12 @@ function Sect({ icon: Icon, title, hint }) {
 function Field({ label, children }) {
   return (
     <div className="jx-field">
-      <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>{label}</label>
+      <label
+        className="jx-field__label"
+        style={{ font: "var(--text-small)", fontWeight: 500 }}
+      >
+        {label}
+      </label>
       {children}
     </div>
   );
@@ -81,12 +101,29 @@ function Field({ label, children }) {
 function TimingInput({ form, set, mode }) {
   const dur = form.useDuration;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-      <div className="jx-seg jx-seg--inline" style={{ alignSelf: "flex-start" }}>
-        <button type="button" className={`jx-seg__btn ${!dur ? "jx-seg__btn--active" : ""}`} onClick={() => set("useDuration", false)}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--space-3)",
+      }}
+    >
+      <div
+        className="jx-seg jx-seg--inline"
+        style={{ alignSelf: "flex-start" }}
+      >
+        <button
+          type="button"
+          className={`jx-seg__btn ${!dur ? "jx-seg__btn--active" : ""}`}
+          onClick={() => set("useDuration", false)}
+        >
           Date &amp; time
         </button>
-        <button type="button" className={`jx-seg__btn ${dur ? "jx-seg__btn--active" : ""}`} onClick={() => set("useDuration", true)}>
+        <button
+          type="button"
+          className={`jx-seg__btn ${dur ? "jx-seg__btn--active" : ""}`}
+          onClick={() => set("useDuration", true)}
+        >
           Just duration
         </button>
       </div>
@@ -95,7 +132,11 @@ function TimingInput({ form, set, mode }) {
         <div className="jx-form-grid">
           <Field label="Date · optional (defaults to today)">
             <div className="jx-input">
-              <input type="date" value={form.tradeDate} onChange={(e) => set("tradeDate", e.target.value)} />
+              <input
+                type="date"
+                value={form.tradeDate}
+                onChange={(e) => set("tradeDate", e.target.value)}
+              />
             </div>
           </Field>
           <Field label="Trade duration">
@@ -105,13 +146,18 @@ function TimingInput({ form, set, mode }) {
                   type="number"
                   min="0"
                   step="any"
-                  placeholder={form.durationUnit === "hour" ? "e.g. 2.5" : "e.g. 45"}
+                  placeholder={
+                    form.durationUnit === "hour" ? "e.g. 2.5" : "e.g. 45"
+                  }
                   value={form.durationVal}
                   onChange={(e) => set("durationVal", e.target.value)}
                 />
               </div>
               <div className="jx-seg jx-seg--inline">
-                {[["min", "Mins"], ["hour", "Hours"]].map(([u, lbl]) => (
+                {[
+                  ["min", "Mins"],
+                  ["hour", "Hours"],
+                ].map(([u, lbl]) => (
                   <button
                     key={u}
                     type="button"
@@ -126,14 +172,23 @@ function TimingInput({ form, set, mode }) {
           </Field>
         </div>
       ) : mode === "quick" ? (
-        <DateTimePicker value={form.exitTime} onChange={(v) => set("exitTime", v)} />
+        <DateTimePicker
+          value={form.exitTime}
+          onChange={(v) => set("exitTime", v)}
+        />
       ) : (
         <div className="jx-form-grid">
           <Field label="Entry date & time">
-            <DateTimePicker value={form.entryTime} onChange={(v) => set("entryTime", v)} />
+            <DateTimePicker
+              value={form.entryTime}
+              onChange={(v) => set("entryTime", v)}
+            />
           </Field>
           <Field label="Exit date & time">
-            <DateTimePicker value={form.exitTime} onChange={(v) => set("exitTime", v)} />
+            <DateTimePicker
+              value={form.exitTime}
+              onChange={(v) => set("exitTime", v)}
+            />
           </Field>
         </div>
       )}
@@ -143,7 +198,11 @@ function TimingInput({ form, set, mode }) {
 
 function Chip({ selected, onClick, children }) {
   return (
-    <button type="button" className={`jx-chip ${selected ? "jx-chip--selected" : ""}`} onClick={onClick}>
+    <button
+      type="button"
+      className={`jx-chip ${selected ? "jx-chip--selected" : ""}`}
+      onClick={onClick}
+    >
       {selected && <Check size={14} />}
       {children}
     </button>
@@ -151,7 +210,13 @@ function Chip({ selected, onClick, children }) {
 }
 
 /* chips + inline "+ Custom" adder */
-function ChipsWithCustom({ options, value, onSelect, onAddCustom, placeholder = "Add custom…" }) {
+function ChipsWithCustom({
+  options,
+  value,
+  onSelect,
+  onAddCustom,
+  placeholder = "Add custom…",
+}) {
   const [adding, setAdding] = useState(false);
   const [text, setText] = useState("");
   const commit = () => {
@@ -161,9 +226,22 @@ function ChipsWithCustom({ options, value, onSelect, onAddCustom, placeholder = 
     setAdding(false);
   };
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", alignItems: "center" }}>
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "var(--space-2)",
+        alignItems: "center",
+      }}
+    >
       {options.map((o) => (
-        <Chip key={o} selected={value === o} onClick={() => onSelect(value === o ? null : o)}>{o}</Chip>
+        <Chip
+          key={o}
+          selected={value === o}
+          onClick={() => onSelect(value === o ? null : o)}
+        >
+          {o}
+        </Chip>
       ))}
       {adding ? (
         <span className="jx-input" style={{ height: 34, width: 160 }}>
@@ -172,12 +250,19 @@ function ChipsWithCustom({ options, value, onSelect, onAddCustom, placeholder = 
             placeholder={placeholder}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), commit())}
+            onKeyDown={(e) =>
+              e.key === "Enter" && (e.preventDefault(), commit())
+            }
             onBlur={commit}
           />
         </span>
       ) : (
-        <button type="button" className="jx-chip" style={{ borderStyle: "dashed" }} onClick={() => setAdding(true)}>
+        <button
+          type="button"
+          className="jx-chip"
+          style={{ borderStyle: "dashed" }}
+          onClick={() => setAdding(true)}
+        >
           <Plus size={13} /> Custom
         </button>
       )}
@@ -186,16 +271,47 @@ function ChipsWithCustom({ options, value, onSelect, onAddCustom, placeholder = 
 }
 
 function Stars({ value, onChange }) {
-  const label = value <= 0 ? "" : value <= 2 ? "Low" : value === 3 ? "Medium" : "High";
+  const label =
+    value <= 0 ? "" : value <= 2 ? "Low" : value === 3 ? "Medium" : "High";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ font: "var(--text-small)", color: "var(--color-text-secondary)", marginRight: 4 }}>Confidence</span>
+      <span
+        style={{
+          font: "var(--text-small)",
+          color: "var(--color-text-secondary)",
+          marginRight: 4,
+        }}
+      >
+        Confidence
+      </span>
       {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" onClick={() => onChange(n === value ? 0 : n)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex" }} aria-label={`${n} star`}>
-          <Star size={20} fill={n <= value ? "var(--color-primary)" : "none"} color={n <= value ? "var(--yellow-500)" : "var(--color-border-strong)"} />
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n === value ? 0 : n)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 2,
+            display: "flex",
+          }}
+          aria-label={`${n} star`}
+        >
+          <Star
+            size={20}
+            fill={n <= value ? "var(--color-primary)" : "none"}
+            color={
+              n <= value ? "var(--yellow-500)" : "var(--color-border-strong)"
+            }
+          />
         </button>
       ))}
-      {label && <span style={{ font: "var(--text-small)", fontWeight: 600 }}>{label}</span>}
+      {label && (
+        <span style={{ font: "var(--text-small)", fontWeight: 600 }}>
+          {label}
+        </span>
+      )}
     </div>
   );
 }
@@ -204,13 +320,49 @@ function QualityRing({ pct }) {
   const r = 52;
   const c = 2 * Math.PI * r;
   return (
-    <svg width="128" height="128" viewBox="0 0 128 128" style={{ alignSelf: "center" }}>
-      <circle cx="64" cy="64" r={r} fill="none" stroke="var(--color-bg-muted)" strokeWidth="12" />
-      <circle cx="64" cy="64" r={r} fill="none" stroke="var(--color-primary)" strokeWidth="12" strokeLinecap="round"
-        strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} transform="rotate(-90 64 64)"
-        style={{ transition: "stroke-dashoffset 0.4s ease" }} />
-      <text x="64" y="60" textAnchor="middle" style={{ font: "600 24px Poppins", fill: "var(--color-text-primary)" }}>{pct}%</text>
-      <text x="64" y="80" textAnchor="middle" style={{ font: "400 11px Poppins", fill: "var(--color-text-muted)" }}>complete</text>
+    <svg
+      width="128"
+      height="128"
+      viewBox="0 0 128 128"
+      style={{ alignSelf: "center" }}
+    >
+      <circle
+        cx="64"
+        cy="64"
+        r={r}
+        fill="none"
+        stroke="var(--color-bg-muted)"
+        strokeWidth="12"
+      />
+      <circle
+        cx="64"
+        cy="64"
+        r={r}
+        fill="none"
+        stroke="var(--color-primary)"
+        strokeWidth="12"
+        strokeLinecap="round"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - pct / 100)}
+        transform="rotate(-90 64 64)"
+        style={{ transition: "stroke-dashoffset 0.4s ease" }}
+      />
+      <text
+        x="64"
+        y="60"
+        textAnchor="middle"
+        style={{ font: "600 24px Poppins", fill: "var(--color-text-primary)" }}
+      >
+        {pct}%
+      </text>
+      <text
+        x="64"
+        y="80"
+        textAnchor="middle"
+        style={{ font: "400 11px Poppins", fill: "var(--color-text-muted)" }}
+      >
+        complete
+      </text>
     </svg>
   );
 }
@@ -221,7 +373,10 @@ function Spinner() {
       animate={{ rotate: 360 }}
       transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
       style={{
-        width: 14, height: 14, borderRadius: "50%", display: "inline-block",
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        display: "inline-block",
         border: "2px solid color-mix(in srgb, currentColor 30%, transparent)",
         borderTopColor: "currentColor",
       }}
@@ -231,13 +386,29 @@ function Spinner() {
 
 /* ---------------- constants & helpers ---------------- */
 
-const DEFAULT_STRATEGIES = ["Breakout", "Pullback", "Reversal", "Range", "Trend-follow", "News"];
+const DEFAULT_STRATEGIES = [
+  "Breakout",
+  "Pullback",
+  "Reversal",
+  "Range",
+  "Trend-follow",
+  "News",
+];
 const DEFAULT_EMOTIONS = ["Calm", "Confident", "FOMO", "Revenge", "Hesitant"];
 
 /* User's tradable symbols are managed in localStorage so they can add/remove
    their own list. Seeded with a few common markets on first use. */
 const SYMBOLS_KEY = "jx-symbols";
-const DEFAULT_SYMBOLS = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XAU/USD", "EUR/USD", "NIFTY", "AAPL", "TSLA"];
+const DEFAULT_SYMBOLS = [
+  "BTC/USDT",
+  "ETH/USDT",
+  "SOL/USDT",
+  "XAU/USD",
+  "EUR/USD",
+  "NIFTY",
+  "AAPL",
+  "TSLA",
+];
 const readStoredSymbols = () => {
   try {
     const raw = JSON.parse(localStorage.getItem(SYMBOLS_KEY) || "null");
@@ -246,10 +417,19 @@ const readStoredSymbols = () => {
   return null;
 };
 const writeStoredSymbols = (list) => {
-  try { localStorage.setItem(SYMBOLS_KEY, JSON.stringify(list)); } catch {}
+  try {
+    localStorage.setItem(SYMBOLS_KEY, JSON.stringify(list));
+  } catch {}
 };
 const TIMEFRAMES = ["1m", "5m", "15m", "1H", "4H", "1D"];
-const MISTAKES = ["None", "Moved stop", "Oversized", "No stop", "Chased entry", "Exited early"];
+const MISTAKES = [
+  "None",
+  "Moved stop",
+  "Oversized",
+  "No stop",
+  "Chased entry",
+  "Exited early",
+];
 const MAX_IMAGES = 4;
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -287,7 +467,8 @@ const EMPTY = {
   netPnl: "",
 };
 
-const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+const fmt = (v, d = 2) =>
+  Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
 const fmtMoney = (v) => {
   const a = Math.abs(v);
   const s = a >= 1000 ? `$${fmt(a / 1000, 2)}k` : `$${fmt(a)}`;
@@ -350,7 +531,15 @@ const tradeToForm = (t) => {
   };
 };
 
-export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initialTrade = null, currentAccountId = null, onNoJournal }) {
+export default function LogTradeModal({
+  open,
+  onClose,
+  onSaved,
+  onSubmit,
+  initialTrade = null,
+  currentAccountId = null,
+  onNoJournal,
+}) {
   const isEdit = !!initialTrade?._id;
   const [mode, setMode] = useState("detailed");
   const [form, setForm] = useState(EMPTY);
@@ -408,20 +597,30 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
         const trades = userData?.trades || [];
         const seen = new Map();
         [...trades]
-          .sort((a, b) => new Date(b.openTime || b.closeTime) - new Date(a.openTime || a.closeTime))
+          .sort(
+            (a, b) =>
+              new Date(b.openTime || b.closeTime) -
+              new Date(a.openTime || a.closeTime),
+          )
           .forEach((t) => {
             const s = (t.symbol || "").toUpperCase();
             if (s && !seen.has(s)) seen.set(s, true);
           });
         // merge: stored list (or defaults) + any symbols seen in real trades
         const stored = readStoredSymbols() || DEFAULT_SYMBOLS;
-        const merged = [...new Set([...stored, ...seen.keys()].map((s) => s.toUpperCase()))];
+        const merged = [
+          ...new Set([...stored, ...seen.keys()].map((s) => s.toUpperCase())),
+        ];
         writeStoredSymbols(merged);
         setSymbols(merged);
-        setCustomStrategies((await getFromIndexedDB("jx-custom-strategies")) || []);
+        setCustomStrategies(
+          (await getFromIndexedDB("jx-custom-strategies")) || [],
+        );
         setCustomEmotions((await getFromIndexedDB("jx-custom-emotions")) || []);
         const perTrade = getPlanRules(userData).limits.imagesPerTrade;
-        setMaxImages(perTrade === Infinity ? MAX_IMAGES : (perTrade || MAX_IMAGES));
+        setMaxImages(
+          perTrade === Infinity ? MAX_IMAGES : perTrade || MAX_IMAGES,
+        );
       } catch (e) {
         console.error("IndexedDB read failed:", e);
       }
@@ -432,13 +631,17 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     const next = [...new Set([...customStrategies, v])];
     setCustomStrategies(next);
     set("strategy", v);
-    try { await saveToIndexedDB("jx-custom-strategies", next); } catch {}
+    try {
+      await saveToIndexedDB("jx-custom-strategies", next);
+    } catch {}
   };
   const addCustomEmotion = async (v) => {
     const next = [...new Set([...customEmotions, v])];
     setCustomEmotions(next);
     set("emotion", v);
-    try { await saveToIndexedDB("jx-custom-emotions", next); } catch {}
+    try {
+      await saveToIndexedDB("jx-custom-emotions", next);
+    } catch {}
   };
 
   /* ---------- calculations (mirrors backend semantics) ---------- */
@@ -463,9 +666,14 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
 
     const feeVal = num(form.feeValue) || 0;
     const feeAmount =
-      form.feeUnit === "percent" ? (notional ? (notional * feeVal) / 100 : 0) : feeVal;
+      form.feeUnit === "percent"
+        ? notional
+          ? (notional * feeVal) / 100
+          : 0
+        : feeVal;
 
-    const grossPnl = entry && exit && assetQty ? (exit - entry) * assetQty * dir : null;
+    const grossPnl =
+      entry && exit && assetQty ? (exit - entry) * assetQty * dir : null;
     const pnl = grossPnl != null ? grossPnl - feeAmount : null;
     const retPct = pnl != null && notional ? (pnl / notional) * 100 : null;
 
@@ -475,23 +683,49 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
       entry && sl && tp && Math.abs(entry - sl) > 0
         ? Math.abs(tp - entry) / Math.abs(entry - sl)
         : null;
-    const expectedLoss = entry && sl && assetQty ? Math.abs(entry - sl) * assetQty : 0;
-    const expectedProfit = entry && tp && assetQty ? Math.abs(tp - entry) * assetQty : 0;
-    const realizedR = pnl != null && expectedLoss > 0 ? pnl / expectedLoss : null;
+    const expectedLoss =
+      entry && sl && assetQty ? Math.abs(entry - sl) * assetQty : 0;
+    const expectedProfit =
+      entry && tp && assetQty ? Math.abs(tp - entry) * assetQty : 0;
+    const realizedR =
+      pnl != null && expectedLoss > 0 ? pnl / expectedLoss : null;
 
-    return { assetQty, notional, quantityUSD, feeAmount, pnl, retPct, plannedRR, expectedLoss, expectedProfit, realizedR };
+    return {
+      assetQty,
+      notional,
+      quantityUSD,
+      feeAmount,
+      pnl,
+      retPct,
+      plannedRR,
+      expectedLoss,
+      expectedProfit,
+      realizedR,
+    };
   }, [form]);
 
-  const timeframeValue = form.timeframe === "custom" ? (form.tfCustom ? `${form.tfCustom}m` : "") : form.timeframe || "";
+  const timeframeValue =
+    form.timeframe === "custom"
+      ? form.tfCustom
+        ? `${form.tfCustom}m`
+        : ""
+      : form.timeframe || "";
 
   /* ---------- quality + XP ---------- */
-  const checks = useMemo(() => [
-    { label: "Risk set (SL/TP)", xp: 20, ok: form.stopLoss !== "" && form.takeProfit !== "" },
-    { label: "Strategy tagged", xp: 10, ok: !!form.strategy },
-    { label: "Emotion logged", xp: 10, ok: !!form.emotion },
-    { label: "Notes added", xp: 10, ok: form.notes.trim().length > 0 },
-    { label: "Screenshot", xp: 15, ok: form.screenshots.length > 0 },
-  ], [form]);
+  const checks = useMemo(
+    () => [
+      {
+        label: "Risk set (SL/TP)",
+        xp: 20,
+        ok: form.stopLoss !== "" && form.takeProfit !== "",
+      },
+      { label: "Strategy tagged", xp: 10, ok: !!form.strategy },
+      { label: "Emotion logged", xp: 10, ok: !!form.emotion },
+      { label: "Notes added", xp: 10, ok: form.notes.trim().length > 0 },
+      { label: "Screenshot", xp: 15, ok: form.screenshots.length > 0 },
+    ],
+    [form],
+  );
 
   const quality = useMemo(() => {
     if (mode === "quick") {
@@ -505,7 +739,8 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     return Math.min(100, q);
   }, [mode, form, checks]);
 
-  const qualityLabel = quality >= 70 ? "Strong log" : quality >= 40 ? "Good log" : "Basic log";
+  const qualityLabel =
+    quality >= 70 ? "Strong log" : quality >= 40 ? "Good log" : "Basic log";
   const missing = checks.find((c) => !c.ok);
   const session = detectSession(form.entryTime);
 
@@ -514,14 +749,30 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
   const quickOutcome = quickPnl == null ? null : quickPnl >= 0 ? "Win" : "Loss";
 
   /* ---------- images ---------- */
-  const totalBytes = form.screenshots.reduce((s, i) => s + (i.file?.size || 0), 0);
+  const totalBytes = form.screenshots.reduce(
+    (s, i) => s + (i.file?.size || 0),
+    0,
+  );
   const addImages = (files) => {
-    const incoming = Array.from(files || []).filter((f) => f.type.startsWith("image/"));
+    const incoming = Array.from(files || []).filter((f) =>
+      f.type.startsWith("image/"),
+    );
     let bytes = totalBytes;
     const next = [...form.screenshots];
     for (const f of incoming) {
-      if (next.length >= maxImages) { flash("danger", maxImages === 1 ? "Free plan allows 1 screenshot per trade — upgrade for up to 4" : `Max ${maxImages} screenshots per trade`); break; }
-      if (bytes + f.size > MAX_BYTES) { flash("danger", "Screenshots exceed the 10MB limit"); break; }
+      if (next.length >= maxImages) {
+        flash(
+          "danger",
+          maxImages === 1
+            ? "Free plan allows 1 screenshot per trade — upgrade for up to 4"
+            : `Max ${maxImages} screenshots per trade`,
+        );
+        break;
+      }
+      if (bytes + f.size > MAX_BYTES) {
+        flash("danger", "Screenshots exceed the 10MB limit");
+        break;
+      }
       bytes += f.size;
       next.push({ name: f.name, url: URL.createObjectURL(f), file: f });
     }
@@ -552,7 +803,9 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     }
     // keep cookie + localStorage in sync for the API call and future logs
     Cookies.set("accountId", accountId, { expires: 365 });
-    try { localStorage.setItem("jx-account-id", accountId); } catch {}
+    try {
+      localStorage.setItem("jx-account-id", accountId);
+    } catch {}
 
     /* plan limit: trades per month */
     try {
@@ -561,13 +814,16 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
       const allowed = await canAddTrade(userData, status);
       if (!allowed) {
         const limit = getPlanRules(userData).limits.tradeLimitPerMonth;
-        flash("danger", `You've hit your plan's limit of ${limit} trades this month. Upgrade for unlimited logging.`);
+        flash(
+          "danger",
+          `You've hit your plan's limit of ${limit} trades this month. Upgrade for unlimited logging.`,
+        );
         return;
       }
     } catch {}
 
     const isQuickPnl = mode === "quick" && form.logMethod === "pnl";
-    const pnl = isQuickPnl ? Number(form.netPnl) : calc.pnl ?? 0;
+    const pnl = isQuickPnl ? Number(form.netPnl) : (calc.pnl ?? 0);
     const hasExit = !!num(form.exit);
 
     let openTime, closeTime, durationHrs;
@@ -585,35 +841,77 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
       openTime = open.toISOString();
       closeTime = close.toISOString();
     } else {
-      openTime = form.entryTime ? new Date(form.entryTime).toISOString() : new Date().toISOString();
+      openTime = form.entryTime
+        ? new Date(form.entryTime).toISOString()
+        : new Date().toISOString();
       closeTime = form.exitTime
         ? new Date(form.exitTime).toISOString()
         : isQuickPnl || hasExit
           ? new Date().toISOString()
           : "";
       durationHrs =
-        openTime && closeTime ? Math.max(0, (new Date(closeTime) - new Date(openTime)) / 36e5) : 0;
+        openTime && closeTime
+          ? Math.max(0, (new Date(closeTime) - new Date(openTime)) / 36e5)
+          : 0;
     }
 
     const fd = new FormData();
     fd.append("accountId", accountId);
     fd.append("symbol", form.symbol.trim().toUpperCase());
     fd.append("direction", form.direction);
-    fd.append("tradeStatus", mode === "quick" ? "quick" : hasExit || closeTime ? "closed" : "running");
+    fd.append(
+      "tradeStatus",
+      mode === "quick" ? "quick" : hasExit || closeTime ? "closed" : "running",
+    );
     fd.append("quantityUSD", calc.quantityUSD ?? 0);
     fd.append("leverage", num(form.leverage) || 1);
     fd.append("totalQuantity", calc.assetQty ?? 0);
     fd.append("sizeUnit", form.sizeUnit);
     fd.append(
       "entries",
-      JSON.stringify(num(form.entry) ? [{ price: num(form.entry), allocation: 100, quantity: calc.assetQty || 0 }] : []),
+      JSON.stringify(
+        num(form.entry)
+          ? [
+              {
+                price: num(form.entry),
+                allocation: 100,
+                quantity: calc.assetQty || 0,
+              },
+            ]
+          : [],
+      ),
     );
     fd.append(
       "exits",
-      JSON.stringify(hasExit ? [{ mode: "price", price: num(form.exit), allocation: 100, quantity: calc.assetQty || 0 }] : []),
+      JSON.stringify(
+        hasExit
+          ? [
+              {
+                mode: "price",
+                price: num(form.exit),
+                allocation: 100,
+                quantity: calc.assetQty || 0,
+              },
+            ]
+          : [],
+      ),
     );
-    fd.append("sls", JSON.stringify(num(form.stopLoss) ? [{ mode: "price", price: num(form.stopLoss), allocation: 100 }] : []));
-    fd.append("tps", JSON.stringify(num(form.takeProfit) ? [{ mode: "price", price: num(form.takeProfit), allocation: 100 }] : []));
+    fd.append(
+      "sls",
+      JSON.stringify(
+        num(form.stopLoss)
+          ? [{ mode: "price", price: num(form.stopLoss), allocation: 100 }]
+          : [],
+      ),
+    );
+    fd.append(
+      "tps",
+      JSON.stringify(
+        num(form.takeProfit)
+          ? [{ mode: "price", price: num(form.takeProfit), allocation: 100 }]
+          : [],
+      ),
+    );
     fd.append("avgEntryPrice", num(form.entry) || 0);
     fd.append("avgExitPrice", num(form.exit) || 0);
     fd.append("avgSLPrice", num(form.stopLoss) || 0);
@@ -638,13 +936,21 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
     fd.append("confidence", form.confidence);
     fd.append("emotion", form.emotion || "");
     fd.append("mistakes", JSON.stringify(form.mistakes));
-    form.screenshots.forEach((img) => img.file && fd.append("images", img.file));
+    form.screenshots.forEach(
+      (img) => img.file && fd.append("images", img.file),
+    );
 
     setSaving(true);
     try {
       const res = isEdit
-        ? await axios.put(`${API_BASE}/api/trades/update/${initialTrade._id}`, fd, { withCredentials: true })
-        : await axios.post(`${API_BASE}/api/trades/addd`, fd, { withCredentials: true });
+        ? await axios.put(
+            `${API_BASE}/api/trades/update/${initialTrade._id}`,
+            fd,
+            { withCredentials: true },
+          )
+        : await axios.post(`${API_BASE}/api/trades/addd`, fd, {
+            withCredentials: true,
+          });
       const trade = res.data?.trade;
 
       // mirror new trades to the tracking sheet (fire-and-forget, client-only)
@@ -656,7 +962,9 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
       try {
         const userData = (await getFromIndexedDB("user-data")) || {};
         userData.trades = isEdit
-          ? (userData.trades || []).map((t) => (t._id === trade._id ? { ...t, ...trade } : t))
+          ? (userData.trades || []).map((t) =>
+              t._id === trade._id ? { ...t, ...trade } : t,
+            )
           : [...(userData.trades || []), trade];
         await saveToIndexedDB("user-data", userData);
       } catch (e) {
@@ -673,7 +981,10 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
       else setTimeout(() => onClose?.(), 900);
     } catch (err) {
       console.error("Save trade failed:", err);
-      flash("danger", err.response?.data?.message || "Could not save trade — try again");
+      flash(
+        "danger",
+        err.response?.data?.message || "Could not save trade — try again",
+      );
     } finally {
       setSaving(false);
     }
@@ -683,7 +994,13 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
 
   /* ---------- shared blocks ---------- */
   const symbolBlock = (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--space-2)",
+      }}
+    >
       <Dropdown
         value={form.symbol}
         onChange={pickSymbol}
@@ -695,20 +1012,50 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
         allowCustom
         triggerStyle={{ height: 56 }}
         leading={
-          <span style={{
-            width: 32, height: 32, borderRadius: "50%", background: "var(--color-primary)",
-            color: "var(--color-primary-foreground)", display: "flex", alignItems: "center",
-            justifyContent: "center", fontWeight: 700, fontSize: 14, flexShrink: 0,
-          }}>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              background: "var(--color-primary)",
+              color: "var(--color-primary-foreground)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              fontSize: 14,
+              flexShrink: 0,
+            }}
+          >
             {(form.symbol || "?").slice(0, 1)}
           </span>
         }
       />
       {symbols.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
-          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Recent</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+            flexWrap: "wrap",
+          }}
+        >
+          <span
+            style={{
+              font: "var(--text-caption)",
+              color: "var(--color-text-muted)",
+            }}
+          >
+            Recent
+          </span>
           {symbols.slice(0, 4).map((s) => (
-            <button key={s} type="button" className="jx-chip" style={{ padding: "4px 10px" }} onClick={() => set("symbol", s)}>
+            <button
+              key={s}
+              type="button"
+              className="jx-chip"
+              style={{ padding: "4px 10px" }}
+              onClick={() => set("symbol", s)}
+            >
               {s.split("/")[0]}
             </button>
           ))}
@@ -720,8 +1067,22 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
   const directionBlock = (
     <div className="jx-dirbig">
       {[
-        ["long", "Long", "Buy / go long", TrendingUp, "long-active", "var(--color-success-strong)"],
-        ["short", "Short", "Sell / go short", TrendingDown, "short-active", "var(--color-danger-strong)"],
+        [
+          "long",
+          "Long",
+          "Buy / go long",
+          TrendingUp,
+          "long-active",
+          "var(--color-success-strong)",
+        ],
+        [
+          "short",
+          "Short",
+          "Sell / go short",
+          TrendingDown,
+          "short-active",
+          "var(--color-danger-strong)",
+        ],
       ].map(([dir, title, sub, Icon, activeCls, color]) => (
         <button
           key={dir}
@@ -729,9 +1090,16 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
           className={`jx-dirbig__btn ${form.direction === dir ? `jx-dirbig__btn--${activeCls}` : ""}`}
           onClick={() => set("direction", dir)}
         >
-          <span className="jx-dirbig__icon"><Icon size={16} /></span>
+          <span className="jx-dirbig__icon">
+            <Icon size={16} />
+          </span>
           <span style={{ display: "flex", flexDirection: "column" }}>
-            <span className="jx-dirbig__title" style={{ color: form.direction === dir ? color : undefined }}>{title}</span>
+            <span
+              className="jx-dirbig__title"
+              style={{ color: form.direction === dir ? color : undefined }}
+            >
+              {title}
+            </span>
             <span className="jx-dirbig__sub">{sub}</span>
           </span>
         </button>
@@ -740,28 +1108,93 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
   );
 
   const screenshotsBlock = (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--space-2)",
+      }}
+    >
       <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
-        <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { addImages(e.target.files); e.target.value = ""; }} />
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          onChange={(e) => {
+            addImages(e.target.files);
+            e.target.value = "";
+          }}
+        />
         {form.screenshots.map((img, i) => (
           <div key={i} style={{ position: "relative" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={img.url} alt={img.name} style={{ width: 64, height: 64, objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }} />
-            <button type="button" aria-label="Remove"
-              onClick={() => set("screenshots", form.screenshots.filter((_, idx) => idx !== i))}
-              style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", border: "none", cursor: "pointer", background: "var(--color-danger)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img
+              src={img.url}
+              alt={img.name}
+              style={{
+                width: 64,
+                height: 64,
+                objectFit: "cover",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--color-border)",
+              }}
+            />
+            <button
+              type="button"
+              aria-label="Remove"
+              onClick={() =>
+                set(
+                  "screenshots",
+                  form.screenshots.filter((_, idx) => idx !== i),
+                )
+              }
+              style={{
+                position: "absolute",
+                top: -6,
+                right: -6,
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                border: "none",
+                cursor: "pointer",
+                background: "var(--color-danger)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <X size={11} />
             </button>
           </div>
         ))}
         {form.screenshots.length < maxImages && (
-          <button type="button" onClick={() => fileRef.current?.click()} className="jx-dropzone" style={{ width: 64, height: 64, padding: 0, gap: 2, font: "var(--text-caption)" }}>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="jx-dropzone"
+            style={{
+              width: 64,
+              height: 64,
+              padding: 0,
+              gap: 2,
+              font: "var(--text-caption)",
+            }}
+          >
             <Upload size={14} /> Add
           </button>
         )}
       </div>
-      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-        {form.screenshots.length}/{maxImages} · {fmt(totalBytes / 1024 / 1024, 1)}MB of 10MB · stored on Backblaze
+      <span
+        style={{
+          font: "var(--text-caption)",
+          color: "var(--color-text-muted)",
+        }}
+      >
+        {form.screenshots.length}/{maxImages} ·{" "}
+        {fmt(totalBytes / 1024 / 1024, 1)}MB of 10MB · stored on Backblaze
       </span>
     </div>
   );
@@ -771,9 +1204,13 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
       {open && (
         <motion.div
           className="jx-modal-overlay jx-modal-overlay--blur"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          onMouseDown={(e) => e.target === e.currentTarget && !saving && onClose?.()}
+          onMouseDown={(e) =>
+            e.target === e.currentTarget && !saving && onClose?.()
+          }
         >
           <Toast toast={toast} />
           <motion.div
@@ -785,22 +1222,68 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
             style={{ width: "min(960px, 96vw)" }}
           >
             {/* ===== Header (fixed across modes) ===== */}
-            <div className="jx-ltmodal__header" style={{ flexDirection: "column", alignItems: "stretch", gap: "var(--space-4)" }}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-2)" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <div
+              className="jx-ltmodal__header"
+              style={{
+                flexDirection: "column",
+                alignItems: "stretch",
+                gap: "var(--space-4)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: "var(--space-2)",
+                }}
+              >
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 2 }}
+                >
                   <span style={{ font: "var(--text-h2)" }}>
-                    {isEdit ? "Edit trade" : isQuick ? "Quick log" : "Log a trade"}
+                    {isEdit
+                      ? "Edit trade"
+                      : isQuick
+                        ? "Quick log"
+                        : "Log a trade"}
                   </span>
-                  <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                    {isQuick ? "Just the result — log P&L without the full detail." : "Capture the details now — better logs mean sharper analytics later."}
+                  <span
+                    style={{
+                      font: "var(--text-small)",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    {isQuick
+                      ? "Just the result — log P&L without the full detail."
+                      : "Capture the details now — better logs mean sharper analytics later."}
                   </span>
                 </div>
-                <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8, flexShrink: 0 }} disabled={saving}>
+                <button
+                  className="jx-btn jx-btn--secondary jx-btn--sm"
+                  onClick={onClose}
+                  aria-label="Close"
+                  style={{ padding: 8, flexShrink: 0 }}
+                  disabled={saving}
+                >
                   <X size={16} />
                 </button>
               </div>
               {/* full-width mode tabs */}
-              <Seg items={[{ value: "quick", label: "Quick log" }, { value: "detailed", label: "Detailed" }]} value={mode} onChange={setMode} />
+              <Seg
+                items={[
+                  {
+                    value: "quick",
+                    icon: Zap,
+                    glow: true,
+                    title: "Quick log",
+                    label: "Quick log",
+                  },
+                  { value: "detailed", label: "Detailed" },
+                ]}
+                value={mode}
+                onChange={setMode}
+              />
             </div>
 
             {/* ===== Body — same frame, content cross-fades ===== */}
@@ -813,296 +1296,742 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: isQuick ? 14 : -14 }}
                     transition={{ duration: 0.16, ease: "easeOut" }}
-                    style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "var(--space-6)",
+                    }}
                   >
-                    {!isQuick && <Sect icon={CandlestickChart} title="Asset & direction" />}
-                    {symbolBlock}
-                    {directionBlock}
+                    <div className="jx-ltgroup">
+                      <Sect icon={CandlestickChart} title="Asset & direction" />
+                      {symbolBlock}
+                      {directionBlock}
+                    </div>
 
                     {isQuick ? (
                       <>
                         {/* ===== QUICK ===== */}
-                        <Field label="How do you want to log?">
-                          <Seg items={[{ value: "entryexit", label: "Entry & exit" }, { value: "pnl", label: "P&L only" }]} value={form.logMethod} onChange={(v) => set("logMethod", v)} />
-                        </Field>
-
-                        {form.logMethod === "pnl" ? (
-                          <Field label="Net P&L (use − for a loss)">
-                            <div className="jx-input">
-                              <input type="number" step="any" placeholder="e.g. 1290 or -340" value={form.netPnl} onChange={(e) => set("netPnl", e.target.value)} />
-                              {quickOutcome && (
-                                <span className={`jx-badge ${quickPnl >= 0 ? "jx-badge--success" : "jx-badge--danger"}`}>
-                                  {quickOutcome}
-                                </span>
-                              )}
-                            </div>
+                        <div className="jx-ltgroup">
+                          <Sect
+                            icon={Zap}
+                            title="Result"
+                            hint="Just the outcome"
+                          />
+                          <Field label="How do you want to log?">
+                            <Seg
+                              items={[
+                                { value: "entryexit", label: "Entry & exit" },
+                                { value: "pnl", label: "P&L only" },
+                              ]}
+                              value={form.logMethod}
+                              onChange={(v) => set("logMethod", v)}
+                            />
                           </Field>
-                        ) : (
-                          <div className="jx-form-grid">
-                            <Field label="Entry price">
-                              <div className="jx-input"><input type="number" step="any" placeholder="0.00" value={form.entry} onChange={(e) => set("entry", e.target.value)} /></div>
-                            </Field>
-                            <Field label="Exit price">
-                              <div className="jx-input"><input type="number" step="any" placeholder="0.00" value={form.exit} onChange={(e) => set("exit", e.target.value)} /></div>
-                            </Field>
-                            <Field label={`Size (${form.sizeUnit === "usd" ? "USD" : "asset"})`}>
-                              <div style={{ display: "flex", gap: "var(--space-2)" }}>
-                                <div className="jx-input" style={{ flex: 1 }}>
-                                  <input type="number" step="any" placeholder="0.00" value={form.size} onChange={(e) => set("size", e.target.value)} />
-                                </div>
-                                <div style={{ width: 110 }}>
-                                  <Dropdown value={form.sizeUnit} onChange={(v) => set("sizeUnit", v)} options={[{ value: "asset", label: "Asset" }, { value: "usd", label: "USD" }]} />
-                                </div>
+
+                          {form.logMethod === "pnl" ? (
+                            <Field label="Net P&L (use − for a loss)">
+                              <div className="jx-input">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  placeholder="e.g. 1290 or -340"
+                                  value={form.netPnl}
+                                  onChange={(e) =>
+                                    set("netPnl", e.target.value)
+                                  }
+                                />
+                                {quickOutcome && (
+                                  <span
+                                    className={`jx-badge ${quickPnl >= 0 ? "jx-badge--success" : "jx-badge--danger"}`}
+                                  >
+                                    {quickOutcome}
+                                  </span>
+                                )}
                               </div>
                             </Field>
-                          </div>
-                        )}
+                          ) : (
+                            <div className="jx-form-grid">
+                              <Field label="Entry price">
+                                <div className="jx-input">
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    placeholder="0.00"
+                                    value={form.entry}
+                                    onChange={(e) =>
+                                      set("entry", e.target.value)
+                                    }
+                                  />
+                                </div>
+                              </Field>
+                              <Field label="Exit price">
+                                <div className="jx-input">
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    placeholder="0.00"
+                                    value={form.exit}
+                                    onChange={(e) =>
+                                      set("exit", e.target.value)
+                                    }
+                                  />
+                                </div>
+                              </Field>
+                              <Field
+                                label={`Size (${form.sizeUnit === "usd" ? "USD" : "asset"})`}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    gap: "var(--space-2)",
+                                  }}
+                                >
+                                  <div className="jx-input" style={{ flex: 1 }}>
+                                    <input
+                                      type="number"
+                                      step="any"
+                                      placeholder="0.00"
+                                      value={form.size}
+                                      onChange={(e) =>
+                                        set("size", e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                  <div style={{ width: 110 }}>
+                                    <Dropdown
+                                      value={form.sizeUnit}
+                                      onChange={(v) => set("sizeUnit", v)}
+                                      options={[
+                                        { value: "asset", label: "Asset" },
+                                        { value: "usd", label: "USD" },
+                                      ]}
+                                    />
+                                  </div>
+                                </div>
+                              </Field>
+                            </div>
+                          )}
 
-                        <Field label="When">
-                          <TimingInput form={form} set={set} mode="quick" />
-                        </Field>
+                          <Field label="When">
+                            <TimingInput form={form} set={set} mode="quick" />
+                          </Field>
 
-                        {quickOutcome && (
-                          <div className={`jx-banner ${quickPnl >= 0 ? "jx-banner--success" : ""}`} style={quickPnl < 0 ? { background: "var(--color-danger-subtle)" } : undefined}>
-                            {quickPnl >= 0 ? <TrendingUp size={16} style={{ color: "var(--color-success)" }} /> : <TrendingDown size={16} style={{ color: "var(--color-danger)" }} />}
-                            <span>
-                              <strong style={{ color: quickPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                                {quickOutcome} · {fmtMoney(quickPnl)}
-                              </strong>{" "}
-                              — detected automatically from your P&L
-                            </span>
-                          </div>
-                        )}
+                          {quickOutcome && (
+                            <div
+                              className={`jx-banner ${quickPnl >= 0 ? "jx-banner--success" : ""}`}
+                              style={
+                                quickPnl < 0
+                                  ? { background: "var(--color-danger-subtle)" }
+                                  : undefined
+                              }
+                            >
+                              {quickPnl >= 0 ? (
+                                <TrendingUp
+                                  size={16}
+                                  style={{ color: "var(--color-success)" }}
+                                />
+                              ) : (
+                                <TrendingDown
+                                  size={16}
+                                  style={{ color: "var(--color-danger)" }}
+                                />
+                              )}
+                              <span>
+                                <strong
+                                  style={{
+                                    color:
+                                      quickPnl >= 0
+                                        ? "var(--color-success-strong)"
+                                        : "var(--color-danger-strong)",
+                                  }}
+                                >
+                                  {quickOutcome} · {fmtMoney(quickPnl)}
+                                </strong>{" "}
+                                — detected automatically from your P&L
+                              </span>
+                            </div>
+                          )}
+                        </div>
 
-                        <Field label="Screenshots · optional">{screenshotsBlock}</Field>
+                        <div className="jx-ltgroup">
+                          <Sect icon={ImageIcon} title="Notes & screenshot" />
+                          <Field label="Screenshots · optional">
+                            {screenshotsBlock}
+                          </Field>
 
-                        <Field label="Quick note (optional)">
-                          <div className="jx-input">
-                            <span className="jx-input__icon"><Pencil size={15} /></span>
-                            <input placeholder="e.g. Breakout retest, clean setup" value={form.notes} onChange={(e) => set("notes", e.target.value)} />
-                          </div>
-                        </Field>
+                          <Field label="Quick note (optional)">
+                            <div className="jx-input">
+                              <span className="jx-input__icon">
+                                <Pencil size={15} />
+                              </span>
+                              <input
+                                placeholder="e.g. Breakout retest, clean setup"
+                                value={form.notes}
+                                onChange={(e) => set("notes", e.target.value)}
+                              />
+                            </div>
+                          </Field>
 
-                        {form.logMethod === "pnl" && (
-                          <div className="jx-banner jx-banner--warn">
-                            <Lightbulb size={16} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />
-                            <span style={{ font: "var(--text-small)" }}>
-                              P&L-only log — quality {quality}%. Switch to <strong>Detailed</strong> (top right) anytime for full analytics.
-                            </span>
-                          </div>
-                        )}
+                          {form.logMethod === "pnl" && (
+                            <div className="jx-banner jx-banner--warn">
+                              <Lightbulb
+                                size={16}
+                                style={{
+                                  color: "var(--yellow-500)",
+                                  flexShrink: 0,
+                                }}
+                              />
+                              <span style={{ font: "var(--text-small)" }}>
+                                P&L-only log. Switch to{" "}
+                                <strong>Detailed</strong> (top right) anytime
+                                for full analytics.
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </>
                     ) : (
                       <>
                         {/* ===== DETAILED ===== */}
-                        <Sect icon={ArrowRightLeft} title="Entry, exit & size" hint="P&L auto-calculates" />
-                        <div className="jx-form-grid">
-                          <Field label="Entry price">
-                            <div className="jx-input"><input type="number" step="any" placeholder="$61,240" value={form.entry} onChange={(e) => set("entry", e.target.value)} /></div>
-                          </Field>
-                          <Field label="Exit price">
-                            <div className="jx-input"><input type="number" step="any" placeholder="$63,820" value={form.exit} onChange={(e) => set("exit", e.target.value)} /></div>
-                          </Field>
-                          <Field label="Position size">
-                            <div style={{ display: "flex", gap: "var(--space-2)" }}>
-                              <div className="jx-input" style={{ flex: 1 }}>
-                                <input type="number" step="any" placeholder={form.sizeUnit === "usd" ? "$5,000" : "0.5"} value={form.size} onChange={(e) => set("size", e.target.value)} />
-                              </div>
-                              <div style={{ width: 120 }}>
-                                <Dropdown
-                                  value={form.sizeUnit}
-                                  onChange={(v) => set("sizeUnit", v)}
-                                  options={[
-                                    { value: "asset", label: form.symbol ? form.symbol.split("/")[0] : "Asset" },
-                                    { value: "usd", label: "USD" },
-                                  ]}
+                        <div className="jx-ltgroup">
+                          <Sect
+                            icon={ArrowRightLeft}
+                            title="Entry, exit & size"
+                            hint="P&L auto-calculates"
+                          />
+                          <div className="jx-form-grid">
+                            <Field label="Entry price">
+                              <div className="jx-input">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  placeholder="$61,240"
+                                  value={form.entry}
+                                  onChange={(e) => set("entry", e.target.value)}
                                 />
-                              </div>
-                            </div>
-                          </Field>
-                          <Field label="Leverage">
-                            <div className="jx-input">
-                              <input type="number" step="any" placeholder="1" value={form.leverage} onChange={(e) => set("leverage", e.target.value)} />
-                              <span className="jx-input__addon">×</span>
-                            </div>
-                            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: 4, display: "block" }}>
-                              Leave as 1 if you don&apos;t use leverage (spot). Entry &amp; exit are prices per unit — use the size USD toggle to enter a dollar amount.
-                            </span>
-                          </Field>
-                          <Field label="Fees">
-                            <div style={{ display: "flex", gap: "var(--space-2)" }}>
-                              <div className="jx-input" style={{ flex: 1 }}>
-                                <input type="number" step="any" placeholder={form.feeUnit === "percent" ? "0.1" : "$12.40"} value={form.feeValue} onChange={(e) => set("feeValue", e.target.value)} />
-                              </div>
-                              <div style={{ width: 150 }}>
-                                <Dropdown
-                                  value={form.feeUnit}
-                                  onChange={(v) => set("feeUnit", v)}
-                                  options={[
-                                    { value: "percent", label: "% of position" },
-                                    { value: "currency", label: "USD" },
-                                  ]}
-                                />
-                              </div>
-                            </div>
-                          </Field>
-                          {calc.notional != null && (
-                            <Field label="Position value">
-                              <div className="jx-input jx-input--disabled">
-                                <span style={{ font: "var(--text-body)", fontWeight: 600 }}>
-                                  ${fmt(calc.notional)} {form.feeUnit === "percent" && calc.feeAmount > 0 && (
-                                    <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}> · fee ${fmt(calc.feeAmount)}</span>
-                                  )}
-                                </span>
                               </div>
                             </Field>
-                          )}
-                        </div>
-
-                        {calc.pnl != null && (
-                          <div className={`jx-banner ${calc.pnl >= 0 ? "jx-banner--success" : ""}`} style={calc.pnl < 0 ? { background: "var(--color-danger-subtle)" } : undefined}>
-                            <Check size={16} style={{ color: calc.pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }} />
-                            <span>
-                              Net P&L <strong style={{ color: calc.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>{fmtMoney(calc.pnl)}</strong>
-                              {calc.retPct != null && <> · {calc.retPct >= 0 ? "+" : ""}{fmt(calc.retPct, 1)}% return</>}
-                              {calc.realizedR != null && <> · <strong style={{ color: calc.realizedR >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>{fmt(calc.realizedR, 1)}R</strong></>}
-                            </span>
-                          </div>
-                        )}
-
-                        <Sect icon={AlertTriangle} title="Risk management" hint="Powers your R-multiples" />
-                        <div className="jx-form-grid">
-                          <Field label="Stop loss">
-                            <div className="jx-input">
-                              <span className="jx-input__icon"><AlertTriangle size={15} /></span>
-                              <input type="number" step="any" placeholder="$60,100" value={form.stopLoss} onChange={(e) => set("stopLoss", e.target.value)} />
-                            </div>
-                          </Field>
-                          <Field label="Take profit">
-                            <div className="jx-input">
-                              <span className="jx-input__icon"><Target size={15} /></span>
-                              <input type="number" step="any" placeholder="$66,540" value={form.takeProfit} onChange={(e) => set("takeProfit", e.target.value)} />
-                            </div>
-                          </Field>
-                        </div>
-
-                        {calc.plannedRR != null && (
-                          <div className="jx-banner jx-banner--warn">
-                            <Target size={16} style={{ color: "var(--yellow-500)" }} />
-                            <span>
-                              Planned R:R <strong>1 : {fmt(calc.plannedRR, 1)}</strong>
-                              {calc.expectedLoss > 0 && <> · risking ${fmt(calc.expectedLoss, 0)} to make ${fmt(calc.expectedProfit, 0)}</>}
-                            </span>
-                          </div>
-                        )}
-
-                        <Sect icon={Clock} title="Timing" hint="Auto session tag" />
-                        <TimingInput form={form} set={set} mode="detailed" />
-                        <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
-                          {session && (
-                            <span className="jx-chip" style={{ cursor: "default" }}>
-                              <Clock size={13} /> Auto-detected: {session}
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            className="jx-chip jx-chip--selected"
-                            onClick={() => {
-                              const now = nowLocal();
-                              setForm((f) => ({ ...f, entryTime: f.entryTime || now, exitTime: now }));
-                            }}
-                          >
-                            <Zap size={13} /> Set to now
-                          </button>
-                        </div>
-
-                        <Sect icon={LineChart} title="Your edge — context" hint="Sharpens analytics" />
-                        <Field label="Strategy / setup">
-                          <ChipsWithCustom
-                            options={[...DEFAULT_STRATEGIES, ...customStrategies]}
-                            value={form.strategy}
-                            onSelect={(v) => set("strategy", v)}
-                            onAddCustom={addCustomStrategy}
-                            placeholder="e.g. ORB 15m"
-                          />
-                        </Field>
-                        <Field label="Market condition">
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-                            {["Trending", "Ranging", "Volatile"].map((m) => (
-                              <Chip key={m} selected={form.market === m} onClick={() => set("market", form.market === m ? null : m)}>{m}</Chip>
-                            ))}
-                          </div>
-                        </Field>
-                        <Field label="Timeframe">
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", alignItems: "center" }}>
-                            {TIMEFRAMES.map((tf) => (
-                              <Chip key={tf} selected={form.timeframe === tf} onClick={() => set("timeframe", form.timeframe === tf ? null : tf)}>{tf}</Chip>
-                            ))}
-                            <Chip selected={form.timeframe === "custom"} onClick={() => set("timeframe", form.timeframe === "custom" ? null : "custom")}>Custom</Chip>
-                            {form.timeframe === "custom" && (
-                              <span className="jx-input" style={{ height: 34, width: 110 }}>
-                                <input type="number" placeholder="mins" value={form.tfCustom} onChange={(e) => set("tfCustom", e.target.value)} />
-                                <span className="jx-input__addon">m</span>
+                            <Field label="Exit price">
+                              <div className="jx-input">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  placeholder="$63,820"
+                                  value={form.exit}
+                                  onChange={(e) => set("exit", e.target.value)}
+                                />
+                              </div>
+                            </Field>
+                            <Field label="Position size">
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "var(--space-2)",
+                                }}
+                              >
+                                <div className="jx-input" style={{ flex: 1 }}>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    placeholder={
+                                      form.sizeUnit === "usd" ? "$5,000" : "0.5"
+                                    }
+                                    value={form.size}
+                                    onChange={(e) =>
+                                      set("size", e.target.value)
+                                    }
+                                  />
+                                </div>
+                                <div style={{ width: 120 }}>
+                                  <Dropdown
+                                    value={form.sizeUnit}
+                                    onChange={(v) => set("sizeUnit", v)}
+                                    options={[
+                                      {
+                                        value: "asset",
+                                        label: form.symbol
+                                          ? form.symbol.split("/")[0]
+                                          : "Asset",
+                                      },
+                                      { value: "usd", label: "USD" },
+                                    ]}
+                                  />
+                                </div>
+                              </div>
+                            </Field>
+                            <Field label="Leverage">
+                              <div className="jx-input">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  placeholder="1"
+                                  value={form.leverage}
+                                  onChange={(e) =>
+                                    set("leverage", e.target.value)
+                                  }
+                                />
+                                <span className="jx-input__addon">×</span>
+                              </div>
+                              <span
+                                style={{
+                                  font: "var(--text-caption)",
+                                  color: "var(--color-text-muted)",
+                                  marginTop: 4,
+                                  display: "block",
+                                }}
+                              >
+                                1 = spot (no leverage).
                               </span>
+                            </Field>
+                            <Field label="Fees">
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "var(--space-2)",
+                                }}
+                              >
+                                <div className="jx-input" style={{ flex: 1 }}>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    placeholder={
+                                      form.feeUnit === "percent"
+                                        ? "0.1"
+                                        : "$12.40"
+                                    }
+                                    value={form.feeValue}
+                                    onChange={(e) =>
+                                      set("feeValue", e.target.value)
+                                    }
+                                  />
+                                </div>
+                                <div style={{ width: 150 }}>
+                                  <Dropdown
+                                    value={form.feeUnit}
+                                    onChange={(v) => set("feeUnit", v)}
+                                    options={[
+                                      {
+                                        value: "percent",
+                                        label: "% of position",
+                                      },
+                                      { value: "currency", label: "USD" },
+                                    ]}
+                                  />
+                                </div>
+                              </div>
+                            </Field>
+                            {calc.notional != null && (
+                              <Field label="Position value">
+                                <div className="jx-input jx-input--disabled">
+                                  <span
+                                    style={{
+                                      font: "var(--text-body)",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    ${fmt(calc.notional)}{" "}
+                                    {form.feeUnit === "percent" &&
+                                      calc.feeAmount > 0 && (
+                                        <span
+                                          style={{
+                                            color: "var(--color-text-muted)",
+                                            fontWeight: 400,
+                                          }}
+                                        >
+                                          {" "}
+                                          · fee ${fmt(calc.feeAmount)}
+                                        </span>
+                                      )}
+                                  </span>
+                                </div>
+                              </Field>
                             )}
                           </div>
-                        </Field>
 
-                        <Sect icon={Flame} title="Psychology & discipline" hint="Find behavioral leaks" />
-                        <Stars value={form.confidence} onChange={(v) => set("confidence", v)} />
-                        <Field label="Emotion at entry">
-                          <ChipsWithCustom
-                            options={[...DEFAULT_EMOTIONS, ...customEmotions]}
-                            value={form.emotion}
-                            onSelect={(v) => set("emotion", v)}
-                            onAddCustom={addCustomEmotion}
-                            placeholder="e.g. Anxious"
+                          {calc.pnl != null && (
+                            <div
+                              className={`jx-banner ${calc.pnl >= 0 ? "jx-banner--success" : ""}`}
+                              style={
+                                calc.pnl < 0
+                                  ? { background: "var(--color-danger-subtle)" }
+                                  : undefined
+                              }
+                            >
+                              <Check
+                                size={16}
+                                style={{
+                                  color:
+                                    calc.pnl >= 0
+                                      ? "var(--color-success)"
+                                      : "var(--color-danger)",
+                                }}
+                              />
+                              <span>
+                                Net P&L{" "}
+                                <strong
+                                  style={{
+                                    color:
+                                      calc.pnl >= 0
+                                        ? "var(--color-success-strong)"
+                                        : "var(--color-danger-strong)",
+                                  }}
+                                >
+                                  {fmtMoney(calc.pnl)}
+                                </strong>
+                                {calc.retPct != null && (
+                                  <>
+                                    {" "}
+                                    · {calc.retPct >= 0 ? "+" : ""}
+                                    {fmt(calc.retPct, 1)}% return
+                                  </>
+                                )}
+                                {calc.realizedR != null && (
+                                  <>
+                                    {" "}
+                                    ·{" "}
+                                    <strong
+                                      style={{
+                                        color:
+                                          calc.realizedR >= 0
+                                            ? "var(--color-success-strong)"
+                                            : "var(--color-danger-strong)",
+                                      }}
+                                    >
+                                      {fmt(calc.realizedR, 1)}R
+                                    </strong>
+                                  </>
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="jx-ltgroup">
+                          <Sect
+                            icon={AlertTriangle}
+                            title="Risk management"
+                            hint="Powers your R-multiples"
                           />
-                        </Field>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-2)" }}>
-                          <div style={{ display: "flex", flexDirection: "column" }}>
-                            <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Did you follow your plan?</span>
-                            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Discipline is the #1 predictor of long-term edge</span>
+                          <div className="jx-form-grid">
+                            <Field label="Stop loss">
+                              <div className="jx-input">
+                                <span className="jx-input__icon">
+                                  <AlertTriangle size={15} />
+                                </span>
+                                <input
+                                  type="number"
+                                  step="any"
+                                  placeholder="$60,100"
+                                  value={form.stopLoss}
+                                  onChange={(e) =>
+                                    set("stopLoss", e.target.value)
+                                  }
+                                />
+                              </div>
+                            </Field>
+                            <Field label="Take profit">
+                              <div className="jx-input">
+                                <span className="jx-input__icon">
+                                  <Target size={15} />
+                                </span>
+                                <input
+                                  type="number"
+                                  step="any"
+                                  placeholder="$66,540"
+                                  value={form.takeProfit}
+                                  onChange={(e) =>
+                                    set("takeProfit", e.target.value)
+                                  }
+                                />
+                              </div>
+                            </Field>
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                            <span style={{ font: "var(--text-small)", fontWeight: 600, color: form.followedPlan ? "var(--color-success-strong)" : "var(--color-text-muted)" }}>
-                              {form.followedPlan ? "Yes" : "No"}
-                            </span>
+
+                          {calc.plannedRR != null && (
+                            <div className="jx-banner jx-banner--warn">
+                              <Target
+                                size={16}
+                                style={{ color: "var(--yellow-500)" }}
+                              />
+                              <span>
+                                Planned R:R{" "}
+                                <strong>1 : {fmt(calc.plannedRR, 1)}</strong>
+                                {calc.expectedLoss > 0 && (
+                                  <>
+                                    {" "}
+                                    · risking ${fmt(calc.expectedLoss, 0)} to
+                                    make ${fmt(calc.expectedProfit, 0)}
+                                  </>
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="jx-ltgroup">
+                          <Sect
+                            icon={Clock}
+                            title="Timing"
+                            hint="Auto session tag"
+                          />
+                          <TimingInput form={form} set={set} mode="detailed" />
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "var(--space-2)",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {session && (
+                              <span
+                                className="jx-chip"
+                                style={{ cursor: "default" }}
+                              >
+                                <Clock size={13} /> Auto-detected: {session}
+                              </span>
+                            )}
                             <button
                               type="button"
-                              className={`jx-switch ${form.followedPlan ? "jx-switch--on" : ""}`}
-                              onClick={() => set("followedPlan", !form.followedPlan)}
-                              aria-pressed={form.followedPlan}
-                            />
+                              className="jx-chip jx-chip--selected"
+                              onClick={() => {
+                                const now = nowLocal();
+                                setForm((f) => ({
+                                  ...f,
+                                  entryTime: f.entryTime || now,
+                                  exitTime: now,
+                                }));
+                              }}
+                            >
+                              <Zap size={13} /> Set to now
+                            </button>
                           </div>
                         </div>
-                        <Field label="Mistakes (be honest)">
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-                            {MISTAKES.map((m) => {
-                              const sel = form.mistakes.includes(m);
-                              return (
-                                <Chip key={m} selected={sel} onClick={() => {
-                                  if (m === "None") return set("mistakes", sel ? [] : ["None"]);
-                                  const base = form.mistakes.filter((x) => x !== "None");
-                                  set("mistakes", sel ? base.filter((x) => x !== m) : [...base, m]);
-                                }}>
+                        <div className="jx-ltgroup">
+                          <Sect
+                            icon={LineChart}
+                            title="Your edge — context"
+                            hint="Sharpens analytics"
+                          />
+                          <Field label="Strategy / setup">
+                            <ChipsWithCustom
+                              options={[
+                                ...DEFAULT_STRATEGIES,
+                                ...customStrategies,
+                              ]}
+                              value={form.strategy}
+                              onSelect={(v) => set("strategy", v)}
+                              onAddCustom={addCustomStrategy}
+                              placeholder="e.g. ORB 15m"
+                            />
+                          </Field>
+                          <Field label="Market condition">
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "var(--space-2)",
+                              }}
+                            >
+                              {["Trending", "Ranging", "Volatile"].map((m) => (
+                                <Chip
+                                  key={m}
+                                  selected={form.market === m}
+                                  onClick={() =>
+                                    set("market", form.market === m ? null : m)
+                                  }
+                                >
                                   {m}
                                 </Chip>
-                              );
-                            })}
+                              ))}
+                            </div>
+                          </Field>
+                          <Field label="Timeframe">
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "var(--space-2)",
+                                alignItems: "center",
+                              }}
+                            >
+                              {TIMEFRAMES.map((tf) => (
+                                <Chip
+                                  key={tf}
+                                  selected={form.timeframe === tf}
+                                  onClick={() =>
+                                    set(
+                                      "timeframe",
+                                      form.timeframe === tf ? null : tf,
+                                    )
+                                  }
+                                >
+                                  {tf}
+                                </Chip>
+                              ))}
+                              <Chip
+                                selected={form.timeframe === "custom"}
+                                onClick={() =>
+                                  set(
+                                    "timeframe",
+                                    form.timeframe === "custom"
+                                      ? null
+                                      : "custom",
+                                  )
+                                }
+                              >
+                                Custom
+                              </Chip>
+                              {form.timeframe === "custom" && (
+                                <span
+                                  className="jx-input"
+                                  style={{ height: 34, width: 110 }}
+                                >
+                                  <input
+                                    type="number"
+                                    placeholder="mins"
+                                    value={form.tfCustom}
+                                    onChange={(e) =>
+                                      set("tfCustom", e.target.value)
+                                    }
+                                  />
+                                  <span className="jx-input__addon">m</span>
+                                </span>
+                              )}
+                            </div>
+                          </Field>
+                        </div>
+                        <div className="jx-ltgroup">
+                          <Sect
+                            icon={Flame}
+                            title="Psychology & discipline"
+                            hint="Find behavioral leaks"
+                          />
+                          <Stars
+                            value={form.confidence}
+                            onChange={(v) => set("confidence", v)}
+                          />
+                          <Field label="Emotion at entry">
+                            <ChipsWithCustom
+                              options={[...DEFAULT_EMOTIONS, ...customEmotions]}
+                              value={form.emotion}
+                              onSelect={(v) => set("emotion", v)}
+                              onAddCustom={addCustomEmotion}
+                              placeholder="e.g. Anxious"
+                            />
+                          </Field>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              flexWrap: "wrap",
+                              gap: "var(--space-2)",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  font: "var(--text-body-md)",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Did you follow your plan?
+                              </span>
+                              <span
+                                style={{
+                                  font: "var(--text-caption)",
+                                  color: "var(--color-text-muted)",
+                                }}
+                              >
+                                Discipline is the #1 predictor of long-term edge
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "var(--space-2)",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  font: "var(--text-small)",
+                                  fontWeight: 600,
+                                  color: form.followedPlan
+                                    ? "var(--color-success-strong)"
+                                    : "var(--color-text-muted)",
+                                }}
+                              >
+                                {form.followedPlan ? "Yes" : "No"}
+                              </span>
+                              <button
+                                type="button"
+                                className={`jx-switch ${form.followedPlan ? "jx-switch--on" : ""}`}
+                                onClick={() =>
+                                  set("followedPlan", !form.followedPlan)
+                                }
+                                aria-pressed={form.followedPlan}
+                              />
+                            </div>
                           </div>
-                        </Field>
-
-                        <Sect icon={ImageIcon} title="Screenshots" hint="Worth +15 quality" />
-                        {screenshotsBlock}
-
-                        <Sect icon={Pencil} title="Notes" hint="Your thesis & lessons" />
-                        <textarea
-                          className="jx-textarea"
-                          placeholder="What was your thesis? What did you see on the chart, and what would you repeat or avoid next time?"
-                          value={form.notes}
-                          onChange={(e) => set("notes", e.target.value)}
-                        />
+                          <Field label="Mistakes (be honest)">
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "var(--space-2)",
+                              }}
+                            >
+                              {MISTAKES.map((m) => {
+                                const sel = form.mistakes.includes(m);
+                                return (
+                                  <Chip
+                                    key={m}
+                                    selected={sel}
+                                    onClick={() => {
+                                      if (m === "None")
+                                        return set(
+                                          "mistakes",
+                                          sel ? [] : ["None"],
+                                        );
+                                      const base = form.mistakes.filter(
+                                        (x) => x !== "None",
+                                      );
+                                      set(
+                                        "mistakes",
+                                        sel
+                                          ? base.filter((x) => x !== m)
+                                          : [...base, m],
+                                      );
+                                    }}
+                                  >
+                                    {m}
+                                  </Chip>
+                                );
+                              })}
+                            </div>
+                          </Field>
+                        </div>
+                        <div className="jx-ltgroup">
+                          <Sect icon={ImageIcon} title="Screenshots" />
+                          {screenshotsBlock}
+                        </div>
+                        <div className="jx-ltgroup">
+                          <Sect
+                            icon={Pencil}
+                            title="Notes"
+                            hint="Your thesis & lessons"
+                          />
+                          <textarea
+                            className="jx-textarea"
+                            placeholder="What was your thesis? What did you see on the chart, and what would you repeat or avoid next time?"
+                            value={form.notes}
+                            onChange={(e) => set("notes", e.target.value)}
+                          />
+                        </div>
                       </>
                     )}
                   </motion.div>
@@ -1111,91 +2040,201 @@ export default function LogTradeModal({ open, onClose, onSaved, onSubmit, initia
 
               {/* ===== Right rail (both modes — keeps size identical) ===== */}
               <div className="jx-ltmodal__rail">
-                <span style={{ font: "var(--text-label)", letterSpacing: "0.6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Trade quality</span>
-                <QualityRing pct={quality} />
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ font: "var(--text-title)" }}>{qualityLabel}</div>
-                  {!isQuick && missing && (
-                    <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                      {missing.label === "Screenshot" ? "Add a screenshot to hit 100%" : `${missing.label} for +${missing.xp}`}
-                    </div>
-                  )}
-                  {isQuick && (
-                    <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                      Use Detailed mode for a stronger log
-                    </div>
-                  )}
-                </div>
-
-                {!isQuick && (
-                  <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)" }}>
-                    <div className="jx-xp-row" style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Zap size={14} style={{ color: "var(--yellow-500)" }} /> Log completeness
-                      </span>
-                      <span>{quality}%</span>
-                    </div>
-                    {checks.map((c) => (
-                      <div key={c.label} className={`jx-xp-row ${c.ok ? "" : "jx-xp-row--off"}`}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <Check size={13} style={{ color: c.ok ? "var(--color-success)" : "var(--color-text-disabled)" }} />
-                          {c.label}
-                        </span>
-                        <span>{c.ok ? "✓" : "—"}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <span style={{ font: "var(--text-label)", letterSpacing: "0.6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Live preview</span>
-                <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                    <span style={{ font: "var(--text-title)" }}>{form.symbol || "—"}</span>
-                    <span className={`jx-badge ${form.direction === "long" ? "jx-badge--success" : "jx-badge--danger"}`}>
+                <span
+                  style={{
+                    font: "var(--text-label)",
+                    letterSpacing: "0.6px",
+                    textTransform: "uppercase",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  Live preview
+                </span>
+                <div
+                  className="jx-card jx-card--flat"
+                  style={{
+                    padding: "var(--space-4)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "var(--space-2)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "var(--space-2)",
+                    }}
+                  >
+                    <span style={{ font: "var(--text-title)" }}>
+                      {form.symbol || "—"}
+                    </span>
+                    <span
+                      className={`jx-badge ${form.direction === "long" ? "jx-badge--success" : "jx-badge--danger"}`}
+                    >
                       {form.direction === "long" ? "Long" : "Short"}
                     </span>
-                    <span style={{ marginLeft: "auto", color: "var(--color-text-muted)", display: "flex" }}><MoreVertical size={15} /></span>
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, auto)", gap: "var(--space-2)", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                    <span>Entry</span><span>Exit</span><span>Size</span><span>R : R</span>
-                    <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{form.entry ? `$${fmt(form.entry)}` : "—"}</span>
-                    <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{form.exit ? `$${fmt(form.exit)}` : "—"}</span>
-                    <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>
-                      {form.size ? (form.sizeUnit === "usd" ? `$${fmt(form.size)}` : fmt(form.size)) : "—"}
+                    <span
+                      style={{
+                        marginLeft: "auto",
+                        color: "var(--color-text-muted)",
+                        display: "flex",
+                      }}
+                    >
+                      <MoreVertical size={15} />
                     </span>
-                    <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{calc.plannedRR ? `1 : ${fmt(calc.plannedRR, 1)}` : "—"}</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
-                    <span style={{ font: "var(--text-title)", color: (isQuick ? quickPnl : calc.pnl) == null ? "var(--color-text-muted)" : (isQuick ? quickPnl : calc.pnl) >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                      {(isQuick ? quickPnl : calc.pnl) == null ? "P&L —" : fmtMoney(isQuick ? quickPnl : calc.pnl)}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, auto)",
+                      gap: "var(--space-2)",
+                      font: "var(--text-caption)",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    <span>Entry</span>
+                    <span>Exit</span>
+                    <span>Size</span>
+                    <span>R : R</span>
+                    <span
+                      style={{
+                        color: "var(--color-text-primary)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {form.entry ? `$${fmt(form.entry)}` : "—"}
+                    </span>
+                    <span
+                      style={{
+                        color: "var(--color-text-primary)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {form.exit ? `$${fmt(form.exit)}` : "—"}
+                    </span>
+                    <span
+                      style={{
+                        color: "var(--color-text-primary)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {form.size
+                        ? form.sizeUnit === "usd"
+                          ? `$${fmt(form.size)}`
+                          : fmt(form.size)
+                        : "—"}
+                    </span>
+                    <span
+                      style={{
+                        color: "var(--color-text-primary)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {calc.plannedRR ? `1 : ${fmt(calc.plannedRR, 1)}` : "—"}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "var(--space-2)",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span
+                      style={{
+                        font: "var(--text-title)",
+                        color:
+                          (isQuick ? quickPnl : calc.pnl) == null
+                            ? "var(--color-text-muted)"
+                            : (isQuick ? quickPnl : calc.pnl) >= 0
+                              ? "var(--color-success-strong)"
+                              : "var(--color-danger-strong)",
+                      }}
+                    >
+                      {(isQuick ? quickPnl : calc.pnl) == null
+                        ? "P&L —"
+                        : fmtMoney(isQuick ? quickPnl : calc.pnl)}
                     </span>
                     {form.screenshots.length > 0 && (
-                      <span className="jx-badge jx-badge--neutral"><ImageIcon size={11} /> {form.screenshots.length}</span>
+                      <span className="jx-badge jx-badge--neutral">
+                        <ImageIcon size={11} /> {form.screenshots.length}
+                      </span>
                     )}
                   </div>
                 </div>
 
-                <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
-                  <Lightbulb size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
-                  <span style={{ font: "var(--text-caption)" }}>Traders who log their emotions cut tilt-driven losses by ~30%.</span>
+                <div
+                  className="jx-banner jx-banner--warn"
+                  style={{ alignItems: "flex-start" }}
+                >
+                  <Lightbulb
+                    size={15}
+                    style={{
+                      color: "var(--yellow-500)",
+                      flexShrink: 0,
+                      marginTop: 2,
+                    }}
+                  />
+                  <span style={{ font: "var(--text-caption)" }}>
+                    Traders who log their emotions cut tilt-driven losses by
+                    ~30%.
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* ===== Footer ===== */}
-            <div className="jx-ltmodal__footer" style={{ flexDirection: "column", alignItems: "stretch" }}>
-              <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
+            <div
+              className="jx-ltmodal__footer"
+              style={{ flexDirection: "column", alignItems: "stretch" }}
+            >
+              <span
+                style={{
+                  font: "var(--text-small)",
+                  color: "var(--color-text-muted)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
                 <Zap size={14} style={{ color: "var(--yellow-500)" }} />
-                {isQuick ? <>Quick log</> : <>Trade quality {quality}%</>}
+                {isQuick ? <>Quick log</> : <>Detailed log</>}
               </span>
-              <div style={{ display: "flex", gap: "var(--space-3)", width: "100%" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "var(--space-3)",
+                  width: "100%",
+                }}
+              >
                 {!isEdit && (
-                  <button className="jx-btn jx-btn--ghost" onClick={() => save(true)} disabled={saving} style={{ flex: 1, justifyContent: "center" }}>
+                  <button
+                    className="jx-btn jx-btn--ghost"
+                    onClick={() => save(true)}
+                    disabled={saving}
+                    style={{ flex: 1, justifyContent: "center" }}
+                  >
                     Save &amp; add another
                   </button>
                 )}
-                <button className="jx-btn jx-btn--primary" onClick={() => save(false)} disabled={saving} style={{ flex: 1, justifyContent: "center" }}>
-                  {saving ? <><Spinner /> Saving…</> : <><Check size={16} /> {isEdit ? "Update trade" : "Log trade"}</>}
+                <button
+                  className="jx-btn jx-btn--primary"
+                  onClick={() => save(false)}
+                  disabled={saving}
+                  style={{ flex: 1, justifyContent: "center" }}
+                >
+                  {saving ? (
+                    <>
+                      <Spinner /> Saving…
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} />{" "}
+                      {isEdit ? "Update trade" : "Log trade"}
+                    </>
+                  )}
                 </button>
               </div>
             </div>

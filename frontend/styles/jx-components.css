@@ -1052,6 +1052,23 @@ body::before {
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  /* center icon + label so an icon-only tab never overlaps its neighbour */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+/* glowing thunder icon for the Quick tab (brand gold) */
+.jx-seg__glow {
+  color: var(--yellow-500);
+  filter: drop-shadow(0 0 5px var(--yellow-400));
+  animation: jx-seg-glow 1.8s ease-in-out infinite;
+}
+@keyframes jx-seg-glow {
+  0%, 100% { filter: drop-shadow(0 0 3px var(--yellow-400)); }
+  50% { filter: drop-shadow(0 0 8px var(--yellow-300)); }
 }
 .jx-seg__btn--active {
   background: var(--color-bg-surface);
@@ -1262,15 +1279,24 @@ body::before {
   justify-content: space-between;
   gap: var(--space-2);
   flex-wrap: wrap;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-5);
-  margin-top: var(--space-2);
 }
-/* first section in a form has no divider above it */
-.jx-ltmodal__form > .jx-sect:first-child {
-  border-top: none;
-  padding-top: 0;
-  margin-top: 0;
+.jx-sect__title {
+  font-weight: 600;
+}
+
+/* Log-trade form sections rendered as distinct card containers (like the
+   trade-details modal). Each group holds its section header + fields. */
+.jx-ltgroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+.jx-ltgroup .jx-sect {
+  margin-bottom: var(--space-1);
 }
 .jx-sect__left {
   display: flex;
@@ -1923,28 +1949,6 @@ body::before {
 @media (max-width: 768px) {
   .jx-mobile-journalrow {
     display: flex !important;
-  }
-}
-
-/* Trade-details edit/delete actions: comfortably sized on desktop, and
-   full-width stretched (like submit buttons) on mobile. */
-.jx-td-action {
-  padding: 11px 18px;
-  font-size: var(--text-body-md);
-}
-@media (max-width: 600px) {
-  .jx-td-actionbar {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-  .jx-td-actionbar .jx-td-action {
-    flex: 1 1 0;
-    justify-content: center;
-    padding: 13px 16px; /* match submit-button height */
-  }
-  .jx-td-actionbar .jx-td-close {
-    order: -1; /* close sits on its own line, top-right feel */
-    margin-left: auto;
   }
 }
 
