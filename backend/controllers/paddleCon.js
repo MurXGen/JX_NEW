@@ -46,6 +46,110 @@ function verifyPaddleSignature(req) {
   }
 }
 
+// Map a Paddle transaction object → our plan/type/expiry.
+// One-time / lifetime prices have billing_cycle: null; recurring have month/year.
+function classifyTransaction(data) {
+  const item = data.items?.[0] || {};
+  const priceId = item.price?.id || data.details?.line_items?.[0]?.price_id;
+  const billingCycle = item.price?.billing_cycle;
+  const endsAt = data.billing_period?.ends_at ? new Date(data.billing_period.ends_at) : null;
+
+  const isMonthlyId = !!priceId && priceId === process.env.PADDLE_MONTHLY_PRICE_ID;
+  const isYearlyId = !!priceId && priceId === process.env.PADDLE_YEARLY_PRICE_ID;
+  const isLifetimeId = !!priceId && priceId === process.env.PADDLE_LIFETIME_PRICE_ID;
+
+  let plan = "free", type = "none", expiresAt = null;
+  if (isLifetimeId || (!isMonthlyId && !isYearlyId && !billingCycle)) {
+    plan = "lifetime"; type = "lifetime"; expiresAt = null;
+  } else if (isYearlyId || billingCycle?.interval === "year") {
+    plan = "pro"; type = "recurring"; expiresAt = endsAt;
+  } else if (isMonthlyId || billingCycle?.interval === "month") {
+    plan = "pro"; type = "recurring"; expiresAt = endsAt;
+  }
+  return { plan, type, expiresAt, priceId, billingCycle };
+}
+
+// Apply a classified plan to a user doc (does NOT save). Enforces lifetime
+// stickiness (returns false if it would downgrade a lifetime user).
+function applyPlanToUser(user, cls, data) {
+  if (user.subscriptionPlan === "lifetime" && cls.plan !== "lifetime") return false;
+  user.subscriptionPlan = cls.plan;
+  user.subscriptionType = cls.type;
+  user.subscriptionStatus = "active";
+  user.subscriptionSource = "paddle";
+  user.subscriptionStartAt = new Date(data.created_at || Date.now());
+  user.subscriptionExpiresAt = cls.expiresAt;
+  user.subscriptionCreatedAt = new Date();
+  user.paddleCustomerId = data.customer_id || data.customer?.id || user.paddleCustomerId;
+  return true;
+}
+
+/* ------------------------------------------------------------------
+   Direct verification (no webhook dependency). Called by the frontend
+   right after Paddle checkout completes. Authenticated by the user's
+   cookie/bearer; fetches the transaction from the Paddle API and applies
+   the plan. Mirrors the reliable crypto-verify flow.
+   POST /api/subscription/paddle-verify  { transactionId }
+------------------------------------------------------------------- */
+exports.verifyPaddleTransaction = async (req, res) => {
+  try {
+    const userId = req.cookies?.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const { transactionId } = req.body || {};
+    if (!transactionId) return res.status(400).json({ message: "transactionId required" });
+    if (!process.env.PADDLE_API_KEY) return res.status(500).json({ message: "Paddle API key not configured" });
+
+    const apiResp = await paddle.getTransaction(transactionId);
+    const txn = apiResp?.data;
+    if (!txn) return res.status(404).json({ message: "Transaction not found" });
+
+    console.log(`[PADDLE-VERIFY] user=${userId} txn=${transactionId} status=${txn.status} custom_userId=${txn.custom_data?.userId || "none"}`);
+
+    if (!["completed", "paid", "billed"].includes(txn.status)) {
+      return res.status(202).json({ pending: true, status: txn.status });
+    }
+
+    // security: if the transaction carries a userId, it must be this user
+    const txnUserId = txn.custom_data?.userId;
+    if (txnUserId && String(txnUserId) !== String(userId)) {
+      console.warn(`[PADDLE-VERIFY] txn userId ${txnUserId} != caller ${userId} — refusing`);
+      return res.status(403).json({ message: "Transaction does not belong to this user" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const cls = classifyTransaction(txn);
+    if (cls.plan === "free") return res.status(200).json({ changed: false, reason: "unrecognised-plan" });
+
+    if (user.subscriptionPlan === "lifetime" && cls.plan !== "lifetime") {
+      return res.status(200).json({ changed: false, plan: "lifetime", reason: "lifetime-sticky" });
+    }
+
+    const grandTotal = txn.details?.totals?.grand_total ?? txn.details?.totals?.total ?? "0";
+    const order = await Order.create({
+      userId: user._id,
+      planId: cls.plan,
+      amount: Number(grandTotal || 0) / 100,
+      currency: txn.currency_code || "USD",
+      period: cls.plan === "lifetime" ? "lifetime" : "monthly",
+      paymentType: cls.type,
+      status: "paid",
+      meta: txn,
+    });
+
+    applyPlanToUser(user, cls, txn);
+    user.orders.push({ orderId: order._id, status: "paid" });
+    await user.save();
+
+    console.log(`✅ [PADDLE-VERIFY] ${user.email} → ${cls.plan}/${cls.type}`);
+    return res.json({ success: true, plan: cls.plan, type: cls.type });
+  } catch (err) {
+    console.error("❌ [PADDLE-VERIFY] error:", err?.response?.status, JSON.stringify(err?.response?.data) || err.message);
+    return res.status(500).json({ message: "Verification failed" });
+  }
+};
+
 exports.handlePaddleWebhook = async (req, res) => {
   console.log("━━━━━━━━━━ [PADDLE-WH] incoming webhook ━━━━━━━━━━");
   try {

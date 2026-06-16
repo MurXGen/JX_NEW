@@ -128,6 +128,11 @@ app.use(
 // ✅ TheBookX Payments
 app.use("/api/thebooks/payments", thebookxpayments);
 
+// ✅ Direct Paddle verification (frontend calls this on checkout success — no
+// webhook dependency). Uses JSON body (not under the raw-body prefixes).
+const { verifyPaddleTransaction } = require("./controllers/paddleCon");
+app.post("/api/subscription/paddle-verify", verifyPaddleTransaction);
+
 /* =======================
    TELEGRAM BOT
 ======================= */

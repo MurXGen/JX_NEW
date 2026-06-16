@@ -47,7 +47,35 @@ export default function PaddleLoader() {
                   console.log("🟩 Live mode");
                 }
 
-                window.Paddle.Initialize({ token });
+                window.Paddle.Initialize({
+                  token,
+                  // Paddle Billing fires events here (not via Checkout.open
+                  // callbacks). When checkout completes we verify the
+                  // transaction server-side so the plan updates reliably even
+                  // if the webhook is delayed/undelivered.
+                  eventCallback: (event) => {
+                    try {
+                      if (event?.name === "checkout.completed") {
+                        const txnId =
+                          event?.data?.transaction_id || event?.data?.id;
+                        console.log("✅ checkout.completed — verifying txn", txnId);
+                        if (txnId) {
+                          fetch(`${API_BASE}/api/subscription/paddle-verify`, {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ transactionId: txnId }),
+                          })
+                            .then((r) => r.json())
+                            .then((d) => console.log("paddle-verify:", d))
+                            .catch((e) => console.error("paddle-verify failed", e));
+                        }
+                      }
+                    } catch (e) {
+                      console.error("eventCallback error", e);
+                    }
+                  },
+                });
 
                 console.log("🎉 Paddle initialized");
               } catch (err) {
