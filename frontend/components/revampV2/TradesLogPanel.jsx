@@ -1020,6 +1020,7 @@ export default function TradesLogPanel({
         open={!!editTrade}
         initialTrade={editTrade}
         currentAccountId={editTrade?.accountId}
+        currencySymbol={currencySymbol}
         onClose={() => setEditTrade(null)}
         onSaved={(trade, meta) => {
           if (meta?.updated) onTradeUpdated?.(trade);

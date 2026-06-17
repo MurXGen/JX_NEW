@@ -9,6 +9,7 @@ import {
   ArrowRightLeft,
   CandlestickChart,
   Check,
+  ChevronDown,
   Clock,
   Flame,
   Image as ImageIcon,
@@ -30,6 +31,7 @@ import Dropdown from "./Dropdown";
 import DateTimePicker from "./DateTimePicker";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { canAddTrade, getPlanRules } from "@/utils/planRestrictions";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { scheduleAutoBackup } from "@/utils/driveBackup";
@@ -469,9 +471,9 @@ const EMPTY = {
 
 const fmt = (v, d = 2) =>
   Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
-const fmtMoney = (v) => {
+const fmtMoney = (v, sym = "$") => {
   const a = Math.abs(v);
-  const s = a >= 1000 ? `$${fmt(a / 1000, 2)}k` : `$${fmt(a)}`;
+  const s = a >= 1000 ? `${sym}${fmt(a / 1000, 2)}k` : `${sym}${fmt(a)}`;
   return `${v < 0 ? "−" : "+"}${s}`;
 };
 const detectSession = (dt) => {
@@ -538,10 +540,22 @@ export default function LogTradeModal({
   onSubmit,
   initialTrade = null,
   currentAccountId = null,
+  currencySymbol,
   onNoJournal,
 }) {
   const isEdit = !!initialTrade?._id;
+  // Currency the user is logging in — prefer the prop from the dashboard,
+  // else fall back to the active journal's base currency from localStorage.
+  const sym = useMemo(() => {
+    if (currencySymbol) return currencySymbol;
+    try {
+      return getCurrencySymbol((localStorage.getItem("jx-base-currency") || "USD").toLowerCase());
+    } catch {
+      return "$";
+    }
+  }, [currencySymbol]);
   const [mode, setMode] = useState("detailed");
+  const [showMore, setShowMore] = useState(false); // quick-log "add more details" accordion
   const [form, setForm] = useState(EMPTY);
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -822,7 +836,7 @@ export default function LogTradeModal({
       }
     } catch {}
 
-    const isQuickPnl = mode === "quick" && form.logMethod === "pnl";
+    const isQuickPnl = mode === "quick"; // quick log is always net-P&L based
     const pnl = isQuickPnl ? Number(form.netPnl) : (calc.pnl ?? 0);
     const hasExit = !!num(form.exit);
 
@@ -1310,185 +1324,95 @@ export default function LogTradeModal({
 
                     {isQuick ? (
                       <>
-                        {/* ===== QUICK ===== */}
+                        {/* ===== QUICK — symbol + direction (above) + P&L only ===== */}
                         <div className="jx-ltgroup">
-                          <Sect
-                            icon={Zap}
-                            title="Result"
-                            hint="Just the outcome"
-                          />
-                          <Field label="How do you want to log?">
-                            <Seg
-                              items={[
-                                { value: "entryexit", label: "Entry & exit" },
-                                { value: "pnl", label: "P&L only" },
-                              ]}
-                              value={form.logMethod}
-                              onChange={(v) => set("logMethod", v)}
-                            />
-                          </Field>
-
-                          {form.logMethod === "pnl" ? (
-                            <Field label="Net P&L (use − for a loss)">
-                              <div className="jx-input">
-                                <input
-                                  type="number"
-                                  step="any"
-                                  placeholder="e.g. 1290 or -340"
-                                  value={form.netPnl}
-                                  onChange={(e) =>
-                                    set("netPnl", e.target.value)
-                                  }
-                                />
-                                {quickOutcome && (
-                                  <span
-                                    className={`jx-badge ${quickPnl >= 0 ? "jx-badge--success" : "jx-badge--danger"}`}
-                                  >
-                                    {quickOutcome}
-                                  </span>
-                                )}
-                              </div>
-                            </Field>
-                          ) : (
-                            <div className="jx-form-grid">
-                              <Field label="Entry price">
-                                <div className="jx-input">
-                                  <input
-                                    type="number"
-                                    step="any"
-                                    placeholder="0.00"
-                                    value={form.entry}
-                                    onChange={(e) =>
-                                      set("entry", e.target.value)
-                                    }
-                                  />
-                                </div>
-                              </Field>
-                              <Field label="Exit price">
-                                <div className="jx-input">
-                                  <input
-                                    type="number"
-                                    step="any"
-                                    placeholder="0.00"
-                                    value={form.exit}
-                                    onChange={(e) =>
-                                      set("exit", e.target.value)
-                                    }
-                                  />
-                                </div>
-                              </Field>
-                              <Field
-                                label={`Size (${form.sizeUnit === "usd" ? "USD" : "asset"})`}
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    gap: "var(--space-2)",
-                                  }}
-                                >
-                                  <div className="jx-input" style={{ flex: 1 }}>
-                                    <input
-                                      type="number"
-                                      step="any"
-                                      placeholder="0.00"
-                                      value={form.size}
-                                      onChange={(e) =>
-                                        set("size", e.target.value)
-                                      }
-                                    />
-                                  </div>
-                                  <div style={{ width: 110 }}>
-                                    <Dropdown
-                                      value={form.sizeUnit}
-                                      onChange={(v) => set("sizeUnit", v)}
-                                      options={[
-                                        { value: "asset", label: "Asset" },
-                                        { value: "usd", label: "USD" },
-                                      ]}
-                                    />
-                                  </div>
-                                </div>
-                              </Field>
+                          <Sect icon={Zap} title="Result" hint="Just the outcome" />
+                          <Field label={`Net P&L in ${sym} (use − for a loss)`}>
+                            <div className="jx-input">
+                              <span className="jx-input__icon" style={{ fontWeight: 700 }}>{sym}</span>
+                              <input
+                                type="number"
+                                step="any"
+                                placeholder="e.g. 1290 or -340"
+                                value={form.netPnl}
+                                onChange={(e) => set("netPnl", e.target.value)}
+                              />
+                              {quickOutcome && (
+                                <span className={`jx-badge ${quickPnl >= 0 ? "jx-badge--success" : "jx-badge--danger"}`}>
+                                  {quickOutcome}
+                                </span>
+                              )}
                             </div>
-                          )}
-
-                          <Field label="When">
-                            <TimingInput form={form} set={set} mode="quick" />
                           </Field>
 
                           {quickOutcome && (
                             <div
                               className={`jx-banner ${quickPnl >= 0 ? "jx-banner--success" : ""}`}
-                              style={
-                                quickPnl < 0
-                                  ? { background: "var(--color-danger-subtle)" }
-                                  : undefined
-                              }
+                              style={quickPnl < 0 ? { background: "var(--color-danger-subtle)" } : undefined}
                             >
                               {quickPnl >= 0 ? (
-                                <TrendingUp
-                                  size={16}
-                                  style={{ color: "var(--color-success)" }}
-                                />
+                                <TrendingUp size={16} style={{ color: "var(--color-success)" }} />
                               ) : (
-                                <TrendingDown
-                                  size={16}
-                                  style={{ color: "var(--color-danger)" }}
-                                />
+                                <TrendingDown size={16} style={{ color: "var(--color-danger)" }} />
                               )}
                               <span>
-                                <strong
-                                  style={{
-                                    color:
-                                      quickPnl >= 0
-                                        ? "var(--color-success-strong)"
-                                        : "var(--color-danger-strong)",
-                                  }}
-                                >
-                                  {quickOutcome} · {fmtMoney(quickPnl)}
+                                <strong style={{ color: quickPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                                  {quickOutcome} · {fmtMoney(quickPnl, sym)}
                                 </strong>{" "}
-                                — detected automatically from your P&L
+                                — detected from your P&L
                               </span>
                             </div>
                           )}
                         </div>
 
-                        <div className="jx-ltgroup">
-                          <Sect icon={ImageIcon} title="Notes & screenshot" />
-                          <Field label="Screenshots · optional">
-                            {screenshotsBlock}
-                          </Field>
+                        {/* Accordion: optional extra details slide out */}
+                        <button
+                          type="button"
+                          className="jx-ltmore"
+                          onClick={() => setShowMore((v) => !v)}
+                          aria-expanded={showMore}
+                        >
+                          <span>{showMore ? "Hide extra details" : "Add more details (date, screenshot, note)"}</span>
+                          <ChevronDown
+                            size={18}
+                            style={{ transition: "transform .2s ease", transform: showMore ? "rotate(180deg)" : "none" }}
+                          />
+                        </button>
 
-                          <Field label="Quick note (optional)">
-                            <div className="jx-input">
-                              <span className="jx-input__icon">
-                                <Pencil size={15} />
-                              </span>
-                              <input
-                                placeholder="e.g. Breakout retest, clean setup"
-                                value={form.notes}
-                                onChange={(e) => set("notes", e.target.value)}
-                              />
-                            </div>
-                          </Field>
+                        <AnimatePresence initial={false}>
+                          {showMore && (
+                            <motion.div
+                              key="quick-more"
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.22, ease: "easeOut" }}
+                              style={{ overflow: "hidden", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+                            >
+                              <div className="jx-ltgroup">
+                                <Sect icon={Clock} title="When" hint="Date / time — optional" />
+                                <TimingInput form={form} set={set} mode="quick" />
+                              </div>
 
-                          {form.logMethod === "pnl" && (
-                            <div className="jx-banner jx-banner--warn">
-                              <Lightbulb
-                                size={16}
-                                style={{
-                                  color: "var(--yellow-500)",
-                                  flexShrink: 0,
-                                }}
-                              />
-                              <span style={{ font: "var(--text-small)" }}>
-                                P&L-only log. Switch to{" "}
-                                <strong>Detailed</strong> (top right) anytime
-                                for full analytics.
-                              </span>
-                            </div>
+                              <div className="jx-ltgroup">
+                                <Sect icon={ImageIcon} title="Screenshot & note" />
+                                <Field label="Screenshots · optional">
+                                  {screenshotsBlock}
+                                </Field>
+                                <Field label="Quick note (optional)">
+                                  <div className="jx-input">
+                                    <span className="jx-input__icon"><Pencil size={15} /></span>
+                                    <input
+                                      placeholder="e.g. Breakout retest, clean setup"
+                                      value={form.notes}
+                                      onChange={(e) => set("notes", e.target.value)}
+                                    />
+                                  </div>
+                                </Field>
+                              </div>
+                            </motion.div>
                           )}
-                        </div>
+                        </AnimatePresence>
                       </>
                     ) : (
                       <>
@@ -1505,7 +1429,7 @@ export default function LogTradeModal({
                                 <input
                                   type="number"
                                   step="any"
-                                  placeholder="$61,240"
+                                  placeholder={`${sym}61,240`}
                                   value={form.entry}
                                   onChange={(e) => set("entry", e.target.value)}
                                 />
@@ -1516,7 +1440,7 @@ export default function LogTradeModal({
                                 <input
                                   type="number"
                                   step="any"
-                                  placeholder="$63,820"
+                                  placeholder={`${sym}63,820`}
                                   value={form.exit}
                                   onChange={(e) => set("exit", e.target.value)}
                                 />
@@ -1597,7 +1521,7 @@ export default function LogTradeModal({
                                     placeholder={
                                       form.feeUnit === "percent"
                                         ? "0.1"
-                                        : "$12.40"
+                                        : `${sym}12.40`
                                     }
                                     value={form.feeValue}
                                     onChange={(e) =>
@@ -1614,7 +1538,7 @@ export default function LogTradeModal({
                                         value: "percent",
                                         label: "% of position",
                                       },
-                                      { value: "currency", label: "USD" },
+                                      { value: "currency", label: `${sym} amount` },
                                     ]}
                                   />
                                 </div>
@@ -1629,7 +1553,7 @@ export default function LogTradeModal({
                                       fontWeight: 600,
                                     }}
                                   >
-                                    ${fmt(calc.notional)}{" "}
+                                    {sym}{fmt(calc.notional)}{" "}
                                     {form.feeUnit === "percent" &&
                                       calc.feeAmount > 0 && (
                                         <span
@@ -1639,7 +1563,7 @@ export default function LogTradeModal({
                                           }}
                                         >
                                           {" "}
-                                          · fee ${fmt(calc.feeAmount)}
+                                          · fee {sym}{fmt(calc.feeAmount)}
                                         </span>
                                       )}
                                   </span>
@@ -1676,7 +1600,7 @@ export default function LogTradeModal({
                                         : "var(--color-danger-strong)",
                                   }}
                                 >
-                                  {fmtMoney(calc.pnl)}
+                                  {fmtMoney(calc.pnl, sym)}
                                 </strong>
                                 {calc.retPct != null && (
                                   <>
@@ -1720,7 +1644,7 @@ export default function LogTradeModal({
                                 <input
                                   type="number"
                                   step="any"
-                                  placeholder="$60,100"
+                                  placeholder={`${sym}60,100`}
                                   value={form.stopLoss}
                                   onChange={(e) =>
                                     set("stopLoss", e.target.value)
@@ -1736,7 +1660,7 @@ export default function LogTradeModal({
                                 <input
                                   type="number"
                                   step="any"
-                                  placeholder="$66,540"
+                                  placeholder={`${sym}66,540`}
                                   value={form.takeProfit}
                                   onChange={(e) =>
                                     set("takeProfit", e.target.value)
@@ -1758,8 +1682,8 @@ export default function LogTradeModal({
                                 {calc.expectedLoss > 0 && (
                                   <>
                                     {" "}
-                                    · risking ${fmt(calc.expectedLoss, 0)} to
-                                    make ${fmt(calc.expectedProfit, 0)}
+                                    · risking {sym}{fmt(calc.expectedLoss, 0)} to
+                                    make {sym}{fmt(calc.expectedProfit, 0)}
                                   </>
                                 )}
                               </span>
@@ -2103,7 +2027,7 @@ export default function LogTradeModal({
                         fontWeight: 500,
                       }}
                     >
-                      {form.entry ? `$${fmt(form.entry)}` : "—"}
+                      {form.entry ? `${sym}${fmt(form.entry)}` : "—"}
                     </span>
                     <span
                       style={{
@@ -2111,7 +2035,7 @@ export default function LogTradeModal({
                         fontWeight: 500,
                       }}
                     >
-                      {form.exit ? `$${fmt(form.exit)}` : "—"}
+                      {form.exit ? `${sym}${fmt(form.exit)}` : "—"}
                     </span>
                     <span
                       style={{
@@ -2121,7 +2045,7 @@ export default function LogTradeModal({
                     >
                       {form.size
                         ? form.sizeUnit === "usd"
-                          ? `$${fmt(form.size)}`
+                          ? `${sym}${fmt(form.size)}`
                           : fmt(form.size)
                         : "—"}
                     </span>
@@ -2155,7 +2079,7 @@ export default function LogTradeModal({
                     >
                       {(isQuick ? quickPnl : calc.pnl) == null
                         ? "P&L —"
-                        : fmtMoney(isQuick ? quickPnl : calc.pnl)}
+                        : fmtMoney(isQuick ? quickPnl : calc.pnl, sym)}
                     </span>
                     {form.screenshots.length > 0 && (
                       <span className="jx-badge jx-badge--neutral">
