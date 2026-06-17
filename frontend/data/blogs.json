@@ -3131,7 +3131,7 @@
         },
         {
           "name": "Tradervue",
-          "rating": 4.0,
+          "rating": 4,
           "note": "Solid free beginner journal with broad broker support; no AI or funded-specific tooling."
         }
       ],
@@ -3147,6 +3147,1205 @@
         {
           "q": "Is there a free trading journal for funded accounts?",
           "a": "Yes. JournalX has a free plan with no card required, and TradesViz and Tradervue also offer free tiers. JournalX's free plan includes the funded-account drawdown and consistency tracking that prop firm traders need most."
+        }
+      ]
+    },
+    {
+      "slug": "best-trading-journal-alternatives-2026",
+      "title": "Best Trading Journal Alternatives in 2026: JournalX vs Tradervue, Edgewonk, TraderSync & TradesViz",
+      "metaTitle": "Best Trading Journal Alternatives 2026 (JournalX vs Tradervue, Edgewonk, TraderSync, TradesViz)",
+      "metaDescription": "An honest 2026 comparison of the top trading journals — Tradervue, Edgewonk, TraderSync, TradesViz and TradeZella — and where JournalX fits if you want speed, psychology and zero clutter.",
+      "keywords": [
+        "best trading journal",
+        "trading journal alternatives",
+        "tradervue vs edgewonk",
+        "tradersync vs tradezella",
+        "tradesviz options journal",
+        "journalx comparison"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 13,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Tradervue, Edgewonk, TraderSync, TradesViz, TradeZella — they all log trades. The real differences are speed, psychology and how much they get in your way. Here's the honest breakdown.",
+      "helpful": {
+        "up": 274,
+        "down": 9,
+        "saves": 188
+      },
+      "tags": [
+        "Comparison",
+        "Trading journal",
+        "Tradervue",
+        "Edgewonk",
+        "TraderSync"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Search 'best trading journal' and you'll meet the same five names: Tradervue, Edgewonk, TraderSync, TradesViz and TradeZella. Every one of them can log a trade and draw a few charts. So the question isn't really 'which one logs trades' — it's 'which one I'll actually keep using after week three, and which one makes me a better trader instead of just a better record-keeper.'"
+        },
+        {
+          "type": "p",
+          "text": "This is an honest look at where each tool shines, where it frustrates traders, and where JournalX fits. We'll be specific, because vague comparison posts help nobody."
+        },
+        {
+          "type": "h2",
+          "text": "The five you'll actually compare"
+        },
+        {
+          "type": "p",
+          "text": "Tradervue is the veteran. It supports a huge range of brokers and is the safe default for stocks, options and futures traders who want deep, no-nonsense reporting. The trade-off is an interface that feels dated and a learning curve that scares off newer traders."
+        },
+        {
+          "type": "p",
+          "text": "Edgewonk is the psychology specialist. Its Tiltmeter correlates your emotional state with performance, and at a flat yearly price it's the cheapest premium option. It's manual-first, which power users love and busy traders quietly abandon."
+        },
+        {
+          "type": "p",
+          "text": "TraderSync is built for high-volume day traders: hundreds of broker integrations, AI pattern coaching and market replay. It's powerful and priced like it — the higher tiers are among the most expensive in the category."
+        },
+        {
+          "type": "p",
+          "text": "TradesViz is the data-heavy option, and the standout for options traders who need to visualise multi-leg positions and break P&L down by leg. If you trade complex spreads, it's genuinely impressive — and genuinely a lot to take in."
+        },
+        {
+          "type": "p",
+          "text": "TradeZella is the polished all-rounder: clean UI, AI insights, backtesting, trade replay and prop-firm syncing. It's the one most beginners land on, and the one most people compare everything else to."
+        },
+        {
+          "type": "h2",
+          "text": "What every comparison misses: the friction problem"
+        },
+        {
+          "type": "p",
+          "text": "Here's the uncomfortable truth the feature lists hide. The reason most traders stop journaling isn't a missing feature — it's friction. A journal that takes four minutes and twelve fields per trade gets abandoned the first busy week, no matter how many reports it can generate. The best journal is the one whose habit survives a losing streak, because that's exactly when the data matters most."
+        },
+        {
+          "type": "quote",
+          "text": "The most powerful journal in the world is worthless if you stop opening it. Adherence beats features."
+        },
+        {
+          "type": "p",
+          "text": "That reframes the whole comparison. Broker-import counts and AI buzzwords are nice, but the metrics that actually predict whether a journal changes your trading are: time-to-log, whether it captures behaviour (not just numbers), and whether it tells you something you can act on tomorrow."
+        },
+        {
+          "type": "h2",
+          "text": "Where JournalX is different"
+        },
+        {
+          "type": "p",
+          "text": "JournalX is built around that friction problem. A quick log takes about ten seconds; a detailed log stays under a minute. Every trade can carry an emotion tag, a 'did you follow your plan?' flag and a confidence rating, so your behaviour is scored alongside your P&L — not bolted on as an afterthought."
+        },
+        {
+          "type": "p",
+          "text": "And the analytics are computed from your real, logged trades — win rate, expectancy, R-multiples, drawdown, payoff, hold-time of winners vs losers, revenge-trade cost — rather than generated by a black-box 'AI' that guesses. You can see exactly why a number is what it is."
+        },
+        {
+          "type": "why",
+          "text": "JournalX scores discipline and emotion on every trade and surfaces behavioural leaks — overtrading, revenge trades, cutting winners early — as plain numbers. Most tools log what happened; JournalX shows you why it happened."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "",
+            "JournalX",
+            "Tradervue",
+            "Edgewonk",
+            "TraderSync",
+            "TradesViz"
+          ],
+          "rows": [
+            [
+              "Best for",
+              "Speed + psychology, all markets",
+              "Deep reporting (stocks/options/futures)",
+              "Emotion-first manual journaling",
+              "High-volume day traders",
+              "Options & data-heavy traders"
+            ],
+            [
+              "Time to log a trade",
+              "~10s quick / <1 min detailed",
+              "Moderate",
+              "Manual, slower",
+              "Fast with auto-import",
+              "Moderate–high"
+            ],
+            [
+              "Behaviour & psychology",
+              "Emotion + discipline scored on every trade",
+              "Light",
+              "Tiltmeter (strong)",
+              "AI pattern notes",
+              "Light"
+            ],
+            [
+              "Analytics source",
+              "Computed from your real log",
+              "Reports from imports",
+              "Manual + computed",
+              "AI + imports",
+              "Imports + visual breakdowns"
+            ],
+            [
+              "Learning curve",
+              "Low",
+              "High",
+              "Medium",
+              "Medium–high",
+              "High"
+            ],
+            [
+              "Free plan",
+              "Yes, genuinely usable",
+              "Limited free tier",
+              "No (yearly)",
+              "Limited free tier",
+              "Limited free tier"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "None of these tools are bad. Tradervue and TradesViz are excellent if raw data and complex positions are your priority. Edgewonk is brilliant if you'll commit to manual reflection. TraderSync and TradeZella are strong all-rounders. JournalX wins when your real problem is consistency and behaviour — which, for most traders, it is."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Quick poll",
+          "prompt": "Be honest — what actually ended your last journaling attempt?",
+          "options": [
+            {
+              "label": "It took too long per trade",
+              "response": "The number-one killer. A journal you dread filling is a journal you quit. Speed isn't a luxury — it's the whole game."
+            },
+            {
+              "label": "It tracked numbers but didn't help me improve",
+              "response": "Common with import-only tools. Numbers are the result; your behaviour is the cause. You need the layer that explains the P&L."
+            },
+            {
+              "label": "It was too complex to set up",
+              "response": "Powerful tools can drown you on day one. The right journal earns complexity gradually instead of demanding it upfront."
+            },
+            {
+              "label": "I never really started",
+              "response": "Then start with the lowest-friction option you can find and log just three trades. Momentum beats perfection."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Whatever you choose, choose the one you'll still be using in ninety days. That single decision matters more than any feature on the list."
+        }
+      ]
+    },
+    {
+      "slug": "day-trading-journal-track-scalps-intraday",
+      "title": "Day Trading Journal: How to Track Scalps and Intraday Trades in 2026",
+      "metaTitle": "Day Trading Journal 2026: How to Log Scalps & Intraday Trades the Right Way",
+      "metaDescription": "A complete guide to keeping a day trading journal in 2026 — what to log for scalps and intraday trades, the metrics that matter, and how to spot the time-of-day and overtrading leaks killing your P&L.",
+      "keywords": [
+        "day trading journal",
+        "scalping journal",
+        "intraday trading journal",
+        "how to journal day trades",
+        "day trading metrics"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 12,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Day traders take more trades in a week than swing traders take in a quarter — which means tiny, repeated leaks compound fast. Here's how to journal intraday without it eating your session.",
+      "helpful": {
+        "up": 241,
+        "down": 6,
+        "saves": 173
+      },
+      "tags": [
+        "Day trading",
+        "Scalping",
+        "Trading journal",
+        "Intraday"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Day trading is a volume game, and that cuts both ways. You get more reps to learn from than any swing trader — but you also repeat your mistakes faster, and a single bad habit (chasing the open, revenge-scalping after a red trade) compounds across dozens of trades a week. A day trading journal is how you catch those leaks before they drain a month."
+        },
+        {
+          "type": "h2",
+          "text": "Why intraday journaling is different"
+        },
+        {
+          "type": "p",
+          "text": "Two things make a day trading journal different from a swing journal. First, volume: logging twenty scalps the way you'd log two swing trades is impossible — you'd never trade again. Second, time sensitivity: intraday edges live and die by session and time-of-day, so when you traded matters as much as what you traded."
+        },
+        {
+          "type": "p",
+          "text": "That means your journaling system has to be fast, and it has to capture timing. If logging a trade takes more than fifteen seconds, you'll skip it during a hot session — and the trades you skip are usually the impulsive ones you most needed to see."
+        },
+        {
+          "type": "h2",
+          "text": "What to log for every intraday trade"
+        },
+        {
+          "type": "p",
+          "text": "Keep the per-trade fields ruthless: symbol, direction, entry, exit, size, and net P&L after fees (fees matter enormously at high frequency). Then add the three that actually move the needle for day traders: the timeframe you traded, the time of day, and a one-tap emotion or 'followed plan?' flag."
+        },
+        {
+          "type": "p",
+          "text": "Everything else — full notes, screenshots, deep review — happens after the session, not during it. During the session you capture; after the close you reflect. Mixing the two is what makes people quit."
+        },
+        {
+          "type": "quote",
+          "text": "Capture in the heat of the session. Reflect when the market's closed. Never try to do both at once."
+        },
+        {
+          "type": "h2",
+          "text": "The leaks a day trading journal exposes"
+        },
+        {
+          "type": "p",
+          "text": "Once you've got fifty or a hundred logged trades, patterns appear that no amount of screen time reveals on its own. The classics: a brutal first-fifteen-minutes win rate (you're chasing the open), a cluster of losses in the post-lunch chop, and a revenge-trade tax — the negative P&L of trades you opened within minutes of a loss."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX groups your trades by timeframe and time-of-day and flags overtrading and revenge trades automatically. Day traders routinely discover that a single hour of the session — or the ten minutes after a loss — accounts for most of their red. Cutting just that one window often flips a month."
+        },
+        {
+          "type": "h2",
+          "text": "Fees and slippage: the silent killer"
+        },
+        {
+          "type": "p",
+          "text": "At swing-trading frequency, fees are a rounding error. At scalping frequency they're a strategy. If you take forty trades a day, commission and spread can quietly eat more than your worst losing trade — and most traders never see it because they journal gross P&L. Always log net. A journal that subtracts fees for you turns an invisible leak into an obvious one."
+        },
+        {
+          "type": "h2",
+          "text": "A realistic intraday routine"
+        },
+        {
+          "type": "p",
+          "text": "During the session: quick-log each trade in seconds, P&L and emotion only. At the close: spend five to ten minutes adding screenshots to your two best and two worst trades, tagging the setups, and writing one sentence on what you'd repeat and one on what you'd cut. On the weekend: zoom out — review your time-of-day heatmap, your payoff ratio, and your revenge-trade cost, and pick one single thing to fix next week."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Is your day-trading journal actually working?",
+          "prompt": "Tick what's true for your last full trading week:",
+          "items": [
+            "I logged every trade, including the impulsive ones",
+            "My P&L is net of all fees and commissions",
+            "I can see my win rate by time of day",
+            "I know my net P&L on trades taken right after a loss",
+            "I picked exactly one leak to fix next week"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "If you couldn't tick most of those, you're trading blind at the exact frequency where blindness is most expensive. Fix the capture habit first — fast, complete, net of fees — and the insights follow on their own."
+        }
+      ]
+    },
+    {
+      "slug": "options-trading-journal-calls-puts-spreads",
+      "title": "Options Trading Journal: How to Log Calls, Puts and Multi-Leg Spreads",
+      "metaTitle": "Options Trading Journal 2026: How to Log Calls, Puts & Multi-Leg Spreads",
+      "metaDescription": "How to keep an options trading journal in 2026 — what to record for calls, puts and multi-leg spreads, the Greeks and IV context that matter, and the analytics that reveal whether your options edge is real.",
+      "keywords": [
+        "options trading journal",
+        "how to journal options trades",
+        "options spread journal",
+        "track options trades",
+        "options trading analytics"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 12,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Options add legs, expiries, Greeks and IV to every trade — which is exactly why a generic journal falls apart. Here's how to log options so the data actually means something.",
+      "helpful": {
+        "up": 218,
+        "down": 8,
+        "saves": 161
+      },
+      "tags": [
+        "Options",
+        "Trading journal",
+        "Spreads",
+        "Greeks"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Journaling stock trades is simple: entry, exit, size, done. Options break that model. A single position can have multiple legs, an expiry, a strike, a strategy type, and a P&L that moves with the underlying, time decay and implied volatility all at once. Log an options trade like a stock trade and you'll capture the result while missing every reason behind it."
+        },
+        {
+          "type": "h2",
+          "text": "What makes an options journal different"
+        },
+        {
+          "type": "p",
+          "text": "Three things. First, structure: a vertical spread, an iron condor and a naked put are completely different risk profiles, so 'strategy type' is a first-class field, not a note. Second, context: the same trade is a great idea at high IV and a poor one at low IV, so you have to record the volatility environment you entered into. Third, time: options decay, so how long you held relative to expiry is part of the story."
+        },
+        {
+          "type": "p",
+          "text": "Miss those and your journal will tell you that 'calls lose money' when the truth is 'buying premium into earnings at crushed-afterwards IV loses money' — a fixable, specific leak hiding inside a useless generalisation."
+        },
+        {
+          "type": "h2",
+          "text": "The fields that matter for every options trade"
+        },
+        {
+          "type": "p",
+          "text": "Alongside the basics (underlying, direction, net debit/credit, net P&L after fees), capture: strategy type (long call, put, vertical, condor, calendar, covered call, etc.), strike(s) and expiry, the underlying price at entry, and your read on implied volatility — even a simple high / mid / low tag is enough to surface patterns. If you trade the Greeks actively, a rough delta and your IV-at-entry turn 'gut feel' into data."
+        },
+        {
+          "type": "quote",
+          "text": "Options reward the trader who knows why a position made money. Direction, premium and volatility are three different edges — your journal should be able to tell them apart."
+        },
+        {
+          "type": "h2",
+          "text": "Multi-leg positions without the mess"
+        },
+        {
+          "type": "p",
+          "text": "The biggest practical headache is multi-leg trades. The clean approach: log the spread as one position with a single net debit or credit and a single net P&L, and record the structure as the strategy type plus the strikes. You don't need a separate row per leg to learn from it — you need the strategy-level outcome, tracked consistently, so you can compare condors to condors and verticals to verticals over a real sample."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX you log the options trade once — strategy, strikes, expiry, net premium and net P&L — tag the IV environment and your emotion, and the analytics group performance by strategy type and market condition. Many options traders find one structure (often short-premium in low IV, or long-premium into events) is quietly carrying all their losses."
+        },
+        {
+          "type": "h2",
+          "text": "The analytics that reveal a real options edge"
+        },
+        {
+          "type": "p",
+          "text": "Win rate alone lies to options traders worse than anyone. A premium seller can win 80% of trades and still blow up on the 20%; a premium buyer can win 35% and thrive. That's why payoff ratio and expectancy matter more than win rate here — and why grouping by strategy type is non-negotiable. Your condors and your long calls should never be averaged into one number."
+        },
+        {
+          "type": "h2",
+          "text": "A simple options journaling routine"
+        },
+        {
+          "type": "p",
+          "text": "At entry: log the structure, strikes, expiry, net premium, underlying price and IV tag in under a minute. At exit: record the net P&L after fees and one line on why you closed (target, stop, expiry, adjustment). Weekly: review expectancy and payoff by strategy type and IV environment, and ask the only question that matters — is each strategy actually positive over a meaningful sample, or am I running one profitable structure and three that bleed?"
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick challenge",
+          "prompt": "You win 75% of your options trades but your account is flat. What's the most likely explanation?",
+          "options": [
+            "Your win rate is too low",
+            "Your average loss dwarfs your average win (poor payoff)",
+            "You need more trades",
+            "Options just don't work"
+          ],
+          "correct": 1,
+          "explain": "A high win rate with flat or negative P&L almost always means asymmetric losses — the classic premium-seller trap. Payoff ratio and expectancy, grouped by strategy, expose it instantly; win rate hides it."
+        },
+        {
+          "type": "p",
+          "text": "Options give you more ways to be right and more ways to be quietly wrong. A journal built for their structure — strategy type, IV context, net premium, expectancy by strategy — is the difference between guessing and knowing which of your edges is actually paying you."
+        }
+      ]
+    },
+    {
+      "slug": "trading-journal-metrics-that-predict-your-edge",
+      "title": "Trading Journal Metrics: The 12 Numbers That Actually Predict Your Edge",
+      "metaTitle": "12 Trading Journal Metrics That Actually Predict Your Edge (2026 Guide)",
+      "metaDescription": "The 12 trading metrics worth tracking in your journal in 2026 — expectancy, profit factor, payoff ratio, max drawdown, R-multiple and more — what each one means and how to act on it.",
+      "keywords": [
+        "trading metrics",
+        "trading journal metrics",
+        "trading KPIs",
+        "expectancy",
+        "profit factor",
+        "payoff ratio",
+        "max drawdown",
+        "R multiple"
+      ],
+      "category": "Strategy",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 14,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Most traders track win rate and P&L and stop there — and both can lie. These are the 12 metrics that actually tell you whether you have an edge, and what to do when they're off.",
+      "helpful": {
+        "up": 263,
+        "down": 7,
+        "saves": 204
+      },
+      "tags": [
+        "Metrics",
+        "Expectancy",
+        "Profit factor",
+        "Analytics"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Win rate and total P&L are the two numbers every trader checks — and the two that mislead most often. You can win 70% of trades and lose money. You can be up this month purely because one oversized trade happened to work. Real edge hides in a handful of less-glamorous metrics. Here are the twelve that matter, what each tells you, and the move when it's wrong."
+        },
+        {
+          "type": "h2",
+          "text": "1. Expectancy (the master metric)"
+        },
+        {
+          "type": "p",
+          "text": "Expectancy is your average profit or loss per trade across a large sample. It folds win rate and payoff into a single verdict: positive means your system makes money over time; negative means it doesn't, no matter how good this week felt. If you track one number, track this one."
+        },
+        {
+          "type": "h2",
+          "text": "2. Profit factor"
+        },
+        {
+          "type": "p",
+          "text": "Gross profit divided by gross loss. Above 1.0 is profitable; 1.5+ is solid; 2.0+ is strong. It's a fast health check on whether your winners are out-earning your losers in aggregate."
+        },
+        {
+          "type": "h2",
+          "text": "3. Payoff ratio (average win ÷ average loss)"
+        },
+        {
+          "type": "p",
+          "text": "This is the one that explains the '70% win rate, still losing' paradox. If your average loss is bigger than your average win, a high win rate can't save you. Most blown accounts die here, not at the entry."
+        },
+        {
+          "type": "h2",
+          "text": "4. Win rate (in context only)"
+        },
+        {
+          "type": "p",
+          "text": "Win rate is fine — as long as you never read it without payoff next to it. A 40% win rate with a 3:1 payoff is a fantastic system; an 80% win rate with a 1:4 payoff is a disaster waiting to happen."
+        },
+        {
+          "type": "h2",
+          "text": "5. R-multiple per trade"
+        },
+        {
+          "type": "p",
+          "text": "Express each trade as a multiple of the risk you took: risk $100, make $250, that's +2.5R. R-multiples normalise everything across position sizes and let you compare a tiny scalp to a big swing on equal terms. They're the cleanest way to see whether your winners are genuinely large relative to your risk."
+        },
+        {
+          "type": "h2",
+          "text": "6. Maximum drawdown"
+        },
+        {
+          "type": "p",
+          "text": "The largest peak-to-trough drop in your equity. It's your worst-case in practice, and it's the number that decides whether you survive a losing streak. If your max drawdown makes you queasy, your position sizing is too aggressive — full stop."
+        },
+        {
+          "type": "h2",
+          "text": "7. Average risk per trade (and its consistency)"
+        },
+        {
+          "type": "p",
+          "text": "Not just how much you risk, but how consistent it is. Risking 1% then 4% on a 'high-conviction' revenge trade is how accounts end. Consistent risk per trade is the single biggest separator between traders who last and traders who don't."
+        },
+        {
+          "type": "h2",
+          "text": "8. Hold time of winners vs losers"
+        },
+        {
+          "type": "p",
+          "text": "The disposition effect made measurable. If you hold losers longer than winners, you're cutting winners short and letting losers run — the most expensive bias in trading. The fix starts the moment you can see it in your own data."
+        },
+        {
+          "type": "h2",
+          "text": "9. Performance by setup / strategy"
+        },
+        {
+          "type": "p",
+          "text": "Your overall numbers are an average of several strategies, and averages hide everything. Break P&L down by setup and you'll almost always find one or two carrying you and one or two bleeding — kill the bleeders and your edge jumps without a single new skill."
+        },
+        {
+          "type": "h2",
+          "text": "10. Performance by time and session"
+        },
+        {
+          "type": "p",
+          "text": "When you trade is an edge of its own. Win rate by hour and by session reveals the chop you should be sitting out and the window where your edge is real."
+        },
+        {
+          "type": "h2",
+          "text": "11. Rule adherence (discipline rate)"
+        },
+        {
+          "type": "p",
+          "text": "The share of trades where you actually followed your plan. It's the most predictive behavioural metric there is — long-term edge tracks discipline far more tightly than it tracks any single setup."
+        },
+        {
+          "type": "h2",
+          "text": "12. The cost of your worst habit"
+        },
+        {
+          "type": "p",
+          "text": "Put a dollar figure on your behavioural leak — the net P&L of revenge trades, or trades on overtrading days. Nothing changes behaviour like seeing exactly what it costs you in money."
+        },
+        {
+          "type": "quote",
+          "text": "You can't improve what you only feel. Turn your habits into numbers and they stop being mysteries and start being problems you can solve."
+        },
+        {
+          "type": "why",
+          "text": "JournalX computes every one of these — expectancy, profit factor, payoff, R-multiples, max drawdown, hold-time of winners vs losers, performance by setup and time, discipline rate and the cost of your worst habit — automatically from your logged trades. No formulas, no spreadsheets, no guessing."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Which of these do you actually know right now?",
+          "prompt": "Without opening anything, can you state your:",
+          "items": [
+            "Expectancy per trade",
+            "Payoff ratio (avg win vs avg loss)",
+            "Maximum drawdown",
+            "Best and worst setup by P&L",
+            "Net cost of your revenge trades"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "If you couldn't answer most of those off the top of your head, that's not a knowledge gap — it's a visibility gap. Track these twelve, review them weekly, and fix one at a time. That's the entire job."
+        }
+      ]
+    },
+    {
+      "slug": "trading-journal-template-vs-tool",
+      "title": "Trading Journal Template vs a Real Tool: Free Excel & Notion Templates (and When to Upgrade)",
+      "metaTitle": "Trading Journal Template vs Tool 2026: Free Excel & Notion Templates + When to Upgrade",
+      "metaDescription": "Free trading journal templates for Excel and Notion, what to put in them, their hidden limits — and the exact point where a dedicated trading journal tool starts paying for itself.",
+      "keywords": [
+        "trading journal template",
+        "excel trading journal",
+        "notion trading journal",
+        "free trading journal template",
+        "trading journal spreadsheet"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 12,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "A spreadsheet template is the perfect way to start journaling — and a terrible place to stay. Here's how to build one that works, and the clear signals it's time to graduate to a tool.",
+      "helpful": {
+        "up": 229,
+        "down": 11,
+        "saves": 177
+      },
+      "tags": [
+        "Template",
+        "Excel",
+        "Notion",
+        "Trading journal"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Almost every trader's journaling journey starts the same way: a spreadsheet. And that's a good thing — a free Excel, Google Sheets or Notion template is the fastest, cheapest way to prove to yourself that journaling is worth doing. The mistake isn't starting with a template. The mistake is staying with one long after it's quietly capping your progress."
+        },
+        {
+          "type": "h2",
+          "text": "Build a template that actually works"
+        },
+        {
+          "type": "p",
+          "text": "If you're starting today, here are the columns that earn their place: date, symbol, direction (long/short), entry, exit, position size, stop loss, take profit, fees, net P&L, R-multiple, setup/strategy, emotion at entry, followed-plan (yes/no), and a notes/lessons column. That's enough to compute the metrics that matter and to capture the behaviour behind them."
+        },
+        {
+          "type": "p",
+          "text": "Add a second sheet with a few summary formulas — win rate, average win, average loss, payoff ratio and a running equity total — and you've got a genuinely useful journal for free. Notion users can do the same with a database and a couple of rollup properties."
+        },
+        {
+          "type": "quote",
+          "text": "A spreadsheet is the best journal you'll ever outgrow. Start there — just don't pretend the friction isn't slowly winning."
+        },
+        {
+          "type": "h2",
+          "text": "Where templates quietly fail"
+        },
+        {
+          "type": "p",
+          "text": "Templates have three problems that compound over time. First, friction: typing into a grid is fine for two trades and miserable for twenty — and the trades you skip on a busy day are the impulsive ones you most needed to record. Second, they're blind by default: a spreadsheet won't warn you that you're overtrading, won't compute your hold-time-of-winners-vs-losers, and won't put a number on your revenge-trade habit unless you hand-build every formula. Third, they break: one mistyped cell, one dragged formula, and your 'analytics' silently go wrong."
+        },
+        {
+          "type": "p",
+          "text": "And then there's the part nobody admits: screenshots. Pasting and managing chart images in a spreadsheet is so painful that most people simply stop — losing the single richest piece of context a trade review can have."
+        },
+        {
+          "type": "h2",
+          "text": "The signs it's time to upgrade"
+        },
+        {
+          "type": "p",
+          "text": "You don't need a tool on day one. You need one when these start happening: you skip logging on busy days; your summary formulas have quietly broken or you don't trust them; you want analytics (drawdown, payoff by setup, time-of-day, revenge cost) you can't be bothered to build by hand; you're trading across markets or accounts; or you simply realise the spreadsheet has become a chore you avoid — which means the habit is already dying."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX keeps the speed of a template and removes its ceiling: a quick log takes about ten seconds, screenshots attach in a tap, fees are subtracted automatically, and every metric a spreadsheet makes you hand-build — expectancy, payoff, drawdown, performance by setup and time, discipline and revenge-trade cost — is computed for you. You import your old spreadsheet and never rebuild a formula again."
+        },
+        {
+          "type": "h2",
+          "text": "Template or tool: an honest verdict"
+        },
+        {
+          "type": "p",
+          "text": "If you trade occasionally, love spreadsheets, and your habit is rock-solid, a well-built template is genuinely fine — keep using it. If you trade often, your logging keeps slipping, or you want the behavioural analytics without becoming a part-time spreadsheet engineer, a dedicated tool will pay for itself in the first leak it helps you find. The right answer is whichever one you'll still be using in three months."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Quick poll",
+          "prompt": "How's your spreadsheet journal really doing?",
+          "options": [
+            {
+              "label": "Solid — I fill it every day",
+              "response": "Then keep it. The best journal is the one you use, and yours is working. Revisit a tool only when the habit starts slipping."
+            },
+            {
+              "label": "I skip it on busy days",
+              "response": "That's the early warning sign. The trades you skip are usually the impulsive ones — exactly the data you need most. Friction is winning."
+            },
+            {
+              "label": "My formulas are a mess / I don't trust the numbers",
+              "response": "Classic spreadsheet decay. When you stop trusting your own analytics, the journal has stopped doing its job."
+            },
+            {
+              "label": "I've basically stopped",
+              "response": "The habit's dead, not the idea. Switch to the lowest-friction option you can find and log three trades to restart momentum."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Start with a template, build the habit, and watch for the day it becomes a chore. That day isn't a failure — it's a graduation. Keep the discipline; lose the friction."
+        }
+      ]
+    },
+    {
+      "slug": "stock-trading-journal",
+      "title": "Stock Trading Journal: How to Track Equities and Find Your Real Edge in 2026",
+      "metaTitle": "Stock Trading Journal 2026: How to Track Equities & Find Your Edge",
+      "metaDescription": "A complete guide to keeping a stock trading journal in 2026 — what to log for equity trades, the metrics that reveal your real edge, and how to spot the setups and habits quietly costing you money.",
+      "keywords": [
+        "stock trading journal",
+        "how to journal stock trades",
+        "equity trading journal",
+        "stock trading log",
+        "stock trading analytics"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 12,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Stocks feel simple to journal — buy, sell, done. That simplicity is exactly why most equity traders never discover which setups actually make them money. Here's how to fix that.",
+      "helpful": {
+        "up": 247,
+        "down": 8,
+        "saves": 179
+      },
+      "tags": [
+        "Stocks",
+        "Trading journal",
+        "Equities",
+        "Analytics"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Stock trading looks like the easiest thing in the world to journal: you bought at one price, sold at another, the difference is your P&L. That apparent simplicity is the trap. Because equity trades are so easy to record as bare numbers, most stock traders never capture the context that explains why they win or lose — and they end up repeating the same mediocre setups for years."
+        },
+        {
+          "type": "h2",
+          "text": "Why a stock journal needs more than buy and sell"
+        },
+        {
+          "type": "p",
+          "text": "Your P&L is the result. Your edge lives in the reasons behind it: which setup you traded, what the broader market was doing that day, how you sized the position, and whether you actually followed your plan. Two trades with identical dollar outcomes can be a disciplined A+ setup and a reckless gamble that happened to work — and only one of those is repeatable."
+        },
+        {
+          "type": "p",
+          "text": "A real stock journal turns 'I think I do well on breakouts' into 'breakouts are +1.8R over 40 trades, pullbacks are -0.3R over 35' — a fact you can act on, not a feeling you can argue with."
+        },
+        {
+          "type": "h2",
+          "text": "What to log for every stock trade"
+        },
+        {
+          "type": "p",
+          "text": "Keep the core tight: date, ticker, direction (long/short), entry, exit, share size, stop loss, target, fees, and net P&L. Then add the fields that actually create insight: the setup or strategy (breakout, pullback, gap-and-go, mean reversion, earnings, etc.), the broader market condition (trending, choppy, risk-off), your emotion at entry, and a simple 'did I follow my plan?' flag."
+        },
+        {
+          "type": "quote",
+          "text": "Record the bare numbers and you'll know how you did. Record the context and you'll know why — and 'why' is the only thing you can improve."
+        },
+        {
+          "type": "h2",
+          "text": "The metrics that reveal a real equity edge"
+        },
+        {
+          "type": "p",
+          "text": "Win rate is the first thing every stock trader checks and the most misleading. Pair it with payoff (average win vs average loss) and expectancy per trade, and the picture sharpens instantly. Add R-multiples so a 50-share scalp and a 500-share swing compare on equal terms, and break everything down by setup. That last step alone is where most equity traders find a hidden winner being dragged down by two losers they should never trade again."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX groups your stock trades by setup, by market condition and by emotion, then computes expectancy, payoff and R-multiples for each. Equity traders routinely discover that one 'favourite' setup is actually their worst — and that cutting it lifts their whole account without learning a single new skill."
+        },
+        {
+          "type": "h2",
+          "text": "Position sizing: the equity-specific trap"
+        },
+        {
+          "type": "p",
+          "text": "Stock traders love round share counts — 100 shares, 500 shares — regardless of where the stop sits. That's backwards. Your size should flex so the dollar risk stays constant: a wide stop means fewer shares, a tight stop means more. Logging your risk per trade (and watching how consistent it is) exposes the 'I felt confident so I doubled up' trades that quietly cause your worst drawdowns."
+        },
+        {
+          "type": "h2",
+          "text": "A simple equity journaling routine"
+        },
+        {
+          "type": "p",
+          "text": "At entry or exit: log the trade in under a minute — ticker, prices, size, setup, emotion, plan-followed. End of day: add a screenshot to your best and worst trade and one line of lessons. Weekly: review expectancy and payoff by setup, your discipline rate, and your hold-time of winners vs losers. Pick one leak. Fix it. Repeat."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Does your stock journal actually show your edge?",
+          "prompt": "Tick what's true today:",
+          "items": [
+            "I can rank my setups by expectancy, not just gut feel",
+            "My P&L is net of commissions and fees",
+            "My risk per trade is roughly constant, not round share counts",
+            "I know my win rate AND my payoff ratio",
+            "I've cut at least one setup because the data said to"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "If you couldn't tick most of those, you're not short on screen time — you're short on visibility. Log the context, review by setup, and your edge stops being a mystery."
+        }
+      ]
+    },
+    {
+      "slug": "futures-trading-journal",
+      "title": "Futures Trading Journal: How to Track Contracts, Ticks and Risk in 2026",
+      "metaTitle": "Futures Trading Journal 2026: Track Contracts, Ticks & Risk the Right Way",
+      "metaDescription": "How to keep a futures trading journal in 2026 — logging contracts, ticks and points, tracking risk per trade in dollars, and the analytics that reveal whether your futures edge is real.",
+      "keywords": [
+        "futures trading journal",
+        "how to journal futures trades",
+        "futures trading log",
+        "ES NQ trading journal",
+        "futures risk per trade"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 12,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Futures trade in ticks and points with built-in leverage, so a small mistake in sizing scales into a big loss fast. Here's how to journal contracts so your risk is always crystal clear.",
+      "helpful": {
+        "up": 214,
+        "down": 7,
+        "saves": 158
+      },
+      "tags": [
+        "Futures",
+        "Trading journal",
+        "Risk",
+        "ES/NQ"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Futures punish sloppy record-keeping harder than almost any market. Contracts carry built-in leverage, profits and losses move in ticks and points rather than clean dollars, and one extra contract on a bad day can turn a normal loss into an account-threatening one. A futures journal isn't optional admin — it's how you keep your risk visible in a market designed to hide it."
+        },
+        {
+          "type": "h2",
+          "text": "Speak the market's language: ticks, points and dollars"
+        },
+        {
+          "type": "p",
+          "text": "The first job of a futures journal is translation. Every instrument has a tick size and a tick value — on the E-mini S&P (ES) a tick is 0.25 points worth $12.50; on the Nasdaq (NQ) it's 0.25 worth $5. If your journal records only 'entry and exit price', you're missing the part that actually matters: how many ticks you risked and what that was in dollars. Log the instrument, the number of contracts, and let the journal convert ticks/points into real dollar risk and P&L."
+        },
+        {
+          "type": "quote",
+          "text": "In futures, your edge isn't measured in points — it's measured in dollars of risk per contract. Track that, or you're flying blind in a leveraged market."
+        },
+        {
+          "type": "h2",
+          "text": "What to log for every futures trade"
+        },
+        {
+          "type": "p",
+          "text": "Core fields: date, instrument (ES, NQ, CL, GC, etc.), direction, entry, exit, number of contracts, stop, target, fees/commissions, and net P&L in dollars. Then the context that builds your edge: the setup, the session (futures are deeply time-sensitive), your emotion at entry, and whether you stuck to your plan. Because futures run nearly around the clock, time-of-day and session are some of the most powerful filters you can journal."
+        },
+        {
+          "type": "h2",
+          "text": "Risk per trade is everything in futures"
+        },
+        {
+          "type": "p",
+          "text": "The single most dangerous habit in futures is sizing by contracts instead of by risk. 'I always trade 3 contracts' ignores that 3 contracts with an 8-point stop on NQ is a completely different risk than 3 contracts with a 20-point stop. Log your dollar risk per trade and watch its consistency — the day you size up 'because you're sure' is almost always the day your journal later flags as your biggest loss."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX converts your contracts and stop distance into a clean dollar risk and R-multiple per trade, and flags when you broke your own risk ceiling. Futures traders often find their account isn't dying from bad setups — it's dying from three oversized 'high-conviction' contracts a month."
+        },
+        {
+          "type": "h2",
+          "text": "Commissions and the round-trip tax"
+        },
+        {
+          "type": "p",
+          "text": "Futures commissions are per-contract, per-side, and at high frequency they add up fast. A scalper taking dozens of round trips a day can lose more to commissions than to any single bad trade — and never notice, because they journal gross. Always log net P&L. Seeing the round-trip tax as a number is often what finally pushes a trader to size up per trade and trade less often."
+        },
+        {
+          "type": "h2",
+          "text": "The analytics that prove a futures edge"
+        },
+        {
+          "type": "p",
+          "text": "Expectancy in dollars per trade, payoff ratio, R-multiples, performance by session and by setup, and max drawdown in dollars. Drawdown matters doubly in futures because leverage makes the equity swings violent — and if you trade a funded or prop account, your max drawdown isn't just uncomfortable, it's the line that ends your account."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick challenge",
+          "prompt": "You trade 3 NQ contracts on every setup regardless of stop distance. What's the hidden problem?",
+          "options": [
+            "Nothing — fixed contracts is disciplined",
+            "Your dollar risk swings wildly with stop distance",
+            "You should always trade more contracts",
+            "Contracts don't affect risk"
+          ],
+          "correct": 1,
+          "explain": "Fixed contract count with variable stop distance means your real dollar risk is all over the place. Disciplined futures sizing flexes contracts to keep dollar risk constant — which is exactly what a good journal makes visible."
+        },
+        {
+          "type": "p",
+          "text": "Futures reward precision and destroy carelessness faster than any other market. Journal in ticks, points and dollars, keep your risk per trade visible and consistent, and review by session — and the leverage that hurts most traders starts working for you instead."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-build-a-trading-plan",
+      "title": "How to Build a Trading Plan You'll Actually Follow (2026 Template)",
+      "metaTitle": "How to Build a Trading Plan in 2026 (Free Framework You'll Actually Follow)",
+      "metaDescription": "A step-by-step framework for building a trading plan in 2026 — entries, risk, sizing, exits and rules — plus how to use your journal to prove the plan works and keep yourself accountable.",
+      "keywords": [
+        "trading plan",
+        "how to create a trading plan",
+        "trading plan template",
+        "trading rules",
+        "trading plan example"
+      ],
+      "category": "Strategy",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 13,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Everyone says 'have a trading plan.' Almost no one tells you what goes in it or how to make one you'll actually follow. Here's the framework — and how your journal keeps you honest.",
+      "helpful": {
+        "up": 258,
+        "down": 6,
+        "saves": 211
+      },
+      "tags": [
+        "Trading plan",
+        "Strategy",
+        "Rules",
+        "Discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "A trading plan is the difference between a trader and a gambler with a chart. But 'have a trading plan' is useless advice on its own — it doesn't tell you what the plan should contain, how detailed it should be, or how to stop yourself from quietly ignoring it the moment a trade gets exciting. This is the framework, section by section, plus the part most guides skip: how to actually hold yourself to it."
+        },
+        {
+          "type": "h2",
+          "text": "1. Your edge: what you trade and why"
+        },
+        {
+          "type": "p",
+          "text": "Start with the setups you trade and the conditions that make each one valid. Be specific enough that a stranger could read it and recognise your setup on a chart. 'I trade breakouts' is a wish; 'I trade breakouts of the prior day's high in a trending market, on volume, between 9:45 and 11:00' is a plan. Vague edges produce vague results."
+        },
+        {
+          "type": "h2",
+          "text": "2. Risk: the rule that keeps you alive"
+        },
+        {
+          "type": "p",
+          "text": "Define your maximum risk per trade as a percentage of your account (1–2% is the standard for a reason), your maximum daily loss before you stop, and your maximum open risk at any one time. These three numbers are non-negotiable. They're not about making money — they're about guaranteeing you're still in the game next month."
+        },
+        {
+          "type": "h2",
+          "text": "3. Position sizing: the formula, not the feeling"
+        },
+        {
+          "type": "p",
+          "text": "Your plan should let you size any trade mechanically: position size = (account × risk %) ÷ (entry − stop). No 'I feel confident so I'll go bigger.' The size flexes with the stop so your dollar risk stays constant. Write the formula in your plan so there's never a sizing decision to make in the heat of the moment."
+        },
+        {
+          "type": "h2",
+          "text": "4. Entries and exits: the triggers"
+        },
+        {
+          "type": "p",
+          "text": "Spell out the exact trigger that gets you in, where your stop goes (and why), and how you exit winners — fixed target, trailing stop, partial scale-outs. The exit is where most plans are thin and most P&L is lost. If you can't state your exit rule in one sentence before you enter, you don't have one."
+        },
+        {
+          "type": "h2",
+          "text": "5. The rules that protect you from yourself"
+        },
+        {
+          "type": "p",
+          "text": "This is the behavioural layer: no trading in the first five minutes; no revenge trade within X minutes of a loss; stop for the day after two consecutive losses or hitting your daily loss limit; no trading setups not in the plan. These rules exist because your disciplined self writes them and your emotional self needs them."
+        },
+        {
+          "type": "quote",
+          "text": "A plan you don't follow is just a wish with bullet points. The follow-through is the plan."
+        },
+        {
+          "type": "h2",
+          "text": "The missing half: proving the plan works"
+        },
+        {
+          "type": "p",
+          "text": "A plan written and never checked is fiction. This is where your journal becomes the other half of the plan. Every trade should be tagged with whether it was a planned setup and whether you followed your rules — then you can measure two things that matter more than your P&L: your discipline rate (how often you actually followed the plan) and the performance gap between your planned trades and your impulsive ones. Almost every trader finds the impulsive trades are deeply red. That gap is the entire argument for the plan, in your own numbers."
+        },
+        {
+          "type": "why",
+          "text": "JournalX lets you flag 'followed plan?' and tag the setup on every trade, then shows your win rate and expectancy for planned vs unplanned trades side by side. Seeing that your off-plan trades cost you real money is what finally turns a written plan into a followed one."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Is your trading plan actually complete?",
+          "prompt": "A real plan can answer all of these in one sentence each:",
+          "items": [
+            "Exactly which setups I trade and when they're valid",
+            "My max risk per trade, per day, and total open risk",
+            "How I size every position (a formula, not a feeling)",
+            "My exact stop and exit rules",
+            "The behavioural rules that stop me self-sabotaging"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Write the plan, trade only what's in it, and let your journal grade your adherence every week. The plan doesn't make you disciplined — measuring whether you followed it does."
+        }
+      ]
+    },
+    {
+      "slug": "ai-trading-journal-what-ai-can-and-cant-do",
+      "title": "AI Trading Journal: What AI Can (and Can't) Do for Your Trading in 2026",
+      "metaTitle": "AI Trading Journal 2026: What AI Can and Can't Actually Do for Traders",
+      "metaDescription": "An honest look at AI trading journals in 2026 — where AI genuinely helps you review trades and spot patterns, where it's just marketing, and why your own logged data still does the heavy lifting.",
+      "keywords": [
+        "AI trading journal",
+        "AI trading analytics",
+        "best AI trading journal",
+        "AI trade review",
+        "machine learning trading journal"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 12,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Every journal now slaps 'AI' on the box. Some of it genuinely helps you review faster; some of it is a confident guess in a trench coat. Here's how to tell the difference.",
+      "helpful": {
+        "up": 236,
+        "down": 12,
+        "saves": 169
+      },
+      "tags": [
+        "AI",
+        "Trading journal",
+        "Analytics",
+        "Trade review"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "In 2026 you can't read a trading-journal landing page without tripping over the word 'AI'. Some of it is genuinely useful. A lot of it is marketing wrapped around a feature that was always just a SQL query. If you're choosing a journal partly for its AI, it's worth knowing exactly where the value is real and where you're paying for a buzzword."
+        },
+        {
+          "type": "h2",
+          "text": "What AI genuinely does well"
+        },
+        {
+          "type": "p",
+          "text": "AI is excellent at summarising and surfacing. Point a model at a hundred of your logged trades and it can write a readable recap of your week, cluster your notes by theme, and flag patterns you'd take hours to spot manually — 'your losses cluster on Mondays', 'your winning notes mention waiting for confirmation; your losers mention FOMO'. It's a fast, tireless reviewer that never gets bored of your data."
+        },
+        {
+          "type": "p",
+          "text": "It's also good at language tasks: turning your messy trade notes into structured tags, drafting a post-session review, or answering 'how did I do on breakouts last month?' in plain English instead of a pivot table."
+        },
+        {
+          "type": "h2",
+          "text": "What AI can't do (no matter the marketing)"
+        },
+        {
+          "type": "p",
+          "text": "AI cannot manufacture an edge you don't have, and it cannot predict the market — anyone selling that is selling a lottery ticket. It also can't fix the fundamental problem: garbage in, garbage out. If you don't log your trades honestly and completely, the smartest model on earth has nothing to work with. And crucially, an AI 'insight' is only as trustworthy as the data and math behind it — a confident sentence is not the same as a correct one."
+        },
+        {
+          "type": "quote",
+          "text": "AI can read your trades back to you brilliantly. It can't trade them for you, and it can't see an edge that isn't in your data."
+        },
+        {
+          "type": "h2",
+          "text": "The thing that actually makes you better: your own data"
+        },
+        {
+          "type": "p",
+          "text": "Here's the part the hype obscures. The metrics that genuinely improve traders — expectancy, payoff ratio, R-multiples, drawdown, performance by setup and time, your discipline rate, the cost of your revenge trades — aren't AI at all. They're arithmetic on a complete, honest trade log. The 'intelligence' that changes your trading is mostly just clear, trustworthy numbers you'll actually look at, plus the discipline to log every trade."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX computes the hard numbers deterministically from your real trades — no guessing, no black box — so you can always see why a metric is what it is. AI-style summaries are a helpful layer on top, but the trustworthy foundation is your own logged data and the math you can verify."
+        },
+        {
+          "type": "h2",
+          "text": "How to evaluate an 'AI' trading journal honestly"
+        },
+        {
+          "type": "p",
+          "text": "Ask three questions. One: can I see the raw numbers behind any insight, or do I just have to trust a sentence? Two: does it still work without the AI — is the underlying journal and analytics genuinely good? Three: does the AI reward the right behaviour (review, discipline, patience) or does it nudge me to trade more? A journal whose core is solid and whose AI is a convenience layer is worth it. A weak journal with a chatbot bolted on is not."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Quick poll",
+          "prompt": "What would actually help your trading most right now?",
+          "options": [
+            {
+              "label": "An AI that reviews my week for me",
+              "response": "Useful — but only if you're logging honestly. AI summarising an incomplete journal just produces confident nonsense. Fix the logging first."
+            },
+            {
+              "label": "Trustworthy numbers I can act on",
+              "response": "This is the real lever. Expectancy, payoff, drawdown and discipline rate change trading far more than any chatbot. They're math, not magic."
+            },
+            {
+              "label": "Help actually building the logging habit",
+              "response": "The honest answer for most traders. No analytics — AI or otherwise — works without complete data. Speed and consistency come first."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Use AI for what it's good at — reading your trades back to you and saving review time. But don't outsource your judgement to it, and don't pay for a buzzword. The edge was always in your data and your discipline; AI just helps you see it faster."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-stop-overtrading",
+      "title": "How to Stop Overtrading: A Practical System That Actually Works",
+      "metaTitle": "How to Stop Overtrading in 2026: A Practical System That Actually Works",
+      "metaDescription": "Why traders overtrade, the real damage it does to your account, and a practical system — rules, limits and journaling — to stop overtrading and trade only your best setups.",
+      "keywords": [
+        "how to stop overtrading",
+        "overtrading",
+        "stop overtrading",
+        "overtrading solution",
+        "trading discipline"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 12,
+      "date": "2026-06-17",
+      "featured": false,
+      "excerpt": "Overtrading doesn't feel like a problem in the moment — it feels like being active and engaged. That's exactly why it quietly drains more accounts than bad setups ever do.",
+      "helpful": {
+        "up": 269,
+        "down": 8,
+        "saves": 198
+      },
+      "tags": [
+        "Overtrading",
+        "Psychology",
+        "Discipline",
+        "Trading rules"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Overtrading is the leak nobody thinks they have. It doesn't feel reckless in the moment — it feels productive, like you're working hard and staying engaged. But taking trades outside your edge, doubling your frequency after a loss, or trading out of boredom is one of the most expensive habits in the market, precisely because it disguises itself as effort."
+        },
+        {
+          "type": "h2",
+          "text": "Why we overtrade"
+        },
+        {
+          "type": "p",
+          "text": "Three drivers, mostly. Boredom: a quiet market feels like wasted time, so you manufacture action. Recovery: after a loss, the urge to 'win it back' pushes you into trades you'd normally skip — revenge trading by another name. And the illusion of control: more activity feels like more influence over the outcome, when usually it's the opposite. None of these are about strategy; all of them are about emotion."
+        },
+        {
+          "type": "quote",
+          "text": "The market pays you for patience and charges you for activity. Overtrading is paying a fee to feel busy."
+        },
+        {
+          "type": "h2",
+          "text": "The real cost (it's bigger than you think)"
+        },
+        {
+          "type": "p",
+          "text": "Overtrading hits you three ways at once. First, the bad trades themselves lose money. Second, the extra volume multiplies your fees and slippage into a serious drag. Third — and most damaging — taking marginal setups lowers your average trade quality, dragging your expectancy down even on the trades that win. A trader with a real edge can erase it entirely just by trading too much."
+        },
+        {
+          "type": "h2",
+          "text": "Step 1: See it in your own numbers"
+        },
+        {
+          "type": "p",
+          "text": "You can't fix a habit you can't see. The fastest cure for denial is data: how many trades a day do you average, and how does your win rate and expectancy look on your busiest days versus your quietest? Almost every overtrader discovers their high-volume days are net negative and their disciplined, low-volume days carry the account. That single chart ends the argument."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX scores your trading pace and flags overtrading and revenge trades automatically — showing your win rate on heavy days versus calm ones, and the net cost of trades taken right after a loss. Seeing 'your busiest days lose money' in your own data is usually the moment the habit starts to break."
+        },
+        {
+          "type": "h2",
+          "text": "Step 2: Build the rules that stop it"
+        },
+        {
+          "type": "p",
+          "text": "Willpower fails in the moment, so replace it with rules written in advance. Set a maximum number of trades per day. Set a daily loss limit that ends your session, no exceptions. Mandate a cooling-off period after a loss — even five minutes away from the screen breaks the revenge loop. And require every trade to match a setup in your plan; if it's not on the list, it's not a trade."
+        },
+        {
+          "type": "h2",
+          "text": "Step 3: Make patience the scored behaviour"
+        },
+        {
+          "type": "p",
+          "text": "The deepest fix is to stop rewarding activity and start rewarding restraint. A green day with two A+ trades is a better day than a flat one with twelve mediocre ones — even if it feels less exciting. Track your trade count and your average trade quality, and treat a disciplined, low-volume day as a win in itself. What you measure and celebrate is what you'll repeat."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Are you overtrading? Be honest.",
+          "prompt": "Tick what's been true in the last two weeks:",
+          "items": [
+            "I've taken trades that weren't in my plan",
+            "I traded more right after a loss to win it back",
+            "I opened a trade mainly because I was bored",
+            "My busiest days are not my most profitable days",
+            "I don't have a hard daily trade or loss limit"
+          ]
+        },
+        {
+          "type": "p",
+          "text": "If you ticked three or more, overtrading — not your strategy — is probably your biggest leak. The fix isn't a better setup; it's fewer, better trades, enforced by rules and made visible by your journal. Trade less, review more, and let patience become the edge it actually is."
         }
       ]
     }
