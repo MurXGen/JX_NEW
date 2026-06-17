@@ -43,7 +43,7 @@ import { MobileInstallBanner } from "@/components/pwa/InstallPwa";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
-import { getBaseCurrency, getRate, convertTrade } from "@/utils/fx";
+import { getBaseCurrency } from "@/utils/fx";
 import { connectDrive, warmDriveConnection, isDriveConnected, isDriveConfigured } from "@/utils/driveBackup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -203,34 +203,27 @@ export default function Dashboard() {
   const usingDummy = selectedTrades.length === 0;
   const rawTrades = usingDummy ? DUMMY_TRADES : selectedTrades;
 
-  /* ---------- base currency conversion (Settings → Apply) ---------- */
+  /* ---------- display currency = the active journal's currency ---------- */
   const [baseCurrency, setBaseCurrencyState] = useState("USD");
-  const [fxRate, setFxRate] = useState(1);
 
   useEffect(() => {
-    const applyCurrency = async (cur) => {
-      const c = (cur || "USD").toUpperCase();
-      setBaseCurrencyState(c);
-      setFxRate(await getRate(c));
-    };
-    // The active journal's currency drives the dashboard; persist it so the
-    // Settings → Trading preferences "Base currency" reflects the same value.
+    // The dashboard always shows the active journal's OWN currency. Trades are
+    // stored and displayed in that currency with NO FX conversion. (Previously
+    // we multiplied logged P&L by the USD→base rate, which inflated e.g. ₹120
+    // into ₹11.35k.) We only switch the currency symbol here, never the numbers.
+    const applyCurrency = (cur) => setBaseCurrencyState((cur || "USD").toUpperCase());
     const journalCur = currentAccount?.currency;
     if (journalCur) {
       try { localStorage.setItem("jx-base-currency", journalCur.toUpperCase()); } catch {}
-      applyCurrency(journalCur);
-    } else {
-      applyCurrency(getBaseCurrency());
     }
-    const onChange = (e) => applyCurrency(e.detail || getBaseCurrency());
+    applyCurrency(journalCur || getBaseCurrency());
+    // re-assert the journal currency if anything else tries to change it
+    const onChange = () => applyCurrency(journalCur || getBaseCurrency());
     window.addEventListener("jx-currency-changed", onChange);
     return () => window.removeEventListener("jx-currency-changed", onChange);
   }, [currentAccount?._id, currentAccount?.currency]);
 
-  const trades = useMemo(
-    () => (fxRate === 1 ? rawTrades : rawTrades.map((t) => convertTrade(t, fxRate))),
-    [rawTrades, fxRate],
-  );
+  const trades = rawTrades;
 
   const currencySymbol = getCurrencySymbol(baseCurrency.toLowerCase());
 
@@ -260,7 +253,7 @@ export default function Dashboard() {
       startingBalance={
         usingDummy
           ? 10000
-          : (currentAccount?.startingBalance?.amount || 0) * fxRate
+          : currentAccount?.startingBalance?.amount || 0
       }
       onLogTrade={() => setShowLogTrade(true)}
       onImport={() => {
