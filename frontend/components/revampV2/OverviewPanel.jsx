@@ -10,6 +10,7 @@ import Tip from "./Tip";
 import SampleDataBanner from "./SampleDataBanner";
 import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
 import { compactNumber } from "@/utils/formatNumbers";
+import { convertTrade } from "@/utils/fx";
 import { jxEase } from "./easing";
 
 /* sections the user can show/hide on the overview dashboard */
@@ -708,14 +709,23 @@ const fmtDur = (ms) => {
 
 /* ================================================================ */
 export default function OverviewPanel({
-  trades = [],
+  trades: tradesProp = [],
   currencySymbol = "$",
+  fxRate = 1,
   userName,
   usingDummy,
-  startingBalance = 0,
+  startingBalance: startingBalanceProp = 0,
   onLogTrade,
   onImport,
 }) {
+  // Convert NATIVE trades to the chosen display currency here (Overview never
+  // edits trades, so converting for display is safe). All downstream code uses
+  // `trades` / `startingBalance` exactly as before.
+  const trades = useMemo(
+    () => (fxRate === 1 ? tradesProp : tradesProp.map((t) => convertTrade(t, fxRate))),
+    [tradesProp, fxRate],
+  );
+  const startingBalance = (Number(startingBalanceProp) || 0) * fxRate;
   const [heroRange, setHeroRange] = useState("30D");
   const [candleTF, setCandleTF] = useState("1D");
   const analyticsRange = "ALL"; // header range tabs removed — charts cover full history

@@ -36,6 +36,20 @@ export async function getRate(toCurrency) {
   return 1;
 }
 
+/* Conversion factor to multiply an amount in `from` currency to get `to`.
+   Rates are USD-based (USD→cur), so factor = (USD→to) / (USD→from).
+   Returns 1 when currencies match or on any failure (never distort). */
+export async function getConversionFactor(from, to) {
+  const f = (from || "USD").toUpperCase();
+  const t = (to || "USD").toUpperCase();
+  if (f === t) return 1;
+  try {
+    const [rf, rt] = await Promise.all([getRate(f), getRate(t)]);
+    if (rf > 0 && rt > 0) return rt / rf;
+  } catch {}
+  return 1;
+}
+
 /* Convert a trade's monetary fields (assumed USD) into the base currency. */
 export const convertTrade = (t, rate) => {
   if (!rate || rate === 1) return t;

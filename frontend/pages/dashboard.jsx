@@ -43,7 +43,7 @@ import { MobileInstallBanner } from "@/components/pwa/InstallPwa";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
-import { getBaseCurrency } from "@/utils/fx";
+import { getConversionFactor } from "@/utils/fx";
 import { connectDrive, warmDriveConnection, isDriveConnected, isDriveConfigured } from "@/utils/driveBackup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -203,29 +203,42 @@ export default function Dashboard() {
   const usingDummy = selectedTrades.length === 0;
   const rawTrades = usingDummy ? DUMMY_TRADES : selectedTrades;
 
-  /* ---------- display currency = the active journal's currency ---------- */
-  const [baseCurrency, setBaseCurrencyState] = useState("USD");
+  /* ---------- currency model ----------
+     Trades are stored in the JOURNAL's own currency. The Journals modal and the
+     Log/Edit modal always work in that native currency. The dashboard + trades
+     log can DISPLAY in a chosen "display currency" (Settings → Base currency,
+     stored as jx-display-currency). We never mutate trades for display — panels
+     convert at format time using fxRate — so editing can never be corrupted. */
+  const journalCurrency = (currentAccount?.currency || "USD").toUpperCase();
+  const [displayCurrency, setDisplayCurrency] = useState(journalCurrency);
+  const [fxRate, setFxRate] = useState(1);
 
   useEffect(() => {
-    // The dashboard always shows the active journal's OWN currency. Trades are
-    // stored and displayed in that currency with NO FX conversion. (Previously
-    // we multiplied logged P&L by the USD→base rate, which inflated e.g. ₹120
-    // into ₹11.35k.) We only switch the currency symbol here, never the numbers.
-    const applyCurrency = (cur) => setBaseCurrencyState((cur || "USD").toUpperCase());
-    const journalCur = currentAccount?.currency;
-    if (journalCur) {
-      try { localStorage.setItem("jx-base-currency", journalCur.toUpperCase()); } catch {}
-    }
-    applyCurrency(journalCur || getBaseCurrency());
-    // re-assert the journal currency if anything else tries to change it
-    const onChange = () => applyCurrency(journalCur || getBaseCurrency());
+    // mirror the active journal currency so the Log/Edit modal logs natively
+    try { localStorage.setItem("jx-base-currency", journalCurrency); } catch {}
+
+    const apply = async (override) => {
+      const disp = (override || journalCurrency).toUpperCase();
+      setDisplayCurrency(disp);
+      setFxRate(await getConversionFactor(journalCurrency, disp));
+    };
+    let saved = null;
+    try { saved = localStorage.getItem("jx-display-currency"); } catch {}
+    apply(saved);
+
+    const onChange = (e) => {
+      let s = e?.detail;
+      if (s == null) { try { s = localStorage.getItem("jx-display-currency"); } catch {} }
+      apply(s);
+    };
     window.addEventListener("jx-currency-changed", onChange);
     return () => window.removeEventListener("jx-currency-changed", onChange);
-  }, [currentAccount?._id, currentAccount?.currency]);
+  }, [currentAccount?._id, journalCurrency]);
 
+  // panels get NATIVE trades + the display fxRate; they convert only for display
   const trades = rawTrades;
-
-  const currencySymbol = getCurrencySymbol(baseCurrency.toLowerCase());
+  const currencySymbol = getCurrencySymbol(displayCurrency.toLowerCase()); // dashboard display
+  const journalSymbol = getCurrencySymbol(journalCurrency.toLowerCase());  // for logging
 
   const isProMonthly =
     userData?.subscription?.plan === "pro" &&
@@ -248,6 +261,7 @@ export default function Dashboard() {
     <OverviewPanel
       trades={trades}
       currencySymbol={currencySymbol}
+      fxRate={fxRate}
       userName={userData?.name}
       usingDummy={usingDummy}
       startingBalance={
@@ -269,6 +283,7 @@ export default function Dashboard() {
       <TradesLogPanel
         trades={trades}
         currencySymbol={currencySymbol}
+        fxRate={fxRate}
         usingDummy={usingDummy}
         onAddTrade={() => setShowLogTrade(true)}
         onOpenTab={setActiveTab}
@@ -399,7 +414,7 @@ export default function Dashboard() {
         open={showLogTrade}
         onClose={() => setShowLogTrade(false)}
         currentAccountId={currentAccount?._id}
-        currencySymbol={currencySymbol}
+        currencySymbol={journalSymbol}
         onNoJournal={() => setShowSwitchModal(true)}
         onSaved={(trade) => trade && setAccountTrades((prev) => [...prev, trade])}
       />

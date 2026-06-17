@@ -43,6 +43,7 @@ import { generateShareCard } from "./shareCard";
 import { CandlestickChart } from "lucide-react";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { compactNumber } from "@/utils/formatNumbers";
+import { convertTrade } from "@/utils/fx";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -398,8 +399,9 @@ const exportCsv = (list, name = "journalx_trades") => {
 
 /* ================================================================ */
 export default function TradesLogPanel({
-  trades = [],
+  trades: tradesProp = [],
   currencySymbol = "$",
+  fxRate = 1,
   usingDummy,
   onAddTrade,
   onTradesAdded,
@@ -408,6 +410,18 @@ export default function TradesLogPanel({
   openImportSignal = 0,
   onOpenTab,
 }) {
+  // Display trades are converted to the chosen display currency; NATIVE trades
+  // are kept for editing (so a converted view can never corrupt a saved trade).
+  const trades = useMemo(
+    () => (fxRate === 1 ? tradesProp : tradesProp.map((t) => convertTrade(t, fxRate))),
+    [tradesProp, fxRate],
+  );
+  const nativeById = useMemo(
+    () => new Map(tradesProp.map((t) => [t._id, t])),
+    [tradesProp],
+  );
+  // always edit the native (journal-currency) trade, never the converted one
+  const openEdit = (t) => setEditTrade(nativeById.get(t?._id) || t);
   const [view, setView] = useState("cards");
   const [direction, setDirection] = useState("all");
   const [outcome, setOutcome] = useState("all");
@@ -897,7 +911,7 @@ export default function TradesLogPanel({
                         onImageClick={() => setViewerTrade(t)}
                         menu={
                           <RowMenu
-                            onEdit={() => setEditTrade(t)}
+                            onEdit={() => openEdit(t)}
                             onExport={() => askExport([t])}
                             onShareCard={() => shareCard(t)}
                             onDelete={() => askDelete([t])}
@@ -972,7 +986,7 @@ export default function TradesLogPanel({
                           {!selectMode && (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                               <RowMenu
-                                onEdit={() => setEditTrade(t)}
+                                onEdit={() => openEdit(t)}
                                 onExport={() => askExport([t])}
                                 onShareCard={() => shareCard(t)}
                                 onDelete={() => askDelete([t])}
@@ -1009,18 +1023,18 @@ export default function TradesLogPanel({
         trade={openTrade}
         currencySymbol={currencySymbol}
         onClose={() => setOpenTrade(null)}
-        onEdit={(t) => { setOpenTrade(null); setEditTrade(t); }}
+        onEdit={(t) => { setOpenTrade(null); openEdit(t); }}
         onDelete={(t) => askDelete([t])}
         onImageClick={(t) => setViewerTrade(t)}
         onTradeUpdated={(t) => { setOpenTrade(t); onTradeUpdated?.(t); }}
       />
 
-      {/* Edit trade — prefilled log modal */}
+      {/* Edit trade — prefilled log modal (native journal currency; falls back
+          to jx-base-currency, never the converted display currency) */}
       <LogTradeModal
         open={!!editTrade}
         initialTrade={editTrade}
         currentAccountId={editTrade?.accountId}
-        currencySymbol={currencySymbol}
         onClose={() => setEditTrade(null)}
         onSaved={(trade, meta) => {
           if (meta?.updated) onTradeUpdated?.(trade);

@@ -252,13 +252,19 @@ export default function SettingsPanel({ user }) {
         setAccounts(userData?.accounts || []);
         const cachedAvatar = userData?.avatarUrl || (typeof window !== "undefined" && localStorage.getItem("jx-avatar")) || "";
         if (cachedAvatar && !user?.avatarUrl) setAvatarUrl(cachedAvatar);
+        // Base (display) currency defaults to the ACTIVE journal's currency;
+        // an explicit override (jx-display-currency) wins if the user set one.
+        const accId = (typeof window !== "undefined" && (Cookies.get("accountId") || localStorage.getItem("jx-default-journal"))) || "";
+        const acc = (userData?.accounts || []).find((a) => a._id === accId) || (userData?.accounts || [])[0];
+        const journalCur = (acc?.currency || "USD").toUpperCase();
+        const override = localStorage.getItem("jx-display-currency");
+        setBaseCurrency(override || journalCur);
       } catch {}
     })();
     if (user?.name) {
       setName(user.name);
       setInitialName(user.name);
     }
-    setBaseCurrency(localStorage.getItem("jx-base-currency") || user?.baseCurrency || "USD");
     setDefaultJournal(localStorage.getItem("jx-default-journal") || Cookies.get("accountId") || "");
     setMonthlyTarget(localStorage.getItem("jx-monthly-target") || "");
     setBinanceConnected(!!localStorage.getItem("binance_api_key"));
@@ -475,7 +481,7 @@ export default function SettingsPanel({ user }) {
           </div>
         </Row>
 
-        <Row title="Base currency" sub="All dashboard values convert to this currency">
+        <Row title="Display currency" sub="Converts dashboard & trades-log values for viewing. Each journal still stores its own currency.">
           <div style={{ width: 130 }}>
             <Dropdown
               value={baseCurrency}
@@ -488,11 +494,11 @@ export default function SettingsPanel({ user }) {
             variant="secondary"
             size="sm"
             onClick={() => {
-              /* localStorage only — no DB. Dashboard reads jx-base-currency
-                 on mount and listens for the change event. */
-              localStorage.setItem("jx-base-currency", baseCurrency);
+              /* Display-only override (no DB). Dashboard converts journal→display
+                 at view time; journal balances stay in their own currency. */
+              localStorage.setItem("jx-display-currency", baseCurrency);
               window.dispatchEvent(new CustomEvent("jx-currency-changed", { detail: baseCurrency }));
-              flash("success", `Currency applied — dashboard now shows ${baseCurrency}`);
+              flash("success", `Dashboard now displays in ${baseCurrency}`);
             }}
           >
             Apply
