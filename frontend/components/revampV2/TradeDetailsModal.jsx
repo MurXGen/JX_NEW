@@ -530,8 +530,9 @@ export default function TradeDetailsModal({
                   </div>
                 )}
 
-                {/* TradingView-marked chart (when sourced from TV / no screenshots) */}
-                {(t.source === "tradingview" || (t.tvChart && images.length === 0)) && (
+                {/* Marked chart — entry/exit + timeframes, whenever the trade
+                    was annotated on a chart (tvChart) or imported from TV */}
+                {(t.source === "tradingview" || t.tvChart) && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
                       <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Chart — entry &amp; exit</span>

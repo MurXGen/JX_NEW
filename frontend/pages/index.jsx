@@ -251,6 +251,161 @@ function MockStat({ label, value, color }) {
   );
 }
 
+/* ===== Hero before/after "edge" graph — full-width, animated, interactive,
+   with gradient fills/stroke and hoverable goal-reach milestones ===== */
+const BEFORE_PATH = "M70,348 L220,356 L360,362 L460,366";
+const AFTER_PATH = "M460,366 C 640,344 760,250 1150,70";
+const GOALS = [
+  { x: 460, y: 366, label: "Today", sub: "Start logging trades" },
+  { x: 660, y: 318, label: "First green week", sub: "+5% — habit forming" },
+  { x: 830, y: 236, label: "Consistent edge", sub: "+25% — discipline pays" },
+  { x: 1000, y: 156, label: "Scaled up", sub: "+50% — sizing with data" },
+  { x: 1150, y: 70, label: "Funded payout", sub: "Goal reached 🎯" },
+];
+
+function EdgeGraph() {
+  const [hover, setHover] = useState(null);
+  const reduced = useReducedMotion();
+  const draw = {
+    initial: { pathLength: reduced ? 1 : 0, opacity: reduced ? 1 : 0 },
+    whileInView: { pathLength: 1, opacity: 1 },
+  };
+
+  return (
+    <svg
+      viewBox="0 0 1200 470"
+      width="100%"
+      style={{ height: "auto", display: "block" }}
+      role="img"
+      aria-label="The quality of your trading edge before and after using JournalX — flat or declining before, rising steadily through clear milestones after."
+    >
+      <defs>
+        <linearGradient id="jxAfterFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2ebd85" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#2ebd85" stopOpacity="0.02" />
+        </linearGradient>
+        <linearGradient id="jxBeforeFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f6465d" stopOpacity="0.26" />
+          <stop offset="100%" stopColor="#f6465d" stopOpacity="0.02" />
+        </linearGradient>
+        <linearGradient id="jxStroke" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stopColor="#fcd535" />
+          <stop offset="55%" stopColor="#5fd6a4" />
+          <stop offset="100%" stopColor="#2ebd85" />
+        </linearGradient>
+      </defs>
+
+      {/* faint gridlines */}
+      {[150, 240, 330].map((y) => (
+        <line key={y} x1="70" y1={y} x2="1160" y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+      ))}
+
+      {/* area fills */}
+      <motion.path
+        d={`${BEFORE_PATH} L460,404 L70,404 Z`}
+        fill="url(#jxBeforeFill)"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      />
+      <motion.path
+        d={`${AFTER_PATH} L1150,404 L460,404 Z`}
+        fill="url(#jxAfterFill)"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.9, delay: 0.5 }}
+      />
+
+      {/* baseline */}
+      <line x1="70" y1="404" x2="1160" y2="404" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
+
+      {/* lines (animated draw) */}
+      <motion.path
+        d={BEFORE_PATH}
+        fill="none"
+        stroke="#f6465d"
+        strokeWidth="3"
+        strokeLinecap="round"
+        opacity="0.85"
+        {...draw}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+      />
+      <motion.path
+        d={AFTER_PATH}
+        fill="none"
+        stroke="url(#jxStroke)"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        {...draw}
+        viewport={{ once: true }}
+        transition={{ duration: 1.7, ease: "easeInOut", delay: 0.5 }}
+      />
+
+      {/* split marker + arrowhead */}
+      <line x1="460" y1="150" x2="460" y2="396" stroke="#f0b90b" strokeWidth="2.5" strokeDasharray="6 6" opacity="0.7" />
+      <path d="M460,404 l-6,-12 l12,0 Z" fill="#f0b90b" />
+
+      {/* labels */}
+      <text x="220" y="392" textAnchor="middle" fontFamily="Poppins, sans-serif" fontSize="15" fontWeight="600" fill="#f6465d" opacity="0.9">Before JournalX</text>
+      <rect x="350" y="104" width="220" height="44" rx="13" fill="#0d1117" stroke="rgba(255,255,255,0.2)" />
+      <text x="460" y="132" textAnchor="middle" fontFamily="Poppins, sans-serif" fontSize="20" fontWeight="700" fill="#ffffff">After JournalX</text>
+
+      {/* "Your edge" annotation */}
+      <text x="900" y="58" fontFamily="Poppins, sans-serif" fontSize="20" fontStyle="italic" fontWeight="600" fill="#aeb4bc">Your edge</text>
+      <path d="M1020,62 C 1060,68 1078,86 1070,116" fill="none" stroke="#f0b90b" strokeWidth="2" strokeLinecap="round" />
+      <path d="M1070,116 l-9,-5 l10,-4 Z" fill="#f0b90b" />
+
+      {/* goal-reach milestones (interactive) */}
+      {GOALS.map((g, i) => {
+        const active = hover === i;
+        const isEnd = i === GOALS.length - 1;
+        return (
+          <motion.g
+            key={g.label}
+            initial={{ opacity: reduced ? 1 : 0, scale: reduced ? 1 : 0.2 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: reduced ? 0 : 0.6 + i * 0.28, type: "spring", stiffness: 320, damping: 18 }}
+            style={{ cursor: "pointer" }}
+            onMouseEnter={() => setHover(i)}
+            onMouseLeave={() => setHover(null)}
+            onTouchStart={() => setHover(i)}
+          >
+            {/* generous hit area */}
+            <circle cx={g.x} cy={g.y} r="22" fill="transparent" />
+            {isEnd && (
+              <motion.circle
+                cx={g.x}
+                cy={g.y}
+                r="10"
+                fill="none"
+                stroke="#2ebd85"
+                strokeWidth="2"
+                initial={{ opacity: 0.6, scale: 1 }}
+                animate={reduced ? {} : { opacity: [0.6, 0, 0.6], scale: [1, 2.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+              />
+            )}
+            <circle cx={g.x} cy={g.y} r={active ? 9 : 6.5} fill={i === 0 ? "#fcd535" : "#2ebd85"} stroke="#0d1117" strokeWidth="2.5" style={{ transition: "r .15s ease" }} />
+
+            {/* tooltip */}
+            {active && (
+              <g pointerEvents="none">
+                <rect x={Math.min(Math.max(g.x - 110, 8), 980)} y={g.y - 70} width="220" height="52" rx="12" fill="#0d1117" stroke="rgba(255,255,255,0.18)" />
+                <text x={Math.min(Math.max(g.x - 110, 8), 980) + 16} y={g.y - 46} fontFamily="Poppins, sans-serif" fontSize="16" fontWeight="700" fill="#ffffff">{g.label}</text>
+                <text x={Math.min(Math.max(g.x - 110, 8), 980) + 16} y={g.y - 27} fontFamily="Poppins, sans-serif" fontSize="13" fill="#aeb4bc">{g.sub}</text>
+              </g>
+            )}
+          </motion.g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function JournalMock() {
   const reduced = useReducedMotion();
   // count = number of rows currently inserted (0..len); loops back to 0
@@ -1078,48 +1233,62 @@ export default function Home({ posts = [] }) {
         <LandingNav />
 
         <main style={{ position: "relative", zIndex: 1 }}>
-          {/* ===== Hero ===== */}
-          <Section label="Hero" style={{ paddingTop: 72, paddingBottom: 48, textAlign: "center", position: "relative" }}>
-            <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "radial-gradient(720px 400px at 50% -10%, rgba(252,213,53,0.16), transparent 70%)", pointerEvents: "none" }} />
+          {/* ===== Hero (two-column: copy + before/after edge graph) ===== */}
+          <Section label="Hero" style={{ paddingTop: 64, paddingBottom: 44, position: "relative" }}>
+            <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "radial-gradient(720px 420px at 28% -10%, rgba(252,213,53,0.16), transparent 70%)", pointerEvents: "none" }} />
             <HeroBackdrop />
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative", zIndex: 1 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 22 }}>
-                <Sparkles size={14} aria-hidden="true" /> Full trade analysis in under 10 seconds
-              </span>
-              <h1 style={{ font: "700 clamp(34px, 6vw, 60px)/1.08 Poppins", margin: "0 auto 18px", maxWidth: 880, letterSpacing: "-1.5px" }}>
-                The trading journal that finds your edge in{" "}
-                <span style={{ background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
-                  under 10 seconds
+            <div className="lp-hero-grid" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "0.85fr 1.25fr", gap: 40, alignItems: "center" }}>
+              {/* LEFT — copy (SEO unchanged) */}
+              <motion.div className="lp-hero-copy" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ textAlign: "left" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 22 }}>
+                  <Sparkles size={14} aria-hidden="true" /> Full trade analysis in under 10 seconds
                 </span>
-              </h1>
-              <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 640, margin: "0 auto 30px" }}>
-                JournalX turns every trade into the analytics that actually grow an account — win rate, R-multiples, risk, drawdown and psychology, all computed from your real trade log. Built for funded and prop firm traders, across forex, futures, stocks, options and crypto.
-              </p>
-              <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-                <a href="/register" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnPrimary, padding: "14px 26px", fontSize: 15, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 8px 28px rgba(252,213,53,0.3)" }}>
-                    Start journaling free <ArrowRight size={16} aria-hidden="true" />
-                  </button>
-                </a>
-                <a href="/dashboard" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnGhost, padding: "14px 26px", fontSize: 15, backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", background: "rgba(255,255,255,0.04)" }}>
-                    Try the live demo
-                  </button>
-                </a>
-              </div>
-              <div style={{ display: "flex", gap: 22, justifyContent: "center", flexWrap: "wrap", marginTop: 26, font: "400 13px Poppins", color: C.dim }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> Free to start</span>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> No card required</span>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> All markets</span>
-              </div>
-            </motion.div>
+                <h1 style={{ font: "700 clamp(34px, 5vw, 56px)/1.08 Poppins", margin: "0 0 18px", letterSpacing: "-1.5px" }}>
+                  The trading journal that finds your edge in{" "}
+                  <span style={{ background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                    under 10 seconds
+                  </span>
+                </h1>
+                <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 560, margin: "0 0 30px" }}>
+                  JournalX turns every trade into the analytics that actually grow an account — win rate, R-multiples, risk, drawdown and psychology, all computed from your real trade log. Built for funded and prop firm traders, across forex, futures, stocks, options and crypto.
+                </p>
+                <div className="lp-hero-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-start", flexWrap: "wrap" }}>
+                  <a href="/register" style={{ textDecoration: "none" }}>
+                    <button style={{ ...btnPrimary, padding: "14px 26px", fontSize: 15, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 8px 28px rgba(252,213,53,0.3)" }}>
+                      Start journaling free <ArrowRight size={16} aria-hidden="true" />
+                    </button>
+                  </a>
+                  <a href="/dashboard" style={{ textDecoration: "none" }}>
+                    <button style={{ ...btnGhost, padding: "14px 26px", fontSize: 15, backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", background: "rgba(255,255,255,0.04)" }}>
+                      Try the live demo
+                    </button>
+                  </a>
+                </div>
+                <div className="lp-hero-trust" style={{ display: "flex", gap: 22, justifyContent: "flex-start", flexWrap: "wrap", marginTop: 26, font: "400 13px Poppins", color: C.dim }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> Free to start</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> No card required</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> All markets</span>
+                </div>
+              </motion.div>
 
-            {/* signature animation — the live journal mock */}
+              {/* RIGHT — before/after edge graph */}
+              <motion.div
+                initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                style={{ position: "relative" }}
+              >
+                <div aria-hidden="true" style={{ position: "absolute", inset: "-30px -20px", background: "radial-gradient(60% 70% at 70% 40%, rgba(46,189,133,0.12), transparent 70%)", pointerEvents: "none", filter: "blur(10px)" }} />
+                <div style={{ position: "relative" }}><EdgeGraph /></div>
+              </motion.div>
+            </div>
+
+            {/* signature animation — the live journal mock (how journaling is done) */}
             <motion.div
               initial={{ opacity: 0, y: 28, scale: 0.985 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.25, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              style={{ position: "relative", zIndex: 1, marginTop: 54, maxWidth: 860, marginInline: "auto" }}
+              transition={{ delay: 0.3, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              style={{ position: "relative", zIndex: 1, marginTop: 64, maxWidth: 860, marginInline: "auto" }}
             >
               <div aria-hidden="true" style={{ position: "absolute", inset: "-40px -60px", background: "radial-gradient(60% 70% at 50% 50%, rgba(252,213,53,0.09), transparent 70%)", pointerEvents: "none", filter: "blur(8px)" }} />
               <JournalMock />
@@ -1415,6 +1584,12 @@ export default function Home({ posts = [] }) {
       `}</style>
 
       <style jsx>{`
+        @media (max-width: 880px) {
+          :global(.lp-hero-grid) { grid-template-columns: 1fr !important; gap: 30px !important; }
+          :global(.lp-hero-copy) { text-align: center !important; }
+          :global(.lp-hero-copy) p { margin-left: auto !important; margin-right: auto !important; }
+          :global(.lp-hero-actions), :global(.lp-hero-trust) { justify-content: center !important; }
+        }
         @media (max-width: 920px) {
           :global(.lp-charts-grid) { grid-template-columns: 1fr !important; }
         }

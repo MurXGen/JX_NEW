@@ -29,6 +29,7 @@ import {
 
 import Dropdown from "./Dropdown";
 import DateTimePicker from "./DateTimePicker";
+import ChartAnnotator from "./ChartAnnotator";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -554,8 +555,10 @@ export default function LogTradeModal({
       return "$";
     }
   }, [currencySymbol]);
-  const [mode, setMode] = useState("detailed");
+  const [mode, setMode] = useState("quick");
   const [showMore, setShowMore] = useState(false); // quick-log "add more details" accordion
+  const [useChart, setUseChart] = useState(false); // "Log on chart" toggle
+  const [chartMeta, setChartMeta] = useState(null); // {symbol,timeframe,entryPrice,exitPrice,entryTime,exitTime}
   const [form, setForm] = useState(EMPTY);
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -594,16 +597,31 @@ export default function LogTradeModal({
     setTimeout(() => setToast(null), ms);
   };
 
+  /* chart annotation → mirror entry/exit into the form so prices + P&L and
+     the saved tvChart stay in sync */
+  const onChartChange = (meta) => {
+    setChartMeta(meta);
+    setForm((f) => ({
+      ...f,
+      entry: meta.entryPrice !== "" && meta.entryPrice != null ? String(meta.entryPrice) : f.entry,
+      exit: meta.exitPrice !== "" && meta.exitPrice != null ? String(meta.exitPrice) : f.exit,
+    }));
+  };
+
   /* load symbols from IndexedDB trades + custom chip lists */
   useEffect(() => {
     if (!open) return;
     if (initialTrade?._id) {
       setForm(tradeToForm(initialTrade));
       setMode(initialTrade.tradeStatus === "quick" ? "quick" : "detailed");
+      setUseChart(!!initialTrade.tvChart);
     } else {
       setForm(EMPTY);
-      setMode("detailed");
+      setMode("quick");
+      setUseChart(false);
     }
+    setChartMeta(null);
+    setShowMore(false);
     setToast(null);
     (async () => {
       try {
@@ -953,6 +971,26 @@ export default function LogTradeModal({
     form.screenshots.forEach(
       (img) => img.file && fd.append("images", img.file),
     );
+
+    /* chart annotation → tvChart metadata so the details page can redraw the
+       marked chart with entry/exit + timeframes */
+    if (useChart && chartMeta?.entryPrice && chartMeta?.exitPrice) {
+      const tvTfMap = { "1m": "1", "5m": "5", "15m": "15", "1h": "60", "4h": "240", "1d": "D" };
+      fd.append(
+        "tvChart",
+        JSON.stringify({
+          symbol: (chartMeta.symbol || form.symbol).toUpperCase(),
+          exchange: "BINANCE",
+          timeframe: tvTfMap[chartMeta.timeframe] || "60",
+          entryTime: chartMeta.entryTime || openTime,
+          exitTime: chartMeta.exitTime || closeTime || openTime,
+          entryPrice: Number(chartMeta.entryPrice),
+          exitPrice: Number(chartMeta.exitPrice),
+          stopPrice: num(form.stopLoss) || 0,
+          takeProfit: num(form.takeProfit) || 0,
+        }),
+      );
+    }
 
     setSaving(true);
     try {
@@ -1320,6 +1358,97 @@ export default function LogTradeModal({
                       <Sect icon={CandlestickChart} title="Asset & direction" />
                       {symbolBlock}
                       {directionBlock}
+                    </div>
+
+                    {/* ===== Log on chart (both modes) ===== */}
+                    <div className="jx-ltgroup">
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "var(--space-2)",
+                        }}
+                      >
+                        <div className="jx-sect__left">
+                          <span className="jx-sect__icon">
+                            <LineChart size={15} />
+                          </span>
+                          <span className="jx-sect__title">Log on chart</span>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "var(--space-2)",
+                          }}
+                        >
+                          <span
+                            style={{
+                              font: "var(--text-small)",
+                              fontWeight: 600,
+                              color: useChart
+                                ? "var(--color-success-strong)"
+                                : "var(--color-text-muted)",
+                            }}
+                          >
+                            {useChart ? "On" : "Off"}
+                          </span>
+                          <button
+                            type="button"
+                            className={`jx-switch ${useChart ? "jx-switch--on" : ""}`}
+                            onClick={() => setUseChart((v) => !v)}
+                            aria-pressed={useChart}
+                            aria-label="Log on chart"
+                          />
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          font: "var(--text-caption)",
+                          color: "var(--color-text-muted)",
+                        }}
+                      >
+                        Mark your entry &amp; exit on a live chart — prices fill
+                        in automatically and the marked chart shows on the trade
+                        details page.
+                      </span>
+
+                      <AnimatePresence initial={false}>
+                        {useChart && (
+                          <motion.div
+                            key="chart-annotator"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.24, ease: "easeOut" }}
+                            style={{ overflow: "hidden" }}
+                          >
+                            {form.symbol ? (
+                              <div style={{ paddingTop: "var(--space-3)" }}>
+                                <ChartAnnotator
+                                  symbol={form.symbol}
+                                  direction={form.direction}
+                                  initialEntry={form.entry}
+                                  initialExit={form.exit}
+                                  onChange={onChartChange}
+                                />
+                              </div>
+                            ) : (
+                              <div
+                                className="jx-banner jx-banner--warn"
+                                style={{ marginTop: "var(--space-3)" }}
+                              >
+                                <AlertTriangle
+                                  size={15}
+                                  style={{ color: "var(--yellow-500)" }}
+                                />
+                                <span>Select a symbol above to load its chart.</span>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {isQuick ? (

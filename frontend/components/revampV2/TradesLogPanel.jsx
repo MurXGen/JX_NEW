@@ -37,10 +37,8 @@ import ImportTradesModal from "./ImportTradesModal";
 import ImageViewerModal from "./ImageViewerModal";
 import LogTradeModal from "./LogTradeModal";
 import SampleDataBanner from "./SampleDataBanner";
-import ChartTradeModal from "./ChartTradeModal";
 import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
 import { generateShareCard } from "./shareCard";
-import { CandlestickChart } from "lucide-react";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { compactNumber } from "@/utils/formatNumbers";
 import { convertTrade } from "@/utils/fx";
@@ -436,7 +434,6 @@ export default function TradesLogPanel({
   };
   useEffect(() => { if (openTrade) setOpening(false); }, [openTrade]);
   const [showImport, setShowImport] = useState(false);
-  const [showChartTrade, setShowChartTrade] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [toast, setToast] = useState(null);
@@ -714,10 +711,6 @@ export default function TradesLogPanel({
           />
           {!usingDummy && (
             <>
-              <Button variant="outline" icon={CandlestickChart} onClick={() => setShowChartTrade(true)} aria-label="Log on chart">
-                <span className="jx-lbl-full">Log on chart</span>
-                <span className="jx-lbl-short">Chart</span>
-              </Button>
               <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)} aria-label="Import trades">
                 <span className="jx-lbl-full">Import trades</span>
                 <span className="jx-lbl-short">Import</span>
@@ -1055,13 +1048,6 @@ export default function TradesLogPanel({
         open={showImport}
         onClose={() => setShowImport(false)}
         onImported={(newTrades) => onTradesAdded?.(newTrades)}
-      />
-
-      {/* Log on chart */}
-      <ChartTradeModal
-        open={showChartTrade}
-        onClose={() => setShowChartTrade(false)}
-        onSaved={(trade) => trade && onTradesAdded?.([trade])}
       />
 
       {/* Confirm export / delete */}
