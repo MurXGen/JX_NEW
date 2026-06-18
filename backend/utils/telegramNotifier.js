@@ -66,12 +66,27 @@ const sendTelegramNotification = async ({
       return;
     }
 
-    await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      chat_id: CHAT_ID,
-      text: message,
-      // no parse_mode → plain text, can't be rejected for bad entities
-      ...inlineKeyboard,
-    });
+    // Fire-and-forget: notifications must never block (or fail) the request
+    // that triggered them — e.g. login/register. We don't await the network
+    // call, and we cap it with a short timeout so a flaky/unreachable Telegram
+    // (ETIMEDOUT on local dev) can't stall the response.
+    axios
+      .post(
+        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+        {
+          chat_id: CHAT_ID,
+          text: message,
+          // no parse_mode → plain text, can't be rejected for bad entities
+          ...inlineKeyboard,
+        },
+        { timeout: 4000 },
+      )
+      .catch((err) =>
+        console.error(
+          "Telegram notification failed:",
+          err.response?.data?.description || err.message,
+        ),
+      );
   } catch (err) {
     console.error(
       "Telegram notification failed:",

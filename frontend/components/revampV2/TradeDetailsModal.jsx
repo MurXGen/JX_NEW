@@ -3,7 +3,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  CandlestickChart,
   Check,
   ChevronRight,
   Clock,
@@ -25,11 +24,9 @@ import Badge from "./Badge";
 import Button from "./Button";
 import Dropdown from "./Dropdown";
 import TradeChartMarker from "./TradeChartMarker";
-import ChartTradeModal from "./ChartTradeModal";
-import TvChart from "./TvChart";
 import { getLivePrice } from "@/utils/livePrice";
-import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
-import { getPlanRules, countChartLogsThisMonth, canChartLog, lockedChartTradeIds } from "@/utils/planRestrictions";
+import { getFromIndexedDB } from "@/utils/indexedDB";
+import { lockedChartTradeIds } from "@/utils/planRestrictions";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -39,6 +36,19 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
    crypto symbols, with a clearly-labeled simulation fallback. */
 
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+/* adaptive decimals for prices so small-priced assets (SHIB, forex) aren't
+   shown as "0.00", while big prices stay at 2 dp */
+const priceDecimals = (p) => {
+  const a = Math.abs(Number(p) || 0);
+  if (a === 0) return 2;
+  if (a >= 100) return 2;
+  if (a >= 1) return 4;
+  if (a >= 0.01) return 5;
+  if (a >= 0.0001) return 6;
+  if (a >= 0.000001) return 8;
+  return 10;
+};
+const fmtPrice = (v) => Number(v).toLocaleString(undefined, { maximumFractionDigits: priceDecimals(v) });
 /* details view shows FULL numbers with 2 decimals (not compact k/M),
    with a signed prefix for money values */
 const kf = (v, sym = "$") => `${v < 0 ? "−" : "+"}${sym}${fmt(Math.abs(Number(v) || 0), 2)}`;
@@ -134,12 +144,10 @@ export default function TradeDetailsModal({
   // localTrade lets us reflect a freshly-saved chart annotation without a refetch
   const [localTrade, setLocalTrade] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [showAnnotate, setShowAnnotate] = useState(false);
 
   useEffect(() => {
     // reset local copy whenever a different trade opens
     setLocalTrade(null);
-    setShowAnnotate(false);
   }, [trade?._id]);
 
   useEffect(() => {
@@ -165,29 +173,8 @@ export default function TradeDetailsModal({
   const session = detectSession(t.openTime);
   const images = (t.images || []).map((i) => (typeof i === "string" ? { url: i } : i)).filter((i) => i?.url);
 
-  /* ---- chart annotation (mark entry/exit when there are no screenshots) ---- */
-  const hasChart = !!t.tvChart || t.source === "tradingview";
-  const canShowAnnotate = open && images.length === 0 && !hasChart;
-  const chartRules = getPlanRules(userData);
-  const chartLimit = chartRules.limits.chartLogLimitPerMonth ?? Infinity;
-  const chartUsed = countChartLogsThisMonth(userData);
-  const chartAllowed = canChartLog(userData);
-  // free users over their monthly allowance → blur the chart with an upgrade gate
+  /* free users over their monthly chart-log allowance → blur the marked chart */
   const chartLocked = lockedChartTradeIds(userData).has(t._id);
-
-  const onAnnotated = async (updated) => {
-    if (updated) {
-      setLocalTrade(updated);
-      onTradeUpdated?.(updated);
-      try {
-        const ud = (await getFromIndexedDB("user-data")) || {};
-        ud.trades = (ud.trades || []).map((x) => (x._id === updated._id ? { ...x, ...updated } : x));
-        await saveToIndexedDB("user-data", ud);
-        setUserData(ud);
-      } catch {}
-    }
-    setShowAnnotate(false);
-  };
 
   const duration = t.openTime && t.closeTime
     ? (() => {
@@ -251,10 +238,21 @@ export default function TradeDetailsModal({
 
   const feeVal = Number(t.feeAmount) || 0;
   const grossPnl = pnl + feeVal; // stored pnl is already NET (gross − fee)
+  // Position size shown in the unit the user logged: cash trades in the
+  // journal currency (e.g. ₹300), asset trades as units of the asset.
+  const assetName = (t.symbol || t.ticker || "").split("/")[0] || "";
+  const sizeDisplay =
+    t.sizeUnit === "usd"
+      ? t.quantityUSD != null
+        ? `${currencySymbol}${fmt(t.quantityUSD, 2)}`
+        : "—"
+      : size != null
+        ? `${fmt(size, 2)}${assetName ? ` ${assetName}` : ""}`
+        : "—";
   const stats = [
-    ["Entry", entry ? `$${fmt(entry)}` : "—"],
-    ["Exit", exit ? `$${fmt(exit)}` : "—"],
-    ["Size", size != null ? fmt(size, 2) : "—"],
+    ["Entry", entry ? `$${fmtPrice(entry)}` : "—"],
+    ["Exit", exit ? `$${fmtPrice(exit)}` : "—"],
+    ["Size", sizeDisplay],
     // show gross only when a fee was logged, so the deduction is transparent
     ...(feeVal > 0
       ? [["Gross P&L", kf(grossPnl, currencySymbol), grossPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)"]]
@@ -262,7 +260,7 @@ export default function TradeDetailsModal({
     ["Net P&L", kf(pnl, currencySymbol), pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)"],
     ["Return", retPct != null ? `${retPct >= 0 ? "+" : ""}${fmt(retPct, 1)}%` : "—", retPct != null ? (retPct >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)") : undefined],
     ["R : R", t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"],
-    ["Fees", t.feeAmount ? `$${fmt(t.feeAmount)}` : "—"],
+    ["Fees", t.feeAmount ? `${currencySymbol}${fmt(t.feeAmount)}` : "—"],
     ["Duration", duration],
   ];
 
@@ -358,7 +356,7 @@ export default function TradeDetailsModal({
                 {entry > 0 && exit > 0 && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Price action · {t.symbol || t.ticker}</div>
-                    <div style={{ font: "var(--text-h2)" }}>${fmt(exit)}</div>
+                    <div style={{ font: "var(--text-h2)" }}>${fmtPrice(exit)}</div>
                     <Badge variant={exit >= entry ? "success" : "danger"}>
                       {exit >= entry ? "+" : ""}{fmt(((exit - entry) / entry) * 100, 1)}% over the trade
                     </Badge>
@@ -388,7 +386,7 @@ export default function TradeDetailsModal({
                     <div className="jx-held-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "var(--space-3)", marginTop: "var(--space-3)" }}>
                       <div style={{ background: "var(--color-bg-muted)", borderRadius: "var(--radius-md)", padding: "var(--space-4)" }}>
                         <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Your entry</div>
-                        <div style={{ font: "var(--text-h2)" }}>${fmt(entry)}</div>
+                        <div style={{ font: "var(--text-h2)" }}>${fmtPrice(entry)}</div>
                         <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
                           {isLong ? "Long" : "Short"}{size ? ` · ${fmt(size, 2)} units` : ""}
                         </span>
@@ -407,7 +405,7 @@ export default function TradeDetailsModal({
                             transition={{ type: "spring", stiffness: 320, damping: 26 }}
                             style={{ font: "var(--text-h2)", color: liveDir > 0 ? "var(--color-success-strong)" : liveDir < 0 ? "var(--color-danger-strong)" : "var(--color-text-primary)" }}
                           >
-                            ${fmt(heldPrice)}
+                            ${fmtPrice(heldPrice)}
                           </motion.div>
                         </AnimatePresence>
                         <span style={{ font: "var(--text-caption)", color: heldPnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
@@ -446,7 +444,7 @@ export default function TradeDetailsModal({
                     <div className="jx-held-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "var(--space-3)", marginTop: "var(--space-3)" }}>
                       <div style={{ background: "var(--color-bg-muted)", borderRadius: "var(--radius-md)", padding: "var(--space-4)" }}>
                         <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Your exit</div>
-                        <div style={{ font: "var(--text-h2)" }}>${fmt(exit)}</div>
+                        <div style={{ font: "var(--text-h2)" }}>${fmtPrice(exit)}</div>
                         <span style={{ font: "var(--text-caption)", color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
                           Realized {kf(pnl, currencySymbol)}
                         </span>
@@ -454,7 +452,7 @@ export default function TradeDetailsModal({
                       <ChevronRight size={18} style={{ color: "var(--color-text-muted)" }} />
                       <div style={{ background: "var(--color-primary-subtle)", border: "1px solid var(--color-primary)", borderRadius: "var(--radius-md)", padding: "var(--space-4)" }}>
                         <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>If held to today</div>
-                        <div style={{ font: "var(--text-h2)" }}>${fmt(heldPrice)}</div>
+                        <div style={{ font: "var(--text-h2)" }}>${fmtPrice(heldPrice)}</div>
                         <span style={{ font: "var(--text-caption)", color: heldPnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
                           Unrealized {kf(heldPnl, currencySymbol)}
                         </span>
@@ -518,25 +516,15 @@ export default function TradeDetailsModal({
                   </p>
                 </div>
 
-                {/* Live chart — works for any instrument (stocks, forex, XAUUSD,
-                    futures, indices, crypto) via TradingView */}
-                {(t.symbol || t.ticker) && (
+                {/* Marked chart — reproduces the chart with the trade's entry &
+                    exit marked (live candles for crypto, approximated otherwise),
+                    with timeframe switching. Shown whenever we have entry & exit
+                    to mark, or the trade was logged/imported from a chart. */}
+                {(t.tvChart || t.source === "tradingview" || (entry > 0 && exit > 0)) && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Live chart · {t.symbol || t.ticker}</span>
-                      <Badge variant="neutral">TradingView</Badge>
-                    </div>
-                    <TvChart symbol={t.symbol || t.ticker} height={420} />
-                  </div>
-                )}
-
-                {/* Marked chart — entry/exit + timeframes, whenever the trade
-                    was annotated on a chart (tvChart) or imported from TV */}
-                {(t.source === "tradingview" || t.tvChart) && (
-                  <div className="jx-card jx-card--flat">
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Chart — entry &amp; exit</span>
-                      <Badge variant="brand">Read-only</Badge>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Chart — entry &amp; exit · {t.symbol || t.ticker}</span>
+                      <Badge variant="brand">Marked</Badge>
                     </div>
                     {chartLocked ? (
                       <div style={{ position: "relative", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
@@ -560,40 +548,6 @@ export default function TradeDetailsModal({
                       </div>
                     ) : (
                       <TradeChartMarker trade={t} />
-                    )}
-                  </div>
-                )}
-
-                {/* chart annotation — only when there are no screenshots & no chart yet */}
-                {canShowAnnotate && (
-                  <div className="jx-card jx-card--flat">
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)", flexWrap: "wrap", gap: 8 }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                        <CandlestickChart size={16} style={{ color: "var(--yellow-500)" }} /> Annotate on chart
-                      </span>
-                      {chartLimit !== Infinity && (
-                        <Badge variant={chartAllowed ? "neutral" : "danger"}>
-                          {Math.min(chartUsed, chartLimit)} / {chartLimit} this month
-                        </Badge>
-                      )}
-                    </div>
-                    <p style={{ margin: "0 0 var(--space-3)", font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                      No screenshot? Open the live chart for {t.symbol || "this symbol"} with your entry &amp; exit prefilled — adjust by typing or clicking, switch timeframes, and save a read-only chart. P&amp;L updates with your marks.
-                    </p>
-                    {chartAllowed ? (
-                      <Button variant="primary" icon={CandlestickChart} onClick={() => setShowAnnotate(true)}>
-                        Annotate on chart
-                      </Button>
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap", padding: "var(--space-3) var(--space-4)", background: "var(--color-primary-subtle)", border: "1px solid var(--color-primary)", borderRadius: "var(--radius-md)" }}>
-                        <Crown size={18} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />
-                        <span style={{ flex: 1, minWidth: 160, font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                          You&apos;ve used all {chartLimit} chart logs this month. Upgrade to Pro for unlimited chart logging.
-                        </span>
-                        <a href="/pricing" style={{ textDecoration: "none" }}>
-                          <Button variant="primary" size="sm">Upgrade</Button>
-                        </a>
-                      </div>
                     )}
                   </div>
                 )}
@@ -652,9 +606,9 @@ export default function TradeDetailsModal({
                     <DetailRow label="Date closed" value={dt(t.closeTime)} />
                     <DetailRow label="Direction" value={isLong ? "Long" : "Short"} />
                     <DetailRow label="Status" valueEl={<Badge variant="neutral">{t.tradeStatus || "closed"}</Badge>} />
-                    <DetailRow label="Size unit" value={t.sizeUnit ? t.sizeUnit.toUpperCase() : "—"} />
+                    <DetailRow label="Size unit" value={t.sizeUnit === "usd" ? "Cash" : `${assetName || "Asset"} units`} />
                     <DetailRow label="Leverage" value={t.leverage && t.leverage !== 1 ? `${t.leverage}×` : "—"} />
-                    <DetailRow label="Margin (USD)" value={t.quantityUSD ? `$${fmt(t.quantityUSD)}` : "—"} />
+                    <DetailRow label="Position value" value={t.quantityUSD ? `${currencySymbol}${fmt(t.quantityUSD)}` : "—"} />
                     <DetailRow
                       label="Source"
                       valueEl={
@@ -670,10 +624,10 @@ export default function TradeDetailsModal({
                 <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)" }}>
                   <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginBottom: "var(--space-3)" }}>Risk management</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
-                    <DetailRow label="Stop loss" value={sl ? `$${fmt(sl)}` : "—"} />
-                    <DetailRow label="Take profit" value={tp ? `$${fmt(tp)}` : "—"} />
-                    <DetailRow label="Expected profit" value={t.expectedProfit ? `$${fmt(t.expectedProfit, 0)}` : "—"} />
-                    <DetailRow label="Expected loss" value={t.expectedLoss ? `$${fmt(t.expectedLoss, 0)}` : "—"} />
+                    <DetailRow label="Stop loss" value={sl ? `$${fmtPrice(sl)}` : "—"} />
+                    <DetailRow label="Take profit" value={tp ? `$${fmtPrice(tp)}` : "—"} />
+                    <DetailRow label="Expected profit" value={t.expectedProfit ? `${currencySymbol}${fmt(t.expectedProfit, 0)}` : "—"} />
+                    <DetailRow label="Expected loss" value={t.expectedLoss ? `${currencySymbol}${fmt(t.expectedLoss, 0)}` : "—"} />
                     <DetailRow
                       label="Planned R:R"
                       valueEl={
@@ -696,15 +650,6 @@ export default function TradeDetailsModal({
               </div>
             </div>
           </motion.div>
-
-          {/* annotate-on-chart (interactive) — opens over the details modal */}
-          <ChartTradeModal
-            open={showAnnotate}
-            annotateMode
-            initialTrade={t}
-            onClose={() => setShowAnnotate(false)}
-            onAnnotated={onAnnotated}
-          />
         </motion.div>
       )}
     </AnimatePresence>

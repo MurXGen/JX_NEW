@@ -30,10 +30,11 @@ import {
 import Dropdown from "./Dropdown";
 import DateTimePicker from "./DateTimePicker";
 import ChartAnnotator from "./ChartAnnotator";
+import QuickFillChips from "./QuickFillChips";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
-import { canAddTrade, getPlanRules } from "@/utils/planRestrictions";
+import { canAddTrade, canChartLog, getPlanRules } from "@/utils/planRestrictions";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { scheduleAutoBackup } from "@/utils/driveBackup";
 
@@ -512,7 +513,13 @@ const tradeToForm = (t) => {
     direction: t.direction || "long",
     entry: t.avgEntryPrice || t.entries?.[0]?.price || "",
     exit: t.avgExitPrice || t.exits?.[0]?.price || "",
-    size: t.totalQuantity ?? "",
+    // Reload the size in the SAME unit it was entered: cash trades store the
+    // cash value in quantityUSD; asset trades store units in totalQuantity.
+    // (Loading totalQuantity for a cash trade showed the huge asset quantity.)
+    size:
+      (t.sizeUnit === "usd"
+        ? t.quantityUSD ?? t.totalQuantity
+        : t.totalQuantity) ?? "",
     sizeUnit: t.sizeUnit || "asset",
     leverage: t.leverage && t.leverage !== 1 ? t.leverage : "",
     feeValue: t.openFeeValue || "",
@@ -555,6 +562,15 @@ export default function LogTradeModal({
       return "$";
     }
   }, [currencySymbol]);
+  // ISO code of the journal currency (e.g. INR) — used to label the cash
+  // position-size unit so it matches the journal, not a hardcoded "USD".
+  const curCode = useMemo(() => {
+    try {
+      return (localStorage.getItem("jx-base-currency") || "USD").toUpperCase();
+    } catch {
+      return "USD";
+    }
+  }, []);
   const [mode, setMode] = useState("quick");
   const [showMore, setShowMore] = useState(false); // quick-log "add more details" accordion
   const [useChart, setUseChart] = useState(false); // "Log on chart" toggle
@@ -603,6 +619,8 @@ export default function LogTradeModal({
     setChartMeta(meta);
     setForm((f) => ({
       ...f,
+      // searching a symbol on the chart keeps the asset field in sync
+      symbol: meta.symbol ? meta.symbol.toUpperCase() : f.symbol,
       entry: meta.entryPrice !== "" && meta.entryPrice != null ? String(meta.entryPrice) : f.entry,
       exit: meta.exitPrice !== "" && meta.exitPrice != null ? String(meta.exitPrice) : f.exit,
       size: meta.size !== "" && meta.size != null ? String(meta.size) : f.size,
@@ -618,7 +636,13 @@ export default function LogTradeModal({
     if (initialTrade?._id) {
       setForm(tradeToForm(initialTrade));
       setMode(initialTrade.tradeStatus === "quick" ? "quick" : "detailed");
-      setUseChart(!!initialTrade.tvChart);
+      // reopen the chart when this trade was logged on a chart, or simply has
+      // an entry & exit we can mark
+      setUseChart(
+        !!initialTrade.tvChart ||
+          (Number(initialTrade.avgEntryPrice) > 0 &&
+            Number(initialTrade.avgExitPrice) > 0),
+      );
     } else {
       setForm(EMPTY);
       setMode("quick");
@@ -891,6 +915,15 @@ export default function LogTradeModal({
           : 0;
     }
 
+    // If the user MARKED entry & exit on the chart (real click times), use
+    // those candle times as the trade's open/close — unless they explicitly
+    // chose "just duration" mode.
+    if (useChart && !form.useDuration && chartMeta?.entryTime && chartMeta?.exitTime) {
+      openTime = chartMeta.entryTime;
+      closeTime = chartMeta.exitTime;
+      durationHrs = Math.max(0, (new Date(closeTime) - new Date(openTime)) / 36e5);
+    }
+
     const fd = new FormData();
     fd.append("accountId", accountId);
     fd.append("symbol", form.symbol.trim().toUpperCase());
@@ -977,8 +1010,24 @@ export default function LogTradeModal({
     );
 
     /* chart annotation → tvChart metadata so the details page can redraw the
-       marked chart with entry/exit + timeframes */
-    if (useChart && chartMeta?.entryPrice && chartMeta?.exitPrice) {
+       marked chart with entry/exit + timeframes. Gated by the plan's monthly
+       chart-log allowance (existing chart trades being edited are exempt). */
+    let attachChart = useChart && !!chartMeta?.entryPrice && !!chartMeta?.exitPrice;
+    if (attachChart && !isEdit) {
+      try {
+        const ud = await getFromIndexedDB("user-data");
+        if (!canChartLog(ud)) {
+          attachChart = false;
+          const lim = getPlanRules(ud).limits.chartLogLimitPerMonth;
+          flash(
+            "danger",
+            `Chart not attached — you've used all ${lim} chart logs this month. Upgrade to Pro for unlimited.`,
+            4000,
+          );
+        }
+      } catch {}
+    }
+    if (attachChart) {
       const tvTfMap = { "1m": "1", "5m": "5", "15m": "15", "1h": "60", "4h": "240", "1d": "D" };
       fd.append(
         "tvChart",
@@ -1438,6 +1487,7 @@ export default function LogTradeModal({
                                   initialSize={form.size}
                                   initialSizeUnit={form.sizeUnit}
                                   sym={sym}
+                                  quoteCode={curCode}
                                   onChange={onChartChange}
                                 />
                               </div>
@@ -1478,6 +1528,16 @@ export default function LogTradeModal({
                                   {quickOutcome}
                                 </span>
                               )}
+                            </div>
+                            <div style={{ marginTop: "var(--space-2)" }}>
+                              <QuickFillChips
+                                value={form.netPnl}
+                                onPick={(v) => set("netPnl", v)}
+                                defaults={["100", "250", "500", "1000"]}
+                                storageKey="jx-pnl-chips"
+                                prefix={sym}
+                                allowNegative
+                              />
                             </div>
                           </Field>
 
@@ -1594,7 +1654,7 @@ export default function LogTradeModal({
                                     type="number"
                                     step="any"
                                     placeholder={
-                                      form.sizeUnit === "usd" ? "$5,000" : "0.5"
+                                      form.sizeUnit === "usd" ? `${sym}5,000` : "0.5"
                                     }
                                     value={form.size}
                                     onChange={(e) =>
@@ -1613,10 +1673,23 @@ export default function LogTradeModal({
                                           ? form.symbol.split("/")[0]
                                           : "Asset",
                                       },
-                                      { value: "usd", label: "USD" },
+                                      { value: "usd", label: curCode },
                                     ]}
                                   />
                                 </div>
+                              </div>
+                              <div style={{ marginTop: "var(--space-2)" }}>
+                                <QuickFillChips
+                                  value={form.size}
+                                  onPick={(v) => set("size", v)}
+                                  defaults={
+                                    form.sizeUnit === "usd"
+                                      ? ["100", "500", "1000", "5000"]
+                                      : ["0.25", "0.5", "1", "2", "5"]
+                                  }
+                                  storageKey={form.sizeUnit === "usd" ? `jx-size-cash-chips-${curCode}` : "jx-size-asset-chips"}
+                                  prefix={form.sizeUnit === "usd" ? sym : ""}
+                                />
                               </div>
                             </Field>
                             <Field label="Leverage">
@@ -1665,16 +1738,13 @@ export default function LogTradeModal({
                                     }
                                   />
                                 </div>
-                                <div style={{ width: 150 }}>
+                                <div style={{ width: 90 }}>
                                   <Dropdown
                                     value={form.feeUnit}
                                     onChange={(v) => set("feeUnit", v)}
                                     options={[
-                                      {
-                                        value: "percent",
-                                        label: "% of position",
-                                      },
-                                      { value: "currency", label: `${sym} amount` },
+                                      { value: "percent", label: "%" },
+                                      { value: "currency", label: sym },
                                     ]}
                                   />
                                 </div>

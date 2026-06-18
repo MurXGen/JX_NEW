@@ -18,6 +18,7 @@ import { createChart } from "lightweight-charts";
 import { MousePointerClick, RotateCcw, Search, SearchX, X } from "lucide-react";
 import { toBinanceSymbol } from "@/utils/livePrice";
 import Dropdown from "./Dropdown";
+import QuickFillChips from "./QuickFillChips";
 
 const TIMEFRAMES = [
   { id: "1m", label: "1m" },
@@ -27,14 +28,29 @@ const TIMEFRAMES = [
   { id: "4h", label: "4h" },
   { id: "1d", label: "1D" },
 ];
+/* decimals to keep for a given price — adaptive so 65,000 stays at 2 dp while
+   tiny prices like 0.00002430 (SHIB, some forex) keep their significant
+   figures, without padding large prices with useless trailing zeros. */
+const priceDecimals = (p) => {
+  const a = Math.abs(Number(p) || 0);
+  if (a === 0) return 2;
+  if (a >= 100) return 2;
+  if (a >= 1) return 4;
+  if (a >= 0.01) return 5;
+  if (a >= 0.0001) return 6;
+  if (a >= 0.000001) return 8;
+  return 10;
+};
 const round = (n) => {
   const v = Number(n);
   if (!Number.isFinite(v)) return v;
-  const a = Math.abs(v);
-  const d = a >= 100 ? 2 : a >= 1 ? 4 : 6;
+  const d = priceDecimals(v);
   return Math.round(v * 10 ** d) / 10 ** d;
 };
-const fmt = (v) => Number(v).toLocaleString(undefined, { maximumFractionDigits: 6 });
+/* price formatter — adaptive decimals, no trailing-zero padding */
+const fmt = (v) => Number(v).toLocaleString(undefined, { maximumFractionDigits: priceDecimals(v) });
+/* money/P&L formatter — currency amounts, 2 dp */
+const fmtMoney = (v) => Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 async function loadKlines(symbol, interval = "1h") {
   const b = toBinanceSymbol(symbol);
@@ -50,6 +66,7 @@ async function loadKlines(symbol, interval = "1h") {
 }
 
 /* TradingView's public symbol search — graceful fallback to free text */
+const stripTags = (s) => (s || "").replace(/<\/?[^>]+>/g, "");
 async function searchTv(text) {
   const q = (text || "").trim();
   if (!q) return [];
@@ -58,14 +75,19 @@ async function searchTv(text) {
       `https://symbol-search.tradingview.com/symbol_search/?text=${encodeURIComponent(q)}&hl=0&lang=en&domain=production`,
     );
     if (!res.ok) return [];
-    const rows = await res.json();
-    return (Array.isArray(rows) ? rows : []).slice(0, 12).map((r) => ({
-      symbol: (r.symbol || "").replace(/<\/?[^>]+>/g, ""),
-      full: `${r.exchange ? `${r.exchange}:` : ""}${(r.symbol || "").replace(/<\/?[^>]+>/g, "")}`,
-      desc: (r.description || "").replace(/<\/?[^>]+>/g, ""),
-      exchange: r.exchange || "",
-      type: r.type || "",
-    }));
+    const json = await res.json();
+    // endpoint returns either a bare array or { symbols: [...] }
+    const rows = Array.isArray(json) ? json : Array.isArray(json?.symbols) ? json.symbols : [];
+    return rows.slice(0, 14).map((r) => {
+      const symbol = stripTags(r.symbol);
+      return {
+        symbol,
+        full: `${r.exchange ? `${r.exchange}:` : r.prefix ? `${r.prefix}:` : ""}${symbol}`,
+        desc: stripTags(r.description),
+        exchange: r.exchange || r.prefix || "",
+        type: r.type || "",
+      };
+    });
   } catch {
     return [];
   }
@@ -79,6 +101,7 @@ export default function ChartAnnotator({
   initialSize = "",
   initialSizeUnit = "asset",
   sym = "$",
+  quoteCode = "USD",
   onChange,
 }) {
   const wrapRef = useRef(null);
@@ -128,7 +151,7 @@ export default function ChartAnnotator({
 
   /* (re)load candles when symbol or timeframe changes */
   useEffect(() => {
-    if (!hasLiveFeed) { setCandles([]); return; }
+    if (!hasLiveFeed) { setCandles([]); setLoading(false); return; }
     let alive = true;
     setLoading(true);
     loadKlines(symbol, tf).then((d) => {
@@ -138,6 +161,9 @@ export default function ChartAnnotator({
     });
     return () => { alive = false; };
   }, [symbol, tf, hasLiveFeed]);
+
+  /* a usable, clickable chart only exists when candles actually loaded */
+  const chartReady = hasLiveFeed && !loading && candles.length > 1;
 
   /* build the interactive chart + click handler */
   useEffect(() => {
@@ -151,8 +177,12 @@ export default function ChartAnnotator({
       timeScale: { borderVisible: false, timeVisible: true },
       crosshair: { mode: 1 },
     });
+    // adaptive precision so small-priced assets (SHIB, forex) aren't flattened
+    // to "0.00" on the axis / price lines, and big prices keep just 2 dp
+    const prec = priceDecimals(candles[candles.length - 1]?.close ?? candles[0]?.close);
     const series = chart.addCandlestickSeries({
       upColor: "#2ebd85", downColor: "#f6465d", borderVisible: false, wickUpColor: "#2ebd85", wickDownColor: "#f6465d",
+      priceFormat: { type: "price", precision: prec, minMove: 1 / 10 ** prec },
     });
     series.setData(candles);
     chart.timeScale().fitContent();
@@ -183,19 +213,37 @@ export default function ChartAnnotator({
     };
   }, [candles]);
 
-  /* redraw markers + price lines */
+  /* redraw entry/exit as ARROWS (no horizontal lines). Use the clicked candle
+     time when available; for typed prices, anchor to the candle nearest that
+     price so the arrow lines up with the chart. */
   useEffect(() => {
     const s = seriesRef.current;
     if (!s) return;
+    const long = direction === "long";
+    const nearestTime = (price) => {
+      if (!price || !candles.length) return null;
+      let bestT = candles[0]?.time, bestD = Infinity;
+      for (const c of candles) {
+        const d = Math.min(Math.abs(c.close - price), Math.abs(c.high - price), Math.abs(c.low - price));
+        if (d < bestD) { bestD = d; bestT = c.time; }
+      }
+      return bestT;
+    };
+    const eT = entry?.price ? (entry.time ?? nearestTime(entry.price)) : null;
+    let xT = exit?.price ? (exit.time ?? nearestTime(exit.price)) : null;
+    if (eT != null && xT != null && xT === eT) {
+      const idx = candles.findIndex((c) => c.time === eT);
+      const nb = candles[idx + 1] || candles[idx - 1];
+      if (nb) xT = nb.time;
+    }
     const markers = [];
-    if (entry?.time) markers.push({ time: entry.time, position: direction === "long" ? "belowBar" : "aboveBar", color: direction === "long" ? "#2ebd85" : "#f6465d", shape: direction === "long" ? "arrowUp" : "arrowDown", text: "Entry" });
-    if (exit?.time) markers.push({ time: exit.time, position: direction === "long" ? "aboveBar" : "belowBar", color: "#fcd535", shape: "circle", text: "Exit" });
+    if (eT != null) markers.push({ time: eT, position: long ? "belowBar" : "aboveBar", color: long ? "#2ebd85" : "#f6465d", shape: long ? "arrowUp" : "arrowDown", text: "Entry" });
+    if (xT != null) markers.push({ time: xT, position: long ? "aboveBar" : "belowBar", color: "#fcd535", shape: long ? "arrowDown" : "arrowUp", text: "Exit" });
     s.setMarkers(markers.sort((a, b) => a.time - b.time));
 
+    // no entry/exit price lines — arrows only
     priceLinesRef.current.forEach((l) => { try { s.removePriceLine(l); } catch {} });
     priceLinesRef.current = [];
-    if (entry?.price) priceLinesRef.current.push(s.createPriceLine({ price: Number(entry.price), color: direction === "long" ? "#2ebd85" : "#f6465d", lineWidth: 2, lineStyle: 0, title: "Entry" }));
-    if (exit?.price) priceLinesRef.current.push(s.createPriceLine({ price: Number(exit.price), color: "#fcd535", lineWidth: 2, lineStyle: 2, title: "Exit" }));
   }, [entry, exit, direction, candles]);
 
   /* live P&L from the marks + size */
@@ -210,21 +258,24 @@ export default function ChartAnnotator({
     return { assetQty, pnl, retPct };
   }, [entry, exit, size, sizeUnit, direction]);
 
-  /* report everything up to the parent whenever the marks/size/P&L change */
+  /* report everything up to the parent whenever the marks/size/P&L change.
+     When there's no usable chart we report blanks so a non-charted symbol
+     never saves chart metadata or overwrites the form. */
   useEffect(() => {
     onChangeRef.current?.({
       symbol,
       timeframe: tf,
-      entryPrice: entry?.price ?? "",
-      exitPrice: exit?.price ?? "",
-      entryTime: entry?.time ? new Date(entry.time * 1000).toISOString() : null,
-      exitTime: exit?.time ? new Date(exit.time * 1000).toISOString() : null,
-      size: size === "" ? "" : Number(size),
+      entryPrice: chartReady ? (entry?.price ?? "") : "",
+      exitPrice: chartReady ? (exit?.price ?? "") : "",
+      entryTime: chartReady && entry?.time ? new Date(entry.time * 1000).toISOString() : null,
+      exitTime: chartReady && exit?.time ? new Date(exit.time * 1000).toISOString() : null,
+      size: chartReady && size !== "" ? Number(size) : "",
       sizeUnit,
-      pnl: calc.pnl,
+      pnl: chartReady ? calc.pnl : null,
+      chartReady,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, tf, entry?.price, exit?.price, entry?.time, exit?.time, size, sizeUnit, calc.pnl]);
+  }, [symbol, tf, entry?.price, exit?.price, entry?.time, exit?.time, size, sizeUnit, calc.pnl, chartReady]);
 
   const reset = () => { setEntry(null); setExit(null); setPhase("entry"); };
 
@@ -254,7 +305,7 @@ export default function ChartAnnotator({
           }}
         >
           {symbol || "No symbol"}
-          {hasLiveFeed && <span style={{ font: "var(--text-caption)", color: "var(--color-success-strong)", fontWeight: 600 }}>● live</span>}
+          {chartReady && <span style={{ font: "var(--text-caption)", color: "var(--color-success-strong)", fontWeight: 600 }}>● live</span>}
         </span>
         <button
           type="button"
@@ -263,7 +314,7 @@ export default function ChartAnnotator({
         >
           <Search size={14} /> Search TradingView
         </button>
-        {hasLiveFeed && (
+        {chartReady && (
           <div className="jx-seg jx-seg--inline" style={{ flexWrap: "wrap", marginLeft: "auto" }}>
             {TIMEFRAMES.map((f) => (
               <button
@@ -322,19 +373,20 @@ export default function ChartAnnotator({
         </div>
       )}
 
-      {/* hint */}
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-        <MousePointerClick size={13} /> {phaseHint}
-      </span>
+      {/* hint — only when a real chart is on screen */}
+      {chartReady && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+          <MousePointerClick size={13} /> {phaseHint}
+        </span>
+      )}
 
       {/* chart area */}
-      {hasLiveFeed ? (
+      {loading ? (
+        <div className="jx-card jx-card--flat" style={{ minHeight: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)", font: "var(--text-small)" }}>
+          Loading chart…
+        </div>
+      ) : chartReady ? (
         <div className="jx-card jx-card--flat" style={{ padding: 8, position: "relative", minHeight: 340 }}>
-          {loading && (
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)", font: "var(--text-small)" }}>
-              Loading candles…
-            </div>
-          )}
           <div ref={wrapRef} style={{ width: "100%" }} />
         </div>
       ) : (
@@ -363,92 +415,106 @@ export default function ChartAnnotator({
           <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
             No chart found for “{symbol || "this symbol"}”
           </span>
-          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", maxWidth: 360 }}>
-            We can only draw a live, clickable chart for crypto pairs (e.g. BTCUSDT).
-            Type your entry &amp; exit below, or search for a crypto pair to mark
-            directly on the chart.
+          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", maxWidth: 380 }}>
+            Search above and pick a symbol from the TradingView suggestions. A
+            live, clickable chart is available for crypto pairs (e.g. BTCUSDT) —
+            mark your entry &amp; exit right on it.
           </span>
         </div>
       )}
 
-      {/* entry/exit — typed or click-filled */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
-        <div className="jx-field" style={{ minWidth: 0 }}>
-          <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Entry price</label>
-          <div className="jx-input" style={{ minWidth: 0 }}>
-            <input
-              type="number"
-              step="any"
-              placeholder="0.00"
-              value={entry?.price ?? ""}
-              onChange={(e) => { const v = e.target.value; setEntry(v === "" ? null : { price: round(v), time: entry?.time ?? null }); }}
-            />
+      {/* entry/exit + size + P&L — only meaningful when a chart is shown */}
+      {chartReady && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
+            <div className="jx-field" style={{ minWidth: 0 }}>
+              <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Entry price</label>
+              <div className="jx-input" style={{ minWidth: 0 }}>
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="0.00"
+                  value={entry?.price ?? ""}
+                  onChange={(e) => { const v = e.target.value; setEntry(v === "" ? null : { price: round(v), time: entry?.time ?? null }); }}
+                />
+              </div>
+            </div>
+            <div className="jx-field" style={{ minWidth: 0 }}>
+              <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Exit price</label>
+              <div className="jx-input" style={{ minWidth: 0 }}>
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="0.00"
+                  value={exit?.price ?? ""}
+                  onChange={(e) => { const v = e.target.value; setExit(v === "" ? null : { price: round(v), time: exit?.time ?? null }); }}
+                />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="jx-field" style={{ minWidth: 0 }}>
-          <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Exit price</label>
-          <div className="jx-input" style={{ minWidth: 0 }}>
-            <input
-              type="number"
-              step="any"
-              placeholder="0.00"
-              value={exit?.price ?? ""}
-              onChange={(e) => { const v = e.target.value; setExit(v === "" ? null : { price: round(v), time: exit?.time ?? null }); }}
-            />
-          </div>
-        </div>
-      </div>
 
-      {/* position size — needed to turn the marks into a P&L */}
-      <div className="jx-field" style={{ minWidth: 0 }}>
-        <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Position size</label>
-        <div style={{ display: "flex", gap: "var(--space-2)" }}>
-          <div className="jx-input" style={{ flex: 1, minWidth: 0 }}>
-            <input
-              type="number"
-              step="any"
-              placeholder={sizeUnit === "usd" ? `${sym}5,000` : "0.5"}
-              value={size}
-              onChange={(e) => setSize(e.target.value)}
-            />
+          {/* position size — needed to turn the marks into a P&L */}
+          <div className="jx-field" style={{ minWidth: 0 }}>
+            <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Position size</label>
+            <div style={{ display: "flex", gap: "var(--space-2)" }}>
+              <div className="jx-input" style={{ flex: 1, minWidth: 0 }}>
+                <input
+                  type="number"
+                  step="any"
+                  placeholder={sizeUnit === "usd" ? `${sym}5,000` : "0.5"}
+              aria-label="Position size"
+                  value={size}
+                  onChange={(e) => setSize(e.target.value)}
+                />
+              </div>
+              <div style={{ width: 110, flexShrink: 0 }}>
+                <Dropdown
+                  value={sizeUnit}
+                  onChange={setSizeUnit}
+                  options={[
+                    { value: "asset", label: symbol ? symbol.split("/")[0].slice(0, 6) : "Asset" },
+                    { value: "usd", label: quoteCode },
+                  ]}
+                />
+              </div>
+            </div>
+            <div style={{ marginTop: "var(--space-2)" }}>
+              <QuickFillChips
+                value={size}
+                onPick={(v) => setSize(v)}
+                defaults={sizeUnit === "usd" ? ["100", "500", "1000", "5000"] : ["0.25", "0.5", "1", "2", "5"]}
+                storageKey={sizeUnit === "usd" ? `jx-size-cash-chips-${quoteCode}` : "jx-size-asset-chips"}
+                prefix={sizeUnit === "usd" ? sym : ""}
+              />
+            </div>
           </div>
-          <div style={{ width: 110, flexShrink: 0 }}>
-            <Dropdown
-              value={sizeUnit}
-              onChange={setSizeUnit}
-              options={[
-                { value: "asset", label: symbol ? symbol.split("/")[0].slice(0, 6) : "Asset" },
-                { value: "usd", label: "USD" },
-              ]}
-            />
-          </div>
-        </div>
-      </div>
 
-      {/* live P&L from the chart marks */}
-      {calc.pnl != null && (
-        <div
-          className={`jx-banner ${calc.pnl >= 0 ? "jx-banner--success" : ""}`}
-          style={calc.pnl < 0 ? { background: "var(--color-danger-subtle)" } : undefined}
-        >
-          <MousePointerClick size={15} style={{ color: calc.pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }} />
-          <span>
-            Net P&amp;L from chart{" "}
-            <strong style={{ color: calc.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-              {calc.pnl < 0 ? "−" : "+"}{sym}{fmt(Math.abs(calc.pnl))}
-            </strong>
-            {calc.retPct != null && <> · {calc.retPct >= 0 ? "+" : ""}{fmt(Math.round(calc.retPct * 10) / 10)}%</>}
-          </span>
-        </div>
+          {/* live P&L from the chart marks */}
+          {calc.pnl != null && (
+            <div
+              className={`jx-banner ${calc.pnl >= 0 ? "jx-banner--success" : ""}`}
+              style={calc.pnl < 0 ? { background: "var(--color-danger-subtle)" } : undefined}
+            >
+              <MousePointerClick size={15} style={{ color: calc.pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }} />
+              <span>
+                Net P&amp;L from chart{" "}
+                <strong style={{ color: calc.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                  {calc.pnl < 0 ? "−" : "+"}{sym}{fmtMoney(Math.abs(calc.pnl))}
+                </strong>
+                {calc.retPct != null && <> · {calc.retPct >= 0 ? "+" : ""}{fmt(Math.round(calc.retPct * 10) / 10)}%</>}
+              </span>
+            </div>
+          )}
+
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+            <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry?.price ? fmt(entry.price) : "—"}</strong></span>
+            <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit?.price ? fmt(exit.price) : "—"}</strong></span>
+            <button type="button" className="jx-btn jx-btn--ghost jx-btn--sm" onClick={reset} style={{ marginLeft: "auto" }}>
+              <RotateCcw size={13} /> Reset points
+            </button>
+          </div>
+        </>
       )}
-
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-        <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry?.price ? fmt(entry.price) : "—"}</strong></span>
-        <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit?.price ? fmt(exit.price) : "—"}</strong></span>
-        <button type="button" className="jx-btn jx-btn--ghost jx-btn--sm" onClick={reset} style={{ marginLeft: "auto" }}>
-          <RotateCcw size={13} /> Reset points
-        </button>
-      </div>
     </div>
   );
 }

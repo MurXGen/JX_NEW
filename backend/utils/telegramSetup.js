@@ -25,6 +25,7 @@ async function initTelegramWebhook() {
     // Always log current status so prod logs reveal misconfig + last error.
     const info = await axios.get(
       `https://api.telegram.org/bot${token}/getWebhookInfo`,
+      { timeout: 5000 },
     );
     console.log("📡 Telegram webhook info:", JSON.stringify(info.data?.result || {}));
 
@@ -45,6 +46,7 @@ async function initTelegramWebhook() {
     const res = await axios.post(
       `https://api.telegram.org/bot${token}/setWebhook`,
       { url, allowed_updates: ["message", "callback_query"] },
+      { timeout: 5000 },
     );
     console.log("✅ Telegram webhook set →", url, JSON.stringify(res.data));
   } catch (err) {

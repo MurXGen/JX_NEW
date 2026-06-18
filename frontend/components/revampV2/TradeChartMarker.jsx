@@ -10,6 +10,16 @@ import { createChart } from "lightweight-charts";
 import { toBinanceSymbol } from "@/utils/livePrice";
 
 const TF_MS = { "1": 60e3, "5": 3e5, "15": 9e5, "60": 36e5, "240": 144e5, "D": 864e5, "1D": 864e5, "1H": 36e5, "4H": 144e5, "15m": 9e5, "5m": 3e5, "1m": 60e3 };
+const priceDecimals = (p) => {
+  const a = Math.abs(Number(p) || 0);
+  if (a === 0) return 2;
+  if (a >= 100) return 2;
+  if (a >= 1) return 4;
+  if (a >= 0.01) return 5;
+  if (a >= 0.0001) return 6;
+  if (a >= 0.000001) return 8;
+  return 10;
+};
 const tvToBinanceInterval = (tf) => {
   const map = { "1": "1m", "5": "5m", "15": "15m", "60": "1h", "240": "4h", "D": "1d", "1D": "1d", "1H": "1h", "4H": "4h", "15m": "15m", "5m": "5m", "1m": "1m" };
   return map[tf] || "1h";
@@ -85,9 +95,14 @@ export default function TradeChartMarker({ trade, height = 280 }) {
       handleScroll: false, handleScale: false,
       crosshair: { mode: 0 },
     });
+    // adaptive precision so small-priced assets (SHIB, forex) keep their
+    // decimals instead of collapsing to "0.00"
+    const refPrice = entry || exit || 1;
+    const prec = priceDecimals(refPrice);
     const series = chart.addCandlestickSeries({
       upColor: "#2ebd85", downColor: "#f6465d", borderVisible: false,
       wickUpColor: "#2ebd85", wickDownColor: "#f6465d",
+      priceFormat: { type: "price", precision: prec, minMove: 1 / 10 ** prec },
     });
 
     let disposed = false;
@@ -115,18 +130,45 @@ export default function TradeChartMarker({ trade, height = 280 }) {
       if (!data.length) return;
       series.setData(data);
 
-      // price lines for SL / TP
+      // SL / TP stay as faint reference lines
       const sl = Number(tv.stopPrice) || 0;
       const tp = Number(tv.takeProfit) || 0;
-      if (entry) series.createPriceLine({ price: entry, color: isLong ? "#2ebd85" : "#f6465d", lineWidth: 2, lineStyle: 0, title: "Entry" });
-      if (exit) series.createPriceLine({ price: exit, color: "#aeb4bc", lineWidth: 2, lineStyle: 2, title: "Exit" });
       if (sl) series.createPriceLine({ price: sl, color: "rgba(246,70,93,0.6)", lineWidth: 1, lineStyle: 1, title: "SL" });
       if (tp) series.createPriceLine({ price: tp, color: "rgba(46,189,133,0.6)", lineWidth: 1, lineStyle: 1, title: "TP" });
 
-      // entry/exit markers
+      // Entry/exit shown as ARROWS (no horizontal lines). Trade times are only
+      // approximate (quick logs have open == close), so we anchor each arrow to
+      // the candle whose price is closest to the entry/exit — this keeps them
+      // visually aligned with the price on every timeframe.
+      const nearestTimeForPrice = (price) => {
+        if (!price) return null;
+        let bestT = data[0]?.time, bestD = Infinity;
+        for (const c of data) {
+          const d = Math.min(
+            Math.abs(c.close - price),
+            Math.abs(c.high - price),
+            Math.abs(c.low - price),
+          );
+          if (d < bestD) { bestD = d; bestT = c.time; }
+        }
+        return bestT;
+      };
+      const entryT = nearestTimeForPrice(entry);
+      let exitT = nearestTimeForPrice(exit);
+      // if both map to the same candle, nudge the exit to a neighbour so both arrows show
+      if (entry && exit && exitT === entryT) {
+        const idx = data.findIndex((c) => c.time === entryT);
+        const nb = data[idx + 1] || data[idx - 1];
+        if (nb) exitT = nb.time;
+      }
+
       const markers = [];
-      if (entry) markers.push({ time: Math.floor(t0 / 1000), position: isLong ? "belowBar" : "aboveBar", color: isLong ? "#2ebd85" : "#f6465d", shape: isLong ? "arrowUp" : "arrowDown", text: `Entry ${entry}` });
-      if (exit) markers.push({ time: Math.floor(t1 / 1000), position: isLong ? "aboveBar" : "belowBar", color: "#fcd535", shape: "circle", text: `Exit ${exit}` });
+      // entry arrow points in the trade's direction (long = up, short = down)
+      if (entry && entryT != null)
+        markers.push({ time: entryT, position: isLong ? "belowBar" : "aboveBar", color: isLong ? "#2ebd85" : "#f6465d", shape: isLong ? "arrowUp" : "arrowDown", text: "Entry" });
+      // exit arrow points the opposite way (closing the position)
+      if (exit && exitT != null)
+        markers.push({ time: exitT, position: isLong ? "aboveBar" : "belowBar", color: "#fcd535", shape: isLong ? "arrowDown" : "arrowUp", text: "Exit" });
       series.setMarkers(markers.sort((a, b) => a.time - b.time));
 
       chart.timeScale().fitContent();
