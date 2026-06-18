@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 
 /**
@@ -101,8 +101,8 @@ export default function Dropdown({
         className="jx-dd__panel jx-dd__panel--portal"
         initial={{ opacity: 0, y: coords.openUp ? 6 : -6, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: coords.openUp ? 6 : -6, scale: 0.98 }}
         transition={{ duration: 0.13 }}
+        onMouseDown={(e) => e.stopPropagation()}
         style={{
           position: "fixed",
           top: coords.openUp ? "auto" : coords.top + 6,
@@ -219,9 +219,7 @@ export default function Dropdown({
         />
       </button>
 
-      {typeof document !== "undefined" && (
-        <AnimatePresence>{panel && createPortal(panel, document.body)}</AnimatePresence>
-      )}
+      {typeof document !== "undefined" && panel && createPortal(panel, document.body)}
     </div>
   );
 }

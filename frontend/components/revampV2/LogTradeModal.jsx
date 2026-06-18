@@ -605,6 +605,10 @@ export default function LogTradeModal({
       ...f,
       entry: meta.entryPrice !== "" && meta.entryPrice != null ? String(meta.entryPrice) : f.entry,
       exit: meta.exitPrice !== "" && meta.exitPrice != null ? String(meta.exitPrice) : f.exit,
+      size: meta.size !== "" && meta.size != null ? String(meta.size) : f.size,
+      sizeUnit: meta.sizeUnit || f.sizeUnit,
+      // auto-fill the quick-log P&L from the chart marks so it isn't re-typed
+      netPnl: meta.pnl != null ? String(Math.round(meta.pnl * 100) / 100) : f.netPnl,
     }));
   };
 
@@ -1431,6 +1435,9 @@ export default function LogTradeModal({
                                   direction={form.direction}
                                   initialEntry={form.entry}
                                   initialExit={form.exit}
+                                  initialSize={form.size}
+                                  initialSizeUnit={form.sizeUnit}
+                                  sym={sym}
                                   onChange={onChartChange}
                                 />
                               </div>

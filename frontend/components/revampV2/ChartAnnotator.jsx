@@ -15,10 +15,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createChart } from "lightweight-charts";
-import { MousePointerClick, RotateCcw, Search, X } from "lucide-react";
+import { MousePointerClick, RotateCcw, Search, SearchX, X } from "lucide-react";
 import { toBinanceSymbol } from "@/utils/livePrice";
-import { toTvSymbol } from "@/utils/tvSymbol";
-import TvChart from "./TvChart";
+import Dropdown from "./Dropdown";
 
 const TIMEFRAMES = [
   { id: "1m", label: "1m" },
@@ -77,6 +76,9 @@ export default function ChartAnnotator({
   direction = "long",
   initialEntry = "",
   initialExit = "",
+  initialSize = "",
+  initialSizeUnit = "asset",
+  sym = "$",
   onChange,
 }) {
   const wrapRef = useRef(null);
@@ -93,6 +95,8 @@ export default function ChartAnnotator({
   const [phase, setPhase] = useState("entry"); // entry | exit | done
   const [entry, setEntry] = useState(initialEntry ? { price: Number(initialEntry), time: null } : null);
   const [exit, setExit] = useState(initialExit ? { price: Number(initialExit), time: null } : null);
+  const [size, setSize] = useState(initialSize ? String(initialSize) : "");
+  const [sizeUnit, setSizeUnit] = useState(initialSizeUnit || "asset");
 
   /* symbol search */
   const [searchOpen, setSearchOpen] = useState(false);
@@ -194,7 +198,19 @@ export default function ChartAnnotator({
     if (exit?.price) priceLinesRef.current.push(s.createPriceLine({ price: Number(exit.price), color: "#fcd535", lineWidth: 2, lineStyle: 2, title: "Exit" }));
   }, [entry, exit, direction, candles]);
 
-  /* report up to the parent whenever the marks change */
+  /* live P&L from the marks + size */
+  const calc = useMemo(() => {
+    const e = entry?.price, x = exit?.price;
+    const sz = Number(size);
+    const dir = direction === "long" ? 1 : -1;
+    const assetQty = sizeUnit === "asset" ? sz : sz && e ? sz / e : 0;
+    const pnl = e && x && assetQty ? (x - e) * assetQty * dir : null;
+    const notional = e && assetQty ? e * assetQty : null;
+    const retPct = pnl != null && notional ? (pnl / notional) * 100 : null;
+    return { assetQty, pnl, retPct };
+  }, [entry, exit, size, sizeUnit, direction]);
+
+  /* report everything up to the parent whenever the marks/size/P&L change */
   useEffect(() => {
     onChangeRef.current?.({
       symbol,
@@ -203,9 +219,12 @@ export default function ChartAnnotator({
       exitPrice: exit?.price ?? "",
       entryTime: entry?.time ? new Date(entry.time * 1000).toISOString() : null,
       exitTime: exit?.time ? new Date(exit.time * 1000).toISOString() : null,
+      size: size === "" ? "" : Number(size),
+      sizeUnit,
+      pnl: calc.pnl,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, tf, entry?.price, exit?.price, entry?.time, exit?.time]);
+  }, [symbol, tf, entry?.price, exit?.price, entry?.time, exit?.time, size, sizeUnit, calc.pnl]);
 
   const reset = () => { setEntry(null); setExit(null); setPhase("entry"); };
 
@@ -218,12 +237,10 @@ export default function ChartAnnotator({
   };
 
   const phaseHint = !hasLiveFeed
-    ? "No live candles for this symbol — type entry & exit below, or search a crypto pair to click directly"
+    ? "No chart for this symbol — type entry & exit below, or search a crypto pair to mark on the chart"
     : phase === "entry" ? "Click the chart to place your ENTRY"
     : phase === "exit" ? "Now click to place your EXIT"
     : "Entry & exit set — adjust or reset below";
-
-  const tvSymbol = useMemo(() => toTvSymbol(symbol), [symbol]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -321,8 +338,36 @@ export default function ChartAnnotator({
           <div ref={wrapRef} style={{ width: "100%" }} />
         </div>
       ) : (
-        <div className="jx-card jx-card--flat" style={{ padding: 8 }}>
-          <TvChart symbol={tvSymbol} height={320} />
+        <div
+          className="jx-card jx-card--flat"
+          style={{
+            minHeight: 200,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "var(--space-2)",
+            textAlign: "center",
+            padding: "var(--space-6) var(--space-4)",
+          }}
+        >
+          <span
+            style={{
+              width: 44, height: 44, borderRadius: "50%",
+              background: "var(--color-bg-muted)", color: "var(--color-text-muted)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <SearchX size={22} />
+          </span>
+          <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
+            No chart found for “{symbol || "this symbol"}”
+          </span>
+          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", maxWidth: 360 }}>
+            We can only draw a live, clickable chart for crypto pairs (e.g. BTCUSDT).
+            Type your entry &amp; exit below, or search for a crypto pair to mark
+            directly on the chart.
+          </span>
         </div>
       )}
 
@@ -353,6 +398,49 @@ export default function ChartAnnotator({
           </div>
         </div>
       </div>
+
+      {/* position size — needed to turn the marks into a P&L */}
+      <div className="jx-field" style={{ minWidth: 0 }}>
+        <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Position size</label>
+        <div style={{ display: "flex", gap: "var(--space-2)" }}>
+          <div className="jx-input" style={{ flex: 1, minWidth: 0 }}>
+            <input
+              type="number"
+              step="any"
+              placeholder={sizeUnit === "usd" ? `${sym}5,000` : "0.5"}
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+            />
+          </div>
+          <div style={{ width: 110, flexShrink: 0 }}>
+            <Dropdown
+              value={sizeUnit}
+              onChange={setSizeUnit}
+              options={[
+                { value: "asset", label: symbol ? symbol.split("/")[0].slice(0, 6) : "Asset" },
+                { value: "usd", label: "USD" },
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* live P&L from the chart marks */}
+      {calc.pnl != null && (
+        <div
+          className={`jx-banner ${calc.pnl >= 0 ? "jx-banner--success" : ""}`}
+          style={calc.pnl < 0 ? { background: "var(--color-danger-subtle)" } : undefined}
+        >
+          <MousePointerClick size={15} style={{ color: calc.pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }} />
+          <span>
+            Net P&amp;L from chart{" "}
+            <strong style={{ color: calc.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+              {calc.pnl < 0 ? "−" : "+"}{sym}{fmt(Math.abs(calc.pnl))}
+            </strong>
+            {calc.retPct != null && <> · {calc.retPct >= 0 ? "+" : ""}{fmt(Math.round(calc.retPct * 10) / 10)}%</>}
+          </span>
+        </div>
+      )}
 
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
         <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry?.price ? fmt(entry.price) : "—"}</strong></span>
