@@ -90,6 +90,7 @@ async function loadKlines(symbol, interval = "1h") {
   }
 }
 
+
 /* TradingView's public symbol search — graceful fallback to free text */
 const stripTags = (s) => (s || "").replace(/<\/?[^>]+>/g, "");
 async function searchTv(text) {
@@ -184,7 +185,7 @@ export default function ChartAnnotator({
     return () => clearTimeout(id);
   }, [query, searchOpen]);
 
-  /* (re)load candles when symbol or timeframe changes */
+  /* (re)load candles when symbol or timeframe changes (crypto only) */
   useEffect(() => {
     if (!hasLiveFeed) { setCandles([]); setLoading(false); return; }
     let alive = true;
@@ -197,11 +198,10 @@ export default function ChartAnnotator({
     return () => { alive = false; };
   }, [symbol, tf, hasLiveFeed]);
 
-  /* a usable, clickable chart only exists when candles actually loaded */
+  // crypto with real candles → interactive clickable chart
   const chartReady = hasLiveFeed && !loading && candles.length > 1;
-  // non-crypto (or crypto with no Binance candles): show the read-only
-  // TradingView embed so AAPL / NIFTY / EURUSD etc. still render a chart, and
-  // let the user type entry & exit. "active" = we can log this symbol.
+  // any other symbol (or crypto with no Binance data) → read-only TradingView
+  // embed + typed entry/exit. "active" = a symbol is loaded and loggable.
   const embedMode = !chartReady && !loading && !!symbol;
   const active = chartReady || embedMode;
 
@@ -307,8 +307,8 @@ export default function ChartAnnotator({
       timeframe: tf,
       entryPrice: active ? (entry?.price ?? "") : "",
       exitPrice: active ? (exit?.price ?? "") : "",
-      entryTime: active && entry?.time ? new Date(entry.time * 1000).toISOString() : null,
-      exitTime: active && exit?.time ? new Date(exit.time * 1000).toISOString() : null,
+      entryTime: chartReady && entry?.time ? new Date(entry.time * 1000).toISOString() : null,
+      exitTime: chartReady && exit?.time ? new Date(exit.time * 1000).toISOString() : null,
       size: active && size !== "" ? Number(size) : "",
       sizeUnit,
       pnl: active ? calc.pnl : null,
@@ -327,8 +327,8 @@ export default function ChartAnnotator({
     reset();
   };
 
-  const phaseHint = !chartReady
-    ? "Type your entry & exit below — the chart is for reference (clickable marking is available for crypto pairs)"
+  const phaseHint = embedMode
+    ? "Type your entry & exit below — the chart is read-only for this symbol (clickable marking is available for crypto pairs)"
     : phase === "entry" ? "Click the chart to place your ENTRY"
     : phase === "exit" ? "Now click to place your EXIT"
     : "Entry & exit set — adjust or reset below";
@@ -346,6 +346,7 @@ export default function ChartAnnotator({
         >
           {symbol || "No symbol"}
           {chartReady && <span style={{ font: "var(--text-caption)", color: "var(--color-success-strong)", fontWeight: 600 }}>● live</span>}
+          {embedMode && <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600 }}>TradingView</span>}
         </span>
         <button
           type="button"
