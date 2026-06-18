@@ -15,10 +15,35 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createChart } from "lightweight-charts";
-import { MousePointerClick, RotateCcw, Search, SearchX, X } from "lucide-react";
+import { MousePointerClick, Pencil, RotateCcw, Search, X } from "lucide-react";
 import { toBinanceSymbol } from "@/utils/livePrice";
+import { toTvSymbol } from "@/utils/tvSymbol";
 import Dropdown from "./Dropdown";
 import QuickFillChips from "./QuickFillChips";
+import TvChart from "./TvChart";
+
+/* Curated fallback so common symbols autocomplete even when TradingView's
+   search endpoint is unreachable (CORS) — stocks, indices, forex, crypto. */
+const CURATED = [
+  ["AAPL", "Apple Inc", "NASDAQ"], ["TSLA", "Tesla Inc", "NASDAQ"], ["MSFT", "Microsoft", "NASDAQ"],
+  ["AMZN", "Amazon", "NASDAQ"], ["GOOGL", "Alphabet", "NASDAQ"], ["NVDA", "NVIDIA", "NASDAQ"],
+  ["META", "Meta Platforms", "NASDAQ"], ["NFLX", "Netflix", "NASDAQ"], ["AMD", "AMD", "NASDAQ"],
+  ["SPY", "S&P 500 ETF", "AMEX"], ["QQQ", "Nasdaq 100 ETF", "NASDAQ"],
+  ["NIFTY", "Nifty 50", "NSE"], ["BANKNIFTY", "Bank Nifty", "NSE"], ["RELIANCE", "Reliance", "NSE"],
+  ["TCS", "Tata Consultancy", "NSE"], ["INFY", "Infosys", "NSE"], ["HDFCBANK", "HDFC Bank", "NSE"],
+  ["SPX", "S&P 500 Index", "TVC"], ["NDX", "Nasdaq 100", "NASDAQ"], ["DJI", "Dow Jones", "TVC"],
+  ["EURUSD", "Euro / US Dollar", "FX"], ["GBPUSD", "Pound / Dollar", "FX"], ["USDJPY", "Dollar / Yen", "FX"],
+  ["USDINR", "Dollar / Rupee", "FX"], ["AUDUSD", "Aussie / Dollar", "FX"],
+  ["XAUUSD", "Gold", "OANDA"], ["XAGUSD", "Silver", "OANDA"], ["USOIL", "Crude Oil (WTI)", "TVC"],
+  ["BTCUSDT", "Bitcoin", "BINANCE"], ["ETHUSDT", "Ethereum", "BINANCE"], ["SOLUSDT", "Solana", "BINANCE"],
+  ["BNBUSDT", "BNB", "BINANCE"], ["XRPUSDT", "XRP", "BINANCE"], ["DOGEUSDT", "Dogecoin", "BINANCE"],
+].map(([symbol, desc, exchange]) => ({ symbol, desc, exchange, full: `${exchange}:${symbol}`, type: "" }));
+
+const curatedMatches = (q) => {
+  const s = q.trim().toUpperCase();
+  if (!s) return [];
+  return CURATED.filter((r) => r.symbol.includes(s) || r.desc.toUpperCase().includes(s)).slice(0, 10);
+};
 
 const TIMEFRAMES = [
   { id: "1m", label: "1m" },
@@ -140,10 +165,20 @@ export default function ChartAnnotator({
     if (!searchOpen) return;
     const q = query.trim();
     if (!q) { setResults([]); return; }
+    // show curated matches instantly, then merge in TradingView results
+    setResults(curatedMatches(q));
     setSearching(true);
     const id = setTimeout(async () => {
-      const r = await searchTv(q);
-      setResults(r);
+      const tv = await searchTv(q);
+      const cur = curatedMatches(q);
+      const seen = new Set();
+      const merged = [...tv, ...cur].filter((r) => {
+        const k = r.full || r.symbol;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+      setResults(merged);
       setSearching(false);
     }, 280);
     return () => clearTimeout(id);
@@ -164,6 +199,11 @@ export default function ChartAnnotator({
 
   /* a usable, clickable chart only exists when candles actually loaded */
   const chartReady = hasLiveFeed && !loading && candles.length > 1;
+  // non-crypto (or crypto with no Binance candles): show the read-only
+  // TradingView embed so AAPL / NIFTY / EURUSD etc. still render a chart, and
+  // let the user type entry & exit. "active" = we can log this symbol.
+  const embedMode = !chartReady && !loading && !!symbol;
+  const active = chartReady || embedMode;
 
   /* build the interactive chart + click handler */
   useEffect(() => {
@@ -265,17 +305,17 @@ export default function ChartAnnotator({
     onChangeRef.current?.({
       symbol,
       timeframe: tf,
-      entryPrice: chartReady ? (entry?.price ?? "") : "",
-      exitPrice: chartReady ? (exit?.price ?? "") : "",
-      entryTime: chartReady && entry?.time ? new Date(entry.time * 1000).toISOString() : null,
-      exitTime: chartReady && exit?.time ? new Date(exit.time * 1000).toISOString() : null,
-      size: chartReady && size !== "" ? Number(size) : "",
+      entryPrice: active ? (entry?.price ?? "") : "",
+      exitPrice: active ? (exit?.price ?? "") : "",
+      entryTime: active && entry?.time ? new Date(entry.time * 1000).toISOString() : null,
+      exitTime: active && exit?.time ? new Date(exit.time * 1000).toISOString() : null,
+      size: active && size !== "" ? Number(size) : "",
       sizeUnit,
-      pnl: chartReady ? calc.pnl : null,
+      pnl: active ? calc.pnl : null,
       chartReady,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, tf, entry?.price, exit?.price, entry?.time, exit?.time, size, sizeUnit, calc.pnl, chartReady]);
+  }, [symbol, tf, entry?.price, exit?.price, entry?.time, exit?.time, size, sizeUnit, calc.pnl, active, chartReady]);
 
   const reset = () => { setEntry(null); setExit(null); setPhase("entry"); };
 
@@ -287,8 +327,8 @@ export default function ChartAnnotator({
     reset();
   };
 
-  const phaseHint = !hasLiveFeed
-    ? "No chart for this symbol — type entry & exit below, or search a crypto pair to mark on the chart"
+  const phaseHint = !chartReady
+    ? "Type your entry & exit below — the chart is for reference (clickable marking is available for crypto pairs)"
     : phase === "entry" ? "Click the chart to place your ENTRY"
     : phase === "exit" ? "Now click to place your EXIT"
     : "Entry & exit set — adjust or reset below";
@@ -373,10 +413,10 @@ export default function ChartAnnotator({
         </div>
       )}
 
-      {/* hint — only when a real chart is on screen */}
-      {chartReady && (
+      {/* hint */}
+      {active && (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-          <MousePointerClick size={13} /> {phaseHint}
+          {chartReady ? <MousePointerClick size={13} /> : <Pencil size={13} />} {phaseHint}
         </span>
       )}
 
@@ -389,42 +429,30 @@ export default function ChartAnnotator({
         <div className="jx-card jx-card--flat" style={{ padding: 8, position: "relative", minHeight: 340 }}>
           <div ref={wrapRef} style={{ width: "100%" }} />
         </div>
+      ) : embedMode ? (
+        <div className="jx-card jx-card--flat" style={{ padding: 8 }}>
+          <TvChart symbol={toTvSymbol(symbol)} height={320} />
+        </div>
       ) : (
         <div
           className="jx-card jx-card--flat"
           style={{
-            minHeight: 200,
+            minHeight: 160,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: "var(--space-2)",
             textAlign: "center",
             padding: "var(--space-6) var(--space-4)",
+            font: "var(--text-small)",
+            color: "var(--color-text-muted)",
           }}
         >
-          <span
-            style={{
-              width: 44, height: 44, borderRadius: "50%",
-              background: "var(--color-bg-muted)", color: "var(--color-text-muted)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            <SearchX size={22} />
-          </span>
-          <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
-            No chart found for “{symbol || "this symbol"}”
-          </span>
-          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", maxWidth: 380 }}>
-            Search above and pick a symbol from the TradingView suggestions. A
-            live, clickable chart is available for crypto pairs (e.g. BTCUSDT) —
-            mark your entry &amp; exit right on it.
-          </span>
+          Search and pick a symbol above to load its chart.
         </div>
       )}
 
-      {/* entry/exit + size + P&L — only meaningful when a chart is shown */}
-      {chartReady && (
+      {/* entry/exit + size + P&L — shown whenever a symbol is loaded */}
+      {active && (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
             <div className="jx-field" style={{ minWidth: 0 }}>

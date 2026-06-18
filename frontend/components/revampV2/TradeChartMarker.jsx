@@ -136,27 +136,41 @@ export default function TradeChartMarker({ trade, height = 280 }) {
       if (sl) series.createPriceLine({ price: sl, color: "rgba(246,70,93,0.6)", lineWidth: 1, lineStyle: 1, title: "SL" });
       if (tp) series.createPriceLine({ price: tp, color: "rgba(46,189,133,0.6)", lineWidth: 1, lineStyle: 1, title: "TP" });
 
-      // Entry/exit shown as ARROWS (no horizontal lines). Trade times are only
-      // approximate (quick logs have open == close), so we anchor each arrow to
-      // the candle whose price is closest to the entry/exit — this keeps them
-      // visually aligned with the price on every timeframe.
+      // Entry/exit shown as ARROWS (no horizontal lines).
       const nearestTimeForPrice = (price) => {
         if (!price) return null;
         let bestT = data[0]?.time, bestD = Infinity;
         for (const c of data) {
-          const d = Math.min(
-            Math.abs(c.close - price),
-            Math.abs(c.high - price),
-            Math.abs(c.low - price),
-          );
+          const d = Math.min(Math.abs(c.close - price), Math.abs(c.high - price), Math.abs(c.low - price));
           if (d < bestD) { bestD = d; bestT = c.time; }
         }
         return bestT;
       };
-      const entryT = nearestTimeForPrice(entry);
-      let exitT = nearestTimeForPrice(exit);
+      const nearestTimeForTs = (ts) => {
+        let bestT = data[0]?.time, bestD = Infinity;
+        for (const c of data) {
+          const d = Math.abs(c.time - ts);
+          if (d < bestD) { bestD = d; bestT = c.time; }
+        }
+        return bestT;
+      };
+
+      // Prefer the REAL trade timestamps so the arrows land in the correct
+      // chronological order (entry before exit). Only when we have no distinct
+      // times (e.g. a quick log where open == close) do we fall back to
+      // placing each arrow on the candle nearest its price.
+      const hasDistinctTimes =
+        Number.isFinite(t0) && Number.isFinite(t1) && Math.abs(t1 - t0) >= intervalMs;
+      let entryT, exitT;
+      if (hasDistinctTimes) {
+        entryT = entry ? nearestTimeForTs(Math.floor(t0 / 1000)) : null;
+        exitT = exit ? nearestTimeForTs(Math.floor(t1 / 1000)) : null;
+      } else {
+        entryT = nearestTimeForPrice(entry);
+        exitT = nearestTimeForPrice(exit);
+      }
       // if both map to the same candle, nudge the exit to a neighbour so both arrows show
-      if (entry && exit && exitT === entryT) {
+      if (entry && exit && exitT === entryT && entryT != null) {
         const idx = data.findIndex((c) => c.time === entryT);
         const nb = data[idx + 1] || data[idx - 1];
         if (nb) exitT = nb.time;
