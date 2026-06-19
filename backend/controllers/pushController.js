@@ -7,6 +7,17 @@ const publicKey = (req, res) => {
   res.json({ publicKey: getPublicKey() });
 };
 
+/* GET /api/push/status → quick health check (no secrets). Lets the UI tell the
+   user whether the server is configured and how many devices are subscribed. */
+const status = async (req, res) => {
+  let devices = 0;
+  try {
+    const userId = req.cookies.userId;
+    if (userId) devices = await PushSubscription.countDocuments({ userId, enabled: true });
+  } catch {}
+  res.json({ configured: isPushConfigured(), devices });
+};
+
 /* POST /api/push/subscribe { subscription } — upsert by endpoint */
 const subscribe = async (req, res) => {
   try {
@@ -93,4 +104,4 @@ async function sendSessionReminderToAll(sessionName) {
   });
 }
 
-module.exports = { publicKey, subscribe, unsubscribe, sendTest, sendSessionReminderToAll };
+module.exports = { publicKey, status, subscribe, unsubscribe, sendTest, sendSessionReminderToAll };
