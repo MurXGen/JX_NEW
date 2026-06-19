@@ -87,13 +87,20 @@ export default function TermsOfService() {
           ],
         },
         {
-          h: "11. Governing Law",
+          h: "11. Referral Programme",
+          body: [
+            "JournalX may offer a referral programme that lets you share a personal link inviting others to create an account. Participation is voluntary and offered at our sole discretion.",
+            "We may set, change, or withdraw any referral terms, eligibility rules, or rewards, and may suspend or terminate the referral programme (in whole or in part) at any time, with or without notice. We may also withhold or revoke any referral benefit where we reasonably believe there has been abuse, fraud, self-referral, or a breach of these Terms. Referral links must not be shared through spam or any unlawful, misleading, or deceptive means.",
+          ],
+        },
+        {
+          h: "12. Governing Law",
           body: [
             "These Terms are governed by the laws of the jurisdiction in which JournalX is established, without regard to conflict-of-law principles. Any disputes will be subject to the exclusive jurisdiction of the competent courts of that jurisdiction.",
           ],
         },
         {
-          h: "12. Changes to These Terms",
+          h: "13. Changes to These Terms",
           body: [
             "We may modify these Terms from time to time. We will notify you of material changes through the Service or by email. Continued use after changes take effect constitutes acceptance of the revised Terms.",
           ],

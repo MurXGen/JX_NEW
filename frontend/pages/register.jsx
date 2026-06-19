@@ -44,6 +44,16 @@ export default function RegisterPage() {
     setTimeout(() => setToast(null), ms);
   };
 
+  /* capture a referral tag (?ref=) so it can be attributed later */
+  useEffect(() => {
+    const ref = router.query?.ref;
+    if (ref) {
+      try {
+        localStorage.setItem("jx-ref", String(ref));
+      } catch {}
+    }
+  }, [router.query?.ref]);
+
   useEffect(() => {
     if (Cookies.get("isVerified") === "yes") router.replace("/dashboard");
   }, [router]);

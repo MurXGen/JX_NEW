@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import Dropdown from "./Dropdown";
@@ -44,6 +44,81 @@ function Switch({ on, onChange, disabled }) {
       disabled={disabled}
       style={disabled ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
     />
+  );
+}
+
+/* Refer a friend — shares the /refer landing link via native share + fallbacks */
+function ReferAFriend({ userId }) {
+  const [copied, setCopied] = useState(false);
+  const [link, setLink] = useState("");
+  const message =
+    "I'm using JournalX to journal my trades and find my edge — start free, no card:";
+
+  useEffect(() => {
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "https://journalx.app";
+    setLink(`${origin}/refer${userId ? `?ref=${encodeURIComponent(userId)}` : ""}`);
+  }, [userId]);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {}
+  };
+  const nativeShare = async () => {
+    try {
+      await navigator.share({ title: "JournalX", text: message, url: link });
+    } catch {}
+  };
+  const canNativeShare = typeof navigator !== "undefined" && !!navigator.share;
+  const enc = encodeURIComponent;
+  const shareLinks = [
+    { label: "WhatsApp", icon: MessageCircle, href: `https://wa.me/?text=${enc(`${message} ${link}`)}` },
+    { label: "Telegram", icon: Send, href: `https://t.me/share/url?url=${enc(link)}&text=${enc(message)}` },
+    { label: "X", icon: Twitter, href: `https://twitter.com/intent/tweet?text=${enc(message)}&url=${enc(link)}` },
+    { label: "Email", icon: Mail, href: `mailto:?subject=${enc("Join me on JournalX")}&body=${enc(`${message}\n\n${link}`)}` },
+  ];
+
+  return (
+    <div className="jx-card">
+      <div className="jx-card__title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Gift size={18} style={{ color: "var(--yellow-500)" }} /> Refer a friend
+      </div>
+      <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-3)" }}>
+        Invite traders to JournalX — they start free, no card required.
+      </div>
+
+      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}>
+        <div className="jx-input" style={{ flex: 1, minWidth: 220, height: 42 }}>
+          <input value={link} readOnly onFocus={(e) => e.target.select()} aria-label="Your referral link" />
+        </div>
+        <Button variant="secondary" onClick={copy} icon={copied ? Check : Copy}>
+          {copied ? "Copied" : "Copy link"}
+        </Button>
+        {canNativeShare && (
+          <Button variant="primary" onClick={nativeShare} icon={Share2}>
+            Share
+          </Button>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", marginTop: "var(--space-3)" }}>
+        {shareLinks.map((s) => (
+          <a
+            key={s.label}
+            href={s.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="jx-btn jx-btn--secondary jx-btn--sm"
+            style={{ textDecoration: "none" }}
+          >
+            <s.icon size={15} /> {s.label}
+          </a>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -459,6 +534,9 @@ export default function SettingsPanel({ user }) {
           </button>
         </div>
       </div>
+
+      {/* ===== Refer a friend (below profile) ===== */}
+      <ReferAFriend userId={user?._id || user?.id} />
 
       {/* ===== Plan & limits (below profile) ===== */}
       <PlanLimitsCard />

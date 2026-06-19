@@ -4348,6 +4348,628 @@
           "text": "If you ticked three or more, overtrading — not your strategy — is probably your biggest leak. The fix isn't a better setup; it's fewer, better trades, enforced by rules and made visible by your journal. Trade less, review more, and let patience become the edge it actually is."
         }
       ]
+    },
+    {
+      "slug": "prop-firm-consistency-rule-explained-how-to-pass",
+      "title": "The Consistency Rule, Finally Explained — and How I Actually Pass It",
+      "metaTitle": "Prop Firm Consistency Rule Explained + How to Pass It | JournalX",
+      "metaDescription": "The consistency rule fails traders who already hit their target. Here's the exact math, a worked example, and the 5 things I do on every funded account to never trip it.",
+      "keywords": [
+        "consistency rule prop firm",
+        "prop firm consistency rule explained",
+        "how to pass the consistency rule",
+        "funded account consistency rule",
+        "best day rule prop firm"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-06-20",
+      "featured": false,
+      "excerpt": "I passed the evaluation, traded green on the funded account, requested my payout — and got told no. The reason was a rule half the prop firms barely explain. Here's how it really works.",
+      "helpful": {
+        "up": 187,
+        "down": 8,
+        "saves": 149
+      },
+      "tags": [
+        "Funded",
+        "Prop firm",
+        "Consistency rule",
+        "Payout"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "The first time the consistency rule bit me, I'd already won. Funded account, a tidy month, about $4,100 in profit. I clicked the payout button feeling pretty smug — and got a polite message saying I wasn't eligible yet. One day that month I'd made roughly $1,800, and that single day was too big a slice of the total. Target hit, rules technically broken, payout frozen."
+        },
+        {
+          "type": "p",
+          "text": "Nobody had explained it to me in plain language, so let me do that here — because it's quietly one of the most common reasons funded traders don't get paid."
+        },
+        {
+          "type": "h2",
+          "text": "What the consistency rule actually checks"
+        },
+        {
+          "type": "p",
+          "text": "It's not about how much you make. It's about how evenly you make it. Firms want proof you can repeat results, not that you caught one lucky runner. So they look at your biggest day and ask: how much of your total profit came from that one session?"
+        },
+        {
+          "type": "h2",
+          "text": "The formula nobody writes on the sales page"
+        },
+        {
+          "type": "p",
+          "text": "Here it is: (your best single day's profit ÷ your total profit) × 100. That percentage has to stay under the firm's cap — usually somewhere between 30% and 50%. Go over it and you keep trading until your total grows enough to shrink that big day back under the line."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Scenario",
+            "Best day",
+            "Total profit",
+            "Best day %",
+            "Result"
+          ],
+          "rows": [
+            [
+              "Too concentrated",
+              "$1,800",
+              "$4,100",
+              "44%",
+              "Blocked (cap 30%)"
+            ],
+            [
+              "After more green days",
+              "$1,800",
+              "$6,200",
+              "29%",
+              "Passes"
+            ],
+            [
+              "Even from the start",
+              "$700",
+              "$3,000",
+              "23%",
+              "Passes"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice the fix in row two: I didn't undo the big day, I just out-grew it. Another $2,100 of steadier profit dragged that 44% down to 29%, and the payout cleared."
+        },
+        {
+          "type": "h2",
+          "text": "Why firms bother with this"
+        },
+        {
+          "type": "p",
+          "text": "Put yourself in the firm's seat. A trader who makes $3,000 across fifteen calm days is a trader they can fund for years. A trader who makes $3,000 on one heart-attack afternoon is a coin flip they'd rather not back. The rule is annoying, but it's screening for exactly the habit that keeps you funded long-term."
+        },
+        {
+          "type": "h2",
+          "text": "Five things I now do on every funded account"
+        },
+        {
+          "type": "p",
+          "text": "One — I set a personal daily profit ceiling, usually around a quarter of my target. When I hit it, I'm done for the day, even when the setups look gorgeous. Walking away from a green screen is a skill; the rule forces you to learn it."
+        },
+        {
+          "type": "p",
+          "text": "Two — I size the same on every trade. Most consistency breaches are really sizing breaches: one trade three times bigger than usual creates the outlier day that wrecks the ratio."
+        },
+        {
+          "type": "p",
+          "text": "Three — I spread the work across more days instead of trying to win the challenge by Wednesday. Boring and slow is the cheat code here."
+        },
+        {
+          "type": "p",
+          "text": "Four — I track my best-day percentage as I go, not at payout time. The day I realise I'm at 38% with a 35% cap is the day I deliberately take smaller, fewer trades."
+        },
+        {
+          "type": "p",
+          "text": "Five — I read the specific firm's version before I start. Some measure it on the challenge, some only at payout, some on closed profit, some include open trades. The word 'consistency' hides a lot of different math."
+        },
+        {
+          "type": "quote",
+          "text": "You don't beat the consistency rule with a bigger day. You beat it with more ordinary ones."
+        },
+        {
+          "type": "h2",
+          "text": "Which firms actually use it"
+        },
+        {
+          "type": "p",
+          "text": "It varies, and it changes, so always check current terms. As a rough map: plenty of futures and forex firms run a 30–50% cap, while FTMO is the well-known exception with no consistency rule — there you can make your whole month in a day and withdraw it. If a steady style suits you, the rule is a non-issue; if you trade in bursts, pick your firm with this in mind."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX shows your best-day percentage against your total as you trade, alongside your drawdown and daily-loss buffers — all computed from your logged trades. So instead of discovering a consistency breach at payout, you see it building days ahead and can ease off in time."
+        },
+        {
+          "type": "why",
+          "text": "Most journals tell you how much you made. JournalX is built for funded traders, so it tells you how that profit is distributed — the exact thing a payout review checks — and flags it before it costs you the withdrawal."
+        },
+        {
+          "type": "p",
+          "text": "The consistency rule isn't there to trap you. It's there to find out whether you're a sniper or a gambler. Trade like the sniper — same size, more days, no hero sessions — and you'll forget the rule exists, which is the whole point."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How is the prop firm consistency rule calculated?",
+          "a": "Divide your best single day's profit by your total profit and multiply by 100. That percentage must stay under the firm's cap, usually 30–50%. For example, a $900 best day on $3,000 total is 30%."
+        },
+        {
+          "q": "How do I fix a consistency breach?",
+          "a": "You don't remove the big day — you out-grow it. Keep trading profitably in steady amounts so your total profit rises and the big day becomes a smaller percentage of it, dropping you back under the cap."
+        },
+        {
+          "q": "Which prop firms have no consistency rule?",
+          "a": "Rules change, so always check current terms, but FTMO is the best-known firm with no consistency rule — you can make your entire monthly profit in a single day and withdraw it. Many futures and forex firms do apply a 30–50% cap."
+        }
+      ]
+    },
+    {
+      "slug": "trading-journal-fields-that-actually-matter",
+      "title": "The 9 Trading-Journal Fields That Changed My Trading (and 4 I Stopped Tracking)",
+      "metaTitle": "What to Track in a Trading Journal: 9 Fields That Matter | JournalX",
+      "metaDescription": "After years of journaling, most of the fields I logged were noise. Here are the 9 that actually changed my results, the 4 I dropped, and how to set up a journal you'll keep.",
+      "keywords": [
+        "what to track in a trading journal",
+        "trading journal fields",
+        "trading journal setup",
+        "what to include in a trading journal",
+        "how to set up a trading journal"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-06-20",
+      "featured": false,
+      "excerpt": "I used to log 20 columns per trade and review none of them. Then I figured out which fields actually move the needle. Here are the 9 I kept and the 4 I happily deleted.",
+      "helpful": {
+        "up": 203,
+        "down": 6,
+        "saves": 177
+      },
+      "tags": [
+        "Journaling",
+        "Tips",
+        "Setup",
+        "Discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "My first trading journal was a monster spreadsheet with about twenty columns. It looked serious. It was useless. I filled it in for a month, never looked back at it, and quietly stopped. The problem wasn't discipline — it was that most of what I logged didn't connect to a decision I could change."
+        },
+        {
+          "type": "p",
+          "text": "So I rebuilt it around one question: would knowing this, across 100 trades, change what I do next? If yes, it stayed. If no, it went. Here's where I landed."
+        },
+        {
+          "type": "h2",
+          "text": "The 9 fields I actually keep"
+        },
+        {
+          "type": "p",
+          "text": "Setup name. Not 'long' or 'short' — the actual playbook, like 'London breakout' or 'failed-auction reversal'. This is the single most valuable field, because it lets you compare your setups against each other and find the one quietly carrying your account."
+        },
+        {
+          "type": "p",
+          "text": "Planned risk in R. I log what I was willing to lose before the trade, in R, not dollars. R keeps the analysis honest across account sizes and lets you compare a $50 risk and a $500 risk on the same scale."
+        },
+        {
+          "type": "p",
+          "text": "Planned vs actual exit. Two fields, and the gap between them is where most of my leaks lived. Cutting winners early and letting losers run both show up here instantly."
+        },
+        {
+          "type": "p",
+          "text": "Mistake tag. A short label when I broke my own rule: 'moved stop', 'chased', 'oversized', 'no setup'. Trades aren't just wins and losses — they're clean or dirty, and dirty trades predict your next blow-up."
+        },
+        {
+          "type": "p",
+          "text": "Emotion at entry. One word: calm, FOMO, bored, revenge, confident. It feels soft until you see your bored trades have a negative expectancy and your calm ones carry the whole account."
+        },
+        {
+          "type": "p",
+          "text": "Time of day / session. Cheap to log, surprisingly loud in the data. I found a two-hour window where I was reliably donating money, and just not trading it lifted my month."
+        },
+        {
+          "type": "p",
+          "text": "Screenshot. One image of the chart at entry. Memory lies about why you took a trade; the screenshot doesn't."
+        },
+        {
+          "type": "p",
+          "text": "A one-line note. Why I took it, in plain language. 'Liquidity grab into HTF level' tells future-me more than any number."
+        },
+        {
+          "type": "h2",
+          "text": "The 4 I stopped tracking"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Field I dropped",
+            "Why it was noise"
+          ],
+          "rows": [
+            [
+              "Indicator values at entry",
+              "I never once changed a decision because of a logged RSI number"
+            ],
+            [
+              "Account balance per trade",
+              "The app already knows it; logging it by hand added friction for zero insight"
+            ],
+            [
+              "Broker/commission per trade",
+              "Real, but a monthly figure was enough — per-trade was busywork"
+            ],
+            [
+              "A 1–10 'confidence score'",
+              "Too vague to act on; the emotion tag did the same job better"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Dropping these mattered more than it sounds. Every extra field is a tiny tax on logging, and a journal you don't fill in is worth nothing. Fewer, sharper fields meant I actually kept the habit."
+        },
+        {
+          "type": "h2",
+          "text": "Two setup tricks that made me keep the habit"
+        },
+        {
+          "type": "p",
+          "text": "First, log the trade when you place it, not at the end of the day. End-of-day logging is where journals go to die — you're tired, the details are fuzzy, and you skip 'just this once' until once becomes never."
+        },
+        {
+          "type": "p",
+          "text": "Second, review weekly, not daily. Daily data is noise; ten trades tells you nothing. Thirty to fifty trades start whispering. I block twenty minutes every Sunday, sort by setup and by mistake tag, and pick exactly one thing to fix that week."
+        },
+        {
+          "type": "quote",
+          "text": "A journal isn't a diary of what happened. It's a list of decisions you can change — everything else is decoration."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX is built around these high-signal fields out of the box — setup, R, planned vs actual, emotion, mistake tags, screenshots — and computes the breakdowns for you, so you can see your best setup and your most expensive habit without building a single formula."
+        },
+        {
+          "type": "why",
+          "text": "A lot of journals either drown you in fields or give you a bare P&L. JournalX is opinionated about what actually changes trading — risk, discipline and psychology — so the data you collect is the data that pays off."
+        },
+        {
+          "type": "p",
+          "text": "If you take one thing from this: track less, but track the things you'd actually act on. Nine sharp fields you review beat twenty perfect ones you don't."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What should I track in a trading journal?",
+          "a": "Focus on fields you'd act on: the setup name, planned risk in R, planned vs actual exit, a mistake tag, your emotion at entry, time of day, a chart screenshot, and a one-line reason for the trade. Skip indicator values and per-trade balances that never change a decision."
+        },
+        {
+          "q": "When should I log a trade?",
+          "a": "Log it when you place it, not at the end of the day. End-of-day logging is where the habit breaks down because the details are fuzzy and it's easy to skip. Logging at entry keeps your data complete and honest."
+        },
+        {
+          "q": "How often should I review my trading journal?",
+          "a": "Weekly, not daily. Ten trades is noise; thirty to fifty trades reveal patterns. Block twenty minutes once a week, sort by setup and by mistake, and pick a single thing to fix."
+        }
+      ]
+    },
+    {
+      "slug": "how-i-cut-overtrading-in-half-two-weeks",
+      "title": "How I Cut My Overtrading in Half in Two Weeks (a Journaling Experiment)",
+      "metaTitle": "How to Stop Overtrading: A 2-Week Experiment That Worked | JournalX",
+      "metaDescription": "Overtrading was costing me more than any losing strategy. Here's the simple two-week journaling experiment that cut my trade count in half and turned my month green.",
+      "keywords": [
+        "how to stop overtrading",
+        "overtrading fix",
+        "reduce overtrading",
+        "why do I overtrade",
+        "trading discipline"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-06-20",
+      "featured": false,
+      "excerpt": "I wasn't losing because my strategy was bad. I was losing because I took 14 trades a day when my edge needed 3. Here's the two-week experiment that fixed it — numbers included.",
+      "helpful": {
+        "up": 241,
+        "down": 7,
+        "saves": 192
+      },
+      "tags": [
+        "Psychology",
+        "Overtrading",
+        "Discipline",
+        "Tips"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "For a long stretch I was convinced I needed a better strategy. I bought courses, swapped indicators, tweaked entries. None of it helped, because the strategy was never the problem. I just took too many trades. On a busy day I'd fire off twelve, fourteen, sometimes more — and only about three of them looked anything like my actual setup."
+        },
+        {
+          "type": "p",
+          "text": "So I ran a small experiment on myself for two weeks. No new system. Same setups. The only thing I changed was how many trades I let myself take, and how honestly I logged them. Here's exactly what I did and what happened."
+        },
+        {
+          "type": "h2",
+          "text": "Week zero: measuring the damage"
+        },
+        {
+          "type": "p",
+          "text": "Before changing anything, I went back through the previous two weeks in my journal and tagged every trade as either 'A-setup' or 'filler'. The result stung: 71 trades, 22 of them A-setups, 49 filler. When I split the P&L, my A-setups were solidly green and the filler trades had eaten almost all of it. I wasn't a losing trader. I was a profitable trader funding a gambling habit."
+        },
+        {
+          "type": "h2",
+          "text": "The rule I gave myself"
+        },
+        {
+          "type": "p",
+          "text": "One rule, deliberately strict: a maximum of three trades a day, and every trade had to be photographed and labelled with its setup before I entered. If I couldn't name the setup, I wasn't allowed to take it. That 'name it before you take it' step turned out to be the whole trick — naming forces a half-second of honesty, and most filler trades simply can't survive being named out loud."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Metric",
+            "Before",
+            "After 2 weeks"
+          ],
+          "rows": [
+            [
+              "Trades per day (avg)",
+              "7.1",
+              "3.4"
+            ],
+            [
+              "Filler trades",
+              "~69%",
+              "~22%"
+            ],
+            [
+              "Net P&L for the period",
+              "Slightly red",
+              "Clearly green"
+            ],
+            [
+              "Screen time",
+              "All day",
+              "About 90 minutes"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "I didn't perfectly hold to three a day — old habits — but cutting the count roughly in half was enough to flip the period from red to green. Same edge, far less self-sabotage."
+        },
+        {
+          "type": "h2",
+          "text": "What I learned about why I overtrade"
+        },
+        {
+          "type": "p",
+          "text": "The honest answer is that overtrading had nothing to do with opportunity and everything to do with mood. My journal's emotion tags gave it away: nearly all my filler trades were logged as 'bored' or 'frustrated', usually right after a loss or a long flat patch. I wasn't hunting setups. I was managing feelings with the order button."
+        },
+        {
+          "type": "p",
+          "text": "Once I could see that on a screen, it lost its grip. It's hard to keep doing a thing when the data quietly tells you it's an emotional reflex, not a trading decision."
+        },
+        {
+          "type": "h2",
+          "text": "Three tricks that stuck"
+        },
+        {
+          "type": "p",
+          "text": "Name it before you take it. If you can't write the setup name in one phrase, it's not a setup, it's an itch. Don't scratch it."
+        },
+        {
+          "type": "p",
+          "text": "Set a trade budget, not a profit target. 'Three trades today' is a limit you control. 'Make $500 today' is a wish that pushes you into trade four, five, six."
+        },
+        {
+          "type": "p",
+          "text": "Log losers immediately, with the emotion. The trade right after a logged 'revenge' tag is the one most likely to blow your day. Seeing the tag appear is often enough to make you close the laptop."
+        },
+        {
+          "type": "quote",
+          "text": "I didn't need a better strategy. I needed to take my good strategy fewer times."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX makes this experiment easy to run: tag each trade's setup and emotion, and it shows you the P&L split between your A-setups and your filler trades, plus how your bored and revenge trades actually perform. The number does the convincing that willpower can't."
+        },
+        {
+          "type": "why",
+          "text": "Plenty of tools count your trades. JournalX is built to show you the behaviour behind them — which emotions precede your worst trades and how much overtrading really costs — so discipline becomes a measurable habit instead of a vague resolution."
+        },
+        {
+          "type": "p",
+          "text": "If you suspect you overtrade, don't start with a new system. Start with two weeks of honest tagging and a hard trade limit. There's a decent chance, like me, you'll find the trader you wanted was already there — just buried under a pile of trades you never should have taken."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Why do I keep overtrading?",
+          "a": "For most traders overtrading is emotional, not opportunity-driven. Tagging your trades usually reveals that the extra trades cluster around boredom, frustration, or the urge to win back a loss — they're a way of managing feelings, not following a setup."
+        },
+        {
+          "q": "What's the fastest way to stop overtrading?",
+          "a": "Give yourself a hard daily trade limit (a 'trade budget') and require yourself to name the setup before entering. If you can't name it in one phrase, you don't take it. Naming the trade filters out most impulse entries."
+        },
+        {
+          "q": "Does cutting trades actually improve results?",
+          "a": "Often, yes — if your edge is real but diluted by filler trades. In my own two-week test, halving my trade count flipped the period from red to green using the exact same setups, because the losing trades were mostly the impulsive ones."
+        }
+      ]
+    },
+    {
+      "slug": "equity-curve-patterns-what-to-fix",
+      "title": "7 Equity-Curve Shapes and Exactly What Each One Is Telling You",
+      "metaTitle": "Reading Your Equity Curve: 7 Patterns and How to Fix Them | JournalX",
+      "metaDescription": "Your equity curve is a confession. Here are 7 shapes I see again and again in traders' journals — what each one means about your psychology and risk, and how to fix it.",
+      "keywords": [
+        "equity curve trading",
+        "reading your equity curve",
+        "equity curve analysis",
+        "trading performance analysis",
+        "equity curve patterns"
+      ],
+      "category": "Strategy",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-06-20",
+      "featured": false,
+      "excerpt": "Most traders glance at their P&L and move on. But the shape of your equity curve quietly tells you what's wrong with your risk and your psychology. Here are 7 shapes and their fixes.",
+      "helpful": {
+        "up": 168,
+        "down": 5,
+        "saves": 138
+      },
+      "tags": [
+        "Strategy",
+        "Performance",
+        "Risk",
+        "Tips"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "A flat P&L number tells you almost nothing. The shape of the line that got you there tells you everything. I've looked at a lot of equity curves — mine and other traders' — and the same handful of shapes show up again and again, each one pointing at a specific habit. Here are seven, and what I'd do about each."
+        },
+        {
+          "type": "h2",
+          "text": "1. The staircase"
+        },
+        {
+          "type": "p",
+          "text": "Steady steps up with small, shallow pullbacks. This is the one you want — consistent size, consistent edge, losses kept small. If your curve looks like this, the fix is simple: don't get clever. The fastest way to ruin a staircase is to suddenly size up because you feel unstoppable."
+        },
+        {
+          "type": "h2",
+          "text": "2. The cliff"
+        },
+        {
+          "type": "p",
+          "text": "A long, pretty climb followed by one vertical drop that erases weeks. Almost always a sizing or risk problem, not a strategy problem — one oversized trade, or a refusal to take a stop. The fix lives entirely in position sizing: cap your per-trade risk so no single trade can carve a cliff into the line."
+        },
+        {
+          "type": "h2",
+          "text": "3. The sawtooth"
+        },
+        {
+          "type": "p",
+          "text": "Up, down, up, down, going basically nowhere. This is the overtrading signature. Your edge is real but you're handing it back with filler trades. Fix it by cutting trade frequency and only taking your A-setups — the line tightens almost immediately."
+        },
+        {
+          "type": "h2",
+          "text": "4. The slow bleed"
+        },
+        {
+          "type": "p",
+          "text": "No dramatic blow-up, just a gentle, persistent drift down. Usually death by a thousand small mistakes: slightly too large losses, winners cut a touch early, a few too many marginal trades. The fix is your planned-vs-actual exit data — close the gap and the bleed stops."
+        },
+        {
+          "type": "h2",
+          "text": "5. The hockey stick after a loss"
+        },
+        {
+          "type": "p",
+          "text": "A normal curve, then a sharp lurch — up or down — right after a big red trade. That's revenge trading drawn as a chart. The fix isn't a strategy tweak; it's a hard daily stop after a defined loss, so the spiral never gets to start."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Curve shape",
+            "Most likely cause",
+            "Where to fix it"
+          ],
+          "rows": [
+            [
+              "Cliff",
+              "Oversizing / skipped stops",
+              "Position sizing"
+            ],
+            [
+              "Sawtooth",
+              "Overtrading",
+              "Trade frequency"
+            ],
+            [
+              "Slow bleed",
+              "Cutting winners / fat losers",
+              "Planned vs actual exits"
+            ],
+            [
+              "Post-loss lurch",
+              "Revenge trading",
+              "Daily loss limit"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "6. The plateau"
+        },
+        {
+          "type": "p",
+          "text": "You climbed, then went sideways for weeks. Not losing, not growing. This is usually fear after success — you got to a new high and started trading scared, taking profits early and skipping good setups. The fix is psychological: trust the size and the setups that built the climb in the first place."
+        },
+        {
+          "type": "h2",
+          "text": "7. The volatility spike"
+        },
+        {
+          "type": "p",
+          "text": "The curve's swings suddenly get much bigger in both directions. Your size crept up, probably without you deciding to. The fix is to normalise risk in R rather than dollars, so a good run doesn't quietly inflate your position size into something that can hurt you."
+        },
+        {
+          "type": "quote",
+          "text": "Your P&L tells you if you won. Your equity curve tells you whether you can do it again."
+        },
+        {
+          "type": "h2",
+          "text": "How to actually read yours"
+        },
+        {
+          "type": "p",
+          "text": "Pull up your curve over months, not days, and ask three questions: are my pullbacks shallow or scary, is the line trending or just oscillating, and do the worst drops line up with specific behaviours in my notes. That last one is the gold — when a cliff matches a 'revenge' or 'oversized' tag, you've found the exact thing to fix."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX draws your equity curve from your real trades as growth candlesticks, not a flat line, and ties each move back to the trades and emotion tags behind it. So when you spot a cliff or a sawtooth, you can click straight through to the behaviour that caused it."
+        },
+        {
+          "type": "why",
+          "text": "Most tools show a single flat P&L line and leave the diagnosis to you. JournalX renders the shape and connects it to your risk and psychology data, so the curve stops being a scoreboard and becomes a to-do list."
+        },
+        {
+          "type": "p",
+          "text": "Next time you open your journal, ignore the number for a second and just look at the shape. Staircase, cliff, sawtooth, bleed — each one is your own trading telling you, in its own handwriting, exactly what to work on."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What does my equity curve tell me?",
+          "a": "Its shape reveals habits a flat P&L hides. A cliff points to oversizing, a sawtooth to overtrading, a slow bleed to cutting winners early or letting losers run, and a sharp move after a big loss to revenge trading. Each shape maps to a specific fix."
+        },
+        {
+          "q": "What does a good equity curve look like?",
+          "a": "A 'staircase' — steady steps higher with small, shallow pullbacks, produced by consistent position sizing and a real edge with losses kept small. The main risk to a good curve is sizing up out of overconfidence."
+        },
+        {
+          "q": "How often should I review my equity curve?",
+          "a": "Look at it over months rather than days, and cross-reference the worst drops with your trade notes and emotion tags. When a sharp drop lines up with a 'revenge' or 'oversized' tag, you've found a concrete behaviour to fix."
+        }
+      ]
     }
   ]
 }

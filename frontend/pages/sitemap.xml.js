@@ -8,7 +8,7 @@ import { getAllPosts, SITE_URL } from "@/utils/blogs";
 
 /* Last meaningful content update for static/legal pages. Bump this only when
    the page itself actually changes, so we never feed Google a fake lastmod. */
-const STATIC_LASTMOD = "2026-06-13";
+const STATIC_LASTMOD = "2026-06-20";
 
 const STATIC = [
   // `dynamic: true` → lastmod tracks the newest blog post (these pages list blogs)
@@ -23,6 +23,7 @@ const STATIC = [
   { path: "/cookie-policy", priority: "0.3", freq: "yearly" },
   { path: "/login", priority: "0.4", freq: "monthly" },
   { path: "/register", priority: "0.6", freq: "monthly" },
+  { path: "/refer", priority: "0.6", freq: "monthly" },
 ];
 
 function SiteMap() {
