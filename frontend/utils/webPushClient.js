@@ -63,6 +63,20 @@ export async function subscribeToPush() {
   }
 }
 
+/* ask the backend to send a real push to this user's devices — used right
+   after opting in to confirm delivery actually works */
+export async function sendTestPush() {
+  try {
+    const r = await fetch(`${API_BASE}/api/push/test`, {
+      method: "POST",
+      credentials: "include",
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
 /* remove this device's subscription (backend + browser) */
 export async function unsubscribeFromPush() {
   if (!swSupported()) return;

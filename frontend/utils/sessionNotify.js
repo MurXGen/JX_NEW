@@ -5,7 +5,7 @@
    service. Reminders fire while the app is open (a tab/PWA window); we de-dupe
    per session-per-day so a reload doesn't double-notify. */
 
-import { subscribeToPush, unsubscribeFromPush } from "./webPushClient";
+import { subscribeToPush, unsubscribeFromPush, sendTestPush } from "./webPushClient";
 
 const ENABLED_KEY = "jx-notif-enabled";
 const DISMISSED_KEY = "jx-notif-dismissed";
@@ -68,10 +68,16 @@ export async function enableNotifications() {
   }
   if (perm === "granted") {
     setNotifEnabled(true);
-    // subscribe for background (closed-app) delivery via the service worker;
-    // best-effort — local in-app reminders still work if this fails
-    subscribeToPush().catch(() => {});
-    showNotification("Notifications on 🎉", "We'll nudge you to log your trades at each session start.");
+    // subscribe for background (closed-app) delivery via the service worker
+    const subscribed = await subscribeToPush().catch(() => false);
+    if (subscribed) {
+      // send a REAL push so the user immediately sees that delivery works
+      // (goes through the service worker, like the session reminders will)
+      sendTestPush().catch(() => {});
+    } else {
+      // server push unavailable — at least confirm with a local notification
+      showNotification("Notifications on 🎉", "We'll nudge you to log your trades at each session start.");
+    }
   }
   return perm;
 }
