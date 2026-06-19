@@ -5,7 +5,7 @@
    service. Reminders fire while the app is open (a tab/PWA window); we de-dupe
    per session-per-day so a reload doesn't double-notify. */
 
-import { subscribeToPush, unsubscribeFromPush, sendTestPush } from "./webPushClient";
+import { subscribeToPush, unsubscribeFromPush, sendTestPush, registerServiceWorker } from "./webPushClient";
 
 const ENABLED_KEY = "jx-notif-enabled";
 const DISMISSED_KEY = "jx-notif-dismissed";
@@ -68,16 +68,17 @@ export async function enableNotifications() {
   }
   if (perm === "granted") {
     setNotifEnabled(true);
-    // subscribe for background (closed-app) delivery via the service worker
-    const subscribed = await subscribeToPush().catch(() => false);
-    if (subscribed) {
-      // send a REAL push so the user immediately sees that delivery works
-      // (goes through the service worker, like the session reminders will)
-      sendTestPush().catch(() => {});
-    } else {
-      // server push unavailable — at least confirm with a local notification
-      showNotification("Notifications on 🎉", "We'll nudge you to log your trades at each session start.");
-    }
+    // make sure the SW is registered, then show an IMMEDIATE confirmation via
+    // it (works on desktop + mobile/PWA) so the user instantly sees it works
+    await registerServiceWorker().catch(() => {});
+    await showNotification(
+      "Notifications on 🎉",
+      "This is a test — you'll get a nudge to log trades at each session open.",
+    );
+    // also set up background (closed-app) delivery + a real server push
+    subscribeToPush()
+      .then((ok) => ok && sendTestPush().catch(() => {}))
+      .catch(() => {});
   }
   return perm;
 }
@@ -87,16 +88,32 @@ export function disableNotifications() {
   unsubscribeFromPush().catch(() => {});
 }
 
-/* low-level notification helper (focuses the app on click) */
-export function showNotification(title, body, { tag } = {}) {
+/* low-level notification helper. Prefers the service worker's
+   showNotification() — the direct `new Notification()` constructor is illegal
+   on Android/mobile and inside installed PWAs, so it would silently throw. */
+export async function showNotification(title, body, { tag } = {}) {
   if (!isNotifEnabled()) return;
+  const opts = {
+    body,
+    tag,
+    icon: "/assets/JournalX_Favicon2.png",
+    badge: "/assets/JournalX_Favicon2.png",
+    data: { url: "/dashboard" },
+  };
   try {
-    const n = new Notification(title, {
-      body,
-      tag,
-      icon: "/assets/JournalX_Favicon2.png",
-      badge: "/assets/JournalX_Favicon2.png",
-    });
+    if ("serviceWorker" in navigator) {
+      let reg = await navigator.serviceWorker.getRegistration();
+      // need an ACTIVE worker to show; wait for activation on first enable
+      if (!reg || !reg.active) reg = await navigator.serviceWorker.ready;
+      if (reg) {
+        await reg.showNotification(title, opts);
+        return;
+      }
+    }
+  } catch {}
+  // desktop fallback when there's no SW
+  try {
+    const n = new Notification(title, opts);
     n.onclick = () => {
       try {
         window.focus();
