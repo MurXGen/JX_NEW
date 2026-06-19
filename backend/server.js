@@ -17,6 +17,7 @@ const bookxTelegram = require("./routes/bookxTelegram");
 const paddleRoute = require("./routes/paddleWebhook");
 const thebookxpayments = require("./routes/thebookxpayments");
 const integrationsRoutes = require("./routes/integrations");
+const pushRoutes = require("./routes/pushRoutes");
 
 // Rate limiter
 const createLimiter = require("./utils/rateLimiter");
@@ -105,6 +106,7 @@ app.use("/api/trades", createLimiter(40), tradeRoutes);
 const { revenuecatWebhook } = require("./controllers/revenuecatController");
 app.post("/api/payments/revenuecat/webhook", express.json(), revenuecatWebhook);
 app.use("/api/integrations", integrationsRoutes);
+app.use("/api/push", createLimiter(60), pushRoutes);
 
 app.use(
   "/api/payments/webhook",
@@ -153,6 +155,7 @@ app.use((req, res) => {
 
 const { initTelegramWebhook } = require("./utils/telegramSetup");
 const { startOnboardingScheduler } = require("./jobs/onboardingReminders");
+const { startSessionPushScheduler } = require("./jobs/sessionPush");
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
@@ -161,4 +164,6 @@ app.listen(PORT, () => {
   initTelegramWebhook();
   // Start the onboarding-email drip (welcome + day 1 / 3 / 7 nudges).
   startOnboardingScheduler();
+  // Start the session-open push reminders (fires even when the app is closed).
+  startSessionPushScheduler();
 });

@@ -14,6 +14,46 @@ import PlanLimitsCard from "./PlanLimitsCard";
 import { useTheme } from "./Sidebar";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { backupToDrive, restoreFromDrive, isDriveConfigured } from "@/utils/driveBackup";
+import {
+  isNotifEnabled,
+  notifSupported,
+  notifPermission,
+  enableNotifications,
+  disableNotifications,
+} from "@/utils/sessionNotify";
+
+/* Live toggle for client-side trading-session reminders */
+function SessionReminders() {
+  const [on, setOn] = useState(false);
+  const [perm, setPerm] = useState("default");
+  useEffect(() => {
+    setOn(isNotifEnabled());
+    setPerm(notifPermission());
+    const sync = () => { setOn(isNotifEnabled()); setPerm(notifPermission()); };
+    window.addEventListener("jx-notif-changed", sync);
+    return () => window.removeEventListener("jx-notif-changed", sync);
+  }, []);
+
+  if (!notifSupported()) {
+    return <Row title="Session reminders" sub="Not supported on this browser" disabled><Switch on={false} onChange={() => {}} disabled /></Row>;
+  }
+  const blocked = perm === "denied";
+  const toggle = async () => {
+    if (on) { disableNotifications(); setOn(false); return; }
+    const p = await enableNotifications();
+    setPerm(p);
+    setOn(p === "granted");
+  };
+  return (
+    <Row
+      title="Session reminders"
+      sub={blocked ? "Blocked — allow notifications in your browser's site settings" : "A nudge to log trades when each market session opens"}
+      disabled={blocked}
+    >
+      <Switch on={on} onChange={toggle} disabled={blocked} />
+    </Row>
+  );
+}
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const CURRENCIES = ["USD", "USDT", "EUR", "INR", "GBP"];
@@ -603,18 +643,17 @@ export default function SettingsPanel({ user }) {
       </div>
       )}
 
-      {/* ===== Notifications (disabled) ===== */}
+      {/* ===== Notifications ===== */}
       <div className="jx-card" style={{ position: "relative" }}>
-        <div className="jx-card__title">
-          Notifications <Badge variant="neutral">Coming soon</Badge>
-        </div>
+        <div className="jx-card__title">Notifications</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Choose what you want to hear about.</div>
+        <SessionReminders />
         {[
           ["Trade fill alerts", "Notify when an order fills"],
           ["Daily summary email", "A recap of your day at market close"],
           ["Weekly performance recap", "Your stats every Monday"],
         ].map(([t, s]) => (
-          <Row key={t} title={t} sub={s} disabled>
+          <Row key={t} title={t} sub={<>{s} <Badge variant="neutral">Soon</Badge></>} disabled>
             <Switch on={false} onChange={() => {}} disabled />
           </Row>
         ))}
