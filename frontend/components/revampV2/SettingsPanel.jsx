@@ -14,87 +14,6 @@ import PlanLimitsCard from "./PlanLimitsCard";
 import { useTheme } from "./Sidebar";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { backupToDrive, restoreFromDrive, isDriveConfigured } from "@/utils/driveBackup";
-import {
-  isNotifEnabled,
-  notifSupported,
-  notifPermission,
-  enableNotifications,
-  disableNotifications,
-} from "@/utils/sessionNotify";
-
-/* Live toggle for trading-session reminders (Web Push) */
-function SessionReminders() {
-  const [on, setOn] = useState(false);
-  const [perm, setPerm] = useState("default");
-  const [info, setInfo] = useState(null); // { configured, devices }
-  const [testing, setTesting] = useState(false);
-  const [testMsg, setTestMsg] = useState("");
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-  const refreshStatus = async () => {
-    try {
-      const r = await fetch(`${API_BASE}/api/push/status`, { credentials: "include" });
-      if (r.ok) setInfo(await r.json());
-    } catch {}
-  };
-
-  useEffect(() => {
-    setOn(isNotifEnabled());
-    setPerm(notifPermission());
-    refreshStatus();
-    const sync = () => { setOn(isNotifEnabled()); setPerm(notifPermission()); refreshStatus(); };
-    window.addEventListener("jx-notif-changed", sync);
-    return () => window.removeEventListener("jx-notif-changed", sync);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (!notifSupported()) {
-    return <Row title="Session reminders" sub="Not supported on this browser" disabled><Switch on={false} onChange={() => {}} disabled /></Row>;
-  }
-  const blocked = perm === "denied";
-  const toggle = async () => {
-    if (on) { disableNotifications(); setOn(false); setTimeout(refreshStatus, 600); return; }
-    const p = await enableNotifications();
-    setPerm(p);
-    setOn(p === "granted");
-    setTimeout(refreshStatus, 800);
-  };
-
-  const sendTest = async () => {
-    setTesting(true);
-    setTestMsg("");
-    try {
-      const r = await fetch(`${API_BASE}/api/push/test`, { method: "POST", credentials: "include" });
-      const d = await r.json().catch(() => ({}));
-      setTestMsg(r.ok ? `Sent to ${d.devices ?? 0} device(s)` : (d.message || "Failed"));
-    } catch {
-      setTestMsg("Failed to reach server");
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const sub = blocked
-    ? "Blocked — allow notifications in your browser's site settings"
-    : info && info.configured === false
-      ? "Server not configured yet (missing VAPID keys)"
-      : on
-        ? `On · ${info?.devices ?? 0} device(s)${testMsg ? ` · ${testMsg}` : ""}`
-        : "A nudge to log trades when each market session opens";
-
-  return (
-    <Row title="Session reminders" sub={sub} disabled={blocked}>
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-        {on && (
-          <Button variant="secondary" size="sm" onClick={sendTest} disabled={testing}>
-            {testing ? "Sending…" : "Send test"}
-          </Button>
-        )}
-        <Switch on={on} onChange={toggle} disabled={blocked} />
-      </div>
-    </Row>
-  );
-}
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const CURRENCIES = ["USD", "USDT", "EUR", "INR", "GBP"];
@@ -684,17 +603,19 @@ export default function SettingsPanel({ user }) {
       </div>
       )}
 
-      {/* ===== Notifications ===== */}
+      {/* ===== Notifications (disabled) ===== */}
       <div className="jx-card" style={{ position: "relative" }}>
-        <div className="jx-card__title">Notifications</div>
+        <div className="jx-card__title">
+          Notifications <Badge variant="neutral">Coming soon</Badge>
+        </div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Choose what you want to hear about.</div>
-        <SessionReminders />
         {[
+          ["Session reminders", "A nudge to log trades when each market session opens"],
           ["Trade fill alerts", "Notify when an order fills"],
           ["Daily summary email", "A recap of your day at market close"],
           ["Weekly performance recap", "Your stats every Monday"],
         ].map(([t, s]) => (
-          <Row key={t} title={t} sub={<>{s} <Badge variant="neutral">Soon</Badge></>} disabled>
+          <Row key={t} title={t} sub={s} disabled>
             <Switch on={false} onChange={() => {}} disabled />
           </Row>
         ))}

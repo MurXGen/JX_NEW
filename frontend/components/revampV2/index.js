@@ -19,7 +19,6 @@ export { default as JournalsModal } from "./JournalsModal";
 export { default as SupportModal } from "./SupportModal";
 export { default as PlanBanner } from "./PlanBanner";
 export { default as OnboardingModal } from "./OnboardingModal";
-export { default as NotificationOptInModal } from "./NotificationOptInModal";
 export { default as UpgradePanel } from "./UpgradePanel";
 export { default as OverviewPanel } from "./OverviewPanel";
 export { default as TradeDetailsModal } from "./TradeDetailsModal";

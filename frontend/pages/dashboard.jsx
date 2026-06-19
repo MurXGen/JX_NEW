@@ -31,7 +31,6 @@ import {
   SupportModal,
   PlanBanner,
   OnboardingModal,
-  NotificationOptInModal,
   UpgradePanel,
   OverviewPanel,
   MarketsPanel,
@@ -46,8 +45,6 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { getConversionFactor } from "@/utils/fx";
 import { connectDrive, warmDriveConnection, isDriveConnected, isDriveConfigured } from "@/utils/driveBackup";
-import { startSessionScheduler, isNotifEnabled, notifSupported, notifPermission, notifDismissed, dismissNotifPrompt } from "@/utils/sessionNotify";
-import { registerServiceWorker, subscribeToPush } from "@/utils/webPushClient";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -79,28 +76,10 @@ export default function Dashboard() {
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showNotifOptIn, setShowNotifOptIn] = useState(false);
   const [loggedIn, setLoggedIn] = useState(true); // assume true to avoid flicker; set on mount
 
   useEffect(() => {
     setLoggedIn(Cookies.get("isVerified") === "yes");
-  }, []);
-
-  /* Trading-session reminders (client-side): start the scheduler if already
-     enabled, and otherwise softly prompt to opt in (once) via our own modal. */
-  useEffect(() => {
-    if (!notifSupported()) return;
-    // register the SW so background push can be received
-    registerServiceWorker();
-    const stop = startSessionScheduler();
-    if (isNotifEnabled()) {
-      // keep this device's push subscription in sync on each visit
-      subscribeToPush().catch(() => {});
-    } else if (notifPermission() === "default" && !notifDismissed()) {
-      const t = setTimeout(() => setShowNotifOptIn(true), 4000);
-      return () => { clearTimeout(t); stop(); };
-    }
-    return stop;
   }, []);
   const [showLogTrade, setShowLogTrade] = useState(false);
   const [importSignal, setImportSignal] = useState(0);
@@ -472,12 +451,6 @@ export default function Dashboard() {
             console.error("trial cache update failed:", e);
           }
         }}
-      />
-
-      <NotificationOptInModal
-        open={showNotifOptIn}
-        onClose={() => { dismissNotifPrompt(); setShowNotifOptIn(false); }}
-        onEnabled={() => setShowNotifOptIn(false)}
       />
     </div>
   );
