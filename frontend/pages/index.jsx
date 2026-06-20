@@ -59,6 +59,7 @@ import {
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import { createPortal } from "react-dom";
 import { LandingNav, LandingFooter, btnPrimary, btnGhost } from "@/components/landingPage/LandingChrome";
+import Testimonials from "@/components/landingPage/Testimonials";
 import { getAllPosts, fmtDate } from "@/utils/blogs";
 import PaddleLoader from "@/components/payments/PaddleLoader";
 import PaymentModal from "@/components/payments/PaymentModal";
@@ -622,12 +623,17 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
-  ["Is JournalX free?", "Yes — you can start free with no card required, and every paid plan starts with a 7-day free trial. Paid plans unlock advanced analytics and higher limits."],
-  ["Is JournalX good for funded and prop firm traders?", "Yes — JournalX is built for funded and prop firm traders. Track your drawdown, monitor consistency, and use psychology and discipline analytics to protect your funded account and pass evaluations with firms like FTMO, Topstep and Apex."],
-  ["Which markets does it support?", "Stocks, options, forex, futures and crypto — log any instrument, in any currency."],
-  ["Can I import my existing trades?", "Yes. Import a CSV with our template, or connect a supported exchange to auto-sync your trade history."],
-  ["Do you store my exchange keys safely?", "We only ever use read-only API keys, stored locally on your device, purely to fetch your trades."],
-  ["Can I journal on mobile?", "Absolutely — JournalX is fully responsive with a dedicated mobile experience and quick log."],
+  ["What is a trading journal and why do I need one?", "A trading journal is a record of every trade you take — entry, exit, size, risk, strategy and how you felt — turned into analytics you can review. You need one because profitability comes from removing repeated mistakes, and you can only fix a leak you can measure. JournalX automates the analysis so a few seconds of logging becomes a complete picture of your win rate, R-multiples, drawdown and psychology, and your weekly review finally tells the truth about your edge."],
+  ["Is JournalX free?", "Yes — you can start free with no credit card required, and every paid plan starts with a 7-day free trial. The free plan is enough to log trades and see your core analytics; paid plans unlock advanced analytics, higher limits, auto-import and unlimited chart logging."],
+  ["Is JournalX good for funded and prop firm traders?", "Yes — JournalX is built for funded and prop firm traders. Track your trailing and daily drawdown, monitor consistency, and use psychology and discipline analytics to protect your funded account and pass evaluations with firms like FTMO, Topstep, MyForexFunds and Apex. Your discipline becomes a number you can manage before it costs you the account."],
+  ["Which markets and instruments does it support?", "Stocks, options, forex, futures and crypto — log any instrument in any currency. JournalX handles spot and leveraged positions, longs and shorts, and adapts price precision automatically so small-priced assets like SHIB or forex pairs are shown correctly."],
+  ["How is JournalX different from a spreadsheet?", "A spreadsheet stores numbers; JournalX turns them into insight. Logging takes about ten seconds instead of five minutes, and you instantly get equity-growth candlesticks, an R-multiple distribution, a colour-coded P&L calendar, per-strategy and per-session breakdowns, drawdown tracking and a discipline score — all computed from your real trades, with nothing to maintain or break."],
+  ["Can I import my existing trades?", "Yes. Import a CSV using our template, or connect a supported exchange to auto-sync your trade history. You can also log trades manually, with a quick one-field P&L log or a detailed entry, or mark your entry and exit directly on a chart."],
+  ["Does JournalX track trading psychology and emotions?", "Yes. You can tag your emotion and confidence at entry and flag mistakes like FOMO, revenge trading, moving stops or oversizing. JournalX then quantifies how those behaviours affect your results, so vague advice like ‘control your psychology’ becomes a measurable score you can watch improve."],
+  ["Do you store my exchange API keys safely?", "We only ever use read-only API keys — they cannot place trades or withdraw funds — and they are stored locally on your device purely to fetch your trade history. JournalX never holds your money or executes trades."],
+  ["Can I journal on mobile?", "Absolutely — JournalX is fully responsive with a dedicated mobile experience, an installable app and a quick-log flow designed for logging on the go right after you close a trade."],
+  ["Is my trading data private?", "Yes. Your trades are yours. We use your data only to provide the analytics in your account, your local cache stays on your device for fast, offline-friendly access, and we never sell your data. JournalX is a software tool, not a broker or financial service."],
+  ["How quickly will I see my trading analytics?", "Immediately. The moment a trade is logged or imported, JournalX recomputes your metrics — typically a full trade-log analysis in under ten seconds — so your dashboard, equity curve and calendar are always up to date."],
 ];
 
 /* ===== Analytics showcase data (recharts) ===== */
@@ -1237,51 +1243,49 @@ export default function Home({ posts = [] }) {
           <Section label="Hero" style={{ paddingTop: 64, paddingBottom: 44, position: "relative" }}>
             <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "radial-gradient(720px 420px at 28% -10%, rgba(252,213,53,0.16), transparent 70%)", pointerEvents: "none" }} />
             <HeroBackdrop />
-            <div className="lp-hero-grid" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "0.85fr 1.25fr", gap: 40, alignItems: "center" }}>
-              {/* LEFT — copy (SEO unchanged) */}
-              <motion.div className="lp-hero-copy" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ textAlign: "left" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 22 }}>
-                  <Sparkles size={14} aria-hidden="true" /> Full trade analysis in under 10 seconds
+            {/* centered intro copy (SEO unchanged) */}
+            <motion.div className="lp-hero-copy" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: 760, marginInline: "auto" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 22 }}>
+                <Sparkles size={14} aria-hidden="true" /> Full trade analysis in under 10 seconds
+              </span>
+              <h1 style={{ font: "700 clamp(34px, 5.2vw, 58px)/1.07 Poppins", margin: "0 0 18px", letterSpacing: "-1.6px" }}>
+                The trading journal that finds your edge in{" "}
+                <span style={{ background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                  under 10 seconds
                 </span>
-                <h1 style={{ font: "700 clamp(34px, 5vw, 56px)/1.08 Poppins", margin: "0 0 18px", letterSpacing: "-1.5px" }}>
-                  The trading journal that finds your edge in{" "}
-                  <span style={{ background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
-                    under 10 seconds
-                  </span>
-                </h1>
-                <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 560, margin: "0 0 30px" }}>
-                  JournalX turns every trade into the analytics that actually grow an account — win rate, R-multiples, risk, drawdown and psychology, all computed from your real trade log. Built for funded and prop firm traders, across forex, futures, stocks, options and crypto.
-                </p>
-                <div className="lp-hero-actions" style={{ display: "flex", gap: 12, justifyContent: "flex-start", flexWrap: "wrap" }}>
-                  <a href="/register" style={{ textDecoration: "none" }}>
-                    <button style={{ ...btnPrimary, padding: "14px 26px", fontSize: 15, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 8px 28px rgba(252,213,53,0.3)" }}>
-                      Start journaling free <ArrowRight size={16} aria-hidden="true" />
-                    </button>
-                  </a>
-                  <a href="/dashboard" style={{ textDecoration: "none" }}>
-                    <button style={{ ...btnGhost, padding: "14px 26px", fontSize: 15, backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", background: "rgba(255,255,255,0.04)" }}>
-                      Try the live demo
-                    </button>
-                  </a>
-                </div>
-                <div className="lp-hero-trust" style={{ display: "flex", gap: 22, justifyContent: "flex-start", flexWrap: "wrap", marginTop: 26, font: "400 13px Poppins", color: C.dim }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> Free to start</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> No card required</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> All markets</span>
-                </div>
-              </motion.div>
+              </h1>
+              <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 620, margin: "0 auto 30px" }}>
+                JournalX turns every trade into the analytics that actually grow an account — win rate, R-multiples, risk, drawdown and psychology, all computed from your real trade log. Built for funded and prop firm traders, across forex, futures, stocks, options and crypto.
+              </p>
+              <div className="lp-hero-actions" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+                <a href="/register" style={{ textDecoration: "none" }}>
+                  <button style={{ ...btnPrimary, padding: "14px 26px", fontSize: 15, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 8px 28px rgba(252,213,53,0.3)" }}>
+                    Start journaling free <ArrowRight size={16} aria-hidden="true" />
+                  </button>
+                </a>
+                <a href="/dashboard" style={{ textDecoration: "none" }}>
+                  <button style={{ ...btnGhost, padding: "14px 26px", fontSize: 15, backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", background: "rgba(255,255,255,0.04)" }}>
+                    Try the live demo
+                  </button>
+                </a>
+              </div>
+              <div className="lp-hero-trust" style={{ display: "flex", gap: 22, justifyContent: "center", flexWrap: "wrap", marginTop: 26, font: "400 13px Poppins", color: C.dim }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> Free to start</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> No card required</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> All markets</span>
+              </div>
+            </motion.div>
 
-              {/* RIGHT — before/after edge graph */}
-              <motion.div
-                initial={{ opacity: 0, y: 24, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                style={{ position: "relative" }}
-              >
-                <div aria-hidden="true" style={{ position: "absolute", inset: "-30px -20px", background: "radial-gradient(60% 70% at 70% 40%, rgba(46,189,133,0.12), transparent 70%)", pointerEvents: "none", filter: "blur(10px)" }} />
-                <div style={{ position: "relative" }}><EdgeGraph /></div>
-              </motion.div>
-            </div>
+            {/* full-width before/after edge graph — below the copy */}
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.22, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              style={{ position: "relative", zIndex: 1, marginTop: 44 }}
+            >
+              <div aria-hidden="true" style={{ position: "absolute", inset: "-30px -20px", background: "radial-gradient(55% 70% at 72% 35%, rgba(46,189,133,0.14), transparent 70%)", pointerEvents: "none", filter: "blur(12px)" }} />
+              <div style={{ position: "relative" }}><EdgeGraph /></div>
+            </motion.div>
 
             {/* signature animation — the live journal mock (how journaling is done) */}
             <motion.div
@@ -1443,25 +1447,8 @@ export default function Home({ posts = [] }) {
           </Section>
 
           {/* ===== Testimonials ===== */}
-          <Section label="Testimonials">
-            <SectionHead kicker="Traders" title="Traders are building real edges" />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
-              {TESTIMONIALS.map((t, i) => (
-                <motion.article
-                  key={t.n}
-                  initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.5 }}
-                  style={{ ...glass, borderRadius: 18, padding: 26 }}
-                >
-                  <div style={{ display: "flex", gap: 3, marginBottom: 14 }} aria-label="5 out of 5 stars">
-                    {[...Array(5)].map((_, j) => <Star key={j} size={16} fill={C.yellow} color={C.yellow} aria-hidden="true" />)}
-                  </div>
-                  <p style={{ font: "400 15px/1.6 Poppins", color: "#d6dae0", margin: "0 0 18px" }}>“{t.q}”</p>
-                  <div style={{ font: "600 14px Poppins" }}>{t.n}</div>
-                  <div style={{ font: "400 13px Poppins", color: C.dim }}>{t.r}</div>
-                </motion.article>
-              ))}
-            </div>
-          </Section>
+          {/* schema=false — the aggregateRating already lives in appLd above */}
+          <Testimonials schema={false} />
 
           {/* ===== Pricing ===== */}
           <PricingSection />

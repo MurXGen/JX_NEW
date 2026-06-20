@@ -20,6 +20,7 @@ import { createPortal } from "react-dom";
 import Cookies from "js-cookie";
 import PaddleLoader from "../components/payments/PaddleLoader";
 import { LandingNav, LandingFooter } from "@/components/landingPage/LandingChrome";
+import Testimonials from "@/components/landingPage/Testimonials";
 
 /* small inline spinner for button loading states */
 function BtnSpinner({ color = "currentColor" }) {
@@ -336,6 +337,8 @@ export default function Pricing() {
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}><CreditCard size={15} style={{ color: C.green }} /> Cards, PayPal & crypto</span>
           </div>
         </section>
+
+        <Testimonials schema />
 
         <LandingFooter />
       </div>

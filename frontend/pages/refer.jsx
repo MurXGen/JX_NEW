@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { LandingNav, LandingFooter, btnPrimary, btnGhost } from "@/components/landingPage/LandingChrome";
+import Testimonials from "@/components/landingPage/Testimonials";
 
 const SITE_URL = "https://journalx.app";
 const TITLE = "Refer a friend to JournalX — start free, no card";
@@ -151,6 +152,9 @@ export default function ReferPage() {
               ))}
             </div>
           </section>
+
+          {/* ===== Testimonials ===== */}
+          <Testimonials schema />
 
           {/* ===== Reassurance + CTA ===== */}
           <section style={{ maxWidth: 760, margin: "0 auto", padding: "44px 20px 72px", textAlign: "center" }}>
