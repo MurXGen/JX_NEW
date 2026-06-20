@@ -1,6 +1,6 @@
 "use client";
 
-/* /refer — referral landing page. The link shared from Settings → "Refer a
+/* /refer, referral landing page. The link shared from Settings → "Refer a
    friend" points here (with a ?ref=<id> tag). It pitches JournalX and sends
    the visitor to sign up free (no card). SEO-optimised. */
 
@@ -21,9 +21,9 @@ import { LandingNav, LandingFooter, btnPrimary, btnGhost } from "@/components/la
 import Testimonials from "@/components/landingPage/Testimonials";
 
 const SITE_URL = "https://journalx.app";
-const TITLE = "Refer a friend to JournalX — start free, no card";
+const TITLE = "Refer a friend to JournalX, start free, no card";
 const DESC =
-  "A friend invited you to JournalX, the trading journal that finds your edge in under 10 seconds. Start free — no credit card required. Track win rate, R-multiples, risk, drawdown and psychology across forex, futures, stocks, options and crypto.";
+  "A friend invited you to JournalX, the trading journal that finds your edge in under 10 seconds. Start free, no credit card required. Track win rate, R-multiples, risk, drawdown and psychology across forex, futures, stocks, options and crypto.";
 
 const C = {
   text: "#fff",
@@ -38,9 +38,9 @@ const C = {
 };
 
 const STEPS = [
-  { icon: NotebookPen, title: "Create your free account", body: "Sign up in seconds — no credit card, no commitment. Your first journal is ready instantly." },
-  { icon: BarChart3, title: "Log your trades", body: "Add trades manually, import from your broker, or mark them on a chart. Quick or detailed — your call." },
-  { icon: LineChart, title: "Find your edge", body: "Win rate, R-multiples, drawdown, payoff and psychology — computed automatically so you know what to fix." },
+  { icon: NotebookPen, title: "Create your free account", body: "Sign up in seconds, no credit card, no commitment. Your first journal is ready instantly." },
+  { icon: BarChart3, title: "Log your trades", body: "Add trades manually, import from your broker, or mark them on a chart. Quick or detailed, your call." },
+  { icon: LineChart, title: "Find your edge", body: "Win rate, R-multiples, drawdown, payoff and psychology, computed automatically so you know what to fix." },
 ];
 
 export default function ReferPage() {
@@ -109,13 +109,13 @@ export default function ReferPage() {
               </h1>
               <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 620, margin: "0 auto 30px" }}>
                 The trading journal that turns every trade into the analytics that
-                actually grow an account — win rate, R-multiples, risk, drawdown and
+                actually grow an account, win rate, R-multiples, risk, drawdown and
                 psychology. Start free, no credit card required.
               </p>
               <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
                 <a href={registerHref} style={{ textDecoration: "none" }}>
                   <button style={{ ...btnPrimary, padding: "14px 28px", fontSize: 15, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 8px 28px rgba(252,213,53,0.3)" }}>
-                    Start free — no card <ArrowRight size={16} aria-hidden="true" />
+                    Start free, no card <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </a>
                 <a href="/login" style={{ textDecoration: "none" }}>

@@ -1,11 +1,11 @@
 "use client";
 
-/* Testimonials — an infinite, linear horizontal marquee of trader reviews with
+/* Testimonials, an infinite, linear horizontal marquee of trader reviews with
    a satisfaction stat. Reusable across the landing, pricing and referral pages.
 
    NOTE: the testimonials and the satisfaction figures below are placeholder
    marketing copy. Replace them with real, verifiable reviews before relying on
-   the structured-data rating — search engines require review markup to reflect
+   the structured-data rating, search engines require review markup to reflect
    genuine reviews, and the numbers here (4.8 / 1,240) intentionally match the
    site's existing SoftwareApplication schema. */
 
@@ -13,11 +13,11 @@ import { Star, ThumbsUp } from "lucide-react";
 
 export const TESTIMONIALS = [
   { q: "I finally see where my losses actually come from. Cut my revenge trades to almost zero in a month.", n: "Arjun M.", r: "Futures trader" },
-  { q: "The equity-growth candles are addictive — it genuinely makes me want to log every single trade.", n: "Sofia L.", r: "Crypto swing trader" },
+  { q: "The equity-growth candles are addictive, it genuinely makes me want to log every single trade.", n: "Sofia L.", r: "Crypto swing trader" },
   { q: "Quick log means I never skip a trade anymore. The discipline score completely changed how I trade.", n: "Daniel K.", r: "Options trader" },
   { q: "Passed my FTMO challenge after using the drawdown tracker to stay inside the daily limit. Game changer.", n: "Marcus T.", r: "Funded / prop trader" },
   { q: "The psychology analytics called out my tilt before I blew up an account. Worth it for that alone.", n: "Priya S.", r: "Forex day trader" },
-  { q: "Logging used to take five minutes — now it's ten seconds, so my journal is finally complete.", n: "Liam O.", r: "Stocks swing trader" },
+  { q: "Logging used to take five minutes, now it's ten seconds, so my journal is finally complete.", n: "Liam O.", r: "Stocks swing trader" },
   { q: "My weekly review actually tells the truth now. R-multiples by setup showed me which strategy to drop.", n: "Chen W.", r: "Futures scalper" },
   { q: "The P&L calendar makes my month obvious at a glance. I spot bad days before they become bad weeks.", n: "Emma R.", r: "Crypto trader" },
   { q: "Auto-import from my exchange saved me hours. Everything just shows up and gets analysed instantly.", n: "Noah B.", r: "Spot & futures" },
@@ -26,7 +26,7 @@ export const TESTIMONIALS = [
   { q: "I review my emotions at entry now. Tagging FOMO and revenge trades exposed my single biggest leak.", n: "Diego F.", r: "Prop firm trader" },
 ];
 
-/* Placeholder satisfaction stats — edit to your real numbers. */
+/* Placeholder satisfaction stats, edit to your real numbers. */
 export const SATISFACTION = { recommend: 96, avg: 4.8, count: 1240 };
 
 const COLORS = {

@@ -9,7 +9,7 @@ import { ArrowRight, Menu, X } from "lucide-react";
 import Cookies from "js-cookie";
 
 const NAV = [
-  { label: "Features", href: "/#features" },
+  { label: "Features", href: "/features" },
   { label: "Why JournalX", href: "/#why" },
   { label: "Pricing", href: "/pricing" },
   { label: "Blog", href: "/blog" },
@@ -107,13 +107,14 @@ export function LandingNav() {
 
 export function LandingFooter() {
   const cols = [
-    { h: "Product", links: [["Features", "/#features"], ["Pricing", "/pricing"], ["Blog", "/blog"], ["Log in", "/login"]] },
+    { h: "Product", links: [["Features", "/features"], ["Pricing", "/pricing"], ["Blog", "/blog"], ["Log in", "/login"]] },
+    { h: "By market", links: [["Prop firm", "/prop-firm-trading-journal"], ["Forex", "/forex-trading-journal"], ["Crypto", "/crypto-trading-journal"], ["Stocks", "/stock-trading-journal"], ["Futures", "/futures-trading-journal"], ["Options", "/options-trading-journal"]] },
     { h: "Company", links: [["Contact", "/contact"], ["Start free", "/register"]] },
     { h: "Legal", links: [["Privacy Policy", "/privacy-policy"], ["Terms of Service", "/terms-services"], ["Refund Policy", "/refund-policy"], ["Risk Disclaimer", "/risk-disclaimer"], ["Cookie Policy", "/cookie-policy"]] },
   ];
   return (
     <footer style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "#0b0e13" }}>
-      <div style={{ maxWidth: 1160, margin: "0 auto", padding: "48px 20px 28px", display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: 32 }} className="lp-footer-grid">
+      <div style={{ maxWidth: 1160, margin: "0 auto", padding: "48px 20px 28px", display: "grid", gridTemplateColumns: "1.4fr repeat(4, 1fr)", gap: 32 }} className="lp-footer-grid">
         <div>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
             <span style={{ font: "700 19px Poppins", color: "#fff", letterSpacing: "-0.5px" }}>Journal<span style={{ color: "#fcd535" }}>X</span></span>

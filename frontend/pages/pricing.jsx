@@ -122,7 +122,7 @@ export default function Pricing() {
 
         closeCallback: () => {
           console.log(
-            "🔄 Checkout closed – starting subscription verification...",
+            "🔄 Checkout closed, starting subscription verification...",
           );
           startSubscriptionPolling();
         },
@@ -166,7 +166,7 @@ export default function Pricing() {
       }
 
       if (attempts >= maxAttempts) {
-        console.warn("⛔ Stopping polling – max attempts reached.");
+        console.warn("⛔ Stopping polling, max attempts reached.");
         clearInterval(interval);
       }
     }, 5000); // every 5 seconds
@@ -228,7 +228,7 @@ export default function Pricing() {
     "@context": "https://schema.org",
     "@type": "Product",
     name: "JournalX Pro",
-    description: "JournalX trading journal — advanced analytics, unlimited trades, risk and psychology tracking.",
+    description: "JournalX trading journal, advanced analytics, unlimited trades, risk and psychology tracking.",
     brand: { "@type": "Brand", name: "JournalX" },
     offers: CARDS.filter((c) => c.key !== "free").map((c) => ({
       "@type": "Offer",
@@ -243,18 +243,31 @@ export default function Pricing() {
   return (
     <>
       <Head>
-        <title>Pricing — JournalX | Start Free, Upgrade Anytime</title>
+        <title>Pricing, JournalX | Start Free, Upgrade Anytime</title>
         <meta name="description" content="Simple, affordable pricing for the JournalX trading journal. Start free, then unlock unlimited trades and advanced analytics with Pro monthly, yearly, or lifetime plans." />
         <meta name="keywords" content="journalx pricing, trading journal price, trading journal subscription, trade tracker cost, best value trading journal" />
         <link rel="canonical" href={`${SITE_URL}/pricing`} />
         <meta name="robots" content="index, follow" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="JournalX Pricing — Start Free, Upgrade Anytime" />
+        <meta property="og:title" content="JournalX Pricing, Start Free, Upgrade Anytime" />
         <meta property="og:description" content="Simple, affordable pricing for the JournalX trading journal. Start free; unlock advanced analytics with Pro." />
         <meta property="og:url" content={`${SITE_URL}/pricing`} />
         <meta property="og:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <meta name="twitter:card" content="summary_large_image" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingLd) }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+                { "@type": "ListItem", position: 2, name: "Pricing", item: `${SITE_URL}/pricing` },
+              ],
+            }),
+          }}
+        />
       </Head>
 
       <PaddleLoader />
@@ -512,7 +525,7 @@ function PaymentModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="cb-pay-grid" style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr" }}>
-          {/* Left — payment choices */}
+          {/* Left, payment choices */}
           <div style={{ padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)" }}>
               <div>
@@ -607,7 +620,7 @@ function PaymentModal({
             </div>
           </div>
 
-          {/* Right — value panel */}
+          {/* Right, value panel */}
           <div
             className="cb-pay-aside"
             style={{

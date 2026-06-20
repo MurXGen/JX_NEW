@@ -5,6 +5,7 @@
    the date of the newest post (they genuinely change whenever a blog ships),
    so adding a post updates their lastmod and prompts a recrawl. */
 import { getAllPosts, SITE_URL } from "@/utils/blogs";
+import { MARKET_SLUGS } from "@/data/marketPages";
 
 /* Last meaningful content update for static/legal pages. Bump this only when
    the page itself actually changes, so we never feed Google a fake lastmod. */
@@ -14,6 +15,8 @@ const STATIC = [
   // `dynamic: true` → lastmod tracks the newest blog post (these pages list blogs)
   { path: "/", priority: "1.0", freq: "daily", dynamic: true },
   { path: "/blog", priority: "0.9", freq: "daily", dynamic: true },
+  { path: "/features", priority: "0.9", freq: "monthly" },
+  ...MARKET_SLUGS.map((s) => ({ path: `/${s}`, priority: "0.8", freq: "monthly" })),
   { path: "/pricing", priority: "0.8", freq: "monthly" },
   { path: "/contact", priority: "0.5", freq: "monthly" },
   { path: "/privacy-policy", priority: "0.3", freq: "yearly" },
