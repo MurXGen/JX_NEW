@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import {
@@ -73,15 +74,52 @@ function dayLabel(date) {
   return base;
 }
 
-/* ---------- 3-dot row menu ---------- */
+/* ---------- 3-dot row menu (panel rendered in a portal so cards can't clip it) ---------- */
 function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [coords, setCoords] = useState(null); // {top,left,openUp}
+  const wrapRef = useRef(null);
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+  const WIDTH = 180;
+
+  const place = () => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - r.bottom;
+    const openUp = spaceBelow < 220 && r.top > spaceBelow;
+    setCoords({
+      top: openUp ? r.top : r.bottom,
+      left: Math.max(8, r.right - WIDTH), // right-align to the trigger
+      openUp,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (open) place();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   useEffect(() => {
-    const onDoc = (e) => ref.current && !ref.current.contains(e.target) && setOpen(false);
+    if (!open) return;
+    const onMove = () => place();
+    window.addEventListener("scroll", onMove, true);
+    window.addEventListener("resize", onMove);
+    const onDoc = (e) => {
+      if (wrapRef.current?.contains(e.target)) return;
+      if (panelRef.current?.contains(e.target)) return;
+      setOpen(false);
+    };
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
+    return () => {
+      window.removeEventListener("scroll", onMove, true);
+      window.removeEventListener("resize", onMove);
+      document.removeEventListener("mousedown", onDoc);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const item = (Icon, label, fn, danger) => (
     <button
       type="button"
@@ -92,9 +130,39 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
       <Icon size={14} /> {label}
     </button>
   );
+
+  const panel =
+    open && coords ? (
+      <motion.div
+        ref={panelRef}
+        className="jx-dd__panel jx-row-menu__panel"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, y: coords.openUp ? 6 : -6, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.12 }}
+        style={{
+          position: "fixed",
+          top: coords.openUp ? "auto" : coords.top + 6,
+          bottom: coords.openUp ? window.innerHeight - coords.top + 6 : "auto",
+          left: coords.left,
+          right: "auto",
+          minWidth: WIDTH,
+          zIndex: 4000,
+        }}
+      >
+        {item(Pencil, "Edit trade", onEdit)}
+        {item(Download, "Export CSV", onExport)}
+        {item(ImageIcon, "Download JX card", onShareCard)}
+        <div style={{ borderTop: "1px solid var(--color-border)", margin: "4px 0" }} />
+        {item(Trash2, "Delete", onDelete, true)}
+      </motion.div>
+    ) : null;
+
   return (
-    <span className="jx-dd" ref={ref} onClick={(e) => e.stopPropagation()}>
+    <span className="jx-dd" ref={wrapRef} onClick={(e) => e.stopPropagation()}>
       <button
+        ref={triggerRef}
         type="button"
         className="jx-btn jx-btn--secondary jx-btn--sm"
         style={{ padding: 6, borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", background: "var(--color-bg-muted)" }}
@@ -104,24 +172,7 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
       >
         <MoreVertical size={15} />
       </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="jx-dd__panel jx-row-menu__panel"
-            style={{ left: "auto", right: 0, minWidth: 160 }}
-            initial={{ opacity: 0, y: -6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.12 }}
-          >
-            {item(Pencil, "Edit trade", onEdit)}
-            {item(Download, "Export CSV", onExport)}
-            {item(ImageIcon, "Download JX card", onShareCard)}
-            <div style={{ borderTop: "1px solid var(--color-border)", margin: "4px 0" }} />
-            {item(Trash2, "Delete", onDelete, true)}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {typeof document !== "undefined" && panel && createPortal(panel, document.body)}
     </span>
   );
 }

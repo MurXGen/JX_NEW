@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import Dropdown from "./Dropdown";
@@ -719,15 +719,16 @@ export default function SettingsPanel({ user }) {
         </Row>
       </div>
 
-      {/* ===== Connected exchanges ===== */}
+      {/* ===== Connected exchanges (read-only API key) ===== */}
       <div className="jx-card">
-        <div className="jx-card__title">Connected exchanges</div>
+        <div className="jx-card__title">Connected exchanges &amp; brokers</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
-          Auto-import trades via read-only API keys.
+          Open the platform&apos;s API page, create a <strong>read-only</strong> key, and connect. Binance auto-imports today; others guide you to export &amp; import via CSV.
         </div>
 
         {PLATFORMS.map((p) => {
           const connected = p.id === "binance" && binanceConnected;
+          const apiPage = p.apiPage;
           return (
             <Row
               key={p.id}
@@ -747,9 +748,16 @@ export default function SettingsPanel({ user }) {
                   <Button variant="ghost" size="sm" onClick={disconnectBinance}>Disconnect</Button>
                 </>
               ) : (
-                <Button variant={p.live ? "primary" : "outline"} size="sm" onClick={() => setConnectPlatform(p.id)} disabled={!p.live && false}>
-                  Connect
-                </Button>
+                <>
+                  {apiPage && (
+                    <a href={apiPage} target="_blank" rel="noopener noreferrer" className="jx-btn jx-btn--ghost jx-btn--sm" style={{ textDecoration: "none" }}>
+                      <ExternalLink size={14} /> API page
+                    </a>
+                  )}
+                  <Button variant={p.live ? "primary" : "outline"} size="sm" onClick={() => setConnectPlatform(p.id)}>
+                    Connect
+                  </Button>
+                </>
               )}
             </Row>
           );

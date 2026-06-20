@@ -765,18 +765,38 @@ exports.addTradesBulk = async (req, res) => {
       const sl = Number(t.stopLoss) || 0;
       const tp = Number(t.takeProfit) || 0;
       const dirMul = direction === "long" ? 1 : -1;
+      const leverage = Number(t.leverage) > 0 ? Number(t.leverage) : 1;
 
-      // P&L: use given value, else derive from entry/exit/size
-      let pnl = Number(t.pnl);
-      if (Number.isNaN(pnl)) {
-        pnl = entry && exit && size ? (exit - entry) * size * dirMul : 0;
-      }
+      // optional fee (detailed template): percent of notional or a flat amount
+      const feeType = ["percent", "currency"].includes(String(t.feeType || "").toLowerCase())
+        ? String(t.feeType).toLowerCase()
+        : t.fee !== undefined && String(t.fee).trim() !== ""
+          ? "currency"
+          : "";
+      const feeInput = Number(t.fee) || 0;
+      const notional = entry && size ? entry * size : 0;
+      const feeAmount = feeType === "percent" ? (notional * feeInput) / 100 : feeType === "currency" ? feeInput : 0;
 
       const hasPnl = t.pnl !== undefined && t.pnl !== "" && !Number.isNaN(Number(t.pnl));
+      // P&L: use the given value as-is (assumed net), else derive and subtract fees
+      let pnl = Number(t.pnl);
+      if (!hasPnl) {
+        const gross = entry && exit && size ? (exit - entry) * size * dirMul : 0;
+        pnl = gross - feeAmount;
+      }
+
       // closed if there's an exit or a P&L; running if only an entry; else quick
       const tradeStatus = exit || hasPnl ? "closed" : entry ? "running" : "quick";
       const closeTime = closeTimeRaw || (tradeStatus === "running" ? null : new Date());
       const openTime = t.openTime ? new Date(t.openTime) : closeTime || new Date();
+
+      // followedPlan accepts yes/true/1
+      const rulesFollowed = ["yes", "true", "1", "y"].includes(String(t.followedPlan ?? "").trim().toLowerCase());
+      // mistakes: separated by ; or |
+      const mistakes = String(t.mistakes || "")
+        .split(/[;|]/)
+        .map((m) => m.trim())
+        .filter(Boolean);
 
       docs.push({
         userId,
@@ -787,13 +807,22 @@ exports.addTradesBulk = async (req, res) => {
         pnlAfterFee: pnl,
         quantityUSD: size,
         totalQuantity: size,
-        leverage: 1,
+        leverage,
+        sizeUnit: ["asset", "usd"].includes(String(t.sizeUnit || "").toLowerCase()) ? String(t.sizeUnit).toLowerCase() : undefined,
         tradeStatus,
         openTime,
         closeTime,
         learnings: String(t.notes || ""),
         strategy: String(t.strategy || ""),
         emotion: String(t.emotion || ""),
+        marketCondition: String(t.market || ""),
+        timeframe: String(t.timeframe || ""),
+        confidence: Number(t.confidence) || 0,
+        rulesFollowed,
+        mistakes,
+        feeType: feeType || "",
+        openFeeValue: feeInput,
+        feeAmount,
         avgEntryPrice: entry,
         avgExitPrice: exit,
         avgSLPrice: sl,

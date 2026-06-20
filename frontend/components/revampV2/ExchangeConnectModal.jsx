@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   CheckSquare,
   Download,
+  ExternalLink,
   KeyRound,
   Square,
   X,
@@ -17,12 +18,29 @@ import Toast from "./Toast";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+/* All platforms are listed and selectable. `autoImport` = a live key-based
+   auto-import backend (Binance today). For the others, the connect dialog
+   sends users to the platform's API/statement page and the CSV importer. */
 export const PLATFORMS = [
-  { id: "binance", name: "Binance", live: true, fields: [{ key: "apiKey", label: "API key" }, { key: "secretKey", label: "API secret" }], note: "Read-only futures key recommended" },
-  { id: "bybit", name: "Bybit", live: false, fields: [{ key: "apiKey", label: "API key" }, { key: "secretKey", label: "API secret" }] },
-  { id: "coinbase", name: "Coinbase", live: false, fields: [{ key: "apiKey", label: "API key" }, { key: "secretKey", label: "API secret" }, { key: "passphrase", label: "Passphrase" }] },
-  { id: "okx", name: "OKX", live: false, fields: [{ key: "apiKey", label: "API key" }, { key: "secretKey", label: "API secret" }, { key: "passphrase", label: "Passphrase" }] },
-  { id: "kucoin", name: "KuCoin", live: false, fields: [{ key: "apiKey", label: "API key" }, { key: "secretKey", label: "API secret" }, { key: "passphrase", label: "Passphrase" }] },
+  // ---- Crypto exchanges ----
+  { id: "binance", name: "Binance", kind: "crypto", live: true, autoImport: true, apiPage: "https://www.binance.com/en/my/settings/api-management", fields: [{ key: "apiKey", label: "API key" }, { key: "secretKey", label: "API secret" }], note: "Read-only futures key recommended" },
+  { id: "bybit", name: "Bybit", kind: "crypto", live: true, apiPage: "https://www.bybit.com/app/user/api-management" },
+  { id: "okx", name: "OKX", kind: "crypto", live: true, apiPage: "https://www.okx.com/account/my-api" },
+  { id: "coinbase", name: "Coinbase", kind: "crypto", live: true, apiPage: "https://www.coinbase.com/settings/api" },
+  { id: "kraken", name: "Kraken", kind: "crypto", live: true, apiPage: "https://www.kraken.com/u/security/api" },
+  { id: "kucoin", name: "KuCoin", kind: "crypto", live: true, apiPage: "https://www.kucoin.com/account/api" },
+  { id: "bitget", name: "Bitget", kind: "crypto", live: true, apiPage: "https://www.bitget.com/account/newapi" },
+  { id: "gate", name: "Gate.io", kind: "crypto", live: true, apiPage: "https://www.gate.io/myaccount/api_key_manage" },
+  { id: "mexc", name: "MEXC", kind: "crypto", live: true, apiPage: "https://www.mexc.com/user/openapi" },
+  // ---- Stock / forex / futures brokers ----
+  { id: "mt4", name: "MetaTrader 4", kind: "mt", live: true, statement: true },
+  { id: "mt5", name: "MetaTrader 5", kind: "mt", live: true, statement: true },
+  { id: "ibkr", name: "Interactive Brokers", kind: "broker", live: true, apiPage: "https://www.interactivebrokers.com/en/trading/ib-api.php" },
+  { id: "oanda", name: "OANDA", kind: "broker", live: true, apiPage: "https://www.oanda.com/account/tpa/personal_token" },
+  { id: "zerodha", name: "Zerodha", kind: "broker", live: true, apiPage: "https://kite.trade/" },
+  { id: "angelone", name: "Angel One", kind: "broker", live: true, apiPage: "https://smartapi.angelbroking.com/" },
+  { id: "webull", name: "Webull", kind: "broker", live: true, statement: true },
+  { id: "tradovate", name: "Tradovate", kind: "broker", live: true, apiPage: "https://api.tradovate.com/" },
 ];
 
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
@@ -169,9 +187,23 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
                     <strong>{meta.name} is coming soon.</strong> Binance is available today — more exchanges are on the way.
                   </span>
                 </div>
-              ) : step === "credentials" ? (
+              ) : step === "credentials" && meta.autoImport ? (
                 <>
-                  {meta.fields.map((f) => (
+                  {meta.apiPage && (
+                    <a
+                      href={meta.apiPage}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="jx-btn jx-btn--secondary"
+                      style={{ textDecoration: "none", justifyContent: "center", marginBottom: "var(--space-2)" }}
+                    >
+                      <ExternalLink size={15} /> Open {meta.name} API page
+                    </a>
+                  )}
+                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginBottom: "var(--space-2)" }}>
+                    Create a <strong>read-only</strong> key on {meta.name}, then paste it below.
+                  </span>
+                  {(meta.fields || []).map((f) => (
                     <div className="jx-field" key={f.key}>
                       <span className="jx-sidebar__section" style={{ padding: 0 }}>{f.label}</span>
                       <div className="jx-input">
@@ -189,6 +221,30 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
                   <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
                     Keys are stored locally on this device and only used to fetch your trades. Use read-only keys.
                   </span>
+                </>
+              ) : step === "credentials" ? (
+                /* No live key backend yet — guide to the API/statement page + CSV import */
+                <>
+                  <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
+                    <span style={{ font: "var(--text-caption)" }}>
+                      {meta.kind === "mt"
+                        ? `In ${meta.name}, open the Account History tab, right-click → “Report” and save it, then import that file from the Import / Export page.`
+                        : `Direct auto-import for ${meta.name} is on the way. For now, export your trade history${meta.apiPage ? " (or open the API page)" : ""} and import the CSV from the Import / Export page.`}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+                    {meta.apiPage && (
+                      <a
+                        href={meta.apiPage}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="jx-btn jx-btn--secondary"
+                        style={{ textDecoration: "none" }}
+                      >
+                        <ExternalLink size={15} /> Open {meta.name}
+                      </a>
+                    )}
+                  </div>
                 </>
               ) : (
                 <>
@@ -261,12 +317,12 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
               <button className="jx-btn jx-btn--ghost" onClick={() => { reset(); onClose?.(); }} disabled={loading}>
                 Cancel
               </button>
-              {meta.live && step === "credentials" && (
+              {meta.autoImport && step === "credentials" && (
                 <button className="jx-btn jx-btn--primary" onClick={connect} disabled={loading} style={{ minWidth: 130 }}>
                   {loading ? <><Spinner /> Connecting…</> : "Connect"}
                 </button>
               )}
-              {meta.live && step === "preview" && (
+              {meta.autoImport && step === "preview" && (
                 <button className="jx-btn jx-btn--primary" onClick={doImport} disabled={loading || selected.size === 0} style={{ minWidth: 160 }}>
                   {loading ? <><Spinner /> Importing…</> : <><Download size={15} /> Import {selected.size} trades</>}
                 </button>

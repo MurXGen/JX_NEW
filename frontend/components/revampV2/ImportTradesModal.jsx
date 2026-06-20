@@ -20,24 +20,16 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { scheduleAutoBackup } from "@/utils/driveBackup";
 import { getPlanRules } from "@/utils/planRestrictions";
+import { QUICK_TEMPLATE, DETAILED_TEMPLATE, downloadTemplate } from "@/utils/csvTemplates";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /* Figma "Import trades" modal — CSV template (quick-log columns),
    parse + validate with papaparse, then bulk POST /api/trades/bulk. */
 
-/* Required: symbol, direction. Everything else is optional — fill only the
-   quick-log basics (pnl/size) or go deeper with entry/exit/SL/TP, strategy
-   and emotion. */
-const TEMPLATE_COLUMNS = [
-  "symbol", "direction", "pnl", "size", "openTime", "closeTime",
-  "entry", "exit", "stopLoss", "takeProfit", "strategy", "emotion", "notes",
-];
-const TEMPLATE_ROWS = [
-  ["BTC/USDT", "long", "1250", "0.5", "2026-06-01 10:00", "2026-06-01 14:30", "61240", "63740", "60000", "65000", "Breakout", "Confident", "Breakout retest"],
-  ["ETH/USDT", "short", "-420", "4", "", "2026-06-02 10:05", "", "", "", "", "", "FOMO", "Chased the move"],
-  ["SOL/USDT", "long", "", "30", "2026-06-03 09:00", "", "182.4", "", "175", "210", "Trend-follow", "Calm"],
-];
+/* Required: symbol, direction. Everything else is optional — use the Quick log
+   template (result-only) or the Detailed template (entry/exit, risk, strategy,
+   psychology). Templates are shared with the Import/Export page. */
 
 function Spinner() {
   return (
@@ -69,16 +61,6 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
     setRows([]);
     setErrors([]);
     setFileName(null);
-  };
-
-  const downloadTemplate = () => {
-    const csv = [TEMPLATE_COLUMNS.join(","), ...TEMPLATE_ROWS.map((r) => r.join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "journalx_quick_log_template.csv";
-    a.click();
-    URL.revokeObjectURL(a.href);
   };
 
   const validate = (data) => {
@@ -123,6 +105,16 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
         openTime: openTime && !Number.isNaN(openTime.getTime()) ? openTime.toISOString() : "",
         closeTime: closeTime && !Number.isNaN(closeTime.getTime()) ? closeTime.toISOString() : "",
         notes: String(r.notes || ""),
+        // detailed-template extras (all optional; ignored if blank)
+        sizeUnit: String(r.sizeUnit || "").trim().toLowerCase() || undefined,
+        leverage: Number(r.leverage) || undefined,
+        fee: r.fee !== undefined && String(r.fee).trim() !== "" ? Number(r.fee) : undefined,
+        feeType: String(r.feeType || "").trim().toLowerCase() || undefined,
+        market: String(r.market || "").trim() || undefined,
+        timeframe: String(r.timeframe || "").trim() || undefined,
+        confidence: r.confidence !== undefined && String(r.confidence).trim() !== "" ? Number(r.confidence) : undefined,
+        followedPlan: String(r.followedPlan ?? "").trim().toLowerCase(),
+        mistakes: String(r.mistakes || "").trim(),
         _running: !hasPnl && !exit && !!entry,
       });
     });
@@ -241,18 +233,22 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
             </div>
 
             <div style={{ padding: "var(--space-5) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)", overflowY: "auto" }}>
-              {/* step 1: template */}
-              <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                <span className="jx-sect__icon"><FileText size={15} /></span>
-                <span style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>1 · Download the template</span>
-                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                    Columns: {TEMPLATE_COLUMNS.join(", ")}
-                  </span>
+              {/* step 1: pick a template (quick or detailed) */}
+              <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", font: "var(--text-body-md)", fontWeight: 600 }}>
+                  <FileText size={15} /> 1 · Download a template
                 </span>
-                <Button variant="outline" size="sm" icon={Download} onClick={downloadTemplate}>
-                  CSV
-                </Button>
+                {[QUICK_TEMPLATE, DETAILED_TEMPLATE].map((t) => (
+                  <div key={t.key} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                    <span style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{t.label}</span>
+                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{t.hint}</span>
+                    </span>
+                    <Button variant="outline" size="sm" icon={Download} onClick={() => downloadTemplate(t.key)}>
+                      CSV
+                    </Button>
+                  </div>
+                ))}
               </div>
 
               {/* step 2: upload */}

@@ -29,14 +29,17 @@ import {
 export async function getStaticPaths() {
   return {
     paths: getAllPosts().map((p) => ({ params: { slug: p.slug } })),
-    fallback: false,
+    // "blocking" so a newly-added post resolves on first request instead of
+    // 404-ing when it isn't in the pre-rendered path list yet (daily blog).
+    fallback: "blocking",
   };
 }
 
 export async function getStaticProps({ params }) {
   const post = getPostBySlug(params.slug);
   if (!post) return { notFound: true };
-  return { props: { post, related: getRelatedPosts(params.slug) } };
+  // re-generate periodically so new posts appear without a full rebuild
+  return { props: { post, related: getRelatedPosts(params.slug) }, revalidate: 1800 };
 }
 
 export default function BlogPost({ post, related }) {
