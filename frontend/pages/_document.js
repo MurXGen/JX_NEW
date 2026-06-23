@@ -59,7 +59,7 @@ export default function Document() {
 
         {/* Icons */}
         <link rel="icon" href="/assets/JournalX_Favicon.png" />
-        <link rel="apple-touch-icon" href="/assets/JournalX_Favicon2.png" />
+        <link rel="apple-touch-icon" href="/assets/jx_app_192.png" />
         <link rel="manifest" href="/manifest.json" />
 
         {/* Theme init — runs before hydration to avoid a flash of the wrong theme */}

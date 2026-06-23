@@ -1,25 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowUpDown,
-  BookOpen,
   Globe,
   History,
   LayoutGrid,
-  LifeBuoy,
-  MoreHorizontal,
   Plus,
   Settings,
-  Share2,
 } from "lucide-react";
 import { useSupportBadge } from "./useSupportBadge";
 
 /**
  * BottomBar — mobile-only bottom navigation (hidden on desktop).
- * Four slots + center Log-trade FAB; "More" opens a slide-up sheet
- * with the remaining tabs.
+ * Four slots + center Log-trade FAB. The last slot is a Settings gear that
+ * opens the mobile Settings hub (profile, plan, and the secondary sections
+ * like Learn, Share, Import/Export and Support live inside it).
  */
 
 const MAIN = [
@@ -28,30 +22,16 @@ const MAIN = [
   { id: "markets", label: "Markets", icon: Globe },
 ];
 
-const MORE = [
-  { id: "blogs", label: "Learn & Focus", icon: BookOpen },
-  { id: "share", label: "Share logs", icon: Share2 },
-  { id: "importexport", label: "Import / Export", icon: ArrowUpDown },
-  { id: "settings", label: "Profile & settings", icon: Settings },
-];
+/* Tabs reachable from the Settings hub — keep the gear lit when on any of them. */
+const SETTINGS_GROUP = ["settings", "blogs", "share", "importexport"];
 
-export default function BottomBar({ active, onChange, onLogTrade, onSupport, user }) {
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreActive = MORE.some((m) => m.id === active);
-  const { showDot: supportDot, markViewed: markSupportViewed } = useSupportBadge(user?.email);
+export default function BottomBar({ active, onChange, onLogTrade, user }) {
+  const { showDot: supportDot } = useSupportBadge(user?.email);
+  const settingsActive = SETTINGS_GROUP.includes(active);
 
-  const go = (id) => {
-    setMoreOpen(false);
-    onChange(id);
-  };
+  const go = (id) => onChange(id);
 
-  const openSupport = () => {
-    setMoreOpen(false);
-    markSupportViewed();
-    onSupport?.();
-  };
-
-  const RedDot = ({ offset = 2 }) => (
+  const RedDot = ({ offset = -3 }) => (
     <span
       aria-label="New response"
       style={{
@@ -75,85 +55,36 @@ export default function BottomBar({ active, onChange, onLogTrade, onSupport, use
   );
 
   return (
-    <>
-      {/* slide-up "More" sheet */}
-      <AnimatePresence>
-        {moreOpen && (
-          <motion.div
-            className="jx-bottombar__scrim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setMoreOpen(false)}
-          >
-            <motion.div
-              className="jx-bottombar__sheet"
-              initial={{ y: 80, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 380, damping: 32 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {MORE.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={`jx-dd__option ${active === id ? "jx-dd__option--selected" : ""}`}
-                  onClick={() => go(id)}
-                >
-                  <Icon size={16} /> {label}
-                </button>
-              ))}
-              {onSupport && (
-                <button
-                  type="button"
-                  className="jx-dd__option"
-                  onClick={openSupport}
-                  style={{ position: "relative" }}
-                >
-                  <LifeBuoy size={16} /> Support &amp; feedback
-                  {supportDot && (
-                    <span style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: "var(--color-danger)" }} />
-                  )}
-                </button>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <nav className="jx-bottombar">
+      {item(MAIN[0], active === "overview")}
+      {item(MAIN[1], active === "trades")}
 
-      <nav className="jx-bottombar">
-        {item(MAIN[0], active === "overview")}
-        {item(MAIN[1], active === "trades")}
+      {/* center FAB */}
+      <button
+        type="button"
+        className="jx-bottombar__fab"
+        onClick={() => onLogTrade?.()}
+        aria-label="Log a trade"
+      >
+        <Plus size={22} />
+      </button>
 
-        {/* center FAB */}
-        <button
-          type="button"
-          className="jx-bottombar__fab"
-          onClick={() => {
-            setMoreOpen(false);
-            onLogTrade?.();
-          }}
-          aria-label="Log a trade"
-        >
-          <Plus size={22} />
-        </button>
+      {item(MAIN[2], active === "markets")}
 
-        {item(MAIN[2], active === "markets")}
-
-        <button
-          type="button"
-          className={`jx-bottombar__item ${moreActive || moreOpen ? "jx-bottombar__item--active" : ""}`}
-          onClick={() => setMoreOpen((o) => !o)}
-          style={{ position: "relative" }}
-        >
-          <span style={{ position: "relative", display: "inline-flex" }}>
-            <MoreHorizontal size={20} />
-            {supportDot && !moreOpen && <RedDot offset={-3} />}
-          </span>
-          <span>More</span>
-        </button>
-      </nav>
-    </>
+      {/* Settings hub */}
+      <button
+        type="button"
+        className={`jx-bottombar__item ${settingsActive ? "jx-bottombar__item--active" : ""}`}
+        onClick={() => go("settings")}
+        style={{ position: "relative" }}
+        aria-label="Settings"
+      >
+        <span style={{ position: "relative", display: "inline-flex" }}>
+          <Settings size={20} />
+          {supportDot && <RedDot />}
+        </span>
+        <span>Settings</span>
+      </button>
+    </nav>
   );
 }

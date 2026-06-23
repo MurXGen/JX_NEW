@@ -478,6 +478,8 @@ export default function Dashboard() {
         open={activeTab === "settings"}
         user={userData}
         onClose={() => setActiveTab("overview")}
+        onNavigate={(id) => setActiveTab(id)}
+        onSupport={() => { setActiveTab("overview"); setShowSupport(true); }}
       />
     </div>
   );

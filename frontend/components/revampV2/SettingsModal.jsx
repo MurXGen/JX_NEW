@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import SettingsPanel from "./SettingsPanel";
 
-export default function SettingsModal({ open, user, onClose }) {
+export default function SettingsModal({ open, user, onClose, onNavigate, onSupport }) {
   return (
     <AnimatePresence>
       {open && (
@@ -35,7 +35,7 @@ export default function SettingsModal({ open, user, onClose }) {
               <X size={16} />
             </button>
             <div className="jx-settings-modal__body">
-              <SettingsPanel user={user} />
+              <SettingsPanel user={user} onNavigate={onNavigate} onSupport={onSupport} />
             </div>
           </motion.div>
         </motion.div>

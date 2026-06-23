@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown } from "lucide-react";
 
 /* Settings sections — rendered as a left nav, one section at a time */
 const SETTINGS_TABS = [
@@ -297,9 +297,32 @@ function AvatarModal({ open, currentUrl, name, onClose, onSaved }) {
   );
 }
 
+/* Secondary app destinations surfaced inside the mobile Settings hub (on
+   desktop these live in the left sidebar, so they're mobile-only here). */
+const MORE_LINKS = [
+  { id: "blogs", label: "Learn & Focus", icon: BookOpen },
+  { id: "share", label: "Share logs", icon: Share2 },
+  { id: "importexport", label: "Import / Export", icon: ArrowUpDown },
+];
+
 /* ================================================================ */
-export default function SettingsPanel({ user }) {
+export default function SettingsPanel({ user, onNavigate, onSupport }) {
   const { theme, toggleTheme } = useTheme();
+
+  /* responsive: mobile shows a list → full-screen section drill-in */
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileSection, setMobileSection] = useState(null); // null = list
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const mq = window.matchMedia("(max-width: 760px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener?.("change", sync);
+    return () => mq.removeEventListener?.("change", sync);
+  }, []);
+
+  /* subscription (for the mobile header status) */
+  const [sub, setSub] = useState(null);
   const [toast, setToast] = useState(null);
   const flash = (type, msg, ms = 3000) => {
     setToast({ type, msg });
@@ -333,6 +356,18 @@ export default function SettingsPanel({ user }) {
   const [lastRestore, setLastRestore] = useState(null);
   const [backingUp, setBackingUp] = useState(false);
   const [restoring, setRestoring] = useState(false);
+
+  useEffect(() => {
+    const loadSub = async () => {
+      try {
+        const ud = await getFromIndexedDB("user-data");
+        setSub(ud?.subscription || user?.subscription || null);
+      } catch { setSub(user?.subscription || null); }
+    };
+    loadSub();
+    window.addEventListener("jx-sub-changed", loadSub);
+    return () => window.removeEventListener("jx-sub-changed", loadSub);
+  }, [user]);
 
   useEffect(() => {
     (async () => {
@@ -481,10 +516,24 @@ export default function SettingsPanel({ user }) {
 
   const visibleTabs = SETTINGS_TABS.filter((t) => t.id !== "backup" || driveReady);
 
+  /* on mobile the section is driven by the drill-in state; on desktop by the nav */
+  const active = isMobile ? mobileSection : tab;
+
+  /* plan/subscription summary for the mobile header */
+  const planRaw = (sub?.plan || "free").toLowerCase();
+  const subActive = sub?.status === "active";
+  const planName = subActive && planRaw.includes("lifetime") ? "Lifetime"
+    : subActive && planRaw.includes("pro") ? "Pro"
+    : "Free";
+  const isTop = subActive && (planRaw.includes("pro") || planRaw.includes("lifetime"));
+  const sectionLabel = SETTINGS_TABS.find((t) => t.id === active)?.label || "Settings";
+
   return (
-    <div className="jx-settings">
+    <div className={`jx-settings ${isMobile ? "jx-settings--mobile" : ""}`}>
       <Toast toast={toast} />
 
+      {/* desktop: left nav */}
+      {!isMobile && (
       <aside className="jx-settings__nav">
         <div className="jx-settings__navtitle">Settings</div>
         {visibleTabs.map((t) => (
@@ -498,10 +547,81 @@ export default function SettingsPanel({ user }) {
           </button>
         ))}
       </aside>
+      )}
 
+      {/* mobile: profile + subscription summary, then a tappable section list */}
+      {isMobile && !mobileSection && (
+        <div className="jx-settings__mlist">
+          <div className="jx-settings__mtitle" style={{ padding: "2px 0 4px" }}>Settings</div>
+          <div className="jx-settings__profilecard" onClick={() => setMobileSection("profile")}>
+            <Avatar url={avatarUrl} name={name} size={56} />
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="jx-settings__mname">{name || "Your name"}</div>
+              <div className="jx-settings__memail">{user?.email || ""}</div>
+            </div>
+            <ChevronRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+          </div>
+
+          <button type="button" className="jx-settings__plancard" onClick={() => setMobileSection("billing")}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              {isTop && <Crown size={16} style={{ color: "var(--yellow-500)" }} />}
+              <span className="jx-settings__mname" style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{planName} plan</span>
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <Badge variant={subActive ? "success" : "neutral"}>{subActive ? "Active" : "Free"}</Badge>
+              <ChevronRight size={16} style={{ color: "var(--color-text-muted)" }} />
+            </span>
+          </button>
+
+          <div className="jx-settings__group">
+            {visibleTabs.map((t) => (
+              <button key={t.id} type="button" className="jx-settings__mrow" onClick={() => setMobileSection(t.id)}>
+                <t.icon size={18} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+                <span style={{ flex: 1 }}>{t.label}</span>
+                <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+              </button>
+            ))}
+          </div>
+
+          {(onNavigate || onSupport) && (
+            <div className="jx-settings__group">
+              {onNavigate && MORE_LINKS.map((m) => (
+                <button key={m.id} type="button" className="jx-settings__mrow" onClick={() => onNavigate(m.id)}>
+                  <m.icon size={18} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+                  <span style={{ flex: 1 }}>{m.label}</span>
+                  <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                </button>
+              ))}
+              {onSupport && (
+                <button type="button" className="jx-settings__mrow" onClick={() => onSupport()}>
+                  <LifeBuoy size={18} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+                  <span style={{ flex: 1 }}>Support &amp; feedback</span>
+                  <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                </button>
+              )}
+            </div>
+          )}
+
+          <button type="button" className="jx-settings__mrow jx-settings__mrow--danger" onClick={logout}>
+            <LogOut size={18} style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>Log out</span>
+          </button>
+        </div>
+      )}
+
+      {/* desktop content, or mobile drilled-in section (full screen) */}
+      {(!isMobile || mobileSection) && (
       <div className="jx-settings__content">
+      {isMobile && mobileSection && (
+        <div className="jx-settings__mhead">
+          <button type="button" className="jx-settings__mback" onClick={() => setMobileSection(null)} aria-label="Back to settings">
+            <ChevronLeft size={20} />
+          </button>
+          <span className="jx-settings__mtitle">{sectionLabel}</span>
+        </div>
+      )}
       {/* ===== Profile ===== */}
-      {tab === "profile" && (
+      {active === "profile" && (
       <div className="jx-card">
         <div className="jx-card__title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-2)" }}>
           <span>Profile</span>
@@ -563,13 +683,13 @@ export default function SettingsPanel({ user }) {
       )}
 
       {/* ===== Refer a friend ===== */}
-      {tab === "refer" && <ReferAFriend userId={user?._id || user?.id} />}
+      {active === "refer" && <ReferAFriend userId={user?._id || user?.id} />}
 
       {/* ===== Plan & billing ===== */}
-      {tab === "billing" && <PlanLimitsCard />}
+      {active === "billing" && <PlanLimitsCard />}
 
       {/* ===== Trading preferences ===== */}
-      {tab === "preferences" && (
+      {active === "preferences" && (
       <div className="jx-card">
         <div className="jx-card__title">Trading preferences</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Defaults applied to new trades and journals.</div>
@@ -658,7 +778,7 @@ export default function SettingsPanel({ user }) {
       )}
 
       {/* ===== Backup & restore (Google Drive) ===== */}
-      {tab === "backup" && driveReady && (
+      {active === "backup" && driveReady && (
       <div className="jx-card">
         <div className="jx-card__title">Backup &amp; restore</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
@@ -712,7 +832,7 @@ export default function SettingsPanel({ user }) {
       )}
 
       {/* ===== Notifications (disabled) ===== */}
-      {tab === "notifications" && (
+      {active === "notifications" && (
       <div className="jx-card" style={{ position: "relative" }}>
         <div className="jx-card__title">
           Notifications <Badge variant="neutral">Coming soon</Badge>
@@ -733,7 +853,7 @@ export default function SettingsPanel({ user }) {
       )}
 
       {/* ===== Appearance ===== */}
-      {tab === "appearance" && (
+      {active === "appearance" && (
       <div className="jx-card">
         <div className="jx-card__title">Appearance</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Personalize how JournalX looks.</div>
@@ -756,7 +876,7 @@ export default function SettingsPanel({ user }) {
       )}
 
       {/* ===== Connected exchanges (read-only API key) ===== */}
-      {tab === "integrations" && (
+      {active === "integrations" && (
       <div className="jx-card">
         <div className="jx-card__title">Connected exchanges &amp; brokers</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
@@ -809,7 +929,7 @@ export default function SettingsPanel({ user }) {
       )}
 
       {/* ===== Danger zone ===== */}
-      {tab === "danger" && (
+      {active === "danger" && (
       <div className="jx-card" style={{ borderColor: "var(--color-danger)" }}>
         <div className="jx-card__title" style={{ color: "var(--color-danger)" }}>Danger zone</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Irreversible actions — proceed with care.</div>
@@ -824,6 +944,7 @@ export default function SettingsPanel({ user }) {
       </div>
       )}
       </div>
+      )}
 
       {/* modals */}
       <AvatarModal

@@ -9,30 +9,30 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#1d1d1d",
-  "theme_color": "#a77d02",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/assets/JournalX_Favicon2.png",
+      "src": "/assets/jx_app_192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/JournalX_Favicon2.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/assets/jx_trans_favicon.png",
+      "src": "/assets/jx_app_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/jx_trans_favicon.png",
+      "src": "/assets/jx_app_maskable_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/jx_app_maskable_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
