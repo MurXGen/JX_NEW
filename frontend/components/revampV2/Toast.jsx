@@ -37,23 +37,32 @@ export default function Toast({ toast }) {
           className={`jx-toast jx-toast--${toast.type}`}
           style={{
             position: "fixed",
-            top: 22,
+            top: "max(16px, env(safe-area-inset-top))",
             left: "50%",
             translate: "-50% 0",
             zIndex: 2000,
-            boxShadow: "var(--shadow-lg)",
-            /* larger, more legible toast */
+            /* glassmorphic surface with a coloured accent border */
+            background: "color-mix(in srgb, var(--color-bg-elevated) 72%, transparent)",
+            backdropFilter: "blur(16px) saturate(150%)",
+            WebkitBackdropFilter: "blur(16px) saturate(150%)",
+            border: "1px solid color-mix(in srgb, #fff 12%, transparent)",
+            borderLeft: `3px solid ${color}`,
+            color: "var(--color-text-primary)",
+            boxShadow: "0 10px 34px rgba(0,0,0,0.32)",
             display: "flex",
             alignItems: "center",
-            gap: 12,
-            padding: "16px 22px",
+            gap: "clamp(8px, 2.5vw, 12px)",
+            /* compact on mobile, comfortably wide on desktop */
+            padding: "clamp(10px, 2.6vw, 15px) clamp(14px, 3.6vw, 22px)",
             borderRadius: 14,
-            fontSize: 16,
+            fontSize: "clamp(13px, 3.2vw, 15px)",
             fontWeight: 600,
-            maxWidth: "min(560px, calc(100vw - 24px))",
+            width: "max-content",
+            minWidth: "min(300px, calc(100vw - 24px))",
+            maxWidth: "min(640px, calc(100vw - 24px))",
           }}
         >
-          <Icon size={22} style={{ color, flexShrink: 0 }} />
+          <Icon size={18} style={{ color, flexShrink: 0 }} />
           <span style={{ lineHeight: 1.35 }}>{toast.msg}</span>
         </motion.div>
       )}

@@ -34,6 +34,15 @@ const userSchema = new mongoose.Schema(
     verifiedAt: { type: Date },
 
     //------------------------------------------------------------------
+    // 📣 Acquisition — where the user heard about JournalX (onboarding ask)
+    //------------------------------------------------------------------
+    acquisition: {
+      source: { type: String, default: "" }, // e.g. instagram | youtube | x | google | friend | other
+      detail: { type: String, default: "" }, // free text when "other"
+      at: { type: Date },
+    },
+
+    //------------------------------------------------------------------
     // ✉️ Lifecycle / onboarding emails
     //   emailOptOut → user unsubscribed from non-essential emails
     //   lifecycle.*At → timestamp each onboarding email was sent (dedupe)

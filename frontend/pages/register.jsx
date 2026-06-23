@@ -12,7 +12,7 @@ import Cookies from "js-cookie";
 import { ArrowLeft, Check, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 
 import { Turnstile } from "@marsidev/react-turnstile";
-import { AuthLayout, Button, OtpInput, Toast } from "@/components/revampV2";
+import { AuthLayout, Button, OtpInput, Toast, EmailSuggest } from "@/components/revampV2";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -179,10 +179,7 @@ export default function RegisterPage() {
 
             <div className="jx-field">
               <label className="jx-field__label">Email</label>
-              <div className="jx-input">
-                <span className="jx-input__icon"><Mail size={15} /></span>
-                <input type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
+              <EmailSuggest value={email} onChange={setEmail} />
             </div>
 
             <div className="jx-field">

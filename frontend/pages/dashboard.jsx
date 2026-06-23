@@ -31,6 +31,8 @@ import {
   SupportModal,
   PlanBanner,
   OnboardingModal,
+  AcquisitionModal,
+  GetStartedModal,
   UpgradePanel,
   OverviewPanel,
   MarketsPanel,
@@ -76,6 +78,8 @@ export default function Dashboard() {
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAcq, setShowAcq] = useState(false);
+  const [showGetStarted, setShowGetStarted] = useState(false);
   const [loggedIn, setLoggedIn] = useState(true); // assume true to avoid flicker; set on mount
 
   useEffect(() => {
@@ -183,8 +187,12 @@ export default function Dashboard() {
     // Onboarding shows ONLY right after a registration (manual OTP verify or
     // Google new-user), never on a normal login. The marker is consumed once.
     if (localStorage.getItem("jx-show-onboarding") === "1") {
-      setShowOnboarding(true);
       try { localStorage.removeItem("jx-show-onboarding"); } catch {}
+      // new-user flow: ask where they came from, then nudge first log/import
+      let acqDone = false;
+      try { acqDone = localStorage.getItem("jx-acq-done") === "1"; } catch {}
+      if (acqDone) setShowGetStarted(true);
+      else setShowAcq(true);
     }
   }, []);
 
@@ -451,6 +459,18 @@ export default function Dashboard() {
             console.error("trial cache update failed:", e);
           }
         }}
+      />
+
+      {/* New-user onboarding: where did you hear about us → log / import / skip */}
+      <AcquisitionModal
+        open={showAcq}
+        onDone={() => { setShowAcq(false); setShowGetStarted(true); }}
+      />
+      <GetStartedModal
+        open={showGetStarted}
+        onLog={() => { setShowGetStarted(false); setShowLogTrade(true); }}
+        onImport={() => { setShowGetStarted(false); setActiveTab("importexport"); }}
+        onSkip={() => { setShowGetStarted(false); setShowOnboarding(true); }}
       />
     </div>
   );

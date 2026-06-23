@@ -194,6 +194,25 @@ router.put("/update-profile", avatarUpload.single("avatar"), async (req, res) =>
 // router.get('/verify', verifyUserFromCookie);
 // router.get('/full', getFullUserData);
 
+// 📣 Save where the user heard about JournalX (onboarding ask)
+router.post("/acquisition", async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) return res.status(401).json({ message: "Not signed in" });
+    const source = String(req.body?.source || "").trim().slice(0, 40);
+    const detail = String(req.body?.detail || "").trim().slice(0, 200);
+    if (!source) return res.status(400).json({ message: "source is required" });
+    await User.updateOne(
+      { _id: userId },
+      { $set: { acquisition: { source, detail, at: new Date() } } },
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("acquisition save failed:", e?.message || e);
+    res.status(500).json({ message: "Could not save" });
+  }
+});
+
 // After Domain
 // router.post('/request-password-reset', requestPasswordReset);
 // router.post('/reset-password', resetPassword);
