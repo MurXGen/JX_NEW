@@ -169,8 +169,13 @@ export default function PaymentModal({
               displayMode: "inline",
               frameTarget: "jx-paddle-frame",
               frameInitialHeight: 460,
-              frameStyle: "width:100%; min-width:312px; background-color: transparent; border: none;",
-              theme: "dark",
+              // Light theme on a white card — Paddle's dark theme renders
+              // low-contrast (near-invisible) label/input text unless dark
+              // colours are configured in the Paddle dashboard branding, which
+              // we can't control from code. A white form (like UltraTrader's)
+              // is guaranteed readable and still sits in our dark modal.
+              frameStyle: "width:100%; min-width:312px; background-color: #ffffff; border: none;",
+              theme: "light",
               allowLogout: false,
               showAddDiscounts: !checkoutArgs.promo,
               showAddTaxId: true,
@@ -486,8 +491,11 @@ export default function PaymentModal({
                   <button onClick={() => { try { window?.Paddle?.Checkout?.close?.(); } catch {} openedRef.current = false; setCheckoutArgs(null); setView("select"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.muted, font: "500 13px Poppins", cursor: "pointer", padding: 0, marginBottom: 14 }}>
                     <ArrowLeft size={15} /> Back
                   </button>
-                  {/* Paddle.js mounts the secure card/PayPal form into this element. */}
-                  <div className="jx-paddle-frame" style={{ minHeight: 460 }} />
+                  {/* Paddle.js mounts the secure card/PayPal form into this
+                      white card (light theme) so all field text stays readable. */}
+                  <div style={{ background: "#ffffff", borderRadius: 16, padding: "12px 14px", minHeight: 480, overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.25)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                    <div className="jx-paddle-frame" style={{ minHeight: 460, borderRadius: 12, overflow: "hidden" }} />
+                  </div>
                 </div>
 
                 {/* right — branded order summary */}
