@@ -21,6 +21,7 @@ export { default as PlanBanner } from "./PlanBanner";
 export { default as OnboardingModal } from "./OnboardingModal";
 export { default as EmailSuggest } from "./EmailSuggest";
 export { default as AcquisitionModal } from "./AcquisitionModal";
+export { default as SettingsModal } from "./SettingsModal";
 export { default as GetStartedModal } from "./GetStartedModal";
 export { default as UpgradePanel } from "./UpgradePanel";
 export { default as OverviewPanel } from "./OverviewPanel";

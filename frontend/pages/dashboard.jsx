@@ -22,7 +22,7 @@ import {
   BottomBar,
   AnimatedPanel,
   LogTradeModal,
-  SettingsPanel,
+  SettingsModal,
   ImportExportPanel,
   BlogsPanel,
   ActivitiesPanel,
@@ -319,7 +319,7 @@ export default function Dashboard() {
       />
     ),
     importexport: <ImportExportPanel trades={trades} />,
-    settings: <SettingsPanel user={userData} />,
+    // settings opens as a glassmorphic modal (see SettingsModal below)
     pricingpage: <UpgradePanel currentPlan={userData?.subscription?.plan} />,
   };
 
@@ -471,6 +471,13 @@ export default function Dashboard() {
         onLog={() => { setShowGetStarted(false); setShowLogTrade(true); }}
         onImport={() => { setShowGetStarted(false); setActiveTab("importexport"); }}
         onSkip={() => { setShowGetStarted(false); setShowOnboarding(true); }}
+      />
+
+      {/* Settings — glassmorphic modal */}
+      <SettingsModal
+        open={activeTab === "settings"}
+        user={userData}
+        onClose={() => setActiveTab("overview")}
       />
     </div>
   );

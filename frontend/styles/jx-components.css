@@ -2047,3 +2047,127 @@ body::before {
     font: var(--text-body-md) !important;
   }
 }
+
+/* ============================================================
+   Settings — tabbed layout (left nav + content), Claude-style
+   ============================================================ */
+.jx-settings {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: var(--space-5);
+  width: 100%;
+  align-items: start;
+}
+.jx-settings__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: var(--space-4);
+}
+.jx-settings__navtitle {
+  font: var(--text-label);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 4px 12px 8px;
+}
+.jx-settings__navitem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--text-body-md);
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.jx-settings__navitem:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+.jx-settings__navitem--active {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.jx-settings__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+/* gentle fade when switching tabs (the dialog height is fixed, so no jump) */
+.jx-settings__content > * {
+  animation: jx-settings-fade 0.2s ease;
+}
+@keyframes jx-settings-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jx-settings__content > * { animation: none; }
+}
+@media (max-width: 760px) {
+  .jx-settings {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  .jx-settings__nav {
+    position: static;
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .jx-settings__navtitle { display: none; }
+  .jx-settings__navitem {
+    width: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 8px 12px;
+  }
+}
+
+/* Settings as a glassmorphic modal (reuses .jx-ltmodal shell).
+   Fixed height so switching tabs never resizes the dialog — only the inner
+   content scrolls. */
+.jx-settings-modal {
+  width: min(1040px, 96vw);
+  height: min(680px, 88vh);
+  max-height: 88vh;
+  position: relative;
+}
+.jx-settings-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+@media (max-width: 760px) {
+  /* near full-screen sheet on phones */
+  .jx-settings-modal {
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .jx-settings-modal__body { padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom)); }
+}
+
+/* ============================================================
+   Dashboard density — render the content at ~90% on desktop so it
+   isn't over-zoomed at 100% browser zoom. Sidebar/modals unaffected.
+   ============================================================ */
+@media (min-width: 1024px) {
+  .jx-shell__main {
+    zoom: 0.9;
+  }
+}

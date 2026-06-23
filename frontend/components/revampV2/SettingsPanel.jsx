@@ -4,7 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert } from "lucide-react";
+
+/* Settings sections — rendered as a left nav, one section at a time */
+const SETTINGS_TABS = [
+  { id: "profile", label: "Profile", icon: User },
+  { id: "billing", label: "Plan & billing", icon: CreditCard },
+  { id: "preferences", label: "Trading preferences", icon: SlidersHorizontal },
+  { id: "integrations", label: "Integrations", icon: Plug },
+  { id: "backup", label: "Backup & restore", icon: CloudUpload },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "refer", label: "Refer a friend", icon: Gift },
+  { id: "danger", label: "Danger zone", icon: ShieldAlert },
+];
 import Badge from "./Badge";
 import Button from "./Button";
 import Dropdown from "./Dropdown";
@@ -299,6 +312,7 @@ export default function SettingsPanel({ user }) {
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
   const [baseCurrency, setBaseCurrency] = useState(user?.baseCurrency || "USD");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [tab, setTab] = useState("profile"); // active settings section
   const [showAvatar, setShowAvatar] = useState(false);
   const profileDirty = name.trim() !== (initialName || "").trim();
 
@@ -465,18 +479,29 @@ export default function SettingsPanel({ user }) {
     window.location.href = "/login";
   };
 
+  const visibleTabs = SETTINGS_TABS.filter((t) => t.id !== "backup" || driveReady);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", width: "100%" }}>
+    <div className="jx-settings">
       <Toast toast={toast} />
 
-      <div>
-        <div style={{ font: "var(--text-h2)" }}>Settings</div>
-        <div style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
-          Manage your profile, trading preferences, and connected accounts.
-        </div>
-      </div>
+      <aside className="jx-settings__nav">
+        <div className="jx-settings__navtitle">Settings</div>
+        {visibleTabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`jx-settings__navitem ${tab === t.id ? "jx-settings__navitem--active" : ""}`}
+            onClick={() => setTab(t.id)}
+          >
+            <t.icon size={16} /> <span>{t.label}</span>
+          </button>
+        ))}
+      </aside>
 
-      {/* ===== Profile (top) ===== */}
+      <div className="jx-settings__content">
+      {/* ===== Profile ===== */}
+      {tab === "profile" && (
       <div className="jx-card">
         <div className="jx-card__title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-2)" }}>
           <span>Profile</span>
@@ -535,13 +560,16 @@ export default function SettingsPanel({ user }) {
         </div>
       </div>
 
-      {/* ===== Refer a friend (below profile) ===== */}
-      <ReferAFriend userId={user?._id || user?.id} />
+      )}
 
-      {/* ===== Plan & limits (below profile) ===== */}
-      <PlanLimitsCard />
+      {/* ===== Refer a friend ===== */}
+      {tab === "refer" && <ReferAFriend userId={user?._id || user?.id} />}
+
+      {/* ===== Plan & billing ===== */}
+      {tab === "billing" && <PlanLimitsCard />}
 
       {/* ===== Trading preferences ===== */}
+      {tab === "preferences" && (
       <div className="jx-card">
         <div className="jx-card__title">Trading preferences</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Defaults applied to new trades and journals.</div>
@@ -627,8 +655,10 @@ export default function SettingsPanel({ user }) {
         </Row>
       </div>
 
+      )}
+
       {/* ===== Backup & restore (Google Drive) ===== */}
-      {driveReady && (
+      {tab === "backup" && driveReady && (
       <div className="jx-card">
         <div className="jx-card__title">Backup &amp; restore</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
@@ -682,6 +712,7 @@ export default function SettingsPanel({ user }) {
       )}
 
       {/* ===== Notifications (disabled) ===== */}
+      {tab === "notifications" && (
       <div className="jx-card" style={{ position: "relative" }}>
         <div className="jx-card__title">
           Notifications <Badge variant="neutral">Coming soon</Badge>
@@ -699,7 +730,10 @@ export default function SettingsPanel({ user }) {
         ))}
       </div>
 
+      )}
+
       {/* ===== Appearance ===== */}
+      {tab === "appearance" && (
       <div className="jx-card">
         <div className="jx-card__title">Appearance</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Personalize how JournalX looks.</div>
@@ -719,7 +753,10 @@ export default function SettingsPanel({ user }) {
         </Row>
       </div>
 
+      )}
+
       {/* ===== Connected exchanges (read-only API key) ===== */}
+      {tab === "integrations" && (
       <div className="jx-card">
         <div className="jx-card__title">Connected exchanges &amp; brokers</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
@@ -769,7 +806,10 @@ export default function SettingsPanel({ user }) {
       </div>
 
 
+      )}
+
       {/* ===== Danger zone ===== */}
+      {tab === "danger" && (
       <div className="jx-card" style={{ borderColor: "var(--color-danger)" }}>
         <div className="jx-card__title" style={{ color: "var(--color-danger)" }}>Danger zone</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Irreversible actions — proceed with care.</div>
@@ -781,6 +821,8 @@ export default function SettingsPanel({ user }) {
             Delete account
           </Button>
         </Row>
+      </div>
+      )}
       </div>
 
       {/* modals */}
