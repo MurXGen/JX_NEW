@@ -507,8 +507,8 @@ function PaymentModal({
   const paymentOptions = [
     {
       id: "cards_paypal",
-      title: "Cards & PayPal",
-      description: "Secure payment via Visa, Mastercard, Amex, or PayPal",
+      title: "UPI, PayPal & Cards",
+      description: "Secure UPI autopay, PayPal, Visa, Mastercard or Amex",
       icon: <CreditCard size={24} />,
       gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
     },

@@ -347,7 +347,7 @@ export default function Pricing() {
           <div style={{ display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap", marginTop: 36, font: "400 13px Poppins", color: C.dim }}>
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Shield size={15} style={{ color: C.green }} /> 256-bit encrypted</span>
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Lock size={15} style={{ color: C.green }} /> Cancel anytime</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}><CreditCard size={15} style={{ color: C.green }} /> Cards, PayPal & crypto</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}><CreditCard size={15} style={{ color: C.green }} /> UPI, cards, PayPal & crypto</span>
           </div>
         </section>
 
@@ -484,8 +484,8 @@ function PaymentModal({
   const paymentOptions = [
     {
       id: "cards_paypal",
-      title: "Cards & PayPal",
-      description: "Visa, Mastercard, Amex or PayPal",
+      title: "UPI, PayPal & Cards",
+      description: "UPI autopay, PayPal, Visa, Mastercard or Amex",
       icon: <CreditCard size={22} />,
       accent: "#3b82f6",
       tags: ["Instant access", "Most popular"],

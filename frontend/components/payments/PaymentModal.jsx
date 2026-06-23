@@ -41,8 +41,8 @@ export default function PaymentModal({
   const paymentOptions = [
     {
       id: "cards_paypal",
-      title: "Cards & PayPal",
-      description: "Visa, Mastercard, Amex or PayPal",
+      title: "UPI, PayPal & Cards",
+      description: "UPI autopay, PayPal, Visa, Mastercard or Amex",
       icon: <CreditCard size={22} />,
       accent: "#3b82f6",
       tags: ["Instant access", "Most popular"],

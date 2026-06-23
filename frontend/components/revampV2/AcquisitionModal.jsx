@@ -62,7 +62,7 @@ export default function AcquisitionModal({ open, onDone }) {
             exit={{ opacity: 0, scale: 0.97, y: 10 }}
             transition={{ type: "spring", stiffness: 360, damping: 28 }}
             className="jx-card"
-            style={{ width: "min(460px, 94vw)", padding: "var(--space-6)", position: "relative" }}
+            style={{ width: "min(460px, 94vw)", padding: "var(--space-6)", position: "relative", color: "var(--color-text-primary)" }}
           >
             <button
               className="jx-btn jx-btn--secondary jx-btn--sm"
@@ -78,7 +78,7 @@ export default function AcquisitionModal({ open, onDone }) {
               <span style={{ width: 40, height: 40, borderRadius: 11, background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Compass size={20} />
               </span>
-              <h2 style={{ font: "var(--text-h2)", margin: 0 }}>How did you find JournalX?</h2>
+              <h2 style={{ font: "var(--text-h2)", margin: 0, color: "var(--color-text-primary)" }}>How did you find JournalX?</h2>
             </div>
             <p style={{ font: "var(--text-body)", color: "var(--color-text-secondary)", margin: "0 0 var(--space-4)" }}>
               Quick one, it helps us reach more traders like you.

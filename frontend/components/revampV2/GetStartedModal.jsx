@@ -27,7 +27,7 @@ export default function GetStartedModal({ open, onLog, onImport, onSkip }) {
             exit={{ opacity: 0, scale: 0.97, y: 10 }}
             transition={{ type: "spring", stiffness: 360, damping: 28 }}
             className="jx-card"
-            style={{ width: "min(520px, 94vw)", padding: "var(--space-6)", position: "relative" }}
+            style={{ width: "min(520px, 94vw)", padding: "var(--space-6)", position: "relative", color: "var(--color-text-primary)" }}
           >
             <button
               className="jx-btn jx-btn--secondary jx-btn--sm"
@@ -42,7 +42,7 @@ export default function GetStartedModal({ open, onLog, onImport, onSkip }) {
               <span style={{ width: 40, height: 40, borderRadius: 11, background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Rocket size={20} />
               </span>
-              <h2 style={{ font: "var(--text-h2)", margin: 0 }}>You&apos;re in. Let&apos;s add your first trades</h2>
+              <h2 style={{ font: "var(--text-h2)", margin: 0, color: "var(--color-text-primary)" }}>You&apos;re in. Let&apos;s add your first trades</h2>
             </div>
             <p style={{ font: "var(--text-body)", color: "var(--color-text-secondary)", margin: "0 0 var(--space-4)" }}>
               Journaling only works if your trades are in it. Pick one to get started, it takes under a minute.
@@ -58,15 +58,16 @@ export default function GetStartedModal({ open, onLog, onImport, onSkip }) {
                   style={{
                     display: "flex", alignItems: "center", gap: "var(--space-3)", textAlign: "left",
                     padding: "var(--space-4)", cursor: "pointer", width: "100%",
+                    color: "var(--color-text-primary)",
                     borderColor: c.primary ? "var(--color-primary)" : "var(--color-border)",
-                    background: c.primary ? "var(--color-primary-subtle)" : undefined,
+                    background: c.primary ? "var(--color-primary-subtle)" : "var(--color-bg-surface)",
                   }}
                 >
                   <span style={{ width: 40, height: 40, borderRadius: 11, flexShrink: 0, background: "var(--color-bg-muted)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <c.icon size={19} />
                   </span>
                   <span style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-                    <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{c.title}</span>
+                    <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-text-primary)" }}>{c.title}</span>
                     <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{c.body}</span>
                   </span>
                   <ArrowRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />

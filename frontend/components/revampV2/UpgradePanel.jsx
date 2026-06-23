@@ -28,7 +28,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 function MethodModal({ open, onClose, plan, onPick }) {
   if (!open) return null;
   const methods = [
-    { id: "cards_paypal", title: "Cards & PayPal", desc: "Visa, Mastercard, Amex or PayPal", icon: <CreditCard size={22} />, accent: "#3b82f6", tags: ["Instant access"] },
+    { id: "cards_paypal", title: "UPI, PayPal & Cards", desc: "UPI autopay, PayPal, Visa, Mastercard or Amex", icon: <CreditCard size={22} />, accent: "#3b82f6", tags: ["Instant access"] },
     { id: "crypto", title: "Crypto (USDT)", desc: "Pay with USDT on ETH, TRON, BSC, SOL & more", icon: <Bitcoin size={22} />, accent: "#f59e0b", tags: ["Low fees"] },
   ];
   return (

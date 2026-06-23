@@ -232,35 +232,6 @@ export default function PlanLimitsCard() {
         </div>
       )}
 
-      {/* Pro users → nudge to the one-time Lifetime plan */}
-      {isPro && (
-        <div
-          style={{
-            marginTop: "var(--space-4)",
-            background: "var(--color-primary-subtle)",
-            border: "1px solid var(--color-primary)",
-            borderRadius: "var(--radius-md)",
-            padding: "var(--space-4)",
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--space-3)",
-            flexWrap: "wrap",
-          }}
-        >
-          <Crown size={20} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />
-          <span style={{ flex: 1, minWidth: 180 }}>
-            <span style={{ font: "var(--text-body-md)", fontWeight: 600, display: "block" }}>
-              Own JournalX forever with Lifetime
-            </span>
-            <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-              Pay once, no more renewals. Keep every Pro feature plus all future updates — for life.
-            </span>
-          </span>
-          <a href="/pricing?plan=lifetime" style={{ textDecoration: "none" }}>
-            <Button variant="primary" icon={ArrowRight}>Get Lifetime</Button>
-          </a>
-        </div>
-      )}
     </div>
   );
 }
