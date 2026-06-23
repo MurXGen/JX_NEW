@@ -55,6 +55,14 @@ export default function PaddleLoader() {
                   // if the webhook is delayed/undelivered.
                   eventCallback: (event) => {
                     try {
+                      // Bridge every Paddle event to a window event so UI
+                      // components (e.g. the inline PaymentModal) can react —
+                      // Paddle Billing only allows one global event callback.
+                      try {
+                        window.dispatchEvent(
+                          new CustomEvent("jx-paddle", { detail: event })
+                        );
+                      } catch (e) {}
                       if (event?.name === "checkout.completed") {
                         const txnId =
                           event?.data?.transaction_id || event?.data?.id;

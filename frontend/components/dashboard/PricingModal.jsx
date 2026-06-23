@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import PaddleLoader from "../../components/payments/PaddleLoader";
+import PaymentModal from "@/components/payments/PaymentModal";
 
 const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
 const yearlyPriceId = process.env.NEXT_PUBLIC_PADDLE_YEARLY_PRICE_ID;
@@ -390,9 +391,10 @@ export default function Pricing() {
           <PaymentModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            planTitle={PLANS_CONFIG[selectedPlan]?.title || ""}
-            planPrice={PLANS_CONFIG[selectedPlan]?.price || ""}
-            onPaymentOptionClick={handlePaymentOptionClick}
+            plans={PLANS_CONFIG}
+            currency={currency}
+            initialPlan={selectedPlan}
+            loginRedirect="/dashboard"
           />,
           document.body,
         )}
@@ -495,133 +497,4 @@ function PricingCard({
   );
 }
 
-function PaymentModal({
-  isOpen,
-  onClose,
-  planTitle,
-  planPrice,
-  onPaymentOptionClick,
-}) {
-  if (!isOpen) return null;
-
-  const paymentOptions = [
-    {
-      id: "cards_paypal",
-      title: "UPI, PayPal & Cards",
-      description: "Secure UPI autopay, PayPal, Visa, Mastercard or Amex",
-      icon: <CreditCard size={24} />,
-      gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-    },
-    {
-      id: "crypto",
-      title: "Crypto Payment",
-      description: "Pay with USDT, Bitcoin, Ethereum on multiple networks",
-      icon: "₿",
-      gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-    },
-    // {
-    //   id: "binance",
-    //   title: "Binance Pay",
-    //   description: "Instant payment directly from your Binance account",
-    //   icon: "⚡",
-    //   gradient: "linear-gradient(135deg, #f0b90b 0%, #c27803 100%)",
-    // },
-  ];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="payment-modal-overlay"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ type: "spring", damping: 25 }}
-        className="payment-modal-container"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Content Side (Left) */}
-        <div className="modal-content-side">
-          <div className="modal-header">
-            <button className="modal-close" onClick={onClose}>
-              ×
-            </button>
-            <h2 className="modal-title">Complete Your Purchase</h2>
-            <p className="modal-subtitle">
-              Select your preferred payment method
-            </p>
-          </div>
-
-          <div className="selected-plan-info">
-            <div className="plan-badge">
-              <span>{planTitle}</span>
-            </div>
-            <div className="plan-price-display">
-              <span className="price">{planPrice}</span>
-              <span className="plan-period">One-time payment</span>
-            </div>
-          </div>
-
-          <div className="payment-options">
-            {paymentOptions.map((option, index) => (
-              <motion.button
-                key={option.id}
-                className="button_sec payment-option-button"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onPaymentOptionClick(option.id)}
-                style={{
-                  background: option.gradient,
-                  color: "white",
-                  border: "none",
-                }}
-              >
-                <div className="payment-option-content">
-                  <span className="payment-icon">{option.icon}</span>
-                  <div className="payment-info">
-                    <span className="payment-title">{option.title}</span>
-                    <span className="payment-desc">{option.description}</span>
-                  </div>
-                </div>
-                <span className="payment-arrow">→</span>
-              </motion.button>
-            ))}
-          </div>
-
-          <div className="security-notice">
-            <Shield size={16} />
-            <span>Secure payment · 256-bit encryption</span>
-          </div>
-        </div>
-
-        {/* Image Side (Right) */}
-        <div className="modal-image-side">
-          <div className="">
-            <div className="pad_16">
-              <h3>Unlock Your Trading Potential</h3>
-              <p>Join 10,000+ traders who trust JournalX</p>
-              <div className="benefits-list">
-                <span>
-                  <Check size={14} /> Advanced analytics
-                </span>
-                <span>
-                  <Check size={14} /> Unlimited trade logging
-                </span>
-                <span>
-                  <Check size={14} /> Priority support
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
+/* PaymentModal now lives in components/payments/PaymentModal.jsx (shared). */

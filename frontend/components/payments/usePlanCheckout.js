@@ -142,7 +142,9 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
     }
   };
 
-  const closeModal = () => { if (!payLoading) setIsModalOpen(false); };
+  // The PaymentModal now owns the Paddle/crypto flow + its own busy state, so
+  // closing is unconditional here (the modal blocks closing while it's busy).
+  const closeModal = () => setIsModalOpen(false);
 
   return { currency, plans, selectedPlan, isModalOpen, payLoading, handlePlanClick, handlePaymentOptionClick, closeModal };
 }

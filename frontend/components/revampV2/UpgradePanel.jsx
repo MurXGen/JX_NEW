@@ -20,49 +20,10 @@ import {
 } from "lucide-react";
 import Button from "./Button";
 import PaddleLoader from "@/components/payments/PaddleLoader";
+import PaymentModal from "@/components/payments/PaymentModal";
 import { buildPlansConfig, getUserCurrency, detectCurrencyByIP, PLANS_FEATURES } from "@/utils/plans";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-/* payment-method chooser (cards / crypto) */
-function MethodModal({ open, onClose, plan, onPick }) {
-  if (!open) return null;
-  const methods = [
-    { id: "cards_paypal", title: "UPI, PayPal & Cards", desc: "UPI autopay, PayPal, Visa, Mastercard or Amex", icon: <CreditCard size={22} />, accent: "#3b82f6", tags: ["Instant access"] },
-    { id: "crypto", title: "Crypto (USDT)", desc: "Pay with USDT on ETH, TRON, BSC, SOL & more", icon: <Bitcoin size={22} />, accent: "#f59e0b", tags: ["Low fees"] },
-  ];
-  return (
-    <motion.div className="jx-modal-overlay jx-modal-overlay--blur" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <motion.div className="jx-ltmodal jx-ltmodal--narrow" style={{ width: "min(440px, 96vw)", padding: "var(--space-6)" }} initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "var(--space-4)" }}>
-          <div>
-            <div style={{ font: "var(--text-h3)", fontWeight: 700 }}>Complete your upgrade</div>
-            <div style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>{plan?.title} · {plan?.price}</div>
-          </div>
-          <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}><X size={16} /></button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-          {methods.map((m) => (
-            <button key={m.id} type="button" onClick={() => onPick(m.id)}
-              style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", textAlign: "left", padding: "var(--space-4)", borderRadius: "var(--radius-md)", background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)", cursor: "pointer" }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = m.accent)}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}>
-              <span style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: `${m.accent}1f`, color: m.accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{m.icon}</span>
-              <span style={{ flex: 1 }}>
-                <span style={{ display: "block", font: "var(--text-body-md)", fontWeight: 600 }}>{m.title}</span>
-                <span style={{ display: "block", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{m.desc}</span>
-              </span>
-              <ArrowRight size={18} style={{ color: "var(--color-text-muted)" }} />
-            </button>
-          ))}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "var(--space-4)", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-          <Lock size={14} style={{ color: "var(--color-success)" }} /> Secure payment · 256-bit encryption
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
 
 export default function UpgradePanel({ currentPlan }) {
   const router = useRouter();
@@ -87,36 +48,6 @@ export default function UpgradePanel({ currentPlan }) {
     { key: "yearly", price: plans.yearly.price, period: "/ year", features: PLANS_FEATURES.pro, popular: true, badge: "Save 28%" },
     { key: "lifetime", price: plans.lifetime.price, period: "once", features: PLANS_FEATURES.lifetime, badge: "Best value" },
   ];
-
-  const openPaddleCheckout = async (priceId) => {
-    if (!priceId) return alert("This plan isn't available for card payment right now. Try crypto, or contact support.");
-    if (!window?.Paddle?.Checkout) return alert("Payment system is still loading — please wait a moment and try again.");
-    let userId;
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/user-info`, { credentials: "include" });
-      const json = await res.json();
-      userId = json?.userData?.userId || json?.userData?._id || json?.userId;
-    } catch {}
-    if (!userId) return router.push("/login?redirect=/dashboard");
-    try {
-      window.Paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-        customData: { userId },
-        settings: { displayMode: "overlay" },
-      });
-    } catch (e) {
-      console.error("Paddle open failed:", e);
-      alert("Failed to open checkout. Please try again.");
-    }
-  };
-
-  const pickMethod = (method) => {
-    const cfg = plans[selected];
-    setSelected(null);
-    if (method === "cards_paypal") openPaddleCheckout(cfg.paddlePriceId);
-    else if (method === "crypto")
-      router.push({ pathname: "/cryptobillingpage", query: { planName: cfg.planName, period: cfg.period, amount: cfg.amount } });
-  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
@@ -194,7 +125,14 @@ export default function UpgradePanel({ currentPlan }) {
 
       <AnimatePresence>
         {selected && (
-          <MethodModal open={!!selected} onClose={() => setSelected(null)} plan={plans[selected]} onPick={pickMethod} />
+          <PaymentModal
+            isOpen={!!selected}
+            onClose={() => setSelected(null)}
+            plans={plans}
+            currency={currency}
+            initialPlan={selected}
+            loginRedirect="/dashboard"
+          />
         )}
       </AnimatePresence>
     </div>

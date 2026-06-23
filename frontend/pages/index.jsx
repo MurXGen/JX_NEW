@@ -1001,7 +1001,7 @@ function BlogCard({ post }) {
 /* ===== Pricing section (in-page checkout, mirrors the /pricing flow) ===== */
 function PricingSection() {
   // shared checkout flow (currency + Paddle/crypto + payment modal state)
-  const { plans, isModalOpen, selectedPlan, payLoading, handlePlanClick, handlePaymentOptionClick, closeModal } =
+  const { plans, currency, isModalOpen, selectedPlan, handlePlanClick, closeModal } =
     usePlanCheckout({ loginRedirect: "/pricing" });
 
   const [mounted, setMounted] = useState(false);
@@ -1132,10 +1132,10 @@ function PricingSection() {
           <PaymentModal
             isOpen={isModalOpen}
             onClose={closeModal}
-            planTitle={plans[selectedPlan]?.title || ""}
-            planPrice={plans[selectedPlan]?.price || ""}
-            onPaymentOptionClick={handlePaymentOptionClick}
-            loadingOption={payLoading}
+            plans={plans}
+            currency={currency}
+            initialPlan={selectedPlan}
+            loginRedirect="/pricing"
           />,
           document.body,
         )}
