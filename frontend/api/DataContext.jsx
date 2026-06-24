@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { calculateStats } from "@/utils/calculateStats";
+import { fetchUserInfo } from "@/utils/userInfo";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -62,10 +63,9 @@ export const DataProvider = ({ children }) => {
     setApiCallFailed(false);
 
     try {
-      // 1️⃣ Fetch user-info from API
-      const userRes = await axios.get(`${API_BASE}/api/auth/user-info`, {
-        withCredentials: true,
-      });
+      // 1️⃣ Fetch user-info from API (shared cache → de-dupes with the
+      // dashboard's own call and caps repeats)
+      const userRes = await fetchUserInfo();
 
       const { userData: fetchedUserData } = userRes.data;
       setUserData(fetchedUserData);

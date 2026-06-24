@@ -301,12 +301,13 @@ export default function TradeDetailsModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 10 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="jx-ltmodal"
+            className="jx-ltmodal jx-ltmodal--popup"
             style={{ width: "min(980px, 96vw)" }}
           >
             {/* header */}
-            <div className="jx-ltmodal__header" style={{ alignItems: "center" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+            <div className="jx-ltmodal__header jx-td__header" style={{ alignItems: "flex-start", gap: "var(--space-2)", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0, flex: 1 }}>
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Trade details</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
                   <span style={{ font: "var(--text-h2)" }}>{t.symbol || t.ticker || "—"}</span>
                   <Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge>
@@ -321,8 +322,8 @@ export default function TradeDetailsModal({
                   Opened {dt(t.openTime)} → Closed {dt(t.closeTime)}
                 </span>
               </div>
-              <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-                <Button variant="outline" size="sm" icon={Pencil} onClick={() => onEdit?.(t)}>Edit trade</Button>
+              <div className="jx-td__actions" style={{ display: "flex", gap: "var(--space-2)", alignItems: "center", flexShrink: 0 }}>
+                <Button variant="outline" size="sm" icon={Pencil} onClick={() => onEdit?.(t)}>Edit</Button>
                 <Button variant="danger-outline" size="sm" icon={Trash2} onClick={() => onDelete?.(t)}>Delete</Button>
                 <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}>
                   <X size={16} />

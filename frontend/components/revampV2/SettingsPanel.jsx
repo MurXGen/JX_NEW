@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown, Wallet } from "lucide-react";
 
 /* Settings sections — rendered as a left nav, one section at a time */
 const SETTINGS_TABS = [
@@ -14,9 +14,7 @@ const SETTINGS_TABS = [
   { id: "integrations", label: "Integrations", icon: Plug },
   { id: "backup", label: "Backup & restore", icon: CloudUpload },
   { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "appearance", label: "Appearance", icon: Palette },
   { id: "refer", label: "Refer a friend", icon: Gift },
-  { id: "danger", label: "Danger zone", icon: ShieldAlert },
 ];
 import Badge from "./Badge";
 import Button from "./Button";
@@ -262,7 +260,7 @@ function AvatarModal({ open, currentUrl, name, onClose, onSaved }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 10 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="jx-ltmodal jx-ltmodal--narrow"
+            className="jx-ltmodal jx-ltmodal--narrow jx-ltmodal--popup"
             style={{ width: "min(420px, 96vw)" }}
           >
             <div className="jx-ltmodal__header" style={{ alignItems: "center" }}>
@@ -305,8 +303,43 @@ const MORE_LINKS = [
   { id: "importexport", label: "Import / Export", icon: ArrowUpDown },
 ];
 
+/* Quick controls shown at the very top of Settings (above profile): switch the
+   active journal, and flip the theme. */
+function TopControls({ journalName, onSwitchJournal, theme, toggleTheme }) {
+  return (
+    <div className="jx-settings__quick">
+      <button type="button" className="jx-settings__quickrow" onClick={() => onSwitchJournal?.()} disabled={!onSwitchJournal}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <Wallet size={18} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />
+          <span style={{ display: "flex", flexDirection: "column", minWidth: 0, textAlign: "left" }}>
+            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Active journal</span>
+            <span className="jx-settings__mname" style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{journalName || "Default journal"}</span>
+          </span>
+        </span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--color-text-muted)", font: "var(--text-caption)", flexShrink: 0 }}>
+          Switch <ChevronRight size={15} />
+        </span>
+      </button>
+
+      <div className="jx-settings__quickrow" style={{ cursor: "default" }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <Palette size={18} style={{ color: "var(--yellow-500)" }} />
+          <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Theme</span>
+        </span>
+        <div className="jx-seg jx-seg--inline">
+          {["light", "dark"].map((t) => (
+            <button key={t} type="button" className={`jx-seg__btn ${theme === t ? "jx-seg__btn--active" : ""}`} onClick={() => theme !== t && toggleTheme()}>
+              {t === "light" ? "Light" : "Dark"}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ================================================================ */
-export default function SettingsPanel({ user, onNavigate, onSupport }) {
+export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJournal }) {
   const { theme, toggleTheme } = useTheme();
 
   /* responsive: mobile shows a list → full-screen section drill-in */
@@ -320,6 +353,18 @@ export default function SettingsPanel({ user, onNavigate, onSupport }) {
     mq.addEventListener?.("change", sync);
     return () => mq.removeEventListener?.("change", sync);
   }, []);
+
+  // when drilling into (or out of) a mobile section, bring it to the top of the
+  // screen so it's centred in view rather than mid-scroll
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    // modal mode scrolls the dialog body; page mode scrolls the dashboard main
+    const target =
+      document.querySelector(".jx-settings-modal__body") ||
+      document.querySelector(".jx-shell__main");
+    if (target) target.scrollTo({ top: 0, behavior: "auto" });
+    else window.scrollTo({ top: 0, behavior: "auto" });
+  }, [mobileSection]);
 
   /* subscription (for the mobile header status) */
   const [sub, setSub] = useState(null);
@@ -528,6 +573,16 @@ export default function SettingsPanel({ user, onNavigate, onSupport }) {
   const isTop = subActive && (planRaw.includes("pro") || planRaw.includes("lifetime"));
   const sectionLabel = SETTINGS_TABS.find((t) => t.id === active)?.label || "Settings";
 
+  /* active journal name for the quick "switch journal" control */
+  const activeJournalName = (() => {
+    const id = defaultJournal || (typeof window !== "undefined" ? Cookies.get("accountId") : "");
+    const a = accounts.find((x) => x._id === id) || accounts[0];
+    return a?.name || "";
+  })();
+
+  /* mobile rows exclude Profile (it already has its own card up top) */
+  const mobileRows = visibleTabs.filter((t) => t.id !== "profile");
+
   return (
     <div className={`jx-settings ${isMobile ? "jx-settings--mobile" : ""}`}>
       <Toast toast={toast} />
@@ -553,6 +608,9 @@ export default function SettingsPanel({ user, onNavigate, onSupport }) {
       {isMobile && !mobileSection && (
         <div className="jx-settings__mlist">
           <div className="jx-settings__mtitle" style={{ padding: "2px 0 4px" }}>Settings</div>
+
+          <TopControls journalName={activeJournalName} onSwitchJournal={onSwitchJournal} theme={theme} toggleTheme={toggleTheme} />
+
           <div className="jx-settings__profilecard" onClick={() => setMobileSection("profile")}>
             <Avatar url={avatarUrl} name={name} size={56} />
             <div style={{ minWidth: 0, flex: 1 }}>
@@ -574,7 +632,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport }) {
           </button>
 
           <div className="jx-settings__group">
-            {visibleTabs.map((t) => (
+            {mobileRows.map((t) => (
               <button key={t.id} type="button" className="jx-settings__mrow" onClick={() => setMobileSection(t.id)}>
                 <t.icon size={18} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>{t.label}</span>
@@ -619,6 +677,10 @@ export default function SettingsPanel({ user, onNavigate, onSupport }) {
           </button>
           <span className="jx-settings__mtitle">{sectionLabel}</span>
         </div>
+      )}
+      {/* desktop quick controls (switch journal + theme) above profile */}
+      {!isMobile && active === "profile" && (
+        <TopControls journalName={activeJournalName} onSwitchJournal={onSwitchJournal} theme={theme} toggleTheme={toggleTheme} />
       )}
       {/* ===== Profile ===== */}
       {active === "profile" && (
@@ -848,29 +910,6 @@ export default function SettingsPanel({ user, onNavigate, onSupport }) {
             <Switch on={false} onChange={() => {}} disabled />
           </Row>
         ))}
-      </div>
-
-      )}
-
-      {/* ===== Appearance ===== */}
-      {active === "appearance" && (
-      <div className="jx-card">
-        <div className="jx-card__title">Appearance</div>
-        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Personalize how JournalX looks.</div>
-
-        <Row title="Theme" sub="Light or dark">
-          <div className="jx-seg jx-seg--inline">
-            {["light", "dark"].map((t) => (
-              <button key={t} className={`jx-seg__btn ${theme === t ? "jx-seg__btn--active" : ""}`} onClick={() => theme !== t && toggleTheme()}>
-                {t === "light" ? "Light" : "Dark"}
-              </button>
-            ))}
-          </div>
-        </Row>
-
-        <Row title="Compact mode" sub="Tighter spacing across the app" disabled>
-          <Switch on={false} onChange={() => {}} disabled />
-        </Row>
       </div>
 
       )}

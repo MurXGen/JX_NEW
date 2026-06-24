@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -22,6 +22,7 @@ import {
   BottomBar,
   AnimatedPanel,
   LogTradeModal,
+  QuickResultModal,
   SettingsModal,
   ImportExportPanel,
   BlogsPanel,
@@ -37,6 +38,7 @@ import {
   OverviewPanel,
   MarketsPanel,
   SharePanel,
+  SettingsPanel,
 } from "@/components/revampV2";
 
 import FullPageLoader from "@/components/ui/FullPageLoader";
@@ -47,6 +49,7 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { getConversionFactor } from "@/utils/fx";
 import { connectDrive, warmDriveConnection, isDriveConnected, isDriveConfigured } from "@/utils/driveBackup";
+import { fetchUserInfo } from "@/utils/userInfo";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -85,7 +88,20 @@ export default function Dashboard() {
   useEffect(() => {
     setLoggedIn(Cookies.get("isVerified") === "yes");
   }, []);
+
+  // mobile? → Settings renders as an in-page tab (bottom bar visible) instead
+  // of a covering modal
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const mq = window.matchMedia("(max-width: 760px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener?.("change", sync);
+    return () => mq.removeEventListener?.("change", sync);
+  }, []);
   const [showLogTrade, setShowLogTrade] = useState(false);
+  const [showQuickResult, setShowQuickResult] = useState(false);
   const [importSignal, setImportSignal] = useState(0);
   const [, setThemeTick] = useState(0); // re-render the mobile theme icon
 
@@ -96,13 +112,16 @@ export default function Dashboard() {
   const [accountSymbols, setAccountSymbols] = useState({});
 
   /* ---------- data loading (same flow as old dashboard-web) ---------- */
+  const loadedOnceRef = useRef(false);
   useEffect(() => {
+    // run the full load only once per mount — navigating between in-app tabs
+    // (e.g. opening Settings) must never re-trigger the whole reload.
+    if (loadedOnceRef.current) return;
+    loadedOnceRef.current = true;
     const loadEverything = async () => {
       setLoading(true);
       try {
-        const userRes = await axios.get(`${API_BASE}/api/auth/user-info`, {
-          withCredentials: true,
-        });
+        const userRes = await fetchUserInfo();
         const { userData } = userRes.data;
         setUserData(userData);
         // a successful user-info means we're authenticated → enable normal
@@ -404,7 +423,16 @@ export default function Dashboard() {
         />
 
         <AnimatedPanel id={activeTab}>
-          {TAB_CONTENT[activeTab] || overview}
+          {activeTab === "settings" && isMobile ? (
+            <SettingsPanel
+              user={userData}
+              onNavigate={(id) => setActiveTab(id)}
+              onSupport={() => setShowSupport(true)}
+              onSwitchJournal={() => setShowSwitchModal(true)}
+            />
+          ) : (
+            TAB_CONTENT[activeTab] || overview
+          )}
         </AnimatedPanel>
       </main>
 
@@ -412,9 +440,20 @@ export default function Dashboard() {
       <BottomBar
         active={activeTab}
         onChange={setActiveTab}
-        onLogTrade={() => setShowLogTrade(true)}
+        onLogTrade={() => setShowQuickResult(true)}
         onSupport={() => setShowSupport(true)}
         user={userData}
+      />
+
+      {/* One-tap result capture (lowest-friction log) */}
+      <QuickResultModal
+        open={showQuickResult}
+        onClose={() => setShowQuickResult(false)}
+        accountId={currentAccount?._id}
+        currencySymbol={journalSymbol}
+        onNoJournal={() => { setShowQuickResult(false); setShowSwitchModal(true); }}
+        onMoreDetails={() => setShowLogTrade(true)}
+        onSaved={(trade) => trade && setAccountTrades((prev) => [...prev, trade])}
       />
 
       {/* Log trade modal (Quick log / Detailed) — blurred backdrop */}
@@ -475,11 +514,12 @@ export default function Dashboard() {
 
       {/* Settings — glassmorphic modal */}
       <SettingsModal
-        open={activeTab === "settings"}
+        open={activeTab === "settings" && !isMobile}
         user={userData}
         onClose={() => setActiveTab("overview")}
         onNavigate={(id) => setActiveTab(id)}
         onSupport={() => { setActiveTab("overview"); setShowSupport(true); }}
+        onSwitchJournal={() => setShowSwitchModal(true)}
       />
     </div>
   );

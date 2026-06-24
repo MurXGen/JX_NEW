@@ -196,7 +196,7 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
           onClick={close}
         >
           <motion.div
-            className="jx-ltmodal jx-ltmodal--narrow"
+            className="jx-ltmodal jx-ltmodal--narrow jx-ltmodal--popup"
             style={{ width: "min(480px, 96vw)" }}
             initial={{ opacity: 0, y: 18, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

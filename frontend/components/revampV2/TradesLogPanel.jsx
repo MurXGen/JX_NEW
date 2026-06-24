@@ -743,8 +743,8 @@ export default function TradesLogPanel({
       )}
 
       {/* header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-3)" }}>
-        <div>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "nowrap", gap: "var(--space-3)" }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ font: "var(--text-h2)" }}>Trades log</div>
           <div style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
             Every trade you log or auto-import, in one place · {stats.total} total
@@ -753,7 +753,7 @@ export default function TradesLogPanel({
         </div>
         {/* hide header actions while on sample data — the banner below carries
             the primary Import / Log actions (avoids duplicate CTAs) */}
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap", flexShrink: 0, justifyContent: "flex-end" }}>
           <CustomizeSections
             sections={TRADESLOG_SECTIONS}
             hidden={hidden}

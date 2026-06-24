@@ -10,6 +10,7 @@ export { default as TradesTable } from "./TradesTable";
 export { default as ChoiceChips } from "./ChoiceChips";
 export { default as TradeLogForm } from "./TradeLogForm";
 export { default as LogTradeModal } from "./LogTradeModal";
+export { default as QuickResultModal } from "./QuickResultModal";
 export { default as SettingsPanel } from "./SettingsPanel";
 export { default as ImportExportPanel } from "./ImportExportPanel";
 export { default as BlogsPanel } from "./BlogsPanel";

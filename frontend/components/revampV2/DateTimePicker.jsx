@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import Button from "./Button";
@@ -19,15 +20,39 @@ const toVal = (d) =>
 export default function DateTimePicker({ value, onChange, placeholder = "Pick date & time" }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const panelRef = useRef(null);
+  const [rect, setRect] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const initial = value ? new Date(value) : new Date();
   const [month, setMonth] = useState(new Date(initial.getFullYear(), initial.getMonth(), 1));
   const [day, setDay] = useState(value ? new Date(value) : null);
   const [time, setTime] = useState(value ? value.slice(11, 16) : "09:30");
 
+  // measure the trigger so the portal panel can anchor to it (and stay put
+  // when the modal behind it scrolls)
+  const measure = () => {
+    if (ref.current) setRect(ref.current.getBoundingClientRect());
+  };
+  useEffect(() => {
+    if (!open) return undefined;
+    measure();
+    const onScroll = () => measure();
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [open]);
+
   useEffect(() => {
     const onDoc = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      const inTrigger = ref.current && ref.current.contains(e.target);
+      const inPanel = panelRef.current && panelRef.current.contains(e.target);
+      if (!inTrigger && !inPanel) setOpen(false);
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -90,15 +115,30 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
         </span>
       </button>
 
-      <AnimatePresence>
-        {open && (
+      {mounted && createPortal(
+        <AnimatePresence>
+        {open && rect && (
           <motion.div
+            ref={panelRef}
             className="jx-dd__panel jx-dtp"
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.13 }}
-            style={{ padding: "var(--space-3)" }}
+            style={{
+              position: "fixed",
+              left: Math.max(8, Math.min(rect.left, window.innerWidth - 308)),
+              top:
+                rect.bottom + 6 + 384 > window.innerHeight && rect.top > 384
+                  ? Math.max(8, rect.top - 384 - 6)
+                  : rect.bottom + 6,
+              width: 300,
+              maxWidth: "calc(100vw - 16px)",
+              maxHeight: "min(420px, calc(100vh - 16px))",
+              overflowY: "auto",
+              zIndex: 6000,
+              padding: "var(--space-3)",
+            }}
           >
             {/* quick ranges */}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: "var(--space-2)" }}>
@@ -178,7 +218,9 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 }

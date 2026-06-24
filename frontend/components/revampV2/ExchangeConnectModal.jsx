@@ -152,7 +152,7 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 10 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="jx-ltmodal jx-ltmodal--narrow"
+            className="jx-ltmodal jx-ltmodal--narrow jx-ltmodal--popup"
             style={{ width: "min(620px, 96vw)" }}
           >
             {/* header */}

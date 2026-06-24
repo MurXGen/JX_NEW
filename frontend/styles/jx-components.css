@@ -689,6 +689,9 @@ body::before {
 .jx-shell__main > * {
   min-width: 0;
   max-width: 100%;
+  /* never let a tall panel shrink below its content — otherwise it overflows
+     and the bottom spacer overlaps it, swallowing clicks on lower rows */
+  flex-shrink: 0;
 }
 .jx-acc__inner {
   overflow: hidden;
@@ -1277,6 +1280,20 @@ body::before {
     max-height: 100dvh;
     height: 100dvh;
     border-radius: 0;
+  }
+  /* compact dialogs (confirm, avatar, quick-result, etc.) stay as centered
+     popups instead of full-screen sheets */
+  .jx-modal-overlay:has(.jx-ltmodal--popup) {
+    align-items: center;
+    padding: var(--space-4);
+  }
+  .jx-ltmodal--popup,
+  .jx-ltmodal--popup.jx-ltmodal--narrow {
+    width: min(440px, 92vw) !important;
+    max-width: 92vw !important;
+    height: auto !important;
+    max-height: 88dvh !important;
+    border-radius: var(--radius-lg) !important;
   }
 }
 
@@ -1979,12 +1996,10 @@ body::before {
   }
 }
 
-/* mobile journal+theme row: show only the row on phones (the old
-   standalone bar rule still hides on desktop) */
-@media (max-width: 768px) {
-  .jx-mobile-journalrow {
-    display: flex !important;
-  }
+/* mobile journal+theme row: removed on mobile — the journal switch + theme
+   toggle now live inside Settings (above profile), so this top bar is gone. */
+.jx-mobile-journalrow {
+  display: none !important;
 }
 
 /* PWA install banner: phones only (desktop uses the sidebar item) */
@@ -2180,7 +2195,8 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+  /* no own side padding — the dashboard main already pads the page */
+  padding: 0 0 var(--space-4);
 }
 .jx-settings__profilecard {
   display: flex;
@@ -2247,33 +2263,57 @@ body::before {
   margin-top: var(--space-2);
 }
 
-/* full-screen section header with a back button */
+/* section header with a back button — no background, no padding, just the
+   control + title so it reads as part of the page */
 .jx-settings__mhead {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  padding: var(--space-3) var(--space-2);
-  margin: 0 0 var(--space-2);
-  background: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
+  gap: 6px;
+  padding: 0;
+  margin: 0 0 var(--space-3) -6px;
+  background: transparent;
+  border: none;
 }
 .jx-settings__mback {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px; height: 36px;
+  width: 32px; height: 32px;
   border-radius: var(--radius-md);
   border: none;
   background: transparent;
   color: var(--color-text-primary);
   cursor: pointer;
 }
-.jx-settings__mback:active { background: var(--color-bg-muted); }
 .jx-settings__mtitle { font: var(--text-h3); font-weight: 700; }
-.jx-settings--mobile .jx-settings__content { padding: 0 var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom)); gap: var(--space-4); }
+/* no own side padding in page mode — main provides it */
+.jx-settings--mobile .jx-settings__content { padding: 0 0 calc(var(--space-4) + env(safe-area-inset-bottom)); gap: var(--space-4); }
+
+/* quick controls (switch journal + theme) shown above profile */
+.jx-settings__quick {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.jx-settings__quickrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 12px var(--space-4);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+.jx-settings__quick .jx-settings__quickrow:last-child { border-bottom: none; }
+.jx-settings__quickrow:disabled { cursor: default; }
 
 /* ============================================================
    Dashboard density — render the content at ~90% on desktop so it
