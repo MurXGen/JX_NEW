@@ -6,6 +6,8 @@
    so adding a post updates their lastmod and prompts a recrawl. */
 import { getAllPosts, SITE_URL } from "@/utils/blogs";
 import { MARKET_SLUGS } from "@/data/marketPages";
+import { BROKER_SLUGS } from "@/data/brokerPages";
+import { PROP_FIRM_SLUGS } from "@/data/propFirmPages";
 
 /* Last meaningful content update for static/legal pages. Bump this only when
    the page itself actually changes, so we never feed Google a fake lastmod. */
@@ -17,6 +19,14 @@ const STATIC = [
   { path: "/blog", priority: "0.9", freq: "daily", dynamic: true },
   { path: "/features", priority: "0.9", freq: "monthly" },
   ...MARKET_SLUGS.map((s) => ({ path: `/${s}`, priority: "0.8", freq: "monthly" })),
+  // Programmatic SEO: per-broker + per-prop-firm landing pages
+  ...BROKER_SLUGS.map((s) => ({ path: `/${s}`, priority: "0.7", freq: "monthly" })),
+  ...PROP_FIRM_SLUGS.map((s) => ({ path: `/${s}`, priority: "0.7", freq: "monthly" })),
+  // Free calculator tools
+  { path: "/tools", priority: "0.7", freq: "monthly" },
+  { path: "/tools/position-size-calculator", priority: "0.6", freq: "monthly" },
+  { path: "/tools/r-multiple-calculator", priority: "0.6", freq: "monthly" },
+  { path: "/tools/risk-of-ruin-calculator", priority: "0.6", freq: "monthly" },
   { path: "/pricing", priority: "0.8", freq: "monthly" },
   { path: "/contact", priority: "0.5", freq: "monthly" },
   { path: "/privacy-policy", priority: "0.3", freq: "yearly" },
