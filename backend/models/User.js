@@ -86,6 +86,7 @@ const userSchema = new mongoose.Schema(
     trialUsed: { type: Boolean, default: false },
 
     paddleCustomerId: { type: String },
+    paddleSubscriptionId: { type: String },
 
     // where the active subscription was purchased (web Paddle, app Play, crypto)
     subscriptionSource: {

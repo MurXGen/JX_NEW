@@ -86,6 +86,22 @@ class PaddleService {
       throw error;
     }
   }
+
+  // Get subscription details — used to confirm a recurring plan when a
+  // transaction belongs to a subscription (the authoritative "is it active"
+  // signal for monthly/yearly).
+  async getSubscription(subscriptionId) {
+    try {
+      const response = await this.client.get(`/subscriptions/${subscriptionId}`);
+      return response.data; // { data: { id, status, items, current_billing_period, custom_data, customer_id, ... } }
+    } catch (error) {
+      console.error(
+        "Error getting subscription:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  }
 }
 
 const paddleService = new PaddleService();

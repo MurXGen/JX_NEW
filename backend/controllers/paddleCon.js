@@ -46,27 +46,75 @@ function verifyPaddleSignature(req) {
   }
 }
 
-// Map a Paddle transaction object → our plan/type/expiry.
-// One-time / lifetime prices have billing_cycle: null; recurring have month/year.
+// Core classifier shared by transactions and subscriptions.
+//   - One-time / lifetime prices have billing_cycle: null.
+//   - Recurring prices have billing_cycle.interval = "month" | "year".
+//   - A record that belongs to a subscription is NEVER lifetime, even if we
+//     can't see its billing_cycle (Paddle doesn't always expand it).
+function classifyByPrice({ priceId, billingCycle, endsAt, isSubscription }) {
+  const isMonthlyId = !!priceId && priceId === process.env.PADDLE_MONTHLY_PRICE_ID;
+  const isYearlyId = !!priceId && priceId === process.env.PADDLE_YEARLY_PRICE_ID;
+  const isLifetimeId = !!priceId && priceId === process.env.PADDLE_LIFETIME_PRICE_ID;
+
+  // Lifetime only for genuine one-time purchases (no subscription attached).
+  if (!isSubscription && (isLifetimeId || (!isMonthlyId && !isYearlyId && !billingCycle))) {
+    return { plan: "lifetime", type: "lifetime", expiresAt: null };
+  }
+  // Anything recurring (by id, by billing cycle, or simply because it's a
+  // subscription) → pro/recurring.
+  if (isSubscription || isYearlyId || isMonthlyId || billingCycle?.interval === "year" || billingCycle?.interval === "month") {
+    return { plan: "pro", type: "recurring", expiresAt: endsAt || null };
+  }
+  return { plan: "free", type: "none", expiresAt: null };
+}
+
+// Map a Paddle TRANSACTION object → our plan/type/expiry.
 function classifyTransaction(data) {
   const item = data.items?.[0] || {};
   const priceId = item.price?.id || data.details?.line_items?.[0]?.price_id;
   const billingCycle = item.price?.billing_cycle;
   const endsAt = data.billing_period?.ends_at ? new Date(data.billing_period.ends_at) : null;
+  const isSubscription = !!data.subscription_id;
+  return { ...classifyByPrice({ priceId, billingCycle, endsAt, isSubscription }), priceId, billingCycle };
+}
 
-  const isMonthlyId = !!priceId && priceId === process.env.PADDLE_MONTHLY_PRICE_ID;
-  const isYearlyId = !!priceId && priceId === process.env.PADDLE_YEARLY_PRICE_ID;
-  const isLifetimeId = !!priceId && priceId === process.env.PADDLE_LIFETIME_PRICE_ID;
+// Map a Paddle SUBSCRIPTION object → our plan/type/expiry/status.
+function classifySubscription(sub) {
+  const item = sub.items?.[0] || {};
+  const priceId = item.price?.id;
+  const billingCycle = item.price?.billing_cycle;
+  const endsAt =
+    sub.current_billing_period?.ends_at ? new Date(sub.current_billing_period.ends_at)
+    : sub.next_billed_at ? new Date(sub.next_billed_at)
+    : null;
+  const cls = classifyByPrice({ priceId, billingCycle, endsAt, isSubscription: true });
+  // Paddle subscription statuses: active | trialing | past_due | paused | canceled
+  const active = sub.status === "active" || sub.status === "trialing";
+  return { ...cls, priceId, expiresAt: endsAt, subStatus: sub.status, active };
+}
 
-  let plan = "free", type = "none", expiresAt = null;
-  if (isLifetimeId || (!isMonthlyId && !isYearlyId && !billingCycle)) {
-    plan = "lifetime"; type = "lifetime"; expiresAt = null;
-  } else if (isYearlyId || billingCycle?.interval === "year") {
-    plan = "pro"; type = "recurring"; expiresAt = endsAt;
-  } else if (isMonthlyId || billingCycle?.interval === "month") {
-    plan = "pro"; type = "recurring"; expiresAt = endsAt;
+// Resolve our User from a webhook/transaction/subscription payload:
+//   custom_data.userId → customer email (inline) → Paddle API by customer_id.
+async function resolveUserFromData(data) {
+  const userId = data.custom_data?.userId;
+  if (userId) {
+    try { const u = await User.findById(userId); if (u) return u; } catch { /* invalid id */ }
   }
-  return { plan, type, expiresAt, priceId, billingCycle };
+  const inlineEmail = (data.customer?.email || "").toLowerCase();
+  if (inlineEmail) {
+    const u = await User.findOne({ email: inlineEmail });
+    if (u) return u;
+  }
+  if (data.customer_id && process.env.PADDLE_API_KEY) {
+    try {
+      const cust = await paddle.getCustomer(data.customer_id);
+      const apiEmail = (cust?.data?.email || "").toLowerCase();
+      if (apiEmail) return await User.findOne({ email: apiEmail });
+    } catch (e) {
+      console.error("[PADDLE] getCustomer failed:", e?.response?.status, e?.message);
+    }
+  }
+  return null;
 }
 
 // Apply a classified plan to a user doc (does NOT save). Enforces lifetime
@@ -103,11 +151,7 @@ exports.verifyPaddleTransaction = async (req, res) => {
     const txn = apiResp?.data;
     if (!txn) return res.status(404).json({ message: "Transaction not found" });
 
-    console.log(`[PADDLE-VERIFY] user=${userId} txn=${transactionId} status=${txn.status} custom_userId=${txn.custom_data?.userId || "none"}`);
-
-    if (!["completed", "paid", "billed"].includes(txn.status)) {
-      return res.status(202).json({ pending: true, status: txn.status });
-    }
+    console.log(`[PADDLE-VERIFY] user=${userId} txn=${transactionId} status=${txn.status} sub=${txn.subscription_id || "none"} custom_userId=${txn.custom_data?.userId || "none"}`);
 
     // security: if the transaction carries a userId, it must be this user
     const txnUserId = txn.custom_data?.userId;
@@ -119,8 +163,35 @@ exports.verifyPaddleTransaction = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const cls = classifyTransaction(txn);
-    if (cls.plan === "free") return res.status(200).json({ changed: false, reason: "unrecognised-plan" });
+    // Classify. For RECURRING plans the first charge can still be authorizing
+    // when the browser fires checkout.completed, so a one-time-style "is the
+    // transaction completed?" check fails. Instead, confirm via the
+    // subscription object — if Paddle says it's active/trialing, the payment
+    // was authorized and we grant Pro immediately.
+    let cls = null;
+    if (txn.subscription_id) {
+      try {
+        const subResp = await paddle.getSubscription(txn.subscription_id);
+        const sub = subResp?.data;
+        if (sub) {
+          const sc = classifySubscription(sub);
+          console.log(`[PADDLE-VERIFY] subscription ${txn.subscription_id} status=${sub.status} → ${sc.plan}/${sc.type} active=${sc.active}`);
+          if (sc.active && sc.plan !== "free") cls = sc;
+        }
+      } catch (e) {
+        console.error("[PADDLE-VERIFY] getSubscription failed:", e?.response?.status, e?.message);
+      }
+    }
+
+    // One-time (lifetime) path, or recurring fallback: require a completed txn.
+    if (!cls) {
+      if (!["completed", "paid", "billed"].includes(txn.status)) {
+        return res.status(202).json({ pending: true, status: txn.status });
+      }
+      cls = classifyTransaction(txn);
+    }
+
+    if (!cls || cls.plan === "free") return res.status(200).json({ changed: false, reason: "unrecognised-plan" });
 
     if (user.subscriptionPlan === "lifetime" && cls.plan !== "lifetime") {
       return res.status(200).json({ changed: false, plan: "lifetime", reason: "lifetime-sticky" });
@@ -164,13 +235,56 @@ exports.handlePaddleWebhook = async (req, res) => {
     const event = JSON.parse(req.body.toString());
     console.log(`[PADDLE-WH] event_type: ${event.event_type} | event_id: ${event.event_id || "n/a"}`);
 
-    // 2️⃣ Only handle successful payments
-    if (event.event_type !== "transaction.completed") {
-      console.log(`[PADDLE-WH] ignoring (not transaction.completed)`);
-      return res.status(200).send("Ignored");
+    const data = event.data;
+
+    // 2️⃣a Subscription lifecycle — this is how monthly/yearly get authorised.
+    //     Paddle confirms a recurring plan via subscription.activated/created/
+    //     updated (the first charge's transaction.completed also fires, handled
+    //     below, but the subscription event is the authoritative signal).
+    const SUB_EVENTS = [
+      "subscription.activated",
+      "subscription.created",
+      "subscription.updated",
+      "subscription.canceled",
+    ];
+    if (SUB_EVENTS.includes(event.event_type)) {
+      const sub = data;
+      console.log(`[PADDLE-WH] ${event.event_type} sub=${sub.id} status=${sub.status} custom=${sub.custom_data?.userId || "none"} cust=${sub.customer_id || "none"}`);
+      const subUser = await resolveUserFromData(sub);
+      if (!subUser) {
+        console.warn(`⚠️ [PADDLE-WH] ${event.event_type}: no matching user — ignoring.`);
+        return res.status(200).json({ received: true, matched: false });
+      }
+      // never downgrade a lifetime user from a recurring event
+      if (subUser.subscriptionPlan === "lifetime") {
+        console.log(`[PADDLE-WH] ${subUser.email} is lifetime — ignoring ${event.event_type}.`);
+        return res.status(200).json({ received: true, changed: false, reason: "lifetime-sticky" });
+      }
+      const sc = classifySubscription(sub);
+      if (sc.plan === "free") {
+        console.warn(`⚠️ [PADDLE-WH] ${event.event_type}: unrecognised price ${sc.priceId} — not changing ${subUser.email}.`);
+        return res.status(200).json({ received: true, changed: false });
+      }
+      subUser.subscriptionPlan = sc.plan;             // "pro"
+      subUser.subscriptionType = sc.type;             // "recurring"
+      subUser.subscriptionStatus = sc.active ? "active" : (sub.status || "canceled");
+      subUser.subscriptionSource = "paddle";
+      const startSrc = sub.started_at || sub.first_billed_at || sub.created_at;
+      if (startSrc) subUser.subscriptionStartAt = new Date(startSrc);
+      subUser.subscriptionExpiresAt = sc.expiresAt;
+      subUser.subscriptionCreatedAt = new Date();
+      subUser.paddleCustomerId = sub.customer_id || subUser.paddleCustomerId;
+      subUser.paddleSubscriptionId = sub.id || subUser.paddleSubscriptionId;
+      await subUser.save();
+      console.log(`✅ [PADDLE-WH] ${event.event_type}: ${subUser.email} → ${sc.plan}/${sc.type} status=${subUser.subscriptionStatus} expires=${sc.expiresAt || "—"}`);
+      return res.status(200).json({ received: true, changed: true });
     }
 
-    const data = event.data;
+    // 2️⃣b One-time / first-charge payments
+    if (event.event_type !== "transaction.completed") {
+      console.log(`[PADDLE-WH] ignoring (${event.event_type})`);
+      return res.status(200).send("Ignored");
+    }
     console.log("[PADDLE-WH] txn diagnostics:", JSON.stringify({
       transactionId: data?.id,
       custom_data: data?.custom_data,
@@ -236,42 +350,14 @@ exports.handlePaddleWebhook = async (req, res) => {
       return res.status(200).json({ received: true, matched: false });
     }
 
-    // 3️⃣ Determine plan
-    const item = data.items?.[0] || {};
-    // price can be at item.price (transaction.completed) or via line_items.
-    const priceId = item.price?.id || data.details?.line_items?.[0]?.price_id;
-    // For one-time / lifetime prices Paddle sends billing_cycle: null.
-    // Recurring prices have billing_cycle.interval = "month" | "year".
-    const billingCycle = item.price?.billing_cycle;
-    const endsAt = data.billing_period?.ends_at ? new Date(data.billing_period.ends_at) : null;
-
-    const isMonthlyId = !!priceId && priceId === process.env.PADDLE_MONTHLY_PRICE_ID;
-    const isYearlyId = !!priceId && priceId === process.env.PADDLE_YEARLY_PRICE_ID;
-    const isLifetimeId = !!priceId && priceId === process.env.PADDLE_LIFETIME_PRICE_ID;
-
-    let plan = "free";
-    let type = "none";
-    let expiresAt = null;
-
-    if (isLifetimeId || (!isMonthlyId && !isYearlyId && !billingCycle)) {
-      // explicit lifetime price, OR any one-time price (no billing cycle) we
-      // didn't recognise by ID — treat as lifetime so a config mismatch never
-      // silently downgrades a paying customer.
-      plan = "lifetime";
-      type = "lifetime";
-      expiresAt = null;
-    } else if (isYearlyId || billingCycle?.interval === "year") {
-      plan = "pro";
-      type = "recurring";
-      expiresAt = endsAt;
-    } else if (isMonthlyId || billingCycle?.interval === "month") {
-      plan = "pro";
-      type = "recurring";
-      expiresAt = endsAt;
-    }
+    // 3️⃣ Determine plan (subscription-aware: a txn with a subscription_id is
+    //     recurring, never lifetime — even if the price/billing_cycle isn't
+    //     expanded in this payload).
+    const cls = classifyTransaction(data);
+    const { plan, type, expiresAt, priceId, billingCycle } = cls;
 
     console.log(
-      `🧾 Paddle txn — priceId=${priceId} cycle=${billingCycle?.interval || "none"} → plan=${plan}/${type}`,
+      `🧾 Paddle txn — priceId=${priceId} cycle=${billingCycle?.interval || "none"} sub=${data.subscription_id || "none"} → plan=${plan}/${type}`,
     );
 
     // Unknown price (couldn't classify) — don't downgrade a user; just ack.
@@ -322,6 +408,7 @@ exports.handlePaddleWebhook = async (req, res) => {
     user.subscriptionExpiresAt = expiresAt;
     user.subscriptionCreatedAt = new Date();
     user.paddleCustomerId = data.customer_id || data.customer?.id;
+    if (data.subscription_id) user.paddleSubscriptionId = data.subscription_id;
 
     user.orders.push({
       orderId: order._id,
