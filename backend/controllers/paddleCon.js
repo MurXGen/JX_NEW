@@ -147,51 +147,66 @@ exports.verifyPaddleTransaction = async (req, res) => {
     if (!transactionId) return res.status(400).json({ message: "transactionId required" });
     if (!process.env.PADDLE_API_KEY) return res.status(500).json({ message: "Paddle API key not configured" });
 
-    const apiResp = await paddle.getTransaction(transactionId);
-    const txn = apiResp?.data;
-    if (!txn) return res.status(404).json({ message: "Transaction not found" });
-
-    console.log(`[PADDLE-VERIFY] user=${userId} txn=${transactionId} status=${txn.status} sub=${txn.subscription_id || "none"} custom_userId=${txn.custom_data?.userId || "none"}`);
-
-    // security: if the transaction carries a userId, it must be this user
-    const txnUserId = txn.custom_data?.userId;
-    if (txnUserId && String(txnUserId) !== String(userId)) {
-      console.warn(`[PADDLE-VERIFY] txn userId ${txnUserId} != caller ${userId} — refusing`);
-      return res.status(403).json({ message: "Transaction does not belong to this user" });
-    }
-
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Classify. For RECURRING plans the first charge can still be authorizing
-    // when the browser fires checkout.completed, so a one-time-style "is the
-    // transaction completed?" check fails. Instead, confirm via the
-    // subscription object — if Paddle says it's active/trialing, the payment
-    // was authorized and we grant Pro immediately.
+    // A subscription's first transaction can still be `ready`/`billed` and its
+    // `subscription_id` can populate a beat AFTER the browser fires
+    // checkout.completed. A single immediate read therefore races the
+    // subscription's creation (this is exactly why monthly/yearly looked like
+    // they "didn't activate" while one-time lifetime did). So poll briefly:
+    // fetch the transaction, and if it belongs to a subscription confirm via
+    // the subscription object; otherwise classify a completed transaction.
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    let txn = null;
     let cls = null;
-    if (txn.subscription_id) {
+    let lastStatus = "unknown";
+
+    for (let attempt = 0; attempt < 4 && !cls; attempt++) {
+      if (attempt > 0) await sleep(1500);
       try {
-        const subResp = await paddle.getSubscription(txn.subscription_id);
-        const sub = subResp?.data;
-        if (sub) {
-          const sc = classifySubscription(sub);
-          console.log(`[PADDLE-VERIFY] subscription ${txn.subscription_id} status=${sub.status} → ${sc.plan}/${sc.type} active=${sc.active}`);
-          if (sc.active && sc.plan !== "free") cls = sc;
-        }
+        txn = (await paddle.getTransaction(transactionId))?.data || null;
       } catch (e) {
-        console.error("[PADDLE-VERIFY] getSubscription failed:", e?.response?.status, e?.message);
+        console.error("[PADDLE-VERIFY] getTransaction failed:", e?.response?.status, e?.message);
+        continue;
+      }
+      if (!txn) continue;
+      lastStatus = txn.status;
+
+      // security: a txn carrying a userId must belong to this user
+      const txnUserId = txn.custom_data?.userId;
+      if (txnUserId && String(txnUserId) !== String(userId)) {
+        console.warn(`[PADDLE-VERIFY] txn userId ${txnUserId} != caller ${userId} — refusing`);
+        return res.status(403).json({ message: "Transaction does not belong to this user" });
+      }
+
+      console.log(`[PADDLE-VERIFY] try#${attempt} txn=${transactionId} status=${txn.status} sub=${txn.subscription_id || "none"} custom=${txnUserId || "none"}`);
+
+      // recurring → confirm via the subscription (active/trialing = authorized)
+      if (txn.subscription_id) {
+        try {
+          const sub = (await paddle.getSubscription(txn.subscription_id))?.data;
+          if (sub) {
+            const sc = classifySubscription(sub);
+            console.log(`[PADDLE-VERIFY] sub ${txn.subscription_id} status=${sub.status} → ${sc.plan}/${sc.type} active=${sc.active}`);
+            if (sc.active && sc.plan !== "free") cls = sc;
+          }
+        } catch (e) {
+          console.error("[PADDLE-VERIFY] getSubscription failed:", e?.response?.status, e?.message);
+        }
+      }
+
+      // one-time (lifetime) or recurring fallback: a completed txn we can map
+      if (!cls && ["completed", "paid", "billed"].includes(txn.status)) {
+        const c = classifyTransaction(txn);
+        if (c.plan !== "free") cls = c;
       }
     }
 
-    // One-time (lifetime) path, or recurring fallback: require a completed txn.
-    if (!cls) {
-      if (!["completed", "paid", "billed"].includes(txn.status)) {
-        return res.status(202).json({ pending: true, status: txn.status });
-      }
-      cls = classifyTransaction(txn);
-    }
-
-    if (!cls || cls.plan === "free") return res.status(200).json({ changed: false, reason: "unrecognised-plan" });
+    // Still not resolved → tell the client it's pending; the webhook
+    // (subscription.activated / transaction.completed) is the backstop, and the
+    // success screen keeps polling user-info.
+    if (!cls) return res.status(202).json({ pending: true, status: lastStatus });
 
     if (user.subscriptionPlan === "lifetime" && cls.plan !== "lifetime") {
       return res.status(200).json({ changed: false, plan: "lifetime", reason: "lifetime-sticky" });
