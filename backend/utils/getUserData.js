@@ -5,50 +5,59 @@ const Order = require("../models/Orders");
 const User = require("../models/User");
 
 // ---------------------------------------------------------------
-// 🔹 Compute correct subscription status
+// 🔹 Reconcile the subscription at read time.
+//    Returns the CORRECT { plan, type, status } — and crucially DOWNGRADES a
+//    non-lifetime plan to free once it has expired or been canceled, so access
+//    actually drops (not just a stale "pro/expired").
 // ---------------------------------------------------------------
-function computeSubscriptionStatus(user) {
+function reconcileSubscription(user) {
   const now = new Date();
 
-  // Lifetime plan
+  // Lifetime is permanent.
   if (user.subscriptionPlan === "lifetime") {
-    return "active";
+    return { plan: "lifetime", type: "lifetime", status: "active" };
   }
 
-  // No subscription ever
-  if (!user.subscriptionStartAt && !user.subscriptionExpiresAt) {
-    return "none";
+  const exp = user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) : null;
+
+  // Never subscribed.
+  if (!user.subscriptionStartAt && !exp && (user.subscriptionPlan || "free") === "free") {
+    return { plan: "free", type: "none", status: "none" };
   }
 
-  // One-time pro plans (monthly/yearly from crypto)
-  if (user.subscriptionType === "one-time") {
-    if (!user.subscriptionExpiresAt) return "active";
-    return new Date(user.subscriptionExpiresAt) > now ? "active" : "expired";
+  // Lapsed (expiry passed) OR explicitly canceled → downgrade to free.
+  if ((exp && exp.getTime() <= now.getTime()) || user.subscriptionStatus === "canceled") {
+    return { plan: "free", type: "none", status: "expired" };
   }
 
-  // Recurring plans
-  if (user.subscriptionType === "recurring") {
-    if (!user.subscriptionExpiresAt) return "active";
-    return new Date(user.subscriptionExpiresAt) > now ? "active" : "expired";
+  // Active: within the paid period (or no expiry recorded, e.g. lifetime-like).
+  if (user.subscriptionPlan && user.subscriptionPlan !== "free") {
+    return { plan: user.subscriptionPlan, type: user.subscriptionType || "recurring", status: "active" };
   }
 
-  return "none";
+  return { plan: "free", type: "none", status: "none" };
 }
 
 // ---------------------------------------------------------------
 // 🔹 Load everything for logged-in user
 // ---------------------------------------------------------------
 async function getUserData(user) {
-  // Compute fresh status
-  const newStatus = computeSubscriptionStatus(user);
+  // Reconcile plan + type + status (handles expiry/cancellation downgrades).
+  const recon = reconcileSubscription(user);
+  const changed =
+    user.subscriptionPlan !== recon.plan ||
+    user.subscriptionType !== recon.type ||
+    user.subscriptionStatus !== recon.status;
 
-  // Update DB ONLY IF status is actually different
-  if (user.subscriptionStatus !== newStatus) {
+  if (changed) {
     await User.findByIdAndUpdate(user._id, {
-      subscriptionStatus: newStatus,
+      subscriptionPlan: recon.plan,
+      subscriptionType: recon.type,
+      subscriptionStatus: recon.status,
     });
-
-    user.subscriptionStatus = newStatus; // update local object too
+    user.subscriptionPlan = recon.plan;
+    user.subscriptionType = recon.type;
+    user.subscriptionStatus = recon.status;
   }
 
   // 1️⃣ Fetch accounts

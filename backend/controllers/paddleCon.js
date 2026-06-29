@@ -56,15 +56,18 @@ function classifyByPrice({ priceId, billingCycle, endsAt, isSubscription }) {
   const isYearlyId = !!priceId && priceId === process.env.PADDLE_YEARLY_PRICE_ID;
   const isLifetimeId = !!priceId && priceId === process.env.PADDLE_LIFETIME_PRICE_ID;
 
-  // Lifetime only for genuine one-time purchases (no subscription attached).
-  if (!isSubscription && (isLifetimeId || (!isMonthlyId && !isYearlyId && !billingCycle))) {
-    return { plan: "lifetime", type: "lifetime", expiresAt: null };
-  }
-  // Anything recurring (by id, by billing cycle, or simply because it's a
-  // subscription) → pro/recurring.
-  if (isSubscription || isYearlyId || isMonthlyId || billingCycle?.interval === "year" || billingCycle?.interval === "month") {
+  // RECURRING first — anything that's a subscription, a known monthly/yearly
+  // price, or carries a billing cycle. (Checked before lifetime so a
+  // subscription can NEVER be mistaken for lifetime.)
+  if (isSubscription || isMonthlyId || isYearlyId || billingCycle?.interval === "month" || billingCycle?.interval === "year") {
     return { plan: "pro", type: "recurring", expiresAt: endsAt || null };
   }
+  // LIFETIME only for the explicit lifetime price — never "assume" lifetime for
+  // an unknown one-time price (that's what wrongly upgraded monthly buyers).
+  if (isLifetimeId) {
+    return { plan: "lifetime", type: "lifetime", expiresAt: null };
+  }
+  // Unknown / unrecognised price → don't change anything; log upstream.
   return { plan: "free", type: "none", expiresAt: null };
 }
 
@@ -280,18 +283,35 @@ exports.handlePaddleWebhook = async (req, res) => {
         console.warn(`⚠️ [PADDLE-WH] ${event.event_type}: unrecognised price ${sc.priceId} — not changing ${subUser.email}.`);
         return res.status(200).json({ received: true, changed: false });
       }
-      subUser.subscriptionPlan = sc.plan;             // "pro"
-      subUser.subscriptionType = sc.type;             // "recurring"
-      subUser.subscriptionStatus = sc.active ? "active" : (sub.status || "canceled");
+
+      // Map Paddle's subscription status → our access state, applying downgrades.
+      //   active / trialing / past_due → Pro active (past_due = payment-retry grace)
+      //   paused / canceled            → downgrade to free/expired
+      let nPlan = sc.plan;        // "pro"
+      let nType = sc.type;        // "recurring"
+      let nStatus;
+      const st = (sub.status || "").toLowerCase();
+      if (st === "active" || st === "trialing" || st === "past_due") {
+        nStatus = "active";
+      } else if (st === "paused" || st === "canceled") {
+        nPlan = "free"; nType = "none"; nStatus = "expired";   // ← downgrade
+      } else {
+        nStatus = "active";
+      }
+
+      subUser.subscriptionPlan = nPlan;
+      subUser.subscriptionType = nType;
+      subUser.subscriptionStatus = nStatus;
       subUser.subscriptionSource = "paddle";
       const startSrc = sub.started_at || sub.first_billed_at || sub.created_at;
       if (startSrc) subUser.subscriptionStartAt = new Date(startSrc);
-      subUser.subscriptionExpiresAt = sc.expiresAt;
+      subUser.subscriptionExpiresAt = sc.expiresAt;            // period end (kept for history)
       subUser.subscriptionCreatedAt = new Date();
+      if (sub.next_billed_at) subUser.nextBillingDate = new Date(sub.next_billed_at);
       subUser.paddleCustomerId = sub.customer_id || subUser.paddleCustomerId;
       subUser.paddleSubscriptionId = sub.id || subUser.paddleSubscriptionId;
       await subUser.save();
-      console.log(`✅ [PADDLE-WH] ${event.event_type}: ${subUser.email} → ${sc.plan}/${sc.type} status=${subUser.subscriptionStatus} expires=${sc.expiresAt || "—"}`);
+      console.log(`✅ [PADDLE-WH] ${event.event_type}: ${subUser.email} → ${nPlan}/${nType} status=${nStatus} expires=${sc.expiresAt || "—"} (paddle status=${st})`);
       return res.status(200).json({ received: true, changed: true });
     }
 
