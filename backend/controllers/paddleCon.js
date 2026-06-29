@@ -75,9 +75,12 @@ function classifyByPrice({ priceId, billingCycle, endsAt, isSubscription }) {
 function classifyTransaction(data) {
   const item = data.items?.[0] || {};
   const priceId = item.price?.id || data.details?.line_items?.[0]?.price_id;
-  const billingCycle = item.price?.billing_cycle;
+  const billingCycle = item.price?.billing_cycle || data.details?.line_items?.[0]?.price?.billing_cycle;
   const endsAt = data.billing_period?.ends_at ? new Date(data.billing_period.ends_at) : null;
-  const isSubscription = !!data.subscription_id;
+  // A transaction is recurring if it's tied to a subscription OR carries a
+  // billing_period (Paddle sets this only for subscription charges) OR has a
+  // billing_cycle on its price. Any of these → recurring, never lifetime.
+  const isSubscription = !!data.subscription_id || !!data.billing_period;
   return { ...classifyByPrice({ priceId, billingCycle, endsAt, isSubscription }), priceId, billingCycle };
 }
 
@@ -183,7 +186,20 @@ exports.verifyPaddleTransaction = async (req, res) => {
         return res.status(403).json({ message: "Transaction does not belong to this user" });
       }
 
-      console.log(`[PADDLE-VERIFY] try#${attempt} txn=${transactionId} status=${txn.status} sub=${txn.subscription_id || "none"} custom=${txnUserId || "none"}`);
+      // Verbose diagnostics — shows EXACTLY what we're classifying against, so
+      // a failing monthly/yearly reveals its cause (price id mismatch, missing
+      // billing_cycle, wrong env, etc.) right here in the logs.
+      const dItem = txn.items?.[0] || {};
+      console.log(`[PADDLE-VERIFY] try#${attempt} txn=${transactionId}`, JSON.stringify({
+        status: txn.status,
+        subscription_id: txn.subscription_id || null,
+        has_billing_period: !!txn.billing_period,
+        priceId: dItem.price?.id || txn.details?.line_items?.[0]?.price_id || null,
+        billing_cycle: dItem.price?.billing_cycle || null,
+        env_monthly: process.env.PADDLE_MONTHLY_PRICE_ID || "(unset)",
+        env_yearly: process.env.PADDLE_YEARLY_PRICE_ID || "(unset)",
+        env_lifetime: process.env.PADDLE_LIFETIME_PRICE_ID || "(unset)",
+      }));
 
       // recurring → confirm via the subscription (active/trialing = authorized)
       if (txn.subscription_id) {

@@ -29,6 +29,49 @@ export const toolInput = {
 };
 export const toolLabel = { font: "400 12px Poppins", color: TC.dim, marginBottom: 6, display: "block" };
 
+/* "How this is calculated" — shows the formula with the user's real numbers
+   plugged in, so the result is never a black box. Pass an array of strings;
+   the last line is emphasised as the answer. */
+export function WorkedExample({ lines = [], title = "How this number is calculated" }) {
+  if (!lines.length) return null;
+  return (
+    <div style={{ marginTop: 16, padding: "14px 16px", borderRadius: 12, background: "rgba(13,17,23,0.6)", border: `1px dashed ${TC.border}` }}>
+      <div style={{ font: "600 11px Poppins", color: TC.dim, textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 8 }}>{title}</div>
+      {lines.map((l, i) => (
+        <div
+          key={i}
+          style={{
+            font: `${i === lines.length - 1 ? 600 : 400} 13.5px/1.8 Poppins`,
+            color: i === lines.length - 1 ? TC.text : TC.muted,
+          }}
+        >
+          {i === lines.length - 1 ? "= " : ""}{l}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Plain-English glossary for the jargon used on this calculator. */
+export function Glossary({ items = [] }) {
+  if (!items.length) return null;
+  return (
+    <div style={{ ...toolCard, padding: 16, marginTop: 16 }}>
+      <div style={{ font: "600 13px Poppins", marginBottom: 10, display: "flex", alignItems: "center", gap: 7 }}>
+        <span aria-hidden="true">📖</span> In plain English
+      </div>
+      <dl style={{ margin: 0 }}>
+        {items.map(([term, def]) => (
+          <div key={term} style={{ marginBottom: 10 }}>
+            <dt style={{ font: "600 13.5px Poppins", color: TC.text }}>{term}</dt>
+            <dd style={{ font: "400 13px/1.6 Poppins", color: TC.muted, margin: "2px 0 0" }}>{def}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 export default function ToolPage({ slug, title, description, keywords = [], h1, intro, faqs = [], explainer = [], related = [], children }) {
   const url = `${SITE_URL}/tools/${slug}`;
   const appLd = {

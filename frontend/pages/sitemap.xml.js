@@ -26,6 +26,8 @@ const STATIC = [
   { path: "/tools", priority: "0.7", freq: "monthly" },
   { path: "/tools/position-size-calculator", priority: "0.6", freq: "monthly" },
   { path: "/tools/r-multiple-calculator", priority: "0.6", freq: "monthly" },
+  { path: "/tools/pnl-calculator", priority: "0.6", freq: "monthly" },
+  { path: "/tools/breakeven-win-rate-calculator", priority: "0.6", freq: "monthly" },
   { path: "/tools/risk-of-ruin-calculator", priority: "0.6", freq: "monthly" },
   { path: "/pricing", priority: "0.8", freq: "monthly" },
   { path: "/contact", priority: "0.5", freq: "monthly" },

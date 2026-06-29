@@ -9,10 +9,18 @@ const { handlePaddleWebhook } = require("../controllers/paddleCon");
 router.get("/health", (req, res) => {
   res.json({
     ok: true,
-    handler: "paddleCon v3 (logging + email fallback)",
+    handler: "paddleCon v5 (subscription-aware verify + lifecycle + diagnostics)",
     paddleApiKeySet: !!process.env.PADDLE_API_KEY,
     paddleEnvironment: process.env.PADDLE_ENVIRONMENT || "(unset → sandbox)",
     webhookSecretSet: !!process.env.PADDLE_WEBHOOK_SECRET,
+    // surface the configured price IDs (so you can eyeball that the monthly/
+    // yearly ones actually match what the checkout uses — the #1 cause of
+    // "subscription doesn't activate but lifetime does")
+    priceIds: {
+      monthly: process.env.PADDLE_MONTHLY_PRICE_ID || "(unset)",
+      yearly: process.env.PADDLE_YEARLY_PRICE_ID || "(unset)",
+      lifetime: process.env.PADDLE_LIFETIME_PRICE_ID || "(unset)",
+    },
     time: new Date().toISOString(),
   });
 });

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import ToolPage, { toolCard, toolInput, toolLabel, TC } from "@/components/tools/ToolPage";
+import ToolPage, { toolCard, toolInput, toolLabel, TC, WorkedExample, Glossary } from "@/components/tools/ToolPage";
 
 const RELATED = [
   { href: "/tools/position-size-calculator", label: "Position Size Calculator" },
+  { href: "/tools/pnl-calculator", label: "Profit / Loss Calculator" },
+  { href: "/tools/breakeven-win-rate-calculator", label: "Breakeven Win-Rate" },
   { href: "/tools/risk-of-ruin-calculator", label: "Risk of Ruin Calculator" },
 ];
 
@@ -22,6 +24,17 @@ export default function RMultipleCalculator() {
   const rMultiple = riskPerUnit > 0 ? pnlPerUnit / riskPerUnit : 0;
   const fmt = (n) => n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
   const rColor = rMultiple >= 0 ? TC.green : TC.red;
+
+  // sanity: for a long the stop sits below entry; for a short, above.
+  const stopWrongSide = riskPerUnit > 0 && ((dir === "long" && st > en) || (dir === "short" && st < en));
+
+  const worked = riskPerUnit > 0
+    ? [
+        `Risk per unit (1R) = |entry − stop| = |${fmt(en)} − ${fmt(st)}| = ₹${fmt(riskPerUnit)}`,
+        `P&L per unit = (exit − entry) ${dir === "short" ? "× −1 (short)" : ""} = ₹${fmt(pnlPerUnit)}`,
+        `R-multiple = P&L per unit ÷ 1R = ₹${fmt(pnlPerUnit)} ÷ ₹${fmt(riskPerUnit)} = ${rMultiple >= 0 ? "+" : ""}${fmt(rMultiple)}R`,
+      ]
+    : [];
 
   const Result = ({ label, value, accent }) => (
     <div style={{ ...toolCard, padding: 16, flex: 1, minWidth: 150 }}>
@@ -82,15 +95,38 @@ export default function RMultipleCalculator() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
-          <Result label="Risk per unit (1R)" value={`₹${fmt(riskPerUnit)}`} />
-          <Result label="P&L per unit" value={`₹${fmt(pnlPerUnit)}`} accent={pnlPerUnit >= 0 ? TC.green : TC.red} />
-          <Result label="R-multiple" value={`${rMultiple >= 0 ? "+" : ""}${fmt(rMultiple)}R`} accent={rColor} />
-        </div>
-        {riskPerUnit === 0 && (
-          <p style={{ font: "400 12px Poppins", color: TC.red, margin: "12px 0 0" }}>Entry and stop can't be equal — there's no risk to measure against.</p>
+        {riskPerUnit === 0 ? (
+          <p style={{ font: "400 12px Poppins", color: TC.red, margin: "16px 0 0" }}>Entry and stop can&apos;t be equal — there&apos;s no risk to measure against.</p>
+        ) : (
+          <>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
+              <Result label="Risk per unit (1R)" value={`₹${fmt(riskPerUnit)}`} />
+              <Result label="P&L per unit" value={`₹${fmt(pnlPerUnit)}`} accent={pnlPerUnit >= 0 ? TC.green : TC.red} />
+              <Result label="R-multiple" value={`${rMultiple >= 0 ? "+" : ""}${fmt(rMultiple)}R`} accent={rColor} />
+            </div>
+
+            <p style={{ font: "400 13px/1.6 Poppins", color: TC.muted, margin: "14px 0 0" }}>
+              This trade made <strong style={{ color: rColor }}>{rMultiple >= 0 ? "+" : ""}{fmt(rMultiple)}R</strong> — you {rMultiple >= 0 ? "made" : "lost"} {fmt(Math.abs(rMultiple))}× the amount you risked.
+            </p>
+
+            {stopWrongSide && (
+              <p style={{ font: "400 12.5px Poppins", color: TC.yellow, margin: "10px 0 0" }}>
+                Heads up: for a {dir} trade the stop usually sits {dir === "long" ? "below" : "above"} the entry. Double-check your stop and direction.
+              </p>
+            )}
+
+            <WorkedExample lines={worked} />
+          </>
         )}
       </div>
+
+      <Glossary
+        items={[
+          ["R-multiple", "Your result measured in units of risk. +3R means you made three times what you risked; −1R means you lost exactly your planned risk (a clean stop-out)."],
+          ["1R (initial risk)", "The distance from your entry to your stop — the most you planned to lose on the trade. It's the yardstick everything else is measured against."],
+          ["Expectancy", "Your average R across many trades. +0.3R expectancy means each trade is worth, on average, 0.3× your risk — the core number that tells you if a strategy makes money."],
+        ]}
+      />
     </ToolPage>
   );
 }
