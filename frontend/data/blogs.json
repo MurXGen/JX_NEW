@@ -6227,6 +6227,451 @@
           "a": "Some firms now restrict or ban ultra-fast execution — often defined as sub-5-second trading — and certain automation, to protect their simulated environments. It won't apply everywhere, but always read the automation and latency rules before scaling a fast or news-driven strategy on a funded account."
         }
       ]
+    },
+    {
+      "slug": "risk-of-ruin-trading-math",
+      "title": "Risk of Ruin: The Survival Math Every Trader Should Run Before Sizing Up",
+      "metaTitle": "Risk of Ruin Trading Math: Formula, Examples & How to Survive | JournalX",
+      "metaDescription": "Risk of ruin decides whether your trading edge ever gets to play out. Here's the math, real examples, and how to push your odds of blowing up toward zero.",
+      "keywords": [
+        "risk of ruin",
+        "risk of ruin formula",
+        "risk of ruin calculator",
+        "how to avoid blowing trading account",
+        "position sizing survival",
+        "trading drawdown math"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-06-30",
+      "featured": false,
+      "excerpt": "You can have a winning strategy and still go broke. Risk of ruin is the math that tells you whether you'll survive long enough for your edge to pay off — and it's almost entirely in your control.",
+      "helpful": {
+        "up": 42,
+        "down": 1,
+        "saves": 40
+      },
+      "tags": [
+        "Risk",
+        "Position sizing",
+        "Drawdown",
+        "Survival"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Here's an uncomfortable truth: you can have a genuinely profitable strategy and still blow up your account. Edge doesn't protect you. Survival does. The reason most traders never see their edge pay off is that a normal, statistically-expected losing streak arrives before the winners do — and they were sized too big to survive it. Risk of ruin is the number that tells you, in advance, how likely that is to happen to you."
+        },
+        {
+          "type": "p",
+          "text": "It's not an exotic concept. It's the single most important piece of math in your trading, and once you've run it once, you size positions differently forever."
+        },
+        {
+          "type": "h2",
+          "text": "What risk of ruin actually means"
+        },
+        {
+          "type": "p",
+          "text": "Risk of ruin (RoR) is the probability that your account will draw down far enough that you can no longer realistically recover — either because you hit zero, breach a hard limit, or fall below the balance your strategy needs to function. It answers the only question that matters before any other metric does: what are the odds I'm knocked out before my edge has a chance to work? If that number is high, your win rate, your R-multiple, and your beautiful backtest are all irrelevant. Dead accounts don't compound."
+        },
+        {
+          "type": "p",
+          "text": "The key insight is that ruin is driven far more by how much you risk per trade than by how good your strategy is. A mediocre edge sized tiny will almost always outlast a brilliant edge sized recklessly."
+        },
+        {
+          "type": "h2",
+          "text": "The formula, in plain language"
+        },
+        {
+          "type": "p",
+          "text": "A commonly cited simplified version of the risk-of-ruin formula looks like this: RoR = (loss rate / (win rate x reward-to-risk))^(account threshold / risk per trade). You don't need to memorize it. The intuition that comes out of it is what matters: ruin falls off a cliff as you (a) lower your risk per trade, (b) raise your win rate, and (c) improve your reward-to-risk. Of those three levers, risk per trade is the one you control completely and instantly."
+        },
+        {
+          "type": "p",
+          "text": "The cleaner way to estimate RoR in practice is a Monte Carlo simulation: take your real win rate and R-distribution from your journal, shuffle thousands of random trade sequences, and count how often a sequence breaches your ruin threshold. This captures streaks and clustering that the tidy formula glosses over, which is exactly where real accounts die."
+        },
+        {
+          "type": "h2",
+          "text": "What the numbers look like"
+        },
+        {
+          "type": "p",
+          "text": "The clearest way to feel risk of ruin is to look at how many consecutive losses different position sizes can absorb before the account is structurally finished. The streaks below are illustrative — markets cluster losses more than a coin flip would — but the relationship is brutal and real."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Risk per trade",
+            "Approx. losses to wipe out",
+            "Practical reality"
+          ],
+          "rows": [
+            [
+              "1%",
+              "~100+ in a row",
+              "Effectively survives any normal streak with positive expectancy"
+            ],
+            [
+              "2%",
+              "~50 in a row",
+              "Comfortable for most strategies; still very safe"
+            ],
+            [
+              "5%",
+              "~20 in a row",
+              "A bad week can do real, lasting damage"
+            ],
+            [
+              "10%",
+              "~10 in a row",
+              "One ordinary losing streak ends the account"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "This is why the 1-2% rule is close to universal among traders who last. As risk education sites and trading academies repeatedly point out, it isn't about being timid — it's mathematical survival. With 1% risk and a positive expectancy, your risk of ruin is generally considered negligible. With 10%, you're effectively gambling on never hitting a normal cold streak, and normal cold streaks are guaranteed."
+        },
+        {
+          "type": "quote",
+          "text": "Your strategy decides whether you make money. Your position size decides whether you're still around to find out."
+        },
+        {
+          "type": "h2",
+          "text": "The drawdown trap nobody prices in"
+        },
+        {
+          "type": "p",
+          "text": "Risk of ruin has an evil twin: the asymmetry of recovery. A 10% drawdown needs about 11% to get back to even. A 25% drawdown needs 33%. A 50% drawdown needs a 100% gain just to break even, and an 80% drawdown needs 400%. The deeper you let an account fall, the more your remaining capital has to fight uphill — and the more pressure you feel, which degrades decisions further. Controlling risk per trade keeps you out of the zone where the math turns against you, both statistically and psychologically."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Drawdown",
+            "Gain needed to recover"
+          ],
+          "rows": [
+            [
+              "10%",
+              "+11%"
+            ],
+            [
+              "25%",
+              "+33%"
+            ],
+            [
+              "50%",
+              "+100%"
+            ],
+            [
+              "80%",
+              "+400%"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "How to push your risk of ruin toward zero"
+        },
+        {
+          "type": "p",
+          "text": "Five levers, in rough order of impact. First, cut risk per trade — going from 5% to 1% changes your survival odds more than any strategy tweak ever will. Second, never increase size after a loss; martingale-style averaging up is the fastest known route to ruin. Third, protect expectancy by being more selective, since a positive edge is what makes low risk-per-trade compound instead of bleed. Fourth, account for correlation — three open positions in the same direction on correlated instruments is really one oversized trade wearing three hats. Fifth, keep a real record so your win rate and R-distribution are actual data, not hopeful guesses."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick gut-check",
+          "prompt": "You risk 5% per trade. Your strategy wins 45% of the time at 1.5R. A 9-trade losing streak shows up (well within normal). What's the smartest response?",
+          "options": [
+            "Double size on the next trade to win it back fast",
+            "Keep risking 5% — variance evens out",
+            "Cut risk per trade and review whether the streak is variance or a broken edge",
+            "Stop trading the strategy entirely after one streak"
+          ],
+          "correct": 2,
+          "explain": "A 9-loss streak is statistically normal for a 45% win-rate system, so abandoning the strategy is an overreaction — but at 5% risk that streak already cost ~37% of the account, and recovery now needs ~60%. The survival move is to lower risk per trade and use your journal to confirm the edge is intact before sizing back up. Doubling down (martingale) is exactly how negligible risk of ruin becomes near-certain ruin."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Your survival checklist",
+          "prompt": "Run this before you size up any account:",
+          "items": [
+            "I know my actual win rate and average R from real data, not estimates",
+            "My risk per trade is 1-2% (or I can justify exactly why it's higher)",
+            "I never increase size after a losing trade",
+            "I've accounted for correlation across my open positions",
+            "I know the drawdown level at which my strategy becomes unrecoverable",
+            "I've simulated or calculated my risk of ruin at my current size"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "High exposure: you're trading without knowing your survival odds. Fix position sizing first."
+            },
+            {
+              "min": 3,
+              "text": "Getting there: a few gaps could still sink you in a bad streak. Tighten them."
+            },
+            {
+              "min": 6,
+              "text": "Survivor mindset: your account is built to outlast variance and let your edge compound."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX turns risk of ruin from a scary abstract formula into your own numbers. Because every trade you log carries its real risk, R-multiple and outcome, JournalX surfaces your true win rate and R-distribution — the exact inputs the risk-of-ruin math needs. Instead of guessing, you can see your worst historical losing streak, your deepest drawdown, and whether your current position size could have survived them. It's the difference between hoping you're safe and knowing it."
+        },
+        {
+          "type": "why",
+          "text": "Most journals stop at logging profit and loss. JournalX is built around survival metrics, not just performance ones — drawdown behaviour, streak length, risk per trade and expectancy sit alongside your equity curve, so the number that actually decides whether you make it is always in view. That's a deliberate choice: we'd rather help you not blow up than show you a prettier chart of how you did."
+        },
+        {
+          "type": "p",
+          "text": "Run the math once. Look at how many losses your current size can really absorb, compare it to your worst real streak, and size for survival first. Get that right and everything else — edge, psychology, consistency — finally gets the time it needs to work."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is a good risk of ruin percentage?",
+          "a": "Most experienced traders aim to keep risk of ruin below 1-5%, and many target under 1% — meaning less than a 1-in-100 chance of being knocked out. The simplest way to get there is keeping risk per trade at 1-2% with a positive-expectancy strategy."
+        },
+        {
+          "q": "Does a high win rate protect me from ruin?",
+          "a": "Less than you'd think. Win rate matters, but position size matters far more. A high-win-rate system sized at 10% per trade can still be wiped out by a normal cold streak, while a modest edge risked at 1% can survive almost anything. Survival is driven mostly by sizing, not accuracy."
+        },
+        {
+          "q": "How do I calculate my own risk of ruin?",
+          "a": "You can plug your win rate, reward-to-risk and risk-per-trade into the simplified formula or a free online calculator, but the most accurate method is a Monte Carlo simulation over your real journal data, which captures losing streaks and clustering the formula misses."
+        },
+        {
+          "q": "Why does a 50% drawdown need a 100% gain to recover?",
+          "a": "Because gains and losses are asymmetric. If you lose half your account, you have half the capital left, so you need to double what remains just to get back to where you started. This is exactly why limiting drawdown by controlling risk per trade is so important."
+        }
+      ]
+    },
+    {
+      "slug": "how-prop-firm-payouts-work",
+      "title": "How Prop Firm Payouts Actually Work in 2026: Splits, First Payouts and Where the Money Comes From",
+      "metaTitle": "How Prop Firm Payouts Work in 2026: Profit Splits & First Payout | JournalX",
+      "metaDescription": "Profit splits, minimum trading days, payout schedules and where your money actually comes from: an honest breakdown of how prop firm payouts work in 2026.",
+      "keywords": [
+        "how prop firm payouts work",
+        "prop firm profit split 2026",
+        "prop firm first payout",
+        "prop firm payout schedule",
+        "funded account payout rules",
+        "where prop firm payouts come from"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-06-30",
+      "featured": false,
+      "excerpt": "Passing the challenge is only half the game — getting paid is the other half. Here's how profit splits, first-payout rules and payout schedules actually work in 2026, and the fine print that quietly delays your money.",
+      "helpful": {
+        "up": 38,
+        "down": 2,
+        "saves": 43
+      },
+      "tags": [
+        "Funded",
+        "Prop firm",
+        "Payouts",
+        "2026"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Plenty of traders obsess over passing the challenge and then get blindsided by the part that actually matters: getting the money out. In 2026, prop firm payout terms are where most of the fine print lives — profit splits, minimum trading days, consistency requirements, and schedules that can quietly push your first withdrawal weeks further out than you expected. This is a plain-English breakdown of how payouts really work, so you know what you're signing up for before you wire your evaluation fee."
+        },
+        {
+          "type": "p",
+          "text": "Specific firm rules change often and the details below are reported figures that evolve — always confirm against your firm's current terms before counting on a number."
+        },
+        {
+          "type": "h2",
+          "text": "Where does the money even come from?"
+        },
+        {
+          "type": "p",
+          "text": "This was the question the whole industry spent much of 2026 arguing about. Broadly, funded-account firms fall into two camps. Some route qualifying traders to live capital and earn from real market performance plus fees. Others run an evaluation-led model where a large share of revenue comes from challenge fees, and payouts are funded from the pool of those fees and from traders who don't pass. Neither is inherently a scam, but the second model depends entirely on the firm staying solvent and managing risk well — which is exactly why the wave of firm closures between 2024 and early 2026 wiped out so many accounts. The practical takeaway: a payout is only as reliable as the firm behind it, so treat the firm's track record of actually paying as a core selection criterion, not an afterthought."
+        },
+        {
+          "type": "h2",
+          "text": "Profit splits: what you actually keep"
+        },
+        {
+          "type": "p",
+          "text": "The profit split is the headline number: the percentage of your trading profits you keep. Most major firms sit between 80% and 100% to the trader, and several now front-load generous terms on early profits to attract traders. Reported 2026 structures include the following — verify current terms directly, as these shift."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Firm (reported)",
+            "Profit split",
+            "Notable detail"
+          ],
+          "rows": [
+            [
+              "Topstep",
+              "90/10",
+              "New accounts on a flat 90/10; some legacy accounts kept 100% of first profits"
+            ],
+            [
+              "Apex Trader Funding",
+              "Up to 100%",
+              "Reported 100% on an initial tranche of profits on newer account types"
+            ],
+            [
+              "FTMO",
+              "80% rising to 90%",
+              "Split increases with consistent performance; scaling available"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "A higher split is great, but don't read it in isolation. A 90% split with strict consistency rules and a long payout cycle can pay you less, slower, than an 80% split with looser terms. The split is one variable in a system — read the whole system."
+        },
+        {
+          "type": "h2",
+          "text": "Your first payout: the rules that gate it"
+        },
+        {
+          "type": "p",
+          "text": "Almost every firm puts conditions between your funded account and your first withdrawal. The common gates are a minimum number of trading (or winning) days, a minimum profit threshold, and a waiting period from your first trade. Reported examples: some futures firms require around five qualifying days — sometimes defined as winning days above a small profit floor — while others tie the first payout to a fixed period such as 14 days from your first funded trade. The logic is the same everywhere: firms want to see consistent, repeatable trading before they release capital, not one lucky spike."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Common first-payout gate",
+            "What it means for you"
+          ],
+          "rows": [
+            [
+              "Minimum trading/winning days",
+              "You must be active and profitable across several distinct days, not in one session"
+            ],
+            [
+              "Minimum profit threshold",
+              "Small accounts may need to clear a floor before any withdrawal is allowed"
+            ],
+            [
+              "Waiting period",
+              "A fixed number of days from your first trade before you can request"
+            ],
+            [
+              "Consistency rule",
+              "No single day can make up too large a share of total profit"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "The consistency rule that delays payouts"
+        },
+        {
+          "type": "p",
+          "text": "The rule that surprises traders most is the consistency requirement: your best single day can't exceed a set percentage of your total profit (commonly cited in the 30-50% range, and some firms have reportedly adjusted these thresholds in 2026). One huge green day can actually lock your payout until you book enough smaller days to dilute it. It feels punitive, but the firm's logic is risk management — they're filtering for traders with a repeatable process rather than gamblers who hit once. The fix is the same thing that makes you a better trader anyway: aim for steady, similarly-sized days instead of swinging for a hero trade."
+        },
+        {
+          "type": "quote",
+          "text": "Passing the challenge proves you can trade. Getting paid proves you can do it the way the firm needs — consistently, and within the rules."
+        },
+        {
+          "type": "h2",
+          "text": "Payout schedules and the trend toward speed"
+        },
+        {
+          "type": "p",
+          "text": "Once you qualify, how often can you actually withdraw? Schedules range from monthly to bi-weekly to, increasingly, on-demand. A clear competitive trend in 2026 has been firms shortening payout cycles to win traders — some reportedly moved to payouts as frequently as every few days and dropped older mandatory waiting periods. Faster is genuinely better for you, but read it alongside the gates above: a fast cycle still won't pay until you've cleared the minimum-days and consistency requirements."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "What worries you most about payouts?",
+          "prompt": "Be honest — what's the part you trust least?",
+          "options": [
+            {
+              "label": "Whether the firm will actually pay at all",
+              "response": "The most rational worry. Prioritise firms with a long, public track record of paying — counterparty risk is real after the 2024-2026 closures."
+            },
+            {
+              "label": "Hitting the consistency rule",
+              "response": "Very common. Sizing your days similarly and avoiding one hero trade solves most consistency-rule problems before they start."
+            },
+            {
+              "label": "How long until my first payout",
+              "response": "Read the minimum-days and waiting-period rules before you buy a challenge — that's where the real timeline lives, not the marketing."
+            },
+            {
+              "label": "The profit split / fees eating my edge",
+              "response": "Fair, but split matters less than reliability and rules. An 80% split you actually receive beats a 100% split you can't withdraw."
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Before you trust a payout promise",
+          "prompt": "Check these before committing to any firm:",
+          "items": [
+            "I've read the actual profit split, not just the marketing headline",
+            "I know the minimum trading/winning days for my first payout",
+            "I understand the consistency rule and its percentage threshold",
+            "I know the payout schedule and any waiting period",
+            "I've checked the firm's public track record of actually paying traders",
+            "I know the drawdown and risk rules that could void a payout"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You're flying blind on payouts. Read the terms in full before risking an evaluation fee."
+            },
+            {
+              "min": 3,
+              "text": "Decent grasp, but gaps in the fine print could delay or void your money. Close them."
+            },
+            {
+              "min": 6,
+              "text": "You know exactly how and when you'll get paid — and what could stop it. That's how funded traders should operate."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX makes the payout rules work in your favour by showing you the exact behaviour firms reward. Tag trades by funded account and JournalX surfaces your daily P&L distribution, so you can instantly see whether one outsized day is about to trip a consistency rule, and how many qualifying days you've actually logged toward a payout. Instead of guessing whether you've met the requirements, you can track them like the metrics they are."
+        },
+        {
+          "type": "why",
+          "text": "Generic journals were built for retail traders trading their own money, so they ignore the rules that decide whether a funded trader gets paid. JournalX is built with funded trading in mind: consistency, daily-loss limits, trailing drawdown and qualifying days are first-class concepts, not afterthoughts. That means your journal speaks the same language as your prop firm's rulebook — which is exactly what you need when your income depends on staying inside it."
+        },
+        {
+          "type": "p",
+          "text": "Getting funded is a milestone, not the finish line. The traders who build real income from prop firms are the ones who treat the payout terms as part of their strategy — reading the fine print, trading to the consistency rule, and choosing firms that actually pay. Know how the money flows before you chase it."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How long until I get my first prop firm payout?",
+          "a": "It depends on the firm's gates, not just the calendar. Many require a minimum number of qualifying or winning days plus, in some cases, a waiting period (commonly around 14 days from your first funded trade). Read your firm's specific first-payout rules before assuming a timeline, as these vary and change."
+        },
+        {
+          "q": "What is a typical prop firm profit split in 2026?",
+          "a": "Most major firms pay traders between 80% and 100% of profits, and several front-load generous terms on early profits. Reported 2026 examples include flat 90/10 splits and 100% on an initial tranche on some account types. Always confirm current terms directly, since splits and conditions evolve."
+        },
+        {
+          "q": "Why is my payout being delayed by the consistency rule?",
+          "a": "Consistency rules cap how much of your total profit can come from a single day (often cited in the 30-50% range). If one day is too large a share of your profit, you usually have to book more, smaller days to rebalance before withdrawing. It's designed to reward repeatable trading over one-off spikes."
+        },
+        {
+          "q": "Where does the money for prop firm payouts come from?",
+          "a": "It varies by model. Some firms pay from live-market performance and fees; others fund payouts largely from evaluation fees and the pool of traders who don't pass. Because reliability depends on the firm staying solvent, a firm's track record of actually paying traders is one of the most important things to check."
+        }
+      ]
     }
   ]
 }
