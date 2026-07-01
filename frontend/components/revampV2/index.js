@@ -34,6 +34,8 @@ export { default as Accordion } from "./Accordion";
 export { default as ImportTradesModal } from "./ImportTradesModal";
 export { default as ExchangeConnectModal } from "./ExchangeConnectModal";
 export { default as MarketsPanel } from "./MarketsPanel";
+export { default as ToolsPanel } from "./ToolsPanel";
+export { default as TradersTodayBadge } from "./TradersTodayBadge";
 export { default as SharePanel } from "./SharePanel";
 export { default as CountUp } from "./CountUp";
 export { default as AuthLayout } from "./AuthLayout";

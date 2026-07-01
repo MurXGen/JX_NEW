@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowRightLeft,
   Calendar,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Button from "./Button";
 import Toast from "./Toast";
+import ImportTradesModal from "./ImportTradesModal";
 import { QUICK_TEMPLATE, DETAILED_TEMPLATE, downloadTemplate } from "@/utils/csvTemplates";
 
 /* Figma "Import & Export · Desktop" (22825:54050).
@@ -79,16 +80,15 @@ const logRows = (list) =>
     String(t.learnings || t.notes || "").replace(/\n/g, " "),
   ]);
 
-export default function ImportExportPanel({ trades = [] }) {
+export default function ImportExportPanel({ trades = [], onImported }) {
   const [selected, setSelected] = useState(["logs", "analytics"]);
   const [range, setRange] = useState("Last 30 days");
   const [format, setFormat] = useState("CSV");
-  const [importedName, setImportedName] = useState(null);
+  const [showImport, setShowImport] = useState(false);
   const [recent, setRecent] = useState(() => {
     try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; }
   });
   const [toast, setToast] = useState(null);
-  const fileRef = useRef(null);
   const flash = (type, msg, ms = 3000) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), ms);
@@ -329,25 +329,22 @@ export default function ImportExportPanel({ trades = [] }) {
           <div className="jx-card">
             <div className="jx-card__title">Import trades</div>
             <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-3)" }}>
-              Bring in trades from a CSV or exchange.
+              Download our template, paste in your trades, and upload it — we&apos;ll preview before saving.
             </div>
 
-            <input ref={fileRef} type="file" accept=".csv" hidden onChange={(e) => setImportedName(e.target.files?.[0]?.name || null)} />
             <div
               className="jx-dropzone"
-              style={{ borderColor: "var(--color-primary)", background: "var(--color-primary-subtle)" }}
-              onClick={() => fileRef.current?.click()}
+              style={{ borderColor: "var(--color-primary)", background: "var(--color-primary-subtle)", cursor: "pointer" }}
+              onClick={() => setShowImport(true)}
               onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => { e.preventDefault(); setImportedName(e.dataTransfer.files?.[0]?.name || null); }}
+              onDrop={(e) => { e.preventDefault(); setShowImport(true); }}
             >
               <span className="jx-sect__icon" style={{ borderRadius: "50%", width: 36, height: 36 }}>
                 <Upload size={16} />
               </span>
-              <strong style={{ color: "var(--color-text-primary)" }}>
-                {importedName || "Drag & drop your CSV"}
-              </strong>
+              <strong style={{ color: "var(--color-text-primary)" }}>Import from a template</strong>
               <span style={{ font: "var(--text-caption)" }}>
-                Use the Import flow in Trades log for validation &amp; bulk upload
+                Download a template, fill it, upload · we preview before saving
               </span>
             </div>
 
@@ -410,6 +407,12 @@ export default function ImportExportPanel({ trades = [] }) {
           </div>
         </div>
       </div>
+
+      <ImportTradesModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        onImported={(newTrades) => { onImported?.(newTrades); flash("success", `${newTrades?.length || 0} trades imported`); }}
+      />
 
       <style jsx>{`
         @media (max-width: 900px) {

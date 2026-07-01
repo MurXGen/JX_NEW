@@ -31,6 +31,7 @@ import Dropdown from "./Dropdown";
 import DateTimePicker from "./DateTimePicker";
 import ChartAnnotator from "./ChartAnnotator";
 import QuickFillChips from "./QuickFillChips";
+import TradersTodayBadge from "./TradersTodayBadge";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -1347,11 +1348,7 @@ export default function LogTradeModal({
                   style={{ display: "flex", flexDirection: "column", gap: 2 }}
                 >
                   <span style={{ font: "var(--text-h2)" }}>
-                    {isEdit
-                      ? "Edit trade"
-                      : isQuick
-                        ? "Quick log"
-                        : "Log a trade"}
+                    {isEdit ? "Edit trade" : "Log a trade"}
                   </span>
                   <span
                     style={{
@@ -1360,8 +1357,8 @@ export default function LogTradeModal({
                     }}
                   >
                     {isQuick
-                      ? "Just the result — log P&L without the full detail."
-                      : "Capture the details now — better logs mean sharper analytics later."}
+                      ? "Fast — just the result (P&L)."
+                      : "Full trade — entry, exit & size."}
                   </span>
                 </div>
                 <button
@@ -1381,10 +1378,10 @@ export default function LogTradeModal({
                     value: "quick",
                     icon: Zap,
                     glow: true,
-                    title: "Quick log",
-                    label: "Quick log",
+                    title: "Only P&L",
+                    label: "Only P&L",
                   },
-                  { value: "detailed", label: "Detailed" },
+                  { value: "detailed", label: "Entry & Exit" },
                 ]}
                 value={mode}
                 onChange={setMode}
@@ -1462,9 +1459,7 @@ export default function LogTradeModal({
                           color: "var(--color-text-muted)",
                         }}
                       >
-                        Mark your entry &amp; exit on a live chart — prices fill
-                        in automatically and the marked chart shows on the trade
-                        details page.
+                        Mark entry &amp; exit on a live chart — prices fill in for you.
                       </span>
 
                       <AnimatePresence initial={false}>
@@ -2294,6 +2289,9 @@ export default function LogTradeModal({
                     )}
                   </div>
                 </div>
+
+                {/* social proof — why traders trust JournalX */}
+                <TradersTodayBadge />
 
                 <div
                   className="jx-banner jx-banner--warn"

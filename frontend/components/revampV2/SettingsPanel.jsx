@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown, Wallet } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown, Wallet, Calculator } from "lucide-react";
 
 /* Settings sections — rendered as a left nav, one section at a time */
 const SETTINGS_TABS = [
@@ -298,6 +298,7 @@ function AvatarModal({ open, currentUrl, name, onClose, onSaved }) {
 /* Secondary app destinations surfaced inside the mobile Settings hub (on
    desktop these live in the left sidebar, so they're mobile-only here). */
 const MORE_LINKS = [
+  { id: "tools", label: "Trading calculators", icon: Calculator },
   { id: "blogs", label: "Learn & Focus", icon: BookOpen },
   { id: "share", label: "Share logs", icon: Share2 },
   { id: "importexport", label: "Import / Export", icon: ArrowUpDown },

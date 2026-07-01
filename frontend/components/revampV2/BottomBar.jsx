@@ -23,7 +23,7 @@ const MAIN = [
 ];
 
 /* Tabs reachable from the Settings hub — keep the gear lit when on any of them. */
-const SETTINGS_GROUP = ["settings", "blogs", "share", "importexport"];
+const SETTINGS_GROUP = ["settings", "blogs", "share", "importexport", "tools"];
 
 export default function BottomBar({ active, onChange, onLogTrade, user }) {
   const { showDot: supportDot } = useSupportBadge(user?.email);

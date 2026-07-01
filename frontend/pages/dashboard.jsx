@@ -14,6 +14,7 @@ import {
   History,
   LayoutGrid,
   Share2,
+  Calculator,
 } from "lucide-react";
 
 import {
@@ -39,6 +40,7 @@ import {
   MarketsPanel,
   SharePanel,
   SettingsPanel,
+  ToolsPanel,
 } from "@/components/revampV2";
 
 import FullPageLoader from "@/components/ui/FullPageLoader";
@@ -70,6 +72,7 @@ const NAV_ITEMS = [
   { id: "trades", label: "Trades log", icon: History },
   { id: "blogs", label: "Learn & Focus", icon: BookOpen },
   { id: "markets", label: "Markets", icon: Globe },
+  { id: "tools", label: "Tools", icon: Calculator },
   { id: "share", label: "Share logs", icon: Share2 },
   { id: "importexport", label: "Import / Export", icon: ArrowUpDown },
 ];
@@ -330,6 +333,7 @@ export default function Dashboard() {
     ),
     blogs: <ActivitiesPanel />,
     markets: <MarketsPanel trades={trades} />,
+    tools: <ToolsPanel currencySymbol={currencySymbol} />,
     share: (
       <SharePanel
         trades={trades}
@@ -337,7 +341,12 @@ export default function Dashboard() {
         currencySymbol={currencySymbol}
       />
     ),
-    importexport: <ImportExportPanel trades={trades} />,
+    importexport: (
+      <ImportExportPanel
+        trades={trades}
+        onImported={(newTrades) => setAccountTrades((prev) => [...prev, ...(newTrades || [])])}
+      />
+    ),
     // settings opens as a glassmorphic modal (see SettingsModal below)
     pricingpage: <UpgradePanel currentPlan={userData?.subscription?.plan} />,
   };

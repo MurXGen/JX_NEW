@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import Papa from "papaparse";
 import {
   AlertTriangle,
+  Check,
   CheckCircle2,
   Download,
   FileText,
@@ -21,6 +22,7 @@ import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { scheduleAutoBackup } from "@/utils/driveBackup";
 import { getPlanRules } from "@/utils/planRestrictions";
 import { QUICK_TEMPLATE, DETAILED_TEMPLATE, downloadTemplate } from "@/utils/csvTemplates";
+import { parseImportRows } from "@/utils/importParse";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -30,6 +32,53 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 /* Required: symbol, direction. Everything else is optional — use the Quick log
    template (result-only) or the Detailed template (entry/exit, risk, strategy,
    psychology). Templates are shared with the Import/Export page. */
+
+const compactHdr = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const OUR_COLUMNS = new Set([...QUICK_TEMPLATE.columns, ...DETAILED_TEMPLATE.columns].map(compactHdr));
+
+/* Only accept a JournalX template CSV. Requires symbol + direction and rejects
+   any unknown columns, so users get a clear "use our template" message instead
+   of a raw broker export producing wrong data. */
+function checkTemplate(fields = []) {
+  const hs = fields.map(compactHdr).filter(Boolean);
+  if (!hs.length) return { ok: false, reason: "empty" };
+  if (!hs.includes("symbol") || !hs.includes("direction")) return { ok: false, reason: "missing" };
+  const unknown = [...new Set((fields || []).filter((f) => f && !OUR_COLUMNS.has(compactHdr(f))))];
+  if (unknown.length) return { ok: false, reason: "unknown", unknown };
+  return { ok: true };
+}
+
+/* three-step progress bar (replaces the "1 · / 2 ·" numbering) */
+function Stepper({ step }) {
+  const labels = ["Get template", "Upload CSV", "Review & import"];
+  return (
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {labels.map((label, i) => {
+        const n = i + 1;
+        const state = n < step ? "done" : n === step ? "active" : "todo";
+        const on = state !== "todo";
+        return (
+          <div key={label} style={{ display: "flex", alignItems: "center", flex: i < labels.length - 1 ? 1 : "0 0 auto", minWidth: 0 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <span style={{
+                width: 24, height: 24, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", font: "700 11px Poppins",
+                background: on ? "var(--color-primary)" : "var(--color-bg-muted)",
+                color: on ? "var(--color-primary-foreground)" : "var(--color-text-muted)",
+                boxShadow: state === "active" ? "0 0 0 3px var(--color-primary-subtle)" : "none",
+              }}>
+                {state === "done" ? <Check size={13} /> : n}
+              </span>
+              <span style={{ font: "var(--text-caption)", fontWeight: state === "active" ? 600 : 400, color: on ? "var(--color-text-primary)" : "var(--color-text-muted)", whiteSpace: "nowrap" }}>{label}</span>
+            </span>
+            {i < labels.length - 1 && (
+              <span style={{ flex: 1, height: 2, margin: "0 8px", borderRadius: 2, background: n < step ? "var(--color-primary)" : "var(--color-border)" }} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function Spinner() {
   return (
@@ -50,6 +99,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
   const [rows, setRows] = useState([]);
   const [errors, setErrors] = useState([]);
   const [fileName, setFileName] = useState(null);
+  const [computedCount, setComputedCount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
   const flash = (type, msg, ms = 3500) => {
@@ -61,64 +111,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
     setRows([]);
     setErrors([]);
     setFileName(null);
-  };
-
-  const validate = (data) => {
-    const errs = [];
-    const clean = [];
-    data.forEach((r, i) => {
-      const n = i + 2; // header is row 1
-      const symbol = String(r.symbol || "").trim();
-      const direction = String(r.direction || "").trim().toLowerCase();
-      const hasPnl = String(r.pnl ?? "").trim() !== "";
-      const pnl = Number(r.pnl);
-      const entry = Number(r.entry) || 0;
-      const exit = Number(r.exit) || 0;
-      const size = Number(r.size) || 0;
-      const closeTime = r.closeTime ? new Date(r.closeTime) : null;
-      const openTime = r.openTime ? new Date(r.openTime) : null;
-      // blank line
-      if (!symbol && !r.direction && !hasPnl && !r.entry) return;
-      if (!symbol) errs.push(`Row ${n}: symbol is missing`);
-      if (!["long", "short"].includes(direction)) errs.push(`Row ${n}: direction must be "long" or "short"`);
-      // P&L optional — required only if we can't derive it and there's no entry-only (running)
-      if (hasPnl && Number.isNaN(pnl)) errs.push(`Row ${n}: pnl must be a number`);
-      if (!hasPnl && !entry) errs.push(`Row ${n}: add a pnl, or an entry price for an open trade`);
-      if (closeTime && Number.isNaN(closeTime.getTime())) errs.push(`Row ${n}: closeTime is not a valid date`);
-      if (openTime && Number.isNaN(openTime.getTime())) errs.push(`Row ${n}: openTime is not a valid date`);
-
-      const dirMul = direction === "long" ? 1 : -1;
-      const computedPnl = hasPnl && !Number.isNaN(pnl)
-        ? pnl
-        : entry && exit && size ? (exit - entry) * size * dirMul : 0;
-
-      clean.push({
-        symbol: symbol.toUpperCase(),
-        direction,
-        pnl: computedPnl,
-        size,
-        entry, exit,
-        stopLoss: Number(r.stopLoss) || 0,
-        takeProfit: Number(r.takeProfit) || 0,
-        strategy: String(r.strategy || "").trim(),
-        emotion: String(r.emotion || "").trim(),
-        openTime: openTime && !Number.isNaN(openTime.getTime()) ? openTime.toISOString() : "",
-        closeTime: closeTime && !Number.isNaN(closeTime.getTime()) ? closeTime.toISOString() : "",
-        notes: String(r.notes || ""),
-        // detailed-template extras (all optional; ignored if blank)
-        sizeUnit: String(r.sizeUnit || "").trim().toLowerCase() || undefined,
-        leverage: Number(r.leverage) || undefined,
-        fee: r.fee !== undefined && String(r.fee).trim() !== "" ? Number(r.fee) : undefined,
-        feeType: String(r.feeType || "").trim().toLowerCase() || undefined,
-        market: String(r.market || "").trim() || undefined,
-        timeframe: String(r.timeframe || "").trim() || undefined,
-        confidence: r.confidence !== undefined && String(r.confidence).trim() !== "" ? Number(r.confidence) : undefined,
-        followedPlan: String(r.followedPlan ?? "").trim().toLowerCase(),
-        mistakes: String(r.mistakes || "").trim(),
-        _running: !hasPnl && !exit && !!entry,
-      });
-    });
-    return { errs, clean };
+    setComputedCount(0);
   };
 
   const handleFile = (file) => {
@@ -127,11 +120,28 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: ({ data }) => {
-        const { errs, clean } = validate(data);
+      complete: ({ data, meta }) => {
+        // 1) must be a JournalX template — reject raw broker exports clearly
+        const tpl = checkTemplate(meta?.fields || []);
+        if (!tpl.ok) {
+          const msg =
+            tpl.reason === "unknown"
+              ? `That's not a JournalX template (unexpected column “${tpl.unknown[0]}”). Download the template below, paste your trades into it, and upload that.`
+              : tpl.reason === "missing"
+                ? `This file is missing the “symbol” and “direction” columns. Please use the JournalX template.`
+                : `This file has no columns. Please use the JournalX template.`;
+          setRows([]);
+          setComputedCount(0);
+          setErrors([msg]);
+          flash("danger", "Please upload a JournalX template CSV");
+          return;
+        }
+        // 2) parse rows (P&L taken as-is if present; futures point values applied)
+        const { errs, clean, computedCount } = parseImportRows(data);
         setErrors(errs);
         setRows(errs.length ? [] : clean);
-        if (!errs.length && clean.length === 0) setErrors(["No rows found in the file"]);
+        setComputedCount(computedCount);
+        if (!errs.length && clean.length === 0) setErrors(["No trades found — add rows to the template and upload again."]);
       },
       error: () => setErrors(["Could not read this file — is it a valid CSV?"]),
     });
@@ -224,7 +234,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Import trades</span>
                 <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                  Upload a CSV of quick logs — download the template, fill it, drop it here.
+                  Download the template, fill in your trades, and upload it here.
                 </span>
               </div>
               <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }} disabled={saving}>
@@ -233,11 +243,17 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
             </div>
 
             <div style={{ padding: "var(--space-5) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)", overflowY: "auto" }}>
-              {/* step 1: pick a template (quick or detailed) */}
+              {/* progress */}
+              <Stepper step={rows.length > 0 ? 3 : fileName ? 2 : 1} />
+
+              {/* Step 1 — get the template */}
               <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", font: "var(--text-body-md)", fontWeight: 600 }}>
-                  <FileText size={15} /> 1 · Download a template
-                </span>
+                <div>
+                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Get the JournalX template</span>
+                  <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: 2 }}>
+                    Download it, paste your trades into the columns, and save. <strong>Quick</strong> = just the result (symbol, side, P&amp;L). <strong>Detailed</strong> = full trade.
+                  </div>
+                </div>
                 {[QUICK_TEMPLATE, DETAILED_TEMPLATE].map((t) => (
                   <div key={t.key} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                     <span style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -245,17 +261,17 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
                       <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{t.hint}</span>
                     </span>
                     <Button variant="outline" size="sm" icon={Download} onClick={() => downloadTemplate(t.key)}>
-                      CSV
+                      Download
                     </Button>
                   </div>
                 ))}
               </div>
 
-              {/* step 2: upload */}
+              {/* Step 2 — upload the filled template */}
               <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ""; }} />
               <div
                 className="jx-dropzone"
-                style={{ borderColor: "var(--color-primary)", background: "var(--color-primary-subtle)" }}
+                style={{ borderColor: "var(--color-primary)", background: "var(--color-primary-subtle)", cursor: "pointer" }}
                 onClick={() => fileRef.current?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); handleFile(e.dataTransfer.files?.[0]); }}
@@ -264,9 +280,9 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
                   <Upload size={16} />
                 </span>
                 <strong style={{ color: "var(--color-text-primary)" }}>
-                  {fileName || "2 · Drag & drop your filled CSV"}
+                  {fileName || "Upload your filled template"}
                 </strong>
-                <span style={{ font: "var(--text-caption)" }}>or click to browse · max 500 trades</span>
+                <span style={{ font: "var(--text-caption)" }}>Click or drag &amp; drop · JournalX template CSV only</span>
               </div>
 
               {/* validation results */}
@@ -295,6 +311,12 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
                     ))}
                     {rows.length > 5 && <Badge variant="neutral">+{rows.length - 5} more</Badge>}
                   </div>
+                  {computedCount > 0 && (
+                    <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: "var(--space-2)", display: "flex", gap: 6 }}>
+                      <AlertTriangle size={13} style={{ color: "var(--color-warning, var(--yellow-500))", flexShrink: 0, marginTop: 1 }} />
+                      <span>{computedCount} trade{computedCount === 1 ? "" : "s"} had no P&amp;L column — we computed it from entry/exit/size (with futures point values). For exact numbers, include your platform&apos;s realized P&amp;L column and re-upload.</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
