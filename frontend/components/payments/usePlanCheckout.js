@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import Cookies from "js-cookie";
 import { getUserCurrency, detectCurrencyByIP, buildPlansConfig } from "@/utils/plans";
 import { saveToIndexedDB } from "@/utils/indexedDB";
+import { trackBeginCheckout, trackAddPaymentInfo, trackPurchase } from "@/utils/gtag";
 
 export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
   const router = useRouter();
@@ -95,6 +96,13 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
         const plan = (userData?.subscription?.plan || "").toLowerCase();
         if (status === "active" && (plan.includes("pro") || plan.includes("lifetime"))) {
           clearInterval(interval);
+          // funnel: subscription active → purchase (de-duped in the helper)
+          trackPurchase({
+            plan: plan || selectedPlan,
+            value: plans[selectedPlan]?.amount,
+            currency,
+            id: userData?.subscription?.id || userData?.subscription?.subscriptionId,
+          });
           // refresh the cached user-data so the dashboard / Plan card reflect
           // the new plan immediately (they read from IndexedDB, not the server)
           try {
@@ -118,11 +126,15 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
     }
     setSelectedPlan(planKey);
     setIsModalOpen(true);
+    // funnel: opened checkout for a plan
+    trackBeginCheckout({ plan: planKey, value: plans[planKey]?.amount, currency });
   };
 
   const handlePaymentOptionClick = async (option) => {
     if (!selectedPlan || payLoading) return;
     const planConfig = plans[selectedPlan];
+    // funnel: chose a payment method
+    trackAddPaymentInfo({ plan: selectedPlan, method: option, value: planConfig?.amount, currency });
     if (option === "crypto") {
       setPayLoading("crypto");
       router.push({

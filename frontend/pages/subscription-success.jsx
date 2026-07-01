@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Cookies from "js-cookie";
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import { trackPurchase } from "@/utils/gtag";
 
 export default function SubscriptionSuccess() {
   const router = useRouter();
@@ -52,13 +53,22 @@ export default function SubscriptionSuccess() {
   }, [checking, router]);
 
   useEffect(() => {
-    setOrderDetails({
+    const details = {
       planName: searchParams.get("planName") || "Pro Plan",
       period: searchParams.get("period") || "monthly",
       amount: searchParams.get("amount") || "0",
       orderId: searchParams.get("orderId") || "N/A",
       paymentMethod: searchParams.get("method") || "crypto",
       isLifetime: searchParams.get("isLifetime") === "true",
+    };
+    setOrderDetails(details);
+    // funnel: purchase confirmed (de-duped in the helper so the card polling
+    // path and this success page never double-count the same sale)
+    trackPurchase({
+      plan: details.planName,
+      value: details.amount,
+      currency: "USD",
+      id: details.orderId !== "N/A" ? details.orderId : undefined,
     });
   }, [searchParams]);
 

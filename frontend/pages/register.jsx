@@ -13,6 +13,7 @@ import { ArrowLeft, Check, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 
 import { Turnstile } from "@marsidev/react-turnstile";
 import { AuthLayout, Button, OtpInput, Toast, EmailSuggest } from "@/components/revampV2";
+import { trackSignUp, trackEmailVerified } from "@/utils/gtag";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -103,6 +104,7 @@ export default function RegisterPage() {
       setUserId(res.data?.userId);
       setStep("otp");
       setCooldown(60);
+      trackSignUp("email"); // funnel: account created
       flash("success", "Account created — check your email for the code");
     } catch (err) {
       const data = err.response?.data;
@@ -122,6 +124,7 @@ export default function RegisterPage() {
     try {
       await axios.post(`${API_BASE}/api/auth/verify-otp`, { userId, otp }, { withCredentials: true });
       Cookies.set("isVerified", "yes", { path: "/", sameSite: "Strict", expires: 365000 });
+      trackEmailVerified(); // funnel: account activated (email verified)
       // signal the dashboard to show the onboarding guide (registration only)
       try { localStorage.setItem("jx-show-onboarding", "1"); } catch {}
       flash("success", "You're in — welcome to JournalX!");
