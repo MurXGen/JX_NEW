@@ -11,7 +11,7 @@ import { Users } from "lucide-react";
 
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
-export default function TradersTodayBadge({ style }) {
+export default function TradersTodayBadge({ style, className, variant }) {
   const [count, setCount] = useState(1240);
   const [win, setWin] = useState(58);
   const winRef = useRef(58);
@@ -39,8 +39,55 @@ export default function TradersTodayBadge({ style }) {
   const loss = 100 - win;
   const fmt = (n) => n.toLocaleString();
 
+  const pulseDot = (
+    <span style={{ position: "relative", display: "inline-flex" }}>
+      <Users size={14} style={{ color: "var(--color-success)" }} />
+      <span
+        style={{
+          position: "absolute", top: -2, right: -3, width: 6, height: 6, borderRadius: "50%",
+          background: "var(--color-success)", boxShadow: "0 0 0 2px var(--color-bg-surface)",
+          animation: "jx-pulse 1.6s ease-in-out infinite",
+        }}
+      />
+    </span>
+  );
+
+  const keyframes = (
+    <style jsx>{`
+      @keyframes jx-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.7); }
+      }
+    `}</style>
+  );
+
+  /* compact single-line stripe — used pinned near the footer on mobile */
+  if (variant === "strip") {
+    return (
+      <div
+        className={className}
+        style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "6px 10px",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--color-border)",
+          background: "var(--color-bg-surface)",
+          font: "var(--text-caption)",
+          ...style,
+        }}
+      >
+        {pulseDot}
+        <span style={{ fontWeight: 700 }}>{fmt(count)}</span>
+        <span style={{ color: "var(--color-text-muted)" }}>traders logged today</span>
+        <span style={{ marginLeft: "auto", color: "var(--color-success)", fontWeight: 600 }}>{win}% profitable</span>
+        {keyframes}
+      </div>
+    );
+  }
+
   return (
     <div
+      className={className}
       style={{
         borderRadius: "var(--radius-md)",
         border: "1px solid var(--color-border)",

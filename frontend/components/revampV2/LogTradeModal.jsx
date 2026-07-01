@@ -2311,8 +2311,10 @@ export default function LogTradeModal({
                   </div>
                 </div>
 
-                {/* social proof — why traders trust JournalX */}
-                <TradersTodayBadge />
+                {/* social proof — why traders trust JournalX. On mobile this
+                    full card is hidden; a compact strip is pinned in the footer
+                    instead (so it's visible without scrolling the rail). */}
+                <TradersTodayBadge className="jx-rail-badge" />
 
                 <div
                   className="jx-banner jx-banner--warn"
@@ -2339,6 +2341,8 @@ export default function LogTradeModal({
               className="jx-ltmodal__footer"
               style={{ flexDirection: "column", alignItems: "stretch" }}
             >
+              {/* mobile-only: pin the trust strip right above the action buttons */}
+              <TradersTodayBadge variant="strip" className="jx-foot-badge" />
               <span
                 style={{
                   font: "var(--text-small)",

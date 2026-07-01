@@ -1243,6 +1243,11 @@ body::before {
   border-top: 1px solid var(--color-border);
   flex-wrap: wrap;
 }
+/* trust strip: shown only in the footer on mobile (hidden on desktop, where
+   the full card lives in the rail) */
+.jx-foot-badge {
+  display: none;
+}
 @media (max-width: 900px) {
   .jx-ltmodal__body {
     grid-template-columns: 1fr;
@@ -1250,6 +1255,14 @@ body::before {
   .jx-ltmodal__rail {
     border-left: none;
     border-top: 1px solid var(--color-border);
+  }
+  /* on phones, drop the big rail card and pin the compact strip by the buttons */
+  .jx-rail-badge {
+    display: none !important;
+  }
+  .jx-foot-badge {
+    display: flex !important;
+    margin-bottom: var(--space-2);
   }
 }
 /* Responsive label helpers — show full text on desktop, short on mobile */
