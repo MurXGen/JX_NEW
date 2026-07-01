@@ -12,6 +12,12 @@ export const toBinanceSymbol = (sym) => {
   return null;
 };
 
+/* True only for symbols we can pull a real candle feed for (crypto pairs on
+   Binance). Everything else (stocks, futures, forex) has no live markable
+   chart — callers use this to hide approximated charts and to disable the
+   "Log on chart" toggle. */
+export const hasLiveCandles = (sym) => !!toBinanceSymbol(sym);
+
 export async function getLivePrice(symbol) {
   const b = toBinanceSymbol(symbol);
   if (!b) return null;

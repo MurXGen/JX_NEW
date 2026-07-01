@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Flame, Info, Plus, Sparkles, Sprout, TrendingUp } from "lucide-react";
+import { Coffee, Flame, Info, Plus, Shield, Sparkles, Sprout, TrendingUp } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import CountUp from "./CountUp";
@@ -870,12 +870,14 @@ export default function OverviewPanel({
      recent daily performance — so a rough patch doesn't crush momentum. */
   const encourage = useMemo(() => {
     if (!closed.length) return null;
-    const byDay = new Map();
+    const byDay = new Map();  // day ts -> net pnl
+    const cntDay = new Map(); // day ts -> trade count
     closed.forEach((t) => {
       const d = new Date(t.closeTime);
       if (Number.isNaN(d.getTime())) return;
       const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
       byDay.set(key, (byDay.get(key) || 0) + (Number(t.pnl) || 0));
+      cntDay.set(key, (cntDay.get(key) || 0) + 1);
     });
     const days = [...byDay.entries()].sort((a, b) => a[0] - b[0]); // [ts, net] asc
     if (!days.length) return null;
@@ -885,27 +887,47 @@ export default function OverviewPanel({
     const last7 = between(ago(7), now + 864e5);
     const prev7 = between(ago(14), ago(7));
 
+    // consecutive winning / losing days, counting back from the most recent
     let greenStreak = 0;
     for (let i = days.length - 1; i >= 0; i--) { if (days[i][1] > 0) greenStreak++; else break; }
+    let redStreak = 0;
+    for (let i = days.length - 1; i >= 0; i--) { if (days[i][1] < 0) redStreak++; else break; }
     const lastDayNet = days[days.length - 1][1];
-    let priorStreak = 0;
+    let priorGreen = 0;
     if (lastDayNet < 0) {
-      for (let i = days.length - 2; i >= 0; i--) { if (days[i][1] > 0) priorStreak++; else break; }
+      for (let i = days.length - 2; i >= 0; i--) { if (days[i][1] > 0) priorGreen++; else break; }
     }
+
+    // overtrading: today's trade count vs the trader's usual active-day count
+    const t0 = new Date();
+    const todayKey = new Date(t0.getFullYear(), t0.getMonth(), t0.getDate()).getTime();
+    const todayCount = cntDay.get(todayKey) || 0;
+    const todayNet = byDay.get(todayKey) || 0;
+    const priorCounts = [...cntDay.entries()].filter(([ts]) => ts !== todayKey).map(([, c]) => c);
+    const typical = priorCounts.length ? priorCounts.reduce((s, c) => s + c, 0) / priorCounts.length : 0;
+    const overtrading = todayCount >= 8 || (todayCount >= 5 && typical > 0 && todayCount >= typical * 2.5);
 
     const recent = days.slice(-7).map(([, v]) => v);
     const base = { recent };
 
+    // ---- wellbeing first: cushion losses, gently flag overtrading.
+    //      One short line — this renders as a slim stripe, not a card. ----
+    if (overtrading && todayNet < 0)
+      return { ...base, tone: "warn", icon: "coffee", text: `${todayCount} trades and red — step away, come back fresh tomorrow.` };
+    if (overtrading)
+      return { ...base, tone: "info", icon: "coffee", text: `${todayCount} trades today — wait for only your A+ setups.` };
+    if (redStreak >= 2)
+      return { ...base, tone: "warn", icon: "shield", text: `A ${redStreak}-day dip is normal — protect capital, stick to your plan.` };
     if (prev7 < 0 && last7 > 0)
-      return { ...base, tone: "success", icon: "up", title: "Strong turnaround", text: "Green over the last 7 days after a rough patch — keep doing what's working. 💪" };
-    if (lastDayNet < 0 && priorStreak >= 3)
-      return { ...base, tone: "info", icon: "spark", title: "Stay confident", text: `One red day after ${priorStreak} green ones doesn't undo your edge — trust your process.` };
+      return { ...base, tone: "success", icon: "up", text: "Nice turnaround this week — keep doing what's working." };
+    if (lastDayNet < 0 && priorGreen >= 3)
+      return { ...base, tone: "warn", icon: "shield", text: `One red day after ${priorGreen} green — nothing to fix, run your plan.` };
     if (greenStreak >= 3)
-      return { ...base, tone: "success", icon: "flame", title: `${greenStreak}-day green streak`, text: "Momentum is on your side — protect your gains and keep risk tight." };
-    if (lastDayNet < 0 && last7 > 0)
-      return { ...base, tone: "info", icon: "up", title: "Zoom out", text: "A down day inside a winning week is normal — the trend is still your friend." };
+      return { ...base, tone: "success", icon: "flame", text: `${greenStreak}-day green streak — protect your gains, keep risk tight.` };
     if (last7 < 0)
-      return { ...base, tone: "warn", icon: "sprout", title: "Trust the process", text: "Drawdowns happen to every trader. Focus on flawless execution — the P&L follows." };
+      return { ...base, tone: "warn", icon: "shield", text: "A losing week is part of the game — size down, trust your setups." };
+    if (lastDayNet < 0 && last7 > 0)
+      return { ...base, tone: "info", icon: "up", text: "Down day, winning week — the trend's still your friend." };
     return null;
   }, [closed]);
 
@@ -1718,69 +1740,27 @@ export default function OverviewPanel({
               encourage.icon === "flame" ? Flame
               : encourage.icon === "spark" ? Sparkles
               : encourage.icon === "sprout" ? Sprout
+              : encourage.icon === "shield" ? Shield
+              : encourage.icon === "coffee" ? Coffee
               : TrendingUp;
-            const bars = encourage.recent || [];
-            const max = Math.max(1, ...bars.map((v) => Math.abs(v)));
+            // slim single-line stripe — deliberately compact, not a card
             return (
               <div
                 style={{
                   marginTop: "var(--space-3)",
-                  padding: "12px 14px",
-                  borderRadius: "var(--radius-lg)",
+                  padding: "6px 10px",
+                  borderRadius: "var(--radius-md)",
                   background: bg,
                   border: `1px solid ${accent}33`,
                   display: "flex",
                   alignItems: "center",
-                  gap: "var(--space-3)",
+                  gap: 8,
                 }}
               >
-                <span
-                  style={{
-                    width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    background: `${accent}22`, color: accent,
-                  }}
-                >
-                  <Icon size={19} />
+                <Icon size={14} style={{ color: accent, flexShrink: 0 }} />
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)", lineHeight: 1.35 }}>
+                  {encourage.text}
                 </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ font: "var(--text-small)", fontWeight: 700, color: "var(--color-text-primary)" }}>
-                    {encourage.title}
-                  </div>
-                  <div style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                    {encourage.text}
-                  </div>
-                </div>
-                {bars.length > 1 && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 3, height: 34, flexShrink: 0 }}>
-                    {bars.map((v, i) => {
-                      const h = Math.max(4, Math.round((Math.abs(v) / max) * 30));
-                      const up = v >= 0;
-                      return (
-                        <span
-                          key={i}
-                          title={k(v, currencySymbol)}
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: up ? "flex-end" : "flex-start",
-                            height: "100%",
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: 5,
-                              height: h,
-                              borderRadius: 2,
-                              background: up ? "var(--color-success)" : "var(--color-danger)",
-                              opacity: 0.55 + 0.45 * (Math.abs(v) / max),
-                            }}
-                          />
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             );
           })()}

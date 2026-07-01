@@ -35,6 +35,7 @@ import TradersTodayBadge from "./TradersTodayBadge";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
+import { hasLiveCandles } from "@/utils/livePrice";
 import { canAddTrade, canChartLog, getPlanRules } from "@/utils/planRestrictions";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { scheduleAutoBackup } from "@/utils/driveBackup";
@@ -630,6 +631,19 @@ export default function LogTradeModal({
       netPnl: meta.pnl != null ? String(Math.round(meta.pnl * 100) / 100) : f.netPnl,
     }));
   };
+
+  /* "Log on chart" only works when we can load a real, clickable candle feed
+     — that's crypto pairs on Binance. Stocks/futures/forex only have a
+     read-only TradingView embed you can't mark on, so the toggle is disabled
+     for them. */
+  const chartMarkable = hasLiveCandles(form.symbol);
+  const chartToggleDisabled = !!form.symbol && !chartMarkable;
+
+  /* if the user switches to a symbol with no live chart, quietly turn the
+     toggle off so they don't sit on an unusable read-only embed */
+  useEffect(() => {
+    if (chartToggleDisabled && useChart) setUseChart(false);
+  }, [chartToggleDisabled, useChart]);
 
   /* load symbols from IndexedDB trades + custom chip lists */
   useEffect(() => {
@@ -1437,19 +1451,24 @@ export default function LogTradeModal({
                             style={{
                               font: "var(--text-small)",
                               fontWeight: 600,
-                              color: useChart
+                              color: chartToggleDisabled
+                                ? "var(--color-text-muted)"
+                                : useChart
                                 ? "var(--color-success-strong)"
                                 : "var(--color-text-muted)",
                             }}
                           >
-                            {useChart ? "On" : "Off"}
+                            {chartToggleDisabled ? "Unavailable" : useChart ? "On" : "Off"}
                           </span>
                           <button
                             type="button"
                             className={`jx-switch ${useChart ? "jx-switch--on" : ""}`}
-                            onClick={() => setUseChart((v) => !v)}
+                            onClick={() => { if (!chartToggleDisabled) setUseChart((v) => !v); }}
+                            disabled={chartToggleDisabled}
                             aria-pressed={useChart}
+                            aria-disabled={chartToggleDisabled}
                             aria-label="Log on chart"
+                            style={chartToggleDisabled ? { opacity: 0.45, cursor: "not-allowed" } : undefined}
                           />
                         </div>
                       </div>
@@ -1459,7 +1478,9 @@ export default function LogTradeModal({
                           color: "var(--color-text-muted)",
                         }}
                       >
-                        Mark entry &amp; exit on a live chart — prices fill in for you.
+                        {chartToggleDisabled
+                          ? `A live markable chart isn't available for ${form.symbol} — it's only for crypto pairs (e.g. BTCUSDT). Enter your prices manually below.`
+                          : "Mark entry & exit on a live chart — prices fill in for you."}
                       </span>
 
                       <AnimatePresence initial={false}>

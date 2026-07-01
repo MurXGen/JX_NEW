@@ -24,7 +24,7 @@ import Badge from "./Badge";
 import Button from "./Button";
 import Dropdown from "./Dropdown";
 import TradeChartMarker from "./TradeChartMarker";
-import { getLivePrice } from "@/utils/livePrice";
+import { getLivePrice, hasLiveCandles } from "@/utils/livePrice";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import { lockedChartTradeIds } from "@/utils/planRestrictions";
 
@@ -518,10 +518,10 @@ export default function TradeDetailsModal({
                 </div>
 
                 {/* Marked chart — reproduces the chart with the trade's entry &
-                    exit marked (live candles for crypto, approximated otherwise),
-                    with timeframe switching. Shown whenever we have entry & exit
-                    to mark, or the trade was logged/imported from a chart. */}
-                {(t.tvChart || t.source === "tradingview" || (entry > 0 && exit > 0)) && (
+                    exit marked, with timeframe switching. Only shown when a real
+                    candle feed exists for the symbol (crypto pairs); we never
+                    render an approximated/synthetic chart. */}
+                {hasLiveCandles(t.symbol || t.ticker) && (t.tvChart || t.source === "tradingview" || (entry > 0 && exit > 0)) && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
                       <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Chart — entry &amp; exit · {t.symbol || t.ticker}</span>

@@ -212,8 +212,8 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-2)", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
         <span>Entry</span><span>Exit</span><span>Size</span><span>R : R</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{entry ? `$${fmt(entry)}` : "—"}</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{exit ? `$${fmt(exit)}` : "—"}</span>
+        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{entry ? `${sym}${fmt(entry)}` : "—"}</span>
+        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{exit ? `${sym}${fmt(exit)}` : "—"}</span>
         <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{qty(t.totalQuantity)}</span>
         <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}</span>
       </div>
@@ -743,17 +743,17 @@ export default function TradesLogPanel({
       )}
 
       {/* header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "nowrap", gap: "var(--space-3)" }}>
+      <div className="jx-tl-tophead" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "nowrap", gap: "var(--space-3)" }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ font: "var(--text-h2)" }}>Trades log</div>
           <div style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
-            Every trade you log or auto-import, in one place · {stats.total} total
+            {stats.total} {stats.total === 1 ? "trade" : "trades"}
             {usingDummy && <> <Badge variant="brand">Sample data</Badge></>}
           </div>
         </div>
         {/* hide header actions while on sample data — the banner below carries
             the primary Import / Log actions (avoids duplicate CTAs) */}
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap", flexShrink: 0, justifyContent: "flex-end" }}>
+        <div className="jx-tl-topactions" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap", flexShrink: 0, justifyContent: "flex-end" }}>
           <CustomizeSections
             sections={TRADESLOG_SECTIONS}
             hidden={hidden}
@@ -1004,8 +1004,8 @@ export default function TradesLogPanel({
                         )}
                         <td style={{ fontWeight: 700 }}>{t.symbol || t.ticker || "—"}</td>
                         <td><Badge variant={isLong ? "success" : "danger"} icon={isLong ? TrendingUp : TrendingDown}>{isLong ? "Long" : "Short"}</Badge></td>
-                        <td style={{ textAlign: "right" }}>{entry ? `$${fmt(entry)}` : "—"}</td>
-                        <td style={{ textAlign: "right" }}>{exit ? `$${fmt(exit)}` : "—"}</td>
+                        <td style={{ textAlign: "right" }}>{entry ? `${currencySymbol}${fmt(entry)}` : "—"}</td>
+                        <td style={{ textAlign: "right" }}>{exit ? `${currencySymbol}${fmt(exit)}` : "—"}</td>
                         <td style={{ textAlign: "right" }}>{qty(t.totalQuantity)}</td>
                         <td style={{ textAlign: "right", fontWeight: 700, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
                           {money(pnl, currencySymbol)}
