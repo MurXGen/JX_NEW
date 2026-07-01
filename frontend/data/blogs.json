@@ -6672,6 +6672,353 @@
           "a": "It varies by model. Some firms pay from live-market performance and fees; others fund payouts largely from evaluation fees and the pool of traders who don't pass. Because reliability depends on the firm staying solvent, a firm's track record of actually paying traders is one of the most important things to check."
         }
       ]
+    },
+    {
+      "slug": "trading-news-events-on-a-funded-account",
+      "title": "Trading News Events on a Funded Account: The 2026 Rules",
+      "metaTitle": "Trading News Events on a Funded Account: 2026 Rules | JournalX",
+      "metaDescription": "Can you trade NFP, CPI and FOMC on a funded account? A 2026 guide to prop firm news trading rules, blackout windows, and how to stay compliant.",
+      "keywords": [
+        "news trading prop firm",
+        "funded account news trading rules",
+        "can you trade news on a funded account",
+        "prop firm news blackout",
+        "trading NFP CPI funded account",
+        "high-impact news trading rules"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-07-01",
+      "featured": false,
+      "excerpt": "News events are where funded accounts quietly die — not from bad trades, but from broken rules. Here is how prop firm news trading rules actually work in 2026, and how to trade around them without a soft breach.",
+      "helpful": {
+        "up": 42,
+        "down": 1,
+        "saves": 38
+      },
+      "tags": [
+        "Funded",
+        "News Trading",
+        "Prop Firm",
+        "Risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "There is a specific way to blow a funded account that has nothing to do with your strategy: you place a perfectly good trade thirty seconds before a CPI print, the number comes in hot, and by the time you check your dashboard your evaluation is void — not because you lost money, but because you broke a news trading rule you did not know existed. In 2026 this is one of the most common ways traders lose accounts, and it is completely avoidable."
+        },
+        {
+          "type": "p",
+          "text": "News trading rules are the fine print most traders skim past when they buy a challenge. This guide breaks down what those rules actually are, why firms enforce them, how the landscape looks across firms right now, and a simple routine to stay on the right side of the line."
+        },
+        {
+          "type": "h2",
+          "text": "What a news trading rule actually means"
+        },
+        {
+          "type": "p",
+          "text": "A news trading restriction prohibits opening or holding positions inside a defined window around high-impact macroeconomic releases. The restricted events are usually the same handful that move entire markets: FOMC rate decisions, Non-Farm Payrolls (NFP), CPI and Core CPI, GDP, PPI, and ISM Manufacturing. The blackout is typically a short window — commonly reported in the range of two to five minutes before and after the release — during which entering or exiting a trade counts as a rule violation."
+        },
+        {
+          "type": "p",
+          "text": "The nuance that catches people out is the difference between a hard breach and a soft breach. A hard breach can void the account outright. A soft breach, which some firms apply, simply removes the profit from the offending trade while leaving the account intact. Because these definitions vary firm to firm and change over time, you should treat the specific numbers below as reported terms to verify in your own agreement, not fixed law."
+        },
+        {
+          "type": "h2",
+          "text": "Why firms restrict news trading at all"
+        },
+        {
+          "type": "p",
+          "text": "It is not arbitrary. High-impact releases create extreme volatility, spreads widen dramatically, and slippage can turn a two-point stop into a ten-point fill. From the firm's side, a trader who loads up seconds before NFP is not demonstrating a repeatable edge — they are placing a leveraged coin flip that the firm ultimately backstops. Restrictions exist to filter out lottery-ticket behaviour and to protect the firm from liquidity gaps it cannot hedge."
+        },
+        {
+          "type": "quote",
+          "text": "The market does not pay you extra for taking the trade five seconds before the number. It only increases the size of your regret if you are wrong."
+        },
+        {
+          "type": "h2",
+          "text": "The 2026 landscape: it varies more than you think"
+        },
+        {
+          "type": "p",
+          "text": "One of the biggest shifts reported through 2025 and into 2026 is that firms have diverged sharply on this issue. Some enforce tight blackout windows; others have removed news restrictions entirely as a competitive selling point. The table below reflects commonly reported policies — always confirm against the firm's current rulebook, because prop firm terms change frequently and sometimes retroactively."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Policy type",
+            "What it means for you",
+            "Reported examples"
+          ],
+          "rows": [
+            [
+              "Hard blackout window",
+              "No open/close within a few minutes of the release; violation can void the account",
+              "Windows reported around 2–5 minutes at various firms"
+            ],
+            [
+              "Soft breach",
+              "Profit from the news trade is stripped, account survives",
+              "Reported at some firms as a middle-ground policy"
+            ],
+            [
+              "No news restriction",
+              "Trade releases freely, evaluation and funded alike",
+              "Several firms now market zero news restrictions"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The takeaway is not which firm is best — it is that you cannot assume. A rule that applied to your last account may not apply to this one, and a firm can update its policy between the day you buy and the day you trade."
+        },
+        {
+          "type": "h2",
+          "text": "How to stay compliant without babysitting the clock"
+        },
+        {
+          "type": "p",
+          "text": "Compliance is mostly a process problem, not a discipline problem. If you build the checks into your routine, you will almost never trip a rule by accident. Run this checklist at the start of every session."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Pre-session news compliance check",
+          "prompt": "Tick each item before you place your first trade of the day.",
+          "items": [
+            "I have read my firm's current news trading rule this week (not last month)",
+            "I have a high-impact economic calendar open for today's session",
+            "I know the exact blackout window (minutes before/after) my firm enforces",
+            "I have noted the release times for any red-folder events today",
+            "I have a plan to be flat or to avoid new entries inside every blackout window",
+            "I know whether my firm applies a hard breach or a soft breach"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "High risk — you are one surprise print away from a violation. Do not trade until you close these gaps."
+            },
+            {
+              "min": 3,
+              "text": "Partial coverage. Fill the remaining items before your first entry."
+            },
+            {
+              "min": 6,
+              "text": "Fully covered. You can trade the session knowing exactly where the lines are."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX you can tag every trade with the market context around it, including whether it landed near a scheduled release. Over a few weeks you can filter your journal to see how your news-adjacent trades actually performed versus your clean-session trades — most traders are surprised to find their edge lives almost entirely in the quiet windows. That evidence makes it far easier to respect a blackout, because you are not giving up anything profitable."
+        },
+        {
+          "type": "why",
+          "text": "Unlike a spreadsheet that only stores your entry and exit, JournalX is built to capture the why behind each trade — the setup, the emotion, and the surrounding conditions — so a pattern like \"my news-window trades are pure variance\" surfaces from your own data instead of a generic rule you are told to follow. The habit sticks because you proved it to yourself."
+        },
+        {
+          "type": "h2",
+          "text": "A simple pre-news routine"
+        },
+        {
+          "type": "p",
+          "text": "Keep it mechanical. Before the session, mark today's high-impact events on your chart. As each event approaches, stop taking new entries a few minutes early — wider than your firm's stated window, so a mistimed click never becomes a breach. If you are already in a position, decide in advance whether you will close it before the window or hold through on a pre-defined plan. After the release, let the initial spike settle before you re-engage. None of this requires willpower; it requires a calendar and a rule you follow every day."
+        },
+        {
+          "type": "p",
+          "text": "The traders who last on funded capital are almost never the ones with the flashiest news trades. They are the ones who treat the rulebook as part of the strategy, log what happens, and let the boring quiet-session edge compound. News restrictions are not an obstacle to that — they are a nudge toward it."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Can you trade news on a funded account?",
+          "a": "It depends entirely on the firm. As of 2026, some prop firms enforce blackout windows around high-impact releases, some apply a soft breach that only removes the news-trade profit, and a growing number market zero news restrictions. Always confirm your specific firm's current rule before trading a release."
+        },
+        {
+          "q": "What events count as high-impact news?",
+          "a": "The commonly restricted events include FOMC rate decisions, NFP, CPI and Core CPI, GDP, PPI, and ISM Manufacturing. A red-folder economic calendar will flag these. Firms define their own list, so check which events your agreement names."
+        },
+        {
+          "q": "What is a news trading blackout window?",
+          "a": "It is a short period — commonly reported in the range of a few minutes before and after a release — during which opening or closing a position counts as a rule violation. The exact length varies by firm and can change."
+        },
+        {
+          "q": "What happens if I break a news trading rule?",
+          "a": "Consequences range from a soft breach, where only the offending trade's profit is removed and the account survives, to a hard breach that can void the account. Because this varies, treat any single trade near a release as potentially account-ending unless you have confirmed otherwise."
+        }
+      ]
+    },
+    {
+      "slug": "how-many-trades-before-you-know-your-edge",
+      "title": "How Many Trades Before You Actually Know Your Edge?",
+      "metaTitle": "How Many Trades Before You Know Your Edge | JournalX",
+      "metaDescription": "How many trades do you need before your win rate means anything? A practical guide to sample size, statistical significance, and proving your edge is real.",
+      "keywords": [
+        "how many trades to know your edge",
+        "trading sample size",
+        "is my trading strategy working",
+        "statistical significance trading",
+        "how many trades for a valid backtest",
+        "trading edge proof"
+      ],
+      "category": "Strategy",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-07-01",
+      "featured": false,
+      "excerpt": "A 70% win rate over 20 trades tells you almost nothing. Here is how many trades you actually need before your results mean something — and how to stop fooling yourself with tiny samples.",
+      "helpful": {
+        "up": 45,
+        "down": 2,
+        "saves": 41
+      },
+      "tags": [
+        "Strategy",
+        "Edge",
+        "Metrics",
+        "Backtesting"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "You have taken twelve trades on a new setup and won nine of them. It feels like you have found something. You size up. Three losing trades later the magic is gone and you are back to questioning everything. The problem was never the strategy — it was that twelve trades never told you anything in the first place. Understanding sample size is the difference between building on evidence and building on a lucky streak."
+        },
+        {
+          "type": "p",
+          "text": "This is one of the most under-appreciated skills in trading. Almost everyone tracks their win rate; almost nobody asks whether they have taken enough trades for that win rate to be believable. Let us fix that."
+        },
+        {
+          "type": "h2",
+          "text": "The small-sample trap"
+        },
+        {
+          "type": "p",
+          "text": "Randomness looks a lot like skill over short stretches. Flip a fair coin ten times and it is entirely normal to get seven heads. If those flips were trades, you would be telling yourself you had a 70% edge. The same illusion runs in reverse: a genuinely good strategy can easily lose five in a row and get abandoned. Over small samples, the noise is louder than the signal, and your brain is wired to find a pattern in it anyway."
+        },
+        {
+          "type": "p",
+          "text": "This is why traders churn through strategies. They adopt one on a hot streak, abandon it on a cold streak, and never give any single approach enough repetitions to reveal its true expectancy. The strategy did not fail — the sample size did."
+        },
+        {
+          "type": "h2",
+          "text": "What the numbers actually say"
+        },
+        {
+          "type": "p",
+          "text": "There is rough consensus across trading and quantitative sources on where samples start to become meaningful. These are guidelines, not guarantees — the exact number you need depends on how large your edge is (a razor-thin edge needs far more trades to detect than a large one) — but they give you a useful mental scale."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Number of trades",
+            "What you can conclude",
+            "Confidence level"
+          ],
+          "rows": [
+            [
+              "Under 30",
+              "Essentially nothing — pure noise",
+              "None"
+            ],
+            [
+              "100",
+              "Basic signal; a starting point for validation",
+              "Low to moderate"
+            ],
+            [
+              "200–500",
+              "Stronger evidence across conditions",
+              "Moderate to high"
+            ],
+            [
+              "500+",
+              "Robust, if spread across market regimes",
+              "High"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "As a widely cited illustration: a 65% win rate over just 20 trades typically carries a p-value above 0.2 — in plain terms, better than a one-in-five chance the result is pure luck. That is nowhere near enough to bet real size on. Institutional practice (associated with quant researchers like Lopez de Prado) commonly points to 200–500 trades across multiple market regimes before treating an edge as real. Treat these figures as reported ranges from trading and academic sources rather than hard thresholds."
+        },
+        {
+          "type": "h2",
+          "text": "Win rate is the most misleading number over short samples"
+        },
+        {
+          "type": "p",
+          "text": "Win rate feels like the headline stat, but it is the one that lies most convincingly early on. Test yourself on the scenario below before reading the explanation."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Does this result mean anything?",
+          "prompt": "A trader shows you a new strategy with a 68% win rate over 25 trades and asks if they should scale up. What is the right response?",
+          "options": [
+            "Yes — 68% is a strong win rate, scale up now",
+            "No — 25 trades is far too small a sample to trust the win rate",
+            "Yes, but only if the last five trades were winners",
+            "It depends entirely on which market they traded"
+          ],
+          "correct": 1,
+          "explain": "25 trades is deep in noise territory. A 68% win rate over that few trades could easily collapse toward 50% — or lower — as the sample grows. The responsible move is to keep taking the trades at consistent size and re-evaluate at 100+, not to scale up on a result that has not earned trust yet."
+        },
+        {
+          "type": "h2",
+          "text": "Regimes matter as much as raw count"
+        },
+        {
+          "type": "p",
+          "text": "A hundred trades taken entirely during one smooth uptrend is not the same as a hundred trades spread across trending, ranging, and high-volatility conditions. A strategy can look brilliant in the exact environment it was born in and fall apart the moment the market changes character. This is why quantitative sources often recommend testing across at least a couple of years or several distinct market phases — you want proof your edge survives conditions it was not designed for, not just the ones it was."
+        },
+        {
+          "type": "p",
+          "text": "The practical implication for a discretionary trader: resist judging any setup until you have taken it through at least one clear regime change. If your strategy only triggers a handful of times a month, that patience is unavoidable — and it is exactly why so few traders ever truly validate anything."
+        },
+        {
+          "type": "usecase",
+          "text": "This is where a journal stops being optional. In JournalX your trade count, win rate, and expectancy update automatically as you log, so you always know exactly where you are on the sample-size scale instead of guessing. You can filter a single setup to see how many times you have actually taken it, and whether its numbers are holding up or drifting as the sample grows — the difference between a real edge and a hot streak becomes visible instead of imagined."
+        },
+        {
+          "type": "why",
+          "text": "A spreadsheet can count your trades, but it will not tell you when your sample is big enough to trust or nudge you to stop scaling on twelve lucky repetitions. JournalX is built around the metrics that reveal an edge over time — expectancy, R-multiple, and per-setup breakdowns — so the question stops being \"do I feel good about this strategy\" and becomes \"what do 150 logged trades actually say.\""
+        },
+        {
+          "type": "h2",
+          "text": "A practical framework you can use tomorrow"
+        },
+        {
+          "type": "p",
+          "text": "You do not need statistics software. Pick one setup and commit to taking it at consistent risk for a fixed number of trades — say 100 — before you allow yourself any verdict. Log every instance, winners and losers, with the same detail. At 100 trades, look at expectancy rather than win rate: a 45% win rate with a 2R average winner beats a 60% win rate with a 0.8R winner every time. If the expectancy is positive across mixed conditions, you have earned the right to size up. If it is not, you have saved yourself from scaling a strategy that only ever worked on paper."
+        },
+        {
+          "type": "quote",
+          "text": "Amateurs ask whether the last trade won. Professionals ask whether they have taken enough trades to answer that question at all."
+        },
+        {
+          "type": "p",
+          "text": "The uncomfortable truth is that patience is the edge behind the edge. Most traders never take any single approach through a large enough sample to know if it works, so they live in a permanent loop of adopting and abandoning. Break the loop: pick one thing, log 100 clean trades, and let the data — not the last outcome — tell you what you have."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How many trades do I need before I know my strategy works?",
+          "a": "As a rough scale, under 30 trades tells you almost nothing, around 100 gives a basic signal, and 200–500 across varied market conditions provides much stronger evidence. The exact number depends on how large your edge is — smaller edges need bigger samples to detect. Treat these as reported guidelines, not hard rules."
+        },
+        {
+          "q": "Why can't I trust a high win rate over a few trades?",
+          "a": "Over small samples, randomness dominates. A 65–70% win rate over 20–25 trades can easily be luck — the result often carries a high probability of being noise and tends to drift toward the true rate as the sample grows. Consistent size and patience are the only fixes."
+        },
+        {
+          "q": "Is win rate or expectancy more important?",
+          "a": "Expectancy, by far. A 45% win rate with large winners can be far more profitable than a 60% win rate with tiny ones. Once you have a meaningful sample, judge the strategy on expectancy (average result per trade), not on how often it wins."
+        },
+        {
+          "q": "Does the type of market matter for my sample?",
+          "a": "Yes. A hundred trades taken only in a trending market is weaker evidence than a hundred spread across trending, ranging, and volatile conditions. You want proof your edge survives regimes it was not built for."
+        }
+      ]
     }
   ]
 }
