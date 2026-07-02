@@ -192,6 +192,15 @@ export function BlogBody({ body = [] }) {
               <p style={{ margin: 0, font: "var(--text-body)", color: "var(--color-text-secondary)" }}>{block.text}</p>
             </div>
           );
+        if (block.type === "cta")
+          return (
+            <a key={i} href={block.href} style={{ textDecoration: "none", display: "block" }}>
+              <div className="jx-card jx-card--flat" style={{ background: "var(--color-primary-subtle)", border: "1px solid var(--color-primary)", borderRadius: "var(--radius-md)", padding: "var(--space-4)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-text-primary)" }}>{block.text}</span>
+                <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: "var(--yellow-600)", whiteSpace: "nowrap" }}>{block.label || "Open"} →</span>
+              </div>
+            </a>
+          );
         if (block.type === "table")
           return (
             <div key={i} style={{ overflowX: "auto", margin: "var(--space-2) 0" }}>
