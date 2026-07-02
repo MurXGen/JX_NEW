@@ -7,8 +7,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Poppins',sans-serif;background:#070a0e;color:#fff;min-height:100vh;display:flex;
-  flex-direction:column;align-items:center;padding:26px 12px 70px;gap:14px}
-.vid{display:flex;flex-direction:column;align-items:center;gap:12px}
+  flex-direction:column;align-items:center;padding:26px 0 70px;gap:14px}
+.vrow{display:flex;gap:32px;overflow-x:auto;width:100%;padding:8px 40px 28px;align-items:flex-start;scroll-snap-type:x proximity}
+.vrow::-webkit-scrollbar{height:10px}
+.vrow::-webkit-scrollbar-thumb{background:#23262d;border-radius:999px}
+.vrow::-webkit-scrollbar-track{background:transparent}
+.vid{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:12px;scroll-snap-align:center}
 .vlabel{font-size:13px;font-weight:600;letter-spacing:1px;color:#8b909b;text-transform:uppercase}
 .vlabel b{color:#fdda70}
 .bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
@@ -30,6 +34,7 @@ canvas{display:block;width:340px;height:604px}
 .hint b{color:#fdda70}
 </style></head>
 <body>
+<div class="vrow">
 <div class="vid">
   <div class="vlabel">Video 1 · <b>The 3 habits</b></div>
   <div class="bar"><button class="btn" id="play1">Replay</button><button class="btn" id="dl1">Download MP4</button><button class="btn" id="cover1">Cover PNG</button></div>
@@ -51,7 +56,6 @@ JournalX is the free trading journal &amp; analytics tool that auto-computes you
     <div class="cb"><div class="cbh">SEO keywords (YouTube tags / description) <button class="btn sm copy" data-copy="k1">Copy</button></div><pre id="k1">JournalX, journalx app, trading journal, journaling tool, trading journal app, best trading journal, trade analytics software, prop firm trading journal, FTMO journal, forex trading journal, day trading journal, futures trading journal, crypto trading journal, stock trading journal, trading psychology app, win rate tracker, R-multiple, equity curve, drawdown tracker, trade journal for beginners</pre></div>
   </div>
 </div>
-<hr class="sep">
 <div class="vid">
   <div class="vlabel">Video 2 · <b>Log a trade in 5 seconds</b></div>
   <div class="bar"><button class="btn" id="play2">Replay</button><button class="btn" id="dl2">Download MP4</button><button class="btn" id="cover2">Cover PNG</button></div>
@@ -70,7 +74,6 @@ JournalX is a free trading journal &amp; analytics app that turns every trade in
     <div class="cb"><div class="cbh">SEO keywords (YouTube tags / description) <button class="btn sm copy" data-copy="k2">Copy</button></div><pre id="k2">JournalX, journalx app, trading journal, journaling tool, how to journal trades, trade logging app, trading journal app, best trading journal, prop firm trading journal, FTMO journal, forex trading journal, day trading journal, trading psychology app, fixed risk position sizing, win rate tracker, R-multiple, trading journal for beginners</pre></div>
   </div>
 </div>
-<hr class="sep">
 <div class="vid">
   <div class="vlabel">Video 3 · <b>From red to green</b></div>
   <div class="bar"><button class="btn" id="play3">Replay</button><button class="btn" id="dl3">Download MP4</button><button class="btn" id="cover3">Cover PNG</button></div>
@@ -89,13 +92,54 @@ JournalX is a free trading journal &amp; analytics app that turns every trade in
     <div class="cb"><div class="cbh">SEO keywords (YouTube tags / description) <button class="btn sm copy" data-copy="k3">Copy</button></div><pre id="k3">JournalX, journalx app, trading journal, journaling tool, trading journal app, how journaling improved my trading, trading account turnaround, recover trading losses, best trading journal, prop firm trading journal, FTMO journal, forex trading journal, day trading journal, trading psychology app, win rate tracker, R-multiple, equity curve, drawdown tracker</pre></div>
   </div>
 </div>
-<div class="hint">Three canvas-rendered stories — <b>downloaded MP4 matches the preview exactly</b>, true 1080×1920 (9:16) H.264. <b>Use Chrome or Edge</b> (WebCodecs).</div>
+<div class="vid">
+  <div class="vlabel">Video 4 · <b>Only 1 in 20 pass</b></div>
+  <div class="bar"><button class="btn" id="play4">Replay</button><button class="btn" id="dl4">Download MP4</button><button class="btn" id="cover4">Cover PNG</button></div>
+  <div class="prog" id="prog4"></div>
+  <div class="frame"><canvas id="c4" width="1080" height="1920"></canvas></div>
+  <div class="copybox">
+    <div class="cb"><div class="cbh">Title (YouTube / Reel) <button class="btn sm copy" data-copy="t4">Copy</button></div><pre id="t4">Why Only 1 in 20 Traders Pass a Prop Firm Challenge (and How to Be the 1) | JournalX</pre></div>
+    <div class="cb"><div class="cbh">Caption <button class="btn sm copy" data-copy="cap4">Copy</button></div><pre id="cap4">Only ~5% of traders pass a prop firm challenge — and it's almost never the strategy. 🎯
+
+The data is brutal: most blow up in the FIRST WEEK by breaching the daily drawdown limit. Oversizing, revenge trades, tilt. The traders who pass risk under 2% per trade and track their drawdown religiously.
+
+JournalX tracks your daily &amp; trailing drawdown, planned vs realised R, and discipline on every trade — so you see the breach coming before it ends your funded account.
+
+🔗 Protect your funded account free → journalx.app</pre></div>
+    <div class="cb"><div class="cbh">Hashtags <button class="btn sm copy" data-copy="h4">Copy</button></div><pre id="h4">#propfirm #fundedtrader #ftmo #propfirmtrading #propfirmtrader #tradingchallenge #fundedtrading #drawdown #riskmanagement #journalx #tradingjournal #journalingtool #daytrading #forex #futures #tradingpsychology #tradereducation #tradingtips</pre></div>
+    <div class="cb"><div class="cbh">SEO keywords (YouTube tags / description) <button class="btn sm copy" data-copy="k4">Copy</button></div><pre id="k4">JournalX, prop firm trading journal, funded trader journal, FTMO journal, how to pass prop firm challenge, prop firm pass rate, why traders fail prop firm, drawdown tracker, daily loss limit, trading journal, journaling tool, trading journal app, risk management, trading psychology app, funded account, consistency rule</pre></div>
+  </div>
+</div>
+<div class="vid">
+  <div class="vlabel">Video 5 · <b>The win-rate myth</b></div>
+  <div class="bar"><button class="btn" id="play5">Replay</button><button class="btn" id="dl5">Download MP4</button><button class="btn" id="cover5">Cover PNG</button></div>
+  <div class="prog" id="prog5"></div>
+  <div class="frame"><canvas id="c5" width="1080" height="1920"></canvas></div>
+  <div class="copybox">
+    <div class="cb"><div class="cbh">Title (YouTube / Reel) <button class="btn sm copy" data-copy="t5">Copy</button></div><pre id="t5">Why a 40% Win Rate Beats 70% (The Win-Rate Myth) | JournalX Trading Journal</pre></div>
+    <div class="cb"><div class="cbh">Caption <button class="btn sm copy" data-copy="cap5">Copy</button></div><pre id="cap5">Your win rate is lying to you. 🧮
+
+A trader who wins 70% but cuts winners and holds losers can barely break even (+0.05R). A trader who wins just 40% with a 1:3 risk-reward compounds hard (+0.60R) — 12× the edge on the same 100 trades.
+
+Win rate is vanity. Expectancy is the edge: (win% × avg win) − (loss% × avg loss). That's the number that actually grows an account.
+
+JournalX computes your expectancy, R-multiples, payoff ratio and profit factor automatically from your real trades — so you stop chasing win rate and start building an edge.
+
+🔗 See your real expectancy free → journalx.app</pre></div>
+    <div class="cb"><div class="cbh">Hashtags <button class="btn sm copy" data-copy="h5">Copy</button></div><pre id="h5">#winrate #expectancy #riskreward #rmultiple #tradingedge #tradingjournal #journalingtool #journalx #daytrading #forex #futures #propfirm #ftmo #tradingpsychology #tradereducation #tradingtips #profitfactor #tradingmindset</pre></div>
+    <div class="cb"><div class="cbh">SEO keywords (YouTube tags / description) <button class="btn sm copy" data-copy="k5">Copy</button></div><pre id="k5">JournalX, win rate myth, does win rate matter trading, expectancy trading, risk reward ratio, R-multiple, profit factor, low win rate profitable, trading edge, trading journal, journaling tool, trading journal app, trade analytics, trading psychology, how to be profitable trading</pre></div>
+  </div>
+</div>
+</div>
+<div class="hint">Five canvas-rendered stories — scroll sideways → for all videos. <b>Downloaded MP4 matches the preview exactly</b>, true 1080×1920 (9:16) H.264. <b>Use Chrome or Edge</b> (WebCodecs).</div>
 <script>
 const W=1080,H=1920,FPS=30;
-const DUR1=17.0, DUR2=16.8, DUR3=15.4;
+const DUR1=17.0, DUR2=16.8, DUR3=15.4, DUR4=15.4, DUR5=15.4;
 const cv=document.getElementById('c'), ctx1=cv.getContext('2d');
 const cv2=document.getElementById('c2'), ctx2=cv2.getContext('2d');
 const cv3=document.getElementById('c3'), ctx3=cv3.getContext('2d');
+const cv4=document.getElementById('c4'), ctx4=cv4.getContext('2d');
+const cv5=document.getElementById('c5'), ctx5=cv5.getContext('2d');
 let ctx=ctx1;
 const GOLD='#fdda70',GOLDD='#a77d02',GREEN='#22c55e',RED='#ef4444',AMBER='#f59e0b',ORANGE='#fb923c',MUTE='#aeb4bf',GREY='#3a4150';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
@@ -274,17 +318,79 @@ function stats3(t){const a=fade(t,10.8,13.0,0.55);if(a<=0)return;ctx.save();ctx.
   const l3=seg(t,12.05,0.6);ctx.save();ctx.globalAlpha=a*l3;text('a +$12,050 swing — back in the green',W/2,1185,36,'700','#fff','center');ctx.restore();ctx.restore();}
 function render3(t){ctx=ctx3;bg(t);intro3(t);turn3(t);curve3(t);stats3(t);ctaScene(t,13.0);watermark();pbar(t,DUR3);}
 
+/* ===================== VIDEO 4 : only 1 in 20 pass (prop firm) ===================== */
+function intro4(t){const a=fade(t,0,2.4,0.6);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate(0,floatY(t));
+  const k=seg(t,0.1,0.5,eQuint);ctx.save();ctx.globalAlpha=a*k;ktext('THE PROP FIRM TRAP',W/2,770+lerp(16,0,k),28,'700',GOLD,3);ctx.restore();
+  const l1=seg(t,0.4,0.6,eQuint);ctx.save();ctx.globalAlpha=a*l1;text('Only',W/2,910+lerp(22,0,l1),58,'600',MUTE,'center');ctx.restore();
+  const l2=seg(t,0.7,0.6,eQuint);ctx.save();ctx.globalAlpha=a*l2;text('1 in 20',W/2,1050+lerp(24,0,l2),132,'900',RED,'center');ctx.restore();
+  const l3=seg(t,1.1,0.6);ctx.save();ctx.globalAlpha=a*l3;text('pass the funded challenge.',W/2,1150,42,'500',MUTE,'center');ctx.restore();ctx.restore();}
+function stat4(t){const a=fade(t,2.6,6.5,0.55);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate(0,floatY(t,1));
+  text('The brutal math.',W/2,560,56,'800','#fff','center');
+  const dp=seg(t,3.0,1.7,eExpo);donut(W/2,1080,250,52,[{frac:.05,color:GREEN},{frac:.95,color:RED}],dp);
+  const cnt=Math.round(5*seg(t,3.1,1.5));text(cnt+'%',W/2,1090,96,'900','#fff','center');text('pass rate',W/2,1145,30,'500',MUTE,'center');
+  ctx.save();ctx.globalAlpha=a*seg(t,5.4,0.6);text('● Pass 5%        ● Fail 95%',W/2,1430,32,'600','#c2c7d0','center');ctx.restore();ctx.restore();}
+function why4(t){const a=fade(t,6.5,10.4,0.55);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate(0,floatY(t,2));
+  text('It’s not your strategy.',W/2,560,54,'800','#fff','center');text('Most fail in week one.',W/2,628,54,'800',GOLD,'center');
+  ctx.save();ctx.globalAlpha=a*seg(t,6.8,0.5);text('When traders blow up',150,790,28,'500',MUTE,'left');ctx.restore();
+  const rows=[['Week 1',70,100,RED],['Week 2',18,26,ORANGE],['Week 3',8,12,AMBER],['Week 4',4,7,'#6b7280']];
+  const prog=seg(t,6.95,1.8);
+  rows.forEach((r,i)=>{const by=850+i*128;const lp=seg(prog*rows.length,i,1.0,eQuint);
+    text(r[0],150,by-14,28,'600','#d7dbe2','left');text(Math.round(r[1]*lp)+'%',930,by-14,30,'800',r[3],'right');
+    rr(150,by,780,22,11);ctx.fillStyle='#1c2128';ctx.fill();const bw=780*(r[2]/100)*lp;if(bw>2){ctx.save();ctx.shadowColor=r[3];ctx.shadowBlur=12;rr(150,by,bw,22,11);ctx.fillStyle=r[3];ctx.fill();ctx.restore();}});
+  ctx.save();ctx.globalAlpha=a*seg(t,9.2,0.6);text('Daily drawdown limit — breached.',W/2,1470,34,'700','#fff','center');ctx.restore();ctx.restore();}
+function fix4(t){const a=fade(t,10.4,13.0,0.55);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate(0,floatY(t,3));
+  const l1=seg(t,10.6,0.6,eQuint);ctx.save();ctx.globalAlpha=a*l1;text('The fix the 5% use:',W/2,720,52,'800','#fff','center');ctx.restore();
+  const p1=seg(t,10.95,0.55,eQuint);ctx.save();ctx.globalAlpha=a*p1;
+  ctx.font='700 38px Poppins';let w1=ctx.measureText('Risk under 2% per trade').width+72;rr(W/2-w1/2,860,w1,84,42);ctx.fillStyle='rgba(34,197,94,.12)';ctx.fill();ctx.strokeStyle='rgba(34,197,94,.4)';ctx.lineWidth=1.5;ctx.stroke();text('Risk under 2% per trade',W/2,912,38,'700','#9fe3b6','center');ctx.restore();
+  const p2=seg(t,11.3,0.55,eQuint);ctx.save();ctx.globalAlpha=a*p2;
+  ctx.font='700 38px Poppins';let w2=ctx.measureText('Track drawdown live').width+72;rr(W/2-w2/2,985,w2,84,42);ctx.fillStyle='rgba(167,125,2,.14)';ctx.fill();ctx.strokeStyle='rgba(253,218,112,.45)';ctx.lineWidth=1.5;ctx.stroke();text('Track drawdown live',W/2,1037,38,'700',GOLD,'center');ctx.restore();
+  const l2=seg(t,11.8,0.6);ctx.save();ctx.globalAlpha=a*l2;text('JournalX watches the limit so you don’t blow it.',W/2,1180,34,'500',MUTE,'center');ctx.restore();ctx.restore();}
+function render4(t){ctx=ctx4;bg(t);intro4(t);stat4(t);why4(t);fix4(t);ctaScene(t,13.0);watermark();pbar(t,DUR4);}
+
+/* ===================== VIDEO 5 : the win-rate myth ===================== */
+function intro5(t){const a=fade(t,0,2.4,0.6);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate(0,floatY(t));
+  const k=seg(t,0.1,0.5,eQuint);ctx.save();ctx.globalAlpha=a*k;ktext('THE WIN-RATE MYTH',W/2,770+lerp(16,0,k),28,'700',GOLD,3);ctx.restore();
+  const l1=seg(t,0.4,0.6,eQuint);ctx.save();ctx.globalAlpha=a*l1;text('You can win just',W/2,910+lerp(22,0,l1),58,'600',MUTE,'center');ctx.restore();
+  const l2=seg(t,0.7,0.6,eQuint);ctx.save();ctx.globalAlpha=a*l2;text('40%',W/2,1060+lerp(24,0,l2),140,'900',GOLD,'center');ctx.restore();
+  const l3=seg(t,1.1,0.6);ctx.save();ctx.globalAlpha=a*l3;text('and still profit.',W/2,1160,44,'500',MUTE,'center');ctx.restore();ctx.restore();}
+function cmp5(t){const a=fade(t,2.6,7.0,0.55);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate(0,floatY(t,1));
+  text('Same 100 trades.',W/2,560,56,'800','#fff','center');text('Who actually profits?',W/2,628,42,'500',MUTE,'center');
+  const baseY=1240,maxH=430;
+  const D=[{x:270,w:220,exp:0.05,col:AMBER,win:'70% win · 1:0.5',top:'+0.05R'},{x:590,w:220,exp:0.60,col:GOLD,win:'40% win · 1:3',top:'+0.60R'}];
+  D.forEach((d,i)=>{const lp=seg(t,3.0+i*0.4,1.1,eOut);const h=(d.exp/0.60)*maxH*lp;
+    ctx.save();ctx.shadowColor=d.col;ctx.shadowBlur=16;rr(d.x,baseY-h,d.w,h,16);ctx.fillStyle=d.col;ctx.fill();ctx.restore();
+    ctx.save();ctx.globalAlpha=a*seg(t,3.3+i*0.4,0.5);text(d.top,d.x+d.w/2,baseY-h-24,42,'900',d.col,'center');ctx.restore();
+    text(d.win,d.x+d.w/2,baseY+50,26,'600','#c2c7d0','center');});
+  ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(200,baseY);ctx.lineTo(880,baseY);ctx.stroke();
+  ctx.save();ctx.globalAlpha=a*seg(t,5.4,0.6);text('Same trades — 12× the edge.',W/2,1400,34,'700','#fff','center');ctx.restore();ctx.restore();}
+function why5(t){const a=fade(t,7.0,10.4,0.55);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate(0,floatY(t,2));
+  const l1=seg(t,7.2,0.6,eQuint);ctx.save();ctx.globalAlpha=a*l1;text('Win rate is vanity.',W/2,780+lerp(20,0,l1),72,'800','#fff','center');ctx.restore();
+  const l2=seg(t,7.55,0.6,eQuint);ctx.save();ctx.globalAlpha=a*l2;text('Expectancy is the edge.',W/2,880+lerp(20,0,l2),72,'800',GOLD,'center');ctx.restore();
+  const f=seg(t,8.3,0.6);ctx.save();ctx.globalAlpha=a*f;card(120,1010,840,180,24);
+  text('EXPECTANCY',W/2,1072,24,'700',MUTE,'center');text('(win% × avg win) − (loss% × avg loss)',W/2,1132,33,'700','#fff','center');ctx.restore();ctx.restore();}
+function fix5(t){const a=fade(t,10.4,13.0,0.55);if(a<=0)return;ctx.save();ctx.globalAlpha=a;ctx.translate(0,floatY(t,3));
+  text('JournalX does the math.',W/2,660,56,'800','#fff','center');
+  const tiles=[['Expectancy','+0.42R',GOLD],['Profit factor','1.9',GREEN],['Payoff','2.4 : 1',GOLD]];
+  const tw=250,gap=30,tot=tiles.length*tw+(tiles.length-1)*gap,sx=(W-tot)/2;
+  tiles.forEach((tl,i)=>{const p=seg(t,10.8+i*0.18,0.55,eQuint);ctx.save();ctx.globalAlpha=a*p;
+    const x=sx+i*(tw+gap),y=840+lerp(26,0,p);card(x,y,tw,220,22);
+    text(tl[0],x+tw/2,y+72,26,'500',MUTE,'center');text(tl[1],x+tw/2,y+152,50,'900',tl[2],'center');ctx.restore();});
+  ctx.save();ctx.globalAlpha=a*seg(t,12.0,0.6);text('Computed from your real trades.',W/2,1160,34,'500',MUTE,'center');ctx.restore();ctx.restore();}
+function render5(t){ctx=ctx5;bg(t);intro5(t);cmp5(t);why5(t);fix5(t);ctaScene(t,13.0);watermark();pbar(t,DUR5);}
+
 /* ===================== controllers ===================== */
 const S1={render:render1,dur:DUR1,canvas:cv,raf:null,name:'journalx-habits'};
 const S2={render:render2,dur:DUR2,canvas:cv2,raf:null,name:'journalx-5sec-log'};
 const S3={render:render3,dur:DUR3,canvas:cv3,raf:null,name:'journalx-red-to-green'};
+const S4={render:render4,dur:DUR4,canvas:cv4,raf:null,name:'journalx-prop-firm'};
+const S5={render:render5,dur:DUR5,canvas:cv5,raf:null,name:'journalx-winrate-myth'};
 function play(S){cancelAnimationFrame(S.raf);const start=performance.now();(function loop(){const t=(performance.now()-start)/1000;S.render(Math.min(t,S.dur));if(t<S.dur)S.raf=requestAnimationFrame(loop);else S.render(S.dur);})();}
 async function fonts(){if(document.fonts){try{await Promise.all([document.fonts.load('900 100px Poppins'),document.fonts.load('800 60px Poppins'),document.fonts.load('700 40px Poppins'),document.fonts.load('600 30px Poppins'),document.fonts.load('500 30px Poppins'),document.fonts.load('400 30px Poppins')]);await document.fonts.ready;}catch(e){}}}
 async function pickCodec(){for(const c of ['avc1.640034','avc1.64002A','avc1.640028','avc1.4D0034','avc1.42E034']){try{const s=await VideoEncoder.isConfigSupported({codec:c,width:W,height:H,bitrate:12_000_000,framerate:FPS});if(s.supported)return c;}catch(e){}}return null;}
 async function exportMP4(S,dlBtn,prog){
   if(typeof VideoEncoder==='undefined'){alert('Use Chrome or Edge — WebCodecs not available.');return;}
   await fonts(); if(!logoReady)await new Promise(r=>{logoImg.complete?r():logoImg.onload=r;});
-  cancelAnimationFrame(S1.raf);cancelAnimationFrame(S2.raf);cancelAnimationFrame(S3.raf);dlBtn.disabled=true;
+  cancelAnimationFrame(S1.raf);cancelAnimationFrame(S2.raf);cancelAnimationFrame(S3.raf);cancelAnimationFrame(S4.raf);cancelAnimationFrame(S5.raf);dlBtn.disabled=true;
   const codec=await pickCodec();if(!codec){alert('No H.264 support. Use Chrome/Edge.');dlBtn.disabled=false;return;}
   const total=Math.round(FPS*S.dur);
   const muxer=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:'avc',width:W,height:H},fastStart:'in-memory'});
@@ -300,8 +406,8 @@ async function exportMP4(S,dlBtn,prog){
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=S.name+'.mp4';a.click();
     prog.textContent='Done — saved '+a.download;
   }catch(e){console.error(e);alert('Export failed: '+e.message);prog.textContent='Failed: '+e.message;}
-  dlBtn.disabled=false;play(S1);play(S2);play(S3);}
-function cover(S,at){fonts().then(()=>{S.render(at);const a=document.createElement('a');a.download=S.name+'-cover.png';a.href=S.canvas.toDataURL('image/png');a.click();play(S1);play(S2);play(S3);});}
+  dlBtn.disabled=false;play(S1);play(S2);play(S3);play(S4);play(S5);}
+function cover(S,at){fonts().then(()=>{S.render(at);const a=document.createElement('a');a.download=S.name+'-cover.png';a.href=S.canvas.toDataURL('image/png');a.click();play(S1);play(S2);play(S3);play(S4);play(S5);});}
 
 document.getElementById('play1').addEventListener('click',()=>play(S1));
 document.getElementById('dl1').addEventListener('click',()=>exportMP4(S1,document.getElementById('dl1'),document.getElementById('prog1')));
@@ -312,6 +418,12 @@ document.getElementById('cover2').addEventListener('click',()=>cover(S2,12.0));
 document.getElementById('play3').addEventListener('click',()=>play(S3));
 document.getElementById('dl3').addEventListener('click',()=>exportMP4(S3,document.getElementById('dl3'),document.getElementById('prog3')));
 document.getElementById('cover3').addEventListener('click',()=>cover(S3,8.4));
+document.getElementById('play4').addEventListener('click',()=>play(S4));
+document.getElementById('dl4').addEventListener('click',()=>exportMP4(S4,document.getElementById('dl4'),document.getElementById('prog4')));
+document.getElementById('cover4').addEventListener('click',()=>cover(S4,4.6));
+document.getElementById('play5').addEventListener('click',()=>play(S5));
+document.getElementById('dl5').addEventListener('click',()=>exportMP4(S5,document.getElementById('dl5'),document.getElementById('prog5')));
+document.getElementById('cover5').addEventListener('click',()=>cover(S5,5.0));
 document.querySelectorAll('.copy').forEach(b=>b.addEventListener('click',()=>{const t=document.getElementById(b.dataset.copy).innerText;navigator.clipboard.writeText(t).then(()=>{const o=b.textContent;b.textContent='Copied!';setTimeout(()=>b.textContent=o,1200);});}));
-(async()=>{await fonts();render1(0);render2(0);render3(0);setTimeout(()=>{play(S1);play(S2);play(S3);},250);})();
+(async()=>{await fonts();render1(0);render2(0);render3(0);render4(0);render5(0);setTimeout(()=>{play(S1);play(S2);play(S3);play(S4);play(S5);},250);})();
 </script></body></html>

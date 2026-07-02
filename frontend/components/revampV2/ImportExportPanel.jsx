@@ -14,7 +14,6 @@ import {
 import Button from "./Button";
 import Toast from "./Toast";
 import ImportTradesModal from "./ImportTradesModal";
-import { QUICK_TEMPLATE, DETAILED_TEMPLATE, downloadTemplate } from "@/utils/csvTemplates";
 
 /* Figma "Import & Export · Desktop" (22825:54050).
    CSV and PDF exports are generated client-side from the journal's
@@ -356,32 +355,6 @@ export default function ImportExportPanel({ trades = [], onImported }) {
               </span>
               <ChevronRight size={15} />
             </button>
-          </div>
-
-          {/* ===== Sample CSV templates ===== */}
-          <div className="jx-card">
-            <div className="jx-card__title">Sample CSV templates</div>
-            <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
-              Download a ready-to-fill template, then import it above or from the Trades log.
-            </div>
-
-            {[QUICK_TEMPLATE, DETAILED_TEMPLATE].map((t) => (
-              <div key={t.key} className="jx-setrow" style={{ padding: "var(--space-3) 0" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)", minWidth: 0 }}>
-                  <span className="jx-sect__icon"><FileText size={14} /></span>
-                  <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                    <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{t.label} template</span>
-                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{t.hint}</span>
-                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-disabled)", marginTop: 2 }}>
-                      {t.columns.length} columns
-                    </span>
-                  </span>
-                </div>
-                <Button variant="outline" size="sm" icon={Download} onClick={() => downloadTemplate(t.key)}>
-                  CSV
-                </Button>
-              </div>
-            ))}
           </div>
 
           <div className="jx-card">
