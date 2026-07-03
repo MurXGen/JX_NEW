@@ -7647,6 +7647,368 @@
           "a": "Net. Gross P&L ignores brokerage, STT, exchange charges, GST and stamp duty, which add up fast for active traders. Judge your performance on net P&L so it matches what actually reaches your account."
         }
       ]
+    },
+    {
+      "slug": "prop-firm-scaling-plans-explained",
+      "title": "Prop Firm Scaling Plans Explained: How Funded Accounts Actually Grow",
+      "metaTitle": "Prop Firm Scaling Plans Explained: How Funded Accounts Grow | JournalX",
+      "metaDescription": "How prop firm scaling plans work in 2026: typical profit targets, timelines, and payout upgrades — plus how to journal your way to a bigger funded account.",
+      "keywords": [
+        "prop firm scaling plan",
+        "how prop firm scaling works",
+        "funded account growth",
+        "scaling plan requirements",
+        "prop firm account increase",
+        "funded trader scaling"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-07-03",
+      "featured": false,
+      "excerpt": "Passing the challenge is step one. Scaling plans are how funded traders turn a $100K account into real capital — and most traders never read the fine print until it costs them.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 38
+      },
+      "tags": [
+        "prop firms",
+        "scaling",
+        "funded accounts",
+        "risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Most traders obsess over passing the challenge and never look past it. But the challenge is the front door. The real economics of prop trading live in the scaling plan — the schedule by which the firm hands you more capital once you've proven you can keep an account alive. Two traders with identical win rates can end up with wildly different incomes purely because one understood the scaling terms and traded toward them, and the other treated the funded account like a lottery ticket."
+        },
+        {
+          "type": "h2",
+          "text": "What a scaling plan actually is"
+        },
+        {
+          "type": "p",
+          "text": "A scaling plan is a published set of milestones: hit a profit target over a defined window, avoid rule violations, stay profitable in enough of the months inside that window, and the firm increases your account balance — often alongside a better profit split. It exists because the firm is answering one question: is this trader's edge durable, or did they get lucky for six weeks? Capital gets allocated to the traders whose results look boring and repeatable, not spectacular and spiky."
+        },
+        {
+          "type": "p",
+          "text": "Terms vary a lot by firm and change often, so always verify the current rules on the firm's own site before planning around them. As of mid-2026, a common published pattern looks like this: roughly 10% net profit over a 3–4 month review window, profitability in at least 2 of those months, no violations — rewarded with a balance increase somewhere between 25% and 40% per cycle, with some firms advertising faster ladders and caps that range from the hundreds of thousands into the millions."
+        },
+        {
+          "type": "h2",
+          "text": "The typical milestones in 2026"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Requirement",
+            "Common range (varies by firm)",
+            "Why the firm cares"
+          ],
+          "rows": [
+            [
+              "Net profit over review window",
+              "~8–10% across 3–4 months",
+              "Filters out flat or decaying accounts"
+            ],
+            [
+              "Profitable months",
+              "2 of 4 months positive",
+              "Screens for consistency, not one hot streak"
+            ],
+            [
+              "Rule violations",
+              "Zero — daily loss, max drawdown, news rules",
+              "A single breach usually resets the clock"
+            ],
+            [
+              "Balance increase per cycle",
+              "~25–40% (some advertise more)",
+              "Firm's risk grows in steps, not jumps"
+            ],
+            [
+              "Profit split after scaling",
+              "Often upgraded, e.g. toward 90%",
+              "Retention — funded traders who scale stay"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice what's not in that table: a huge single-month return. Scaling plans are structurally biased against home runs. A +15% month followed by two flat months can actually score worse than three quiet +3% months, because the review looks at distribution, not just the total. Several firms have also started referencing consistency scores and risk-adjusted metrics in their published criteria, which pushes in the same direction."
+        },
+        {
+          "type": "h2",
+          "text": "The math nobody does before buying a challenge"
+        },
+        {
+          "type": "p",
+          "text": "Run the timeline honestly. If a plan increases your balance ~25% every 4 months, going from $100K to $400K takes on the order of six cycles — roughly two years or more of continuous, violation-free profitability. That's not a criticism; it's the point. Scaling is a career structure, not a growth hack. Traders who expect to 4x their capital in six months either misread the plan or are relying on a firm whose promises deserve extra scrutiny."
+        },
+        {
+          "type": "quote",
+          "text": "The challenge tests whether you can make money in 30 days. The scaling plan tests whether you can avoid ruining it for 400."
+        },
+        {
+          "type": "h2",
+          "text": "Why scaling punishes inconsistency"
+        },
+        {
+          "type": "p",
+          "text": "Here's the trap most funded traders fall into: they trade well for two months, get within reach of the profit milestone, then size up to 'close the gap' before the window ends. One oversized loser triggers the daily loss limit, and the violation doesn't just cost that day — it typically resets scaling eligibility entirely. The final week of a review window is statistically where funded accounts die, because that's where the incentive to force trades is strongest."
+        },
+        {
+          "type": "p",
+          "text": "The counterintuitive move is to treat the milestone as a byproduct. If your average risk per trade, trade frequency, and setup quality stay constant across the whole window, you either qualify or you don't — but you keep the account either way. An account that survives unqualified this cycle qualifies next cycle. An account that dies chasing the milestone is gone, along with the challenge fee and the months invested."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: tag every trade with the account it belongs to and track per-account metrics like monthly P&L distribution, average risk per trade, and daily loss usage. Before each scaling review window closes, your journal shows whether your last two weeks look like the rest of the window — or whether you've quietly doubled size chasing the milestone. That's the exact signal that separates traders who scale from traders who reset."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: most journals report one blended equity curve. JournalX lets funded traders separate accounts and phases, so a challenge, a fresh funded account, and a scaled account don't contaminate each other's stats — and the consistency metrics that scaling reviews reward are the same ones sitting on your dashboard."
+        },
+        {
+          "type": "h2",
+          "text": "How to trade toward a scale-up"
+        },
+        {
+          "type": "p",
+          "text": "Reverse-engineer the plan into a monthly budget. If the window asks for ~10% over four months, that's ~2.5% a month — a number reachable at 0.5% risk per trade with a modest edge and no heroics. Write down the three numbers that disqualify you (daily loss limit, max drawdown, any consistency band) and check remaining headroom before every session, not after. Journal the review window as a project: same setups, same size, same hours, for the entire period."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Scaling-readiness audit",
+          "prompt": "Check every statement that's true for your current funded account:",
+          "items": [
+            "I can state my firm's exact scaling requirements from memory",
+            "My risk per trade has stayed within ±25% of its average this month",
+            "I know my remaining daily-loss headroom before I take trade one",
+            "I have never sized up specifically to reach a profit milestone",
+            "My worst trading day this window used less than half my daily limit",
+            "I journal every trade with the rule-relevant details (size, time, news windows)"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You're trading a funded account on hope. Read your firm's scaling terms today and set up per-account tracking before your next session."
+            },
+            {
+              "min": 3,
+              "text": "Decent foundation, but the gaps you left unchecked are exactly where scaling resets come from. Fix the risk-consistency items first."
+            },
+            {
+              "min": 5,
+              "text": "You're trading like someone a firm wants to fund bigger. Keep the window boring and let the milestone arrive on its own."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Scaling isn't the goal — durability is"
+        },
+        {
+          "type": "p",
+          "text": "A scaled account is just a bigger account with the same failure modes. The traders who reach the caps are, almost without exception, the ones whose journals look repetitive: same risk, same setups, same process, month after month. If that sounds dull, that's because it is — profitably, deliberately dull. The market provides the excitement. Your job is to be the stable variable."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How long does it take to scale a prop firm account?",
+          "a": "Under typical published terms — roughly a 25–40% balance increase every 3–4 profitable months — going from $100K to $400K takes multiple cycles, often around two years of continuous violation-free trading. Firms advertising much faster ladders deserve extra due diligence."
+        },
+        {
+          "q": "Do scaling requirements differ from challenge requirements?",
+          "a": "Yes. Challenges test a profit target in a short window; scaling reviews look at consistency across months — profit distribution, rule compliance, and increasingly risk-adjusted or consistency metrics. A style that passes a challenge fast can be exactly what fails a scaling review."
+        },
+        {
+          "q": "What happens to my scaling progress if I violate a rule?",
+          "a": "At most firms a violation on a funded account ends the account itself, not just the scaling clock. Where soft breaches exist, they typically reset the review window. Always confirm the specific firm's current terms — they change frequently."
+        },
+        {
+          "q": "Does my profit split improve when I scale?",
+          "a": "Often, yes — many firms pair balance increases with an upgraded split, with figures like 90% commonly advertised at higher tiers as of 2026. Treat any specific number as marketing until you've read the current payout policy for your exact program."
+        }
+      ]
+    },
+    {
+      "slug": "trading-thin-summer-markets-low-liquidity",
+      "title": "Trading Thin Summer Markets: A Survival Guide for Low-Liquidity Season",
+      "metaTitle": "Summer Trading Strategy: How to Trade Thin, Low-Liquidity Markets | JournalX",
+      "metaDescription": "Summer volume dries up and thin markets punish sloppy execution. How to resize risk, widen stops wisely, and keep your edge through low-liquidity season.",
+      "keywords": [
+        "summer trading strategy",
+        "low liquidity trading",
+        "thin market trading",
+        "trading in August",
+        "summer market volatility",
+        "reduce position size low volume"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-07-03",
+      "featured": false,
+      "excerpt": "Every July, the same trap resets: volume drains out, moves get weirder, and traders keep running their spring playbook at full size. Here's how to adapt instead of donate.",
+      "helpful": {
+        "up": 36,
+        "down": 2,
+        "saves": 33
+      },
+      "tags": [
+        "seasonality",
+        "liquidity",
+        "execution",
+        "risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Every summer the same thing happens: desks empty out, volume drains from the order book, and price starts doing things that would have been meaningful in March but are just noise in July. Exchange data has repeatedly shown equity volumes dropping on the order of 20–30% from spring levels through June–August. Most traders notice the change weeks after it starts costing them money — usually via a string of stopped-out trades that 'shouldn't' have hit."
+        },
+        {
+          "type": "h2",
+          "text": "Why summer markets feel different"
+        },
+        {
+          "type": "p",
+          "text": "Liquidity is the market's shock absorber. When institutional participation thins out — vacations, quarter-end rebalancing done, big allocators sitting on hands ahead of autumn — the book gets shallow. The same size order that barely dented price in April now moves it. Algorithms respond to that movement, other algorithms respond to the algorithms, and you get sharp, low-conviction spikes that reverse as fast as they appeared. The move looks like a breakout. It's actually an echo."
+        },
+        {
+          "type": "p",
+          "text": "This isn't a reason to stop trading. Thin markets still trend, still respect levels, and occasionally deliver outsized moves precisely because there's nobody on the other side. But your spring assumptions about spread, slippage, and stop placement quietly stopped being true, and the account doesn't send a notification about it."
+        },
+        {
+          "type": "h2",
+          "text": "What thin liquidity does to your fills"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Execution factor",
+            "Normal market",
+            "Thin summer market"
+          ],
+          "rows": [
+            [
+              "Spreads",
+              "Tight, stable",
+              "Wider, especially off-hours"
+            ],
+            [
+              "Slippage on market orders",
+              "Minimal on liquid names",
+              "Noticeably worse, spiky"
+            ],
+            [
+              "Stop-loss behavior",
+              "Stops hold near logical levels",
+              "Wicks routinely tag obvious stops"
+            ],
+            [
+              "Breakout follow-through",
+              "Volume confirms moves",
+              "Frequent fakeouts, fast reversals"
+            ],
+            [
+              "News reactions",
+              "Absorbed by depth",
+              "Exaggerated, overshoot then fade"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The stop-loss row is where most of the damage happens. In a thin book, the path of least resistance runs straight to wherever resting orders cluster — which is exactly where every textbook says to put your stop. Getting wicked out of a position that then goes your way isn't bad luck in August. It's the market mechanically finding liquidity, and your stop was the liquidity."
+        },
+        {
+          "type": "h2",
+          "text": "Adjustments that actually work"
+        },
+        {
+          "type": "p",
+          "text": "The classic professional adjustment is to cut size and widen stops together, keeping total risk per trade constant. If your stop needs to live 50% further away to survive the noise, your position needs to be roughly a third smaller so the dollar risk doesn't change. Traders get this backwards constantly — they keep full size and widen stops, which silently doubles their risk per trade in the exact season when moves are least reliable."
+        },
+        {
+          "type": "p",
+          "text": "Beyond sizing: prefer limit orders over market orders when spreads widen, trade the liquid hours instead of the dead zones, stick to the most liquid instruments in your universe, and raise your bar for setup quality. A B-grade setup in a thick market is a coin flip; in a thin market it's a donation. Fewer, better trades isn't a slogan in summer — it's the whole strategy."
+        },
+        {
+          "type": "quote",
+          "text": "Thin markets don't take your money. They invite you to hand it over at wider spreads."
+        },
+        {
+          "type": "h2",
+          "text": "The overtrading trap in quiet markets"
+        },
+        {
+          "type": "p",
+          "text": "Here's the psychological part nobody warns you about: quiet markets are boring, and bored traders manufacture activity. When your usual setups appear half as often, the temptation is to lower the bar so the trade count stays the same. Your journal will show the pattern with brutal clarity — same number of trades as spring, worse average quality, worse expectancy — but only if you're actually journaling through the slow season instead of coasting."
+        },
+        {
+          "type": "p",
+          "text": "The traders who exit summer ahead usually traded less, not better. They took the 60% of setups that still qualified, banked smaller but cleaner results, and kept their process intact for September, which has historically been one of the most volatile stretches of the year. Summer discipline is really autumn preparation."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: filter your journal by month and compare summer stats against your yearly baseline — trade count, average R, win rate by setup, slippage notes. If July shows more trades with lower average quality than May, you've caught the overtrading drift while it's still cheap. Tag trades taken in thin conditions and review whether your widened-stop, reduced-size trades actually kept risk constant."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: seasonal drift is invisible in a P&L statement but obvious in a structured journal. JournalX's per-tag and per-period analytics turn 'August always feels bad' into a specific, fixable list: which setups stopped working, which hours got expensive, and where your execution costs crept up."
+        },
+        {
+          "type": "h2",
+          "text": "A summer trading plan you can write today"
+        },
+        {
+          "type": "p",
+          "text": "Before the deepest part of the summer lull, write down your adjustments while you're still objective: which setups survive the season, what your reduced unit size is, which hours you'll trade, and what daily loss number sends you to the beach. A plan written in July gets followed. A plan improvised during an August drawdown is just a mood."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Thin-market sizing check",
+          "prompt": "Your normal trade risks $200 with a 20-tick stop. In thin summer conditions you decide the stop needs 30 ticks to survive the noise. What should your position size do?",
+          "options": [
+            "Stay the same — the stop is wider so the trade is safer",
+            "Increase — wider stops mean you need more size to make it worth it",
+            "Decrease by about a third — so the dollar risk stays at $200",
+            "Double — thin markets move more, so profits are bigger"
+          ],
+          "correct": 2,
+          "explain": "Risk per trade = size × stop distance. If the stop grows from 20 to 30 ticks (×1.5), size must shrink to about two-thirds so dollar risk stays constant at $200. Keeping full size with a wider stop silently raises your risk 50% — in the season with the least reliable moves."
+        },
+        {
+          "type": "h2",
+          "text": "Trade the market you have"
+        },
+        {
+          "type": "p",
+          "text": "Seasonality isn't destiny — some summers trend hard, and thin books occasionally hand disciplined traders their best fills of the year. The point isn't to fear July and August; it's to stop trading them like April. Measure the conditions, resize the risk, raise the bar, and let your journal tell you whether the adjustments are working. The traders still standing in September are rarely the ones who forced it in August."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Should I stop trading during the summer months?",
+          "a": "Not necessarily. Thin markets still offer valid setups — just fewer of them, with worse execution. Most traders do better reducing frequency and size rather than stopping entirely, which also keeps their process sharp for the historically volatile autumn."
+        },
+        {
+          "q": "How much does trading volume actually drop in summer?",
+          "a": "Exchange data has repeatedly shown declines on the order of 20–30% in daily equity volumes from spring peaks through June–August, with the thinnest stretches around major holidays. Exact figures vary by year, market, and instrument."
+        },
+        {
+          "q": "Should I widen my stops in low-liquidity markets?",
+          "a": "Often yes — but only while cutting position size proportionally so your dollar risk per trade stays constant. Widening stops at full size is one of the most common and expensive summer mistakes."
+        },
+        {
+          "q": "Do prop firm rules change during summer?",
+          "a": "The rules don't, but their bite does: daily loss limits are easier to hit when slippage and spreads widen. Funded traders should treat their limits as effectively tighter in thin conditions and track headroom before every session."
+        }
+      ]
     }
   ]
 }
