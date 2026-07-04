@@ -1244,9 +1244,12 @@ body::before {
   flex-wrap: wrap;
 }
 /* trust strip: shown only in the footer on mobile (hidden on desktop, where
-   the full card lives in the rail) */
+   the full card lives in the rail). !important is required because the badge
+   sets an inline `display:flex`, which would otherwise win over this rule and
+   leave the strip showing on desktop (inflating the footer and pushing the
+   action buttons out of view). */
 .jx-foot-badge {
-  display: none;
+  display: none !important;
 }
 @media (max-width: 900px) {
   .jx-ltmodal__body {
