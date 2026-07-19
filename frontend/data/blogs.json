@@ -8696,6 +8696,362 @@
           "a": "Tag every trade with its entry hour for at least 30 days, then review expectancy (not just win rate) by hour. Most traders find 2–3 hours producing the bulk of profits and one recurring window producing most losses."
         }
       ]
+    },
+    {
+      "slug": "sim-funded-vs-live-funded-prop-firms",
+      "title": "Sim-Funded vs Live-Funded Prop Firms: Where Your Trades Actually Go",
+      "metaTitle": "Sim-Funded vs Live-Funded Prop Firms: The 2026 Guide | JournalX",
+      "metaDescription": "Is your funded account real capital or a simulator? How sim and live-funded prop firms differ, how to check which one you have, and what it means for payouts.",
+      "keywords": [
+        "sim funded vs live funded prop firm",
+        "simulated prop firm accounts",
+        "are prop firm accounts real money",
+        "prop firm order routing",
+        "live funded trading account",
+        "prop firm payout risk"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-07-19",
+      "featured": false,
+      "excerpt": "Most funded accounts never touch a live market. Here's how to tell what your firm actually does with your trades — and why it matters more in 2026 than ever.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 38
+      },
+      "tags": [
+        "prop firms",
+        "funded accounts",
+        "payouts",
+        "transparency"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Ask a room full of funded traders where their orders go after they click buy, and most will guess wrong. The uncomfortable truth of the modern prop industry is that the majority of \"funded accounts\" are simulated: your fills happen inside the firm's own environment, not on a live exchange. That isn't automatically a scam — but it changes the economics of your relationship with the firm, and in 2026 it has become the industry's defining question."
+        },
+        {
+          "type": "h2",
+          "text": "The question traders finally started asking"
+        },
+        {
+          "type": "p",
+          "text": "For years, prop firm marketing leaned on words like \"funded capital\" and \"trade our money\" while quietly running challenge and funded accounts on demo servers. The distinction stayed buried in terms-of-service documents almost nobody read. That has shifted: industry coverage through 2025 and 2026 reports growing pressure — from regulators scrutinizing marketing claims and from exchanges themselves — for firms to disclose whether trades are routed to a live venue or processed through an internal simulator."
+        },
+        {
+          "type": "p",
+          "text": "The backdrop matters too. Per industry trackers, somewhere in the range of 80–100 prop firms have exited the market since 2024, with consolidation continuing into 2026. When a firm's entire payout pool depends on challenge fees rather than real trading profits, its survival depends on most traders failing. Knowing which model your firm runs is knowing who is on the other side of your trade."
+        },
+        {
+          "type": "h2",
+          "text": "Sim-funded vs live-funded: the actual difference"
+        },
+        {
+          "type": "p",
+          "text": "Here is the practical comparison, stripped of marketing language:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "",
+            "Sim-funded",
+            "Live-funded"
+          ],
+          "rows": [
+            [
+              "Where orders go",
+              "Firm's internal simulator or demo server",
+              "Routed to a live exchange or liquidity provider"
+            ],
+            [
+              "Where payouts come from",
+              "Mostly challenge fees and firm revenue",
+              "A share of real trading profits (plus fees)"
+            ],
+            [
+              "Fill quality",
+              "Often cleaner than reality — no real slippage",
+              "Real spreads, real slippage, real partial fills"
+            ],
+            [
+              "Firm's risk if you win",
+              "Your payout is a direct cost to the firm",
+              "Firm can profit alongside you"
+            ],
+            [
+              "Typical rule style",
+              "Tighter consistency and drawdown rules",
+              "Rules closer to real risk management"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Neither model is inherently dishonest. Simulation lets firms offer $100k \"accounts\" for a $500 fee, which no live-capital model could sustain at scale. The problem is opacity: when you don't know the model, you can't judge whether the rules exist to manage real risk or to manufacture failure."
+        },
+        {
+          "type": "h2",
+          "text": "Why this suddenly matters in 2026"
+        },
+        {
+          "type": "p",
+          "text": "Two forces converged this year. First, disclosure: reporting on the futures side suggests firms are increasingly expected to state whether trades reach a live venue such as CME or stay in-house — a shift several large futures prop firms have already leaned into as a selling point. Second, the payout wars: with dozens of firms competing on payout speed, traders started asking the obvious follow-up — fast payouts from what money?"
+        },
+        {
+          "type": "quote",
+          "text": "A payout policy is only as strong as the balance sheet behind it. Speed means nothing if the pool it's paid from is other traders' challenge fees."
+        },
+        {
+          "type": "h2",
+          "text": "How to check where your firm stands"
+        },
+        {
+          "type": "p",
+          "text": "You don't need insider access — most of this is discoverable in an evening. Work through the checklist below before you buy your next challenge or scale your current account."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "The transparency audit",
+          "prompt": "How many of these can you answer for your current prop firm?",
+          "items": [
+            "I've read the section of the ToS that says whether accounts are simulated or live",
+            "I know whether the firm claims any live order routing, and to which venue or broker",
+            "I know roughly how the firm funds payouts (fees vs trading profit vs both)",
+            "I've checked recent payout proof and complaint patterns on independent communities",
+            "I know the firm's country of registration and how long it has operated",
+            "I've compared my fills on this account against a live-spread chart at the same timestamps"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You're trading blind. Spend one evening on the ToS and community due diligence before risking another fee."
+            },
+            {
+              "min": 3,
+              "text": "Decent footing — close the gaps around payout funding and fill quality before scaling up."
+            },
+            {
+              "min": 5,
+              "text": "You've done real due diligence. Re-run this audit whenever the firm changes its rules or ownership."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Should you trade differently on a sim account?"
+        },
+        {
+          "type": "p",
+          "text": "Mostly no — and that's the point. If you trade a simulated account with looser discipline because \"it's not real,\" you're training bad habits with real consequences: the fee was real, the payout is real, and the data you're generating about your own edge is real. The one honest adjustment is expectation-setting on fills. Sim fills are typically kinder than live ones, so treat your sim results as a slightly optimistic ceiling, not a guarantee of what the same strategy earns on live capital."
+        },
+        {
+          "type": "p",
+          "text": "The traders who handle this well journal both environments the same way, then compare: same setup, same session, sim vs live-routed. If your edge only exists where slippage doesn't, that's something you want to learn on a $500 fee, not a $50,000 account."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: tag every trade with the account it was taken on — sim challenge, sim funded, or live-routed — and JournalX's filters show you expectancy, average slippage-adjusted R and win rate per environment. If your numbers degrade from sim to live, you'll see exactly where: entries, exits, or fill quality."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: most journals treat every account as the same generic bucket. JournalX is built for multi-account reality — funded traders juggling challenges, funded sims and live capital — so environment-level comparison is a first-class feature, not a spreadsheet hack."
+        },
+        {
+          "type": "h2",
+          "text": "The bottom line"
+        },
+        {
+          "type": "p",
+          "text": "Sim-funded isn't a dirty word — it's the engine that made retail prop trading accessible. But you are owed clarity about which game you're playing. Read the terms, run the audit, journal each environment separately, and favor firms that state plainly where your orders go. In a consolidating industry, transparency is the best predictor of whether your payout arrives."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Are most prop firm funded accounts simulated?",
+          "a": "By most industry accounts, yes — the majority of retail prop 'funded' accounts run on simulated or demo infrastructure, with payouts funded largely by challenge fees. Some firms route funded-stage trades (or copy them) to live markets; the split varies by firm and is worth verifying in the ToS."
+        },
+        {
+          "q": "Is a sim-funded account a scam?",
+          "a": "Not inherently. Simulation is what makes cheap access to large notional sizes possible. It becomes a problem when firms hide the model, or when rules are designed to make payouts practically unreachable. Judge firms on disclosure, payout history and rule fairness."
+        },
+        {
+          "q": "How do I find out if my prop firm is sim or live?",
+          "a": "Check the terms of service for words like 'simulated', 'demo' or 'virtual funds'; look for explicit statements about order routing to venues like CME or named liquidity providers; and ask support directly in writing. Independent trader communities also track this per firm."
+        },
+        {
+          "q": "Should my strategy change between sim and live accounts?",
+          "a": "The strategy shouldn't, but expectations should. Sim fills are usually cleaner, so expect slightly worse average R on live-routed accounts. Journaling both environments separately shows you the real gap for your specific style."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-trade-fomc-days",
+      "title": "How to Trade FOMC Days: A Survival Playbook for Fed-Driven Volatility",
+      "metaTitle": "How to Trade FOMC Days: Fed Announcement Playbook 2026 | JournalX",
+      "metaDescription": "FOMC days wreck more accounts than any other session. A practical playbook for Fed announcements: the three phases of the day, sizing rules, what to journal.",
+      "keywords": [
+        "how to trade FOMC days",
+        "fed announcement trading strategy",
+        "FOMC volatility trading",
+        "trading fed rate decision",
+        "should I trade during FOMC",
+        "fomc day trading rules"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-07-19",
+      "featured": false,
+      "excerpt": "With markets repricing from cuts to possible hikes, Fed days are dangerous again. Here's a playbook for trading — or correctly sitting out — FOMC afternoons.",
+      "helpful": {
+        "up": 44,
+        "down": 2,
+        "saves": 40
+      },
+      "tags": [
+        "FOMC",
+        "volatility",
+        "news trading",
+        "risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Eight times a year, the calendar hands every trader the same trap: a 2pm ET statement, a 2:30pm press conference, and a market that can travel a week's range in ninety minutes. FOMC days are where good months go to die — not because the moves are untradeable, but because most traders bring their normal playbook to a fundamentally abnormal session. With the July 29 meeting approaching and rate expectations having swung hard this year, it's worth building an actual plan."
+        },
+        {
+          "type": "h2",
+          "text": "Why FOMC days break normal strategies"
+        },
+        {
+          "type": "p",
+          "text": "Your setups are calibrated to normal liquidity. On Fed days, liquidity thins out hours before the statement as market makers widen spreads and pull size. That means levels that usually hold get sliced through, stops fill with unusual slippage, and the first move after the release is frequently reversed once algorithms finish repricing. Backtests that include FOMC candles without flagging them are quietly lying to you about your edge."
+        },
+        {
+          "type": "p",
+          "text": "There's also a psychological trap: the move is big and visible, so missing it feels like lost money. It isn't. Untradeable volatility you skipped is not an opportunity cost — it's risk you declined to buy at the worst prices of the month."
+        },
+        {
+          "type": "h2",
+          "text": "The three phases of a Fed day"
+        },
+        {
+          "type": "p",
+          "text": "Treat the session as three distinct regimes, each with its own rules:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Phase",
+            "Timing (ET)",
+            "What typically happens",
+            "What to do"
+          ],
+          "rows": [
+            [
+              "The drift",
+              "Open to ~1:45pm",
+              "Compressed ranges, fading volume, false breakouts",
+              "Trade small or not at all; close scalps before 1:45"
+            ],
+            [
+              "The event",
+              "2:00–2:30pm",
+              "Statement algo-spike, often a violent whipsaw both directions",
+              "Flat. No pending orders, no 'quick scalps'"
+            ],
+            [
+              "The digestion",
+              "2:30pm to close",
+              "Press conference sets the real direction; trend can emerge",
+              "Wait for the second move; trade half size with wider stops"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The classic FOMC pattern traders talk about — an initial spike, a full reversal, then the \"real\" move during or after the press conference — doesn't happen every time, but it happens often enough that trading the first print is closer to gambling than executing an edge."
+        },
+        {
+          "type": "h2",
+          "text": "The 2026 twist: a market repricing itself"
+        },
+        {
+          "type": "p",
+          "text": "This year's meetings carry extra voltage. Financial media including Bloomberg have reported that markets spent 2026 repricing from expected cuts toward possible hikes, as the Fed under new leadership signaled a more hawkish stance on sticky inflation, and some major banks now project multiple hikes into year-end. Rate-futures pricing heading into the July meeting implies a hold is heavily favored — but the press conference language about autumn is where the volatility lives. When the market's base case is in flux, the digestion phase gets longer and trendier; when everyone already agrees, the whole day can be a dud. Position for both."
+        },
+        {
+          "type": "quote",
+          "text": "The statement tells you what the Fed did. The press conference tells you what the market will do."
+        },
+        {
+          "type": "h2",
+          "text": "A simple FOMC playbook"
+        },
+        {
+          "type": "p",
+          "text": "Write these rules down before the day, not during it: flatten discretionary positions by 1:45pm ET unless they're long-horizon holds with stops that survive a 2x ATR spike; do not place resting orders through the release; re-enter only after the press conference has established direction — typically after 3pm; trade at half your normal risk for the rest of the session; and if you're on a funded account, check your firm's news-trading rules first, because a rule breach on an FOMC candle is one of the most common payout-denial stories in trader communities."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "The 2:01pm test",
+          "prompt": "The statement drops and price instantly spikes 40 points above your resistance level. What's the highest-expectancy action?",
+          "options": [
+            "Chase the breakout — momentum is momentum",
+            "Fade it immediately — first moves always reverse",
+            "Do nothing until the press conference clarifies direction",
+            "Place a straddle of stop orders on both sides"
+          ],
+          "correct": 2,
+          "explain": "The first print is algorithmic repricing at the widest spreads of the month, and it reverses often enough that neither chasing nor blind-fading has reliable edge. The information you're actually waiting for — tone, guidance, dissent — arrives at 2:30pm. Patience is the position."
+        },
+        {
+          "type": "h2",
+          "text": "Journal your Fed days separately"
+        },
+        {
+          "type": "p",
+          "text": "The single highest-leverage habit here: tag every FOMC-day trade and review them as their own bucket. Most traders who do this discover the same thing — their Fed-day expectancy is sharply negative even when their overall system is profitable, and nearly all the damage comes from phases one and two. That's not a reason to despair; it's a free raise. Skipping a session you reliably lose money in is the easiest edge you'll ever add."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: tag trades with 'FOMC' (or any news event) and JournalX will show your win rate, expectancy and average R for event days versus normal days side by side. Add a pre-market note at 9am with your plan, and the evening review shows you whether you actually followed it."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: generic journals log what you traded. JournalX is built around context — sessions, events, emotional state — so you can answer the question that actually matters: not 'is my system profitable?' but 'under which conditions is it profitable?'"
+        },
+        {
+          "type": "h2",
+          "text": "The bottom line"
+        },
+        {
+          "type": "p",
+          "text": "You don't need an opinion on rates to survive Fed day — you need a schedule. Flat into the statement, patient through the whipsaw, selective after the press conference, half size until the close. Do that eight times a year, journal the results, and FOMC stops being the day that ruins your month and becomes just another line in your stats."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Should beginners trade during FOMC announcements?",
+          "a": "Almost certainly not. Spreads widen, slippage grows and the first move frequently reverses. Most experienced traders either sit Fed days out entirely or trade only the post-press-conference trend at reduced size. Watching and journaling the day without trading is genuinely valuable practice."
+        },
+        {
+          "q": "What time is the FOMC announcement and press conference?",
+          "a": "The statement is released at 2:00pm ET on the final day of the meeting, and the Chair's press conference begins at 2:30pm ET. The press conference frequently moves markets more than the statement itself."
+        },
+        {
+          "q": "Can I trade FOMC on a funded prop firm account?",
+          "a": "Many prop firms restrict or forbid holding or opening positions around high-impact news, and FOMC is the flagship example. Rules vary by firm and change frequently, so verify your firm's current news-trading policy in writing before the day — breaches around news candles are a common payout-denial story."
+        },
+        {
+          "q": "Why does the market often reverse after the initial FOMC spike?",
+          "a": "The first seconds are algorithms repricing off the statement's headline text at thin liquidity. Once human traders digest the details — dissents, projections, press-conference tone — positioning often unwinds, producing the classic spike-and-reverse pattern. It's a tendency, not a law."
+        }
+      ]
     }
   ]
 }
