@@ -9052,6 +9052,343 @@
           "a": "The first seconds are algorithms repricing off the statement's headline text at thin liquidity. Once human traders digest the details — dissents, projections, press-conference tone — positioning often unwinds, producing the classic spike-and-reverse pattern. It's a tendency, not a law."
         }
       ]
+    },
+    {
+      "slug": "one-step-vs-two-step-prop-firm-challenges",
+      "title": "One-Step vs Two-Step Prop Firm Challenges: Which Should You Actually Take?",
+      "metaTitle": "One-Step vs Two-Step Prop Firm Challenge (2026 Guide) | JournalX",
+      "metaDescription": "One-step or two-step prop firm challenge? Compare targets, drawdown rules, pass rates and real costs — and find which evaluation model fits your trading.",
+      "keywords": [
+        "one step vs two step prop firm challenge",
+        "1 step prop firm challenge",
+        "2 step prop firm challenge",
+        "prop firm evaluation types",
+        "prop firm challenge pass rate",
+        "best prop firm challenge type"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-07-20",
+      "featured": false,
+      "excerpt": "One-step challenges now outnumber two-step programmes for the first time. But faster funding isn't the same as better odds — here's how to pick the model that fits how you actually trade.",
+      "helpful": {
+        "up": 42,
+        "down": 1,
+        "saves": 39
+      },
+      "tags": [
+        "prop firms",
+        "funded accounts",
+        "evaluations",
+        "challenges"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "For the first time, one-step challenges have overtaken the classic two-step model. Per industry trackers like PropFirmMatch's 2026 census, roughly 43% of active funding programmes are now one-step, and nearly two-thirds of all programmes put traders one or zero steps away from a funded account. Firms are competing on speed to funding — but speed is a marketing metric, not a probability. The model you pick changes your targets, your drawdown rules, your timeline and your real cost per funded account. Pick the wrong one for your style and you can fail an evaluation you were good enough to pass."
+        },
+        {
+          "type": "h2",
+          "text": "How the Two Models Actually Work"
+        },
+        {
+          "type": "p",
+          "text": "A two-step challenge splits the evaluation into two phases: a first phase with a higher profit target (commonly in the 8–10% range) and a second, easier phase (often 4–5%), each with its own drawdown limits. A one-step challenge compresses everything into a single phase — usually one target somewhere between 8% and 12% — and often pairs it with tighter or trailing drawdown rules to compensate for the shorter filter. Exact numbers vary widely by firm, so always read the specific rulebook, but the typical shape looks like this:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "",
+            "One-step",
+            "Two-step"
+          ],
+          "rows": [
+            [
+              "Phases",
+              "1",
+              "2"
+            ],
+            [
+              "Typical profit target",
+              "~8–12% in one phase",
+              "~8–10%, then ~4–5%"
+            ],
+            [
+              "Typical max drawdown",
+              "Often tighter, frequently trailing",
+              "Often static, slightly more room"
+            ],
+            [
+              "Time to funded",
+              "Faster on paper",
+              "Slower, but two smaller hurdles"
+            ],
+            [
+              "Fee for same account size",
+              "Usually higher",
+              "Usually lower"
+            ],
+            [
+              "Best suited to",
+              "Consistent, low-drawdown styles",
+              "Steady grinders who compound small edges"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "What the Pass-Rate Data Says"
+        },
+        {
+          "type": "p",
+          "text": "Firms rarely publish clean numbers, but the disclosures and third-party estimates that exist put overall evaluation pass rates in the mid-single digits — commonly quoted in the 5–10% range across both models. The interesting nuance is phase two of two-step challenges: once traders survive phase one, reported phase-two pass rates jump to roughly 50–60%, because the first phase already filtered out inconsistent trading. In other words, a two-step challenge front-loads the difficulty, while a one-step challenge concentrates all of it into a single, less forgiving attempt. Treat all of these figures as industry estimates rather than guarantees — they vary by firm, account size and market regime."
+        },
+        {
+          "type": "quote",
+          "text": "The step count is marketing. The drawdown rule is the exam."
+        },
+        {
+          "type": "h2",
+          "text": "The Hidden Variable: Drawdown Style, Not Step Count"
+        },
+        {
+          "type": "p",
+          "text": "Most traders compare targets and ignore the rule that actually ends accounts. One-step programmes frequently use a trailing drawdown that ratchets up with your equity highs — meaning a strong start can leave you trading with a razor-thin buffer for the rest of the evaluation. Two-step programmes more often use static drawdown from initial balance, which is far more forgiving to a trader whose equity curve breathes. If your journal shows your typical winning month includes a 3–4% peak-to-trough dip, a 4% trailing drawdown will eventually catch you no matter how good your edge is. Match the drawdown mechanics to your measured equity-curve behaviour, not to the headline target."
+        },
+        {
+          "type": "h2",
+          "text": "Which Model Fits Your Trading Style?"
+        },
+        {
+          "type": "p",
+          "text": "The honest answer is that neither model is easier — they select for different traders. One-step suits traders with tight risk per trade, shallow drawdowns and the patience to grind a single clean run. Two-step suits traders who need room to breathe early and get stronger once the pressure drops. Answer this from your last 50 journaled trades, not from how you'd like to trade:"
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Which challenge model selects for you?",
+          "prompt": "Your journal shows a solid edge, but your typical peak-to-trough drawdown inside a winning month is about 5% of the account. The firm's one-step offers a 10% target with a 6% trailing drawdown. What's the biggest risk?",
+          "options": [
+            "The 10% target is too far away",
+            "The trailing drawdown will likely catch a normal dip after a strong start",
+            "The time limit will expire",
+            "One-step challenges have lower pass rates for everyone"
+          ],
+          "correct": 1,
+          "explain": "A 5% routine dip against a 6% trailing drawdown leaves almost no buffer once the drawdown ratchets up with your equity highs. Your edge isn't the problem — the rule geometry is. This trader should favour static-drawdown programmes, which usually means two-step."
+        },
+        {
+          "type": "h2",
+          "text": "The Cost Math Most Traders Skip"
+        },
+        {
+          "type": "p",
+          "text": "The fee on the pricing page is not your cost. Your expected cost per funded account is the fee divided by your realistic pass probability, plus resets. A $500 one-step you pass 1 time in 5 costs ~$2,500 per funded account; a $400 two-step you pass 1 time in 3 costs ~$1,200. Cheaper per attempt can be dramatically more expensive per outcome. Your journal is the only honest source for that probability: your win rate, average R and worst historical drawdown tell you how often you'd survive a given ruleset. Run the numbers before you pay, and budget for at least 2–3 attempts — treating challenge fees as a one-shot lottery ticket is how the industry makes its money."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: tag every evaluation attempt in JournalX and track your peak-to-trough drawdown, daily loss distribution and days-to-target across attempts. Before you buy the next challenge, filter your last 50–100 trades and simulate them against the firm's exact drawdown rule — you'll know whether you'd have survived before you spend a rupee or a dollar on the fee."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: most journals show you a P&L curve. JournalX is built around the metrics prop rules actually test — max daily loss, peak-to-trough drawdown, consistency across days — so funded and aspiring-funded traders can see rule violations coming before the firm's dashboard does."
+        },
+        {
+          "type": "h2",
+          "text": "The Bottom Line"
+        },
+        {
+          "type": "p",
+          "text": "Don't pick the model that funds you fastest on paper — pick the one whose rule geometry your journaled equity curve can survive. Tight, consistent, shallow-drawdown traders can exploit one-step speed. Traders whose curves breathe should pay for static drawdown and two phases. And whichever you choose, the same discipline that passes evaluations — pre-defined risk, a daily loss cutoff, and an honest journal — is what keeps the account after the firm says yes."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Are one-step prop firm challenges easier than two-step?",
+          "a": "Not inherently. One-step is faster but concentrates all difficulty into a single attempt, often with tighter or trailing drawdown. Two-step spreads difficulty across two smaller hurdles, and reported phase-two pass rates are much higher because phase one filters out inconsistency. Which is 'easier' depends on your drawdown behaviour, not the step count."
+        },
+        {
+          "q": "What are typical prop firm challenge pass rates?",
+          "a": "Third-party estimates and the limited firm disclosures that exist generally put overall pass rates in the 5–10% range across both models, with two-step phase two commonly reported around 50–60%. Treat these as rough industry estimates — they vary significantly by firm, ruleset and account size."
+        },
+        {
+          "q": "What's more important than the profit target when choosing a challenge?",
+          "a": "The drawdown rule. Trailing drawdown that ratchets with equity highs punishes traders whose curves dip after strong starts; static drawdown from initial balance is more forgiving. Compare the firm's drawdown mechanics against your own journaled peak-to-trough behaviour."
+        },
+        {
+          "q": "How do I estimate my real cost of getting funded?",
+          "a": "Divide the challenge fee by your realistic pass probability and add likely resets. A cheaper fee with a lower personal pass rate is often more expensive per funded account than a pricier challenge whose rules fit your style. Your trade journal gives you the data to estimate that probability honestly."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-trade-earnings-season",
+      "title": "How to Trade Earnings Season: A Playbook for Gaps, Volatility and Thin Summer Tape",
+      "metaTitle": "How to Trade Earnings Season in 2026: Gaps, Volatility & Risk | JournalX",
+      "metaDescription": "A practical earnings season playbook: manage overnight gap risk, trade the reaction instead of the report, and size positions for single-stock volatility.",
+      "keywords": [
+        "how to trade earnings season",
+        "earnings season trading strategy",
+        "trading earnings announcements",
+        "earnings gap trading",
+        "holding trades through earnings",
+        "earnings volatility"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-07-20",
+      "featured": false,
+      "excerpt": "Earnings season turns single stocks into scheduled binary events. Here's how to handle gap risk, avoid the classic three blow-ups, and trade the reaction instead of gambling on the report.",
+      "helpful": {
+        "up": 38,
+        "down": 2,
+        "saves": 35
+      },
+      "tags": [
+        "earnings",
+        "volatility",
+        "gap risk",
+        "stocks"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Q2 earnings season is in full swing — the big US banks kicked it off in mid-July, and the largest tech names report over the next two weeks. This one comes with an extra twist: single-stock volatility gauges have been running near 52-week highs per Cboe index data, markets have been punishing misses harder than usual, and July's thin summer liquidity amplifies every gap. A move that would be 5% in October can print 10%+ on the same news in a thin summer tape. None of that is a reason to sit out. It is a reason to trade earnings season deliberately instead of accidentally."
+        },
+        {
+          "type": "h2",
+          "text": "Why Earnings Season Is a Different Game"
+        },
+        {
+          "type": "p",
+          "text": "Most volatility is continuous — price moves while you can react. An earnings report is a scheduled binary event: the information lands all at once, outside regular hours for most US names, and the stock reopens wherever it reopens. Your stop-loss does not protect you across a gap; it simply becomes a market order at the new price. That single fact should reorganise how you trade the whole season: which positions you hold overnight, how you size anything held into a report, and whether you trade the event at all or only the reaction after it."
+        },
+        {
+          "type": "h2",
+          "text": "The Three Ways Traders Get Hurt"
+        },
+        {
+          "type": "p",
+          "text": "Almost every earnings-season blow-up in a trade journal falls into one of three patterns — and each has a boring, mechanical fix:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Pattern",
+            "What happens",
+            "The fix"
+          ],
+          "rows": [
+            [
+              "Holding through the report by accident",
+              "A swing trade you forgot reports tonight; stock gaps through your stop",
+              "Check the earnings calendar for every open position, every day this season"
+            ],
+            [
+              "Chasing the gap at the open",
+              "Stock gaps 8%, you buy the first candle, it fades all day",
+              "Let the first 15–30 minutes establish a range before touching it"
+            ],
+            [
+              "Hidden sector correlation",
+              "You're 'diversified' across four names that all move on the same mega-cap report",
+              "Cap total exposure per sector/theme during reporting weeks"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Rule One: Decide Before the Bell, Never During"
+        },
+        {
+          "type": "p",
+          "text": "Whether to hold a position through its earnings report is a decision you make in the calm of your pre-market routine — with your planned risk, the implied move, and your thesis in front of you — not at 3:58pm while the countdown ticks. Write the rule once and follow it all season. For most discretionary traders without an options hedge, the honest rule is simple: no full-size positions held through their own earnings report. If you keep a partial, size it so the worst plausible gap — think two to three times the average post-earnings move — is a loss you'd accept without flinching."
+        },
+        {
+          "type": "quote",
+          "text": "Earnings aren't where you find out if you're smart. They're where you find out if you're sized correctly."
+        },
+        {
+          "type": "h2",
+          "text": "Trade the Reaction, Not the Report"
+        },
+        {
+          "type": "p",
+          "text": "You have no edge guessing whether a company beats — professionals with far better information set the odds before you arrive. But the session after the report is a regular trading session with unusually high volume and participation, and that's where journaled setups shine. Gap-and-go continuations, failed-gap fades, and first-pullback entries after the opening range are all testable, repeatable setups. Whichever you trade, the discipline is the same: let the open settle, define invalidation from the post-earnings structure (not yesterday's levels), and accept that thin summer tape means wider stops and smaller size than the identical setup in autumn."
+        },
+        {
+          "type": "h2",
+          "text": "Size for the Gap, Not for the Chart"
+        },
+        {
+          "type": "p",
+          "text": "During reporting weeks, position sizing should start from scenario risk, not stop distance. Ask: if this gaps against me by twice its typical earnings move, what do I lose? If that number breaches your daily loss limit — or, on a funded account, your max daily loss or trailing drawdown — the position is too big regardless of how clean the chart looks. Funded traders should also re-read their firm's rules: many restrict or discourage holding through major scheduled events, and a payout denied over a rule technicality hurts more than a missed trade ever will."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Earnings-week pre-trade checklist",
+          "prompt": "Run this before every session during reporting season. Tick what you actually did today:",
+          "items": [
+            "Checked the earnings calendar for every open position and today's watchlist",
+            "Decided hold/trim/exit for anything reporting in the next 24h — before the open",
+            "Capped total exposure to any single sector or theme",
+            "Sized every position so a 2x typical earnings gap stays inside my daily loss limit",
+            "Waited for the opening range before trading any gapping name",
+            "Logged the implied/expected move next to each earnings trade in my journal"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You're trading earnings season on autopilot — this is exactly how gap losses happen. Start with the calendar check tomorrow."
+            },
+            {
+              "min": 3,
+              "text": "Decent base. The gaps that hurt are the ones you didn't plan for — tighten the calendar and sizing checks."
+            },
+            {
+              "min": 5,
+              "text": "You're treating earnings like the scheduled risk events they are. Keep the journal entries — they'll show which reaction setups actually pay you."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: tag every earnings-window trade with its own label in JournalX and log the expected move alongside your entry. After a season, you'll know your actual win rate and average R on gap-and-go versus fade setups, whether holding partials through reports ever paid you, and which sectors you consistently misread — real data instead of a vibe."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: generic journals treat every trade the same. JournalX lets you slice performance by tag, session and setup, so a scheduled-event campaign like earnings season becomes its own dataset — with its own expectancy, drawdown and rule violations — instead of noise buried in your monthly P&L."
+        },
+        {
+          "type": "h2",
+          "text": "The Bottom Line"
+        },
+        {
+          "type": "p",
+          "text": "Earnings season rewards preparation and punishes improvisation, and this year's mix of hawkish-Fed nerves, elevated single-stock volatility and thin summer liquidity raises the stakes in both directions. Check the calendar daily, decide before the bell, trade the reaction rather than the coin-flip, and size every position for the gap you hope never comes. Then journal all of it — because the traders who own a written record of what earnings season actually does to their edge are the ones who show up sharper next quarter."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Should I hold trades through an earnings report?",
+          "a": "For most discretionary traders without a hedge, no — at least not at full size. A stop-loss doesn't protect you across a gap, so the position reopens wherever the market decides. If you keep a partial, size it so a gap of two to three times the stock's typical earnings move is a loss you can comfortably absorb."
+        },
+        {
+          "q": "Is it better to trade before or after an earnings announcement?",
+          "a": "After, for most traders. Guessing the report is a coin-flip against better-informed participants, but the post-earnings session offers high volume and repeatable setups — gap continuations, failed-gap fades, first pullbacks — that you can define, test and journal like any other strategy."
+        },
+        {
+          "q": "Why are earnings moves bigger in summer?",
+          "a": "Thinner participation. With lower July–August volume, the same surprise moves price further because there's less liquidity to absorb it — a beat that might gap a stock 5% in October can produce a much larger move in a thin summer tape. Size accordingly."
+        },
+        {
+          "q": "Can I trade earnings on a funded prop firm account?",
+          "a": "Check your firm's rulebook first. Many prop firms restrict trading or holding positions around major scheduled events, and violations can void payouts even on profitable trades. If earnings trades are allowed, your max daily loss and trailing drawdown — not the chart — should set your size."
+        }
+      ]
     }
   ]
 }
