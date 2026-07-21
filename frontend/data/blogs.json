@@ -9389,6 +9389,346 @@
           "a": "Check your firm's rulebook first. Many prop firms restrict trading or holding positions around major scheduled events, and violations can void payouts even on profitable trades. If earnings trades are allowed, your max daily loss and trailing drawdown — not the chart — should set your size."
         }
       ]
+    },
+    {
+      "slug": "copy-trading-multiple-prop-firm-accounts-rules",
+      "title": "Copy Trading Across Multiple Prop Firm Accounts: What's Actually Allowed in 2026",
+      "metaTitle": "Copy Trading Multiple Prop Firm Accounts: 2026 Rules | JournalX",
+      "metaDescription": "Can you run a trade copier across multiple prop firm accounts? What firms allow, what gets you banned, how detection works, and how to scale without losing payouts.",
+      "keywords": [
+        "copy trading prop firms",
+        "trade copier prop firm rules",
+        "multiple prop firm accounts",
+        "can you copy trade funded accounts",
+        "prop firm copy trading ban",
+        "group trading prop firm"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-07-21",
+      "featured": false,
+      "excerpt": "Trade copiers can multiply a funded payout — or get every account you own banned. Here's the line firms actually draw between copying yourself and group trading.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 38
+      },
+      "tags": [
+        "prop firms",
+        "copy trading",
+        "funded accounts",
+        "risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Running one strategy across several funded accounts is the fastest legitimate way to scale prop capital — and also one of the fastest ways to lose every account you own if you cross a line you didn't know existed. In 2026, most major firms have rewritten their terms around trade copiers, and the traders getting denied payouts are usually the ones who assumed 'copying is copying.' It isn't. Firms draw a hard line between copying yourself and copying anyone else, and the difference decides whether you get paid."
+        },
+        {
+          "type": "h2",
+          "text": "The line firms actually draw"
+        },
+        {
+          "type": "p",
+          "text": "Across the big futures and forex firms, the pattern in current published rules is consistent: internal copying — mirroring your own strategy across accounts you personally own and trade — is broadly permitted and is how most scaling setups work. External copying — following someone else's signals, mirroring another trader's account, or paying a 'pass your challenge' service — is classified as group trading and banned essentially everywhere. The software is not the issue; the source of the decisions is. Automating your own strategy is generally fine; executing decisions that aren't yours is not."
+        },
+        {
+          "type": "quote",
+          "text": "Firms don't ban copiers. They ban trades that weren't yours to begin with."
+        },
+        {
+          "type": "h2",
+          "text": "What the major firms allow (as published in 2026)"
+        },
+        {
+          "type": "p",
+          "text": "Rules change frequently and vary by firm, so treat this as a snapshot of published policies rather than legal certainty — always confirm against the firm's current FAQ before wiring up a copier."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Setup",
+            "Typical 2026 policy",
+            "Risk level"
+          ],
+          "rows": [
+            [
+              "Copying your own trades across your own accounts at one firm",
+              "Generally allowed, often with account caps (e.g. 5–20 accounts depending on firm)",
+              "Low, if within caps"
+            ],
+            [
+              "Copying your own trades across accounts at different firms",
+              "Often tolerated, but each firm's rules apply independently",
+              "Medium — read both rulebooks"
+            ],
+            [
+              "Following another trader's signals or account",
+              "Banned as group trading at virtually every major firm",
+              "Account termination"
+            ],
+            [
+              "Paid challenge-passing services",
+              "Banned everywhere, payouts denied retroactively",
+              "Termination + denied payouts"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "How firms catch violations"
+        },
+        {
+          "type": "p",
+          "text": "Per copier vendors and firm compliance FAQs, detection has become genuinely sophisticated: firms compare IP addresses, device fingerprints, and fill timestamps at millisecond resolution. Orders from unrelated users that share an IP or fill within milliseconds of each other get flagged automatically. The uncomfortable implication: even a compliant setup can get flagged if it looks like group trading, which is why keeping your own records matters."
+        },
+        {
+          "type": "h2",
+          "text": "The risk nobody prices in: correlated drawdown"
+        },
+        {
+          "type": "p",
+          "text": "Compliance aside, the math of copying deserves more respect than it gets. Five accounts running one strategy is not diversification — it's one trade with 5x the consequences. A single max-loss day hits every account simultaneously, and trailing drawdowns move in lockstep. Before scaling, know your strategy's worst historical losing streak from your journal. If a normal drawdown would breach your trailing limit on every copied account at once, you're not scaling capital — you're scaling the blowup."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Would this get you banned?",
+          "prompt": "You and a friend both trade the same public strategy from a YouTube educator, on separate accounts, from your own homes. Compliant?",
+          "options": [
+            "Yes — you're on different IPs so it's fine",
+            "Yes — public strategies can't be group trading",
+            "Risky — if fills consistently match, firms can flag it as group trading regardless of intent",
+            "No issue as long as the accounts are at different firms"
+          ],
+          "correct": 2,
+          "explain": "Detection is pattern-based, not intent-based. Consistently identical entries across unrelated users is the exact signature firms screen for. Independent execution and your own trade records are your defense."
+        },
+        {
+          "type": "h2",
+          "text": "A compliant scaling setup, step by step"
+        },
+        {
+          "type": "p",
+          "text": "First, confirm in writing (FAQ or support ticket) that your firm allows self-copying and note the account cap. Second, copy only accounts under your own name — never share logins or signals. Third, size the copier off the tightest drawdown limit among your accounts, not the loosest. Fourth, keep a journal of every trade with your own reasoning attached, so if compliance ever questions a flag, you can show the decisions were yours. Fifth, re-check the rules monthly — 2026 has already seen multiple firms revise copier policies mid-year."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: tag each trade with the account it ran on and journal the reasoning once — your entries become a timestamped record that your strategy is your own, and the analytics show whether scaling across accounts is actually improving your net expectancy or just multiplying variance."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: most journals track one account in isolation. JournalX lets you see copied accounts side by side — same strategy, different drawdown rules — so you catch the account that's one normal losing streak from breach before the copier takes it down."
+        },
+        {
+          "type": "h2",
+          "text": "The bottom line"
+        },
+        {
+          "type": "p",
+          "text": "Copy trading your own strategy across your own accounts is a legitimate, widely permitted way to scale funded capital in 2026. Copying anyone else, in any form, is the fastest route to losing everything you've built. Know your firm's written policy, size for the tightest account, and keep records that prove the trades were yours. The traders who scale successfully treat the copier as a risk multiplier first and a profit multiplier second."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Can I copy trades between accounts at two different prop firms?",
+          "a": "Often yes, since each account is yours — but each firm's rules apply independently, and a few prohibit it outright. Confirm with both firms in writing before connecting a copier."
+        },
+        {
+          "q": "Is using a trade copier the same as automated trading?",
+          "a": "No. Copiers replicate your own manual or automated decisions across your accounts. Most firms treat self-copying and automating your own strategy as acceptable; executing someone else's signals is what gets banned."
+        },
+        {
+          "q": "How do prop firms detect group trading?",
+          "a": "Per firm FAQs and copier vendors, they match IP addresses, device fingerprints, and fill timestamps at millisecond precision across their user base, flagging unrelated accounts with consistently identical entries."
+        },
+        {
+          "q": "What happens if I'm flagged incorrectly?",
+          "a": "You'll typically be asked to explain your trades. A detailed journal with timestamped reasoning for each entry is the strongest evidence that the strategy and decisions were your own."
+        }
+      ]
+    },
+    {
+      "slug": "kelly-criterion-position-sizing",
+      "title": "Kelly Criterion Position Sizing: Why Full Kelly Breaks Traders (and What to Use Instead)",
+      "metaTitle": "Kelly Criterion Position Sizing for Traders: Full vs Fractional Kelly | JournalX",
+      "metaDescription": "The Kelly criterion promises optimal growth but full Kelly produces brutal drawdowns. How the formula works, why your inputs are wrong, and how fractional Kelly fixes it.",
+      "keywords": [
+        "kelly criterion trading",
+        "kelly criterion position sizing",
+        "fractional kelly",
+        "half kelly vs full kelly",
+        "optimal position size trading",
+        "kelly formula win rate"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-07-21",
+      "featured": false,
+      "excerpt": "Kelly tells you the mathematically optimal bet size — and following it exactly has wrecked more traders than it's enriched. Here's how to use the formula without the pain.",
+      "helpful": {
+        "up": 44,
+        "down": 2,
+        "saves": 42
+      },
+      "tags": [
+        "position sizing",
+        "kelly criterion",
+        "risk management",
+        "expectancy"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Every sizing question in trading — 1% rule, fixed fractional, 'risk what you can afford' — is an approximation of one underlying piece of math: the Kelly criterion. Developed by John Kelly at Bell Labs in 1956, it answers the question every trader eventually asks: given my edge, what fraction of my capital should I risk to grow it fastest? The answer is precise, elegant, and — used at full strength — almost guaranteed to hand you a drawdown you can't stomach. Understanding why is the point of this post."
+        },
+        {
+          "type": "h2",
+          "text": "The formula in plain terms"
+        },
+        {
+          "type": "p",
+          "text": "Kelly says: f* = (bp − q) / b, where p is your win rate, q is your loss rate (1 − p), and b is your average win divided by average loss. Take a trader with a 45% win rate and a 2:1 reward-to-risk ratio: f* = (2 × 0.45 − 0.55) / 2 = 17.5% of capital risked per trade. If that number just made you flinch, your instincts are working. Kelly optimizes for maximum long-run growth and cares nothing about the path you take to get there."
+        },
+        {
+          "type": "h2",
+          "text": "What full Kelly actually feels like"
+        },
+        {
+          "type": "p",
+          "text": "The path is the problem. In simulation studies and the academic literature going back to Gehm's 1983 work in the Journal of Futures Markets, full Kelly betting routinely produces drawdowns of 50% or more even when the strategy has genuinely positive expectancy — long-run simulations commonly show peak-to-trough losses in the 50–80% range. Mathematically you recover; psychologically, almost nobody does. Traders abandon the strategy mid-drawdown, which converts a temporary loss into a permanent one. The optimal formula assumes an executor with no emotions and no funding rules. You have both."
+        },
+        {
+          "type": "quote",
+          "text": "Full Kelly is optimal for a robot with infinite time. You are neither."
+        },
+        {
+          "type": "h2",
+          "text": "The bigger problem: your inputs are wrong"
+        },
+        {
+          "type": "p",
+          "text": "Kelly's output is only as good as your estimates of win rate and payoff ratio — and most traders estimate both from a few dozen trades, which is nowhere near enough. Overestimate your win rate by five points and Kelly will tell you to bet dramatically more than your true edge supports, which means betting past the optimum — the zone where more risk produces less growth and eventually ruin. Estimation error is asymmetric: betting half the optimal amount costs you a little growth, betting double can destroy the account. When in doubt, round down."
+        },
+        {
+          "type": "h2",
+          "text": "Fractional Kelly: the version that survives contact with reality"
+        },
+        {
+          "type": "p",
+          "text": "In practice, nearly everyone who uses Kelly uses a fraction of it — typically 25% to 50% of the full number. The trade-off is remarkably kind: half Kelly captures roughly three-quarters of the optimal growth rate while cutting drawdowns roughly in half, per the standard analyses. Quarter Kelly is gentler still, and for a funded trader with a trailing drawdown, it's often the only fraction that fits inside the account's rules at all."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Sizing",
+            "Risk per trade (example trader)",
+            "Approx. growth captured",
+            "Typical drawdown profile"
+          ],
+          "rows": [
+            [
+              "Full Kelly",
+              "17.5%",
+              "100% (theoretical max)",
+              "50–80% peak-to-trough in long simulations"
+            ],
+            [
+              "Half Kelly",
+              "8.75%",
+              "~75%",
+              "Roughly half of full Kelly's"
+            ],
+            [
+              "Quarter Kelly",
+              "~4.4%",
+              "~44%",
+              "Materially calmer; survivable psychologically"
+            ],
+            [
+              "Fixed 1% rule",
+              "1%",
+              "Lower, steady",
+              "Shallow; standard for funded accounts"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice where the classic 1% rule sits: for most retail edges it's well below quarter Kelly, which is exactly why it works as a default — it's almost impossible to over-bet your true edge at 1%, even with bad estimates."
+        },
+        {
+          "type": "h2",
+          "text": "How to actually use Kelly with your journal"
+        },
+        {
+          "type": "p",
+          "text": "Kelly is only usable once you have real numbers, and real numbers come from a journal, not memory. Pull your last 100+ trades per setup and compute win rate and average win/loss separately for each — your breakout setup and your reversal setup almost certainly have different Kelly numbers. Compute full Kelly, then divide by four. If quarter Kelly is below your current fixed risk, that's your journal telling you you're over-betting your edge. Re-run the numbers every 50 trades, because your edge drifts as markets and your execution change."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Are you Kelly-ready?",
+          "prompt": "Check what you can actually produce right now:",
+          "items": [
+            "100+ logged trades for the setup I want to size",
+            "Win rate computed from the log, not from memory",
+            "Average win and average loss in R, computed separately",
+            "A max drawdown number I know I can sit through without deviating",
+            "A rule for when to recompute (every 50 trades or after any strategy change)"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Kelly would be guessing dressed as math. Start logging trades first — the 1% rule is your friend until the sample exists."
+            },
+            {
+              "min": 3,
+              "text": "Close. Fill the gaps in your log before trusting any formula output — input error is the silent account-killer."
+            },
+            {
+              "min": 5,
+              "text": "You have what Kelly needs. Compute it per setup, take a quarter of it, and recheck every 50 trades."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: your win rate, average R-multiple, and per-setup expectancy are computed automatically from your logged trades — the exact inputs Kelly needs — so you're sizing from evidence instead of a remembered win rate that's usually five points too generous."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: instead of one blended statistic across your whole account, JournalX breaks performance down by setup, session, and instrument — so you can see that one setup earns quarter-Kelly sizing while another shouldn't be traded at all."
+        },
+        {
+          "type": "h2",
+          "text": "The takeaway"
+        },
+        {
+          "type": "p",
+          "text": "Kelly isn't a sizing system to adopt wholesale — it's a ceiling to stay far below. Use your journal to compute the real number, take a quarter to a half of it, and treat any urge to size above half Kelly as a sign you're optimizing for excitement rather than growth. The formula's greatest gift isn't the optimal bet size; it's the proof that betting smaller than optimal costs little, while betting bigger costs everything."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is the Kelly criterion formula for trading?",
+          "a": "f* = (bp − q) / b, where p is win rate, q = 1 − p, and b is average win divided by average loss. The output is the fraction of capital to risk per trade for maximum long-run growth."
+        },
+        {
+          "q": "Why not use full Kelly?",
+          "a": "Full Kelly produces drawdowns commonly in the 50–80% range in long simulations even with a positive edge, and it assumes your win-rate estimates are exact. Real traders with imperfect estimates and real emotions do better at a quarter to a half of the Kelly number."
+        },
+        {
+          "q": "How many trades do I need before Kelly is meaningful?",
+          "a": "Treat 100 logged trades per setup as a working minimum. Below that, estimation error in your win rate can push the Kelly output far past your true edge — betting bigger than optimal is far more damaging than betting smaller."
+        },
+        {
+          "q": "Does the Kelly criterion work for funded and prop firm accounts?",
+          "a": "The math applies, but trailing drawdown limits usually bind first. Compute quarter Kelly and compare it against your account's daily and trailing loss rules — whichever number is smaller is your real limit."
+        }
+      ]
     }
   ]
 }
