@@ -9729,6 +9729,369 @@
           "a": "The math applies, but trailing drawdown limits usually bind first. Compute quarter Kelly and compare it against your account's daily and trailing loss rules — whichever number is smaller is your real limit."
         }
       ]
+    },
+    {
+      "slug": "prop-firm-ea-automated-trading-rules",
+      "title": "Prop Firm EA & Automated Trading Rules: Why 'AI-Friendly' Accounts Still Get Closed",
+      "metaTitle": "Prop Firm EA & Automated Trading Rules 2026 | JournalX",
+      "metaDescription": "Prop firms advertise EA and AI trading, but hidden carve-outs close funded accounts fast. Learn which automation rules actually get you banned in 2026.",
+      "keywords": [
+        "prop firm ea rules",
+        "prop firm automated trading rules",
+        "prop firms that allow ea",
+        "prop firm ai trading rules",
+        "why prop firm accounts get closed",
+        "copy trading prop firm ban"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-07-24",
+      "featured": false,
+      "excerpt": "Almost every prop firm says it welcomes EAs and AI. The rulebook says something narrower — and the gap is where funded accounts quietly die. Here's how to read it before you pay.",
+      "helpful": {
+        "up": 44,
+        "down": 1,
+        "saves": 39
+      },
+      "tags": [
+        "Funded",
+        "Automation",
+        "Prop Firms",
+        "Rules"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Open almost any prop firm's homepage in 2026 and you'll see the same promise: EAs welcome, algorithmic strategies supported, AI-friendly. Then you open the rulebook. What looked like an open door turns into a short list of technical triggers that can close your account regardless of whether your bot was 'technically' allowed. The marketing and the terms are written by different teams, and traders find out the difference on payout day."
+        },
+        {
+          "type": "p",
+          "text": "This isn't a reason to avoid automation. Plenty of funded traders run EAs cleanly for years. But the line between 'allowed' and 'account closed' is specific, narrow, and rarely where beginners assume it is. Here's how to read the rules before you buy an evaluation — and how to keep a record that protects you if a review ever lands on your account."
+        },
+        {
+          "type": "h2",
+          "text": "The gap between the marketing page and the rulebook"
+        },
+        {
+          "type": "p",
+          "text": "Reporting through 2026 has repeatedly flagged the same pattern: firms say they allow AI and automation, then the fine print quietly excludes most of what a modern algo actually does. The public page sells access; the terms of service protect the firm's risk model. When those two conflict, the terms win. Treat the homepage as an ad and the rulebook as the contract — because that's exactly what a compliance review will do."
+        },
+        {
+          "type": "p",
+          "text": "The practical takeaway: never assume 'EA allowed' means your specific EA is allowed. Read for the carve-outs, not the headline. And remember these rules change often — Topstep reportedly adjusted its trailing loss-limit rules several times between late 2025 and early 2026, and Apex overhauled its structure in March 2026. What was fine last quarter may be a violation now."
+        },
+        {
+          "type": "h2",
+          "text": "What actually gets your account closed"
+        },
+        {
+          "type": "p",
+          "text": "Firms rarely ban 'automation' outright. Instead they list narrow behaviors that trip an automatic flag. These are the usual suspects — check each against your setup and the specific firm's current terms:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Trigger",
+            "Why firms flag it",
+            "Safer approach"
+          ],
+          "rows": [
+            [
+              "Copying an external signal or another account",
+              "Reads as non-original, 'group' or mirror trading",
+              "Trade a strategy you can explain and own end to end"
+            ],
+            [
+              "Same commercial EA thousands also run",
+              "Identical fills flag as a non-unique strategy",
+              "Customize logic/params; keep a build log of changes"
+            ],
+            [
+              "Sub-second / tick scalping (HFT-style)",
+              "Seen as exploiting feed latency, not real edge",
+              "Check the firm's minimum hold-time and tick rules"
+            ],
+            [
+              "Latency or arbitrage between feeds",
+              "Treated as gaming pricing, not trading",
+              "Avoid entirely on funded capital"
+            ],
+            [
+              "News-spike auto-entries",
+              "Can breach news-trading windows",
+              "Confirm the news policy per account type"
+            ],
+            [
+              "One EA across many linked accounts",
+              "Coordinated risk looks like account farming",
+              "Read copy-across-accounts rules before scaling"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice the theme: firms are protecting against strategies that make money from their infrastructure or from coordination, not from a genuine edge. If your automation would still work on a normal retail broker with normal latency, you're usually on safer ground."
+        },
+        {
+          "type": "h2",
+          "text": "Copy trading and the 'group trading' trap"
+        },
+        {
+          "type": "p",
+          "text": "The single most common way automated traders lose an account is copy trading. Using an EA to mirror an external signal provider — or to copy your own trades across several funded accounts — is forbidden at most firms, and it's easy to detect. When dozens of accounts post identical entries and exits within milliseconds, the firm's risk system sees a pattern, not a coincidence. Even if each account is 'yours,' coordinated copying across them often breaches the rules on multiple accounts."
+        },
+        {
+          "type": "p",
+          "text": "If you run more than one account, read the copy-trading and max-allocation rules for each firm as if your payout depends on them — because it does. Some allow correlated positions across accounts up to a cap; others treat it as a straight violation."
+        },
+        {
+          "type": "h2",
+          "text": "HFT, latency, and the tick-scalping trap"
+        },
+        {
+          "type": "p",
+          "text": "'High-frequency' means different things to different firms. Some define it by hold time, some by trades-per-minute, some by how much of your profit comes from sub-second moves. A scalping EA that looked profitable in backtests can breach a minimum-hold rule on the very first live session. Before you deploy, find the firm's exact definition — a number you can measure, not a vibe — and confirm your EA stays on the right side of it under live conditions, including slippage."
+        },
+        {
+          "type": "h2",
+          "text": "How to stay funded while running automation"
+        },
+        {
+          "type": "p",
+          "text": "The traders who keep automated funded accounts do three boring things well: they read the current rules before every evaluation, they run strategies they can fully explain, and they keep records. If a firm ever questions a trade, 'here is my strategy logic, my parameter history, and my journal for every fill' is a far stronger position than 'the EA just did that.'"
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Pre-deploy EA compliance check",
+          "prompt": "Run this before you point any bot at a funded or evaluation account.",
+          "items": [
+            "I read THIS firm's current automation rules (dated this month), not a forum summary",
+            "My EA is not copying an external signal or another account",
+            "I've customized the logic enough that my fills won't mirror a mass-market EA",
+            "I checked the minimum hold time / HFT definition and my EA respects it",
+            "I confirmed news-trading windows and my EA won't auto-enter during them",
+            "I know the rules for running across multiple accounts (or I'm on one)",
+            "I keep a version log of every parameter and logic change",
+            "I journal every automated trade so I can explain any fill on request"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Stop. You're one rule-check away from a closed account — do the reading first."
+            },
+            {
+              "min": 4,
+              "text": "Halfway there. Close the gaps before you risk real evaluation money."
+            },
+            {
+              "min": 7,
+              "text": "Disciplined. This is the paper trail that keeps automated payouts safe."
+            }
+          ]
+        },
+        {
+          "type": "quote",
+          "text": "On funded capital, 'the bot did it' is not a defense. The trader who can explain every fill keeps the account."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: log automated trades alongside manual ones and tag each by strategy and EA version. When a firm's rules shift or a review lands, you have a timestamped record of what your bot did and why — the parameter changes, the entries, the hold times — instead of scrambling to reconstruct it from a broker statement."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: most journals assume a human clicked every button. JournalX lets you separate automated and discretionary performance, so you can see whether your EA actually has an edge or just survived a good week — and prove your process if your funding is ever questioned."
+        },
+        {
+          "type": "p",
+          "text": "Automation and prop funding can absolutely coexist. The traders who last treat the rulebook as a living document, run strategies they own, and keep the kind of record that turns a compliance question into a five-minute answer."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Do prop firms allow EAs in 2026?",
+          "a": "Most reputable firms allow EAs, but with conditions. Bans usually target specific behaviors — copy trading, HFT/tick scalping, latency arbitrage, and non-unique commercial EAs — rather than automation in general. Always read the specific firm's current terms before buying."
+        },
+        {
+          "q": "Why did my funded account get closed even though the firm 'allows' automation?",
+          "a": "Usually because your setup hit a narrow carve-out: copying an external signal, mirroring across accounts, breaching a minimum hold time, or trading a news window. The homepage says 'EAs welcome'; the rulebook lists the exceptions that actually get enforced."
+        },
+        {
+          "q": "Is copy trading across multiple prop accounts against the rules?",
+          "a": "At most firms, yes. Coordinated, near-identical entries across accounts flag as group or mirror trading and are easy to detect. Some firms permit correlated positions up to a cap — read each firm's multi-account and copy-trading rules carefully."
+        },
+        {
+          "q": "How can I protect myself if a firm reviews my automated trades?",
+          "a": "Keep records: a version log of your EA's logic and parameters, plus a journal of every automated fill. Being able to explain your strategy and show a timestamped trail is far stronger than relying on the firm's benefit of the doubt."
+        }
+      ]
+    },
+    {
+      "slug": "correlation-risk-portfolio-heat",
+      "title": "Correlation Risk: Why Your 'Diversified' Trades Are Really One Big Bet",
+      "metaTitle": "Correlation Risk & Portfolio Heat Explained 2026 | JournalX",
+      "metaDescription": "Three trades can be one hidden bet. Learn correlation risk, portfolio heat, and how to size correlated positions so a single move can't blow your account.",
+      "keywords": [
+        "correlation risk trading",
+        "portfolio heat",
+        "correlated pairs trading",
+        "how to manage correlation risk",
+        "trading position sizing correlation",
+        "am i overexposed trading"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-07-24",
+      "featured": false,
+      "excerpt": "You think you're in three trades. The market thinks you're in one. Correlation risk is how a 'diversified' book turns into a single oversized position at the worst moment.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 37
+      },
+      "tags": [
+        "Risk",
+        "Position Sizing",
+        "Correlation"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Here's a trap that catches disciplined traders. You risk a clean 1% on each of three setups: long EURUSD, long GBPUSD, long an index future. Three trades, 3% total risk, feels diversified. Then the dollar rips higher and all three lose at once. You didn't lose 1% three times from bad luck — you lost 3% on one bet you didn't realize you'd made. That's correlation risk, and it's the quiet reason 'well-managed' accounts still have ugly days."
+        },
+        {
+          "type": "p",
+          "text": "Position sizing per trade is only half of risk management. The other half is knowing how your trades move together. Get that wrong and your carefully capped 1% risk is a fiction."
+        },
+        {
+          "type": "h2",
+          "text": "What correlation risk actually is"
+        },
+        {
+          "type": "p",
+          "text": "Correlation measures how two instruments move relative to each other, on a scale from +1 to -1. A correlation near +1 means they tend to move the same direction; near -1 means opposite; near 0 means unrelated. EURUSD and GBPUSD are often strongly positively correlated because both are really dollar trades. Gold and the dollar frequently move in opposition. The risk isn't correlation itself — it's not accounting for it. When you hold several positively correlated positions, they behave less like a diversified book and more like one larger position pointed the same way."
+        },
+        {
+          "type": "h2",
+          "text": "The 'three trades, one bet' problem"
+        },
+        {
+          "type": "p",
+          "text": "Think of correlated positions as a single effective position. If three trades are highly correlated and each is sized at 1%, your true exposure to the shared driver is closer to 3% than to a diversified 1%. This table shows how 'number of trades' and 'real risk' can come apart:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "What you see",
+            "Correlation",
+            "Effective single-direction risk"
+          ],
+          "rows": [
+            [
+              "3 trades at 1% each, unrelated",
+              "Near 0",
+              "About 1% (genuinely spread)"
+            ],
+            [
+              "3 trades at 1% each, highly correlated",
+              "Near +1",
+              "About 3% (one big bet)"
+            ],
+            [
+              "2 longs + 1 short, mixed",
+              "Mixed",
+              "Partly offset — depends on sizes"
+            ],
+            [
+              "5 'different' risk-on trades in a selloff",
+              "Spikes toward +1",
+              "Behaves like one oversized position"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The lesson isn't 'never hold correlated trades.' Sometimes stacking correlated positions is a deliberate, sized-up conviction bet. The danger is doing it by accident and believing you're diversified."
+        },
+        {
+          "type": "h2",
+          "text": "Portfolio heat: your real number"
+        },
+        {
+          "type": "p",
+          "text": "Portfolio heat is the total risk open across your account at once — the sum of what you'd lose if every open position hit its stop. Many traders never calculate it. They size each trade fine but never look at the aggregate, so on a busy day they're quietly risking 6-8% without deciding to. A common starting guideline is to cap total heat around a level you've chosen in advance (some traders use roughly 5-6%), and to count correlated positions as closer to one combined risk rather than several independent ones."
+        },
+        {
+          "type": "p",
+          "text": "The number matters less than the habit: decide your maximum heat before the session, and check it every time you add a position. If a new trade would push you over, something has to close first."
+        },
+        {
+          "type": "h2",
+          "text": "When correlations spike to 1.0"
+        },
+        {
+          "type": "p",
+          "text": "Correlations are not fixed — they change, and they change worst exactly when it hurts. In calm markets, assets drift somewhat independently. In a genuine stress event or crash, correlations across risk assets can spike toward 1.0 and 'everything sells off together.' The diversification you counted on evaporates at the moment you needed it, and your spread-out book snaps into one giant position. This is why risk built only around normal-market correlations underestimates tail risk."
+        },
+        {
+          "type": "quote",
+          "text": "In a crash, correlations go to one. Your diversified positions become a single trade — and it's usually on the wrong side."
+        },
+        {
+          "type": "h2",
+          "text": "How to size correlated positions"
+        },
+        {
+          "type": "p",
+          "text": "The fix is mechanical. Before adding a trade, ask what shared driver it's exposed to — the dollar, rates, risk-on sentiment, a single sector. If it lines up with positions you already hold, treat the cluster as one position and size the group to your per-idea risk, not each leg separately. Three correlated longs you want capped at 1% total means roughly a third of a normal size each — not three full-size trades. Mixing in genuinely uncorrelated or negatively correlated exposure is what actually lowers your risk."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Spot the hidden bet",
+          "prompt": "You're long EURUSD, long GBPUSD, and long AUDUSD, each risking 1%. What's your real risk?",
+          "options": [
+            "1% — they're different currency pairs",
+            "3% total but well diversified",
+            "Closer to a single ~3% bet on a weaker US dollar",
+            "Zero — the pairs hedge each other"
+          ],
+          "correct": 2,
+          "explain": "All three are dollar-denominated pairs that tend to move together against USD. Long all three is essentially one leveraged short-dollar bet. If the dollar strengthens, all three lose at once — your 'three 1% trades' behave like a single ~3% position."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: tag every trade by its driver — USD, rates, risk-on, a sector or ticker — and JournalX surfaces when your open positions cluster around the same theme. Instead of discovering your real exposure after a bad day, you see the concentration before you add the next correlated trade."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: most journals grade trades one at a time and miss the portfolio-level story. JournalX helps you review positions as a book, so you can catch the days you were 'in three trades' but really in one — the pattern that quietly produces your biggest drawdowns."
+        },
+        {
+          "type": "p",
+          "text": "Per-trade risk keeps you honest on any single idea. Correlation awareness keeps you honest about the account. Track how your trades move together, cap your total heat, and size clusters as one — and a single market move stops being able to take a chunk you never agreed to risk."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is correlation risk in trading?",
+          "a": "It's the risk that positions you think are separate actually move together. Holding several positively correlated trades means a single market driver can hit all of them at once, so your real exposure is much larger than your per-trade risk suggests."
+        },
+        {
+          "q": "What is portfolio heat?",
+          "a": "Portfolio heat is the total risk open across your account at one time — roughly the sum of what you'd lose if every open position hit its stop. Many traders cap it in advance (some use around 5-6%) and count correlated positions as one combined risk rather than several."
+        },
+        {
+          "q": "How do I size correlated positions?",
+          "a": "Treat a cluster of correlated trades as a single position. If you want the group capped at 1% risk, split that across the legs instead of risking a full amount on each. Add genuinely uncorrelated or negatively correlated exposure to actually reduce risk."
+        },
+        {
+          "q": "Why do correlations rise during a crash?",
+          "a": "In stress events, investors sell risk assets broadly and 'everything moves together,' so correlations across risk-on positions spike toward 1.0. Diversification built only on calm-market relationships tends to fail exactly when you need it most."
+        }
+      ]
     }
   ]
 }
