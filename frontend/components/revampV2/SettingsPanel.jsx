@@ -920,48 +920,17 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
       <div className="jx-card">
         <div className="jx-card__title">Connected exchanges &amp; brokers</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
-          Open the platform&apos;s API page, create a <strong>read-only</strong> key, and connect. Binance auto-imports today; others guide you to export &amp; import via CSV.
+          Direct exchange &amp; broker connections are coming soon. For now, bring your trades in via CSV from <strong>Import / Export</strong>.
         </div>
 
-        {PLATFORMS.map((p) => {
-          const connected = p.id === "binance" && binanceConnected;
-          const apiPage = p.apiPage;
-          return (
-            <Row
-              key={p.id}
-              title={p.name}
-              sub={
-                connected
-                  ? `Connected${lastSync ? ` · last sync ${new Date(lastSync).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}` : ""}`
-                  : p.live
-                    ? "Not connected"
-                    : "Coming soon"
-              }
-            >
-              {connected && <Badge variant="success">● Connected</Badge>}
-              {connected ? (
-                <>
-                  <Button variant="secondary" size="sm" onClick={() => setConnectPlatform(p.id)}>Manage</Button>
-                  <Button variant="ghost" size="sm" onClick={disconnectBinance}>Disconnect</Button>
-                </>
-              ) : (
-                <>
-                  {apiPage && (
-                    <a href={apiPage} target="_blank" rel="noopener noreferrer" className="jx-btn jx-btn--ghost jx-btn--sm" style={{ textDecoration: "none" }}>
-                      <ExternalLink size={14} /> API page
-                    </a>
-                  )}
-                  <Button variant={p.live ? "primary" : "outline"} size="sm" onClick={() => setConnectPlatform(p.id)}>
-                    Connect
-                  </Button>
-                </>
-              )}
-            </Row>
-          );
-        })}
+        {PLATFORMS.map((p) => (
+          <Row key={p.id} title={p.name} sub="Coming soon">
+            <Badge variant="neutral">Coming soon</Badge>
+          </Row>
+        ))}
 
-        <Row title="Auto-import" sub="Pull new trades every 30 minutes in the background">
-          <Switch on={autoSync} onChange={toggleAutoSync} disabled={!binanceConnected} />
+        <Row title="Auto-import" sub="Pull new trades automatically — coming soon">
+          <Badge variant="neutral">Coming soon</Badge>
         </Row>
       </div>
 

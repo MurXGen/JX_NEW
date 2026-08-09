@@ -28,16 +28,20 @@ const writeBest = (k, v) => {
   try { localStorage.setItem(k, String(v)); } catch {}
 };
 
-/* ================= Reflex game (2 minutes) ================= */
+/* ================= Reflex game (30s round) ================= */
 function ReflexGame() {
-  const DURATION = 120;
+  const DURATION = 30;
   const [phase, setPhase] = useState("idle"); // idle | playing | done
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [hits, setHits] = useState(0);
   const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [reactions, setReactions] = useState([]);
   const [best, setBest] = useState(0);
   const appearedRef = useRef(0);
+  // reaction stats kept in refs so a tap always records (state timing bugs
+  // were dropping the average) — derived below on every render.
+  const sumRef = useRef(0);
+  const countRef = useRef(0);
+  const fastRef = useRef(Infinity);
 
   useEffect(() => setBest(readBest("jx-lf-reflex-best")), []);
 
@@ -46,38 +50,47 @@ function ReflexGame() {
     if (phase !== "playing") return;
     if (timeLeft <= 0) {
       setPhase("done");
-      setHits((h) => {
-        setBest((b) => {
-          if (h > b) { writeBest("jx-lf-reflex-best", h); return h; }
-          return b;
-        });
-        return h;
-      });
+      if (hits > best) { writeBest("jx-lf-reflex-best", hits); setBest(hits); }
       return;
     }
     const t = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
     return () => clearTimeout(t);
-  }, [phase, timeLeft]);
+  }, [phase, timeLeft, hits, best]);
 
   const place = () => {
     setPos({ x: 8 + Math.random() * 84, y: 14 + Math.random() * 72 });
     appearedRef.current = performance.now();
   };
   const start = () => {
-    setHits(0); setReactions([]); setTimeLeft(DURATION); setPhase("playing"); place();
+    sumRef.current = 0; countRef.current = 0; fastRef.current = Infinity;
+    setHits(0); setTimeLeft(DURATION); setPhase("playing"); place();
   };
   const hit = (e) => {
     e.stopPropagation();
     if (phase !== "playing") return;
-    setReactions((r) => [...r, performance.now() - appearedRef.current]);
-    setHits((h) => h + 1);
+    const dt = performance.now() - appearedRef.current;
+    if (Number.isFinite(dt) && dt > 0) {
+      sumRef.current += dt;
+      countRef.current += 1;
+      if (dt < fastRef.current) fastRef.current = dt;
+    }
+    setHits(countRef.current);
     place();
     try { navigator.vibrate?.(8); } catch {}
   };
 
-  const avgRt = reactions.length ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 0;
+  const avg = countRef.current ? sumRef.current / countRef.current : 0;
+  const fastest = Number.isFinite(fastRef.current) ? fastRef.current : 0;
   const mm = String(Math.floor(timeLeft / 60)).padStart(1, "0");
   const ss = String(timeLeft % 60).padStart(2, "0");
+
+  // interpret the average reaction time into a plain-language rating
+  const rating =
+    avg <= 0 ? { label: "—", color: "var(--color-text-muted)" }
+    : avg < 300 ? { label: "⚡ Lightning reflexes", color: "var(--color-success-strong)" }
+    : avg < 450 ? { label: "Sharp", color: "var(--color-success)" }
+    : avg < 600 ? { label: "Steady", color: "var(--yellow-500)" }
+    : { label: "Warming up", color: "var(--color-danger)" };
 
   return (
     <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -87,17 +100,19 @@ function ReflexGame() {
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Reflex trainer</div>
-          <div style={{ font: "var(--text-caption)", ...muted }}>Tap the target as fast as you can · 2 min</div>
+          <div style={{ font: "var(--text-caption)", ...muted }}>Tap each target the instant it appears · 30s</div>
         </div>
         <Badge variant="brand"><Trophy size={11} /> Best {best}</Badge>
       </div>
 
-      {/* live stats */}
-      <div style={{ display: "flex", gap: "var(--space-4)" }}>
-        <Stat label="Time" value={`${mm}:${ss}`} />
-        <Stat label="Hits" value={hits} />
-        <Stat label="Avg reaction" value={avgRt ? `${avgRt}ms` : "—"} />
-      </div>
+      {/* live stats — only while playing */}
+      {phase === "playing" && (
+        <div style={{ display: "flex", gap: "var(--space-4)" }}>
+          <Stat label="Time left" value={`${mm}:${ss}`} />
+          <Stat label="Hits" value={hits} />
+          <Stat label="Avg reaction" value={avg ? `${Math.round(avg)}ms` : "—"} />
+        </div>
+      )}
 
       {/* play area */}
       <div
@@ -120,17 +135,41 @@ function ReflexGame() {
             }}
           />
         )}
-        {phase !== "playing" && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, textAlign: "center", padding: 16 }}>
-            {phase === "done" && (
-              <div style={{ font: "var(--text-h3)", fontWeight: 700 }}>
-                {hits} hits {hits >= best && hits > 0 ? "🏆 New best!" : ""}
-              </div>
-            )}
-            <Button variant="primary" icon={phase === "done" ? RotateCcw : Play} onClick={start}>
-              {phase === "done" ? "Play again" : "Start"}
-            </Button>
-            {phase === "idle" && <span style={{ font: "var(--text-caption)", ...muted }}>Sharpens entry/exit reaction speed.</span>}
+
+        {phase === "idle" && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, textAlign: "center", padding: 20 }}>
+            <div style={{ font: "var(--text-body-md)", fontWeight: 700 }}>How fast can you react?</div>
+            <p style={{ font: "var(--text-caption)", ...muted, maxWidth: 320, margin: 0, lineHeight: 1.5 }}>
+              A yellow dot appears in a random spot — tap it as fast as you can. The next one shows the instant you hit it. Get as many as possible in 30 seconds.
+            </p>
+            <p style={{ font: "var(--text-caption)", color: "var(--yellow-500)", maxWidth: 320, margin: 0 }}>
+              Trains the split-second reaction you need to click entries &amp; exits without freezing.
+            </p>
+            <Button variant="primary" icon={Play} onClick={start}>Start</Button>
+          </div>
+        )}
+
+        {phase === "done" && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center", padding: 20 }}>
+            <div style={{ font: "var(--text-h3)", fontWeight: 700 }}>
+              {hits} hits{hits >= best && hits > 0 ? " · 🏆 New best!" : ""}
+            </div>
+            <div style={{ display: "flex", gap: "var(--space-6)", justifyContent: "center" }}>
+              {[
+                { label: "Avg reaction", value: avg ? `${Math.round(avg)}ms` : "—" },
+                { label: "Fastest", value: fastest ? `${Math.round(fastest)}ms` : "—" },
+              ].map((s) => (
+                <div key={s.label} style={{ textAlign: "center" }}>
+                  <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", whiteSpace: "nowrap", ...muted }}>{s.label}</div>
+                  <div style={{ font: "var(--text-h3)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+            <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: rating.color }}>{rating.label}</span>
+            <span style={{ font: "var(--text-caption)", ...muted, maxWidth: 320, lineHeight: 1.5 }}>
+              Faster, steadier reactions mean cleaner fills — less hesitation on entries and a quicker hand on your stop.
+            </span>
+            <Button variant="primary" icon={RotateCcw} onClick={start}>Play again</Button>
           </div>
         )}
       </div>
@@ -138,82 +177,76 @@ function ReflexGame() {
   );
 }
 
-/* ================= Calculation game (1 minute) ================= */
+/* ================= Mental math — endless streak ================= */
 const OPS = [
   { id: "add", sym: "+", label: "Addition" },
   { id: "subtract", sym: "−", label: "Subtraction" },
   { id: "multiply", sym: "×", label: "Multiplication" },
   { id: "divide", sym: "÷", label: "Division" },
+  { id: "mixed", sym: "∑", label: "Mixed" },
 ];
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-function genQuestion(op) {
-  if (op === "add") { const a = rnd(2, 99), b = rnd(2, 99); return { a, b, sym: "+", answer: a + b }; }
-  if (op === "subtract") { const a = rnd(10, 99), b = rnd(2, a); return { a, b, sym: "−", answer: a - b }; }
-  if (op === "multiply") { const a = rnd(2, 12), b = rnd(2, 12); return { a, b, sym: "×", answer: a * b }; }
-  // divide → integer result
-  const b = rnd(2, 12), q = rnd(2, 12); return { a: b * q, b, sym: "÷", answer: q };
+/* difficulty scales with `level` (rises every few correct answers) so the run
+   gets harder the longer you survive — the reason a high score feels earned. */
+function genQuestion(op, level = 0) {
+  const realOp = op === "mixed" ? ["add", "subtract", "multiply", "divide"][rnd(0, 3)] : op;
+  const L = Math.min(level, 8);
+  if (realOp === "add") { const hi = 20 + L * 15; const a = rnd(2, hi), b = rnd(2, hi); return { a, b, sym: "+", answer: a + b }; }
+  if (realOp === "subtract") { const hi = 20 + L * 15; const a = rnd(10, hi), b = rnd(2, a); return { a, b, sym: "−", answer: a - b }; }
+  if (realOp === "multiply") { const hi = 9 + L * 2; const a = rnd(2, hi), b = rnd(2, hi); return { a, b, sym: "×", answer: a * b }; }
+  const hi = 9 + L * 2; const b = rnd(2, hi), q = rnd(2, hi); return { a: b * q, b, sym: "÷", answer: q };
 }
 
 function CalcGame() {
-  const TOTAL = 40, DURATION = 60;
-  const [op, setOp] = useState(null);
-  const [phase, setPhase] = useState("choose"); // choose | playing | done
-  const [timeLeft, setTimeLeft] = useState(DURATION);
-  const [correct, setCorrect] = useState(0);
+  const [op, setOp] = useState("mixed"); // selected operation (persists between runs)
+  const [phase, setPhase] = useState("idle"); // idle | playing | done
+  const [score, setScore] = useState(0);
   const [q, setQ] = useState(null);
   const [val, setVal] = useState("");
   const [wrong, setWrong] = useState(false);
   const [best, setBest] = useState(0);
+  const [runNewBest, setRunNewBest] = useState(false);
+  const [missedAnswer, setMissedAnswer] = useState(null);
   const inputRef = useRef(null);
 
-  useEffect(() => { if (op) setBest(readBest(`jx-lf-calc-best-${op}`)); }, [op]);
+  useEffect(() => { setBest(readBest(`jx-lf-calc-best-${op}`)); }, [op]);
 
-  useEffect(() => {
-    if (phase !== "playing") return;
-    if (timeLeft <= 0) {
-      setPhase("done");
-      setBest((b) => {
-        if (correct > b) { writeBest(`jx-lf-calc-best-${op}`, correct); return correct; }
-        return b;
-      });
-      return;
-    }
-    const t = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [phase, timeLeft, correct, op]);
-
-  const finish = (finalCorrect) => {
-    setPhase("done");
-    setBest((b) => {
-      if (finalCorrect > b) { writeBest(`jx-lf-calc-best-${op}`, finalCorrect); return finalCorrect; }
-      return b;
-    });
-  };
-
-  const start = (chosen) => {
-    setOp(chosen); setCorrect(0); setTimeLeft(DURATION); setVal(""); setWrong(false);
-    setQ(genQuestion(chosen)); setPhase("playing");
+  const start = () => {
+    setScore(0); setVal(""); setWrong(false);
+    setRunNewBest(false); setMissedAnswer(null);
+    setQ(genQuestion(op, 0)); setPhase("playing");
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   const submit = (e) => {
     e?.preventDefault();
-    if (phase !== "playing" || !q) return;
+    if (phase !== "playing" || !q || val === "") return;
     if (Number(val) === q.answer) {
-      const next = correct + 1;
-      setCorrect(next);
-      setVal(""); setWrong(false);
-      if (next >= TOTAL) { finish(next); return; }
-      setQ(genQuestion(op));
+      const next = score + 1;
+      setScore(next);
+      setVal("");
+      setQ(genQuestion(op, Math.floor(next / 5)));
       try { navigator.vibrate?.(8); } catch {}
     } else {
+      // Chrome-dino rule: one wrong answer ends the run.
+      const isBest = score > best && score > 0;
+      if (isBest) { writeBest(`jx-lf-calc-best-${op}`, score); setBest(score); }
+      setRunNewBest(isBest);
+      setMissedAnswer(q.answer);
       setWrong(true);
-      setVal("");
       try { navigator.vibrate?.([10, 30, 10]); } catch {}
-      setTimeout(() => setWrong(false), 350);
+      setTimeout(() => { setWrong(false); setPhase("done"); }, 260);
     }
   };
+
+  const aheadOfBest = phase === "playing" && score > best;
+  const stage = {
+    position: "relative", minHeight: 300, borderRadius: "var(--radius-md)",
+    background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
+    overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+  };
+  const center = { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center", maxWidth: 360, width: "100%" };
 
   return (
     <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -222,64 +255,90 @@ function CalcGame() {
           <Brain size={20} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Mental math sprint</div>
-          <div style={{ font: "var(--text-caption)", ...muted }}>40 questions · 1 min · pick an operation</div>
+          <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Mental math streak</div>
+          <div style={{ font: "var(--text-caption)", ...muted }}>Endless — one wrong answer ends the run · beat your best</div>
         </div>
-        {op && <Badge variant="brand"><Trophy size={11} /> Best {best}</Badge>}
+        <Badge variant="brand"><Trophy size={11} /> Best {best}</Badge>
       </div>
 
-      {phase === "choose" && (
-        <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "var(--space-2)" }}>
-            {OPS.map((o) => (
-              <button key={o.id} type="button" className="jx-btn jx-btn--secondary" onClick={() => start(o.id)} style={{ justifyContent: "center", padding: "14px 10px", flexDirection: "column", gap: 4 }}>
-                <span style={{ font: "var(--text-h3)", fontWeight: 700 }}>{o.sym}</span>
-                <span style={{ font: "var(--text-caption)" }}>{o.label}</span>
-              </button>
-            ))}
-          </div>
-          <span style={{ font: "var(--text-caption)", ...muted }}>Quick mental math keeps you sharp for fast position-size and R math.</span>
-        </>
+      {/* live stats — only while playing (mirrors the reflex game) */}
+      {phase === "playing" && (
+        <div style={{ display: "flex", gap: "var(--space-4)" }}>
+          <Stat label="Score" value={score} />
+          <Stat label="Best" value={best} />
+          <Stat label="Level" value={Math.floor(score / 5) + 1} />
+        </div>
       )}
 
-      {phase === "playing" && q && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", alignItems: "center" }}>
-          <div style={{ display: "flex", gap: "var(--space-4)", alignSelf: "stretch" }}>
-            <Stat label="Time" value={`0:${String(timeLeft).padStart(2, "0")}`} />
-            <Stat label="Solved" value={`${correct} / ${TOTAL}`} />
-          </div>
-          <div style={{ font: "700 clamp(28px,7vw,44px) Poppins", letterSpacing: "-1px", color: "var(--color-text-primary)" }}>
-            {q.a} {q.sym} {q.b}
-          </div>
-          <form onSubmit={submit} style={{ display: "flex", gap: "var(--space-2)", width: "min(320px, 100%)" }}>
-            <div className="jx-input" style={{ flex: 1, borderColor: wrong ? "var(--color-danger)" : undefined }}>
-              <input
-                ref={inputRef}
-                type="number"
-                inputMode="numeric"
-                placeholder="Answer"
-                value={val}
-                onChange={(e) => setVal(e.target.value)}
-                autoFocus
-              />
+      <div style={stage}>
+        {phase === "idle" && (
+          <div style={center}>
+            <div style={{ font: "var(--text-body-md)", fontWeight: 700 }}>Beat your high score</div>
+            <p style={{ font: "var(--text-caption)", ...muted, margin: 0, lineHeight: 1.5 }}>
+              Solve as many as you can — it gets harder the longer you last, and one wrong answer ends the run. Pick an operation, then chase your own best.
+            </p>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
+              {OPS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => setOp(o.id)}
+                  className={`jx-chip ${op === o.id ? "jx-chip--selected" : ""}`}
+                >
+                  {o.label}
+                </button>
+              ))}
             </div>
-            <Button variant="primary" type="submit">Go</Button>
-          </form>
-        </div>
-      )}
+            <Button variant="primary" icon={Play} onClick={start}>Start</Button>
+          </div>
+        )}
 
-      {phase === "done" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "var(--space-3) 0" }}>
-          <div style={{ font: "var(--text-h2)", fontWeight: 700 }}>
-            {correct} solved {correct >= best && correct > 0 ? "🏆" : ""}
+        {phase === "playing" && q && (
+          <div style={center}>
+            {aheadOfBest && (
+              <span style={{ font: "var(--text-caption)", fontWeight: 700, color: "var(--color-success-strong)" }}>
+                🏆 New best — keep it alive!
+              </span>
+            )}
+            <div style={{ font: "700 clamp(28px,7vw,44px) Poppins", letterSpacing: "-1px", color: wrong ? "var(--color-danger)" : "var(--color-text-primary)" }}>
+              {q.a} {q.sym} {q.b}
+            </div>
+            <form onSubmit={submit} style={{ display: "flex", gap: "var(--space-2)", width: "min(320px, 100%)" }}>
+              <div className="jx-input" style={{ flex: 1, borderColor: wrong ? "var(--color-danger)" : undefined }}>
+                <input
+                  ref={inputRef}
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="Answer"
+                  value={val}
+                  onChange={(e) => setVal(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <Button variant="primary" type="submit">Go</Button>
+            </form>
+            <span style={{ font: "var(--text-caption)", ...muted }}>One wrong answer ends the run.</span>
           </div>
-          <div style={{ font: "var(--text-caption)", ...muted }}>{OPS.find((o) => o.id === op)?.label} · best {best}</div>
-          <div style={{ display: "flex", gap: "var(--space-2)" }}>
-            <Button variant="primary" icon={RotateCcw} onClick={() => start(op)}>Play again</Button>
-            <Button variant="secondary" onClick={() => setPhase("choose")}>Change operation</Button>
+        )}
+
+        {phase === "done" && (
+          <div style={center}>
+            <div style={{ font: "var(--text-h3)", fontWeight: 700 }}>
+              {score} in a row{runNewBest ? " · 🏆 New best!" : ""}
+            </div>
+            {missedAnswer != null && (
+              <span style={{ font: "var(--text-caption)", color: "var(--color-danger)" }}>
+                Missed it — the answer was {missedAnswer}
+              </span>
+            )}
+            <span style={{ font: "var(--text-caption)", ...muted }}>{OPS.find((o) => o.id === op)?.label} · best {best}</span>
+            <div style={{ display: "flex", gap: "var(--space-2)" }}>
+              <Button variant="primary" icon={RotateCcw} onClick={start}>Play again</Button>
+              <Button variant="secondary" onClick={() => setPhase("idle")}>Change mode</Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -689,55 +689,45 @@ export default function TradesLogPanel({
           style={{
             background: "color-mix(in srgb, var(--color-primary) 8%, var(--color-bg-surface))",
             border: "1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border))",
-            display: "flex", gap: "var(--space-3)", alignItems: "flex-start",
-            padding: "var(--space-4)",
+            display: "flex", gap: "var(--space-3)", alignItems: "center",
+            padding: "10px var(--space-4)", flexWrap: "wrap",
           }}
         >
           <span
             style={{
-              width: 40, height: 40, borderRadius: "var(--radius-md)", flexShrink: 0,
+              width: 30, height: 30, borderRadius: "var(--radius-md)", flexShrink: 0,
               background: "var(--color-primary-subtle)", color: "var(--yellow-500)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
-            <Wind size={20} />
+            <Wind size={16} />
           </span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ font: "var(--text-body-md)", fontWeight: 700 }}>It feels like you&apos;re overtrading 🌿</span>
-              <button
-                onClick={dismissOt}
-                aria-label="Dismiss"
-                style={{ marginLeft: "auto", background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: 4, lineHeight: 0 }}
-              >
-                <X size={16} />
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, minWidth: 0, flex: 1 }}>
+            <span style={{ font: "var(--text-body-md)", fontWeight: 700, whiteSpace: "nowrap" }}>Overtrading</span>
+            <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {overtrading.reasons.join(" · ")}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginLeft: "auto", flexShrink: 0 }}>
+            <button
+              className="jx-btn jx-btn--primary jx-btn--sm"
+              onClick={() => { dismissOt(); onOpenTab?.("blogs"); }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <Gamepad2 size={15} /> Calming game
+            </button>
+            <a href="/blog" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+              <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <BookOpen size={15} /> Discipline
               </button>
-            </div>
-            <p style={{ font: "var(--text-small)", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>
-              {overtrading.reasons.join(" · ")}. The best trade is often the one you don&apos;t take — step away, breathe,
-              and let the next clean setup come to you. Protect your capital and your calm.
-            </p>
-            <div style={{ display: "flex", gap: "var(--space-2)", marginTop: "var(--space-3)", flexWrap: "wrap" }}>
-              <button
-                className="jx-btn jx-btn--primary jx-btn--sm"
-                onClick={() => { dismissOt(); onOpenTab?.("blogs"); }}
-                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              >
-                <Gamepad2 size={15} /> Play a calming game
-              </button>
-              <a href="/blog" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <BookOpen size={15} /> Read on discipline
-                </button>
-              </a>
-              <button
-                className="jx-btn jx-btn--ghost jx-btn--sm"
-                onClick={dismissOt}
-                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              >
-                I&apos;m taking a break
-              </button>
-            </div>
+            </a>
+            <button
+              onClick={dismissOt}
+              aria-label="Dismiss"
+              style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: 4, lineHeight: 0 }}
+            >
+              <X size={16} />
+            </button>
           </div>
         </motion.div>
       )}

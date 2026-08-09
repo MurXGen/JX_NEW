@@ -32,3 +32,6 @@ scripts/seo/*.json
 service-account*.json
 *.gsc-key.json
 gsc-*.json
+
+# git lock-file trash (auto-created, safe to ignore)
+.lock_trash/
