@@ -1121,62 +1121,44 @@ export default function LogTradeModal({
         gap: "var(--space-2)",
       }}
     >
-      <Dropdown
-        value={form.symbol}
-        onChange={pickSymbol}
-        onRemove={removeSymbol}
-        options={symbols}
-        label="Your assets — type to add, × to remove"
-        placeholder="Search or type a symbol…"
-        searchable
-        allowCustom
-        triggerStyle={{ height: 56 }}
-        leading={
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "var(--color-primary)",
-              color: "var(--color-primary-foreground)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 700,
-              fontSize: 14,
-              flexShrink: 0,
-            }}
-          >
-            {(form.symbol || "?").slice(0, 1)}
-          </span>
-        }
-      />
+      {/* plain symbol input (matches the quick modal) — type it, or tap a
+          recent one from the single scrollable row below */}
+      <div className="jx-input">
+        <input
+          placeholder="Symbol (e.g. BTC)"
+          value={form.symbol}
+          onChange={(e) => set("symbol", e.target.value.toUpperCase())}
+        />
+      </div>
       {symbols.length > 0 && (
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: "var(--space-2)",
-            flexWrap: "wrap",
+            overflowX: "auto",
+            flexWrap: "nowrap",
+            paddingBottom: 2,
           }}
         >
           <span
             style={{
               font: "var(--text-caption)",
               color: "var(--color-text-muted)",
+              flexShrink: 0,
             }}
           >
             Recent
           </span>
-          {symbols.slice(0, 4).map((s) => (
+          {symbols.slice(0, 12).map((s) => (
             <button
               key={s}
               type="button"
-              className="jx-chip"
-              style={{ padding: "4px 10px" }}
+              className={`jx-chip ${form.symbol === s ? "jx-chip--selected" : ""}`}
+              style={{ padding: "4px 10px", flexShrink: 0 }}
               onClick={() => set("symbol", s)}
             >
-              {s.split("/")[0]}
+              {s}
             </button>
           ))}
         </div>

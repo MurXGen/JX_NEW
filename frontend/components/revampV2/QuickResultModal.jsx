@@ -157,6 +157,8 @@ export default function QuickResultModal({
     yellowDeep: "#f0b90b",
   };
   const accent = outcome === "win" ? C.green : C.red;
+  // single horizontal row of chips — scrolls sideways, never wraps
+  const chipRow = { display: "flex", gap: 8, marginTop: 8, overflowX: "auto", flexWrap: "nowrap", paddingBottom: 2, WebkitOverflowScrolling: "touch" };
 
   return (
     <AnimatePresence>
@@ -228,30 +230,39 @@ export default function QuickResultModal({
                 <label style={{ font: "var(--text-caption)", color: C.muted, display: "block", marginBottom: 6 }}>
                   Net P&L amount
                 </label>
-                {/* amount — same input height as the symbol field; pick a saved
-                    amount from the dropdown or type your own (it gets saved) */}
+                {/* amount — type your own, or tap a saved amount below */}
                 <div className="jx-input">
                   <span style={{ fontWeight: 700, color: accent }}>
                     {outcome === "loss" ? "-" : "+"}{currencySymbol}
                   </span>
                   <input inputMode="decimal" autoFocus placeholder="0" value={amount}
-                    list="qr-amounts"
                     onChange={(e) => setAmount(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && save()} />
                 </div>
-                <datalist id="qr-amounts">
-                  {amounts.map((a) => (<option key={a} value={a} />))}
-                </datalist>
+                <div style={chipRow}>
+                  {amounts.map((a) => (
+                    <button key={a} type="button" className="jx-chip" style={{ flexShrink: 0, padding: "6px 12px" }}
+                      onClick={() => setAmount(String(a))}>
+                      {currencySymbol}{Number(a).toLocaleString()}
+                    </button>
+                  ))}
+                </div>
 
-                {/* optional symbol — dropdown of saved symbols, or type a new one */}
+                {/* optional symbol — type, or tap a saved symbol below */}
                 <div className="jx-input" style={{ marginTop: "var(--space-3)" }}>
                   <input placeholder="Symbol (optional, e.g. BTC)" value={symbol}
-                    list="qr-symbols"
                     onChange={(e) => setSymbol(e.target.value)} />
                 </div>
-                <datalist id="qr-symbols">
-                  {recent.map((s) => (<option key={s} value={s} />))}
-                </datalist>
+                <div style={chipRow}>
+                  {recent.map((s) => (
+                    <button key={s} type="button"
+                      className={`jx-chip ${symbol.trim().toUpperCase() === String(s).toUpperCase() ? "jx-chip--selected" : ""}`}
+                      style={{ flexShrink: 0, padding: "5px 12px" }}
+                      onClick={() => setSymbol(String(s))}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
 
                 {error && <p style={{ font: "var(--text-small)", color: C.red, margin: "12px 0 0" }}>{error}</p>}
 
