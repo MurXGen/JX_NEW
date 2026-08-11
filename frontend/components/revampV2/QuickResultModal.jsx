@@ -176,6 +176,20 @@ export default function QuickResultModal({
   const accent = outcome === "win" ? C.green : C.red;
   // single horizontal row of chips — scrolls sideways, never wraps
   const chipRow = { display: "flex", gap: 8, marginTop: 8, overflowX: "auto", flexWrap: "nowrap", paddingBottom: 2, WebkitOverflowScrolling: "touch" };
+  // dashed attachment button (matches the voice recorder's idle trigger)
+  const dashedBtn = {
+    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+    padding: "12px", borderRadius: "var(--radius-md)",
+    border: "1.5px dashed var(--color-border-strong)", background: "transparent",
+    color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 600, cursor: "pointer",
+  };
+  // tertiary "link" style CTA (not a filled button)
+  const linkCta = {
+    width: "100%", marginTop: 12, background: "none", border: "none",
+    color: "var(--yellow-600)", font: "var(--text-small)", fontWeight: 600, cursor: "pointer",
+    textDecoration: "underline", textUnderlineOffset: 3,
+    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+  };
 
   return (
     <AnimatePresence>
@@ -281,33 +295,38 @@ export default function QuickResultModal({
                   ))}
                 </div>
 
-                {/* voice note (optional) — transcript auto-appends to notes */}
-                <div style={{ marginTop: "var(--space-3)" }}>
-                  <VoiceNoteRecorder onChange={setVoice} />
-                </div>
-
-                {/* screenshots (optional) */}
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: "var(--space-3)" }}>
-                  {images.map((f, i) => (
-                    <span key={i} style={{ position: "relative", width: 52, height: 52, borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--color-border)", flexShrink: 0 }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={URL.createObjectURL(f)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      <button type="button" onClick={() => setImages((p) => p.filter((_, j) => j !== i))} aria-label="Remove image"
-                        style={{ position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
-                        <X size={11} />
-                      </button>
-                    </span>
-                  ))}
+                {/* attachments — record + image in one row (dashed, consistent) */}
+                <div style={{ display: "flex", gap: 10, marginTop: "var(--space-4)", alignItems: "stretch" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <VoiceNoteRecorder dashed onChange={setVoice} />
+                  </div>
                   {images.length < 4 && (
-                    <label className="jx-btn jx-btn--secondary jx-btn--sm" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      <ImagePlus size={15} /> Add image
+                    <label style={{ ...dashedBtn, flex: 1 }}>
+                      <ImagePlus size={16} /> Add image
                       <input type="file" accept="image/*" multiple hidden onChange={(e) => addImages(e.target.files)} />
                     </label>
                   )}
                 </div>
 
+                {/* image thumbnails */}
+                {images.length > 0 && (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: "var(--space-3)" }}>
+                    {images.map((f, i) => (
+                      <span key={i} style={{ position: "relative", width: 52, height: 52, borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--color-border)", flexShrink: 0 }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={URL.createObjectURL(f)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <button type="button" onClick={() => setImages((p) => p.filter((_, j) => j !== i))} aria-label="Remove image"
+                          style={{ position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+                          <X size={11} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 {error && <p style={{ font: "var(--text-small)", color: C.red, margin: "12px 0 0" }}>{error}</p>}
 
+                {/* submit */}
                 <button
                   onClick={save}
                   disabled={saving}
@@ -317,14 +336,8 @@ export default function QuickResultModal({
                   {saving ? <Spinner /> : <><Check size={18} /> Log it</>}
                 </button>
 
-                <button type="button" onClick={() => { onClose?.(); onMoreDetails?.(); }}
-                  style={{
-                    width: "100%", marginTop: 10, padding: "11px", borderRadius: "var(--radius-md)",
-                    background: "var(--color-primary-subtle)",
-                    border: "1px solid color-mix(in srgb, var(--color-primary) 45%, transparent)",
-                    color: "var(--yellow-600)", font: "var(--text-small)", fontWeight: 600,
-                    cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
-                  }}>
+                {/* tertiary link */}
+                <button type="button" onClick={() => { onClose?.(); onMoreDetails?.(); }} style={linkCta}>
                   Add full details instead <ArrowRight size={14} />
                 </button>
 

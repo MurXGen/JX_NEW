@@ -1344,18 +1344,23 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  background: color-mix(in srgb, var(--color-bg-surface) 60%, transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid color-mix(in srgb, var(--color-border-strong) 55%, transparent);
+  /* flat, theme-aware grey fill (no stroke) so each section reads as a soft
+     card instead of a row of outlined boxes — works in dark + light */
+  background: var(--color-bg-muted);
+  border: none;
   border-radius: var(--radius-lg);
   padding: var(--space-4);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 14%, transparent),
-    0 10px 30px rgba(0, 0, 0, 0.08);
 }
 .jx-ltgroup .jx-sect {
   margin-bottom: var(--space-1);
+}
+/* divided groups: a hairline between each element (not after the last), with
+   balanced spacing above/below the line — the flex gap sits above, the
+   padding sits below, so the rule reads centred between two elements */
+.jx-ltgroup--divided > * + * {
+  /* light-grey hairline, visible on the muted section bg in dark + light */
+  border-top: 1px solid color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
+  padding-top: var(--space-3);
 }
 
 /* Quick-log "add more details" accordion toggle */
@@ -1540,12 +1545,22 @@ body::before {
   min-width: 100%;
   max-height: 280px;
   overflow-y: auto;
+  overflow-x: hidden; /* no stray horizontal scrollbar / clipped options */
   background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border);
+  /* stronger border so the panel reads clearly against the near-black page */
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.45),
+    var(--shadow-lg);
   padding: var(--space-2);
   z-index: 1200;
+}
+/* options should truncate, never force the panel to scroll sideways */
+.jx-dd__panel .jx-dd__option {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .jx-dd__label {
   font: var(--text-label);

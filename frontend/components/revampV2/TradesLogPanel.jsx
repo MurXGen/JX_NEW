@@ -237,6 +237,13 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
   const entry = t.avgEntryPrice || t.entryPrice || t.entries?.[0]?.price;
   const exit = t.avgExitPrice || t.exitPrice || t.exits?.[0]?.price;
   const imgs = t.images?.length || 0;
+  // subtle lighter green/red fill by outcome — breakeven (pnl === 0) stays default
+  const tint =
+    pnl > 0
+      ? "color-mix(in srgb, var(--color-success) 4%, var(--color-bg-surface))"
+      : pnl < 0
+        ? "color-mix(in srgb, var(--color-danger) 4%, var(--color-bg-surface))"
+        : undefined;
   return (
     <div
       className="jx-card jx-trade-card"
@@ -244,6 +251,7 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
       style={{
         padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)",
         cursor: "pointer",
+        background: tint,
         outline: selected ? "2px solid var(--color-primary)" : "none",
       }}
     >

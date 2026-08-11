@@ -485,26 +485,47 @@ export default function ChartAnnotator({
           {/* position size — needed to turn the marks into a P&L */}
           <div className="jx-field" style={{ minWidth: 0 }}>
             <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Position size</label>
-            <div style={{ display: "flex", gap: "var(--space-2)" }}>
+            <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "stretch" }}>
               <div className="jx-input" style={{ flex: 1, minWidth: 0 }}>
                 <input
                   type="number"
                   step="any"
                   placeholder={sizeUnit === "usd" ? `${sym}5,000` : "0.5"}
-              aria-label="Position size"
+                  aria-label="Position size"
                   value={size}
                   onChange={(e) => setSize(e.target.value)}
                 />
               </div>
-              <div style={{ width: 110, flexShrink: 0 }}>
-                <Dropdown
-                  value={sizeUnit}
-                  onChange={setSizeUnit}
-                  options={[
-                    { value: "asset", label: symbol ? symbol.split("/")[0].slice(0, 6) : "Asset" },
-                    { value: "usd", label: quoteCode },
-                  ]}
-                />
+              {/* unit toggle — both options visible; unselected keeps a bg */}
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                {[
+                  { v: "asset", l: symbol ? symbol.split("/")[0].slice(0, 6) : "Asset" },
+                  { v: "usd", l: quoteCode || "USD" },
+                ].map((o) => {
+                  const on = sizeUnit === o.v;
+                  return (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => setSizeUnit(o.v)}
+                      style={{
+                        height: 44,
+                        padding: "0 14px",
+                        borderRadius: "var(--radius-md)",
+                        cursor: "pointer",
+                        border: `1px solid ${on ? "var(--color-primary)" : "var(--color-border-strong)"}`,
+                        background: on ? "var(--color-primary)" : "var(--color-bg-surface)",
+                        color: on ? "var(--color-primary-foreground)" : "var(--color-text-secondary)",
+                        font: "var(--text-body-md)",
+                        fontWeight: on ? 700 : 600,
+                        whiteSpace: "nowrap",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {o.l}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div style={{ marginTop: "var(--space-2)" }}>

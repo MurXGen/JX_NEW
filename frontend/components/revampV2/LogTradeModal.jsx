@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   Lightbulb,
   LineChart,
+  Mic,
   MoreVertical,
   Pencil,
   Plus,
@@ -115,24 +116,34 @@ function TimingInput({ form, set, mode }) {
         gap: "var(--space-3)",
       }}
     >
-      <div
-        className="jx-seg jx-seg--inline"
-        style={{ alignSelf: "flex-start" }}
-      >
-        <button
-          type="button"
-          className={`jx-seg__btn ${!dur ? "jx-seg__btn--active" : ""}`}
-          onClick={() => set("useDuration", false)}
-        >
-          Date &amp; time
-        </button>
-        <button
-          type="button"
-          className={`jx-seg__btn ${dur ? "jx-seg__btn--active" : ""}`}
-          onClick={() => set("useDuration", true)}
-        >
-          Just duration
-        </button>
+      <div style={{ display: "flex", gap: 6, alignSelf: "flex-start" }}>
+        {[
+          { v: false, l: "Date & time" },
+          { v: true, l: "Just duration" },
+        ].map((o) => {
+          const on = dur === o.v;
+          return (
+            <button
+              key={String(o.v)}
+              type="button"
+              onClick={() => set("useDuration", o.v)}
+              style={{
+                padding: "9px 14px",
+                borderRadius: "var(--radius-md)",
+                cursor: "pointer",
+                border: `1px solid ${on ? "var(--color-primary)" : "var(--color-border-strong)"}`,
+                background: on ? "var(--color-primary)" : "var(--color-bg-surface)",
+                color: on ? "var(--color-primary-foreground)" : "var(--color-text-secondary)",
+                font: "var(--text-body-md)",
+                fontWeight: on ? 700 : 600,
+                whiteSpace: "nowrap",
+                transition: "all 0.15s ease",
+              }}
+            >
+              {o.l}
+            </button>
+          );
+        })}
       </div>
 
       {dur ? (
@@ -1288,16 +1299,51 @@ export default function LogTradeModal({
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="jx-dropzone"
-            style={{
-              width: 64,
-              height: 64,
-              padding: 0,
-              gap: 2,
-              font: "var(--text-caption)",
-            }}
+            style={
+              form.screenshots.length === 0
+                ? {
+                    // full-width dropzone when empty — dashed, transparent
+                    // fill so it's never a white block in either theme
+                    width: "100%",
+                    minHeight: 92,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    border: "1.5px dashed var(--color-border-strong)",
+                    borderRadius: "var(--radius-md)",
+                    background: "transparent",
+                    color: "var(--color-text-secondary)",
+                    font: "var(--text-body-md)",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }
+                : {
+                    // compact add tile alongside existing thumbnails
+                    width: 64,
+                    height: 64,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 2,
+                    border: "1.5px dashed var(--color-border-strong)",
+                    borderRadius: "var(--radius-md)",
+                    background: "transparent",
+                    color: "var(--color-text-secondary)",
+                    font: "var(--text-caption)",
+                    cursor: "pointer",
+                  }
+            }
           >
-            <Upload size={14} /> Add
+            <Upload size={form.screenshots.length === 0 ? 18 : 14} />
+            {form.screenshots.length === 0 ? "Add screenshots" : "Add"}
+            {form.screenshots.length === 0 && (
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 400 }}>
+                PNG / JPG · up to 10MB
+              </span>
+            )}
           </button>
         )}
       </div>
@@ -1308,7 +1354,7 @@ export default function LogTradeModal({
         }}
       >
         {form.screenshots.length}/{maxImages} ·{" "}
-        {fmt(totalBytes / 1024 / 1024, 1)}MB of 10MB · stored on Backblaze
+        {fmt(totalBytes / 1024 / 1024, 1)}MB of 10MB
       </span>
     </div>
   );
@@ -1571,6 +1617,16 @@ export default function LogTradeModal({
                           )}
                         </div>
 
+                        {/* voice note — available directly in Only P&L too */}
+                        <div className="jx-ltgroup">
+                          <Sect icon={Mic} title="Voice note" hint="Talk it out · auto-transcribed to notes" />
+                          <VoiceNoteRecorder
+                            dashed
+                            onChange={setVoice}
+                            existingUrl={initialTrade?.voiceNote?.url || ""}
+                          />
+                        </div>
+
                         {/* Accordion: optional extra details slide out */}
                         <button
                           type="button"
@@ -1630,36 +1686,39 @@ export default function LogTradeModal({
                             hint="P&L auto-calculates"
                           />
                           <div className="jx-form-grid">
-                            <Field label="Entry price">
-                              <div className="jx-input">
-                                <input
-                                  type="number"
-                                  step="any"
-                                  placeholder={`${sym}61,240`}
-                                  value={form.entry}
-                                  onChange={(e) => set("entry", e.target.value)}
-                                />
-                              </div>
-                            </Field>
-                            <Field label="Exit price">
-                              <div className="jx-input">
-                                <input
-                                  type="number"
-                                  step="any"
-                                  placeholder={`${sym}63,820`}
-                                  value={form.exit}
-                                  onChange={(e) => set("exit", e.target.value)}
-                                />
-                              </div>
-                            </Field>
+                            {/* When "Log on chart" is on, entry & exit are set
+                                on the chart above — hide these to avoid a
+                                duplicate pair. Show them for the normal flow. */}
+                            {!useChart && (
+                              <>
+                                <Field label="Entry price">
+                                  <div className="jx-input">
+                                    <input
+                                      type="number"
+                                      step="any"
+                                      placeholder={`${sym}61,240`}
+                                      value={form.entry}
+                                      onChange={(e) => set("entry", e.target.value)}
+                                    />
+                                  </div>
+                                </Field>
+                                <Field label="Exit price">
+                                  <div className="jx-input">
+                                    <input
+                                      type="number"
+                                      step="any"
+                                      placeholder={`${sym}63,820`}
+                                      value={form.exit}
+                                      onChange={(e) => set("exit", e.target.value)}
+                                    />
+                                  </div>
+                                </Field>
+                              </>
+                            )}
                             <Field label="Position size">
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "var(--space-2)",
-                                }}
-                              >
-                                <div className="jx-input" style={{ flex: 1 }}>
+                              <div style={{ display: "flex", gap: "var(--space-2)", width: "100%", alignItems: "stretch" }}>
+                                {/* size input — takes the remaining ~80% */}
+                                <div className="jx-input" style={{ flex: 1, minWidth: 0 }}>
                                   <input
                                     type="number"
                                     step="any"
@@ -1667,25 +1726,40 @@ export default function LogTradeModal({
                                       form.sizeUnit === "usd" ? `${sym}5,000` : "0.5"
                                     }
                                     value={form.size}
-                                    onChange={(e) =>
-                                      set("size", e.target.value)
-                                    }
+                                    onChange={(e) => set("size", e.target.value)}
                                   />
                                 </div>
-                                <div style={{ width: 120 }}>
-                                  <Dropdown
-                                    value={form.sizeUnit}
-                                    onChange={(v) => set("sizeUnit", v)}
-                                    options={[
-                                      {
-                                        value: "asset",
-                                        label: form.symbol
-                                          ? form.symbol.split("/")[0]
-                                          : "Asset",
-                                      },
-                                      { value: "usd", label: curCode },
-                                    ]}
-                                  />
+                                {/* unit toggle — both options visible; the unselected
+                                    one keeps a visible surface bg (not transparent) */}
+                                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                  {[
+                                    { v: "asset", l: form.symbol ? form.symbol.split("/")[0] : "Asset" },
+                                    { v: "usd", l: curCode || "USD" },
+                                  ].map((o) => {
+                                    const on = form.sizeUnit === o.v;
+                                    return (
+                                      <button
+                                        key={o.v}
+                                        type="button"
+                                        onClick={() => set("sizeUnit", o.v)}
+                                        style={{
+                                          height: 44,
+                                          padding: "0 16px",
+                                          borderRadius: "var(--radius-md)",
+                                          cursor: "pointer",
+                                          border: `1px solid ${on ? "var(--color-primary)" : "var(--color-border-strong)"}`,
+                                          background: on ? "var(--color-primary)" : "var(--color-bg-surface)",
+                                          color: on ? "var(--color-primary-foreground)" : "var(--color-text-secondary)",
+                                          font: "var(--text-body-md)",
+                                          fontWeight: on ? 700 : 600,
+                                          whiteSpace: "nowrap",
+                                          transition: "all 0.15s ease",
+                                        }}
+                                      >
+                                        {o.l}
+                                      </button>
+                                    );
+                                  })}
                                 </div>
                               </div>
                               <div style={{ marginTop: "var(--space-2)" }}>
@@ -1944,7 +2018,7 @@ export default function LogTradeModal({
                             </button>
                           </div>
                         </div>
-                        <div className="jx-ltgroup">
+                        <div className="jx-ltgroup jx-ltgroup--divided">
                           <Sect
                             icon={LineChart}
                             title="Your edge — context"
@@ -2038,7 +2112,7 @@ export default function LogTradeModal({
                             </div>
                           </Field>
                         </div>
-                        <div className="jx-ltgroup">
+                        <div className="jx-ltgroup jx-ltgroup--divided">
                           <Sect
                             icon={Flame}
                             title="Psychology & discipline"
@@ -2174,6 +2248,7 @@ export default function LogTradeModal({
                           {/* voice note — transcript auto-appends to notes */}
                           <div style={{ marginTop: "var(--space-3)" }}>
                             <VoiceNoteRecorder
+                              dashed
                               onChange={setVoice}
                               existingUrl={initialTrade?.voiceNote?.url || ""}
                             />

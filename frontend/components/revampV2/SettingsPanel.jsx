@@ -278,7 +278,7 @@ function AvatarModal({ open, currentUrl, name, onClose, onSaved }) {
                 {preview ? "Choose another" : "Choose image"}
               </Button>
               <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                PNG or JPG · up to 2MB · stored on Backblaze
+                PNG or JPG · up to 2MB
               </span>
             </div>
 

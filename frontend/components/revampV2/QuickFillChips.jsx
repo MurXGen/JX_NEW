@@ -6,7 +6,7 @@
    Wraps responsively. */
 
 import { useEffect, useState } from "react";
-import { Check, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 const readCustom = (key) => {
   try {
@@ -66,7 +66,31 @@ export default function QuickFillChips({
   };
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", alignItems: "center" }}>
+    <div style={{ display: "flex", flexWrap: "nowrap", gap: "var(--space-2)", alignItems: "center", overflowX: "auto", paddingBottom: 2, WebkitOverflowScrolling: "touch" }}>
+      {/* Custom first — typed values persist to localStorage and appear after */}
+      {adding ? (
+        <span className="jx-input" style={{ height: 32, width: 124, flexShrink: 0 }}>
+          <input
+            autoFocus
+            type="number"
+            step="any"
+            placeholder={allowNegative ? "e.g. -250" : "e.g. 1.5"}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), commit())}
+            onBlur={commit}
+          />
+        </span>
+      ) : (
+        <button
+          type="button"
+          className="jx-chip"
+          style={{ borderStyle: "dashed", flexShrink: 0 }}
+          onClick={() => setAdding(true)}
+        >
+          <Plus size={13} /> Custom
+        </button>
+      )}
       {all.map((v) => {
         const selected = String(value) === v;
         const removable = isCustom(v);
@@ -76,11 +100,10 @@ export default function QuickFillChips({
             role="button"
             tabIndex={0}
             className={`jx-chip ${selected ? "jx-chip--selected" : ""}`}
-            style={{ cursor: "pointer", paddingRight: removable ? 6 : undefined }}
+            style={{ cursor: "pointer", flexShrink: 0, paddingRight: removable ? 6 : undefined }}
             onClick={() => onPick(v)}
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onPick(v))}
           >
-            {selected && <Check size={13} />}
             {label(v)}
             {removable && (
               <span
@@ -116,30 +139,6 @@ export default function QuickFillChips({
           </span>
         );
       })}
-
-      {adding ? (
-        <span className="jx-input" style={{ height: 32, width: 124 }}>
-          <input
-            autoFocus
-            type="number"
-            step="any"
-            placeholder={allowNegative ? "e.g. -250" : "e.g. 1.5"}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), commit())}
-            onBlur={commit}
-          />
-        </span>
-      ) : (
-        <button
-          type="button"
-          className="jx-chip"
-          style={{ borderStyle: "dashed" }}
-          onClick={() => setAdding(true)}
-        >
-          <Plus size={13} /> Custom
-        </button>
-      )}
     </div>
   );
 }

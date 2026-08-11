@@ -23,7 +23,6 @@ import {
   BottomBar,
   AnimatedPanel,
   LogTradeModal,
-  QuickResultModal,
   SettingsModal,
   ImportExportPanel,
   BlogsPanel,
@@ -104,7 +103,6 @@ export default function Dashboard() {
     return () => mq.removeEventListener?.("change", sync);
   }, []);
   const [showLogTrade, setShowLogTrade] = useState(false);
-  const [showQuickResult, setShowQuickResult] = useState(false);
   const [importSignal, setImportSignal] = useState(0);
   const [, setThemeTick] = useState(0); // re-render the mobile theme icon
 
@@ -449,20 +447,9 @@ export default function Dashboard() {
       <BottomBar
         active={activeTab}
         onChange={setActiveTab}
-        onLogTrade={() => setShowQuickResult(true)}
+        onLogTrade={() => setShowLogTrade(true)}
         onSupport={() => setShowSupport(true)}
         user={userData}
-      />
-
-      {/* One-tap result capture (lowest-friction log) */}
-      <QuickResultModal
-        open={showQuickResult}
-        onClose={() => setShowQuickResult(false)}
-        accountId={currentAccount?._id}
-        currencySymbol={journalSymbol}
-        onNoJournal={() => { setShowQuickResult(false); setShowSwitchModal(true); }}
-        onMoreDetails={() => setShowLogTrade(true)}
-        onSaved={(trade) => trade && setAccountTrades((prev) => [...prev, trade])}
       />
 
       {/* Log trade modal (Quick log / Detailed) — blurred backdrop */}

@@ -392,7 +392,7 @@ export default function TradeLogForm({ onSubmit }) {
             />
           </Field>
 
-          <Field label="Screenshots" hint="Up to 4 images — stored on submit later (Backblaze)">
+          <Field label="Screenshots" hint="Up to 4 images">
             <input
               ref={fileRef}
               type="file"
