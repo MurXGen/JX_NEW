@@ -9,7 +9,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
-import { TrendingUp, TrendingDown, X, ArrowRight, Check, Sparkles } from "lucide-react";
+import { TrendingUp, TrendingDown, X, ArrowRight, Check, Sparkles, ImagePlus } from "lucide-react";
+import VoiceNoteRecorder from "./VoiceNoteRecorder";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const PRESETS = [100, 250, 500, 1000];
@@ -68,6 +69,8 @@ export default function QuickResultModal({
   const [symbol, setSymbol] = useState("");
   const [recent, setRecent] = useState([]);
   const [amounts, setAmounts] = useState([]);
+  const [voice, setVoice] = useState(null); // { blob, transcript, durationSec }
+  const [images, setImages] = useState([]); // File[]
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -77,8 +80,14 @@ export default function QuickResultModal({
       setOutcome("win"); setAmount(""); setSymbol(""); setSaving(false); setDone(false); setError("");
       setRecent(readRecentSymbols());
       setAmounts(readRecentAmounts());
+      setVoice(null); setImages([]);
     }
   }, [open]);
+
+  const addImages = (fileList) => {
+    const picked = Array.from(fileList || []).filter((f) => f.type.startsWith("image/"));
+    setImages((prev) => [...prev, ...picked].slice(0, 4));
+  };
 
   const num = (v) => {
     const n = parseFloat(String(v).replace(/[^0-9.]/g, ""));
@@ -123,7 +132,15 @@ export default function QuickResultModal({
       fd.append("closeTime", now);
       fd.append("duration", 0);
       fd.append("reason", "[]");
-      fd.append("learnings", "");
+      // voice-note transcript → notes; audio file + meta → voiceNote
+      const vt = (voice?.transcript || "").trim();
+      fd.append("learnings", vt ? `🎙 Voice note: ${vt}` : "");
+      if (voice?.blob) {
+        fd.append("voiceNote", voice.blob, "voice-note.webm");
+        fd.append("voiceNoteTranscript", vt);
+        fd.append("voiceNoteDuration", String(voice.durationSec || 0));
+      }
+      images.forEach((f) => fd.append("images", f));
       fd.append("rulesFollowed", "");
       fd.append("strategy", "");
       fd.append("marketCondition", "");
@@ -262,6 +279,31 @@ export default function QuickResultModal({
                       {s}
                     </button>
                   ))}
+                </div>
+
+                {/* voice note (optional) — transcript auto-appends to notes */}
+                <div style={{ marginTop: "var(--space-3)" }}>
+                  <VoiceNoteRecorder onChange={setVoice} />
+                </div>
+
+                {/* screenshots (optional) */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: "var(--space-3)" }}>
+                  {images.map((f, i) => (
+                    <span key={i} style={{ position: "relative", width: 52, height: 52, borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--color-border)", flexShrink: 0 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={URL.createObjectURL(f)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <button type="button" onClick={() => setImages((p) => p.filter((_, j) => j !== i))} aria-label="Remove image"
+                        style={{ position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+                        <X size={11} />
+                      </button>
+                    </span>
+                  ))}
+                  {images.length < 4 && (
+                    <label className="jx-btn jx-btn--secondary jx-btn--sm" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <ImagePlus size={15} /> Add image
+                      <input type="file" accept="image/*" multiple hidden onChange={(e) => addImages(e.target.files)} />
+                    </label>
+                  )}
                 </div>
 
                 {error && <p style={{ font: "var(--text-small)", color: C.red, margin: "12px 0 0" }}>{error}</p>}

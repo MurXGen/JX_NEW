@@ -157,6 +157,24 @@ exports.addTrade = async (req, res) => {
       );
     }
 
+    // --- v2 voice note: single audio clip (≤ 15MB) ---
+    if (files?.voiceNote?.[0]) {
+      const vf = files.voiceNote[0];
+      if (vf.size > 15 * 1024 * 1024) {
+        return res.status(400).json({
+          success: false,
+          message: "Voice note must be under 15MB",
+        });
+      }
+      const { url, sizeKB } = await handleUpload(vf, "trade-voice");
+      tradeData.voiceNote = {
+        url,
+        sizeKB,
+        durationSec: Number(body.voiceNoteDuration) || 0,
+        transcript: body.voiceNoteTranscript || "",
+      };
+    }
+
     // --- Save Trade ---
     const newTrade = await new Trade(tradeData).save();
 
@@ -229,6 +247,7 @@ exports.addTrade = async (req, res) => {
           emotion: 1,
           mistakes: 1,
           images: 1,
+          voiceNote: 1,
           feeType: 1,
           feeAmount: 1,
           rr: 1,
@@ -364,6 +383,22 @@ exports.updateTrade = async (req, res) => {
       tradeData.closeImageSizeKB = 0;
     }
 
+    // --- v2 voice note (add/replace on edit) ---
+    if (files?.voiceNote?.[0]) {
+      const vf = files.voiceNote[0];
+      if (vf.size <= 15 * 1024 * 1024) {
+        const { url, sizeKB } = await handleUpload(vf, "trade-voice");
+        tradeData.voiceNote = {
+          url,
+          sizeKB,
+          durationSec: Number(body.voiceNoteDuration) || 0,
+          transcript: body.voiceNoteTranscript || "",
+        };
+      }
+    } else if (body.removeVoiceNote === "true") {
+      tradeData.voiceNote = null;
+    }
+
     // ✅ Update trade
     const updatedTrade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
       new: true,
@@ -422,6 +457,7 @@ exports.updateTrade = async (req, res) => {
           emotion: 1,
           mistakes: 1,
           images: 1,
+          voiceNote: 1,
           feeType: 1,
           feeAmount: 1,
           rr: 1,

@@ -36,6 +36,7 @@ export { default as ExchangeConnectModal } from "./ExchangeConnectModal";
 export { default as MarketsPanel } from "./MarketsPanel";
 export { default as ToolsPanel } from "./ToolsPanel";
 export { default as TradersTodayBadge } from "./TradersTodayBadge";
+export { default as VoiceNoteRecorder } from "./VoiceNoteRecorder";
 export { default as SharePanel } from "./SharePanel";
 export { default as CountUp } from "./CountUp";
 export { default as AuthLayout } from "./AuthLayout";

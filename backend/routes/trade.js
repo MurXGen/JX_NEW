@@ -25,6 +25,7 @@ router.post(
     { name: "openImage", maxCount: 1 },
     { name: "closeImage", maxCount: 1 },
     { name: "images", maxCount: 4 }, // v2 log-trade modal screenshots
+    { name: "voiceNote", maxCount: 1 }, // v2 voice note (audio)
   ]),
   addTrade
 );
@@ -34,6 +35,8 @@ router.put(
   upload.fields([
     { name: "openImage", maxCount: 1 },
     { name: "closeImage", maxCount: 1 },
+    { name: "images", maxCount: 4 },
+    { name: "voiceNote", maxCount: 1 },
   ]),
   updateTrade
 );

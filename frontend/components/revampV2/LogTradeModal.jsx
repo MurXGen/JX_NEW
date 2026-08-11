@@ -32,6 +32,7 @@ import DateTimePicker from "./DateTimePicker";
 import ChartAnnotator from "./ChartAnnotator";
 import QuickFillChips from "./QuickFillChips";
 import TradersTodayBadge from "./TradersTodayBadge";
+import VoiceNoteRecorder from "./VoiceNoteRecorder";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -577,6 +578,7 @@ export default function LogTradeModal({
   const [showMore, setShowMore] = useState(false); // quick-log "add more details" accordion
   const [useChart, setUseChart] = useState(false); // "Log on chart" toggle
   const [chartMeta, setChartMeta] = useState(null); // {symbol,timeframe,entryPrice,exitPrice,entryTime,exitTime}
+  const [voice, setVoice] = useState(null); // { blob, transcript, durationSec }
   const [form, setForm] = useState(EMPTY);
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -664,6 +666,7 @@ export default function LogTradeModal({
       setUseChart(false);
     }
     setChartMeta(null);
+    setVoice(null);
     setShowMore(false);
     setToast(null);
     (async () => {
@@ -1012,7 +1015,11 @@ export default function LogTradeModal({
     if (closeTime) fd.append("closeTime", closeTime);
     fd.append("duration", durationHrs);
     fd.append("reason", JSON.stringify(form.strategy ? [form.strategy] : []));
-    fd.append("learnings", form.notes);
+    const voiceT = (voice?.transcript || "").trim();
+    fd.append(
+      "learnings",
+      voiceT ? `${form.notes ? form.notes + "\n\n" : ""}🎙 Voice note: ${voiceT}` : form.notes,
+    );
     fd.append("rulesFollowed", form.followedPlan);
     fd.append("strategy", form.strategy || "");
     fd.append("marketCondition", form.market || "");
@@ -1023,6 +1030,11 @@ export default function LogTradeModal({
     form.screenshots.forEach(
       (img) => img.file && fd.append("images", img.file),
     );
+    if (voice?.blob) {
+      fd.append("voiceNote", voice.blob, "voice-note.webm");
+      fd.append("voiceNoteTranscript", voiceT);
+      fd.append("voiceNoteDuration", String(voice.durationSec || 0));
+    }
 
     /* chart annotation → tvChart metadata so the details page can redraw the
        marked chart with entry/exit + timeframes. Gated by the plan's monthly
@@ -2159,6 +2171,13 @@ export default function LogTradeModal({
                             value={form.notes}
                             onChange={(e) => set("notes", e.target.value)}
                           />
+                          {/* voice note — transcript auto-appends to notes */}
+                          <div style={{ marginTop: "var(--space-3)" }}>
+                            <VoiceNoteRecorder
+                              onChange={setVoice}
+                              existingUrl={initialTrade?.voiceNote?.url || ""}
+                            />
+                          </div>
                         </div>
                       </>
                     )}

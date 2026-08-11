@@ -10,6 +10,7 @@ import {
   Download,
   Flame,
   Image as ImageIcon,
+  Mic,
   Pencil,
   Star,
   Target,
@@ -512,10 +513,34 @@ export default function TradeDetailsModal({
                 {/* notes */}
                 <div className="jx-card jx-card--flat">
                   <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginBottom: "var(--space-2)" }}>Trade notes</div>
-                  <p style={{ margin: 0, font: "var(--text-body)", color: "var(--color-text-secondary)" }}>
+                  <p style={{ margin: 0, font: "var(--text-body)", color: "var(--color-text-secondary)", whiteSpace: "pre-wrap" }}>
                     {t.learnings || "No notes were logged for this trade."}
                   </p>
                 </div>
+
+                {/* voice note — audio player + transcript */}
+                {t.voiceNote?.url && (
+                  <div className="jx-card jx-card--flat">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "var(--space-3)" }}>
+                      <span style={{ width: 30, height: 30, borderRadius: "50%", flexShrink: 0, background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Mic size={15} />
+                      </span>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Voice note</span>
+                      {t.voiceNote.durationSec ? (
+                        <Badge variant="neutral">
+                          {Math.floor(t.voiceNote.durationSec / 60)}:{String(Math.floor(t.voiceNote.durationSec % 60)).padStart(2, "0")}
+                        </Badge>
+                      ) : null}
+                    </div>
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                    <audio controls src={t.voiceNote.url} style={{ width: "100%" }} />
+                    {t.voiceNote.transcript && (
+                      <p style={{ margin: "var(--space-3) 0 0", font: "var(--text-body)", color: "var(--color-text-secondary)", fontStyle: "italic" }}>
+                        “{t.voiceNote.transcript}”
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Marked chart — reproduces the chart with the trade's entry &
                     exit marked, with timeframe switching. Only shown when a real

@@ -170,6 +170,17 @@ const tradeSchema = new mongoose.Schema(
       },
     ],
 
+    // v2 voice note — a single audio recording per trade (Backblaze). The
+    // spoken transcript is also appended to `learnings`, but kept here too so
+    // the details view can show it right next to the player.
+    voiceNote: {
+      url: { type: String },
+      sizeKB: { type: Number, default: 0 },
+      durationSec: { type: Number, default: 0 },
+      transcript: { type: String, default: "" },
+      _id: false,
+    },
+
     // origin: manual | auto (exchange) | tradingview (webhook)
     source: { type: String, default: "manual" },
 
