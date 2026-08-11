@@ -14,14 +14,33 @@ import { TrendingUp, TrendingDown, X, ArrowRight, Check, Sparkles } from "lucide
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const PRESETS = [100, 250, 500, 1000];
 
-/* recent symbols shared with the full Log-trade modal (localStorage) */
+/* recent symbols shared with the full Log-trade modal + quick amounts — both
+   live in localStorage so the dropdowns learn what the user actually uses. */
 const SYMBOLS_KEY = "jx-symbols";
+const AMOUNTS_KEY = "jx-quick-amounts";
 const readRecentSymbols = () => {
   try {
     const raw = JSON.parse(localStorage.getItem(SYMBOLS_KEY) || "null");
-    if (Array.isArray(raw) && raw.length) return raw.slice(0, 6);
+    if (Array.isArray(raw) && raw.length) return raw.slice(0, 8);
   } catch {}
-  return ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XAU/USD"];
+  return ["BTC", "ETH"]; // 2 sensible defaults until they save their own
+};
+const readRecentAmounts = () => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(AMOUNTS_KEY) || "null");
+    if (Array.isArray(raw) && raw.length) return raw.slice(0, 8);
+  } catch {}
+  return [100, 250, 500, 1000];
+};
+/* prepend a freshly-used value (dedup, capped) so most-used surfaces first */
+const pushRecent = (key, value, cap = 8) => {
+  if (value === "" || value == null) return;
+  try {
+    const cur = JSON.parse(localStorage.getItem(key) || "[]");
+    const list = Array.isArray(cur) ? cur : [];
+    const next = [value, ...list.filter((x) => String(x) !== String(value))].slice(0, cap);
+    localStorage.setItem(key, JSON.stringify(next));
+  } catch {}
 };
 
 function Spinner() {
@@ -48,6 +67,7 @@ export default function QuickResultModal({
   const [amount, setAmount] = useState("");
   const [symbol, setSymbol] = useState("");
   const [recent, setRecent] = useState([]);
+  const [amounts, setAmounts] = useState([]);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -56,6 +76,7 @@ export default function QuickResultModal({
     if (open) {
       setOutcome("win"); setAmount(""); setSymbol(""); setSaving(false); setDone(false); setError("");
       setRecent(readRecentSymbols());
+      setAmounts(readRecentAmounts());
     }
   }, [open]);
 
@@ -113,12 +134,16 @@ export default function QuickResultModal({
 
       const res = await axios.post(`${API_BASE}/api/trades/addd`, fd, { withCredentials: true });
       const trade = res.data?.trade || res.data?.data || res.data;
+      // remember what they used so the dropdowns learn over time
+      const symClean = symbol.trim().toUpperCase();
+      if (symClean) pushRecent(SYMBOLS_KEY, symClean);
+      pushRecent(AMOUNTS_KEY, Math.abs(amt));
       setDone(true);
       onSaved?.(trade && trade._id ? trade : null);
       setTimeout(() => onClose?.(), 850);
     } catch (e) {
       console.error("Quick result save failed:", e);
-      setError(e?.response?.data?.message || "Couldn't save — try again.");
+      setError(e?.response?.data?.message || "Couldn't save, please try again.");
       setSaving(false);
     }
   };
@@ -164,7 +189,7 @@ export default function QuickResultModal({
                 </motion.span>
                 <div style={{ font: "var(--text-title)", fontWeight: 700 }}>Logged 🎉</div>
                 <div style={{ font: "var(--text-small)", color: C.muted, marginTop: 4 }}>
-                  Nice — that's the habit. You can add details anytime.
+                  Nice, that's the habit. You can add details anytime.
                 </div>
               </div>
             ) : (
@@ -172,7 +197,7 @@ export default function QuickResultModal({
                 <div style={{ marginBottom: "var(--space-4)" }}>
                   <h2 style={{ font: "var(--text-h3)", fontWeight: 700, margin: 0 }}>Quick result</h2>
                   <p style={{ font: "var(--text-small)", color: C.muted, margin: "4px 0 0" }}>
-                    Just log the outcome — win or loss. 5 seconds, no judgment.
+                    Just log the outcome: win or loss. 5 seconds, no judgment.
                   </p>
                 </div>
 
@@ -203,48 +228,30 @@ export default function QuickResultModal({
                 <label style={{ font: "var(--text-caption)", color: C.muted, display: "block", marginBottom: 6 }}>
                   Net P&L amount
                 </label>
-                <div className="jx-input" style={{ height: 52 }}>
-                  <span style={{ font: "var(--text-h3)", fontWeight: 700, color: accent }}>
+                {/* amount — same input height as the symbol field; pick a saved
+                    amount from the dropdown or type your own (it gets saved) */}
+                <div className="jx-input">
+                  <span style={{ fontWeight: 700, color: accent }}>
                     {outcome === "loss" ? "-" : "+"}{currencySymbol}
                   </span>
                   <input inputMode="decimal" autoFocus placeholder="0" value={amount}
+                    list="qr-amounts"
                     onChange={(e) => setAmount(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && save()}
-                    style={{ font: "var(--text-h3)", fontWeight: 700 }} />
+                    onKeyDown={(e) => e.key === "Enter" && save()} />
                 </div>
+                <datalist id="qr-amounts">
+                  {amounts.map((a) => (<option key={a} value={a} />))}
+                </datalist>
 
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-                  {PRESETS.map((p) => (
-                    <button key={p} type="button" className="jx-chip" style={{ padding: "6px 12px" }}
-                      onClick={() => setAmount(String(p))}>
-                      {currencySymbol}{p.toLocaleString()}
-                    </button>
-                  ))}
-                </div>
-
-                {/* optional symbol */}
-                <div className="jx-input" style={{ height: 44, marginTop: "var(--space-3)" }}>
+                {/* optional symbol — dropdown of saved symbols, or type a new one */}
+                <div className="jx-input" style={{ marginTop: "var(--space-3)" }}>
                   <input placeholder="Symbol (optional, e.g. BTC)" value={symbol}
+                    list="qr-symbols"
                     onChange={(e) => setSymbol(e.target.value)} />
                 </div>
-
-                {/* recent symbols — mirrors the full Log-trade modal */}
-                {recent.length > 0 && (
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8, alignItems: "center" }}>
-                    <span style={{ font: "var(--text-caption)", color: C.muted }}>Recent</span>
-                    {recent.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        className={`jx-chip ${symbol.trim().toUpperCase() === s.toUpperCase() ? "jx-chip--selected" : ""}`}
-                        style={{ padding: "5px 10px" }}
-                        onClick={() => setSymbol(s)}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <datalist id="qr-symbols">
+                  {recent.map((s) => (<option key={s} value={s} />))}
+                </datalist>
 
                 {error && <p style={{ font: "var(--text-small)", color: C.red, margin: "12px 0 0" }}>{error}</p>}
 
@@ -258,9 +265,13 @@ export default function QuickResultModal({
                 </button>
 
                 <button type="button" onClick={() => { onClose?.(); onMoreDetails?.(); }}
-                  style={{ width: "100%", marginTop: 10, padding: "8px", background: "none", border: "none",
-                    color: C.muted, font: "var(--text-small)", cursor: "pointer", display: "inline-flex",
-                    alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  style={{
+                    width: "100%", marginTop: 10, padding: "11px", borderRadius: "var(--radius-md)",
+                    background: "var(--color-primary-subtle)",
+                    border: "1px solid color-mix(in srgb, var(--color-primary) 45%, transparent)",
+                    color: "var(--yellow-600)", font: "var(--text-small)", fontWeight: 600,
+                    cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  }}>
                   Add full details instead <ArrowRight size={14} />
                 </button>
 

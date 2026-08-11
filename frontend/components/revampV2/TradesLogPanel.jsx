@@ -78,6 +78,7 @@ function dayLabel(date) {
 function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState(null); // {top,left,openUp}
+  const [isMobile, setIsMobile] = useState(false);
   const wrapRef = useRef(null);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
@@ -101,7 +102,10 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
   };
 
   useLayoutEffect(() => {
-    if (open) place();
+    if (open) {
+      setIsMobile(typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches);
+      place();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -135,35 +139,78 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
     </button>
   );
 
-  const panel =
-    open && coords ? (
+  // larger, always-visible rows for the mobile bottom sheet
+  const sheetItem = (Icon, label, fn, danger) => (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); setOpen(false); fn(); }}
+      style={{
+        display: "flex", alignItems: "center", gap: 12, width: "100%",
+        padding: "14px 6px", background: "transparent", border: "none",
+        cursor: "pointer", font: "var(--text-body-md)", textAlign: "left",
+        color: danger ? "var(--color-danger)" : "var(--color-text-primary)",
+      }}
+    >
+      <Icon size={18} /> {label}
+    </button>
+  );
+
+  const panel = !open ? null : isMobile ? (
+    // ===== Mobile: full-width bottom sheet so every action (incl. Delete) shows
+    <>
+      <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 4000 }} />
       <motion.div
         ref={panelRef}
-        className="jx-dd__panel jx-row-menu__panel"
-        onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        initial={{ opacity: 0, y: coords.openUp ? 6 : -6, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.12 }}
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 380, damping: 34 }}
         style={{
-          position: "fixed",
-          top: coords.openUp ? "auto" : coords.top + 6,
-          bottom: coords.openUp ? window.innerHeight - coords.top + 6 : "auto",
-          left: coords.left,
-          right: "auto",
-          minWidth: WIDTH,
-          maxHeight: `calc(100vh - ${BOTTOM_SAFE + 24}px)`,
-          overflowY: "auto",
-          zIndex: 4000,
+          position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 4001,
+          background: "var(--color-bg-elevated)",
+          borderTopLeftRadius: "var(--radius-xl)", borderTopRightRadius: "var(--radius-xl)",
+          borderTop: "1px solid var(--color-border)",
+          padding: "8px var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom))",
+          boxShadow: "0 -14px 44px rgba(0,0,0,0.45)",
         }}
       >
-        {item(Pencil, "Edit trade", onEdit)}
-        {item(Download, "Export CSV", onExport)}
-        {item(ImageIcon, "Download JX card", onShareCard)}
-        <div style={{ borderTop: "1px solid var(--color-border)", margin: "4px 0" }} />
-        {item(Trash2, "Delete", onDelete, true)}
+        <div style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)", margin: "4px auto 8px" }} />
+        {sheetItem(Pencil, "Edit trade", onEdit)}
+        {sheetItem(Download, "Export CSV", onExport)}
+        {sheetItem(ImageIcon, "Download JX card", onShareCard)}
+        <div style={{ borderTop: "1px solid var(--color-border)", margin: "2px 0" }} />
+        {sheetItem(Trash2, "Delete", onDelete, true)}
       </motion.div>
-    ) : null;
+    </>
+  ) : coords ? (
+    // ===== Desktop: compact panel anchored to the trigger
+    <motion.div
+      ref={panelRef}
+      className="jx-dd__panel jx-row-menu__panel"
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      initial={{ opacity: 0, y: coords.openUp ? 6 : -6, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.12 }}
+      style={{
+        position: "fixed",
+        top: coords.openUp ? "auto" : coords.top + 6,
+        bottom: coords.openUp ? window.innerHeight - coords.top + 6 : "auto",
+        left: coords.left,
+        right: "auto",
+        minWidth: WIDTH,
+        maxHeight: `calc(100vh - ${BOTTOM_SAFE + 24}px)`,
+        overflowY: "auto",
+        zIndex: 4000,
+      }}
+    >
+      {item(Pencil, "Edit trade", onEdit)}
+      {item(Download, "Export CSV", onExport)}
+      {item(ImageIcon, "Download JX card", onShareCard)}
+      <div style={{ borderTop: "1px solid var(--color-border)", margin: "4px 0" }} />
+      {item(Trash2, "Delete", onDelete, true)}
+    </motion.div>
+  ) : null;
 
   return (
     <span className="jx-dd" ref={wrapRef} onClick={(e) => e.stopPropagation()}>
@@ -190,13 +237,6 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
   const entry = t.avgEntryPrice || t.entryPrice || t.entries?.[0]?.price;
   const exit = t.avgExitPrice || t.exitPrice || t.exits?.[0]?.price;
   const imgs = t.images?.length || 0;
-  // subtle win/loss gradient tint — breakeven (pnl === 0) stays blank
-  const tint =
-    pnl > 0
-      ? "linear-gradient(180deg, color-mix(in srgb, var(--color-success) 14%, var(--color-bg-surface)), var(--color-bg-surface))"
-      : pnl < 0
-        ? "linear-gradient(180deg, color-mix(in srgb, var(--color-danger) 14%, var(--color-bg-surface)), var(--color-bg-surface))"
-        : undefined;
   return (
     <div
       className="jx-card jx-trade-card"
@@ -204,7 +244,6 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
       style={{
         padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)",
         cursor: "pointer",
-        background: tint,
         outline: selected ? "2px solid var(--color-primary)" : "none",
       }}
     >
