@@ -61,7 +61,11 @@ app.options("*", cors());
 // JSON parser for them. NOTE: the Paddle Billing webhook is mounted at
 // /api/pricingpad/webhook — it must be listed here or express.json() would
 // consume the body and break Paddle's signature check.
-const RAW_BODY_PREFIXES = ["/api/paddle", "/api/pricingpad", "/api/payments/webhook"];
+const RAW_BODY_PREFIXES = [
+  "/api/paddle",
+  "/api/pricingpad",
+  "/api/payments/webhook",
+];
 app.use((req, res, next) => {
   if (RAW_BODY_PREFIXES.some((p) => req.originalUrl.startsWith(p))) {
     next(); // keep raw body for webhook signature verification
@@ -87,18 +91,46 @@ app.use(passport.initialize());
    DATABASE
 ======================= */
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.error("❌ MongoDB Error:", err));
+if (!process.env.MONGO_URI) {
+  console.error(
+    "❌ FATAL: MONGO_URI is not set. The API cannot reach the database, so every " +
+      'read/write will buffer and time out ("trades.insertOne() buffering timed out"). ' +
+      "Set MONGO_URI in the server environment and redeploy.",
+  );
+}
+
+const connectMongo = () =>
+  mongoose
+    .connect(process.env.MONGO_URI, {
+      // fail fast instead of buffering for 10s when the cluster is
+      // unreachable (paused Atlas cluster, IP allow-list, bad URI…)
+      serverSelectionTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+    })
+    .then(() => console.log("✅ MongoDB Connected"))
+    .catch((err) => {
+      console.error("❌ MongoDB Error:", err?.message || err);
+      // retry so a transient outage self-heals without a manual restart
+      setTimeout(connectMongo, 5000);
+    });
+
+connectMongo();
+
+mongoose.connection.on("disconnected", () =>
+  console.warn("⚠️  MongoDB disconnected — attempting to reconnect…"),
+);
+mongoose.connection.on("reconnected", () =>
+  console.log("✅ MongoDB reconnected"),
+);
 
 /* =======================
    ROUTES
 ======================= */
 
-app.use("/api/auth", createLimiter(20), authRoutes);
+app.use("/api/auth", createLimiter(10), authRoutes);
 app.use("/api/account", createLimiter(20), accountRoutes);
-app.use("/api/trades", createLimiter(40), tradeRoutes);
+app.use("/api/trades", createLimiter(20), tradeRoutes);
 
 // RevenueCat (Google Play subscriptions) webhook — keeps subscription state in
 // sync with in-app purchases from the mobile app.
@@ -108,7 +140,7 @@ app.use("/api/integrations", integrationsRoutes);
 
 app.use(
   "/api/payments/webhook",
-  createLimiter(20),
+  createLimiter(10),
   express.raw({ type: "application/json" }),
   paymentsRoutes,
 );

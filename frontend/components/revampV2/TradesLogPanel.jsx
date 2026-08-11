@@ -83,12 +83,16 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
   const panelRef = useRef(null);
   const WIDTH = 180;
 
+  const MENU_H = 210;      // approx height of the 5-row menu
+  const BOTTOM_SAFE = 100; // mobile bottom nav + browser bar + safe area
   const place = () => {
     const el = triggerRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - r.bottom;
-    const openUp = spaceBelow < 220 && r.top > spaceBelow;
+    // usable space below the trigger, discounting the fixed bottom nav so the
+    // last item (Delete) never lands behind it
+    const spaceBelow = window.innerHeight - r.bottom - BOTTOM_SAFE;
+    const openUp = spaceBelow < MENU_H && r.top > MENU_H;
     setCoords({
       top: openUp ? r.top : r.bottom,
       left: Math.max(8, r.right - WIDTH), // right-align to the trigger
@@ -148,6 +152,8 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
           left: coords.left,
           right: "auto",
           minWidth: WIDTH,
+          maxHeight: `calc(100vh - ${BOTTOM_SAFE + 24}px)`,
+          overflowY: "auto",
           zIndex: 4000,
         }}
       >
@@ -184,6 +190,13 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
   const entry = t.avgEntryPrice || t.entryPrice || t.entries?.[0]?.price;
   const exit = t.avgExitPrice || t.exitPrice || t.exits?.[0]?.price;
   const imgs = t.images?.length || 0;
+  // subtle win/loss gradient tint — breakeven (pnl === 0) stays blank
+  const tint =
+    pnl > 0
+      ? "linear-gradient(180deg, color-mix(in srgb, var(--color-success) 14%, var(--color-bg-surface)), var(--color-bg-surface))"
+      : pnl < 0
+        ? "linear-gradient(180deg, color-mix(in srgb, var(--color-danger) 14%, var(--color-bg-surface)), var(--color-bg-surface))"
+        : undefined;
   return (
     <div
       className="jx-card jx-trade-card"
@@ -191,6 +204,7 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
       style={{
         padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)",
         cursor: "pointer",
+        background: tint,
         outline: selected ? "2px solid var(--color-primary)" : "none",
       }}
     >

@@ -14,6 +14,16 @@ import { TrendingUp, TrendingDown, X, ArrowRight, Check, Sparkles } from "lucide
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const PRESETS = [100, 250, 500, 1000];
 
+/* recent symbols shared with the full Log-trade modal (localStorage) */
+const SYMBOLS_KEY = "jx-symbols";
+const readRecentSymbols = () => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SYMBOLS_KEY) || "null");
+    if (Array.isArray(raw) && raw.length) return raw.slice(0, 6);
+  } catch {}
+  return ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XAU/USD"];
+};
+
 function Spinner() {
   return (
     <motion.span
@@ -37,6 +47,7 @@ export default function QuickResultModal({
   const [outcome, setOutcome] = useState("win"); // win | loss
   const [amount, setAmount] = useState("");
   const [symbol, setSymbol] = useState("");
+  const [recent, setRecent] = useState([]);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -44,6 +55,7 @@ export default function QuickResultModal({
   useEffect(() => {
     if (open) {
       setOutcome("win"); setAmount(""); setSymbol(""); setSaving(false); setDone(false); setError("");
+      setRecent(readRecentSymbols());
     }
   }, [open]);
 
@@ -211,20 +223,37 @@ export default function QuickResultModal({
                 </div>
 
                 {/* optional symbol */}
-                <div className="jx-input" style={{ height: 40, marginTop: "var(--space-3)" }}>
+                <div className="jx-input" style={{ height: 44, marginTop: "var(--space-3)" }}>
                   <input placeholder="Symbol (optional, e.g. BTC)" value={symbol}
                     onChange={(e) => setSymbol(e.target.value)} />
                 </div>
 
+                {/* recent symbols — mirrors the full Log-trade modal */}
+                {recent.length > 0 && (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8, alignItems: "center" }}>
+                    <span style={{ font: "var(--text-caption)", color: C.muted }}>Recent</span>
+                    {recent.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`jx-chip ${symbol.trim().toUpperCase() === s.toUpperCase() ? "jx-chip--selected" : ""}`}
+                        style={{ padding: "5px 10px" }}
+                        onClick={() => setSymbol(s)}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {error && <p style={{ font: "var(--text-small)", color: C.red, margin: "12px 0 0" }}>{error}</p>}
 
-                <button onClick={save} disabled={saving}
-                  style={{
-                    width: "100%", marginTop: "var(--space-4)", padding: "14px", borderRadius: "var(--radius-md)",
-                    border: "none", cursor: saving ? "progress" : "pointer", display: "inline-flex",
-                    alignItems: "center", justifyContent: "center", gap: 9, font: "var(--text-body-md)", fontWeight: 700,
-                    color: "#1e2329", background: `linear-gradient(145deg, ${C.yellow}, ${C.yellowDeep})`,
-                  }}>
+                <button
+                  onClick={save}
+                  disabled={saving}
+                  className="jx-btn jx-btn--primary"
+                  style={{ width: "100%", marginTop: "var(--space-4)", justifyContent: "center" }}
+                >
                   {saving ? <Spinner /> : <><Check size={18} /> Log it</>}
                 </button>
 
