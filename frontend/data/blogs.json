@@ -11463,6 +11463,184 @@
           "a": "Treat them as evolving. Firms have changed rules with little notice and some have shut down, so always confirm the current rulebook and payout terms before paying for a challenge."
         }
       ]
+    },
+    {
+      "slug": "import-trades-from-screenshot",
+      "title": "Import Trades From a Screenshot: Log a Whole Trade in Seconds",
+      "metaTitle": "Import Trades From a Screenshot to Your Journal | JournalX",
+      "metaDescription": "Drop a broker screenshot into JournalX and a vision model prefills symbol, side, size, entry, exit, times, fees and P&L. Review, edit, save. No manual typing.",
+      "keywords": [
+        "import trades from screenshot",
+        "log trades from broker screenshot",
+        "screenshot to trading journal",
+        "AI trade import",
+        "auto fill trading journal"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 7,
+      "date": "2026-08-12",
+      "featured": false,
+      "excerpt": "New in JournalX: drop a broker screenshot into the detailed log and a vision model reads it into structured fields — symbol, side, size, entry, exit, times, fees, P&L — ready for you to review and save.",
+      "helpful": {
+        "up": 47,
+        "down": 1,
+        "saves": 43
+      },
+      "tags": [
+        "feature",
+        "import",
+        "journaling",
+        "AI"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "The single biggest reason traders stop journaling is friction. After a session you have to reopen each trade, read the numbers off your platform, and retype symbol, direction, size, entry, exit, times, fees and P&L into a form. Multiply that by a dozen trades and journaling becomes the chore you skip. JournalX now removes that step entirely: in the detailed log there is an Import from screenshot dropzone. Drop in a picture of your broker's order or position panel, and the fields fill themselves in."
+        },
+        {
+          "type": "h2",
+          "text": "How it works"
+        },
+        {
+          "type": "p",
+          "text": "The dropzone reuses the same image upload you already know from attaching chart snapshots, so there is nothing new to learn. When you drop an image, it goes to a vision model that reads the screenshot and returns structured data — not plain text. The model outputs a clean object with symbol, side, lots, entry, exit, open time, close time, P&L and fees, and JournalX maps each value straight onto the matching form field: Side becomes long or short, Lots becomes size with the correct contract unit, Total Charges becomes your fee, and Net P&L becomes P&L. The modal opens prefilled, and you are looking at a filled-in trade instead of an empty form."
+        },
+        {
+          "type": "h2",
+          "text": "Why a vision model beats plain OCR"
+        },
+        {
+          "type": "p",
+          "text": "Traditional OCR reads pixels into raw text and leaves you to figure out what each number means. That falls apart on broker screenshots because every platform lays them out differently — labels in different places, different wording, different column orders. A vision model reads the labels and the values together and understands the relationship: it knows that the figure next to 'Side' is the direction, that 'Lots' is the size, that 'Total Charges' is fees. Because it interprets meaning rather than just transcribing characters, it stays reliable across the messy variety of real broker layouts where character-only OCR would guess wrong."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Broker label",
+            "JournalX field",
+            "Handled by"
+          ],
+          "rows": [
+            [
+              "Side / Direction",
+              "Long or Short",
+              "Vision model mapping"
+            ],
+            [
+              "Lots / Quantity",
+              "Size (with contract unit)",
+              "Mapping + contract table"
+            ],
+            [
+              "Entry / Exit price",
+              "Entry / Exit",
+              "Direct mapping"
+            ],
+            [
+              "Open / Close time",
+              "Open time / Close time",
+              "Direct mapping"
+            ],
+            [
+              "Total Charges",
+              "Fees",
+              "Label-aware mapping"
+            ],
+            [
+              "Net P&L",
+              "P&L",
+              "Direct mapping"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Futures get the right point value automatically"
+        },
+        {
+          "type": "p",
+          "text": "Contract sizing is where manual entry quietly introduces errors. When the screenshot shows a futures instrument such as NQ on CME, JournalX applies the correct point value from the contract table it already maintains, so your size and P&L line up with how the instrument actually settles. You are not left converting ticks to dollars by hand or second-guessing the multiplier — the mapping handles the contract unit for you."
+        },
+        {
+          "type": "h2",
+          "text": "You always review before anything is saved"
+        },
+        {
+          "type": "p",
+          "text": "Vision and OCR are never 100% accurate, and JournalX treats them that way. Nothing is committed automatically. The imported values land in the modal as a prefill, you scan them against the screenshot, correct anything that looks off, and only then hit Save. It is the fast path — most of the typing is done — without handing your journal's accuracy over to a model. You stay the final check, which is exactly where a human should sit."
+        },
+        {
+          "type": "h2",
+          "text": "What this saves you"
+        },
+        {
+          "type": "p",
+          "text": "The practical win is time and consistency. A trade that took a minute of careful typing now takes a few seconds to review. More importantly, the trades you used to skip because you were tired at the end of a session now actually make it into the journal, which is where your edge analysis, mistake tags and equity curve come from. A journal is only useful if it is complete, and the fastest way to keep it complete is to make logging almost effortless."
+        },
+        {
+          "type": "quote",
+          "text": "The best trading journal is the one you actually fill in. Cut the typing to seconds and 'I'll log it later' stops being an excuse."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Get the cleanest screenshot import",
+          "prompt": "Tick what your screenshot includes before you drop it in.",
+          "items": [
+            "Symbol / instrument is visible",
+            "Side or direction (buy/sell, long/short) is shown",
+            "Size / lots / quantity is in frame",
+            "Entry and exit prices are both captured",
+            "Open and close times are visible",
+            "Fees / total charges and net P&L are included"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Grab a fuller screenshot — the more of these fields are visible, the less you will edit afterward."
+            },
+            {
+              "min": 3,
+              "text": "Good enough to import — just double-check the fields that were cut off."
+            },
+            {
+              "min": 6,
+              "text": "Perfect capture. The prefill should be nearly complete — a quick review and save."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: instead of retyping every trade, drop your broker screenshot into the detailed log and JournalX prefills symbol, side, size, entry, exit, open and close time, fees and P&L for you. You review, tweak, and save — turning end-of-session journaling from a ten-minute chore into a quick pass."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: it reads screenshots with a vision model that understands broker labels, not blind OCR, and it applies the correct futures point values from its own contract table. And because nothing saves without your confirmation, you get the speed of automation while staying the accuracy check on your own data."
+        },
+        {
+          "type": "faqs",
+          "text": ""
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What does the screenshot import read from my image?",
+          "a": "A vision model returns structured data — symbol, side, lots, entry, exit, open and close time, fees and net P&L — and JournalX maps each value onto the matching form field."
+        },
+        {
+          "q": "How is this different from normal OCR?",
+          "a": "Plain OCR only transcribes text and leaves you to interpret it. The vision model reads labels and values together, so it understands that 'Side' is direction, 'Lots' is size and 'Total Charges' is fees, which is far more reliable across different broker layouts."
+        },
+        {
+          "q": "Does it handle futures contract sizing?",
+          "a": "Yes. For instruments like NQ on CME, JournalX applies the correct point value from its contract table so size and P&L reflect how the contract actually settles."
+        },
+        {
+          "q": "Will trades be saved automatically?",
+          "a": "No. The import only prefills the modal. You review and edit the fields, then save yourself, because vision and OCR are never perfectly accurate."
+        }
+      ]
     }
   ]
 }
