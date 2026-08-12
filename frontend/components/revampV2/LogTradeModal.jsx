@@ -7,10 +7,13 @@ import Cookies from "js-cookie";
 import {
   AlertTriangle,
   ArrowRightLeft,
+  Braces,
   CandlestickChart,
   Check,
   ChevronDown,
   Clock,
+  Copy,
+  ExternalLink,
   Flame,
   Image as ImageIcon,
   Lightbulb,
@@ -506,6 +509,62 @@ const nowLocal = () => {
   return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
 };
 
+/* Sample JSON we ask users to fill (also shown as a copyable example) and the
+   ChatGPT deep-link that pre-loads the instructions so they can paste a
+   screenshot / type their trade and get back JSON only. */
+const TRADE_JSON_SAMPLE = `{
+  "symbol": "BTCUSDT",
+  "direction": "long",
+  "size": 0.5,
+  "entry": 61000,
+  "exit": 62250,
+  "fees": 3.2,
+  "pnl": 621.8,
+  "openTime": "2026-08-12T09:30",
+  "closeTime": "2026-08-12T11:05",
+  "notes": "broke out of range, trailed the stop"
+}`;
+
+const CHATGPT_JSON_PROMPT = `You are a trade-log parser for a trading journal. I will give you my trade in ONE of two ways: (A) I attach a screenshot of the trade from my broker/exchange, or (B) I type it out in plain words. Read whichever I give you and reply with ONLY one JSON object — no explanation, no markdown, no code fences — matching exactly these keys:
+
+{
+  "symbol": "ticker, e.g. BTCUSDT",
+  "direction": "long or short",
+  "size": number (position size in units of the asset),
+  "entry": number (average entry price),
+  "exit": number (average exit price),
+  "fees": number (total fees/commission in account currency, 0 if unknown),
+  "pnl": number (net profit or loss in account currency, optional),
+  "openTime": "YYYY-MM-DDTHH:mm 24-hour, optional",
+  "closeTime": "YYYY-MM-DDTHH:mm 24-hour, optional",
+  "notes": "short free text, optional"
+}
+
+Rules: output valid JSON only. Use null for anything you can't find. "direction" must be exactly "long" or "short". Numbers must be plain (no currency symbols, no commas). Times must be 24-hour local time in YYYY-MM-DDTHH:mm; if I give a start time plus a duration (e.g. "10am, 2h"), set openTime to the start and closeTime to start + duration. Do not add extra keys or any text before/after the JSON.
+
+HOW I MIGHT GIVE IT TO YOU — EXAMPLES:
+
+Example A (I attach a screenshot): I paste an image of my position/order history. Read the ticker, side, size, entry & exit prices, fees and P&L straight off the image.
+
+Example B (I type it): "BTCUSDT 10am IST, 2h, long, 0.5 size, entry 61000 exit 62250"
+Your reply for Example B:
+{
+  "symbol": "BTCUSDT",
+  "direction": "long",
+  "size": 0.5,
+  "entry": 61000,
+  "exit": 62250,
+  "fees": 0,
+  "pnl": 625,
+  "openTime": "2026-08-12T10:00",
+  "closeTime": "2026-08-12T12:00",
+  "notes": null
+}
+
+Now here is my trade (screenshot or text below):`;
+
+const CHATGPT_JSON_URL = `https://chatgpt.com/?q=${encodeURIComponent(CHATGPT_JSON_PROMPT)}`;
+
 /* ================================================================
    LogTradeModal — wired to POST /api/trades/addd.
    Quick & Detailed share one modal frame (same width/height) and
@@ -590,6 +649,9 @@ export default function LogTradeModal({
   const [useChart, setUseChart] = useState(false); // "Log on chart" toggle
   const [chartMeta, setChartMeta] = useState(null); // {symbol,timeframe,entryPrice,exitPrice,entryTime,exitTime}
   const [voice, setVoice] = useState(null); // { blob, transcript, durationSec }
+  const [jsonOpen, setJsonOpen] = useState(false); // "Import from JSON" panel
+  const [jsonText, setJsonText] = useState(""); // pasted JSON
+  const [jsonErr, setJsonErr] = useState(""); // parse error message
   const [form, setForm] = useState(EMPTY);
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -626,6 +688,50 @@ export default function LogTradeModal({
   const flash = (type, msg, ms = 3000) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), ms);
+  };
+
+  /* -------- Import from JSON (paste) -------------------------------------
+     No AI on our side: the user pastes a JSON object (from a screenshot they
+     ran through ChatGPT, or typed) and we map it onto the detailed-log form. */
+  const prefillFromJson = () => {
+    const raw = (jsonText || "").trim();
+    if (!raw) { setJsonErr("Paste the JSON first."); return; }
+    let d;
+    try {
+      // tolerate ``` / ```json code fences and surrounding prose
+      let s = raw.replace(/```(?:json)?/gi, "").trim();
+      const a = s.indexOf("{"), b = s.lastIndexOf("}");
+      if (a !== -1 && b !== -1 && b > a) s = s.slice(a, b + 1);
+      d = JSON.parse(s);
+    } catch {
+      setJsonErr("That doesn't look like valid JSON — copy the whole { … } block.");
+      return;
+    }
+    if (!d || typeof d !== "object" || Array.isArray(d)) {
+      setJsonErr('Expected a JSON object like { "symbol": … }.');
+      return;
+    }
+    const has = (v) => v !== undefined && v !== null && v !== "";
+    let filled = 0;
+    setForm((f) => {
+      const n = { ...f };
+      if (has(d.symbol)) { n.symbol = String(d.symbol).toUpperCase(); filled++; }
+      if (d.direction === "long" || d.direction === "short") { n.direction = d.direction; filled++; }
+      if (has(d.size) && !isNaN(Number(d.size))) { n.size = String(d.size); n.sizeUnit = "asset"; filled++; }
+      if (has(d.entry) && !isNaN(Number(d.entry))) { n.entry = String(d.entry); filled++; }
+      if (has(d.exit) && !isNaN(Number(d.exit))) { n.exit = String(d.exit); filled++; }
+      if (has(d.fees) && !isNaN(Number(d.fees))) { n.feeValue = String(Math.abs(Number(d.fees))); n.feeUnit = "currency"; filled++; }
+      if (has(d.pnl) && !isNaN(Number(d.pnl))) { n.netPnl = String(d.pnl); filled++; }
+      if (has(d.openTime)) { n.entryTime = String(d.openTime).slice(0, 16); n.useDuration = false; filled++; }
+      if (has(d.closeTime)) { n.exitTime = String(d.closeTime).slice(0, 16); n.useDuration = false; filled++; }
+      if (has(d.notes)) { n.notes = String(d.notes); filled++; }
+      return n;
+    });
+    if (!filled) { setJsonErr("Couldn't find any trade fields in that JSON."); return; }
+    setJsonErr("");
+    setJsonText("");
+    setJsonOpen(false);
+    flash("success", `Prefilled ${filled} field${filled > 1 ? "s" : ""} from JSON — review and save.`);
   };
 
   /* chart annotation → mirror entry/exit into the form so prices + P&L and
@@ -1458,6 +1564,111 @@ export default function LogTradeModal({
                       gap: "var(--space-6)",
                     }}
                   >
+                    {/* Import from JSON — paste a JSON object (optionally
+                        generated by ChatGPT from a screenshot) to prefill */}
+                    <div className="jx-ltgroup">
+                      <Sect
+                        icon={Braces}
+                        title="Import from JSON"
+                        hint="Paste a trade as JSON and we'll fill the fields for you"
+                      />
+                      {!jsonOpen ? (
+                        <button
+                          type="button"
+                          onClick={() => { setJsonErr(""); setJsonOpen(true); }}
+                          style={{
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                            width: "100%", padding: "14px", borderRadius: "var(--radius-md)",
+                            border: "1.5px dashed var(--color-border-strong)", background: "transparent",
+                            color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Braces size={16} /> Paste trade JSON
+                        </button>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                          <textarea
+                            className="jx-textarea"
+                            value={jsonText}
+                            onChange={(e) => { setJsonText(e.target.value); if (jsonErr) setJsonErr(""); }}
+                            placeholder={`Paste JSON here, e.g.\n${TRADE_JSON_SAMPLE}`}
+                            spellCheck={false}
+                            rows={9}
+                            style={{
+                              width: "100%", resize: "vertical",
+                              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                              fontSize: "12.5px", lineHeight: 1.55,
+                              ...(jsonErr ? { borderColor: "var(--color-danger)" } : {}),
+                            }}
+                          />
+                          {jsonErr && (
+                            <span style={{ font: "var(--text-caption)", color: "var(--color-danger)" }}>{jsonErr}</span>
+                          )}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-3)", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              onClick={prefillFromJson}
+                              style={{
+                                display: "inline-flex", alignItems: "center", gap: 6,
+                                padding: "10px 16px", borderRadius: "var(--radius-md)", border: "none",
+                                background: "var(--color-primary)", color: "var(--color-on-primary, #111)",
+                                font: "var(--text-body-md)", fontWeight: 700, cursor: "pointer",
+                              }}
+                            >
+                              <Check size={15} /> Prefill fields
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setJsonOpen(false); setJsonText(""); setJsonErr(""); }}
+                              style={{
+                                padding: "10px 14px", borderRadius: "var(--radius-md)",
+                                border: "1px solid var(--color-border)", background: "transparent",
+                                color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 600, cursor: "pointer",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try { navigator.clipboard.writeText(TRADE_JSON_SAMPLE); flash("success", "Sample JSON copied"); }
+                                catch { /* ignore */ }
+                              }}
+                              style={{
+                                display: "inline-flex", alignItems: "center", gap: 6, marginLeft: "auto",
+                                padding: "10px 12px", borderRadius: "var(--radius-md)",
+                                border: "1px solid var(--color-border)", background: "transparent",
+                                color: "var(--color-text-muted)", font: "var(--text-caption)", fontWeight: 600, cursor: "pointer",
+                              }}
+                            >
+                              <Copy size={13} /> Copy sample
+                            </button>
+                          </div>
+                          <a
+                            href={CHATGPT_JSON_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start",
+                              font: "var(--text-caption)", fontWeight: 600, color: "var(--yellow-600)",
+                              textDecoration: "underline", textUnderlineOffset: 3, outline: "none",
+                              background: "transparent", border: "none", padding: 0,
+                            }}
+                          >
+                            <ExternalLink size={13} /> Don&apos;t have JSON? Generate it with ChatGPT from your screenshot
+                          </a>
+                          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                            Opens ChatGPT with the instructions ready. Either attach your trade screenshot, or just type it — e.g.{" "}
+                            <code style={{ font: "var(--text-caption)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: "var(--color-text-secondary)" }}>
+                              BTCUSDT 10am IST, 2h, long, 0.5 size, entry 61000 exit 62250
+                            </code>
+                            . Copy the JSON it returns, paste it above, then review before saving.
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="jx-ltgroup">
                       <Sect icon={CandlestickChart} title="Asset & direction" />
                       {symbolBlock}
