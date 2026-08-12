@@ -109,8 +109,20 @@ export default function Dropdown({
           bottom: coords.openUp ? window.innerHeight - coords.top + 6 : "auto",
           left: coords.left,
           right: "auto",
-          width: coords.width,
+          width: coords.width, /* match the trigger; options fill this width */
           minWidth: coords.width,
+          maxWidth: "min(92vw, 360px)",
+          maxHeight: 300,
+          overflowY: "auto",
+          overflowX: "hidden",
+          // solid, self-contained panel (inline so it can never render as a
+          // see-through box) — lightened a touch so it clearly separates from
+          // the near-black page behind it
+          background: "color-mix(in srgb, var(--color-bg-elevated), var(--color-text-primary) 8%)",
+          border: "1px solid var(--color-border-strong)",
+          borderRadius: "var(--radius-lg)",
+          boxShadow: "0 18px 48px rgba(0,0,0,0.55)",
+          padding: "var(--space-2)",
           zIndex: 4000,
         }}
       >
@@ -143,8 +155,8 @@ export default function Dropdown({
             style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
             onClick={() => pick(o.value)}
           >
-            <span style={{ flex: 1 }}>{o.label}</span>
-            {o.value === value && <Check size={14} style={{ color: "var(--yellow-500)" }} />}
+            <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.label}</span>
+            {o.value === value && <Check size={14} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />}
             {onRemove && (
               <span
                 role="button"

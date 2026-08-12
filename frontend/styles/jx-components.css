@@ -1556,11 +1556,22 @@ body::before {
   padding: var(--space-2);
   z-index: 1200;
 }
-/* options should truncate, never force the panel to scroll sideways */
-.jx-dd__panel .jx-dd__option {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* equity chart header: show the 1D/1W/1M/1Y tabs when the card is wide,
+   collapse them to a compact dropdown when the card gets narrow */
+.jx-eq-tftabs { display: inline-flex; }
+.jx-eq-tfdd { display: none; }
+@container (max-width: 460px) {
+  .jx-eq-tftabs { display: none; }
+  .jx-eq-tfdd { display: inline-block; }
+}
+
+/* candle chart scroll surface — scrollable but with no visible scrollbar */
+.jx-candle-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.jx-candle-scroll::-webkit-scrollbar {
+  display: none;
 }
 .jx-dd__label {
   font: var(--text-label);
@@ -1575,22 +1586,25 @@ body::before {
   align-items: center;
   gap: var(--space-2);
   width: 100%;
+  box-sizing: border-box; /* padding never pushes the row past the panel */
   border: none;
   background: transparent;
   font: var(--text-body-md);
-  color: var(--color-text-primary);
-  padding: 9px 10px;
-  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   text-align: left;
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 .jx-dd__option:hover {
   background: var(--color-bg-muted);
+  color: var(--color-text-primary);
 }
 .jx-dd__option--selected {
   background: var(--color-primary-subtle);
-  font-weight: 600;
+  color: var(--yellow-500);
+  font-weight: 700;
 }
 
 /* ================= Calendar (Figma "Date & Time Picker") ================= */

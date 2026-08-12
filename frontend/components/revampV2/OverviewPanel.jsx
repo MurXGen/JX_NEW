@@ -6,6 +6,7 @@ import { Coffee, Flame, Info, Plus, Shield, Sparkles, Sprout, TrendingUp } from 
 import Badge from "./Badge";
 import Button from "./Button";
 import CountUp from "./CountUp";
+import Dropdown from "./Dropdown";
 import Tip from "./Tip";
 import SampleDataBanner from "./SampleDataBanner";
 import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
@@ -494,80 +495,142 @@ function Empty({ height }) {
 }
 
 /* ---- equity growth candlesticks ---- */
-function CandleChart({ candles, height = 220, sym = "$" }) {
+/* Equity candles. When `candleWidth` > 0 the chart becomes a fixed-width,
+   horizontally scrollable + drag-to-pan surface (TradingView-style) for long
+   histories; otherwise candles flex to fill the width. */
+function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
+  const outerRef = useRef(null);
+  const scrollRef = useRef(null);
+  const drag = useRef({ down: false, startX: 0, startLeft: 0 });
+  const scrollable = candleWidth > 0;
+  const [hoverI, setHoverI] = useState(null);
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+
+  // jump to the latest candle whenever the data or zoom changes
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el && scrollable) el.scrollLeft = el.scrollWidth;
+  }, [candles, candleWidth, scrollable]);
+
   if (!candles.length) return <Empty height={height} />;
   const lo = Math.min(...candles.map((c) => c.l));
   const hi = Math.max(...candles.map((c) => c.h));
   const span = hi - lo || 1;
   const y = (v) => height - 8 - ((v - lo) / span) * (height - 16);
 
+  const track = (e) => {
+    const r = outerRef.current?.getBoundingClientRect();
+    if (r) setCursor({ x: e.clientX - r.left, y: e.clientY - r.top });
+  };
+  const onDown = (e) => {
+    if (!scrollable || !scrollRef.current) return;
+    drag.current = { down: true, startX: e.clientX, startLeft: scrollRef.current.scrollLeft };
+    scrollRef.current.style.cursor = "grabbing";
+  };
+  const onMove = (e) => {
+    track(e);
+    if (drag.current.down && scrollRef.current) {
+      scrollRef.current.scrollLeft = drag.current.startLeft - (e.clientX - drag.current.startX);
+    }
+  };
+  const endDrag = () => {
+    drag.current.down = false;
+    if (scrollRef.current) scrollRef.current.style.cursor = scrollable ? "grab" : "crosshair";
+  };
+  const onWheel = (e) => {
+    if (!scrollable || !scrollRef.current) return;
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) scrollRef.current.scrollLeft += e.deltaY;
+  };
+
+  const totalW = candles.length * candleWidth;
+  const hc = hoverI != null ? candles[hoverI] : null;
+  const W = outerRef.current?.clientWidth || 320;
+
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "stretch",
-        gap: "0.6%",
-        height,
-        width: "100%",
-      }}
-    >
-      {candles.map((c, i) => {
-        const up = c.c >= c.o;
-        const color = up ? "var(--color-success)" : "var(--color-danger)";
-        const bodyTop = y(Math.max(c.o, c.c));
-        const bodyH = Math.max(2, Math.abs(y(c.o) - y(c.c)));
-        return (
-          <Tip
-            key={`${c.label}-${i}`}
-            content={`${c.label}\nOpen ${sym}${fmt(c.o, 0)} · Close ${sym}${fmt(c.c, 0)}\nHigh ${sym}${fmt(c.h, 0)} · Low ${sym}${fmt(c.l, 0)}`}
-            block
-            style={{ flex: 1, minWidth: 0 }}
-          >
-            <motion.div
-              className="jx-tip--col"
-              initial={{ opacity: 0, scaleY: 0.4 }}
-              animate={{ opacity: 1, scaleY: 1 }}
-              transition={{
-                delay: Math.min(i * 0.025, 0.8),
-                duration: 0.4,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              style={{
-                flex: 1,
-                position: "relative",
-                transformOrigin: "bottom",
-                height: "100%",
-              }}
-            >
-              {/* wick */}
-              <span
+    <div ref={outerRef} style={{ position: "relative" }}>
+      <div
+        ref={scrollRef}
+        className="jx-candle-scroll"
+        onMouseDown={onDown}
+        onMouseMove={onMove}
+        onMouseUp={endDrag}
+        onMouseLeave={() => { endDrag(); setHoverI(null); }}
+        onWheel={onWheel}
+        style={{
+          height,
+          overflowX: scrollable ? "auto" : "hidden",
+          overflowY: "hidden",
+          cursor: scrollable ? "grab" : "crosshair",
+          userSelect: "none",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "stretch",
+            gap: scrollable ? 3 : "0.6%",
+            height: "100%",
+            width: scrollable ? totalW : "100%",
+            minWidth: scrollable ? totalW : "100%",
+          }}
+        >
+          {candles.map((c, i) => {
+            const up = c.c >= c.o;
+            const color = up ? "var(--color-success)" : "var(--color-danger)";
+            const bodyTop = y(Math.max(c.o, c.c));
+            const bodyH = Math.max(2, Math.abs(y(c.o) - y(c.c)));
+            return (
+              <div
+                key={`${c.label}-${i}`}
+                onMouseEnter={() => setHoverI(i)}
                 style={{
-                  position: "absolute",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  top: y(c.h),
-                  height: Math.max(1, y(c.l) - y(c.h)),
-                  width: 1.5,
-                  background: color,
-                  opacity: 0.8,
+                  flex: scrollable ? "0 0 auto" : 1,
+                  width: scrollable ? candleWidth : undefined,
+                  minWidth: scrollable ? candleWidth : 0,
+                  position: "relative",
+                  height: "100%",
+                  background: hoverI === i ? "color-mix(in srgb, var(--color-primary) 10%, transparent)" : "transparent",
+                  borderRadius: 3,
                 }}
-              />
-              {/* body */}
-              <span
-                style={{
-                  position: "absolute",
-                  left: "12%",
-                  right: "12%",
-                  top: bodyTop,
-                  height: bodyH,
-                  background: color,
-                  borderRadius: 2,
-                }}
-              />
-            </motion.div>
-          </Tip>
-        );
-      })}
+              >
+                {/* wick */}
+                <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", top: y(c.h), height: Math.max(1, y(c.l) - y(c.h)), width: 1.5, background: color, opacity: 0.8 }} />
+                {/* body */}
+                <span style={{ position: "absolute", left: "12%", right: "12%", top: bodyTop, height: bodyH, background: color, borderRadius: 2 }} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* cursor-following tooltip */}
+      {hc && (
+        <div
+          style={{
+            position: "absolute",
+            left: Math.max(4, Math.min(cursor.x + 14, W - 176)),
+            top: Math.max(4, cursor.y - 104),
+            pointerEvents: "none",
+            zIndex: 30,
+            background: "var(--color-bg-elevated)",
+            border: "1px solid var(--color-border-strong)",
+            borderRadius: "var(--radius-md)",
+            boxShadow: "0 10px 28px rgba(0,0,0,0.5)",
+            padding: "8px 10px",
+            font: "var(--text-caption)",
+            minWidth: 152,
+            transition: "left 0.05s linear, top 0.05s linear",
+          }}
+        >
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>{hc.label}</div>
+          {[["Open", hc.o], ["Close", hc.c], ["High", hc.h], ["Low", hc.l]].map(([k, v]) => (
+            <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+              <span style={{ color: "var(--color-text-muted)" }}>{k}</span>
+              <span style={{ fontVariantNumeric: "tabular-nums" }}>{sym}{fmt(v, 0)}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -620,7 +683,7 @@ const buildEquityCandles = (closed, startingBalance, tf) => {
     cur.l = Math.min(cur.l, equity);
   });
   if (cur) candles.push(cur);
-  return candles.slice(-60);
+  return candles.slice(-400);
 };
 
 function MiniSeg({ items, value, onChange }) {
@@ -728,6 +791,8 @@ export default function OverviewPanel({
   const startingBalance = (Number(startingBalanceProp) || 0) * fxRate;
   const [heroRange, setHeroRange] = useState("30D");
   const [candleTF, setCandleTF] = useState("1D");
+  const [equityRange, setEquityRange] = useState("7D"); // 7D | 14D | 30D | All
+  const [equityZoom, setEquityZoom] = useState(18); // candle px width in scroll mode
   const analyticsRange = "ALL"; // header range tabs removed — charts cover full history
   const [pnlRange, setPnlRange] = useState("1M");
   const [dailyRange, setDailyRange] = useState("Week");
@@ -1028,14 +1093,12 @@ export default function OverviewPanel({
     const volByDay = new Map();
     win.forEach((t) => {
       const d = new Date(t.closeTime).toDateString();
-      volByDay.set(
-        d,
-        (volByDay.get(d) || 0) +
-          Math.abs(
-            (t.avgEntryPrice || t.entryPrice || 1) * (t.totalQuantity || 0),
-          ) *
-            (t.pnl >= 0 ? 1 : -1),
-      );
+      const price = t.avgEntryPrice || t.entryPrice || 0;
+      const qty = t.totalQuantity || 0;
+      // real notional, else fall back to |P&L| so quick-logged trades (size 0)
+      // still contribute a bar — mirrors the Volume-traded total
+      const notional = price && qty ? Math.abs(price * qty) : Math.abs(Number(t.pnl) || 0);
+      volByDay.set(d, (volByDay.get(d) || 0) + notional * (t.pnl >= 0 ? 1 : -1));
     });
     const volLabels = [...volByDay.keys()].map((d) =>
       new Date(d).toLocaleDateString("en-GB", {
@@ -1576,6 +1639,7 @@ export default function OverviewPanel({
       {/* ===== Greeting ===== */}
       <div
         style={{
+          order: -2,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -1636,6 +1700,7 @@ export default function OverviewPanel({
       <div
         className="jx-card jx-hero-grid"
         style={{
+          order: -2,
           position: "relative",
           overflow: "hidden",
           display: "grid",
@@ -1777,6 +1842,7 @@ export default function OverviewPanel({
       {isVisible("progress") && (
       <div
         style={{
+          order: -2,
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
           gap: "var(--space-4)",
@@ -2501,9 +2567,9 @@ export default function OverviewPanel({
         </div>
       )}
 
-      {/* ===== Streaks & achievements ===== */}
+      {/* ===== Streaks & achievements (moved up: right after the KPI cards) ===== */}
       {isVisible("streaks") && (
-      <>
+      <div style={{ order: -1, display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
       <div>
         <span className="jx-card__title">Streaks &amp; achievements</span>
         <div
@@ -2694,12 +2760,12 @@ export default function OverviewPanel({
           </div>
         </div>
       </div>
-      </>
+      </div>
       )}
 
-      {/* ===== Key metrics ===== */}
+      {/* ===== Key metrics (moved up: right after streaks) ===== */}
       {isVisible("keyMetrics") && (
-      <>
+      <div style={{ order: -1, display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
       <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
         Key metrics <InfoTip text="Headline stats across all closed trades" />
       </span>
@@ -2747,7 +2813,7 @@ export default function OverviewPanel({
           </div>
         ))}
       </div>
-      </>
+      </div>
       )}
 
       {/* ===== Analytics ===== */}
@@ -2785,11 +2851,17 @@ export default function OverviewPanel({
         >
           {/* equity growth candles */}
           {(() => {
-            const candles = buildEquityCandles(
+            const allCandles = buildEquityCandles(
               closed,
               startingBalance,
               candleTF,
             );
+            // day-range filter (maps to a count of most-recent candles)
+            const RANGE_N = { "7D": 7, "14D": 14, "30D": 30, All: Infinity };
+            const n = RANGE_N[equityRange] ?? 7;
+            const candles = n === Infinity ? allCandles : allCandles.slice(-n);
+            // TradingView-style scroll/zoom only kicks in past ~50 candles
+            const candleWidth = candles.length > 50 ? equityZoom : 0;
             const equityNow = candles.length
               ? candles[candles.length - 1].c
               : startingBalance;
@@ -2798,13 +2870,13 @@ export default function OverviewPanel({
                 ? ((equityNow - startingBalance) / startingBalance) * 100
                 : null;
             return (
-              <div className="jx-card">
+              <div className="jx-card jx-eq-card" style={{ display: "flex", flexDirection: "column", height: "100%", containerType: "inline-size" }}>
                 <div
                   style={{
                     display: "flex",
                     alignItems: "flex-start",
                     justifyContent: "space-between",
-                    flexWrap: "wrap",
+                    flexWrap: "nowrap",
                     gap: "var(--space-2)",
                   }}
                 >
@@ -2830,19 +2902,81 @@ export default function OverviewPanel({
                         : `from ${currencySymbol}${fmt(startingBalance, 0)} starting balance`}
                     </Badge>
                   </div>
-                  <MiniSeg
-                    items={["1D", "1W", "1M", "1Y"]}
-                    value={candleTF}
-                    onChange={setCandleTF}
-                  />
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "nowrap", justifyContent: "flex-end", flexShrink: 0 }}>
+                    {/* timeframe: tabs by default, compact dropdown when tight */}
+                    <span className="jx-eq-tftabs">
+                      <MiniSeg
+                        items={["1D", "1W", "1M", "1Y"]}
+                        value={candleTF}
+                        onChange={setCandleTF}
+                      />
+                    </span>
+                    <span className="jx-eq-tfdd" style={{ width: 92 }}>
+                      <Dropdown
+                        value={candleTF}
+                        onChange={setCandleTF}
+                        options={[
+                          { value: "1D", label: "1D" },
+                          { value: "1W", label: "1W" },
+                          { value: "1M", label: "1M" },
+                          { value: "1Y", label: "1Y" },
+                        ]}
+                        triggerStyle={{ height: 34 }}
+                      />
+                    </span>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <div style={{ width: 148 }}>
+                        <Dropdown
+                          value={equityRange}
+                          onChange={setEquityRange}
+                          options={[
+                            { value: "7D", label: "Last 7 days" },
+                            { value: "14D", label: "Last 14 days" },
+                            { value: "30D", label: "Last 30 days" },
+                            { value: "All", label: "All time" },
+                          ]}
+                          triggerStyle={{ height: 34 }}
+                        />
+                      </div>
+                      {candleWidth > 0 && (
+                        <div style={{ display: "flex", gap: 4 }}>
+                          {[
+                            { l: "−", fn: () => setEquityZoom((z) => Math.max(8, z - 4)), lbl: "Zoom out" },
+                            { l: "+", fn: () => setEquityZoom((z) => Math.min(48, z + 4)), lbl: "Zoom in" },
+                          ].map((b) => (
+                            <button
+                              key={b.lbl}
+                              type="button"
+                              aria-label={b.lbl}
+                              onClick={b.fn}
+                              style={{
+                                width: 28, height: 28, borderRadius: "var(--radius-sm)", cursor: "pointer",
+                                border: "1px solid var(--color-border-strong)", background: "var(--color-bg-surface)",
+                                color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 700,
+                                display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+                              }}
+                            >
+                              {b.l}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ marginTop: "var(--space-3)" }}>
+                <div style={{ marginTop: "var(--space-3)", flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
                   <CandleChart
-                    key={candleTF}
+                    key={`${candleTF}-${equityRange}`}
                     candles={candles}
                     sym={currencySymbol}
-                    height={220}
+                    height={320}
+                    candleWidth={candleWidth}
                   />
+                  {candleWidth > 0 && (
+                    <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: 4, textAlign: "center" }}>
+                      Drag to pan · scroll or use ± to zoom
+                    </div>
+                  )}
                 </div>
                 <div
                   style={{
