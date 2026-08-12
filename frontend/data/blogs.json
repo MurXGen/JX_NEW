@@ -11145,6 +11145,324 @@
           "a": "No. It is a general educational overview of US rules as understood for 2026. Tax rules vary by country and personal circumstances and change over time, so consult a qualified tax professional before making decisions based on it."
         }
       ]
+    },
+    {
+      "slug": "atr-position-sizing-and-volatility-stops",
+      "title": "ATR Position Sizing and Volatility Stops: Size Every Trade to the Same Risk",
+      "metaTitle": "ATR Position Sizing and Volatility Stops Explained | JournalX",
+      "metaDescription": "Learn how to size positions and place stops using ATR so every trade risks the same amount. Formula, multipliers, and a repeatable volatility-based workflow.",
+      "keywords": [
+        "ATR position sizing",
+        "ATR stop loss",
+        "volatility based position sizing",
+        "ATR stop loss multiplier",
+        "how to size positions with ATR"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-08-12",
+      "featured": false,
+      "excerpt": "Fixed-percentage stops treat a calm range day the same as a news-driven whipsaw. ATR sizing scales your position to volatility so your dollar risk stays flat.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 38
+      },
+      "tags": [
+        "ATR",
+        "position sizing",
+        "stops",
+        "volatility"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Most traders pick a stop distance first and a position size second, then wonder why some losses sting far more than others. The problem is usually volatility. A 10-pip stop on a quiet range day and a 10-pip stop into a scheduled news release are not the same bet. Average True Range (ATR) fixes this by tying both your stop and your size to how much the instrument is actually moving right now."
+        },
+        {
+          "type": "h2",
+          "text": "What ATR actually measures"
+        },
+        {
+          "type": "p",
+          "text": "ATR is the average of the 'true range' over a lookback period, most commonly 14 bars. True range captures the largest of three distances: the current bar's high-to-low, and the gaps from the prior close to the current high and low. Because it accounts for gaps, ATR reflects real movement rather than just the visible candle body. A rising ATR means the instrument is expanding its range; a falling ATR means it is compressing. It is a volatility gauge, not a direction signal — it tells you how wide the road is, not which way to drive."
+        },
+        {
+          "type": "h2",
+          "text": "Why fixed-percentage stops quietly break your risk"
+        },
+        {
+          "type": "p",
+          "text": "If you always use, say, a 0.5% price stop, you are implicitly assuming every day has the same volatility. It never does. On a compressed day that stop may sit inside normal noise and get tagged for no reason. On an expansion day it may be so tight that you are stopped out before your idea has room to work. ATR-based stops adapt: they widen when the market is volatile and tighten when it is calm, so the stop reflects the market's current behavior instead of an arbitrary number you chose once and forgot."
+        },
+        {
+          "type": "h2",
+          "text": "The ATR position-sizing formula"
+        },
+        {
+          "type": "p",
+          "text": "The whole method rests on one equation. Decide the dollars you are willing to lose on the trade, then let volatility set the size:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Step",
+            "What you set",
+            "Example"
+          ],
+          "rows": [
+            [
+              "1. Risk budget",
+              "Dollar risk per trade (e.g. 1% of account)",
+              "$10,000 account -> $100"
+            ],
+            [
+              "2. Stop distance",
+              "ATR x multiplier, in price terms",
+              "ATR = 20 pips, 1.5x -> 30 pips"
+            ],
+            [
+              "3. Per-unit risk",
+              "Stop distance x value per point",
+              "30 pips x $1/pip = $30 per lot"
+            ],
+            [
+              "4. Position size",
+              "Risk budget / per-unit risk",
+              "$100 / $30 = 3.3 -> 3 mini lots"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice what happens across different conditions: when ATR is high, your stop is wider, per-unit risk is larger, and the formula automatically hands you a smaller position. When ATR is low, you get a bigger position on a tighter stop. Either way, the dollars at risk stay pinned to your budget. That consistency is the entire point — your equity curve stops being distorted by whichever days happened to be wild."
+        },
+        {
+          "type": "h2",
+          "text": "Choosing your ATR multiplier"
+        },
+        {
+          "type": "p",
+          "text": "The multiplier is where judgment comes in. Common practice, echoed across trading education and mechanical-system guides, lands roughly between 1.2x and 3x ATR. Tighter multiples (around 1.2x-1.5x) suit liquid instruments and shorter holds where you want quick invalidation; wider multiples (2x-3x) suit swing trades, exotic pairs, or thinner markets where you need room to survive noise. There is no universally correct number — the right multiple is the one that keeps you outside routine chop while still cutting the trade when your thesis is genuinely wrong. Backtest a couple of values on your own instrument rather than borrowing someone else's setting."
+        },
+        {
+          "type": "quote",
+          "text": "Your stop should be placed where the trade is proven wrong, not where your account feels comfortable. ATR helps you find the first and ignore the second."
+        },
+        {
+          "type": "h2",
+          "text": "Common mistakes to avoid"
+        },
+        {
+          "type": "p",
+          "text": "Three errors show up again and again. First, recalculating ATR mid-trade and moving the stop wider to avoid being hit — that quietly turns a fixed-risk plan into an open-ended one. Second, using an ATR period that fights your timeframe; a 14-period ATR on a 1-minute chart reacts to microstructure noise, not the swing you are trading. Third, forgetting to convert ATR into the instrument's real point value, which produces sizes that look fine but risk two or three times what you intended. The fix for all three is to log the ATR reading, multiplier, and resulting size at entry, then never touch the math afterward."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Test your ATR sizing",
+          "prompt": "Your ATR is 40 points, you use a 1.5x multiplier, each point is worth $2, and you risk $180 per trade. Roughly how many contracts should you take?",
+          "options": [
+            "1 contract",
+            "1.5 contracts",
+            "3 contracts",
+            "6 contracts"
+          ],
+          "correct": 1,
+          "explain": "Stop distance = 40 x 1.5 = 60 points. Per-contract risk = 60 x $2 = $120. Position = $180 / $120 = 1.5 contracts, which you would round down to 1 to stay within budget."
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: log the ATR value, your multiplier, the resulting stop distance, and final size on every trade. Over time JournalX charts your average risk per trade and flags entries where your actual dollar risk drifted from your plan — the exact moments where undisciplined sizing, not strategy, cost you money."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: instead of a static risk field you fill in by hand, JournalX ties your logged stop and size back to your real fills and P&L, so you can see whether volatility-based sizing is actually flattening your loss distribution or whether you keep overriding it under pressure."
+        },
+        {
+          "type": "faqs",
+          "text": ""
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What ATR period should I use?",
+          "a": "14 is the default and works for most swing and intraday trades. Shorter periods react faster but get noisier; match the period to the timeframe you actually hold, not a shorter one."
+        },
+        {
+          "q": "Does ATR predict direction?",
+          "a": "No. ATR only measures how much price is moving, not where it is going. Use it for stops and sizing, and rely on your own setup for direction."
+        },
+        {
+          "q": "Is a wider ATR stop the same as risking more?",
+          "a": "Not if you size correctly. A wider stop means a smaller position, so your dollar risk stays the same. The stop distance and size move in opposite directions on purpose."
+        },
+        {
+          "q": "Should I move my ATR stop as volatility changes?",
+          "a": "Recalculating mid-trade to widen a stop breaks the fixed-risk logic. Set it at entry from the ATR reading and leave it; only trail it in your favor if your plan allows."
+        }
+      ]
+    },
+    {
+      "slug": "prop-firms-removing-daily-drawdown-limits",
+      "title": "Prop Firms Are Dropping Daily Drawdown Limits: What It Means for Funded Traders",
+      "metaTitle": "Prop Firms Removing Daily Drawdown Limits in 2026 | JournalX",
+      "metaDescription": "A growing number of prop firms are removing daily loss limits and static accounts. Here is what no-daily-drawdown really changes and where the new risks hide.",
+      "keywords": [
+        "no daily drawdown prop firm",
+        "daily loss limit prop firm",
+        "prop firms removing daily drawdown",
+        "static account prop firm",
+        "daily drawdown vs trailing drawdown"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-08-12",
+      "featured": false,
+      "excerpt": "Some 2026 prop firms are scrapping the daily loss limit that ends so many challenges early. It removes one pressure point but quietly shifts risk somewhere else.",
+      "helpful": {
+        "up": 44,
+        "down": 2,
+        "saves": 40
+      },
+      "tags": [
+        "prop firm",
+        "drawdown",
+        "funded",
+        "rules"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "One of the loudest trader complaints of the last few years has been the daily loss limit: a rule that ends your day — or your whole account — the moment your equity dips past a set floor, even if your overall risk is under control. In 2026 a growing slice of firms have started marketing accounts with no daily drawdown at all, alongside 'static' accounts where the loss line does not trail your balance. It sounds like a gift. It is really a trade-off, and understanding the trade is how you avoid getting burned by the fine print."
+        },
+        {
+          "type": "h2",
+          "text": "What a daily drawdown limit actually does"
+        },
+        {
+          "type": "p",
+          "text": "A daily loss limit caps how much your equity can fall within a single trading day, usually measured from either the day's starting balance or its highest equity point. Breach it and most firms either lock you out until the next session or fail the account outright. The intent is to stop a trader from turning one bad morning into a catastrophic day. The side effect traders resent is that normal open-trade fluctuation — a position that dips before working out — can trip the limit and end a perfectly reasonable day early."
+        },
+        {
+          "type": "h2",
+          "text": "Why firms are dropping it in 2026"
+        },
+        {
+          "type": "p",
+          "text": "Per firm announcements reported across the prop space this year, the shift is partly competitive and partly a response to trader feedback that daily limits punish ordinary market movement. Firms marketing 'no daily drawdown' or static accounts argue that a single maximum drawdown line is a cleaner, more realistic constraint: you are judged on total risk, not on surviving every intraday wiggle. Some have paired this with faster or daily payout structures. Treat all of these as evolving commercial features rather than fixed guarantees — firms have changed and even withdrawn rules with little notice, and a few have wound down entirely, so read the current rulebook before you pay."
+        },
+        {
+          "type": "h2",
+          "text": "The trade-off: what you gain and what you give up"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Factor",
+            "With daily drawdown",
+            "No daily drawdown"
+          ],
+          "rows": [
+            [
+              "Intraday breathing room",
+              "Limited — one bad session can end the day",
+              "More — judged on total drawdown only"
+            ],
+            [
+              "Blow-up risk",
+              "Contained per day",
+              "Concentrated in the max drawdown line"
+            ],
+            [
+              "Self-discipline needed",
+              "Firm enforces a daily stop for you",
+              "You must impose your own daily stop"
+            ],
+            [
+              "Best suited to",
+              "Traders prone to tilt and revenge trades",
+              "Traders with proven daily risk control"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The key insight is that removing the daily limit does not remove the risk — it relocates it. Without a firm-enforced daily floor, nothing external stops you from giving back a week of gains in one tilted afternoon until you hit the overall maximum drawdown. For a disciplined trader that freedom is genuinely useful. For a trader who struggles with revenge trades, the daily limit was the seatbelt, and taking it off is not obviously an upgrade."
+        },
+        {
+          "type": "h2",
+          "text": "What to still watch for"
+        },
+        {
+          "type": "p",
+          "text": "No-daily-drawdown accounts often carry other constraints that matter just as much: the maximum overall drawdown (trailing versus end-of-day), consistency rules that cap how much any single day can contribute to your profit, minimum trading days, and payout conditions. A headline of 'no daily loss limit' means little if a tight trailing max drawdown or a 25% consistency rule quietly does the same job. Read how the maximum drawdown is calculated, whether it locks at your starting balance once you are funded, and exactly what triggers a payout denial."
+        },
+        {
+          "type": "quote",
+          "text": "A rule the firm removes is a rule you now have to enforce yourself. Freedom in the rulebook is only an advantage if you already had the discipline it was replacing."
+        },
+        {
+          "type": "h2",
+          "text": "Set your own daily stop either way"
+        },
+        {
+          "type": "p",
+          "text": "Whether or not your firm enforces a daily limit, professional risk control means you set one. Decide a maximum daily loss in dollars or R, and a maximum number of trades, before the session starts. If the firm no longer does this for you, the responsibility does not disappear — it just becomes yours. The traders who thrive under no-daily-drawdown rules are almost always the ones who behave as if the limit were still there."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Would you take a no-daily-drawdown account?",
+          "prompt": "Be honest about your own discipline.",
+          "options": [
+            {
+              "label": "Yes — I already run my own daily stop",
+              "response": "That is exactly the profile these accounts suit. Keep enforcing your own floor and the extra room is pure upside."
+            },
+            {
+              "label": "No — the daily limit keeps me honest",
+              "response": "Self-aware and smart. If the firm's seatbelt helps you, keeping it is a feature, not a limitation."
+            },
+            {
+              "label": "Not sure — depends on the other rules",
+              "response": "The right instinct. Judge the whole rulebook — max drawdown, consistency, payouts — not just the daily-limit headline."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "How JournalX helps: log your intended daily loss cap and max trades, then track your actual worst intraday drawdown against it every session. JournalX shows you the days you would have breached a daily limit even when the firm no longer enforces one — the early warning that your risk control, not the rulebook, is slipping."
+        },
+        {
+          "type": "why",
+          "text": "Why JournalX is different: it maps your real fills against whichever drawdown model your firm uses — daily, trailing, or static — so you can see how close you truly ran to each line instead of guessing. That makes it obvious whether a no-daily-drawdown account is helping you or just hiding a discipline problem."
+        },
+        {
+          "type": "faqs",
+          "text": ""
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Is a no-daily-drawdown account safer?",
+          "a": "Not inherently. It removes the daily loss limit but concentrates risk in the overall maximum drawdown. It is safer only if you enforce your own daily stop."
+        },
+        {
+          "q": "What is a static account?",
+          "a": "A static account measures your drawdown from a fixed starting balance rather than trailing your equity or balance upward. The loss line does not move as you profit, which many traders find easier to manage."
+        },
+        {
+          "q": "Do these firms still have other rules?",
+          "a": "Almost always. Watch the maximum drawdown method, consistency rules, minimum trading days, and payout conditions — any of these can constrain you as much as a daily limit would."
+        },
+        {
+          "q": "Are prop firm rules stable in 2026?",
+          "a": "Treat them as evolving. Firms have changed rules with little notice and some have shut down, so always confirm the current rulebook and payout terms before paying for a challenge."
+        }
+      ]
     }
   ]
 }
