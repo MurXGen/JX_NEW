@@ -144,7 +144,7 @@ export function BlogTopbar() {
           Journal<strong style={{ color: "var(--yellow-500)" }}>X</strong>
         </span>
       </a>
-      <a href="/blog" style={{ marginLeft: "var(--space-3)", textDecoration: "none", color: "var(--color-text-secondary)", font: "var(--text-body-md)" }}>
+      <a href="/blogs" style={{ marginLeft: "var(--space-3)", textDecoration: "none", color: "var(--color-text-secondary)", font: "var(--text-body-md)" }}>
         Blog
       </a>
       <a href="/pricing" style={{ textDecoration: "none", color: "var(--color-text-secondary)", font: "var(--text-body-md)" }}>

@@ -12,7 +12,7 @@ export async function getServerSideProps({ res }) {
   const posts = getAllPosts();
 
   const blogLines = posts
-    .map((p) => `- [${p.title}](${SITE_URL}/blog/${p.slug}): ${p.metaDescription || p.excerpt}`)
+    .map((p) => `- [${p.title}](${SITE_URL}/blogs/${p.slug}): ${p.metaDescription || p.excerpt}`)
     .join("\n");
 
   const body = `# JournalX
@@ -34,7 +34,7 @@ Key facts:
 - [Pricing](${SITE_URL}/pricing): Free and Pro plan comparison (monthly, yearly, lifetime).
 - [Sign up](${SITE_URL}/register): Create a free JournalX account, no card required.
 - [Log in](${SITE_URL}/login): Sign in to your trading journal.
-- [Blog](${SITE_URL}/blog): Guides on trading strategy, risk, psychology and journaling.
+- [Blog](${SITE_URL}/blogs): Guides on trading strategy, risk, psychology and journaling.
 - [Contact](${SITE_URL}/contact): Get in touch with the JournalX team.
 
 ## Blog articles

@@ -1,6 +1,6 @@
 /* blogs.js — read helpers over data/blogs.json.
    Single source of truth for the dashboard Learn & News panel and the
-   public /blog pages. Update the JSON daily and both surfaces refresh. */
+   public /blogs pages. Update the JSON daily and both surfaces refresh. */
 
 import blogData from "@/data/blogs.json";
 
@@ -50,7 +50,7 @@ export const articleJsonLd = (post) => {
       name: "JournalX",
       logo: { "@type": "ImageObject", url: `${SITE_URL}/assets/JournalX_Favicon.png` },
     },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${post.slug}` },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blogs/${post.slug}` },
     keywords: (post.keywords || []).join(", "),
   };
 };
@@ -59,11 +59,11 @@ export const blogListJsonLd = () => ({
   "@context": "https://schema.org",
   "@type": "Blog",
   name: "JournalX Blog — Trading insights & journaling guides",
-  url: `${SITE_URL}/blog`,
+  url: `${SITE_URL}/blogs`,
   blogPost: getAllPosts().map((p) => ({
     "@type": "BlogPosting",
     headline: p.title,
-    url: `${SITE_URL}/blog/${p.slug}`,
+    url: `${SITE_URL}/blogs/${p.slug}`,
     datePublished: p.date,
     author: { "@type": "Person", name: getAuthor(p).name },
   })),

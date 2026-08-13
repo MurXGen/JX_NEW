@@ -6,6 +6,17 @@ const nextConfig = {
   reactStrictMode: true,
 
   // ------------------------------
+  // 301/308 redirects: old /blog route renamed to /blogs
+  // Preserves SEO equity and keeps old inbound links working.
+  // ------------------------------
+  async redirects() {
+    return [
+      { source: "/blog", destination: "/blogs", permanent: true },
+      { source: "/blog/:slug*", destination: "/blogs/:slug*", permanent: true },
+    ];
+  },
+
+  // ------------------------------
   // 🔐 FIX: Paddle iframe allowed via CSP
   // (Applied only in PRODUCTION)
   // ------------------------------

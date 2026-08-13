@@ -1,7 +1,7 @@
 "use client";
 
 /* Learn & News panel (dashboard) — reads the same data/blogs.json as
-   the public /blog pages via utils/blogs. Opens articles in a new tab
+   the public /blogs pages via utils/blogs. Opens articles in a new tab
    on the public, SEO-indexed blog page. */
 
 import { useMemo, useState } from "react";
@@ -23,7 +23,7 @@ export default function BlogsPanel() {
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
 
-  const open = (slug) => window.open(`/blog/${slug}`, "_blank", "noopener");
+  const open = (slug) => window.open(`/blogs/${slug}`, "_blank", "noopener");
 
   const list = useMemo(
     () =>
@@ -43,7 +43,7 @@ export default function BlogsPanel() {
             Guides and tactics — a fresh trading lesson every day.
           </div>
         </div>
-        <Button variant="outline" size="sm" icon={ExternalLink} onClick={() => window.open("/blog", "_blank", "noopener")}>
+        <Button variant="outline" size="sm" icon={ExternalLink} onClick={() => window.open("/blogs", "_blank", "noopener")}>
           Open blog
         </Button>
       </div>

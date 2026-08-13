@@ -12,7 +12,7 @@ const NAV = [
   { label: "Features", href: "/features" },
   { label: "Why JournalX", href: "/#why" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Blog", href: "/blog" },
+  { label: "Blog", href: "/blogs" },
 ];
 
 export function LandingNav() {
@@ -107,7 +107,7 @@ export function LandingNav() {
 
 export function LandingFooter() {
   const cols = [
-    { h: "Product", links: [["Features", "/features"], ["Pricing", "/pricing"], ["Blog", "/blog"], ["Log in", "/login"]] },
+    { h: "Product", links: [["Features", "/features"], ["Pricing", "/pricing"], ["Blog", "/blogs"], ["Log in", "/login"]] },
     { h: "By market", links: [["Prop firm", "/prop-firm-trading-journal"], ["Forex", "/forex-trading-journal"], ["Crypto", "/crypto-trading-journal"], ["Stocks", "/stock-trading-journal"], ["Futures", "/futures-trading-journal"], ["Options", "/options-trading-journal"]] },
     { h: "Company", links: [["Contact", "/contact"], ["Start free", "/register"]] },
     { h: "Legal", links: [["Privacy Policy", "/privacy-policy"], ["Terms of Service", "/terms-services"], ["Refund Policy", "/refund-policy"], ["Risk Disclaimer", "/risk-disclaimer"], ["Cookie Policy", "/cookie-policy"]] },

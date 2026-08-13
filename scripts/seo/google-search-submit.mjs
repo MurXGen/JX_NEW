@@ -89,7 +89,7 @@ async function fetchRecentBlogUrls() {
     const body = block[1];
     const loc = (body.match(/<loc>(.*?)<\/loc>/) || [])[1];
     const lastmod = (body.match(/<lastmod>(.*?)<\/lastmod>/) || [])[1];
-    if (!loc || !loc.includes("/blog/")) continue; // only individual posts
+    if (!loc || !loc.includes("/blogs/")) continue; // only individual posts
     if (lastmod && new Date(lastmod).getTime() >= cutoff) recent.push(loc);
   }
   return recent;

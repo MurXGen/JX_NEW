@@ -777,7 +777,7 @@ export default function TradesLogPanel({
             >
               <Gamepad2 size={15} /> Calming game
             </button>
-            <a href="/blog" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+            <a href="/blogs" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
               <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <BookOpen size={15} /> Discipline
               </button>
@@ -866,18 +866,18 @@ export default function TradesLogPanel({
       <>
       {(() => {
         const directionDD = (
-          <Dropdown value={direction} onChange={setDirection} label="Direction"
-            options={[{ value: "all", label: "Direction: All" }, { value: "long", label: "Long" }, { value: "short", label: "Short" }]}
+          <Dropdown value={direction} onChange={setDirection} label="Direction" triggerPrefix="Direction"
+            options={[{ value: "all", label: "All" }, { value: "long", label: "Long" }, { value: "short", label: "Short" }]}
             triggerStyle={{ height: 38 }} />
         );
         const outcomeDD = (
-          <Dropdown value={outcome} onChange={setOutcome} label="Outcome"
-            options={[{ value: "all", label: "Outcome: All" }, { value: "win", label: "Win" }, { value: "loss", label: "Loss" }]}
+          <Dropdown value={outcome} onChange={setOutcome} label="Outcome" triggerPrefix="Outcome"
+            options={[{ value: "all", label: "All" }, { value: "win", label: "Win" }, { value: "loss", label: "Loss" }]}
             triggerStyle={{ height: 38 }} />
         );
         const sortDD = (
-          <Dropdown value={sort} onChange={setSort} label="Sort by"
-            options={[{ value: "newest", label: "Sort: Newest first" }, { value: "oldest", label: "Oldest first" }, { value: "pnl-high", label: "P&L: high to low" }, { value: "pnl-low", label: "P&L: low to high" }]}
+          <Dropdown value={sort} onChange={setSort} label="Sort by" triggerPrefix="Sort"
+            options={[{ value: "newest", label: "Newest first" }, { value: "oldest", label: "Oldest first" }, { value: "pnl-high", label: "P&L: high to low" }, { value: "pnl-low", label: "P&L: low to high" }]}
             triggerStyle={{ height: 38 }} />
         );
         return (

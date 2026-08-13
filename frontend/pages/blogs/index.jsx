@@ -1,6 +1,6 @@
 "use client";
 
-/* /blog — public blog index. No login. Full SEO (meta, OG, Twitter,
+/* /blogs — public blog index. No login. Full SEO (meta, OG, Twitter,
    JSON-LD Blog schema). Data from data/blogs.json via utils/blogs. */
 
 import { useMemo, useState } from "react";
@@ -58,13 +58,13 @@ export default function BlogIndex() {
         <title>Trading Journal Blog — Funded Trading, Psychology & Risk | JournalX</title>
         <meta name="description" content={CAT_DESC} />
         <meta name="keywords" content={BLOG_KEYWORDS} />
-        <link rel="canonical" href={`${SITE_URL}/blog`} />
+        <link rel="canonical" href={`${SITE_URL}/blogs`} />
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="JournalX" />
         <meta property="og:title" content="JournalX Blog — Funded trading, psychology & journaling guides" />
         <meta property="og:description" content={CAT_DESC} />
-        <meta property="og:url" content={`${SITE_URL}/blog`} />
+        <meta property="og:url" content={`${SITE_URL}/blogs`} />
         <meta property="og:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="JournalX Blog — Funded trading, psychology & journaling guides" />
@@ -79,7 +79,7 @@ export default function BlogIndex() {
               "@type": "BreadcrumbList",
               itemListElement: [
                 { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-                { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+                { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blogs` },
               ],
             }),
           }}
@@ -111,7 +111,7 @@ export default function BlogIndex() {
 
           {/* featured — image-free, accent header */}
           {featured && cat === "All" && !q && (
-            <Link href={`/blog/${featured.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+            <Link href={`/blogs/${featured.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
               <motion.div
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 whileHover={{ y: -4 }}
@@ -137,7 +137,7 @@ export default function BlogIndex() {
           {/* grid — image-free cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "var(--space-4)" }}>
             {list.map((p, i) => (
-              <Link key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+              <Link key={p.slug} href={`/blogs/${p.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
                 <motion.div
                   initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                   whileHover={{ y: -4 }}

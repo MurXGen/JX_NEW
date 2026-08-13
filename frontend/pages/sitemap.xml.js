@@ -1,7 +1,7 @@
 /* Dynamic sitemap — public pages + every blog slug. Served at /sitemap.xml
    Rebuilds on every request from data/blogs.json, so newly published blogs
    appear automatically. Each URL carries an accurate <lastmod> — the signal
-   Google uses to decide what to recrawl. The homepage and /blog index inherit
+   Google uses to decide what to recrawl. The homepage and /blogs index inherit
    the date of the newest post (they genuinely change whenever a blog ships),
    so adding a post updates their lastmod and prompts a recrawl. */
 import { getAllPosts, SITE_URL } from "@/utils/blogs";
@@ -16,7 +16,7 @@ const STATIC_LASTMOD = "2026-06-20";
 const STATIC = [
   // `dynamic: true` → lastmod tracks the newest blog post (these pages list blogs)
   { path: "/", priority: "1.0", freq: "daily", dynamic: true },
-  { path: "/blog", priority: "0.9", freq: "daily", dynamic: true },
+  { path: "/blogs", priority: "0.9", freq: "daily", dynamic: true },
   { path: "/features", priority: "0.9", freq: "monthly" },
   ...MARKET_SLUGS.map((s) => ({ path: `/${s}`, priority: "0.8", freq: "monthly" })),
   // Programmatic SEO: per-broker + per-prop-firm landing pages
@@ -58,7 +58,7 @@ export async function getServerSideProps({ res }) {
     }),
     ...posts.map(
       (p) =>
-        `<url><loc>${SITE_URL}/blog/${p.slug}</loc><lastmod>${p.updated || p.date}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
+        `<url><loc>${SITE_URL}/blogs/${p.slug}</loc><lastmod>${p.updated || p.date}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
     ),
   ].join("");
 

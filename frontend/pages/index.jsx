@@ -982,7 +982,7 @@ const BLOG_ACCENT = {
 function BlogCard({ post }) {
   const accent = BLOG_ACCENT[post.category] || C.yellow;
   return (
-    <a href={`/blog/${post.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+    <a href={`/blogs/${post.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
       <article style={{ ...glass, width: 300, borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column", height: 188 }}>
         <div style={{ height: 5, background: `linear-gradient(90deg, ${accent}, transparent)` }} aria-hidden="true" />
         <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
@@ -1220,7 +1220,7 @@ export default function Home({ posts = [] }) {
     url: SITE_URL,
     potentialAction: {
       "@type": "SearchAction",
-      target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/blog?search={search_term_string}` },
+      target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/blogs?search={search_term_string}` },
       "query-input": "required name=search_term_string",
     },
   };
@@ -1493,7 +1493,7 @@ export default function Home({ posts = [] }) {
                   <h2 style={{ font: "700 clamp(26px,4vw,38px)/1.1 Poppins", margin: "0 0 8px", letterSpacing: "-1px" }}>Fresh trading lessons every week</h2>
                   <p style={{ font: "400 16px/1.6 Poppins", color: C.muted, margin: 0, maxWidth: 520 }}>Strategy, risk and psychology guides to turn each lesson into a measurable edge.</p>
                 </div>
-                <a href="/blog" style={{ textDecoration: "none" }}><button style={{ ...btnGhost, padding: "12px 20px" }}>Visit the blog <ArrowRight size={15} aria-hidden="true" /></button></a>
+                <a href="/blogs" style={{ textDecoration: "none" }}><button style={{ ...btnGhost, padding: "12px 20px" }}>Visit the blog <ArrowRight size={15} aria-hidden="true" /></button></a>
               </div>
               <Marquee duration={42}>
                 {posts.map((p) => (

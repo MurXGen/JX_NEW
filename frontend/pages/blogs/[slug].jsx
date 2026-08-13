@@ -1,6 +1,6 @@
 "use client";
 
-/* /blog/[slug] — public article. Full SEO (meta, OG, Twitter,
+/* /blogs/[slug] — public article. Full SEO (meta, OG, Twitter,
    BlogPosting JSON-LD, canonical). Static generation via
    getStaticPaths/getStaticProps so each article is crawlable. */
 
@@ -46,7 +46,7 @@ export default function BlogPost({ post, related }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const author = getAuthor(post);
-  const url = `${SITE_URL}/blog/${post.slug}`;
+  const url = `${SITE_URL}/blogs/${post.slug}`;
   const headings = post.body.filter((b) => b.type === "h2").map((b) => b.text);
 
   const share = async () => {
@@ -90,8 +90,8 @@ export default function BlogPost({ post, related }) {
               "@type": "BreadcrumbList",
               itemListElement: [
                 { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-                { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
-                { "@type": "ListItem", position: 3, name: post.category, item: `${SITE_URL}/blog?category=${encodeURIComponent(post.category)}` },
+                { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blogs` },
+                { "@type": "ListItem", position: 3, name: post.category, item: `${SITE_URL}/blogs?category=${encodeURIComponent(post.category)}` },
                 { "@type": "ListItem", position: 4, name: post.title, item: url },
               ],
             }),
@@ -155,7 +155,7 @@ export default function BlogPost({ post, related }) {
         <main style={{ maxWidth: 920, margin: "0 auto", padding: "var(--space-8) var(--space-4) 96px", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           {/* breadcrumb */}
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-            <Link href="/blog" style={{ color: "inherit", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+            <Link href="/blogs" style={{ color: "inherit", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
               <ArrowLeft size={14} /> Blog
             </Link>
             <ChevronRight size={13} />
@@ -251,7 +251,7 @@ export default function BlogPost({ post, related }) {
               <span className="jx-card__title">Keep reading</span>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "var(--space-4)" }}>
                 {related.map((p) => (
-                  <Link key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                  <Link key={p.slug} href={`/blogs/${p.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
                     <div className="jx-card jx-card--flat" style={{ padding: 0, overflow: "hidden", cursor: "pointer", height: "100%" }}>
                       <div style={{ height: 5, background: "linear-gradient(90deg, var(--yellow-500), var(--color-success))" }} />
                       <div style={{ padding: "var(--space-4)" }}>

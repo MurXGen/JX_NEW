@@ -139,11 +139,8 @@ function ReflexGame() {
         {phase === "idle" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, textAlign: "center", padding: 20 }}>
             <div style={{ font: "var(--text-body-md)", fontWeight: 700 }}>How fast can you react?</div>
-            <p style={{ font: "var(--text-caption)", ...muted, maxWidth: 320, margin: 0, lineHeight: 1.5 }}>
-              A yellow dot appears in a random spot — tap it as fast as you can. The next one shows the instant you hit it. Get as many as possible in 30 seconds.
-            </p>
-            <p style={{ font: "var(--text-caption)", color: "var(--yellow-500)", maxWidth: 320, margin: 0 }}>
-              Trains the split-second reaction you need to click entries &amp; exits without freezing.
+            <p style={{ font: "var(--text-caption)", ...muted, maxWidth: 300, margin: 0, lineHeight: 1.5 }}>
+              Tap each dot the instant it appears. Score as many as you can in 30s.
             </p>
             <Button variant="primary" icon={Play} onClick={start}>Start</Button>
           </div>
@@ -275,7 +272,7 @@ function CalcGame() {
           <div style={center}>
             <div style={{ font: "var(--text-body-md)", fontWeight: 700 }}>Beat your high score</div>
             <p style={{ font: "var(--text-caption)", ...muted, margin: 0, lineHeight: 1.5 }}>
-              Solve as many as you can — it gets harder the longer you last, and one wrong answer ends the run. Pick an operation, then chase your own best.
+              Pick an operation. One wrong answer ends the run.
             </p>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
               {OPS.map((o) => (
@@ -379,7 +376,7 @@ function Articles() {
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <BookOpen size={18} style={{ color: "var(--color-text-muted)" }} />
         <span className="jx-card__title">Latest articles</span>
-        <a href="/blog" target="_blank" rel="noopener" style={{ marginLeft: "auto", textDecoration: "none" }}>
+        <a href="/blogs" target="_blank" rel="noopener" style={{ marginLeft: "auto", textDecoration: "none" }}>
           <Button variant="ghost" size="sm" icon={ArrowRight}>All articles</Button>
         </a>
       </div>
@@ -388,7 +385,7 @@ function Articles() {
         {posts.slice(0, visible).map((p) => {
           const accent = ACCENT[p.category] || "var(--yellow-500)";
           return (
-            <a key={p.slug} href={`/blog/${p.slug}`} target="_blank" rel="noopener"
+            <a key={p.slug} href={`/blogs/${p.slug}`} target="_blank" rel="noopener"
                className="jx-card" style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", gap: 8, overflow: "hidden" }}>
               <span style={{ display: "inline-flex", alignSelf: "flex-start", padding: "3px 10px", borderRadius: 999, background: "var(--color-bg-muted)", border: "1px solid var(--color-border)", font: "var(--text-caption)", fontWeight: 600, color: accent }}>
                 {p.category} · {p.minutes} min
