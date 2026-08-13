@@ -45,7 +45,7 @@ export const createAccount = (accountName, currency, balance, accountType = "spo
     }
   );
 
-/* edit an existing journal — name, currency and starting balance */
+/* edit an existing journal, name, currency and starting balance */
 export const updateAccount = (accountId, accountName, currency, balance) =>
   axios.post(
     `${API_BASE}/api/account/update`,

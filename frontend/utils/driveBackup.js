@@ -5,7 +5,7 @@
  * Uses Google Identity Services (GIS) for an OAuth access token, then the
  * Drive REST API to store ONE JSON snapshot in the hidden "appDataFolder"
  * (private to this app). The snapshot is a full copy of IndexedDB "user-data",
- * so every backup overwrites the same file — there is never any duplication.
+ * so every backup overwrites the same file, there is never any duplication.
  *
  * Connection model:
  *  - The user grants the drive.appdata scope ONCE (at login/register, or on the
@@ -26,7 +26,7 @@ const FILE_NAME = "journalx-backup.json";
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 const CONNECTED_KEY = "jx-drive-connected";
 
-/* Master switch — Drive backup is enabled (Drive API enabled + OAuth app
+/* Master switch, Drive backup is enabled (Drive API enabled + OAuth app
    published on the Google Cloud project). Set to false to fully disable the
    Settings card, background auto-backup, and login-time connect. */
 const BACKUP_ENABLED = false;
@@ -132,7 +132,7 @@ export async function connectDrive() {
   }
 }
 
-/* Silently warm the connection on load — no popup. Returns true if connected. */
+/* Silently warm the connection on load, no popup. Returns true if connected. */
 export async function warmDriveConnection() {
   if (!isDriveConfigured()) return false;
   try {
@@ -251,7 +251,7 @@ export function scheduleAutoBackup(delay = 4000) {
     try {
       await backupToDrive({ interactive: false });
     } catch {
-      /* silent — auto-backup must never disturb the user */
+      /* silent, auto-backup must never disturb the user */
     } finally {
       backupInFlight = false;
     }

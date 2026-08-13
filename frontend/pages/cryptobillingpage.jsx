@@ -1,6 +1,6 @@
 "use client";
 
-/* Crypto checkout — v2 redesign.
+/* Crypto checkout, v2 redesign.
    Logic (order creation, verification polling, timers, localStorage) is
    unchanged; only the UI/UX and styling were rebuilt on the design tokens
    so it's polished and theme-aware. */
@@ -48,7 +48,7 @@ const NETWORK_ADDRESSES = {
 /* Staged verification steps shown while we poll the chain. They advance on an
    interval so the user sees a real, professional verification pipeline. The
    last step (network confirmations) holds until the backend actually confirms
-   the deposit — at which point the flow moves to success. */
+   the deposit, at which point the flow moves to success. */
 const VERIFY_STEPS = [
   { key: "connect", label: "Connecting to {network}", sub: "Opening a secure node connection" },
   { key: "scan", label: "Scanning the blockchain", sub: "Searching for a transfer to your deposit address" },
@@ -153,7 +153,7 @@ export default function CryptoBillingPage() {
     }
   }, [paymentStatus, planData, router]);
 
-  // staged verification animation — advances on an interval while we poll the
+  // staged verification animation, advances on an interval while we poll the
   // chain, then holds on "Awaiting confirmations" until real success arrives.
   useEffect(() => {
     if (paymentStatus !== "processing") {
@@ -353,7 +353,7 @@ export default function CryptoBillingPage() {
           </button>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Complete your payment</span>
-            <span style={{ font: "var(--text-small)", ...muted }}>Pay with USDT — fast, low fees, no card needed.</span>
+            <span style={{ font: "var(--text-small)", ...muted }}>Pay with USDT, fast, low fees, no card needed.</span>
           </div>
         </div>
 
@@ -382,7 +382,7 @@ export default function CryptoBillingPage() {
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 320px", gap: "var(--space-5)", alignItems: "start" }} className="cb-grid">
-          {/* LEFT — network + deposit */}
+          {/* LEFT, network + deposit */}
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
             <div style={card}>
               <div style={{ font: "var(--text-title)", fontWeight: 600, marginBottom: 4 }}>Select network</div>
@@ -491,17 +491,17 @@ export default function CryptoBillingPage() {
                         }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", fontWeight: 700, color: "var(--color-danger-strong)" }}>
-                          <AlertCircle size={15} style={{ flexShrink: 0 }} /> Read before sending — transfers are irreversible
+                          <AlertCircle size={15} style={{ flexShrink: 0 }} /> Read before sending, transfers are irreversible
                         </div>
                         <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 5 }}>
                           <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
                             Send <strong>USDT only</strong> on the <strong>{selectedNetworkData?.name} ({selectedNetworkData?.tag})</strong> network. Any other coin or network will be permanently lost.
                           </li>
                           <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                            Send <strong>at least {planData.amount} USDT</strong> — you cover the network fee, so the amount we receive must equal {planData.amount} USDT.
+                            Send <strong>at least {planData.amount} USDT</strong>, you cover the network fee, so the amount we receive must equal {planData.amount} USDT.
                           </li>
                           <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                            <strong>Double-check the full address</strong> — copy it with the button, don&apos;t type it by hand.
+                            <strong>Double-check the full address</strong>, copy it with the button, don&apos;t type it by hand.
                           </li>
                           <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
                             Sent to the wrong address or network? It cannot be recovered or refunded.
@@ -551,7 +551,7 @@ export default function CryptoBillingPage() {
             </AnimatePresence>
           </div>
 
-          {/* RIGHT — order summary */}
+          {/* RIGHT, order summary */}
           <div style={{ ...card, position: "sticky", top: 20 }}>
             <div style={{ font: "var(--text-caption)", textTransform: "uppercase", letterSpacing: 0.5, ...muted, marginBottom: "var(--space-3)" }}>
               Order summary
@@ -765,7 +765,7 @@ export default function CryptoBillingPage() {
 
                   <div style={{ height: 1, background: "var(--color-border)" }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", ...muted }}>
-                    <Shield size={14} style={{ color: "var(--color-success)" }} /> Verification is automatic — please keep this page open. It can take a few minutes.
+                    <Shield size={14} style={{ color: "var(--color-success)" }} /> Verification is automatic, please keep this page open. It can take a few minutes.
                   </div>
                   {errorMessage && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--color-danger-subtle)", borderRadius: "var(--radius-md)", font: "var(--text-caption)", color: "var(--color-danger-strong)" }}>

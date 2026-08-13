@@ -146,7 +146,7 @@ const TradesWebPage = () => {
         <title>JournalX | Trade History & Calendar</title>
         <meta
           name="description"
-          content="Track and analyze your trading performance with JournalX's Trade History and Calendar. View all your logged trades, performance summaries, and behavioral insights — all in one clean dashboard."
+          content="Track and analyze your trading performance with JournalX's Trade History and Calendar. View all your logged trades, performance summaries, and behavioral insights, all in one clean dashboard."
         />
         <meta
           name="keywords"
@@ -171,7 +171,7 @@ const TradesWebPage = () => {
         <meta name="twitter:title" content="JournalX | Trade History" />
         <meta
           name="twitter:description"
-          content="Visualize and analyze all your trades in one place with JournalX — your AI-powered trading journal."
+          content="Visualize and analyze all your trades in one place with JournalX, your AI-powered trading journal."
         />
         <meta name="twitter:image" content="/assets/Journalx_Banner.png" />
       </Head>

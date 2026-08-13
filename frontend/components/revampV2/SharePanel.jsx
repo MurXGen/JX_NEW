@@ -8,7 +8,7 @@ import Button from "./Button";
 import Toast from "./Toast";
 
 /**
- * SharePanel — generate a public, read-only link of your trades.
+ * SharePanel, generate a public, read-only link of your trades.
  * Data is encoded into the URL (no account access) and shortened
  * via TinyURL. Public page: /view-trades.
  */
@@ -104,7 +104,7 @@ export default function SharePanel({ trades = [], accountName = "My journal", cu
       flash("success", "Share link ready");
     } catch (e) {
       console.error(e);
-      flash("danger", "Could not generate link — try again");
+      flash("danger", "Could not generate link, try again");
     } finally {
       setBusy(false);
     }
@@ -116,7 +116,7 @@ export default function SharePanel({ trades = [], accountName = "My journal", cu
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      flash("danger", "Copy failed — select the link manually");
+      flash("danger", "Copy failed, select the link manually");
     }
   };
 
@@ -127,7 +127,7 @@ export default function SharePanel({ trades = [], accountName = "My journal", cu
       <div>
         <div style={{ font: "var(--text-h2)" }}>Share your logs</div>
         <div style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
-          Create a read-only link to your performance — no login needed to view it.
+          Create a read-only link to your performance, no login needed to view it.
         </div>
       </div>
 
@@ -189,7 +189,7 @@ export default function SharePanel({ trades = [], accountName = "My journal", cu
         )}
 
         <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-          The link contains a snapshot of the selected trades — it won&apos;t update as you log more, and viewers can&apos;t access your account.
+          The link contains a snapshot of the selected trades, it won&apos;t update as you log more, and viewers can&apos;t access your account.
         </span>
       </div>
     </div>

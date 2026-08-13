@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * revampV2 Badge — variant: success | danger | neutral | brand
+ * revampV2 Badge, variant: success | danger | neutral | brand
  * Use for Buy/Long (success), Sell/Short (danger), tags (neutral/brand).
  */
 export default function Badge({ variant = "neutral", icon: Icon, children }) {

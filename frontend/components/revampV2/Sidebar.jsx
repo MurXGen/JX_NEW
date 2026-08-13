@@ -37,16 +37,16 @@ export function useTheme() {
 }
 
 /**
- * revampV2 Sidebar — Figma "Components / Sidebar".
+ * revampV2 Sidebar, Figma "Components / Sidebar".
  * Tab-driven: pass items [{id,label,icon}], active id, onChange(id).
  *
  * props:
- *  items, active, onChange         — nav
- *  accountName, onAccountSwitch    — journal switcher row
- *  onLogTrade                      — primary CTA
+ *  items, active, onChange, nav
+ *  accountName, onAccountSwitch, journal switcher row
+ *  onLogTrade, primary CTA
  *  user ({name,email}), onProfile
  *  showUpgrade, onUpgrade
- *  onSupport                       — opens the support/feedback modal
+ *  onSupport, opens the support/feedback modal
  */
 export default function Sidebar({
   items = [],
@@ -204,7 +204,7 @@ export default function Sidebar({
 
       {/* Footer */}
       <div className="jx-sidebar__footer">
-        {/* Install as PWA — only renders when installable & not yet installed */}
+        {/* Install as PWA, only renders when installable & not yet installed */}
         <SidebarInstallButton collapsed={collapsed} />
 
         {showUpgrade && (

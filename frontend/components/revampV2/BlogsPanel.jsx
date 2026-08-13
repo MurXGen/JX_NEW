@@ -1,6 +1,6 @@
 "use client";
 
-/* Learn & News panel (dashboard) — reads the same data/blogs.json as
+/* Learn & News panel (dashboard), reads the same data/blogs.json as
    the public /blogs pages via utils/blogs. Opens articles in a new tab
    on the public, SEO-indexed blog page. */
 
@@ -40,7 +40,7 @@ export default function BlogsPanel() {
         <div>
           <div style={{ font: "var(--text-h2)" }}>Sharpen your edge</div>
           <div style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
-            Guides and tactics — a fresh trading lesson every day.
+            Guides and tactics, a fresh trading lesson every day.
           </div>
         </div>
         <Button variant="outline" size="sm" icon={ExternalLink} onClick={() => window.open("/blogs", "_blank", "noopener")}>
@@ -113,7 +113,7 @@ export default function BlogsPanel() {
           </button>
         ))}
         {list.length === 0 && (
-          <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>No articles match — try another category.</span>
+          <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>No articles match, try another category.</span>
         )}
       </div>
     </div>

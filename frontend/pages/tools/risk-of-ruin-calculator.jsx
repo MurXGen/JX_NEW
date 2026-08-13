@@ -64,27 +64,27 @@ export default function RiskOfRuinCalculator() {
   const p = inputs.winRate / 100;
   const expectancyR = p * inputs.payoff - (1 - p);
   const rorColor = ror < 5 ? TC.green : ror < 25 ? TC.yellow : TC.red;
-  const verdict = ror < 5 ? "Low risk — survivable" : ror < 25 ? "Caution — consider smaller size" : "Dangerous — reduce risk per trade";
+  const verdict = ror < 5 ? "Low risk, survivable" : ror < 25 ? "Caution, consider smaller size" : "Dangerous, reduce risk per trade";
   const fmt = (n) => n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
   const worked = [
     `Expectancy = (win% × reward) − loss% = (${fmt(inputs.winRate)}% × ${fmt(inputs.payoff)}R) − ${fmt(100 - inputs.winRate)}%`,
     `Expectancy = ${fmt(p * inputs.payoff)} − ${fmt(1 - p)} = ${expectancyR >= 0 ? "+" : ""}${fmt(expectancyR)}R per trade`,
-    `Risk of ruin ≈ ${ror.toFixed(1)}% — share of 5,000 simulated ${inputs.trades}-trade runs that fell ${inputs.ruinDrawdown}% from the start while risking ${fmt(inputs.riskPct)}% each trade`,
+    `Risk of ruin ≈ ${ror.toFixed(1)}%, share of 5,000 simulated ${inputs.trades}-trade runs that fell ${inputs.ruinDrawdown}% from the start while risking ${fmt(inputs.riskPct)}% each trade`,
   ];
 
   return (
     <ToolPage
       slug="risk-of-ruin-calculator"
       h1="Risk of Ruin Calculator"
-      title="Risk of Ruin Calculator (Free) — Will You Blow Up? | JournalX"
-      description="Free risk-of-ruin calculator. Enter your win rate, reward:risk and risk per trade to see the probability of blowing your account — a Monte Carlo simulation, run in your browser."
+      title="Risk of Ruin Calculator (Free), Will You Blow Up? | JournalX"
+      description="Free risk-of-ruin calculator. Enter your win rate, reward:risk and risk per trade to see the probability of blowing your account, a Monte Carlo simulation, run in your browser."
       keywords={["risk of ruin calculator", "risk of ruin", "probability of ruin trading", "blow up account probability", "monte carlo trading", "trading risk calculator"]}
       intro="Enter your win rate, reward-to-risk and how much you risk per trade. This runs a Monte Carlo simulation (thousands of trade sequences) to estimate the probability your account hits the ruin level before your edge plays out."
       explainer={[
-        { h: "What is risk of ruin?", p: "Risk of ruin is the probability that a string of losses drains your account past a point you define as 'ruined' (here, a chosen drawdown). Even a profitable edge can blow up if you risk too much per trade — variance gets there before your edge does." },
-        { h: "How this calculator works", p: "It simulates thousands of sequences of trades using fixed-fractional risk on your current equity. Each trade wins (gaining reward × risk) or loses (−risk) based on your win rate, and a sequence counts as 'ruined' if equity falls below your drawdown threshold. The percentage shown is how often that happened. The simulation is deterministic — the same inputs always give the same answer." },
-        { h: "The lesson", p: "Notice how dropping risk per trade from 5% to 1% collapses your risk of ruin even with the same edge. That's why position sizing — not entries — is what keeps traders in the game. JournalX tracks your real win rate and R so these inputs come from your actual data, not guesses." },
+        { h: "What is risk of ruin?", p: "Risk of ruin is the probability that a string of losses drains your account past a point you define as 'ruined' (here, a chosen drawdown). Even a profitable edge can blow up if you risk too much per trade, variance gets there before your edge does." },
+        { h: "How this calculator works", p: "It simulates thousands of sequences of trades using fixed-fractional risk on your current equity. Each trade wins (gaining reward × risk) or loses (−risk) based on your win rate, and a sequence counts as 'ruined' if equity falls below your drawdown threshold. The percentage shown is how often that happened. The simulation is deterministic, the same inputs always give the same answer." },
+        { h: "The lesson", p: "Notice how dropping risk per trade from 5% to 1% collapses your risk of ruin even with the same edge. That's why position sizing, not entries, is what keeps traders in the game. JournalX tracks your real win rate and R so these inputs come from your actual data, not guesses." },
       ]}
       faqs={[
         ["What is a safe risk of ruin?", "Under 5% is generally considered survivable for the horizon you set; above ~25% you're very likely to hit your ruin level before your edge compounds. Lower is always better."],
@@ -126,7 +126,7 @@ export default function RiskOfRuinCalculator() {
           </div>
           {expectancyR < 0 && (
             <div style={{ font: "400 12px Poppins", color: TC.red, marginTop: 8 }}>
-              Your edge is negative — no position size makes this safe long-term. Fix the strategy first.
+              Your edge is negative, no position size makes this safe long-term. Fix the strategy first.
             </div>
           )}
         </div>
@@ -140,7 +140,7 @@ export default function RiskOfRuinCalculator() {
           ["Reward : risk (R)", "How big your average winner is versus your risk. 2R means a typical win is twice what you risk on the trade."],
           ["Expectancy", "Average profit per trade in R = (win% × reward) − loss%. Positive means the strategy makes money over time; negative means it loses, no matter how you size it."],
           ["Risk of ruin", "The chance a losing streak drains your account to your 'ruin' line (the drawdown you set) before your edge pays off. Lower is safer."],
-          ["Monte Carlo", "Instead of one guess, we replay thousands of randomised trade sequences with your numbers and count how many blew up — a far more honest picture than a single average."],
+          ["Monte Carlo", "Instead of one guess, we replay thousands of randomised trade sequences with your numbers and count how many blew up, a far more honest picture than a single average."],
         ]}
       />
     </ToolPage>

@@ -29,7 +29,7 @@ export const toolInput = {
 };
 export const toolLabel = { font: "400 12px Poppins", color: TC.dim, marginBottom: 6, display: "block" };
 
-/* "How this is calculated" — shows the formula with the user's real numbers
+/* "How this is calculated", shows the formula with the user's real numbers
    plugged in, so the result is never a black box. Pass an array of strings;
    the last line is emphasised as the answer. */
 export function WorkedExample({ lines = [], title = "How this number is calculated" }) {
@@ -181,7 +181,7 @@ export default function ToolPage({ slug, title, description, keywords = [], h1, 
           <section style={{ marginTop: 40, ...toolCard, textAlign: "center", background: "linear-gradient(135deg, rgba(252,213,53,0.14), rgba(46,189,133,0.08))", border: "1px solid rgba(252,213,53,0.3)", padding: 30 }}>
             <h2 style={{ font: "700 clamp(20px,3vw,26px)/1.2 Poppins", margin: "0 0 10px" }}>Stop calculating in your head</h2>
             <p style={{ font: "400 15px/1.6 Poppins", color: TC.muted, margin: "0 auto 18px", maxWidth: 440 }}>
-              JournalX logs every trade and computes your risk, R-multiples and drawdown automatically — free to start, no card.
+              JournalX logs every trade and computes your risk, R-multiples and drawdown automatically, free to start, no card.
             </p>
             <a href="/register" style={{ textDecoration: "none" }}>
               <button style={{ ...btnPrimary, padding: "13px 26px", fontSize: 15, background: `linear-gradient(90deg, ${TC.yellow}, ${TC.yellowDeep})` }}>

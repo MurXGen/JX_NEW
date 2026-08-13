@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
 /**
- * revampV2 Toast — fixed top-center notification.
+ * revampV2 Toast, fixed top-center notification.
  * toast: { type: 'success' | 'danger' | 'info', msg } | null
  */
 export default function Toast({ toast }) {

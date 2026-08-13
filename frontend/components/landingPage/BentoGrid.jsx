@@ -34,7 +34,7 @@ export default function BentoGrid() {
   const cards = [
     {
       title: "Turn Random Trades into Clear Lessons",
-      desc: "Stop relying on memory and emotion. See exactly what worked, what failed, and why — so every trade becomes a lesson instead of a guess.",
+      desc: "Stop relying on memory and emotion. See exactly what worked, what failed, and why, so every trade becomes a lesson instead of a guess.",
       highlight: "Awareness drives improvement.",
       video: "/assets/know_pattern1.mp4",
       large: true,

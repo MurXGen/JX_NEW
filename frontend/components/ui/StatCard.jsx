@@ -3,7 +3,7 @@
 import { TrendingUp, TrendingDown, CircleDollarSign } from "lucide-react";
 
 /**
- * Analytics stat card — Figma "Components / Stat Cards".
+ * Analytics stat card, Figma "Components / Stat Cards".
  * props: label, value, delta (number, %), deltaLabel, icon, bars (number[])
  */
 export default function StatCard({

@@ -1,6 +1,6 @@
 "use client";
 
-/* SettingsModal — opens the tabbed Settings panel as a glassmorphic dialog
+/* SettingsModal, opens the tabbed Settings panel as a glassmorphic dialog
    (reuses the Log-trade modal's glass shell), like Claude's settings. */
 
 import { AnimatePresence, motion } from "framer-motion";

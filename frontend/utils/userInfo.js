@@ -1,7 +1,7 @@
 /* Shared, throttled user-info fetcher.
 
    The dashboard and DataContext both need /api/auth/user-info on load, and
-   effects can re-run on navigation — which used to fire the request many times.
+   effects can re-run on navigation, which used to fire the request many times.
    This caches the response for a short TTL, de-dupes concurrent calls, and caps
    the number of real network hits per page session so the endpoint is called at
    most a few times. Pass { force: true } after a known change (e.g. profile

@@ -1,6 +1,6 @@
 "use client";
 
-/* Learn & Focus — two quick focus games (reflex + mental math) with local
+/* Learn & Focus, two quick focus games (reflex + mental math) with local
    high scores, plus the latest articles (reveal-all on scroll). No XP. */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -38,7 +38,7 @@ function ReflexGame() {
   const [best, setBest] = useState(0);
   const appearedRef = useRef(0);
   // reaction stats kept in refs so a tap always records (state timing bugs
-  // were dropping the average) — derived below on every render.
+  // were dropping the average), derived below on every render.
   const sumRef = useRef(0);
   const countRef = useRef(0);
   const fastRef = useRef(Infinity);
@@ -86,7 +86,7 @@ function ReflexGame() {
 
   // interpret the average reaction time into a plain-language rating
   const rating =
-    avg <= 0 ? { label: "—", color: "var(--color-text-muted)" }
+    avg <= 0 ? { label: ", ", color: "var(--color-text-muted)" }
     : avg < 300 ? { label: "⚡ Lightning reflexes", color: "var(--color-success-strong)" }
     : avg < 450 ? { label: "Sharp", color: "var(--color-success)" }
     : avg < 600 ? { label: "Steady", color: "var(--yellow-500)" }
@@ -105,12 +105,12 @@ function ReflexGame() {
         <Badge variant="brand"><Trophy size={11} /> Best {best}</Badge>
       </div>
 
-      {/* live stats — only while playing */}
+      {/* live stats, only while playing */}
       {phase === "playing" && (
         <div style={{ display: "flex", gap: "var(--space-4)" }}>
           <Stat label="Time left" value={`${mm}:${ss}`} />
           <Stat label="Hits" value={hits} />
-          <Stat label="Avg reaction" value={avg ? `${Math.round(avg)}ms` : "—"} />
+          <Stat label="Avg reaction" value={avg ? `${Math.round(avg)}ms` : ", "} />
         </div>
       )}
 
@@ -153,8 +153,8 @@ function ReflexGame() {
             </div>
             <div style={{ display: "flex", gap: "var(--space-6)", justifyContent: "center" }}>
               {[
-                { label: "Avg reaction", value: avg ? `${Math.round(avg)}ms` : "—" },
-                { label: "Fastest", value: fastest ? `${Math.round(fastest)}ms` : "—" },
+                { label: "Avg reaction", value: avg ? `${Math.round(avg)}ms` : ", " },
+                { label: "Fastest", value: fastest ? `${Math.round(fastest)}ms` : ", " },
               ].map((s) => (
                 <div key={s.label} style={{ textAlign: "center" }}>
                   <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", whiteSpace: "nowrap", ...muted }}>{s.label}</div>
@@ -164,7 +164,7 @@ function ReflexGame() {
             </div>
             <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: rating.color }}>{rating.label}</span>
             <span style={{ font: "var(--text-caption)", ...muted, maxWidth: 320, lineHeight: 1.5 }}>
-              Faster, steadier reactions mean cleaner fills — less hesitation on entries and a quicker hand on your stop.
+              Faster, steadier reactions mean cleaner fills, less hesitation on entries and a quicker hand on your stop.
             </span>
             <Button variant="primary" icon={RotateCcw} onClick={start}>Play again</Button>
           </div>
@@ -174,7 +174,7 @@ function ReflexGame() {
   );
 }
 
-/* ================= Mental math — endless streak ================= */
+/* ================= Mental math, endless streak ================= */
 const OPS = [
   { id: "add", sym: "+", label: "Addition" },
   { id: "subtract", sym: "−", label: "Subtraction" },
@@ -185,7 +185,7 @@ const OPS = [
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 /* difficulty scales with `level` (rises every few correct answers) so the run
-   gets harder the longer you survive — the reason a high score feels earned. */
+   gets harder the longer you survive, the reason a high score feels earned. */
 function genQuestion(op, level = 0) {
   const realOp = op === "mixed" ? ["add", "subtract", "multiply", "divide"][rnd(0, 3)] : op;
   const L = Math.min(level, 8);
@@ -253,12 +253,12 @@ function CalcGame() {
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Mental math streak</div>
-          <div style={{ font: "var(--text-caption)", ...muted }}>Endless — one wrong answer ends the run · beat your best</div>
+          <div style={{ font: "var(--text-caption)", ...muted }}>Endless, one wrong answer ends the run · beat your best</div>
         </div>
         <Badge variant="brand"><Trophy size={11} /> Best {best}</Badge>
       </div>
 
-      {/* live stats — only while playing (mirrors the reflex game) */}
+      {/* live stats, only while playing (mirrors the reflex game) */}
       {phase === "playing" && (
         <div style={{ display: "flex", gap: "var(--space-4)" }}>
           <Stat label="Score" value={score} />
@@ -294,7 +294,7 @@ function CalcGame() {
           <div style={center}>
             {aheadOfBest && (
               <span style={{ font: "var(--text-caption)", fontWeight: 700, color: "var(--color-success-strong)" }}>
-                🏆 New best — keep it alive!
+                🏆 New best, keep it alive!
               </span>
             )}
             <div style={{ font: "700 clamp(28px,7vw,44px) Poppins", letterSpacing: "-1px", color: wrong ? "var(--color-danger)" : "var(--color-text-primary)" }}>
@@ -325,7 +325,7 @@ function CalcGame() {
             </div>
             {missedAnswer != null && (
               <span style={{ font: "var(--text-caption)", color: "var(--color-danger)" }}>
-                Missed it — the answer was {missedAnswer}
+                Missed it, the answer was {missedAnswer}
               </span>
             )}
             <span style={{ font: "var(--text-caption)", ...muted }}>{OPS.find((o) => o.id === op)?.label} · best {best}</span>

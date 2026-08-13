@@ -5,7 +5,6 @@ import {
   ArrowRightLeft,
   Calendar,
   Check,
-  ChevronRight,
   Download,
   FileText,
   LineChart,
@@ -56,7 +55,7 @@ const buildStats = (list) => {
 const bySymbol = (list) => {
   const m = new Map();
   list.forEach((t) => {
-    const s = t.symbol || t.ticker || "—";
+    const s = t.symbol || t.ticker || ", ";
     if (!m.has(s)) m.set(s, { pnl: 0, n: 0, w: 0 });
     const e = m.get(s);
     e.pnl += Number(t.pnl) || 0;
@@ -155,7 +154,7 @@ export default function ImportExportPanel({ trades = [], onImported }) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(30, 35, 41);
-    doc.text("JournalX — Trading Report", 14, 12);
+    doc.text("JournalX, Trading Report", 14, 12);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text(`${range} · generated ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`, 14, 25);
@@ -239,7 +238,7 @@ export default function ImportExportPanel({ trades = [], onImported }) {
       flash("success", `${format} downloaded`);
     } catch (e) {
       console.error(e);
-      flash("danger", "Export failed — try again");
+      flash("danger", "Export failed, try again");
     }
   };
 
@@ -326,10 +325,7 @@ export default function ImportExportPanel({ trades = [], onImported }) {
         {/* ===== Right column ===== */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <div className="jx-card">
-            <div className="jx-card__title">Import trades</div>
-            <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-3)" }}>
-              Download our template, paste in your trades, and upload it — we&apos;ll preview before saving.
-            </div>
+            <div className="jx-card__title" style={{ marginBottom: "var(--space-3)" }}>Import trades</div>
 
             <div
               className="jx-dropzone"
@@ -342,19 +338,8 @@ export default function ImportExportPanel({ trades = [], onImported }) {
                 <Upload size={16} />
               </span>
               <strong style={{ color: "var(--color-text-primary)" }}>Import from a template</strong>
-              <span style={{ font: "var(--text-caption)" }}>
-                Download a template, fill it, upload · we preview before saving
-              </span>
+              <span style={{ font: "var(--text-caption)" }}>Get a template &amp; upload your CSV</span>
             </div>
-
-            <button className="jx-sidebar__item" style={{ marginTop: "var(--space-3)", border: "1px solid var(--color-border)", background: "var(--color-bg-muted)" }}>
-              <ArrowRightLeft size={16} />
-              <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", flex: 1 }}>
-                <span style={{ fontWeight: 600 }}>Connect an exchange instead</span>
-                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Auto-sync trades via API — see Settings</span>
-              </span>
-              <ChevronRight size={15} />
-            </button>
           </div>
 
           <div className="jx-card">

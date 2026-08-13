@@ -1,6 +1,6 @@
 "use client";
 
-/* /forgot-password — revamp v2. Email → 6-digit code + new password →
+/* /forgot-password, revamp v2. Email → 6-digit code + new password →
    done. Backend: POST /api/auth/forgot-password + /reset-password. */
 
 import { useEffect, useState } from "react";
@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
       setCooldown(60);
       flash("success", "If that email exists, a code is on its way");
     } catch (err) {
-      flash("danger", err.response?.data?.message || "Something went wrong — try again");
+      flash("danger", err.response?.data?.message || "Something went wrong, try again");
     } finally {
       setBusy(false);
     }
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
       );
       setStep("done");
     } catch (err) {
-      flash("danger", err.response?.data?.message || "Could not reset — check the code");
+      flash("danger", err.response?.data?.message || "Could not reset, check the code");
     } finally {
       setBusy(false);
     }
@@ -89,11 +89,11 @@ export default function ForgotPasswordPage() {
           ? "We'll email you a 6-digit code"
           : step === "reset"
             ? `Enter the code we sent to ${email}`
-            : "You're all set — log in with your new password"
+            : "You're all set, log in with your new password"
       }
     >
       <Head>
-        <title>Reset Password — JournalX Trading Journal | journalx.app</title>
+        <title>Reset Password, JournalX Trading Journal | journalx.app</title>
         <meta name="description" content="Reset your JournalX password securely at journalx.app and get back to analysing your trades in seconds." />
         <meta name="robots" content="noindex, follow" />
         <link rel="canonical" href="https://journalx.app/forgot-password" />

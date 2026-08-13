@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * revampV2 Button — Figma "Components / Buttons"
+ * revampV2 Button, Figma "Components / Buttons"
  * variant: primary | secondary | outline | ghost | danger | danger-outline |
  *          danger-subtle | success | success-subtle
  * size: sm | md | lg

@@ -1,6 +1,6 @@
 "use client";
 
-/* Settings card — TradingView integration. Fetches the user's webhook
+/* Settings card, TradingView integration. Fetches the user's webhook
    token, shows the webhook URL, and gives copy-paste setup steps for
    the JournalX Pine "Trade Marker" indicator. */
 
@@ -65,13 +65,13 @@ export default function TradingViewCard() {
         <Badge variant="brand">Beta</Badge>
       </div>
       <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-3)" }}>
-        Mark trades right on your TradingView chart and log them to JournalX automatically — no screenshots needed.
+        Mark trades right on your TradingView chart and log them to JournalX automatically, no screenshots needed.
       </div>
 
       {loading ? (
         <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>Loading your webhook…</span>
       ) : !data ? (
-        <span style={{ font: "var(--text-small)", color: "var(--color-danger)" }}>Could not load — refresh and try again.</span>
+        <span style={{ font: "var(--text-small)", color: "var(--color-danger)" }}>Could not load, refresh and try again.</span>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
           <CopyField label="Webhook URL" value={data.webhookUrl} />
@@ -92,11 +92,11 @@ export default function TradingViewCard() {
 
           {open && (
             <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8, font: "var(--text-small)", color: "var(--color-text-secondary)" }}>
-              <li>In TradingView, open the indicators panel and add <strong>“JournalX — Trade Marker”</strong> (publish the provided Pine script to your account, then add it to a chart).</li>
-              <li>In the indicator settings, paste your token above into the <code>token</code> field of the alert message, or just use the alert template — drag the <strong>Entry</strong> and <strong>Exit</strong> points to your trade.</li>
+              <li>In TradingView, open the indicators panel and add <strong>“JournalX, Trade Marker”</strong> (publish the provided Pine script to your account, then add it to a chart).</li>
+              <li>In the indicator settings, paste your token above into the <code>token</code> field of the alert message, or just use the alert template, drag the <strong>Entry</strong> and <strong>Exit</strong> points to your trade.</li>
               <li>Pick direction (Long/Short), size and unit, and any stop / take-profit.</li>
-              <li>Right-click the chart → <strong>Add alert</strong> → Condition: <em>JournalX — Trade Marker</em> → “Any alert() function call”. Under Notifications, enable <strong>Webhook URL</strong> and paste the URL above.</li>
-              <li>Toggle <strong>“Position closed”</strong> on the indicator when you exit — the alert fires and the trade appears in your Trades log, with the entry/exit chart drawn on the details page.</li>
+              <li>Right-click the chart → <strong>Add alert</strong> → Condition: <em>JournalX, Trade Marker</em> → “Any alert() function call”. Under Notifications, enable <strong>Webhook URL</strong> and paste the URL above.</li>
+              <li>Toggle <strong>“Position closed”</strong> on the indicator when you exit, the alert fires and the trade appears in your Trades log, with the entry/exit chart drawn on the details page.</li>
             </ol>
           )}
         </div>

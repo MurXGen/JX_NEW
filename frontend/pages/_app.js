@@ -78,7 +78,7 @@ export default function MyApp({ Component, pageProps }) {
           rel="stylesheet"
         />
 
-        {/* Open Graph / Facebook — absolute URLs required by crawlers */}
+        {/* Open Graph / Facebook, absolute URLs required by crawlers */}
         {/* `key` props let individual pages override these without
             emitting duplicate og:* tags (next/head dedupes by key). */}
         <meta key="og:type" property="og:type" content="website" />
@@ -105,7 +105,7 @@ export default function MyApp({ Component, pageProps }) {
         <meta
           key="og:image:alt"
           property="og:image:alt"
-          content="JournalX — trading journal and analytics dashboard"
+          content="JournalX, trading journal and analytics dashboard"
         />
 
         {/* Twitter Meta */}
@@ -125,7 +125,7 @@ export default function MyApp({ Component, pageProps }) {
         />
         <meta
           name="twitter:image:alt"
-          content="JournalX — trading journal and analytics dashboard"
+          content="JournalX, trading journal and analytics dashboard"
         />
 
         {/* Theme initialization */}
@@ -180,7 +180,7 @@ export default function MyApp({ Component, pageProps }) {
           </>
         )}
 
-        {/* Meta (Facebook) Pixel — powers retargeting + funnel events via utils/gtag */}
+        {/* Meta (Facebook) Pixel, powers retargeting + funnel events via utils/gtag */}
         {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
           <>
             <script

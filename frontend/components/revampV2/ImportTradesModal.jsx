@@ -7,10 +7,8 @@ import Cookies from "js-cookie";
 import Papa from "papaparse";
 import {
   AlertTriangle,
-  Check,
   CheckCircle2,
   Download,
-  FileText,
   Upload,
   X,
 } from "lucide-react";
@@ -26,10 +24,10 @@ import { parseImportRows } from "@/utils/importParse";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-/* Figma "Import trades" modal — CSV template (quick-log columns),
+/* Figma "Import trades" modal, CSV template (quick-log columns),
    parse + validate with papaparse, then bulk POST /api/trades/bulk. */
 
-/* Required: symbol, direction. Everything else is optional — use the Quick log
+/* Required: symbol, direction. Everything else is optional, use the Quick log
    template (result-only) or the Detailed template (entry/exit, risk, strategy,
    psychology). Templates are shared with the Import/Export page. */
 
@@ -46,38 +44,6 @@ function checkTemplate(fields = []) {
   const unknown = [...new Set((fields || []).filter((f) => f && !OUR_COLUMNS.has(compactHdr(f))))];
   if (unknown.length) return { ok: false, reason: "unknown", unknown };
   return { ok: true };
-}
-
-/* three-step progress bar (replaces the "1 · / 2 ·" numbering) */
-function Stepper({ step }) {
-  const labels = ["Get template", "Upload CSV", "Review & import"];
-  return (
-    <div style={{ display: "flex", alignItems: "center" }}>
-      {labels.map((label, i) => {
-        const n = i + 1;
-        const state = n < step ? "done" : n === step ? "active" : "todo";
-        const on = state !== "todo";
-        return (
-          <div key={label} style={{ display: "flex", alignItems: "center", flex: i < labels.length - 1 ? 1 : "0 0 auto", minWidth: 0 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <span style={{
-                width: 24, height: 24, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", font: "700 11px Poppins",
-                background: on ? "var(--color-primary)" : "var(--color-bg-muted)",
-                color: on ? "var(--color-primary-foreground)" : "var(--color-text-muted)",
-                boxShadow: state === "active" ? "0 0 0 3px var(--color-primary-subtle)" : "none",
-              }}>
-                {state === "done" ? <Check size={13} /> : n}
-              </span>
-              <span style={{ font: "var(--text-caption)", fontWeight: state === "active" ? 600 : 400, color: on ? "var(--color-text-primary)" : "var(--color-text-muted)", whiteSpace: "nowrap" }}>{label}</span>
-            </span>
-            {i < labels.length - 1 && (
-              <span style={{ flex: 1, height: 2, margin: "0 8px", borderRadius: 2, background: n < step ? "var(--color-primary)" : "var(--color-border)" }} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
 }
 
 function Spinner() {
@@ -121,7 +87,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
       header: true,
       skipEmptyLines: true,
       complete: ({ data, meta }) => {
-        // 1) must be a JournalX template — reject raw broker exports clearly
+        // 1) must be a JournalX template, reject raw broker exports clearly
         const tpl = checkTemplate(meta?.fields || []);
         if (!tpl.ok) {
           const msg =
@@ -141,9 +107,9 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
         setErrors(errs);
         setRows(errs.length ? [] : clean);
         setComputedCount(computedCount);
-        if (!errs.length && clean.length === 0) setErrors(["No trades found — add rows to the template and upload again."]);
+        if (!errs.length && clean.length === 0) setErrors(["No trades found, add rows to the template and upload again."]);
       },
-      error: () => setErrors(["Could not read this file — is it a valid CSV?"]),
+      error: () => setErrors(["Could not read this file, is it a valid CSV?"]),
     });
   };
 
@@ -158,7 +124,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
         accountId = ud?.accounts?.[0]?._id || "";
       } catch {}
     }
-    if (!accountId) return flash("danger", "No journal found — create a journal first");
+    if (!accountId) return flash("danger", "No journal found, create a journal first");
     // persist so the rest of the app stays in sync
     Cookies.set("accountId", accountId, { expires: 365 });
     try { localStorage.setItem("jx-account-id", accountId); } catch {}
@@ -168,7 +134,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
       const userData = await getFromIndexedDB("user-data");
       const limit = getPlanRules(userData).limits.tradeLimitPerMonth;
       if (limit !== Infinity) {
-        return flash("danger", `Bulk import is a Pro feature. Your plan is capped at ${limit} trades/month — upgrade to import in bulk.`);
+        return flash("danger", `Bulk import is a Pro feature. Your plan is capped at ${limit} trades/month, upgrade to import in bulk.`);
       }
     } catch {}
 
@@ -205,7 +171,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
       }, 1000);
     } catch (err) {
       console.error("Import failed:", err);
-      flash("danger", err.response?.data?.message || "Import failed — try again");
+      flash("danger", err.response?.data?.message || "Import failed, try again");
     } finally {
       setSaving(false);
     }
@@ -243,31 +209,26 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
             </div>
 
             <div style={{ padding: "var(--space-5) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)", overflowY: "auto" }}>
-              {/* progress */}
-              <Stepper step={rows.length > 0 ? 3 : fileName ? 2 : 1} />
-
-              {/* Step 1 — get the template */}
+              {/* templates, two one-line buttons, no descriptions */}
               <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                <div>
-                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Get the JournalX template</span>
-                  <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: 2 }}>
-                    Download it, paste your trades into the columns, and save. <strong>Quick</strong> = just the result (symbol, side, P&amp;L). <strong>Detailed</strong> = full trade.
-                  </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
+                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Only P&amp;L log template</span>
+                  <Button variant="outline" size="sm" icon={Download} onClick={() => downloadTemplate(QUICK_TEMPLATE.key)}>Download</Button>
                 </div>
-                {[QUICK_TEMPLATE, DETAILED_TEMPLATE].map((t) => (
-                  <div key={t.key} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                    <span style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{t.label}</span>
-                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{t.hint}</span>
-                    </span>
-                    <Button variant="outline" size="sm" icon={Download} onClick={() => downloadTemplate(t.key)}>
-                      Download
-                    </Button>
-                  </div>
-                ))}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
+                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Detailed log template</span>
+                  <Button variant="outline" size="sm" icon={Download} onClick={() => downloadTemplate(DETAILED_TEMPLATE.key)}>Download</Button>
+                </div>
               </div>
 
-              {/* Step 2 — upload the filled template */}
+              {/* or divider */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>or upload your filled file</span>
+                <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
+              </div>
+
+              {/* dropzone */}
               <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ""; }} />
               <div
                 className="jx-dropzone"
@@ -280,9 +241,9 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
                   <Upload size={16} />
                 </span>
                 <strong style={{ color: "var(--color-text-primary)" }}>
-                  {fileName || "Upload your filled template"}
+                  {fileName || "Drop your CSV here"}
                 </strong>
-                <span style={{ font: "var(--text-caption)" }}>Click or drag &amp; drop · JournalX template CSV only</span>
+                <span style={{ font: "var(--text-caption)" }}>Click or drag &amp; drop · CSV</span>
               </div>
 
               {/* validation results */}
@@ -301,7 +262,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
               {rows.length > 0 && (
                 <div className="jx-card jx-card--flat" style={{ padding: "var(--space-3) var(--space-4)" }}>
                   <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-success-strong)", display: "flex", alignItems: "center", gap: 6 }}>
-                    <CheckCircle2 size={15} /> All looks good — {rows.length} trades ready
+                    <CheckCircle2 size={15} /> All looks good, {rows.length} trades ready
                   </span>
                   <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", marginTop: "var(--space-2)" }}>
                     {rows.slice(0, 5).map((r, i) => (
@@ -314,7 +275,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
                   {computedCount > 0 && (
                     <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: "var(--space-2)", display: "flex", gap: 6 }}>
                       <AlertTriangle size={13} style={{ color: "var(--color-warning, var(--yellow-500))", flexShrink: 0, marginTop: 1 }} />
-                      <span>{computedCount} trade{computedCount === 1 ? "" : "s"} had no P&amp;L column — we computed it from entry/exit/size (with futures point values). For exact numbers, include your platform&apos;s realized P&amp;L column and re-upload.</span>
+                      <span>{computedCount} trade{computedCount === 1 ? "" : "s"} had no P&amp;L column, we computed it from entry/exit/size (with futures point values). For exact numbers, include your platform&apos;s realized P&amp;L column and re-upload.</span>
                     </div>
                   )}
                 </div>

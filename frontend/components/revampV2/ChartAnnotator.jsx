@@ -1,6 +1,6 @@
 "use client";
 
-/* ChartAnnotator — inline, reusable interactive chart for marking a trade's
+/* ChartAnnotator, inline, reusable interactive chart for marking a trade's
    entry & exit. Used inside LogTradeModal's "Log on chart" section.
 
    • Symbol comes from the parent form; if it doesn't resolve to a live feed
@@ -23,7 +23,7 @@ import QuickFillChips from "./QuickFillChips";
 import TvChart from "./TvChart";
 
 /* Curated fallback so common symbols autocomplete even when TradingView's
-   search endpoint is unreachable (CORS) — stocks, indices, forex, crypto. */
+   search endpoint is unreachable (CORS), stocks, indices, forex, crypto. */
 const CURATED = [
   ["AAPL", "Apple Inc", "NASDAQ"], ["TSLA", "Tesla Inc", "NASDAQ"], ["MSFT", "Microsoft", "NASDAQ"],
   ["AMZN", "Amazon", "NASDAQ"], ["GOOGL", "Alphabet", "NASDAQ"], ["NVDA", "NVIDIA", "NASDAQ"],
@@ -53,7 +53,7 @@ const TIMEFRAMES = [
   { id: "4h", label: "4h" },
   { id: "1d", label: "1D" },
 ];
-/* decimals to keep for a given price — adaptive so 65,000 stays at 2 dp while
+/* decimals to keep for a given price, adaptive so 65,000 stays at 2 dp while
    tiny prices like 0.00002430 (SHIB, some forex) keep their significant
    figures, without padding large prices with useless trailing zeros. */
 const priceDecimals = (p) => {
@@ -72,9 +72,9 @@ const round = (n) => {
   const d = priceDecimals(v);
   return Math.round(v * 10 ** d) / 10 ** d;
 };
-/* price formatter — adaptive decimals, no trailing-zero padding */
+/* price formatter, adaptive decimals, no trailing-zero padding */
 const fmt = (v) => Number(v).toLocaleString(undefined, { maximumFractionDigits: priceDecimals(v) });
-/* money/P&L formatter — currency amounts, 2 dp */
+/* money/P&L formatter, currency amounts, 2 dp */
 const fmtMoney = (v) => Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 async function loadKlines(symbol, interval = "1h") {
@@ -91,7 +91,7 @@ async function loadKlines(symbol, interval = "1h") {
 }
 
 
-/* TradingView's public symbol search — graceful fallback to free text */
+/* TradingView's public symbol search, graceful fallback to free text */
 const stripTags = (s) => (s || "").replace(/<\/?[^>]+>/g, "");
 async function searchTv(text) {
   const q = (text || "").trim();
@@ -281,7 +281,7 @@ export default function ChartAnnotator({
     if (xT != null) markers.push({ time: xT, position: long ? "aboveBar" : "belowBar", color: "#fcd535", shape: long ? "arrowDown" : "arrowUp", text: "Exit" });
     s.setMarkers(markers.sort((a, b) => a.time - b.time));
 
-    // no entry/exit price lines — arrows only
+    // no entry/exit price lines, arrows only
     priceLinesRef.current.forEach((l) => { try { s.removePriceLine(l); } catch {} });
     priceLinesRef.current = [];
   }, [entry, exit, direction, candles]);
@@ -328,10 +328,10 @@ export default function ChartAnnotator({
   };
 
   const phaseHint = embedMode
-    ? "Type your entry & exit below — the chart is read-only for this symbol (clickable marking is available for crypto pairs)"
+    ? "Type your entry & exit below, the chart is read-only for this symbol (clickable marking is available for crypto pairs)"
     : phase === "entry" ? "Click the chart to place your ENTRY"
     : phase === "exit" ? "Now click to place your EXIT"
-    : "Entry & exit set — adjust or reset below";
+    : "Entry & exit set, adjust or reset below";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -379,7 +379,7 @@ export default function ChartAnnotator({
             <span className="jx-input__icon"><Search size={15} /></span>
             <input
               autoFocus
-              placeholder="Search any symbol — AAPL, EURUSD, XAUUSD, BTCUSDT…"
+              placeholder="Search any symbol, AAPL, EURUSD, XAUUSD, BTCUSDT…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && query.trim()) pickSearch(query.trim().toUpperCase(), query.trim().toUpperCase()); }}
@@ -452,7 +452,7 @@ export default function ChartAnnotator({
         </div>
       )}
 
-      {/* entry/exit + size + P&L — shown whenever a symbol is loaded */}
+      {/* entry/exit + size + P&L, shown whenever a symbol is loaded */}
       {active && (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
@@ -482,7 +482,7 @@ export default function ChartAnnotator({
             </div>
           </div>
 
-          {/* position size — needed to turn the marks into a P&L */}
+          {/* position size, needed to turn the marks into a P&L */}
           <div className="jx-field" style={{ minWidth: 0 }}>
             <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Position size</label>
             <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "stretch" }}>
@@ -496,7 +496,7 @@ export default function ChartAnnotator({
                   onChange={(e) => setSize(e.target.value)}
                 />
               </div>
-              {/* unit toggle — both options visible; unselected keeps a bg */}
+              {/* unit toggle, both options visible; unselected keeps a bg */}
               <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                 {[
                   { v: "asset", l: symbol ? symbol.split("/")[0].slice(0, 6) : "Asset" },
@@ -557,8 +557,8 @@ export default function ChartAnnotator({
           )}
 
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-            <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry?.price ? fmt(entry.price) : "—"}</strong></span>
-            <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit?.price ? fmt(exit.price) : "—"}</strong></span>
+            <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry?.price ? fmt(entry.price) : ", "}</strong></span>
+            <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit?.price ? fmt(exit.price) : ", "}</strong></span>
             <button type="button" className="jx-btn jx-btn--ghost jx-btn--sm" onClick={reset} style={{ marginLeft: "auto" }}>
               <RotateCcw size={13} /> Reset points
             </button>

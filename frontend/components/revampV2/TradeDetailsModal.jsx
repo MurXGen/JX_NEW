@@ -31,7 +31,7 @@ import { lockedChartTradeIds } from "@/utils/planRestrictions";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-/* Figma "Trade Details · Desktop" (22753:54032) — gamified: every
+/* Figma "Trade Details · Desktop" (22753:54032), gamified: every
    field captured in the log modal is surfaced. "If you had held"
    uses LIVE prices (Binance public ticker, refreshed every 30s) for
    crypto symbols, with a clearly-labeled simulation fallback. */
@@ -54,7 +54,7 @@ const fmtPrice = (v) => Number(v).toLocaleString(undefined, { maximumFractionDig
    with a signed prefix for money values */
 const kf = (v, sym = "$") => `${v < 0 ? "−" : "+"}${sym}${fmt(Math.abs(Number(v) || 0), 2)}`;
 const dt = (v) =>
-  v ? new Date(v).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
+  v ? new Date(v).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : ", ";
 
 const detectSession = (iso) => {
   if (!iso) return null;
@@ -98,7 +98,7 @@ function MiniArea({ from, to, height = 140 }) {
   );
 }
 
-/* bento detail cell — label on top, value below, light border */
+/* bento detail cell, label on top, value below, light border */
 function DetailRow({ label, value, valueEl }) {
   return (
     <div
@@ -113,7 +113,7 @@ function DetailRow({ label, value, valueEl }) {
       }}
     >
       <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{label}</span>
-      {valueEl || <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis" }}>{value ?? "—"}</span>}
+      {valueEl || <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis" }}>{value ?? ", "}</span>}
     </div>
   );
 }
@@ -180,11 +180,11 @@ export default function TradeDetailsModal({
   const duration = t.openTime && t.closeTime
     ? (() => {
         const ms = new Date(t.closeTime) - new Date(t.openTime);
-        return ms > 0 ? `${Math.floor(ms / 36e5)}h ${Math.round((ms % 36e5) / 6e4)}m` : "—";
+        return ms > 0 ? `${Math.floor(ms / 36e5)}h ${Math.round((ms % 36e5) / 6e4)}m` : ", ";
       })()
-    : "—";
+    : ", ";
 
-  /* gamified quality + XP — same scoring as the log modal */
+  /* gamified quality + XP, same scoring as the log modal */
   const checks = [
     { label: "Risk set (SL/TP)", xp: 20, ok: sl > 0 && tp > 0 },
     { label: "Strategy tagged", xp: 10, ok: !!strategy },
@@ -203,7 +203,7 @@ export default function TradeDetailsModal({
   /* LIVE price from Binance (faster refresh for running trades) with a
      deterministic simulation fallback for non-crypto symbols */
   const [live, setLive] = useState(null);
-  const [liveDir, setLiveDir] = useState(0); // +1 up, -1 down, 0 flat — drives the flash
+  const [liveDir, setLiveDir] = useState(0); // +1 up, -1 down, 0 flat, drives the flash
   const prevPriceRef = useRef(null);
   useEffect(() => {
     if (!open || !trade) {
@@ -246,22 +246,22 @@ export default function TradeDetailsModal({
     t.sizeUnit === "usd"
       ? t.quantityUSD != null
         ? `${currencySymbol}${fmt(t.quantityUSD, 2)}`
-        : "—"
+        : ", "
       : size != null
         ? `${fmt(size, 2)}${assetName ? ` ${assetName}` : ""}`
-        : "—";
+        : ", ";
   const stats = [
-    ["Entry", entry ? `$${fmtPrice(entry)}` : "—"],
-    ["Exit", exit ? `$${fmtPrice(exit)}` : "—"],
+    ["Entry", entry ? `$${fmtPrice(entry)}` : ", "],
+    ["Exit", exit ? `$${fmtPrice(exit)}` : ", "],
     ["Size", sizeDisplay],
     // show gross only when a fee was logged, so the deduction is transparent
     ...(feeVal > 0
       ? [["Gross P&L", kf(grossPnl, currencySymbol), grossPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)"]]
       : []),
     ["Net P&L", kf(pnl, currencySymbol), pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)"],
-    ["Return", retPct != null ? `${retPct >= 0 ? "+" : ""}${fmt(retPct, 1)}%` : "—", retPct != null ? (retPct >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)") : undefined],
-    ["R : R", t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"],
-    ["Fees", t.feeAmount ? `${currencySymbol}${fmt(t.feeAmount)}` : "—"],
+    ["Return", retPct != null ? `${retPct >= 0 ? "+" : ""}${fmt(retPct, 1)}%` : ", ", retPct != null ? (retPct >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)") : undefined],
+    ["R : R", t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : ", "],
+    ["Fees", t.feeAmount ? `${currencySymbol}${fmt(t.feeAmount)}` : ", "],
     ["Duration", duration],
   ];
 
@@ -277,13 +277,13 @@ export default function TradeDetailsModal({
       </div>
     ) : null;
 
-  // a labelled field with a graceful empty state — keeps the edge &
+  // a labelled field with a graceful empty state, keeps the edge &
   // psychology grid aligned even when some values are missing
   const field = (label, node) => (
     <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
       <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{label}</span>
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-        {node ?? <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>—</span>}
+        {node ?? <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>, </span>}
       </div>
     </div>
   );
@@ -310,7 +310,7 @@ export default function TradeDetailsModal({
               <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0, flex: 1 }}>
                 <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Trade details</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
-                  <span style={{ font: "var(--text-h2)" }}>{t.symbol || t.ticker || "—"}</span>
+                  <span style={{ font: "var(--text-h2)" }}>{t.symbol || t.ticker || ", "}</span>
                   <Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge>
                   <Badge variant={pnl >= 0 ? "success" : "danger"}>{pnl >= 0 ? "Win" : "Loss"}</Badge>
                   <Badge variant="brand">
@@ -335,7 +335,7 @@ export default function TradeDetailsModal({
             {/* body */}
             <div className="jx-ltmodal__body">
               <div className="jx-ltmodal__form" style={{ gap: "var(--space-4)" }}>
-                {/* stats — bento grid of bordered cells */}
+                {/* stats, bento grid of bordered cells */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(108px, 1fr))", gap: "var(--space-2)" }}>
                   {stats.map(([l, v, color]) => (
                     <div
@@ -368,13 +368,13 @@ export default function TradeDetailsModal({
                   </div>
                 )}
 
-                {/* live position — running trade vs current price */}
+                {/* live position, running trade vs current price */}
                 {isRunning && heldPnl != null && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-2)" }}>
                       <div>
                         <div style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Live position</div>
-                        <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>This trade is open — tracking live P&amp;L vs your entry</div>
+                        <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>This trade is open, tracking live P&amp;L vs your entry</div>
                       </div>
                       {isLiveHeld ? (
                         <span className="jx-badge jx-badge--success" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -420,13 +420,13 @@ export default function TradeDetailsModal({
                       <span style={{ font: "var(--text-small)" }}>
                         {heldPnl >= 0
                           ? <>You&apos;re <strong>up {kf(heldPnl, currencySymbol)}</strong> on this open position. Set a target or trail your stop to lock it in.</>
-                          : <>You&apos;re <strong>down {kf(Math.abs(heldPnl), currencySymbol)}</strong> on this open position — check it&apos;s still within your planned risk.</>}
+                          : <>You&apos;re <strong>down {kf(Math.abs(heldPnl), currencySymbol)}</strong> on this open position, check it&apos;s still within your planned risk.</>}
                       </span>
                     </div>
                   </div>
                 )}
 
-                {/* if you had held — closed trades */}
+                {/* if you had held, closed trades */}
                 {!isRunning && heldPnl != null && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-2)" }}>
@@ -465,7 +465,7 @@ export default function TradeDetailsModal({
                       <span style={{ font: "var(--text-small)" }}>
                         {heldDelta >= 0
                           ? <>Holding to today would have earned <strong>{kf(heldDelta, currencySymbol)} more</strong>.</>
-                          : <>Good exit — holding would have given back <strong>{kf(Math.abs(heldDelta), currencySymbol)}</strong>.</>}
+                          : <>Good exit, holding would have given back <strong>{kf(Math.abs(heldDelta), currencySymbol)}</strong>.</>}
                       </span>
                     </div>
                   </div>
@@ -518,7 +518,7 @@ export default function TradeDetailsModal({
                   </p>
                 </div>
 
-                {/* voice note — audio player + transcript */}
+                {/* voice note, audio player + transcript */}
                 {t.voiceNote?.url && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "var(--space-3)" }}>
@@ -542,14 +542,14 @@ export default function TradeDetailsModal({
                   </div>
                 )}
 
-                {/* Marked chart — reproduces the chart with the trade's entry &
+                {/* Marked chart, reproduces the chart with the trade's entry &
                     exit marked, with timeframe switching. Only shown when a real
                     candle feed exists for the symbol (crypto pairs); we never
                     render an approximated/synthetic chart. */}
                 {hasLiveCandles(t.symbol || t.ticker) && (t.tvChart || t.source === "tradingview" || (entry > 0 && exit > 0)) && (
                   <div className="jx-card jx-card--flat">
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Chart — entry &amp; exit · {t.symbol || t.ticker}</span>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Chart, entry &amp; exit · {t.symbol || t.ticker}</span>
                       <Badge variant="brand">Marked</Badge>
                     </div>
                     {chartLocked ? (
@@ -578,7 +578,7 @@ export default function TradeDetailsModal({
                   </div>
                 )}
 
-                {/* screenshots — real B2 urls */}
+                {/* screenshots, real B2 urls */}
                 <div className="jx-card jx-card--flat">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
                     <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Screenshots &amp; attachments</span>
@@ -619,7 +619,7 @@ export default function TradeDetailsModal({
                           <Check size={13} style={{ color: c.ok ? "var(--color-success)" : "var(--color-text-disabled)" }} />
                           {c.label}
                         </span>
-                        <span>{c.ok ? "✓" : "—"}</span>
+                        <span>{c.ok ? "✓" : ", "}</span>
                       </div>
                     ))}
                   </div>
@@ -633,8 +633,8 @@ export default function TradeDetailsModal({
                     <DetailRow label="Direction" value={isLong ? "Long" : "Short"} />
                     <DetailRow label="Status" valueEl={<Badge variant="neutral">{t.tradeStatus || "closed"}</Badge>} />
                     <DetailRow label="Size unit" value={t.sizeUnit === "usd" ? "Cash" : `${assetName || "Asset"} units`} />
-                    <DetailRow label="Leverage" value={t.leverage && t.leverage !== 1 ? `${t.leverage}×` : "—"} />
-                    <DetailRow label="Position value" value={t.quantityUSD ? `${currencySymbol}${fmt(t.quantityUSD)}` : "—"} />
+                    <DetailRow label="Leverage" value={t.leverage && t.leverage !== 1 ? `${t.leverage}×` : ", "} />
+                    <DetailRow label="Position value" value={t.quantityUSD ? `${currencySymbol}${fmt(t.quantityUSD)}` : ", "} />
                     <DetailRow
                       label="Source"
                       valueEl={
@@ -650,15 +650,15 @@ export default function TradeDetailsModal({
                 <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)" }}>
                   <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginBottom: "var(--space-3)" }}>Risk management</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
-                    <DetailRow label="Stop loss" value={sl ? `$${fmtPrice(sl)}` : "—"} />
-                    <DetailRow label="Take profit" value={tp ? `$${fmtPrice(tp)}` : "—"} />
-                    <DetailRow label="Expected profit" value={t.expectedProfit ? `${currencySymbol}${fmt(t.expectedProfit, 0)}` : "—"} />
-                    <DetailRow label="Expected loss" value={t.expectedLoss ? `${currencySymbol}${fmt(t.expectedLoss, 0)}` : "—"} />
+                    <DetailRow label="Stop loss" value={sl ? `$${fmtPrice(sl)}` : ", "} />
+                    <DetailRow label="Take profit" value={tp ? `$${fmtPrice(tp)}` : ", "} />
+                    <DetailRow label="Expected profit" value={t.expectedProfit ? `${currencySymbol}${fmt(t.expectedProfit, 0)}` : ", "} />
+                    <DetailRow label="Expected loss" value={t.expectedLoss ? `${currencySymbol}${fmt(t.expectedLoss, 0)}` : ", "} />
                     <DetailRow
                       label="Planned R:R"
                       valueEl={
                         <span style={{ fontWeight: 600, color: t.rr ? "var(--color-success-strong)" : "var(--color-text-primary)" }}>
-                          {t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}
+                          {t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : ", "}
                         </span>
                       }
                     />
@@ -669,7 +669,7 @@ export default function TradeDetailsModal({
                   <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
                   <span style={{ font: "var(--text-caption)" }}>
                     {t.rulesFollowed
-                      ? "Disciplined execution — trades like this compound your edge."
+                      ? "Disciplined execution, trades like this compound your edge."
                       : "Tag what pulled you off-plan; patterns beat willpower."}
                   </span>
                 </div>

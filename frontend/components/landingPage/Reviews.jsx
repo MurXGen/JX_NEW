@@ -9,21 +9,21 @@ const reviews = [
     name: "Aarav Patel",
     role: "Forex Trader, Mumbai",
     feedback:
-      "Before JournalX, I tracked my trades in Excel — messy and slow. Now I can instantly see where I went wrong, track emotions, and spot patterns that improved my consistency. My monthly PnL has grown 18%.",
+      "Before JournalX, I tracked my trades in Excel, messy and slow. Now I can instantly see where I went wrong, track emotions, and spot patterns that improved my consistency. My monthly PnL has grown 18%.",
     icon: <TrendingUp size={28} />,
   },
   {
     name: "Sophia Chen",
     role: "Crypto Swing Trader, Singapore",
     feedback:
-      "I used to lose track of my trades across multiple exchanges. JournalX automatically syncs and organizes everything. The AI insights helped me identify over-trading habits — now I trade less but win more.",
+      "I used to lose track of my trades across multiple exchanges. JournalX automatically syncs and organizes everything. The AI insights helped me identify over-trading habits, now I trade less but win more.",
     icon: <BarChart3 size={28} />,
   },
   {
     name: "David Martinez",
     role: "Futures & Indices Trader, USA",
     feedback:
-      "Old spreadsheets gave me no clarity on performance or risk. JournalX shows my R:R, emotions, and setups visually. Risk management feels effortless — my drawdowns dropped by 30%.",
+      "Old spreadsheets gave me no clarity on performance or risk. JournalX shows my R:R, emotions, and setups visually. Risk management feels effortless, my drawdowns dropped by 30%.",
     icon: <ShieldCheck size={28} />,
   },
 ];
@@ -99,7 +99,7 @@ export default function ReviewsSection() {
         transition={{ delay: 0.4 }}
       >
         Join thousands of traders already journaling smarter with{" "}
-        <strong>JournalX.app</strong> — not spreadsheets.
+        <strong>JournalX.app</strong>, not spreadsheets.
       </motion.p>
     </section>
   );

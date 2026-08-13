@@ -1,6 +1,6 @@
 "use client";
 
-/* Social-proof / trust badge — "X traders logged today · Y% in profit · Z% in
+/* Social-proof / trust badge, "X traders logged today · Y% in profit · Z% in
    loss". Numbers are DUMMY but move like real data: they seed from the time of
    day (so they grow through the day and sit in a believable 1k–2k band) and
    tick up live while the badge is on screen. Reusable on the log modal,
@@ -61,7 +61,7 @@ export default function TradersTodayBadge({ style, className, variant }) {
     `}</style>
   );
 
-  /* compact single-line stripe — used pinned near the footer on mobile */
+  /* compact single-line stripe, used pinned near the footer on mobile */
   if (variant === "strip") {
     return (
       <div

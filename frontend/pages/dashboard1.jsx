@@ -161,7 +161,7 @@ export default function Home() {
         />
         <meta
           property="og:description"
-          content="Track your trades, visualize your performance, and get AI-driven insights — all in one smart dashboard with JournalX."
+          content="Track your trades, visualize your performance, and get AI-driven insights, all in one smart dashboard with JournalX."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://journalx.app/" />

@@ -1,6 +1,6 @@
 "use client";
 
-/* Shared layout for all legal pages — marketing chrome, readable
+/* Shared layout for all legal pages, marketing chrome, readable
    prose, table of contents, consistent v2 styling + per-page SEO. */
 
 import Head from "next/head";

@@ -1,6 +1,6 @@
 "use client";
 
-/* GetStartedModal — shown to new users right after the acquisition question.
+/* GetStartedModal, shown to new users right after the acquisition question.
    Nudges the one action that makes the product stick: log a first trade or
    import existing trades. They can also skip. */
 

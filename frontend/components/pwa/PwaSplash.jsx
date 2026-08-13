@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 /**
  * App-like opening loader, shown only when JournalX is launched as an
  * installed PWA (display-mode: standalone). Renders once per app launch
- * (session-scoped), then fades away — so route changes don't replay it.
+ * (session-scoped), then fades away, so route changes don't replay it.
  *
  * Clean, UltraTrader-style: centered wordmark + a quiet spinner, on a
  * background that adapts to the active theme (white in light, dark in dark)

@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Coffee, Flame, Info, Plus, Shield, Sparkles, Sprout, TrendingUp } from "lucide-react";
+import { Coffee, EyeOff, Flame, Info, Plus, Shield, Sparkles, Sprout, TrendingUp } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import CountUp from "./CountUp";
@@ -86,7 +86,7 @@ const KPI_TIPS = {
   "Average loss": "Average loss on losing trades",
   "Largest win": "Your single best trade",
   "Avg hold time": "Median time held per trade",
-  "Sharpe ratio": "Return per unit of volatility — higher is steadier",
+  "Sharpe ratio": "Return per unit of volatility, higher is steadier",
   "Win streak": "Current run of consecutive wins",
 };
 
@@ -109,7 +109,7 @@ const localTz = () => {
   try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "local"; } catch { return "local"; }
 };
 
-/* live local + UTC clock — isolated so it doesn't re-render the whole panel */
+/* live local + UTC clock, isolated so it doesn't re-render the whole panel */
 function LiveClock() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -256,7 +256,7 @@ function HoverColumns({ tips }) {
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex" }}>
       {tips.map((t, i) => (
-        <Tip key={i} content={t} block style={{ flex: 1 }}>
+        <Tip key={i} content={t} block follow style={{ flex: 1 }}>
           <span className="jx-tip--col" style={{ flex: 1 }} />
         </Tip>
       ))}
@@ -341,41 +341,49 @@ function LineChart({ values, height = 140, labels, tips }) {
   );
 }
 
-function BarChart({ values, height = 140, tips }) {
+/* mode="signed" → bars grow up/down from the centre, green/red by sign
+   (Daily P&L). mode="value" → single-colour bars grow from the bottom over a
+   faint blank track; empty slots show as blank bars (Volume traded). */
+function BarChart({ values, height = 140, tips, mode = "signed", color = "var(--color-success)" }) {
   const morphed = useMorph(values);
-  if (!morphed.length) return <Empty height={height} />;
-  const max = Math.max(...morphed.map((v) => Math.abs(v)), 1);
+  // always render slots so "no data" shows as blank bars rather than nothing
+  const bars = morphed.length ? morphed : new Array(7).fill(0);
+  const max = Math.max(...bars.map((v) => Math.abs(v)), 1);
+
+  if (mode === "value") {
+    return (
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "3%", height, width: "100%" }}>
+        {bars.map((v, i) => {
+          const fillPct = v === 0 ? 0 : Math.max(6, (Math.abs(v) / max) * 100);
+          return (
+            <Tip key={i} content={tips?.[i]} block follow style={{ flex: 1, height: "100%" }}>
+              <div className="jx-tip--col" style={{ flex: 1, height: "100%", position: "relative", display: "flex", alignItems: "flex-end" }}>
+                {/* blank track */}
+                <div style={{ position: "absolute", inset: 0, borderRadius: 4, background: "var(--color-bg-muted)" }} />
+                {/* blue value fill */}
+                <div style={{ position: "relative", width: "100%", height: `${fillPct}%`, borderRadius: 4, background: color, transition: `height 0.6s ${BAR_EASE}` }} />
+              </div>
+            </Tip>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "3%",
-        height,
-        width: "100%",
-      }}
-    >
-      {morphed.map((v, i) => {
+    <div style={{ display: "flex", alignItems: "center", gap: "3%", height, width: "100%" }}>
+      {bars.map((v, i) => {
         const hPct = Math.max(8, (Math.abs(v) / max) * 48);
         return (
-          <Tip
-            key={i}
-            content={tips?.[i]}
-            block
-            style={{ flex: 1, height: "100%" }}
-          >
-            <div
-              className="jx-tip--col"
-              style={{ flex: 1, height: "100%", position: "relative" }}
-            >
+          <Tip key={i} content={tips?.[i]} block follow style={{ flex: 1, height: "100%" }}>
+            <div className="jx-tip--col" style={{ flex: 1, height: "100%", position: "relative" }}>
               <div
                 style={{
                   position: "absolute",
                   left: 0,
                   right: 0,
                   borderRadius: 4,
-                  background:
-                    v >= 0 ? "var(--color-success)" : "var(--color-danger)",
+                  background: v >= 0 ? "var(--color-success)" : "var(--color-danger)",
                   height: `${hPct}%`,
                   transition: `background 0.4s ${BAR_EASE}`,
                   ...(v >= 0 ? { bottom: "50%" } : { top: "50%" }),
@@ -409,7 +417,7 @@ function Donut({ segments, size = 120 }) {
   const r = 52;
   const holeR = 30; // donut hole
 
-  // nothing to show — render a faint placeholder ring
+  // nothing to show, render a faint placeholder ring
   if (total <= 0) {
     return (
       <svg viewBox="0 0 120 120" style={{ width: size, height: size, flexShrink: 0 }}>
@@ -422,12 +430,12 @@ function Donut({ segments, size = 120 }) {
   const singleIdx = morphedVals.findIndex((v) => v > 0);
   const single = segments.filter((_, i) => (morphedVals[i] ?? 0) > 0).length === 1;
   const tip = (s, v) =>
-    `${s.label ?? ""}${s.label ? " — " : ""}${Math.round((v / total) * 100)}%`;
+    `${s.label ?? ""}${s.label ? ", " : ""}${Math.round((v / total) * 100)}%`;
 
   return (
     <svg viewBox="0 0 120 120" style={{ width: size, height: size, flexShrink: 0 }}>
       {single ? (
-        // a lone 100% slice — draw a full ring (arc path degenerates at 360°)
+        // a lone 100% slice, draw a full ring (arc path degenerates at 360°)
         <circle
           cx={cx}
           cy={cy}
@@ -503,18 +511,37 @@ function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
   const scrollRef = useRef(null);
   const drag = useRef({ down: false, startX: 0, startLeft: 0 });
   const scrollable = candleWidth > 0;
+  const GAP = 3; // px gap between candles in scroll mode (matches flex gap)
   const [hoverI, setHoverI] = useState(null);
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const [view, setView] = useState(null); // {start,end} visible candle indices
 
-  // jump to the latest candle whenever the data or zoom changes
+  // which candles are currently in view → the Y-axis scales to just these
+  const recalcView = () => {
+    const el = scrollRef.current;
+    if (!el || !scrollable) { setView(null); return; }
+    const stride = candleWidth + GAP;
+    const start = Math.max(0, Math.floor(el.scrollLeft / stride));
+    const count = Math.ceil(el.clientWidth / stride) + 1;
+    setView({ start, end: Math.min(candles.length, start + count) });
+  };
+
+  // jump to the latest candle whenever the data or zoom changes, then measure
   useEffect(() => {
     const el = scrollRef.current;
     if (el && scrollable) el.scrollLeft = el.scrollWidth;
+    recalcView();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candles, candleWidth, scrollable]);
 
   if (!candles.length) return <Empty height={height} />;
-  const lo = Math.min(...candles.map((c) => c.l));
-  const hi = Math.max(...candles.map((c) => c.h));
+  // scale the Y-axis to the visible window (falls back to all candles)
+  const shown =
+    scrollable && view && view.end > view.start
+      ? candles.slice(view.start, view.end)
+      : candles;
+  const lo = Math.min(...shown.map((c) => c.l));
+  const hi = Math.max(...shown.map((c) => c.h));
   const span = hi - lo || 1;
   const y = (v) => height - 8 - ((v - lo) / span) * (height - 16);
 
@@ -556,6 +583,7 @@ function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
         onMouseUp={endDrag}
         onMouseLeave={() => { endDrag(); setHoverI(null); }}
         onWheel={onWheel}
+        onScroll={recalcView}
         style={{
           height,
           overflowX: scrollable ? "auto" : "hidden",
@@ -594,9 +622,9 @@ function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
                 }}
               >
                 {/* wick */}
-                <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", top: y(c.h), height: Math.max(1, y(c.l) - y(c.h)), width: 1.5, background: color, opacity: 0.8 }} />
+                <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", top: y(c.h), height: Math.max(1, y(c.l) - y(c.h)), width: 1.5, background: color, opacity: 0.8, transition: "top 0.1s linear, height 0.1s linear" }} />
                 {/* body */}
-                <span style={{ position: "absolute", left: "12%", right: "12%", top: bodyTop, height: bodyH, background: color, borderRadius: 2 }} />
+                <span style={{ position: "absolute", left: "12%", right: "12%", top: bodyTop, height: bodyH, background: color, borderRadius: 2, transition: "top 0.1s linear, height 0.1s linear" }} />
               </div>
             );
           })}
@@ -737,7 +765,7 @@ const DONUT_COLORS = [
   "#8b5cf6",
 ];
 
-/* range helpers — windows are anchored to the latest trade so sample
+/* range helpers, windows are anchored to the latest trade so sample
    data from any date still renders */
 const DAYS = {
   "1D": 1,
@@ -761,7 +789,7 @@ const inWindow = (trades, rangeKey) => {
 
 /* compact human duration from milliseconds */
 const fmtDur = (ms) => {
-  if (!ms || ms <= 0) return "—";
+  if (!ms || ms <= 0) return ", ";
   const m = ms / 60000;
   if (m < 60) return `${Math.round(m)}m`;
   const h = m / 60;
@@ -791,9 +819,9 @@ export default function OverviewPanel({
   const startingBalance = (Number(startingBalanceProp) || 0) * fxRate;
   const [heroRange, setHeroRange] = useState("30D");
   const [candleTF, setCandleTF] = useState("1D");
-  const [equityRange, setEquityRange] = useState("7D"); // 7D | 14D | 30D | All
-  const [equityZoom, setEquityZoom] = useState(18); // candle px width in scroll mode
-  const analyticsRange = "ALL"; // header range tabs removed — charts cover full history
+  const [equityRange, setEquityRange] = useState("All"); // 7D | 14D | 30D | All
+  const [equityZoom] = useState(18); // candle px width in scroll mode
+  const analyticsRange = "ALL"; // header range tabs removed, charts cover full history
   const [pnlRange, setPnlRange] = useState("1M");
   const [dailyRange, setDailyRange] = useState("Week");
   const [wrRange, setWrRange] = useState("1M");
@@ -874,7 +902,7 @@ export default function OverviewPanel({
       : { label: "Overtrading risk", tone: "danger", emoji: "🔥" };
 
     const tip =
-      score >= 75 ? "Your pace looks healthy — keep waiting for clean setups."
+      score >= 75 ? "Your pace looks healthy, keep waiting for clean setups."
       : score >= 55 ? "Mostly steady. Watch for clusters of quick trades after a loss."
       : score >= 35 ? "You're trading fast in bursts. Add a short pause between trades."
       : "Frequent rapid-fire and post-loss trades. Step back, breathe, and trade only A+ setups.";
@@ -932,7 +960,7 @@ export default function OverviewPanel({
   }, [closed, heroRange]);
 
   /* a confidence / encouragement line for the Total profit card, based on
-     recent daily performance — so a rough patch doesn't crush momentum. */
+     recent daily performance, so a rough patch doesn't crush momentum. */
   const encourage = useMemo(() => {
     if (!closed.length) return null;
     const byDay = new Map();  // day ts -> net pnl
@@ -976,23 +1004,23 @@ export default function OverviewPanel({
     const base = { recent };
 
     // ---- wellbeing first: cushion losses, gently flag overtrading.
-    //      One short line — this renders as a slim stripe, not a card. ----
+    //      One short line, this renders as a slim stripe, not a card. ----
     if (overtrading && todayNet < 0)
-      return { ...base, tone: "warn", icon: "coffee", text: `${todayCount} trades and red — step away, come back fresh tomorrow.` };
+      return { ...base, tone: "warn", icon: "coffee", text: `${todayCount} trades and red, step away, come back fresh tomorrow.` };
     if (overtrading)
-      return { ...base, tone: "info", icon: "coffee", text: `${todayCount} trades today — wait for only your A+ setups.` };
+      return { ...base, tone: "info", icon: "coffee", text: `${todayCount} trades today, wait for only your A+ setups.` };
     if (redStreak >= 2)
-      return { ...base, tone: "warn", icon: "shield", text: `A ${redStreak}-day dip is normal — protect capital, stick to your plan.` };
+      return { ...base, tone: "warn", icon: "shield", text: `A ${redStreak}-day dip is normal, protect capital, stick to your plan.` };
     if (prev7 < 0 && last7 > 0)
-      return { ...base, tone: "success", icon: "up", text: "Nice turnaround this week — keep doing what's working." };
+      return { ...base, tone: "success", icon: "up", text: "Nice turnaround this week, keep doing what's working." };
     if (lastDayNet < 0 && priorGreen >= 3)
-      return { ...base, tone: "warn", icon: "shield", text: `One red day after ${priorGreen} green — nothing to fix, run your plan.` };
+      return { ...base, tone: "warn", icon: "shield", text: `One red day after ${priorGreen} green, nothing to fix, run your plan.` };
     if (greenStreak >= 3)
-      return { ...base, tone: "success", icon: "flame", text: `${greenStreak}-day green streak — protect your gains, keep risk tight.` };
+      return { ...base, tone: "success", icon: "flame", text: `${greenStreak}-day green streak, protect your gains, keep risk tight.` };
     if (last7 < 0)
-      return { ...base, tone: "warn", icon: "shield", text: "A losing week is part of the game — size down, trust your setups." };
+      return { ...base, tone: "warn", icon: "shield", text: "A losing week is part of the game, size down, trust your setups." };
     if (lastDayNet < 0 && last7 > 0)
-      return { ...base, tone: "info", icon: "up", text: "Down day, winning week — the trend's still your friend." };
+      return { ...base, tone: "info", icon: "up", text: "Down day, winning week, the trend's still your friend." };
     return null;
   }, [closed]);
 
@@ -1058,12 +1086,12 @@ export default function OverviewPanel({
     const medHold = holds.length ? holds[Math.floor(holds.length / 2)] : null;
     const holdStr = medHold
       ? `${Math.floor(medHold / 3600000)}h ${Math.round((medHold % 3600000) / 60000)}m`
-      : "—";
+      : ", ";
 
-    /* per symbol / allocation / volume — within analytics window */
+    /* per symbol / allocation / volume, within analytics window */
     const bySym = new Map();
     win.forEach((t) => {
-      const s = t.symbol || t.ticker || "—";
+      const s = t.symbol || t.ticker || ", ";
       bySym.set(s, (bySym.get(s) || 0) + (Number(t.pnl) || 0));
     });
     const symPnl = [...bySym.entries()].sort((a, b) => b[1] - a[1]);
@@ -1072,8 +1100,8 @@ export default function OverviewPanel({
     win.forEach((t) => {
       // base asset: part before "/" but tolerate odd inputs like "/MNS"
       // (split → ["", "MNS"]) by dropping empty parts; fall back to raw symbol
-      const raw = (t.symbol || t.ticker || "—").trim().toUpperCase();
-      const s = raw.split("/").filter(Boolean)[0] || raw || "—";
+      const raw = (t.symbol || t.ticker || ", ").trim().toUpperCase();
+      const s = raw.split("/").filter(Boolean)[0] || raw || ", ";
       const qty = Number(t.totalQuantity ?? t.quantity ?? t.size) || 0;
       const price = Number(t.avgEntryPrice ?? t.entryPrice ?? t.entries?.[0]?.price) || 0;
       // traded notional → fall back to |P&L| → fall back to 1 (equal weight),
@@ -1096,7 +1124,7 @@ export default function OverviewPanel({
       const price = t.avgEntryPrice || t.entryPrice || 0;
       const qty = t.totalQuantity || 0;
       // real notional, else fall back to |P&L| so quick-logged trades (size 0)
-      // still contribute a bar — mirrors the Volume-traded total
+      // still contribute a bar, mirrors the Volume-traded total
       const notional = price && qty ? Math.abs(price * qty) : Math.abs(Number(t.pnl) || 0);
       volByDay.set(d, (volByDay.get(d) || 0) + notional * (t.pnl >= 0 ? 1 : -1));
     });
@@ -1394,9 +1422,13 @@ export default function OverviewPanel({
     list.forEach((t) => {
       run += Number(t.pnl) || 0;
       series.push(run);
-      tips.push(
-        `${new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })} · ${t.symbol || ""}\n${k(Number(t.pnl) || 0, currencySymbol)} trade · ${k(run, currencySymbol)} total`,
-      );
+      tips.push({
+        title: `${new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })} · ${t.symbol || ""}`,
+        rows: [
+          ["Trade", k(Number(t.pnl) || 0, currencySymbol)],
+          ["Total", k(run, currencySymbol)],
+        ],
+      });
     });
     return [series, tips];
   }, [closed, pnlRange, currencySymbol]);
@@ -1610,7 +1642,7 @@ export default function OverviewPanel({
     { label: "Avg hold time", value: S.holdStr, sub: "median per trade" },
     {
       label: "Sharpe ratio",
-      value: S.sharpe ? fmt(S.sharpe, 2) : "—",
+      value: S.sharpe ? fmt(S.sharpe, 2) : ", ",
       sub: "risk-adjusted return",
       up: (S.sharpe || 0) > 1,
     },
@@ -1625,6 +1657,19 @@ export default function OverviewPanel({
   const { hidden, toggle, reset, isVisible } = useHiddenSections(
     "jx-overview-sections",
     ["drawdown", "revenge"], // hidden by default; users can enable in Customize
+  );
+
+  // small hover "hide" eye shown on each section card; re-show via Customize
+  const HideBtn = ({ id }) => (
+    <button
+      type="button"
+      className="jx-sec__hide"
+      title="Hide this section, re-enable from Customize"
+      aria-label="Hide this section"
+      onClick={(e) => { e.stopPropagation(); toggle(id); }}
+    >
+      <EyeOff size={14} />
+    </button>
   );
 
   return (
@@ -1666,7 +1711,7 @@ export default function OverviewPanel({
             )}
           </div>
         </div>
-        {/* hide the header CTA while on sample data — the banner below
+        {/* hide the header CTA while on sample data, the banner below
             carries the primary Import / Log actions (avoids double CTA) */}
         <div
           style={{
@@ -1808,7 +1853,7 @@ export default function OverviewPanel({
               : encourage.icon === "shield" ? Shield
               : encourage.icon === "coffee" ? Coffee
               : TrendingUp;
-            // slim single-line stripe — deliberately compact, not a card
+            // slim single-line stripe, deliberately compact, not a card
             return (
               <div
                 style={{
@@ -1969,7 +2014,7 @@ export default function OverviewPanel({
               {S.profitFactor ? (
                 <CountUp value={S.profitFactor} format={(v) => fmt(v, 2)} />
               ) : (
-                "—"
+                ", "
               )}
             </span>
           </Tip>
@@ -1996,7 +2041,7 @@ export default function OverviewPanel({
           <span style={{ font: "var(--text-stat)", letterSpacing: "-1px" }}>
             {S.discipline.plannedN + S.discipline.unplannedN > 0
               ? `${fmt((S.discipline.plannedN / (S.discipline.plannedN + S.discipline.unplannedN)) * 100, 0)}%`
-              : "—"}
+              : ", "}
           </span>
           <Progress
             pct={
@@ -2103,7 +2148,7 @@ export default function OverviewPanel({
 
               <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
                 {capital.growthPct >= 100
-                  ? "🎉 You've doubled your starting capital — outstanding discipline."
+                  ? "🎉 You've doubled your starting capital, outstanding discipline."
                   : capital.nextMs != null
                     ? `${currencySymbol}${fmt(Math.max(0, capital.amountToNext), 0)} more in net profit to hit the ${capital.nextMs}% milestone.`
                     : "Keep logging trades to track your growth."}
@@ -2117,6 +2162,8 @@ export default function OverviewPanel({
         </div>
       )}
 
+      {/* ===== Analytics / psychology cards, 2-per-row grid ===== */}
+      <div className="jx-analytics-grid">
       {/* ===== Trading pace & composure (overtrading vs calm) ===== */}
       {isVisible("pace") && pace && (() => {
         const toneColor =
@@ -2134,10 +2181,11 @@ export default function OverviewPanel({
           ["Post-loss rushes", `${Math.round(pace.revengeRate * 100)}%`],
         ];
         return (
-          <div className="jx-card">
+          <div className="jx-card jx-sec">
+            <HideBtn id="pace" />
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-3)" }}>
               <span className="jx-card__title">Trading pace</span>
-              <InfoTip text="How fast and how often you trade — a calm, selective pace usually beats rapid-fire trading." />
+              <InfoTip text="How fast and how often you trade, a calm, selective pace usually beats rapid-fire trading." />
               <span
                 style={{
                   marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6,
@@ -2174,14 +2222,13 @@ export default function OverviewPanel({
         );
       })()}
 
-      {/* ===== Payoff & Drawdown (risk) — two-up grid ===== */}
-      {(isVisible("payoff") || isVisible("drawdown")) && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "var(--space-4)" }}>
-          {isVisible("payoff") && payoff && (() => {
+      {/* ===== Payoff ===== */}
+      {isVisible("payoff") && payoff && (() => {
             const maxAvg = Math.max(payoff.avgWin, payoff.avgLoss, 1);
             const lossBigger = payoff.avgLoss > payoff.avgWin && payoff.avgWin > 0;
             return (
-              <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              <div className="jx-card jx-sec" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                <HideBtn id="payoff" />
                 <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                   Payoff <InfoTip text="Average win vs average loss. A high win rate still loses money if your losses are bigger than your wins." />
                 </span>
@@ -2217,15 +2264,16 @@ export default function OverviewPanel({
                 </div>
                 <span style={{ font: "var(--text-caption)", color: lossBigger ? "var(--color-danger-strong)" : "var(--color-text-muted)" }}>
                   {lossBigger
-                    ? "⚠️ Your average loss is bigger than your average win — tighten stops or let winners run longer."
-                    : "Your average win is bigger than your average loss — keep risk consistent."}
+                    ? "⚠️ Your average loss is bigger than your average win, tighten stops or let winners run longer."
+                    : "Your average win is bigger than your average loss, keep risk consistent."}
                 </span>
               </div>
             );
           })()}
 
           {isVisible("drawdown") && drawdown && (
-            <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+            <div className="jx-card jx-sec" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              <HideBtn id="drawdown" />
               <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 Drawdown &amp; risk <InfoTip text="The biggest drop from an equity peak. Large drawdowns usually come from oversizing or revenge trading." />
               </span>
@@ -2262,16 +2310,15 @@ export default function OverviewPanel({
               </span>
             </div>
           )}
-        </div>
-      )}
 
       {/* ===== Hold time: disposition effect ===== */}
       {isVisible("holdtime") && holdTime && (() => {
         const maxDur = Math.max(holdTime.winAvg, holdTime.lossAvg, 1);
         return (
-          <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <div className="jx-card jx-sec" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+            <HideBtn id="holdtime" />
             <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              Hold time — winners vs losers <InfoTip text="Traders tend to hold losers too long and cut winners too early (the disposition effect). Aim to hold winners at least as long as losers." />
+              Hold time, winners vs losers <InfoTip text="Traders tend to hold losers too long and cut winners too early (the disposition effect). Aim to hold winners at least as long as losers." />
             </span>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -2291,8 +2338,8 @@ export default function OverviewPanel({
             </div>
             <span style={{ font: "var(--text-caption)", color: holdTime.holdsLosersLonger ? "var(--color-danger-strong)" : "var(--color-text-muted)" }}>
               {holdTime.holdsLosersLonger
-                ? `⚠️ You hold losers about ${fmt(holdTime.ratio, 1)}× longer than winners — a classic sign of loss aversion. Cut losers at your stop and give winners room.`
-                : "Healthy — you're not clinging to losing trades. Keep letting winners run."}
+                ? `⚠️ You hold losers about ${fmt(holdTime.ratio, 1)}× longer than winners, a classic sign of loss aversion. Cut losers at your stop and give winners room.`
+                : "Healthy, you're not clinging to losing trades. Keep letting winners run."}
             </span>
           </div>
         );
@@ -2300,9 +2347,10 @@ export default function OverviewPanel({
 
       {/* ===== Revenge trading cost ===== */}
       {isVisible("revenge") && revenge && (
-        <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+        <div className="jx-card jx-sec" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <HideBtn id="revenge" />
           <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            Revenge-trading cost <InfoTip text="P&L from trades you opened within 30 minutes of a loss — often impulsive 'win it back' trades." />
+            Revenge-trading cost <InfoTip text="P&L from trades you opened within 30 minutes of a loss, often impulsive 'win it back' trades." />
           </span>
           <div style={{ display: "flex", gap: "var(--space-5)", flexWrap: "wrap" }}>
             <div>
@@ -2314,26 +2362,34 @@ export default function OverviewPanel({
             </div>
             <div>
               <span style={LABEL}>Avg / revenge trade</span>
-              <div style={{ font: "var(--text-h3)", fontWeight: 700, color: revenge.avgRev >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+              <div style={{ font: "var(--text-stat)", letterSpacing: "-1px", color: revenge.avgRev >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
                 {k(revenge.avgRev, currencySymbol)}
               </div>
               <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>vs {k(revenge.avgCalm, currencySymbol)} on calm trades</span>
             </div>
           </div>
+          {/* win-rate bar, mirrors the Drawdown card's structure */}
+          <div>
+            <div className="jx-progress" style={{ height: 8 }}>
+              <div style={{ width: `${Math.min(100, Math.max(0, revenge.revWinRate * 100))}%`, height: "100%", borderRadius: 999, background: revenge.revPnl >= 0 ? "var(--color-success)" : "var(--color-danger)", transition: `width 0.9s ${BAR_EASE}` }} />
+            </div>
+            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>win rate on revenge trades</span>
+          </div>
           <span style={{ font: "var(--text-caption)", color: revenge.revPnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-muted)" }}>
             {revenge.revPnl < 0
               ? `These impulsive trades cost you ${k(Math.abs(revenge.revPnl), currencySymbol)}. After a loss, step away for a few minutes before the next trade.`
-              : "Your post-loss trades are holding up — but a short pause after a red trade keeps it that way."}
+              : "Your post-loss trades are holding up, but a short pause after a red trade keeps it that way."}
           </span>
         </div>
       )}
 
       {/* ===== Timeframe analysis (which timeframes they trade most) ===== */}
       {isVisible("timeframe") && (
-        <div className="jx-card">
+        <div className="jx-card jx-sec">
+          <HideBtn id="timeframe" />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap", marginBottom: "var(--space-3)" }}>
             <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              Timeframe analysis <InfoTip text="How your closed trades are spread across timeframes — so you can see where you trade the most." />
+              Timeframe analysis <InfoTip text="How your closed trades are spread across timeframes, so you can see where you trade the most." />
             </span>
             {timeframes.most && timeframes.most.count > 0 && (
               <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
@@ -2378,7 +2434,7 @@ export default function OverviewPanel({
                       flexShrink: 0, width: 64, textAlign: "right", font: "var(--text-caption)", fontWeight: 600,
                       color: tf.pnl > 0 ? "var(--color-success-strong)" : tf.pnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-muted)",
                     }}>
-                      {tf.count > 0 ? k(tf.pnl, currencySymbol) : "—"}
+                      {tf.count > 0 ? k(tf.pnl, currencySymbol) : ", "}
                     </span>
                   </div>
                 );
@@ -2390,17 +2446,14 @@ export default function OverviewPanel({
 
       {/* ===== Session performance ===== */}
       {isVisible("sessions") && (
-      <div className="jx-card">
+      <div className="jx-card jx-sec">
+        <HideBtn id="sessions" />
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
           <span className="jx-card__title">Session performance</span>
           <InfoTip text="P&L grouped by trading session, by open time" />
         </div>
-        <div style={{ font: "var(--text-small)", color: "var(--color-text-muted)", marginBottom: "var(--space-3)" }}>
-          When your P&amp;L is maximised across Asia, London &amp; New York.
-        </div>
-
-        {/* live local + UTC clock */}
-        <div style={{ marginBottom: "var(--space-4)" }}>
+        {/* running local + UTC clock */}
+        <div style={{ marginBottom: "var(--space-3)" }}>
           <LiveClock />
         </div>
 
@@ -2410,68 +2463,64 @@ export default function OverviewPanel({
           </span>
         ) : (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--space-3)" }}>
+            {/* session rows, one below the other, active session highlighted */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
               {SESSIONS.list.map((s) => {
                 const pos = s.pnl >= 0;
                 const pct = Math.round((Math.abs(s.pnl) / SESSIONS.maxAbs) * 100);
                 const isBest = SESSIONS.best && s.id === SESSIONS.best.id && s.pnl > 0;
                 const traded = s.trades > 0;
+                const nowH = new Date().getUTCHours();
+                const isActive = nowH >= s.lo && nowH <= s.hi;
                 return (
                   <div
                     key={s.id}
-                    className="jx-card jx-card--flat"
                     style={{
-                      padding: "var(--space-4)",
+                      padding: "var(--space-3)",
+                      borderRadius: "var(--radius-md)",
                       display: "flex",
                       flexDirection: "column",
-                      gap: "var(--space-2)",
-                      border: isBest ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
-                      background: isBest ? "var(--color-primary-subtle)" : "var(--color-bg-surface)",
+                      gap: 6,
+                      border: `1px solid ${isBest ? "var(--color-primary)" : isActive ? "var(--color-border-strong)" : "var(--color-border)"}`,
+                      background: isBest ? "var(--color-primary-subtle)" : isActive ? "var(--color-bg-muted)" : "transparent",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
                       <span style={{ display: "flex", alignItems: "center", gap: 6, font: "var(--text-body-md)", fontWeight: 600 }}>
                         <span>{s.emoji}</span> {s.label}
+                        {isActive && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "var(--text-caption)", fontWeight: 700, color: "var(--color-success-strong)" }}>
+                            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--color-success-strong)", boxShadow: "0 0 0 3px color-mix(in srgb, var(--color-success) 30%, transparent)" }} /> Live
+                          </span>
+                        )}
+                        {isBest && <Badge variant="success">Best</Badge>}
                       </span>
-                      {isBest && <Badge variant="success">Best</Badge>}
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: !traded ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                        {traded ? k(s.pnl, currencySymbol) : ", "}
+                      </span>
                     </div>
-                    {/* UTC + local time ranges */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                      <span>{s.window.replace(" UTC", "")} UTC</span>
-                      <span>Local {localFromUtcHour(s.lo)}–{localFromUtcHour(s.hi)}</span>
-                    </div>
-                    {/* net P&L + bar */}
-                    <span style={{ font: "var(--text-h3)", fontWeight: 700, color: !traded ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                      {traded ? k(s.pnl, currencySymbol) : "—"}
-                    </span>
-                    <div style={{ height: 6, background: "var(--color-bg-muted)", borderRadius: 999, position: "relative", overflow: "hidden" }}>
+                    <div style={{ height: 5, background: "var(--color-bg-muted)", borderRadius: 999, position: "relative", overflow: "hidden" }}>
                       <div style={{ position: "absolute", inset: 0, width: `${traded ? pct : 0}%`, background: pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: 999, transition: "width .8s cubic-bezier(0.16,1,0.3,1)" }} />
                     </div>
-                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                      {traded ? `${s.trades} trade${s.trades === 1 ? "" : "s"} · ${fmt(s.winRate, 0)}% win` : "No trades yet"}
-                    </span>
+                    <div style={{ display: "flex", justifyContent: "space-between", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                      <span>{s.window.replace(" UTC", "")} UTC · local {localFromUtcHour(s.lo)}–{localFromUtcHour(s.hi)}</span>
+                      <span>{traded ? `${s.trades} · ${fmt(s.winRate, 0)}% win` : ", "}</span>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* suggestion */}
-            <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start", marginTop: "var(--space-4)" }}>
-              <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
+            {/* key insight */}
+            <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start", marginTop: "var(--space-3)" }}>
+              <Flame size={14} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
               <span style={{ font: "var(--text-caption)" }}>
                 {SESSIONS.best && SESSIONS.best.pnl > 0 ? (
                   <>
-                    Your best window is <strong>{SESSIONS.best.window.replace(" UTC", "")} UTC</strong>
-                    {" "}(your local <strong>{localFromUtcHour(SESSIONS.best.lo)}–{localFromUtcHour(SESSIONS.best.hi)}</strong>) —
-                    the <strong>{SESSIONS.best.label}</strong> session, where you&apos;re up
-                    {" "}{k(SESSIONS.best.pnl, currencySymbol)} at {fmt(SESSIONS.best.winRate, 0)}% win rate.
-                    Trade your A+ setups then
-                    {SESSIONS.worst && SESSIONS.worst.pnl < 0
-                      ? <> — and go lighter during <strong>{SESSIONS.worst.label}</strong> ({SESSIONS.worst.window.replace(" UTC", "")} UTC), down {k(SESSIONS.worst.pnl, currencySymbol)}.</>
-                      : "."}
+                    Best window: <strong>{SESSIONS.best.label}</strong> ({SESSIONS.best.window.replace(" UTC", "")} UTC · local {localFromUtcHour(SESSIONS.best.lo)}–{localFromUtcHour(SESSIONS.best.hi)}), up {k(SESSIONS.best.pnl, currencySymbol)} at {fmt(SESSIONS.best.winRate, 0)}% win. Trade your A+ setups then.
                   </>
                 ) : (
-                  <>No session is clearly profitable yet. Keep logging with timestamps so we can pinpoint your best UTC window.</>
+                  <>No session is clearly profitable yet, keep logging with timestamps to find your best UTC window.</>
                 )}
               </span>
             </div>
@@ -2482,27 +2531,28 @@ export default function OverviewPanel({
 
       {/* ===== Trader edge ===== */}
       {isVisible("edge") && (
-      <div className="jx-card">
+      <div className="jx-card jx-sec">
+        <HideBtn id="edge" />
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
           <span className="jx-card__title">Your trading edge</span>
           <InfoTip text="Metrics that predict long-term results" />
         </div>
         <div style={{ font: "var(--text-small)", color: "var(--color-text-muted)", marginBottom: "var(--space-4)" }}>
-          Beyond P&amp;L — is your system actually profitable and survivable?
+          Beyond P&amp;L, is your system actually profitable and survivable?
         </div>
 
         {EDGE.total === 0 ? (
           <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>Log trades to reveal your edge metrics.</span>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-            {/* metric tiles — same style as Key metrics for consistency */}
+            {/* metric tiles, same style as Key metrics for consistency */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "var(--space-4)" }}>
               {[
                 { label: "Expectancy / trade", value: k(EDGE.expectancy, currencySymbol), sub: "per trade", up: EDGE.expectancy >= 0, tip: "Average $ you make per trade" },
-                { label: "Expectancy (R)", value: EDGE.expectancyR == null ? "—" : `${EDGE.expectancyR >= 0 ? "+" : ""}${fmt(EDGE.expectancyR, 2)}R`, sub: "per unit risked", up: (EDGE.expectancyR || 0) >= 0, tip: "Profit per unit of risk; above 0 is +EV" },
-                { label: "Payoff (R:R)", value: EDGE.payoff == null ? "—" : `${fmt(EDGE.payoff, 2)}×`, sub: "reward vs risk", up: (EDGE.payoff || 0) >= 1, tip: "Average win ÷ average loss" },
+                { label: "Expectancy (R)", value: EDGE.expectancyR == null ? ", " : `${EDGE.expectancyR >= 0 ? "+" : ""}${fmt(EDGE.expectancyR, 2)}R`, sub: "per unit risked", up: (EDGE.expectancyR || 0) >= 0, tip: "Profit per unit of risk; above 0 is +EV" },
+                { label: "Payoff (R:R)", value: EDGE.payoff == null ? ", " : `${fmt(EDGE.payoff, 2)}×`, sub: "reward vs risk", up: (EDGE.payoff || 0) >= 1, tip: "Average win ÷ average loss" },
                 { label: "Max drawdown", value: k(-EDGE.maxDD, currencySymbol).replace("+", ""), sub: `${fmt(EDGE.maxDDPct, 1)}% of peak`, up: false, tip: "Largest peak-to-valley drop in equity" },
-                { label: "Recovery factor", value: EDGE.recovery == null ? "—" : `${fmt(EDGE.recovery, 2)}×`, sub: "net ÷ drawdown", up: (EDGE.recovery || 0) >= 2, tip: "Net profit ÷ max drawdown; higher is resilient" },
+                { label: "Recovery factor", value: EDGE.recovery == null ? ", " : `${fmt(EDGE.recovery, 2)}×`, sub: "net ÷ drawdown", up: (EDGE.recovery || 0) >= 2, tip: "Net profit ÷ max drawdown; higher is resilient" },
                 { label: "Win rate", value: `${fmt(EDGE.winRate, 1)}%`, sub: "of all trades", up: EDGE.winRate >= 50, tip: "Share of trades that were profitable" },
               ].map((m) => (
                 <div
@@ -2526,7 +2576,7 @@ export default function OverviewPanel({
                 <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
                 <span style={{ font: "var(--text-caption)" }}>
                   {EDGE.expectancy >= 0
-                    ? <>Your system is <strong>+EV</strong> at {k(EDGE.expectancy, currencySymbol)}/trade. <strong>{EDGE.bestDow.label}</strong> is your strongest day — and keep risk per trade well under your {k(-EDGE.maxDD, currencySymbol).replace("+", "")} max drawdown.</>
+                    ? <>Your system is <strong>+EV</strong> at {k(EDGE.expectancy, currencySymbol)}/trade. <strong>{EDGE.bestDow.label}</strong> is your strongest day, and keep risk per trade well under your {k(-EDGE.maxDD, currencySymbol).replace("+", "")} max drawdown.</>
                     : <>Your average trade is currently <strong>negative</strong> ({k(EDGE.expectancy, currencySymbol)}). Focus on raising your payoff (cut losers faster, let winners run) before sizing up.</>}
                 </span>
               </div>
@@ -2536,9 +2586,10 @@ export default function OverviewPanel({
       </div>
       )}
 
-      {/* ===== Day-of-week P&L (full width) ===== */}
+      {/* ===== Day-of-week P&L (spans both columns) ===== */}
       {isVisible("dayOfWeek") && EDGE.dowHasData && (
-        <div className="jx-card">
+        <div className="jx-card jx-sec" style={{ gridColumn: "1 / -1" }}>
+          <HideBtn id="dayOfWeek" />
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
             <span className="jx-card__title">Day-of-week P&amp;L</span>
             <InfoTip text="Which weekday you make or lose money" />
@@ -2549,13 +2600,19 @@ export default function OverviewPanel({
               const h = empty ? 6 : Math.max(8, Math.round((Math.abs(d.pnl) / EDGE.dowMax) * 185));
               const pos = d.pnl >= 0;
               const content = empty
-                ? `${d.label}: 0 trades`
-                : `${d.label}: ${k(d.pnl, currencySymbol)} over ${d.n} trade${d.n === 1 ? "" : "s"}`;
+                ? { title: d.label, rows: [["Trades", "0"]] }
+                : {
+                    title: d.label,
+                    rows: [
+                      ["P&L", k(d.pnl, currencySymbol)],
+                      ["Trades", String(d.n)],
+                    ],
+                  };
               return (
-                <Tip key={d.label} content={content} style={{ flex: 1, minWidth: 0, height: "100%", display: "flex" }}>
+                <Tip key={d.label} content={content} follow style={{ flex: 1, minWidth: 0, height: "100%", display: "flex" }}>
                   <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 8, cursor: "help" }}>
                     <span style={{ font: "var(--text-small)", fontWeight: 700, color: empty ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                      {empty ? "—" : k(d.pnl, currencySymbol)}
+                      {empty ? ", " : k(d.pnl, currencySymbol)}
                     </span>
                     <div style={{ width: "100%", height: h, background: empty ? "var(--color-border)" : pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: "var(--radius-md)", transition: "height .8s cubic-bezier(0.16,1,0.3,1)" }} />
                     <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600 }}>{d.label}</span>
@@ -2566,6 +2623,8 @@ export default function OverviewPanel({
           </div>
         </div>
       )}
+      </div>
+      {/* ===== end analytics grid ===== */}
 
       {/* ===== Streaks & achievements (moved up: right after the KPI cards) ===== */}
       {isVisible("streaks") && (
@@ -2714,7 +2773,7 @@ export default function OverviewPanel({
             {ACH.badges.map((b) => (
               <Tip
                 key={b.id}
-                content={`${b.label}${b.got ? " — unlocked" : ` — ${b.hint}`}`}
+                content={`${b.label}${b.got ? ", unlocked" : `, ${b.hint}`}`}
                 block
               >
                 <div
@@ -2765,16 +2824,12 @@ export default function OverviewPanel({
 
       {/* ===== Key metrics (moved up: right after streaks) ===== */}
       {isVisible("keyMetrics") && (
-      <div style={{ order: -1, display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-      <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-        Key metrics <InfoTip text="Headline stats across all closed trades" />
-      </span>
+      <div style={{ order: -2, display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
           gap: "var(--space-4)",
-          marginTop: "calc(var(--space-3) * -1)",
         }}
       >
         {kpis.map((m) => (
@@ -2791,7 +2846,7 @@ export default function OverviewPanel({
             <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>
               {m.label} {KPI_TIPS[m.label] && <InfoTip text={KPI_TIPS[m.label]} />}
             </span>
-            <Tip content={`${m.label} — ${m.sub}`}>
+            <Tip content={`${m.label}, ${m.sub}`}>
               <span style={{ font: "var(--text-h2)", cursor: "help" }}>
                 {m.value}
               </span>
@@ -2938,29 +2993,6 @@ export default function OverviewPanel({
                           triggerStyle={{ height: 34 }}
                         />
                       </div>
-                      {candleWidth > 0 && (
-                        <div style={{ display: "flex", gap: 4 }}>
-                          {[
-                            { l: "−", fn: () => setEquityZoom((z) => Math.max(8, z - 4)), lbl: "Zoom out" },
-                            { l: "+", fn: () => setEquityZoom((z) => Math.min(48, z + 4)), lbl: "Zoom in" },
-                          ].map((b) => (
-                            <button
-                              key={b.lbl}
-                              type="button"
-                              aria-label={b.lbl}
-                              onClick={b.fn}
-                              style={{
-                                width: 28, height: 28, borderRadius: "var(--radius-sm)", cursor: "pointer",
-                                border: "1px solid var(--color-border-strong)", background: "var(--color-bg-surface)",
-                                color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 700,
-                                display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
-                              }}
-                            >
-                              {b.l}
-                            </button>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -2974,7 +3006,7 @@ export default function OverviewPanel({
                   />
                   {candleWidth > 0 && (
                     <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: 4, textAlign: "center" }}>
-                      Drag to pan · scroll or use ± to zoom
+                      Drag to pan · scroll horizontally
                     </div>
                   )}
                 </div>
@@ -3096,7 +3128,7 @@ export default function OverviewPanel({
                     const labels = S.dailyLabels.slice(
                       dailyRange === "Week" ? -7 : -30,
                     );
-                    return `${labels[i] || ""}\n${k(v, currencySymbol)}`;
+                    return { title: labels[i] || "", rows: [["P&L", k(v, currencySymbol)]] };
                   })}
                 height={140}
               />
@@ -3136,9 +3168,10 @@ export default function OverviewPanel({
                 values={wrSeries.length > 1 ? wrSeries : [50, S.winRate || 50]}
                 tips={
                   wrSeries.length > 1
-                    ? wrSeries.map(
-                        (v, i) => `Period ${i + 1}\n${fmt(v, 1)}% win rate`,
-                      )
+                    ? wrSeries.map((v, i) => ({
+                        title: `Period ${i + 1}`,
+                        rows: [["Win rate", `${fmt(v, 1)}%`]],
+                      }))
                     : null
                 }
                 height={140}
@@ -3164,8 +3197,16 @@ export default function OverviewPanel({
               {S.stratList.map(([name, v]) => (
                 <Tip
                   key={name}
-                  content={`${name}\n${v.n} trades · ${v.w} wins (${fmt((v.w / v.n) * 100, 0)}%)\n${k(v.pnl, currencySymbol)} total P&L`}
+                  content={{
+                    title: name,
+                    rows: [
+                      ["Trades", String(v.n)],
+                      ["Wins", `${v.w} (${fmt((v.w / v.n) * 100, 0)}%)`],
+                      ["Total P&L", k(v.pnl, currencySymbol)],
+                    ],
+                  }}
                   block
+                  follow
                 >
                   <div
                     style={{
@@ -3287,8 +3328,15 @@ export default function OverviewPanel({
                 {S.allocList.map(([sym, v], i) => (
                   <Tip
                     key={sym}
-                    content={`${sym}: ${currencySymbol}${fmt(v, 0)} traded value\n${fmt((v / allocTotal) * 100, 1)}% of allocation`}
+                    content={{
+                      title: sym,
+                      rows: [
+                        ["Traded value", `${currencySymbol}${fmt(v, 0)}`],
+                        ["Allocation", `${fmt((v / allocTotal) * 100, 1)}%`],
+                      ],
+                    }}
                     block
+                    follow
                   >
                     <div
                       style={{
@@ -3339,8 +3387,9 @@ export default function OverviewPanel({
               {S.symPnl.slice(0, 6).map(([sym, v]) => (
                 <Tip
                   key={sym}
-                  content={`${sym}\n${k(v, currencySymbol)} net P&L in this journal`}
+                  content={{ title: sym, rows: [["Net P&L", k(v, currencySymbol)]] }}
                   block
+                  follow
                 >
                   <div
                     style={{
@@ -3484,14 +3533,26 @@ export default function OverviewPanel({
             </div>
             <Badge variant="neutral">{analyticsRange} window</Badge>
             <div style={{ marginTop: "var(--space-3)" }}>
-              <BarChart
-                values={S.vols}
-                tips={S.vols.map(
-                  (v, i) =>
-                    `${S.volLabels[i] || ""}\n${currencySymbol}${fmt(Math.abs(v), 0)} traded`,
-                )}
-                height={110}
-              />
+              {S.vols.length > 0 && S.vols.some((v) => Number(v) !== 0) ? (
+                <BarChart
+                  mode="value"
+                  color="#3b82f6"
+                  values={S.vols}
+                  tips={S.vols.map((v, i) => ({
+                    title: S.volLabels[i] || "",
+                    rows: [["Traded", `${currencySymbol}${fmt(Math.abs(v), 0)}`]],
+                  }))}
+                  height={110}
+                />
+              ) : (
+                /* no per-day volume yet → show an unfilled progress bar */
+                <div>
+                  <div style={{ height: 10, borderRadius: 999, background: "var(--color-bg-muted)", border: "1px solid var(--color-border)" }} />
+                  <span style={{ display: "block", marginTop: 8, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                    No volume in this window yet — log trades with size &amp; price to see it here.
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

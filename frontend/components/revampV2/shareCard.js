@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * generateShareCard(trade, currencySymbol) — renders a Binance/Bybit-style
+ * generateShareCard(trade, currencySymbol), renders a Binance/Bybit-style
  * P&L share card to canvas and downloads it as PNG.
  */
 export function generateShareCard(t, sym = "$") {
@@ -63,8 +63,8 @@ export function generateShareCard(t, sym = "$") {
   /* symbol + side */
   ctx.fillStyle = "#eaecef";
   ctx.font = "600 34px Poppins, sans-serif";
-  ctx.fillText(t.symbol || t.ticker || "—", 56, 160);
-  const symW = ctx.measureText(t.symbol || t.ticker || "—").width;
+  ctx.fillText(t.symbol || t.ticker || ", ", 56, 160);
+  const symW = ctx.measureText(t.symbol || t.ticker || ", ").width;
   ctx.fillStyle = isLong ? "rgba(46,189,133,0.18)" : "rgba(246,70,93,0.18)";
   ctx.beginPath();
   ctx.roundRect(56 + symW + 16, 134, 110, 34, 17);
@@ -88,9 +88,9 @@ export function generateShareCard(t, sym = "$") {
 
   /* entry / exit / date row */
   const rows = [
-    ["Entry", entry ? `${sym}${Number(entry).toLocaleString()}` : "—"],
-    ["Exit", exit ? `${sym}${Number(exit).toLocaleString()}` : "—"],
-    ["Closed", t.closeTime ? new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"],
+    ["Entry", entry ? `${sym}${Number(entry).toLocaleString()}` : ", "],
+    ["Exit", exit ? `${sym}${Number(exit).toLocaleString()}` : ", "],
+    ["Closed", t.closeTime ? new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : ", "],
   ];
   rows.forEach(([label, value], i) => {
     const x = 56 + i * 220;
@@ -110,7 +110,7 @@ export function generateShareCard(t, sym = "$") {
   ctx.stroke();
   ctx.fillStyle = "#707a8a";
   ctx.font = "500 15px Poppins, sans-serif";
-  ctx.fillText("journalx.app — know your edge", 56, 478);
+  ctx.fillText("journalx.app, know your edge", 56, 478);
 
   /* download */
   const a = document.createElement("a");

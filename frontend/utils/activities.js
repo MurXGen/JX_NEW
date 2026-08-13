@@ -1,4 +1,4 @@
-/* Trader Gym progress — daily streak, XP and per-activity scores.
+/* Trader Gym progress, daily streak, XP and per-activity scores.
    Everything is stored locally (no backend) under one key. */
 
 const KEY = "jx-trader-gym";
@@ -46,7 +46,7 @@ export function recordActivity(activityId, { xp = 0, score = 0 } = {}) {
   const p = getProgress();
   const today = todayStr();
 
-  // streak bookkeeping — only on the first completion of a new day
+  // streak bookkeeping, only on the first completion of a new day
   const alreadyToday = Boolean(p.history?.[today] && Object.keys(p.history[today]).length);
   if (!alreadyToday) {
     if (p.lastPlayed) {

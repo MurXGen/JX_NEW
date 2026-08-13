@@ -50,7 +50,7 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
     // Pre-fill the buyer's email so logged-in users don't retype it (like
     // UltraTrader). IMPORTANT: we deliberately do NOT pass a partial address.
     // Paddle ignores ALL prefill if the address is incomplete (e.g. a country
-    // that requires a postal code, like India, without one) — so passing only
+    // that requires a postal code, like India, without one), so passing only
     // a valid email guarantees the email prefills; Paddle auto-detects country
     // by IP and only asks for ZIP where required.
     const customer = email && /\S+@\S+\.\S+/.test(email) ? { email } : undefined;
@@ -67,7 +67,7 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
         settings: {
           displayMode: "overlay",
           theme,
-          allowLogout: false, // hide "Not you? Change" — we already know the user
+          allowLogout: false, // hide "Not you? Change", we already know the user
           showAddDiscounts: true,
           showAddTaxId: true,
         },
@@ -82,7 +82,7 @@ export function usePlanCheckout({ loginRedirect = "/pricing" } = {}) {
 
   const startSubscriptionPolling = () => {
     let attempts = 0;
-    const maxAttempts = 24; // ~2 min — webhooks can lag a little after payment
+    const maxAttempts = 24; // ~2 min, webhooks can lag a little after payment
     const interval = setInterval(async () => {
       attempts++;
       try {

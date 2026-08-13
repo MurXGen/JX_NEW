@@ -1,4 +1,4 @@
-/* livePrice.js — live spot prices from Binance's public API (no key,
+/* livePrice.js, live spot prices from Binance's public API (no key,
    CORS-enabled). 30s in-memory cache per symbol. Non-crypto symbols
    return null so callers can fall back to simulation. */
 
@@ -14,7 +14,7 @@ export const toBinanceSymbol = (sym) => {
 
 /* True only for symbols we can pull a real candle feed for (crypto pairs on
    Binance). Everything else (stocks, futures, forex) has no live markable
-   chart — callers use this to hide approximated charts and to disable the
+   chart, callers use this to hide approximated charts and to disable the
    "Log on chart" toggle. */
 export const hasLiveCandles = (sym) => !!toBinanceSymbol(sym);
 

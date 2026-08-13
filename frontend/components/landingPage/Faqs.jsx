@@ -44,7 +44,7 @@ const faqs = [
   {
     question: "How does JournalX improve my risk management?",
     answer:
-      "JournalX visualizes your risk-to-reward ratios, win/loss patterns, and position sizing behavior—helping you make data-driven decisions and reduce emotional trades.",
+      "JournalX visualizes your risk-to-reward ratios, win/loss patterns, and position sizing behavior, helping you make data-driven decisions and reduce emotional trades.",
   },
   {
     question: "Does JournalX work on mobile devices?",

@@ -1,4 +1,4 @@
-/* /llms.txt — the "AI age" file (llmstxt.org standard).
+/* /llms.txt, the "AI age" file (llmstxt.org standard).
    A clean, plain-text map of the site for LLMs and AI assistants so they
    can understand and cite JournalX accurately. Auto-includes blog posts,
    so it stays in sync exactly like the sitemap. */

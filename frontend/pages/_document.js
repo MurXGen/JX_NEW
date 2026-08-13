@@ -2,7 +2,7 @@ import { Html, Head, Main, NextScript } from "next/document";
 
 const SITE_URL = "https://journalx.app";
 
-/* Sitewide structured data — helps Google understand the brand + product
+/* Sitewide structured data, helps Google understand the brand + product
    and unlocks rich results (sitelinks search box, knowledge panel). */
 const ORGANIZATION_LD = {
   "@context": "https://schema.org",
@@ -47,7 +47,7 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        {/* Connection hints — fonts + image CDN */}
+        {/* Connection hints, fonts + image CDN */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -62,7 +62,7 @@ export default function Document() {
         <link rel="apple-touch-icon" href="/assets/jx_app_192.png" />
         <link rel="manifest" href="/manifest.json" />
 
-        {/* Theme init — runs before hydration to avoid a flash of the wrong theme */}
+        {/* Theme init, runs before hydration to avoid a flash of the wrong theme */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function () {

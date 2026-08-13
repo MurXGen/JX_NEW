@@ -1,6 +1,6 @@
 "use client";
 
-/* /blogs — public blog index. No login. Full SEO (meta, OG, Twitter,
+/* /blogs, public blog index. No login. Full SEO (meta, OG, Twitter,
    JSON-LD Blog schema). Data from data/blogs.json via utils/blogs. */
 
 import { useMemo, useState } from "react";
@@ -20,7 +20,7 @@ import {
 } from "@/utils/blogs";
 
 const CAT_DESC =
-  "Trading journal guides on funded & prop firm trading, psychology, risk and strategy from JournalX — learn to protect your account and build a measurable, data-backed edge.";
+  "Trading journal guides on funded & prop firm trading, psychology, risk and strategy from JournalX, learn to protect your account and build a measurable, data-backed edge.";
 
 const BLOG_KEYWORDS =
   "trading journal blog, funded trader tips, prop firm trading, how to pass a funded account challenge, trailing drawdown, trading psychology, risk management, revenge trading, trade journaling, FTMO journal";
@@ -55,19 +55,19 @@ export default function BlogIndex() {
   return (
     <>
       <Head>
-        <title>Trading Journal Blog — Funded Trading, Psychology & Risk | JournalX</title>
+        <title>Trading Journal Blog, Funded Trading, Psychology & Risk | JournalX</title>
         <meta name="description" content={CAT_DESC} />
         <meta name="keywords" content={BLOG_KEYWORDS} />
         <link rel="canonical" href={`${SITE_URL}/blogs`} />
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="JournalX" />
-        <meta property="og:title" content="JournalX Blog — Funded trading, psychology & journaling guides" />
+        <meta property="og:title" content="JournalX Blog, Funded trading, psychology & journaling guides" />
         <meta property="og:description" content={CAT_DESC} />
         <meta property="og:url" content={`${SITE_URL}/blogs`} />
         <meta property="og:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="JournalX Blog — Funded trading, psychology & journaling guides" />
+        <meta name="twitter:title" content="JournalX Blog, Funded trading, psychology & journaling guides" />
         <meta name="twitter:description" content={CAT_DESC} />
         <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogListJsonLd()) }} />
@@ -94,7 +94,7 @@ export default function BlogIndex() {
           <div>
             <h1 style={{ font: "var(--text-h1)", margin: 0 }}>The JournalX Trading Journal Blog</h1>
             <p style={{ font: "var(--text-body-lg)", color: "var(--color-text-muted)", maxWidth: 600 }}>
-              High-leverage lessons for funded and prop firm traders — strategy, risk, trading psychology and journaling across forex, futures, stocks and crypto, and how to turn each one into a measurable edge.
+              High-leverage lessons for funded and prop firm traders, strategy, risk, trading psychology and journaling across forex, futures, stocks and crypto, and how to turn each one into a measurable edge.
             </p>
           </div>
 
@@ -109,7 +109,7 @@ export default function BlogIndex() {
             ))}
           </div>
 
-          {/* featured — image-free, accent header */}
+          {/* featured, image-free, accent header */}
           {featured && cat === "All" && !q && (
             <Link href={`/blogs/${featured.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
               <motion.div
@@ -134,7 +134,7 @@ export default function BlogIndex() {
             </Link>
           )}
 
-          {/* grid — image-free cards */}
+          {/* grid, image-free cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "var(--space-4)" }}>
             {list.map((p, i) => (
               <Link key={p.slug} href={`/blogs/${p.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
@@ -162,7 +162,7 @@ export default function BlogIndex() {
               </Link>
             ))}
             {list.length === 0 && (
-              <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>No articles match — try another category.</span>
+              <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>No articles match, try another category.</span>
             )}
           </div>
         </main>

@@ -134,7 +134,7 @@ const weightedAvg = (rows) => {
 };
 
 /**
- * revampV2 TradeLogForm — Figma design-system form components.
+ * revampV2 TradeLogForm, Figma design-system form components.
  * DUMMY for now: onSubmit just logs the payload + shows a toast.
  * Later: wire to POST /api/trades (multipart for images → Backblaze).
  */
@@ -180,7 +180,7 @@ export default function TradeLogForm({ onSubmit }) {
     console.log("[TradeLogForm] payload:", payload);
     onSubmit?.(payload);
 
-    setToast("Trade saved (sample only — not stored yet)");
+    setToast("Trade saved (sample only, not stored yet)");
     setTimeout(() => setToast(null), 3500);
     setForm(EMPTY_FORM);
   };
@@ -492,7 +492,7 @@ export default function TradeLogForm({ onSubmit }) {
                 }}
               >
                 {estPnl == null
-                  ? "—"
+                  ? ", "
                   : `${estPnl >= 0 ? "+" : "−"}${Math.abs(estPnl).toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
               </strong>
             </span>

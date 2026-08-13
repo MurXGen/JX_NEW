@@ -1,6 +1,6 @@
 "use client";
 
-/* /login — revamp v2 auth. Email+password with Turnstile, Google OAuth,
+/* /login, revamp v2 auth. Email+password with Turnstile, Google OAuth,
    unverified accounts drop into the 6-digit OTP step, forgot-password link. */
 
 import { useEffect, useState } from "react";
@@ -110,10 +110,10 @@ export default function LoginPage() {
           setCooldown(60);
           flash("info", "We emailed you a fresh verification code");
         } catch {
-          flash("info", "Verify your email — enter the code we sent you");
+          flash("info", "Verify your email, enter the code we sent you");
         }
       } else {
-        flash("danger", data?.message || "Login failed — try again");
+        flash("danger", data?.message || "Login failed, try again");
       }
     } finally {
       setBusy(false);
@@ -161,12 +161,12 @@ export default function LoginPage() {
         setTimeout(() => finishLogin(res.data?.userData), 700);
       } else {
         await axios.post(`${API_BASE}/api/auth/verify-otp`, { userId: otpUserId, otp }, { withCredentials: true });
-        flash("success", "Email verified — welcome back!");
+        flash("success", "Email verified, welcome back!");
         setTimeout(() => finishLogin(null), 700);
       }
     } catch (err) {
       flash("danger", err.response?.data?.message || "Invalid code");
-      // login captcha tokens are single-use — refresh after a failed attempt
+      // login captcha tokens are single-use, refresh after a failed attempt
       if (otpMode === "login") { setOtpCaptcha(""); setOtpCaptchaKey((k) => k + 1); }
     } finally {
       setBusy(false);
@@ -180,7 +180,7 @@ export default function LoginPage() {
         const res = await axios.post(`${API_BASE}/api/auth/login-otp/request`, { email: email.trim(), turnstileToken: otpCaptcha }, { withCredentials: true });
         if (res.data?.userId) setOtpUserId(res.data.userId);
         setCooldown(60);
-        // consumed the token — refresh so the verify step gets a fresh one
+        // consumed the token, refresh so the verify step gets a fresh one
         setOtpCaptcha("");
         setOtpCaptchaKey((k) => k + 1);
         flash("success", "Login code resent");
@@ -197,14 +197,14 @@ export default function LoginPage() {
   return (
     <>
       <Head>
-        <title>JournalX Login — Sign In to Your Trading Journal | journalx.app</title>
+        <title>JournalX Login, Sign In to Your Trading Journal | journalx.app</title>
         <meta name="description" content="Log in to JournalX, the trading journal that gives you trade log analysis in seconds. Access your dashboard, equity curve, R-multiples and discipline analytics at journalx.app." />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://journalx.app/login" />
-        <meta property="og:title" content="JournalX Login — Sign In to Your Trading Journal" />
+        <meta property="og:title" content="JournalX Login, Sign In to Your Trading Journal" />
         <meta property="og:description" content="Sign in to your JournalX trading journal at journalx.app." />
         <meta property="og:url" content="https://journalx.app/login" />
-        <meta name="twitter:title" content="JournalX Login — Sign In to Your Trading Journal" />
+        <meta name="twitter:title" content="JournalX Login, Sign In to Your Trading Journal" />
       </Head>
       <AuthLayout
         title={step === "login" ? "Welcome back" : step === "codeRequest" ? "Log in with a code" : "Check your email"}
@@ -212,7 +212,7 @@ export default function LoginPage() {
           step === "login"
             ? "Log in to your trading journal"
             : step === "codeRequest"
-              ? "We'll email you a one-time login code — no password needed"
+              ? "We'll email you a one-time login code, no password needed"
               : `We sent a 6-digit code to ${email}`
         }
       >

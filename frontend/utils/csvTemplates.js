@@ -1,13 +1,13 @@
 /* Shared CSV import templates so the Import/Export page and the Import modal
    offer the exact same downloadable samples. Two flavours:
-     • quick    — only the columns used in Quick log (result-only)
-     • detailed — every column captured in the Detailed log modal */
+     • quick, only the columns used in Quick log (result-only)
+     • detailed, every column captured in the Detailed log modal */
 
 export const QUICK_TEMPLATE = {
   key: "quick",
   label: "Quick log",
   fileName: "journalx_quick_log_template.csv",
-  hint: "Result-only — symbol, direction and net P&L (optional date & note).",
+  hint: "Result-only, symbol, direction and net P&L (optional date & note).",
   columns: ["symbol", "direction", "pnl", "closeTime", "notes"],
   rows: [
     ["BTC/USDT", "long", "1250", "2026-06-01 14:30", "Breakout retest"],
@@ -20,7 +20,7 @@ export const DETAILED_TEMPLATE = {
   key: "detailed",
   label: "Detailed log",
   fileName: "journalx_detailed_log_template.csv",
-  hint: "Full detail — entry/exit, size, leverage, fees, risk, strategy & psychology.",
+  hint: "Full detail, entry/exit, size, leverage, fees, risk, strategy & psychology.",
   columns: [
     "symbol", "direction", "entry", "exit", "size", "sizeUnit", "leverage",
     "fee", "feeType", "stopLoss", "takeProfit", "openTime", "closeTime",

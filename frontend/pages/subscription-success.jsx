@@ -1,6 +1,6 @@
 "use client";
 
-/* Subscription success — v2 redesign. Theme-aware, token-based.
+/* Subscription success, v2 redesign. Theme-aware, token-based.
    Keeps the confetti burst + auto-redirect and the order summary. */
 
 import { useEffect, useState } from "react";

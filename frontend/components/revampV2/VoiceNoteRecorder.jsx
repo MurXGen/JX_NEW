@@ -1,9 +1,9 @@
 "use client";
 
-/* VoiceNoteRecorder — record a short voice note on a trade.
+/* VoiceNoteRecorder, record a short voice note on a trade.
    • Captures audio with MediaRecorder (webm/opus where supported).
    • Live speech-to-text via the browser Web Speech API (Chrome/Android are
-     great; Safari/iOS may not transcribe — audio still records fine).
+     great; Safari/iOS may not transcribe, audio still records fine).
    • Emits { blob, transcript, durationSec } to the parent via onChange so the
      log modals can attach the file + append the transcript to notes.
    • Also supports an existing saved note (existingUrl) for playback on edit. */
@@ -72,7 +72,7 @@ export default function VoiceNoteRecorder({ onChange, existingUrl = "", dashed =
       };
       mr.start();
 
-      // live transcription (best-effort — not on every browser)
+      // live transcription (best-effort, not on every browser)
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SR) {
         const rec = new SR();
@@ -125,7 +125,7 @@ export default function VoiceNoteRecorder({ onChange, existingUrl = "", dashed =
     else { el.play(); setPlaying(true); }
   };
 
-  // dashed trigger used for the idle state — matches the "Add image" dropzone
+  // dashed trigger used for the idle state, matches the "Add image" dropzone
   const dashedBtn = {
     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
     width: "100%", padding: "12px", borderRadius: "var(--radius-md)",
@@ -160,7 +160,7 @@ export default function VoiceNoteRecorder({ onChange, existingUrl = "", dashed =
     );
   }
 
-  // decorative bars — animate while recording / playing, static otherwise
+  // decorative bars, animate while recording / playing, static otherwise
   const BAR_COUNT = 28;
   const bars = Array.from({ length: BAR_COUNT });
 

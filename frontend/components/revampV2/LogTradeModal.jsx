@@ -42,6 +42,7 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { hasLiveCandles } from "@/utils/livePrice";
 import { canAddTrade, canChartLog, getPlanRules } from "@/utils/planRestrictions";
+import useBeforeUnload from "@/utils/useBeforeUnload";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { scheduleAutoBackup } from "@/utils/driveBackup";
 
@@ -503,6 +504,11 @@ const detectSession = (dt) => {
   if (h < 21) return "New York session";
   return "Sydney session";
 };
+/* Stable snapshot of the form for "unsaved changes" detection. Screenshots
+   hold File objects (not JSON-serialisable) so we compare their count only. */
+const serializeForm = (f) =>
+  JSON.stringify({ ...f, screenshots: (f?.screenshots || []).length });
+
 const p2 = (n) => String(n).padStart(2, "0");
 const nowLocal = () => {
   const d = new Date();
@@ -525,7 +531,7 @@ const TRADE_JSON_SAMPLE = `{
   "notes": "broke out of range, trailed the stop"
 }`;
 
-const CHATGPT_JSON_PROMPT = `You are a trade-log parser for a trading journal. I will give you my trade in ONE of two ways: (A) I attach a screenshot of the trade from my broker/exchange, or (B) I type it out in plain words. Read whichever I give you and reply with ONLY one JSON object — no explanation, no markdown, no code fences — matching exactly these keys:
+const CHATGPT_JSON_PROMPT = `You are a trade-log parser for a trading journal. I will give you my trade in ONE of two ways: (A) I attach a screenshot of the trade from my broker/exchange, or (B) I type it out in plain words. Read whichever I give you and reply with ONLY one JSON object, no explanation, no markdown, no code fences, matching exactly these keys:
 
 {
   "symbol": "ticker, e.g. BTCUSDT",
@@ -542,7 +548,7 @@ const CHATGPT_JSON_PROMPT = `You are a trade-log parser for a trading journal. I
 
 Rules: output valid JSON only. Use null for anything you can't find. "direction" must be exactly "long" or "short". Numbers must be plain (no currency symbols, no commas). Times must be 24-hour local time in YYYY-MM-DDTHH:mm; if I give a start time plus a duration (e.g. "10am, 2h"), set openTime to the start and closeTime to start + duration. Do not add extra keys or any text before/after the JSON.
 
-HOW I MIGHT GIVE IT TO YOU — EXAMPLES:
+HOW I MIGHT GIVE IT TO YOU, EXAMPLES:
 
 Example A (I attach a screenshot): I paste an image of my position/order history. Read the ticker, side, size, entry & exit prices, fees and P&L straight off the image.
 
@@ -566,7 +572,7 @@ Now here is my trade (screenshot or text below):`;
 const CHATGPT_JSON_URL = `https://chatgpt.com/?q=${encodeURIComponent(CHATGPT_JSON_PROMPT)}`;
 
 /* ================================================================
-   LogTradeModal — wired to POST /api/trades/addd.
+   LogTradeModal, wired to POST /api/trades/addd.
    Quick & Detailed share one modal frame (same width/height) and
    one trades collection; tradeStatus differs.
    ================================================================ */
@@ -625,7 +631,7 @@ export default function LogTradeModal({
   onNoJournal,
 }) {
   const isEdit = !!initialTrade?._id;
-  // Currency the user is logging in — prefer the prop from the dashboard,
+  // Currency the user is logging in, prefer the prop from the dashboard,
   // else fall back to the active journal's base currency from localStorage.
   const sym = useMemo(() => {
     if (currencySymbol) return currencySymbol;
@@ -635,7 +641,7 @@ export default function LogTradeModal({
       return "$";
     }
   }, [currencySymbol]);
-  // ISO code of the journal currency (e.g. INR) — used to label the cash
+  // ISO code of the journal currency (e.g. INR), used to label the cash
   // position-size unit so it matches the journal, not a hardcoded "USD".
   const curCode = useMemo(() => {
     try {
@@ -660,7 +666,13 @@ export default function LogTradeModal({
   const [customEmotions, setCustomEmotions] = useState([]);
   const [maxImages, setMaxImages] = useState(MAX_IMAGES); // plan-gated per-trade cap
   const fileRef = useRef(null);
+  const baselineRef = useRef(null); // form snapshot at open → "unsaved changes"
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Warn (native "Leave site?") on tab-close/refresh when there are unsaved edits
+  const isDirty =
+    open && baselineRef.current != null && serializeForm(form) !== baselineRef.current;
+  useBeforeUnload(isDirty && !saving);
 
   /* symbol list management (persisted to localStorage) */
   const addSymbol = (raw) => {
@@ -704,7 +716,7 @@ export default function LogTradeModal({
       if (a !== -1 && b !== -1 && b > a) s = s.slice(a, b + 1);
       d = JSON.parse(s);
     } catch {
-      setJsonErr("That doesn't look like valid JSON — copy the whole { … } block.");
+      setJsonErr("That doesn't look like valid JSON, copy the whole { … } block.");
       return;
     }
     if (!d || typeof d !== "object" || Array.isArray(d)) {
@@ -731,7 +743,7 @@ export default function LogTradeModal({
     setJsonErr("");
     setJsonText("");
     setJsonOpen(false);
-    flash("success", `Prefilled ${filled} field${filled > 1 ? "s" : ""} from JSON — review and save.`);
+    flash("success", `Prefilled ${filled} field${filled > 1 ? "s" : ""} from JSON, review and save.`);
   };
 
   /* chart annotation → mirror entry/exit into the form so prices + P&L and
@@ -752,7 +764,7 @@ export default function LogTradeModal({
   };
 
   /* "Log on chart" only works when we can load a real, clickable candle feed
-     — that's crypto pairs on Binance. Stocks/futures/forex only have a
+, that's crypto pairs on Binance. Stocks/futures/forex only have a
      read-only TradingView embed you can't mark on, so the toggle is disabled
      for them. */
   const chartMarkable = hasLiveCandles(form.symbol);
@@ -768,7 +780,9 @@ export default function LogTradeModal({
   useEffect(() => {
     if (!open) return;
     if (initialTrade?._id) {
-      setForm(tradeToForm(initialTrade));
+      const base = tradeToForm(initialTrade);
+      setForm(base);
+      baselineRef.current = serializeForm(base);
       setMode(initialTrade.tradeStatus === "quick" ? "quick" : "detailed");
       // reopen the chart when this trade was logged on a chart, or simply has
       // an entry & exit we can mark
@@ -779,6 +793,7 @@ export default function LogTradeModal({
       );
     } else {
       setForm(EMPTY);
+      baselineRef.current = serializeForm(EMPTY);
       setMode("quick");
       setUseChart(false);
     }
@@ -959,7 +974,7 @@ export default function LogTradeModal({
         flash(
           "danger",
           maxImages === 1
-            ? "Free plan allows 1 screenshot per trade — upgrade for up to 4"
+            ? "Free plan allows 1 screenshot per trade, upgrade for up to 4"
             : `Max ${maxImages} screenshots per trade`,
         );
         break;
@@ -990,7 +1005,7 @@ export default function LogTradeModal({
       Cookies.get("accountId") ||
       (typeof window !== "undefined" && localStorage.getItem("jx-account-id"));
     if (!accountId) {
-      // genuinely no journal — send them to pick/create one
+      // genuinely no journal, send them to pick/create one
       flash("danger", "Select a journal to log into first");
       onClose?.();
       onNoJournal?.();
@@ -1051,7 +1066,7 @@ export default function LogTradeModal({
     }
 
     // If the user MARKED entry & exit on the chart (real click times), use
-    // those candle times as the trade's open/close — unless they explicitly
+    // those candle times as the trade's open/close, unless they explicitly
     // chose "just duration" mode.
     if (useChart && !form.useDuration && chartMeta?.entryTime && chartMeta?.exitTime) {
       openTime = chartMeta.entryTime;
@@ -1165,7 +1180,7 @@ export default function LogTradeModal({
           const lim = getPlanRules(ud).limits.chartLogLimitPerMonth;
           flash(
             "danger",
-            `Chart not attached — you've used all ${lim} chart logs this month. Upgrade to Pro for unlimited.`,
+            `Chart not attached, you've used all ${lim} chart logs this month. Upgrade to Pro for unlimited.`,
             4000,
           );
         }
@@ -1232,7 +1247,7 @@ export default function LogTradeModal({
       console.error("Save trade failed:", err);
       flash(
         "danger",
-        err.response?.data?.message || "Could not save trade — try again",
+        err.response?.data?.message || "Could not save trade, try again",
       );
     } finally {
       setSaving(false);
@@ -1250,7 +1265,7 @@ export default function LogTradeModal({
         gap: "var(--space-2)",
       }}
     >
-      {/* plain symbol input (matches the quick modal) — type it, or tap a
+      {/* plain symbol input (matches the quick modal), type it, or tap a
           recent one from the single scrollable row below */}
       <div className="jx-input">
         <input
@@ -1408,7 +1423,7 @@ export default function LogTradeModal({
             style={
               form.screenshots.length === 0
                 ? {
-                    // full-width dropzone when empty — dashed, transparent
+                    // full-width dropzone when empty, dashed, transparent
                     // fill so it's never a white block in either theme
                     width: "100%",
                     minHeight: 92,
@@ -1517,8 +1532,8 @@ export default function LogTradeModal({
                     }}
                   >
                     {isQuick
-                      ? "Fast — just the result (P&L)."
-                      : "Full trade — entry, exit & size."}
+                      ? "Fast, just the result (P&L)."
+                      : "Full trade, entry, exit & size."}
                   </span>
                 </div>
                 <button
@@ -1548,7 +1563,7 @@ export default function LogTradeModal({
               />
             </div>
 
-            {/* ===== Body — same frame, content cross-fades ===== */}
+            {/* ===== Body, same frame, content cross-fades ===== */}
             <div className="jx-ltmodal__body" style={{ minHeight: 480 }}>
               <div className="jx-ltmodal__form">
                 <AnimatePresence mode="wait">
@@ -1564,111 +1579,6 @@ export default function LogTradeModal({
                       gap: "var(--space-6)",
                     }}
                   >
-                    {/* Import from JSON — paste a JSON object (optionally
-                        generated by ChatGPT from a screenshot) to prefill */}
-                    <div className="jx-ltgroup">
-                      <Sect
-                        icon={Braces}
-                        title="Import from JSON"
-                        hint="Paste a trade as JSON and we'll fill the fields for you"
-                      />
-                      {!jsonOpen ? (
-                        <button
-                          type="button"
-                          onClick={() => { setJsonErr(""); setJsonOpen(true); }}
-                          style={{
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                            width: "100%", padding: "14px", borderRadius: "var(--radius-md)",
-                            border: "1.5px dashed var(--color-border-strong)", background: "transparent",
-                            color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 600,
-                            cursor: "pointer",
-                          }}
-                        >
-                          <Braces size={16} /> Paste trade JSON
-                        </button>
-                      ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-                          <textarea
-                            className="jx-textarea"
-                            value={jsonText}
-                            onChange={(e) => { setJsonText(e.target.value); if (jsonErr) setJsonErr(""); }}
-                            placeholder={`Paste JSON here, e.g.\n${TRADE_JSON_SAMPLE}`}
-                            spellCheck={false}
-                            rows={9}
-                            style={{
-                              width: "100%", resize: "vertical",
-                              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-                              fontSize: "12.5px", lineHeight: 1.55,
-                              ...(jsonErr ? { borderColor: "var(--color-danger)" } : {}),
-                            }}
-                          />
-                          {jsonErr && (
-                            <span style={{ font: "var(--text-caption)", color: "var(--color-danger)" }}>{jsonErr}</span>
-                          )}
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-3)", alignItems: "center" }}>
-                            <button
-                              type="button"
-                              onClick={prefillFromJson}
-                              style={{
-                                display: "inline-flex", alignItems: "center", gap: 6,
-                                padding: "10px 16px", borderRadius: "var(--radius-md)", border: "none",
-                                background: "var(--color-primary)", color: "var(--color-on-primary, #111)",
-                                font: "var(--text-body-md)", fontWeight: 700, cursor: "pointer",
-                              }}
-                            >
-                              <Check size={15} /> Prefill fields
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { setJsonOpen(false); setJsonText(""); setJsonErr(""); }}
-                              style={{
-                                padding: "10px 14px", borderRadius: "var(--radius-md)",
-                                border: "1px solid var(--color-border)", background: "transparent",
-                                color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 600, cursor: "pointer",
-                              }}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                try { navigator.clipboard.writeText(TRADE_JSON_SAMPLE); flash("success", "Sample JSON copied"); }
-                                catch { /* ignore */ }
-                              }}
-                              style={{
-                                display: "inline-flex", alignItems: "center", gap: 6, marginLeft: "auto",
-                                padding: "10px 12px", borderRadius: "var(--radius-md)",
-                                border: "1px solid var(--color-border)", background: "transparent",
-                                color: "var(--color-text-muted)", font: "var(--text-caption)", fontWeight: 600, cursor: "pointer",
-                              }}
-                            >
-                              <Copy size={13} /> Copy sample
-                            </button>
-                          </div>
-                          <a
-                            href={CHATGPT_JSON_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start",
-                              font: "var(--text-caption)", fontWeight: 600, color: "var(--yellow-600)",
-                              textDecoration: "underline", textUnderlineOffset: 3, outline: "none",
-                              background: "transparent", border: "none", padding: 0,
-                            }}
-                          >
-                            <ExternalLink size={13} /> Don&apos;t have JSON? Generate it with ChatGPT from your screenshot
-                          </a>
-                          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                            Opens ChatGPT with the instructions ready. Either attach your trade screenshot, or just type it — e.g.{" "}
-                            <code style={{ font: "var(--text-caption)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: "var(--color-text-secondary)" }}>
-                              BTCUSDT 10am IST, 2h, long, 0.5 size, entry 61000 exit 62250
-                            </code>
-                            . Copy the JSON it returns, paste it above, then review before saving.
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
                     <div className="jx-ltgroup">
                       <Sect icon={CandlestickChart} title="Asset & direction" />
                       {symbolBlock}
@@ -1730,8 +1640,8 @@ export default function LogTradeModal({
                         }}
                       >
                         {chartToggleDisabled
-                          ? `A live markable chart isn't available for ${form.symbol} — it's only for crypto pairs (e.g. BTCUSDT). Enter your prices manually below.`
-                          : "Mark entry & exit on a live chart — prices fill in for you."}
+                          ? `A live markable chart isn't available for ${form.symbol}, it's only for crypto pairs (e.g. BTCUSDT). Enter your prices manually below.`
+                          : "Mark entry & exit on a live chart, prices fill in for you."}
                       </span>
 
                       <AnimatePresence initial={false}>
@@ -1777,7 +1687,7 @@ export default function LogTradeModal({
 
                     {isQuick ? (
                       <>
-                        {/* ===== QUICK — symbol + direction (above) + P&L only ===== */}
+                        {/* ===== QUICK, symbol + direction (above) + P&L only ===== */}
                         <div className="jx-ltgroup">
                           <Sect icon={Zap} title="Result" hint="Just the outcome" />
                           <Field label={`Net P&L in ${sym} (use − for a loss)`}>
@@ -1822,13 +1732,13 @@ export default function LogTradeModal({
                                 <strong style={{ color: quickPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
                                   {quickOutcome} · {fmtMoney(quickPnl, sym)}
                                 </strong>{" "}
-                                — detected from your P&L
+, detected from your P&L
                               </span>
                             </div>
                           )}
                         </div>
 
-                        {/* voice note — available directly in Only P&L too */}
+                        {/* voice note, available directly in Only P&L too */}
                         <div className="jx-ltgroup">
                           <Sect icon={Mic} title="Voice note" hint="Talk it out · auto-transcribed to notes" />
                           <VoiceNoteRecorder
@@ -1863,7 +1773,7 @@ export default function LogTradeModal({
                               style={{ overflow: "hidden", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
                             >
                               <div className="jx-ltgroup">
-                                <Sect icon={Clock} title="When" hint="Date / time — optional" />
+                                <Sect icon={Clock} title="When" hint="Date / time, optional" />
                                 <TimingInput form={form} set={set} mode="quick" />
                               </div>
 
@@ -1898,7 +1808,7 @@ export default function LogTradeModal({
                           />
                           <div className="jx-form-grid">
                             {/* When "Log on chart" is on, entry & exit are set
-                                on the chart above — hide these to avoid a
+                                on the chart above, hide these to avoid a
                                 duplicate pair. Show them for the normal flow. */}
                             {!useChart && (
                               <>
@@ -1928,7 +1838,7 @@ export default function LogTradeModal({
                             )}
                             <Field label="Position size">
                               <div style={{ display: "flex", gap: "var(--space-2)", width: "100%", alignItems: "stretch" }}>
-                                {/* size input — takes the remaining ~80% */}
+                                {/* size input, takes the remaining ~80% */}
                                 <div className="jx-input" style={{ flex: 1, minWidth: 0 }}>
                                   <input
                                     type="number"
@@ -1940,7 +1850,7 @@ export default function LogTradeModal({
                                     onChange={(e) => set("size", e.target.value)}
                                   />
                                 </div>
-                                {/* unit toggle — both options visible; the unselected
+                                {/* unit toggle, both options visible; the unselected
                                     one keeps a visible surface bg (not transparent) */}
                                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                                   {[
@@ -2232,7 +2142,7 @@ export default function LogTradeModal({
                         <div className="jx-ltgroup jx-ltgroup--divided">
                           <Sect
                             icon={LineChart}
-                            title="Your edge — context"
+                            title="Your edge, context"
                             hint="Sharpens analytics"
                           />
                           <Field label="Strategy / setup">
@@ -2456,7 +2366,7 @@ export default function LogTradeModal({
                             value={form.notes}
                             onChange={(e) => set("notes", e.target.value)}
                           />
-                          {/* voice note — transcript auto-appends to notes */}
+                          {/* voice note, transcript auto-appends to notes */}
                           <div style={{ marginTop: "var(--space-3)" }}>
                             <VoiceNoteRecorder
                               dashed
@@ -2467,11 +2377,121 @@ export default function LogTradeModal({
                         </div>
                       </>
                     )}
+
+                    {/* ===== Import from JSON, moved to the bottom, shown in
+                        both P&L and Entry modes, under an "or" divider ===== */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "var(--space-2) 0" }}>
+                      <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
+                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>or import from a trade JSON</span>
+                      <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
+                    </div>
+                    <div className="jx-ltgroup">
+                      <Sect
+                        icon={Braces}
+                        title="Import from JSON"
+                        hint="Paste a trade as JSON and we'll fill the fields for you"
+                      />
+                      {!jsonOpen ? (
+                        <button
+                          type="button"
+                          onClick={() => { setJsonErr(""); setJsonOpen(true); }}
+                          style={{
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                            width: "100%", padding: "14px", borderRadius: "var(--radius-md)",
+                            border: "1.5px dashed var(--color-border-strong)", background: "transparent",
+                            color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Braces size={16} /> Paste trade JSON
+                        </button>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                          <textarea
+                            className="jx-textarea"
+                            value={jsonText}
+                            onChange={(e) => { setJsonText(e.target.value); if (jsonErr) setJsonErr(""); }}
+                            placeholder={`Paste JSON here, e.g.\n${TRADE_JSON_SAMPLE}`}
+                            spellCheck={false}
+                            rows={9}
+                            style={{
+                              width: "100%", resize: "vertical",
+                              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                              fontSize: "12.5px", lineHeight: 1.55,
+                              ...(jsonErr ? { borderColor: "var(--color-danger)" } : {}),
+                            }}
+                          />
+                          {jsonErr && (
+                            <span style={{ font: "var(--text-caption)", color: "var(--color-danger)" }}>{jsonErr}</span>
+                          )}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-3)", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              onClick={prefillFromJson}
+                              style={{
+                                display: "inline-flex", alignItems: "center", gap: 6,
+                                padding: "10px 16px", borderRadius: "var(--radius-md)", border: "none",
+                                background: "var(--color-primary)", color: "var(--color-on-primary, #111)",
+                                font: "var(--text-body-md)", fontWeight: 700, cursor: "pointer",
+                              }}
+                            >
+                              <Check size={15} /> Prefill fields
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setJsonOpen(false); setJsonText(""); setJsonErr(""); }}
+                              style={{
+                                padding: "10px 14px", borderRadius: "var(--radius-md)",
+                                border: "1px solid var(--color-border)", background: "transparent",
+                                color: "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 600, cursor: "pointer",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try { navigator.clipboard.writeText(TRADE_JSON_SAMPLE); flash("success", "Sample JSON copied"); }
+                                catch { /* ignore */ }
+                              }}
+                              style={{
+                                display: "inline-flex", alignItems: "center", gap: 6, marginLeft: "auto",
+                                padding: "10px 12px", borderRadius: "var(--radius-md)",
+                                border: "1px solid var(--color-border)", background: "transparent",
+                                color: "var(--color-text-muted)", font: "var(--text-caption)", fontWeight: 600, cursor: "pointer",
+                              }}
+                            >
+                              <Copy size={13} /> Copy sample
+                            </button>
+                          </div>
+                          <a
+                            href={CHATGPT_JSON_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start",
+                              font: "var(--text-caption)", fontWeight: 600, color: "var(--yellow-600)",
+                              textDecoration: "underline", textUnderlineOffset: 3, outline: "none",
+                              background: "transparent", border: "none", padding: 0,
+                            }}
+                          >
+                            <ExternalLink size={13} /> Don&apos;t have JSON? Generate it with ChatGPT from your screenshot
+                          </a>
+                          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                            Opens ChatGPT with the instructions ready. Either attach your trade screenshot, or just type it, e.g.{" "}
+                            <code style={{ font: "var(--text-caption)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: "var(--color-text-secondary)" }}>
+                              BTCUSDT 10am IST, 2h, long, 0.5 size, entry 61000 exit 62250
+                            </code>
+                            . Copy the JSON it returns, paste it above, then review before saving.
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
 
-              {/* ===== Right rail (both modes — keeps size identical) ===== */}
+              {/* ===== Right rail (both modes, keeps size identical) ===== */}
               <div className="jx-ltmodal__rail">
                 <span
                   style={{
@@ -2500,7 +2520,7 @@ export default function LogTradeModal({
                     }}
                   >
                     <span style={{ font: "var(--text-title)" }}>
-                      {form.symbol || "—"}
+                      {form.symbol || ", "}
                     </span>
                     <span
                       className={`jx-badge ${form.direction === "long" ? "jx-badge--success" : "jx-badge--danger"}`}
@@ -2536,7 +2556,7 @@ export default function LogTradeModal({
                         fontWeight: 500,
                       }}
                     >
-                      {form.entry ? `${sym}${fmt(form.entry)}` : "—"}
+                      {form.entry ? `${sym}${fmt(form.entry)}` : ", "}
                     </span>
                     <span
                       style={{
@@ -2544,7 +2564,7 @@ export default function LogTradeModal({
                         fontWeight: 500,
                       }}
                     >
-                      {form.exit ? `${sym}${fmt(form.exit)}` : "—"}
+                      {form.exit ? `${sym}${fmt(form.exit)}` : ", "}
                     </span>
                     <span
                       style={{
@@ -2556,7 +2576,7 @@ export default function LogTradeModal({
                         ? form.sizeUnit === "usd"
                           ? `${sym}${fmt(form.size)}`
                           : fmt(form.size)
-                        : "—"}
+                        : ", "}
                     </span>
                     <span
                       style={{
@@ -2564,7 +2584,7 @@ export default function LogTradeModal({
                         fontWeight: 500,
                       }}
                     >
-                      {calc.plannedRR ? `1 : ${fmt(calc.plannedRR, 1)}` : "—"}
+                      {calc.plannedRR ? `1 : ${fmt(calc.plannedRR, 1)}` : ", "}
                     </span>
                   </div>
                   <div
@@ -2587,7 +2607,7 @@ export default function LogTradeModal({
                       }}
                     >
                       {(isQuick ? quickPnl : calc.pnl) == null
-                        ? "P&L —"
+                        ? "P&L, "
                         : fmtMoney(isQuick ? quickPnl : calc.pnl, sym)}
                     </span>
                     {form.screenshots.length > 0 && (
@@ -2598,7 +2618,7 @@ export default function LogTradeModal({
                   </div>
                 </div>
 
-                {/* social proof — why traders trust JournalX. On mobile this
+                {/* social proof, why traders trust JournalX. On mobile this
                     full card is hidden; a compact strip is pinned in the footer
                     instead (so it's visible without scrolling the rail). */}
                 <TradersTodayBadge className="jx-rail-badge" />

@@ -1,8 +1,8 @@
 "use client";
 
-/* QuickResultModal — the lowest-friction way to journal: capture just the
+/* QuickResultModal, the lowest-friction way to journal: capture just the
    result of a trade (win/loss + amount) in one tap and save instantly. Built
-   for the days you don't feel like logging — especially losses. Everything
+   for the days you don't feel like logging, especially losses. Everything
    else is optional via "Add full details". Saves to the same endpoint as the
    full Log-trade modal (tradeStatus: "quick"). */
 
@@ -15,7 +15,7 @@ import VoiceNoteRecorder from "./VoiceNoteRecorder";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const PRESETS = [100, 250, 500, 1000];
 
-/* recent symbols shared with the full Log-trade modal + quick amounts — both
+/* recent symbols shared with the full Log-trade modal + quick amounts, both
    live in localStorage so the dropdowns learn what the user actually uses. */
 const SYMBOLS_KEY = "jx-symbols";
 const AMOUNTS_KEY = "jx-quick-amounts";
@@ -174,7 +174,7 @@ export default function QuickResultModal({
     yellowDeep: "#f0b90b",
   };
   const accent = outcome === "win" ? C.green : C.red;
-  // single horizontal row of chips — scrolls sideways, never wraps
+  // single horizontal row of chips, scrolls sideways, never wraps
   const chipRow = { display: "flex", gap: 8, marginTop: 8, overflowX: "auto", flexWrap: "nowrap", paddingBottom: 2, WebkitOverflowScrolling: "touch" };
   // dashed attachment button (matches the voice recorder's idle trigger)
   const dashedBtn = {
@@ -261,7 +261,7 @@ export default function QuickResultModal({
                 <label style={{ font: "var(--text-caption)", color: C.muted, display: "block", marginBottom: 6 }}>
                   Net P&L amount
                 </label>
-                {/* amount — type your own, or tap a saved amount below */}
+                {/* amount, type your own, or tap a saved amount below */}
                 <div className="jx-input">
                   <span style={{ fontWeight: 700, color: accent }}>
                     {outcome === "loss" ? "-" : "+"}{currencySymbol}
@@ -279,7 +279,7 @@ export default function QuickResultModal({
                   ))}
                 </div>
 
-                {/* optional symbol — type, or tap a saved symbol below */}
+                {/* optional symbol, type, or tap a saved symbol below */}
                 <div className="jx-input" style={{ marginTop: "var(--space-3)" }}>
                   <input placeholder="Symbol (optional, e.g. BTC)" value={symbol}
                     onChange={(e) => setSymbol(e.target.value)} />
@@ -295,7 +295,7 @@ export default function QuickResultModal({
                   ))}
                 </div>
 
-                {/* attachments — record + image in one row (dashed, consistent) */}
+                {/* attachments, record + image in one row (dashed, consistent) */}
                 <div style={{ display: "flex", gap: 10, marginTop: "var(--space-4)", alignItems: "stretch" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <VoiceNoteRecorder dashed onChange={setVoice} />

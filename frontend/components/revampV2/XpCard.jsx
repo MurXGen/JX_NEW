@@ -1,6 +1,6 @@
 "use client";
 
-/* Settings card — per-account XP. Account dropdown switches which
+/* Settings card, per-account XP. Account dropdown switches which
    journal's XP, level and progress are shown. XP accrues server-side
    on every logged trade (quality-weighted). */
 
@@ -14,7 +14,7 @@ import { getFromIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-/* level curve — each level needs more XP than the last */
+/* level curve, each level needs more XP than the last */
 const LEVELS = [
   { name: "Novice", min: 0 },
   { name: "Apprentice", min: 250 },
@@ -85,7 +85,7 @@ export default function XpCard() {
         <Badge variant="brand"><Zap size={11} /> Gamified</Badge>
       </div>
       <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-3)" }}>
-        Earn XP every time you log a trade — more for complete, disciplined logs. Tracked per journal.
+        Earn XP every time you log a trade, more for complete, disciplined logs. Tracked per journal.
       </div>
 
       {loading ? (
@@ -137,7 +137,7 @@ export default function XpCard() {
           <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
             <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
             <span style={{ font: "var(--text-caption)" }}>
-              Tip: complete logs earn the most — set your risk (SL/TP), tag a strategy and emotion, add notes and a screenshot for up to <strong>+65 XP</strong> per trade.
+              Tip: complete logs earn the most, set your risk (SL/TP), tag a strategy and emotion, add notes and a screenshot for up to <strong>+65 XP</strong> per trade.
             </span>
           </div>
         </div>

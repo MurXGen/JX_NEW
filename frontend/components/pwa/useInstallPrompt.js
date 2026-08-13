@@ -5,12 +5,12 @@ import { useEffect, useState, useCallback } from "react";
 /**
  * PWA install helper.
  *
- *  canInstall   — Chrome/Edge/Android fired `beforeinstallprompt` and the app
+ *  canInstall, Chrome/Edge/Android fired `beforeinstallprompt` and the app
  *                 isn't already installed → we can show a native prompt.
- *  isIOS        — iOS Safari (no beforeinstallprompt) and not yet installed →
+ *  isIOS, iOS Safari (no beforeinstallprompt) and not yet installed →
  *                 we show "Add to Home Screen" instructions instead.
- *  isStandalone — already running as an installed app → hide all install UI.
- *  promptInstall() — triggers the native prompt (returns "accepted"/"dismissed"/null).
+ *  isStandalone, already running as an installed app → hide all install UI.
+ *  promptInstall(), triggers the native prompt (returns "accepted"/"dismissed"/null).
  */
 export function useInstallPrompt() {
   const [deferred, setDeferred] = useState(null);

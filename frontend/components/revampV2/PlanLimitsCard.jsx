@@ -1,6 +1,6 @@
 "use client";
 
-/* Settings — Plan & limits. Shows the user's current plan, usage of
+/* Settings, Plan & limits. Shows the user's current plan, usage of
    each limited resource (trades/month, journals, images/month) with
    progress bars, and an upgrade CTA when they're not on the top tier. */
 
@@ -145,7 +145,7 @@ export default function PlanLimitsCard() {
       </div>
       <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-4)" }}>
         {isTop
-          ? "You're on a premium plan — enjoy unlimited logging and analytics."
+          ? "You're on a premium plan, enjoy unlimited logging and analytics."
           : "Usage for the current journal this month. Upgrade for unlimited everything."}
       </div>
 
@@ -188,7 +188,7 @@ export default function PlanLimitsCard() {
               )}
             </SubItem>
           )}
-          {isLifetime && <SubItem label="Expires">Never — lifetime access</SubItem>}
+          {isLifetime && <SubItem label="Expires">Never, lifetime access</SubItem>}
         </div>
       )}
 

@@ -10,7 +10,7 @@ import {
 import { useSupportBadge } from "./useSupportBadge";
 
 /**
- * BottomBar — mobile-only bottom navigation (hidden on desktop).
+ * BottomBar, mobile-only bottom navigation (hidden on desktop).
  * Four slots + center Log-trade FAB. The last slot is a Settings gear that
  * opens the mobile Settings hub (profile, plan, and the secondary sections
  * like Learn, Share, Import/Export and Support live inside it).
@@ -22,7 +22,7 @@ const MAIN = [
   { id: "markets", label: "Markets", icon: Globe },
 ];
 
-/* Tabs reachable from the Settings hub — keep the gear lit when on any of them. */
+/* Tabs reachable from the Settings hub, keep the gear lit when on any of them. */
 const SETTINGS_GROUP = ["settings", "blogs", "share", "importexport", "tools"];
 
 export default function BottomBar({ active, onChange, onLogTrade, user }) {

@@ -1,4 +1,4 @@
-// utils/gtag.js — GA4 + (optional) Meta Pixel event layer.
+// utils/gtag.js, GA4 + (optional) Meta Pixel event layer.
 // GA loads in _app.js when NEXT_PUBLIC_GA_MEASUREMENT_ID is set; the Meta Pixel
 // loads when NEXT_PUBLIC_FB_PIXEL_ID is set. Every helper is a safe no-op if the
 // relevant tag isn't present, so nothing breaks in dev or without env vars.
@@ -25,7 +25,7 @@ function fire(gaName, gaParams = {}, fbName = null, fbParams = {}) {
 }
 
 /* ============================================================
-   Funnel events — the pipeline you actually want to measure:
+   Funnel events, the pipeline you actually want to measure:
    page_view → sign_up → email_verified → begin_checkout
              → add_payment_info → purchase
    ============================================================ */
@@ -34,7 +34,7 @@ function fire(gaName, gaParams = {}, fbName = null, fbParams = {}) {
 export const trackSignUp = (method = "email") =>
   fire("sign_up", { method }, "CompleteRegistration", { status: "started", method });
 
-// Email/OTP verified — the real activation of a new account
+// Email/OTP verified, the real activation of a new account
 export const trackEmailVerified = () =>
   fire("email_verified", {}, "Lead", { content_name: "email_verified" });
 

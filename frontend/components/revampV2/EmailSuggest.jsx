@@ -1,6 +1,6 @@
 "use client";
 
-/* EmailSuggest — an email input that suggests common domain suffixes as you
+/* EmailSuggest, an email input that suggests common domain suffixes as you
    type (like Binance/Bybit). Type "murthy" and pick "murthy@gmail.com".
    Click-only selection so it never interferes with form submit on Enter. */
 

@@ -9,12 +9,12 @@ export default function RiskDisclaimer() {
       path="/risk-disclaimer"
       updated="June 8, 2026"
       description="Important risk disclaimer for JournalX. Trading involves substantial risk of loss. JournalX is a journaling and analytics tool, not financial advice."
-      intro="Please read this Risk Disclaimer carefully. It applies to your use of JournalX and all information, analytics, and projections provided by the Service. JournalX is a journaling and analytics software tool only — it does not provide any financial service, does not execute trades or hold funds, and nothing in the Service is financial advice."
+      intro="Please read this Risk Disclaimer carefully. It applies to your use of JournalX and all information, analytics, and projections provided by the Service. JournalX is a journaling and analytics software tool only, it does not provide any financial service, does not execute trades or hold funds, and nothing in the Service is financial advice."
       sections={[
         {
           h: "1. Trading Involves Risk",
           body: [
-            "Trading and investing in financial instruments — including stocks, options, futures, forex, and cryptocurrencies — carries a substantial risk of loss and is not suitable for every investor. You may lose some or all of your invested capital. You should not trade with money you cannot afford to lose. Leverage can magnify both gains and losses.",
+            "Trading and investing in financial instruments, including stocks, options, futures, forex, and cryptocurrencies, carries a substantial risk of loss and is not suitable for every investor. You may lose some or all of your invested capital. You should not trade with money you cannot afford to lose. Leverage can magnify both gains and losses.",
           ],
         },
         {

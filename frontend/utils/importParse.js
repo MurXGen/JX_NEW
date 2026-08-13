@@ -3,7 +3,7 @@
      raw export (Topstep, MT4/5, Binance, brokers) "just works" without the user
      renaming headers.
    - PREFERS the P&L the platform already calculated (never recompute if it's
-     given) — this is what fixes wrong numbers on imported futures trades.
+     given), this is what fixes wrong numbers on imported futures trades.
    - When P&L must be computed from entry/exit/size, applies a contract point
      value (explicit `multiplier` column, or a built-in table for common
      futures) so futures maths is correct instead of off by the point value. */
@@ -83,7 +83,7 @@ export function normDirection(v) {
 const nOrZero = (v) => { const n = Number(String(v).replace(/[₹$,\s]/g, "")); return Number.isNaN(n) ? 0 : n; };
 
 /* Parse + validate an array of raw rows (from Papa) into clean trade objects.
-   Returns { errs, clean, computedCount } — computedCount = how many rows had
+   Returns { errs, clean, computedCount }, computedCount = how many rows had
    their P&L computed (vs taken from the file). */
 export function parseImportRows(data) {
   const errs = [];
@@ -115,7 +115,7 @@ export function parseImportRows(data) {
     if (openTime && Number.isNaN(openTime.getTime())) errs.push(`Row ${n}: openTime is not a valid date`);
 
     const dirMul = direction === "long" ? 1 : -1;
-    // Prefer the platform's own P&L. Only compute when it's missing — and then
+    // Prefer the platform's own P&L. Only compute when it's missing, and then
     // apply a contract point value so futures aren't off by 50×/20×/etc.
     let computedPnl;
     if (hasPnl) {

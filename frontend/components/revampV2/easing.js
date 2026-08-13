@@ -1,4 +1,4 @@
-/* easing.js — custom cubic-bezier solver (same math as CSS timing
+/* easing.js, custom cubic-bezier solver (same math as CSS timing
    functions) shared by CountUp and the chart morph animations. */
 
 export function cubicBezier(p1x, p1y, p2x, p2y) {
@@ -39,5 +39,5 @@ export function cubicBezier(p1x, p1y, p2x, p2y) {
   return (x) => (x <= 0 ? 0 : x >= 1 ? 1 : sampleY(solveX(x)));
 }
 
-/* JournalX house curve — fast start, long satisfying settle */
+/* JournalX house curve, fast start, long satisfying settle */
 export const jxEase = cubicBezier(0.16, 1, 0.3, 1);

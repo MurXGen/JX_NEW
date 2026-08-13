@@ -1,4 +1,4 @@
-/* fx.js — base-currency conversion for revamp v2.
+/* fx.js, base-currency conversion for revamp v2.
    Stored trade values are treated as USD; rates from open.er-api.com
    (no key needed), cached in localStorage for 12h. */
 

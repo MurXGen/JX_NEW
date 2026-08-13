@@ -8,15 +8,15 @@ const SITE_URL = "https://journalx.app";
 const C = { text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#0d1117", border: "rgba(255,255,255,0.1)", yellow: "#fcd535", yellowDeep: "#f0b90b" };
 
 const TOOLS = [
-  { href: "/tools/position-size-calculator", icon: Calculator, title: "Position Size Calculator", desc: "Find the exact quantity to trade so no single loss hurts your account — plus reward and R:R." },
-  { href: "/tools/r-multiple-calculator", icon: Percent, title: "R-Multiple Calculator", desc: "Measure any trade in R — risk/reward the way professionals track it." },
+  { href: "/tools/position-size-calculator", icon: Calculator, title: "Position Size Calculator", desc: "Find the exact quantity to trade so no single loss hurts your account, plus reward and R:R." },
+  { href: "/tools/r-multiple-calculator", icon: Percent, title: "R-Multiple Calculator", desc: "Measure any trade in R, risk/reward the way professionals track it." },
   { href: "/tools/pnl-calculator", icon: TrendingUp, title: "Profit / Loss Calculator", desc: "Exact profit, loss and % return for any long or short trade, after fees." },
-  { href: "/tools/breakeven-win-rate-calculator", icon: Target, title: "Breakeven Win-Rate", desc: "The win rate you need to beat for any reward:risk — and if you have an edge." },
+  { href: "/tools/breakeven-win-rate-calculator", icon: Target, title: "Breakeven Win-Rate", desc: "The win rate you need to beat for any reward:risk, and if you have an edge." },
   { href: "/tools/risk-of-ruin-calculator", icon: ShieldAlert, title: "Risk of Ruin Calculator", desc: "See the probability you blow your account, via Monte Carlo simulation." },
 ];
 
-const TITLE = "Free Trading Calculators — Position Size, R-Multiple & Risk of Ruin | JournalX";
-const DESC = "Free trading calculators for retail traders: position size, R-multiple and risk of ruin. No signup — calculate your risk in seconds, then journal it in JournalX.";
+const TITLE = "Free Trading Calculators, Position Size, R-Multiple & Risk of Ruin | JournalX";
+const DESC = "Free trading calculators for retail traders: position size, R-multiple and risk of ruin. No signup, calculate your risk in seconds, then journal it in JournalX.";
 
 export default function ToolsIndex() {
   const itemListLd = {

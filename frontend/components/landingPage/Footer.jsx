@@ -19,7 +19,7 @@ export default function Footer() {
             />
           </Link>
           <p className="footer_tagline">
-            JournalX empowers traders to analyze, improve, and stay profitable —
+            JournalX empowers traders to analyze, improve, and stay profitable, 
             one trade at a time.
           </p>
         </div>

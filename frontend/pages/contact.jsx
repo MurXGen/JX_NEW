@@ -1,6 +1,6 @@
 "use client";
 
-/* Contact page — matches the marketing/legal dark theme so text is
+/* Contact page, matches the marketing/legal dark theme so text is
    always readable (the public site uses a fixed dark palette). */
 
 import Head from "next/head";
@@ -75,7 +75,7 @@ export default function ContactUs() {
           </h1>
           <p style={{ ...para, font: "400 16px/1.7 Poppins", maxWidth: 680 }}>
             We&apos;re here to help! Whether you have questions about your
-            account, payments, or general inquiries — the JournalX team is
+            account, payments, or general inquiries, the JournalX team is
             available to assist you. Reach out through any of the options below.
           </p>
 
@@ -90,7 +90,7 @@ export default function ContactUs() {
             <section style={card}>
               <h2 style={h2}>General inquiries</h2>
               <p style={para}>
-                Questions about features, feedback, or improvement suggestions —
+                Questions about features, feedback, or improvement suggestions, 
                 drop us an email and we&apos;ll reply within 1–2 business days.
               </p>
               <p style={para}>
@@ -171,7 +171,7 @@ export default function ContactUs() {
             <p style={para}>
               Monday to Saturday, <span style={strong}>10:00 AM – 7:00 PM IST</span>
               . Queries sent during holidays or weekends are addressed on the
-              next working day. Your messages are handled confidentially — we do
+              next working day. Your messages are handled confidentially, we do
               not sell, rent, or share your personal information. See our{" "}
               <a href="/privacy-policy" style={link}>
                 Privacy Policy

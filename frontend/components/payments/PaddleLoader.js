@@ -56,7 +56,7 @@ export default function PaddleLoader() {
                   eventCallback: (event) => {
                     try {
                       // Bridge every Paddle event to a window event so UI
-                      // components (e.g. the inline PaymentModal) can react —
+                      // components (e.g. the inline PaymentModal) can react, 
                       // Paddle Billing only allows one global event callback.
                       try {
                         window.dispatchEvent(
@@ -66,7 +66,7 @@ export default function PaddleLoader() {
                       if (event?.name === "checkout.completed") {
                         const txnId =
                           event?.data?.transaction_id || event?.data?.id;
-                        console.log("✅ checkout.completed — verifying txn", txnId);
+                        console.log("✅ checkout.completed, verifying txn", txnId);
                         if (txnId) {
                           fetch(`${API_BASE}/api/subscription/paddle-verify`, {
                             method: "POST",

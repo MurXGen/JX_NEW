@@ -1,4 +1,4 @@
-/* Support badge — shows a red dot when the team has left a NEW response for
+/* Support badge, shows a red dot when the team has left a NEW response for
    the user (read from the published support sheet). The dot hides after the
    user has opened the modal twice for that set of responses, and reappears
    whenever a new/changed response shows up. State persists in localStorage. */
@@ -78,7 +78,7 @@ export function useSupportBadge(email) {
       const views = st.sig === s ? st.views || 0 : 0;
       setShowDot(responses.length > 0 && views < VIEWS_TO_DISMISS);
     } catch {
-      /* sheet unreachable — leave the dot off */
+      /* sheet unreachable, leave the dot off */
     }
   }, [email]);
 

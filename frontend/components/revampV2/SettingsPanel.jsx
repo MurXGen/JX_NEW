@@ -6,7 +6,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown, Wallet, Calculator } from "lucide-react";
 
-/* Settings sections — rendered as a left nav, one section at a time */
+/* Settings sections, rendered as a left nav, one section at a time */
 const SETTINGS_TABS = [
   { id: "profile", label: "Profile", icon: User },
   { id: "billing", label: "Plan & billing", icon: CreditCard },
@@ -58,12 +58,12 @@ function Switch({ on, onChange, disabled }) {
   );
 }
 
-/* Refer a friend — shares the /refer landing link via native share + fallbacks */
+/* Refer a friend, shares the /refer landing link via native share + fallbacks */
 function ReferAFriend({ userId }) {
   const [copied, setCopied] = useState(false);
   const [link, setLink] = useState("");
   const message =
-    "I'm using JournalX to journal my trades and find my edge — start free, no card:";
+    "I'm using JournalX to journal my trades and find my edge, start free, no card:";
 
   useEffect(() => {
     const origin =
@@ -98,7 +98,7 @@ function ReferAFriend({ userId }) {
         <Gift size={18} style={{ color: "var(--yellow-500)" }} /> Refer a friend
       </div>
       <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-3)" }}>
-        Invite traders to JournalX — they start free, no card required.
+        Invite traders to JournalX, they start free, no card required.
       </div>
 
       <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}>
@@ -240,7 +240,7 @@ function AvatarModal({ open, currentUrl, name, onClose, onSaved }) {
       onClose?.();
     } catch (err) {
       console.error(err);
-      setError("Upload failed — try again");
+      setError("Upload failed, try again");
     } finally {
       setSaving(false);
     }
@@ -463,7 +463,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
         "danger",
         e.message === "not-configured"
           ? "Google Drive backup isn't configured yet"
-          : e.message || "Backup failed — try again",
+          : e.message || "Backup failed, try again",
       );
     } finally {
       setBackingUp(false);
@@ -476,7 +476,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
     try {
       const { restoredAt } = await restoreFromDrive({ interactive: true });
       setLastRestore(restoredAt);
-      flash("success", "Data restored from Drive — reloading…");
+      flash("success", "Data restored from Drive, reloading…");
       setTimeout(() => window.location.reload(), 1200);
     } catch (e) {
       flash(
@@ -487,7 +487,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
             ? "A restore is already running"
             : e.message === "not-configured"
               ? "Google Drive backup isn't configured yet"
-              : e.message || "Restore failed — try again",
+              : e.message || "Restore failed, try again",
       );
     } finally {
       setRestoring(false);
@@ -537,7 +537,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
     localStorage.setItem("jx-default-journal", id);
     Cookies.set("accountId", id, { expires: 365 });
     Cookies.set("selectedAccount", id, { expires: 365 });
-    flash("success", "Default journal set — new trades log here");
+    flash("success", "Default journal set, new trades log here");
   };
 
   const toggleAutoSync = (on) => {
@@ -697,7 +697,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
           </button>
         </div>
 
-        {/* identity header — user details at a glance */}
+        {/* identity header, user details at a glance */}
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", padding: "var(--space-2) 0 var(--space-4)" }}>
           <Avatar url={avatarUrl} name={name} size={54} />
           <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -794,7 +794,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
           </Button>
         </Row>
 
-        <Row title="Monthly target" sub="Your P&L goal — tracked on the dashboard goal card">
+        <Row title="Monthly target" sub="Your P&L goal, tracked on the dashboard goal card">
           <div className="jx-input" style={{ height: 38, width: 140 }}>
             <input
               type="number"
@@ -808,13 +808,13 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
             variant="secondary"
             size="sm"
             onClick={() => {
-              /* localStorage only — no DB */
+              /* localStorage only, no DB */
               const v = Number(monthlyTarget);
               if (!v || v <= 0) return flash("danger", "Enter a positive target");
               try {
                 localStorage.setItem("jx-monthly-target", String(v));
                 window.dispatchEvent(new CustomEvent("jx-target-changed", { detail: v }));
-                flash("success", `Monthly target set to ${v.toLocaleString()} — see the goal card`);
+                flash("success", `Monthly target set to ${v.toLocaleString()}, see the goal card`);
               } catch (e) {
                 console.error(e);
                 flash("danger", "Could not save locally");
@@ -929,7 +929,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
           </Row>
         ))}
 
-        <Row title="Auto-import" sub="Pull new trades automatically — coming soon">
+        <Row title="Auto-import" sub="Pull new trades automatically, coming soon">
           <Badge variant="neutral">Coming soon</Badge>
         </Row>
       </div>
@@ -941,7 +941,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
       {active === "danger" && (
       <div className="jx-card" style={{ borderColor: "var(--color-danger)" }}>
         <div className="jx-card__title" style={{ color: "var(--color-danger)" }}>Danger zone</div>
-        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Irreversible actions — proceed with care.</div>
+        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Irreversible actions, proceed with care.</div>
         <Row title="Export account data" sub="Download everything as a ZIP" disabled>
           <Button variant="outline" size="sm" disabled>Export</Button>
         </Row>

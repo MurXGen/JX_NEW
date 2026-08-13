@@ -5,7 +5,7 @@
  * When a trade is logged in the browser we POST a row to a Google Form's
  * /formResponse endpoint using mode:"no-cors" (Google Forms accepts the
  * submission even though we can't read the opaque response). This is purely
- * fire-and-forget — it must NEVER block, delay, or throw into the trade flow.
+ * fire-and-forget, it must NEVER block, delay, or throw into the trade flow.
  *
  * ── Form ───────────────────────────────────────────────────────────────
  * https://docs.google.com/forms/d/e/1FAIpQLSec7-Q4ncUyqo71pmCmg8sewqNdnFgbL61aiId2xtVTPmtP2g

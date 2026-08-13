@@ -1,7 +1,7 @@
 /* Programmatic broker landing pages (India). Same config shape as
    data/marketPages.js, so they render through components/landingPage/MarketLanding
    via the dynamic route pages/[slug].jsx. Each targets "[broker] trading journal"
-   — low-competition, high-intent keywords for Indian retail traders.
+, low-competition, high-intent keywords for Indian retail traders.
 
    Accuracy note: Indian retail brokers are imported via CSV (tradebook / P&L /
    console export), so copy stays honest about CSV import rather than promising
@@ -14,7 +14,7 @@ export const BROKER_PAGES = {
     adj: "Zerodha",
     eyebrow: "For Zerodha traders",
     h1: "Zerodha trading journal & analytics",
-    title: "Zerodha Trading Journal — Import Your Tradebook | JournalX",
+    title: "Zerodha Trading Journal, Import Your Tradebook | JournalX",
     description:
       "Turn your Zerodha trades into real analytics. Import your Console tradebook/P&L as a CSV, then track win rate, R-multiples, drawdown and psychology across equity, F&O and intraday.",
     keywords: [
@@ -27,7 +27,7 @@ export const BROKER_PAGES = {
     extra: { icon: "target", title: "Built for Indian F&O & intraday", body: "Track options, futures and intraday separately, with per-setup and per-session analytics tuned to NSE/BSE hours." },
     faqs: [
       ["How do I import my Zerodha trades?", "Export your tradebook or P&L statement from Zerodha Console as a CSV/Excel file, then upload it to JournalX with our import template. Your full history flows straight into your analytics."],
-      ["Does JournalX work with Kite?", "Yes. JournalX complements Kite — you trade on Kite, then journal and analyse those trades in JournalX by importing your Console export or quick-logging in about 10 seconds."],
+      ["Does JournalX work with Kite?", "Yes. JournalX complements Kite, you trade on Kite, then journal and analyse those trades in JournalX by importing your Console export or quick-logging in about 10 seconds."],
       ["Is it good for F&O and intraday?", "Yes. JournalX separates options, futures, equity and intraday so you can see exactly which segment and which setup actually makes you money."],
     ],
   },
@@ -40,7 +40,7 @@ export const BROKER_PAGES = {
     h1: "Dhan trading journal & analytics",
     title: "Dhan Trading Journal & Trade Analytics | JournalX",
     description:
-      "Journal and analyse your Dhan trades. Import your trade history as a CSV, then track win rate, R-multiples, drawdown, options data and trading psychology — in seconds.",
+      "Journal and analyse your Dhan trades. Import your trade history as a CSV, then track win rate, R-multiples, drawdown, options data and trading psychology, in seconds.",
     keywords: [
       "dhan trading journal", "dhan trade analysis", "trading journal for dhan",
       "dhan options journal", "trading journal india", "f&o trading journal",
@@ -51,7 +51,7 @@ export const BROKER_PAGES = {
     faqs: [
       ["How do I get my Dhan trades into JournalX?", "Export your trade/P&L report from Dhan as a CSV and import it with our template, or quick-log trades manually in about 10 seconds."],
       ["Can it analyse my options trades?", "Yes. JournalX breaks down options performance by strategy and expiry so you can see which setups carry your account and which bleed it."],
-      ["Is JournalX free to start?", "Yes — you can start free with no card, and upgrade later for advanced analytics and higher limits."],
+      ["Is JournalX free to start?", "Yes, you can start free with no card, and upgrade later for advanced analytics and higher limits."],
     ],
   },
 
@@ -73,7 +73,7 @@ export const BROKER_PAGES = {
     extra: { icon: "clock", title: "Session & setup analytics", body: "See your performance by setup, segment and market session so you can double down on what works and cut what doesn't." },
     faqs: [
       ["How do I import Upstox trades?", "Download your trade or P&L report from Upstox as a CSV and import it into JournalX, or quick-log trades manually in seconds."],
-      ["Does it support F&O and intraday?", "Yes — equity, futures, options and intraday are tracked separately with the right precision for Indian markets."],
+      ["Does it support F&O and intraday?", "Yes, equity, futures, options and intraday are tracked separately with the right precision for Indian markets."],
       ["Is my data private?", "Yes. JournalX only ever uses read-only data you import, and your journal stays private to you."],
     ],
   },
@@ -93,7 +93,7 @@ export const BROKER_PAGES = {
     ],
     intro:
       "Angel One gets you into the market; JournalX shows you how to stay profitable in it. Import your trades or quick-log them, and uncover the patterns behind your wins and losses.",
-    extra: { icon: "target", title: "Edge-finding analytics", body: "Per-setup win rate, R-multiples and expectancy so you can see your real edge — not just your account balance." },
+    extra: { icon: "target", title: "Edge-finding analytics", body: "Per-setup win rate, R-multiples and expectancy so you can see your real edge, not just your account balance." },
     faqs: [
       ["How do I import Angel One trades?", "Export your trade book or P&L statement from Angel One as a CSV and upload it to JournalX, or quick-log trades in about 10 seconds."],
       ["Is it suitable for Indian stocks and F&O?", "Yes. JournalX handles equity, futures and options with analytics tuned to Indian market hours and instruments."],
@@ -116,7 +116,7 @@ export const BROKER_PAGES = {
     ],
     intro:
       "Groww makes trading simple; JournalX makes it measurable. Import your trades or quick-log them, and get the honest performance and psychology breakdown a broker app won't show you.",
-    extra: { icon: "calendar", title: "See every day at a glance", body: "A colour-coded P&L calendar and per-setup stats make your consistency — or lack of it — impossible to ignore." },
+    extra: { icon: "calendar", title: "See every day at a glance", body: "A colour-coded P&L calendar and per-setup stats make your consistency, or lack of it, impossible to ignore." },
     faqs: [
       ["How do I import Groww trades?", "Export your order/P&L history from Groww as a CSV and import it into JournalX, or quick-log trades manually in seconds."],
       ["Is JournalX good for beginners?", "Yes. It's fast to use and the analytics are plain-English, so newer traders can spot and fix expensive habits early."],
@@ -142,7 +142,7 @@ export const BROKER_PAGES = {
     extra: { icon: "candles", title: "F&O & options depth", body: "Per-strategy, per-expiry and per-session analytics for active options and futures traders." },
     faqs: [
       ["How do I import Fyers trades?", "Export your trade book or P&L from Fyers as a CSV and import it into JournalX, or quick-log trades in seconds."],
-      ["Is it good for active F&O traders?", "Yes — JournalX is built for high-frequency F&O styles, with per-setup and per-session breakdowns to find your edge."],
+      ["Is it good for active F&O traders?", "Yes, JournalX is built for high-frequency F&O styles, with per-setup and per-session breakdowns to find your edge."],
       ["Can I track my psychology?", "Yes. Tag emotion and discipline on every trade and see what tilt, FOMO and revenge trading actually cost you."],
     ],
   },
@@ -166,7 +166,7 @@ export const BROKER_PAGES = {
     faqs: [
       ["How do I import 5paisa trades?", "Export your trade/P&L report from 5paisa as a CSV and import it into JournalX, or quick-log trades manually."],
       ["Does it work for F&O and equity?", "Yes, all segments are supported with analytics suited to Indian markets."],
-      ["Is there a free plan?", "Yes — start free, no card required."],
+      ["Is there a free plan?", "Yes, start free, no card required."],
     ],
   },
 
@@ -188,7 +188,7 @@ export const BROKER_PAGES = {
     extra: { icon: "calendar", title: "Clear performance reviews", body: "Daily, weekly and monthly reviews with a P&L calendar so your consistency is obvious at a glance." },
     faqs: [
       ["How do I import ICICI Direct trades?", "Export your trade book or P&L statement from ICICI Direct as a CSV and upload it to JournalX, or quick-log trades in seconds."],
-      ["Is it suitable for long-term and active traders?", "Yes — whether you swing trade or trade intraday F&O, JournalX adapts its analytics to your style."],
+      ["Is it suitable for long-term and active traders?", "Yes, whether you swing trade or trade intraday F&O, JournalX adapts its analytics to your style."],
       ["Is my data safe?", "Yes. JournalX uses only the read-only data you import and keeps your journal private."],
     ],
   },

@@ -60,7 +60,7 @@ function Spinner() {
 }
 
 /**
- * ExchangeConnectModal — connect an exchange with API keys, preview
+ * ExchangeConnectModal, connect an exchange with API keys, preview
  * trade activity, multi-select and import into the trades log.
  * Binance is live (reuses /api/integrations/binance/*); other
  * platforms are scaffolded as coming soon.
@@ -97,7 +97,7 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
         { withCredentials: true },
       );
       const trades = res.data?.trades || [];
-      /* connection is valid — persist for auto-import */
+      /* connection is valid, persist for auto-import */
       localStorage.setItem("binance_api_key", creds.apiKey.trim());
       localStorage.setItem("binance_secret_key", creds.secretKey.trim());
       if (localStorage.getItem("binance_auto_sync") === null) {
@@ -106,10 +106,10 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
       setActivities(trades);
       setSelected(new Set(trades.map((_, i) => i)));
       setStep("preview");
-      if (!trades.length) flash("info", "Connected — no recent activity found (last 7 days)");
+      if (!trades.length) flash("info", "Connected, no recent activity found (last 7 days)");
     } catch (err) {
       console.error("Exchange connect failed:", err);
-      flash("danger", err.response?.data?.message || "Could not connect — check your keys");
+      flash("danger", err.response?.data?.message || "Could not connect, check your keys");
     } finally {
       setLoading(false);
     }
@@ -125,12 +125,12 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
         { trades: list },
         { withCredentials: true },
       );
-      flash("success", `${res.data?.imported ?? list.length} trades imported — refreshing…`);
+      flash("success", `${res.data?.imported ?? list.length} trades imported, refreshing…`);
       onImported?.();
       setTimeout(() => window.location.reload(), 1200);
     } catch (err) {
       console.error("Import failed:", err);
-      flash("danger", err.response?.data?.message || "Import failed — try again");
+      flash("danger", err.response?.data?.message || "Import failed, try again");
       setLoading(false);
     }
   };
@@ -184,7 +184,7 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
                 <div className="jx-banner jx-banner--warn">
                   <KeyRound size={16} style={{ color: "var(--yellow-500)" }} />
                   <span>
-                    <strong>{meta.name} is coming soon.</strong> Binance is available today — more exchanges are on the way.
+                    <strong>{meta.name} is coming soon.</strong> Binance is available today, more exchanges are on the way.
                   </span>
                 </div>
               ) : step === "credentials" && meta.autoImport ? (
@@ -223,7 +223,7 @@ export default function ExchangeConnectModal({ open, platform, onClose, onImport
                   </span>
                 </>
               ) : step === "credentials" ? (
-                /* No live key backend yet — guide to the API/statement page + CSV import */
+                /* No live key backend yet, guide to the API/statement page + CSV import */
                 <>
                   <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
                     <span style={{ font: "var(--text-caption)" }}>

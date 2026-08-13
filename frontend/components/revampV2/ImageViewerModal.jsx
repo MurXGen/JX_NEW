@@ -10,7 +10,7 @@ import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-/* Figma screenshot viewer (22797:53764) — large preview, thumbnail
+/* Figma screenshot viewer (22797:53764), large preview, thumbnail
    strip, prev/next, download, add (POST /:id/images) and delete
    (DELETE /:id/images). Images live on Backblaze; URLs in Mongo. */
 

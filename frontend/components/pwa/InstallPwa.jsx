@@ -39,7 +39,7 @@ function IosSheet({ open, onClose }) {
               </p>
               <Step n="1" icon={<Share size={18} />} text="Tap the Share button in Safari's toolbar." />
               <Step n="2" icon={<Plus size={18} />} text={'Choose "Add to Home Screen".'} />
-              <Step n="3" icon={<Smartphone size={18} />} text={'Tap "Add" — JournalX appears on your home screen.'} />
+              <Step n="3" icon={<Smartphone size={18} />} text={'Tap "Add", JournalX appears on your home screen.'} />
             </div>
           </motion.div>
         </motion.div>
@@ -135,7 +135,7 @@ export function MobileInstallBanner() {
         </span>
         <span style={{ flex: 1, minWidth: 0, lineHeight: 1.25 }}>
           <span style={{ display: "block", fontWeight: 700, fontSize: 13 }}>Install JournalX</span>
-          <span style={{ display: "block", fontSize: 11.5, opacity: 0.8 }}>Add to your home screen — fast, full-screen.</span>
+          <span style={{ display: "block", fontSize: 11.5, opacity: 0.8 }}>Add to your home screen, fast, full-screen.</span>
         </span>
         <button
           onClick={onInstall}

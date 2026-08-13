@@ -48,7 +48,7 @@ export const DataProvider = ({ children }) => {
   const [apiCallFailed, setApiCallFailed] = useState(false);
 
   const loadData = async () => {
-    /* Skip entirely on public/auth pages or when there is no session —
+    /* Skip entirely on public/auth pages or when there is no session, 
        otherwise the 401 from user-info surfaces as a dev error overlay
        on the login screen. */
     if (
@@ -98,8 +98,8 @@ export const DataProvider = ({ children }) => {
       updateDerivedData(result.trades || []);
     } catch (err) {
       if (err?.response?.status === 401) {
-        /* expected when the session expired — warn, don't error-overlay */
-        console.warn("Session not authenticated — using cached data if any");
+        /* expected when the session expired, warn, don't error-overlay */
+        console.warn("Session not authenticated, using cached data if any");
       } else {
         console.warn("API load failed, falling back to cache:", err?.message);
       }

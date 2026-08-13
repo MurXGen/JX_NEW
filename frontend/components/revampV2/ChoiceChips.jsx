@@ -3,7 +3,7 @@
 import { Check } from "lucide-react";
 
 /**
- * revampV2 ChoiceChips — Figma "Choice Chip". Multi or single select.
+ * revampV2 ChoiceChips, Figma "Choice Chip". Multi or single select.
  * options: string[] · value: string[] | string · onChange
  */
 export default function ChoiceChips({ options = [], value, onChange, multi = true }) {

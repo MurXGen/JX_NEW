@@ -571,7 +571,7 @@ function Register() {
         {/* <MessageCard
           type="info"
           title="Best analysis place to learn trading by journaling"
-          description="We offer analysis and education — no trading services provided."
+          description="We offer analysis and education, no trading services provided."
         /> */}
 
         <ToastMessage type={popup.type} message={popup.message} />

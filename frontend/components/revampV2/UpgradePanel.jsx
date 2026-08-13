@@ -1,6 +1,6 @@
 "use client";
 
-/* In-dashboard upgrade view — mirrors the public /pricing page (cards +
+/* In-dashboard upgrade view, mirrors the public /pricing page (cards +
    payment-method chooser) but theme-aware on the v2 design tokens.
    Cards → Paddle checkout; Crypto → /cryptobillingpage. */
 

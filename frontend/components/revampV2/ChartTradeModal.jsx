@@ -1,6 +1,6 @@
 "use client";
 
-/* ChartTradeModal — log a trade by marking it on a live chart.
+/* ChartTradeModal, log a trade by marking it on a live chart.
    Click the chart to drop the Entry, click again for the Exit; set
    direction/size/stop in the side panel; live P&L; Save posts to the
    normal trade API tied to the logged-in account (source=tradingview)
@@ -191,7 +191,7 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
     if (exit?.time) markers.push({ time: exit.time, position: direction === "long" ? "aboveBar" : "belowBar", color: "#fcd535", shape: "circle", text: "Exit" });
     s.setMarkers(markers.sort((a, b) => a.time - b.time));
 
-    // horizontal price lines — show entry/exit/stop/tp even before a click
+    // horizontal price lines, show entry/exit/stop/tp even before a click
     priceLinesRef.current.forEach((l) => { try { s.removePriceLine(l); } catch {} });
     priceLinesRef.current = [];
     const add = (price, color, style, title) => {
@@ -218,7 +218,7 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
     return { assetQty, pnl, retPct, rr, notional };
   }, [entry, exit, size, sizeUnit, direction, stop, tp]);
 
-  /* annotate an existing trade — only updates entry/exit/pnl + chart, not sizing logic */
+  /* annotate an existing trade, only updates entry/exit/pnl + chart, not sizing logic */
   const saveAnnotation = async () => {
     if (!entry?.price) return flash("danger", "Set your entry price");
     if (!exit?.price) return flash("danger", "Set your exit price");
@@ -250,9 +250,9 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
       setTimeout(() => onClose?.(), 800);
     } catch (err) {
       if (err?.response?.data?.limit) {
-        flash("danger", "Free plan: 5 chart logs / month reached — upgrade for unlimited");
+        flash("danger", "Free plan: 5 chart logs / month reached, upgrade for unlimited");
       } else {
-        flash("danger", err.response?.data?.message || "Could not save — try again");
+        flash("danger", err.response?.data?.message || "Could not save, try again");
       }
     } finally {
       setSaving(false);
@@ -318,7 +318,7 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
       setTimeout(() => onClose?.(), 900);
     } catch (err) {
       console.error(err);
-      flash("danger", err.response?.data?.message || "Could not save — try again");
+      flash("danger", err.response?.data?.message || "Could not save, try again");
     } finally {
       setSaving(false);
     }
@@ -328,7 +328,7 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
     ? "Type exact prices or click the chart to set entry & exit"
     : phase === "entry" ? "Click the chart to place your ENTRY"
     : phase === "exit" ? "Now click to place your EXIT"
-    : "Entry & exit set — adjust details and save";
+    : "Entry & exit set, adjust details and save";
   const canSave = annotateMode ? !!(entry?.price && exit?.price) : phase === "done";
 
   return (
@@ -379,8 +379,8 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
                   <div ref={wrapRef} style={{ width: "100%" }} />
                 </div>
                 <div style={{ display: "flex", gap: "var(--space-4)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                  <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry ? `$${fmt(entry.price)}` : "—"}</strong></span>
-                  <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit ? `$${fmt(exit.price)}` : "—"}</strong></span>
+                  <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry ? `$${fmt(entry.price)}` : ", "}</strong></span>
+                  <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit ? `$${fmt(exit.price)}` : ", "}</strong></span>
                 </div>
               </div>
 
@@ -422,7 +422,7 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
                   </div>
                 </div>
 
-                {/* editable entry/exit — type exact prices or click the chart */}
+                {/* editable entry/exit, type exact prices or click the chart */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)", minWidth: 0 }}>
                   <div className="jx-field" style={{ minWidth: 0 }}>
                     <label className="jx-field__label" style={{ font: "var(--text-small)", fontWeight: 500 }}>Entry price</label>
@@ -464,7 +464,7 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
                     <Badge variant={direction === "long" ? "success" : "danger"}>{direction === "long" ? "Long" : "Short"}</Badge>
                   </div>
                   <span style={{ font: "var(--text-h2)", color: calc.pnl == null ? "var(--color-text-muted)" : calc.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                    {calc.pnl == null ? "P&L —" : cmoney(calc.pnl)}
+                    {calc.pnl == null ? "P&L, " : cmoney(calc.pnl)}
                     {calc.retPct != null && <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginLeft: 8 }}>{calc.retPct >= 0 ? "+" : ""}{fmt(calc.retPct, 1)}%</span>}
                   </span>
                   {calc.rr != null && <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Planned R:R 1 : {fmt(calc.rr, 1)}</span>}

@@ -1,4 +1,4 @@
-/* Shared plan config — used by the public /pricing page and the in-dashboard
+/* Shared plan config, used by the public /pricing page and the in-dashboard
    Upgrade panel so prices/features never drift between them. */
 
 export const monthlyPriceId = process.env.NEXT_PUBLIC_PADDLE_MONTHLY_PRICE_ID;
@@ -75,7 +75,7 @@ export async function detectCurrencyByIP() {
     if (!cc) cc = await fetchCountry("https://ipwho.is/", (d) => d.country_code);
     if (cc) return cc === "IN" || cc === "IND" ? "INR" : "USD";
   } catch {
-    /* network blocked / aborted — fall through to heuristic */
+    /* network blocked / aborted, fall through to heuristic */
   }
   return getUserCurrency();
 }

@@ -5,7 +5,7 @@ import { Plus, Sparkles, Upload } from "lucide-react";
 import Button from "./Button";
 
 /**
- * SampleDataBanner — shown wherever dummy/sample data is rendered.
+ * SampleDataBanner, shown wherever dummy/sample data is rendered.
  * CTAs: log a trade or import trade history.
  */
 export default function SampleDataBanner({ onLog, onImport }) {

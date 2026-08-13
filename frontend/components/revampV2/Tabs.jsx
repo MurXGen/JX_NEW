@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 
 /**
- * revampV2 Tabs — segmented control (Figma "Components / Tabs").
+ * revampV2 Tabs, segmented control (Figma "Components / Tabs").
  * items: [{ id, label }] · active: id · onChange(id)
  * Animated active pill via framer-motion layoutId.
  */

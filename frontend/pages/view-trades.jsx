@@ -1,6 +1,6 @@
 "use client";
 
-/* Public read-only share page — /view-trades?data=<base64>.
+/* Public read-only share page, /view-trades?data=<base64>.
    Revamp v2: JournalX branding + CTA, stat tiles, P&L calendar,
    trades table. No auth required. */
 
@@ -184,17 +184,17 @@ export default function ViewTrades() {
                     const pnl = Number(t.pnl) || 0;
                     return (
                       <tr key={i}>
-                        <td style={{ fontWeight: 600 }}>{t.symbol || "—"}</td>
+                        <td style={{ fontWeight: 600 }}>{t.symbol || ", "}</td>
                         <td>
                           <span className={`jx-badge ${isLong ? "jx-badge--success" : "jx-badge--danger"}`}>
                             {isLong ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                             {isLong ? "Long" : "Short"}
                           </span>
                         </td>
-                        <td>{t.avgEntryPrice ? `$${fmt(t.avgEntryPrice)}` : "—"}</td>
-                        <td>{t.avgExitPrice ? `$${fmt(t.avgExitPrice)}` : "—"}</td>
+                        <td>{t.avgEntryPrice ? `$${fmt(t.avgEntryPrice)}` : ", "}</td>
+                        <td>{t.avgExitPrice ? `$${fmt(t.avgExitPrice)}` : ", "}</td>
                         <td style={{ fontWeight: 600, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>{money(pnl)}</td>
-                        <td>{t.rr || "—"}</td>
+                        <td>{t.rr || ", "}</td>
                         <td style={{ color: "var(--color-text-muted)" }}>
                           {new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" })}
                         </td>

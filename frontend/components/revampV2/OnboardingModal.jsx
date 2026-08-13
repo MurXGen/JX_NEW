@@ -1,6 +1,6 @@
 "use client";
 
-/* New-user onboarding — a short interactive walkthrough:
+/* New-user onboarding, a short interactive walkthrough:
    Create account → Log trade → Best analytics. Prev/Next navigation;
    finishing fires confetti, activates the 7-day Pro trial, and closes
    (the user stays on the dashboard). */
@@ -26,7 +26,7 @@ const STEPS = [
     icon: Wallet,
     accent: "#22d3ee",
     title: "Your journal is ready",
-    body: "We've set up your first trading journal. Everything you log lives here — organised, private, and yours.",
+    body: "We've set up your first trading journal. Everything you log lives here, organised, private, and yours.",
     art: ["#22d3ee"],
   },
   {
@@ -40,7 +40,7 @@ const STEPS = [
     icon: BarChart3,
     accent: "#fcd535",
     title: "Watch your edge grow",
-    body: "Your dashboard turns every trade into analytics — win rate, R-multiples, streaks and more — so you sharpen your edge each session.",
+    body: "Your dashboard turns every trade into analytics, win rate, R-multiples, streaks and more, so you sharpen your edge each session.",
     art: ["#34d399", "#fcd535", "#22d3ee"],
   },
 ];
@@ -130,7 +130,7 @@ export default function OnboardingModal({ open, onClose, onTrialActivated }) {
                 </span>
                 <span style={{ font: "var(--text-h2)", fontWeight: 700 }}>You&apos;re all set 🎉</span>
                 <span style={{ font: "var(--text-body)", color: "var(--color-text-secondary)", maxWidth: 360 }}>
-                  Your <strong>7-day Pro trial</strong> is now active — unlimited trades, full analytics and exports. Enjoy!
+                  Your <strong>7-day Pro trial</strong> is now active, unlimited trades, full analytics and exports. Enjoy!
                 </span>
                 <Button variant="primary" icon={ArrowRight} onClick={close} style={{ marginTop: "var(--space-2)" }}>
                   Start journaling
@@ -138,14 +138,14 @@ export default function OnboardingModal({ open, onClose, onTrialActivated }) {
               </div>
             ) : (
               <div className="jx-onb-body">
-                {/* progress dots — top */}
+                {/* progress dots, top */}
                 <div className="jx-onb-dots" style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: "var(--space-5)" }}>
                   {STEPS.map((_, idx) => (
                     <span key={idx} style={{ width: idx === i ? 22 : 8, height: 8, borderRadius: 999, background: idx === i ? "var(--color-primary)" : "var(--color-border-strong)", transition: "all .25s ease" }} />
                   ))}
                 </div>
 
-                {/* step content — middle */}
+                {/* step content, middle */}
                 <div className="jx-onb-step">
                   <AnimatePresence mode="wait">
                     <motion.div

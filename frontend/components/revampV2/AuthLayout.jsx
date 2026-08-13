@@ -5,15 +5,15 @@ import { BarChart3, BrainCircuit, Zap } from "lucide-react";
 import CountUp from "./CountUp";
 
 /**
- * AuthLayout — split auth screen.
+ * AuthLayout, split auth screen.
  * Left: gradient brand panel with JournalX benefits + stat cards.
  * Right: the form card (children), styled like our stat cards.
  */
 
 const BENEFITS = [
-  { icon: Zap, title: "Log trades in seconds", sub: "Quick log or full detail — entries, risk, screenshots, psychology." },
+  { icon: Zap, title: "Log trades in seconds", sub: "Quick log or full detail, entries, risk, screenshots, psychology." },
   { icon: BarChart3, title: "Analytics that find your edge", sub: "P&L calendars, R-multiples, strategy and discipline breakdowns." },
-  { icon: BrainCircuit, title: "Trade your plan", sub: "Track emotions and mistakes — see what tilt really costs you." },
+  { icon: BrainCircuit, title: "Trade your plan", sub: "Track emotions and mistakes, see what tilt really costs you." },
 ];
 
 export default function AuthLayout({ children, title, subtitle }) {
@@ -30,7 +30,7 @@ export default function AuthLayout({ children, title, subtitle }) {
       }}
       className="jx-auth"
     >
-      {/* ===== Left — brand & benefits ===== */}
+      {/* ===== Left, brand & benefits ===== */}
       <div
         className="jx-auth__left"
         style={{
@@ -100,7 +100,7 @@ export default function AuthLayout({ children, title, subtitle }) {
         </motion.div>
       </div>
 
-      {/* ===== Right — form card ===== */}
+      {/* ===== Right, form card ===== */}
       <div
         className="jx-auth__right"
         style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-8) var(--space-6)" }}

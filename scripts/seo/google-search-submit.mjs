@@ -5,11 +5,11 @@
  * and (optionally) notifies the Indexing API about recently-updated blog posts.
  *
  * This is the legitimate, supported way to programmatically tell Google about
- * sitemap changes — Google retired the old unauthenticated "ping" endpoint in
+ * sitemap changes, Google retired the old unauthenticated "ping" endpoint in
  * 2024, so this replaces it.
  *
  * Auth: a Google Cloud service account that has been added as an OWNER of the
- * Search Console property. The key is read from the environment — NEVER commit
+ * Search Console property. The key is read from the environment, NEVER commit
  * it to the repo.
  *
  *   GSC_SERVICE_ACCOUNT_KEY   Full service-account JSON (as a string). Preferred

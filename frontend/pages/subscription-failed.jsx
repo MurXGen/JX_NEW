@@ -1,6 +1,6 @@
 "use client";
 
-/* Subscription failed — v2 redesign. Theme-aware, token-based. */
+/* Subscription failed, v2 redesign. Theme-aware, token-based. */
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";

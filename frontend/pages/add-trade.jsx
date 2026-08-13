@@ -7,7 +7,7 @@ import { ArrowLeft, PlusCircle } from "lucide-react";
 import { Button, TradeLogForm, LogTradeModal } from "@/components/revampV2";
 
 /**
- * /add-trade — revamp v2 trade log.
+ * /add-trade, revamp v2 trade log.
  * The Figma "Log Trade" modal opens automatically on this page
  * (Quick log / Detailed). Submit is a dummy for now.
  */
@@ -48,7 +48,7 @@ export default function AddTradePage() {
         <TradeLogForm />
       </main>
 
-      {/* Figma "Log Trade" modal — auto-opens when landing on this page */}
+      {/* Figma "Log Trade" modal, auto-opens when landing on this page */}
       <LogTradeModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

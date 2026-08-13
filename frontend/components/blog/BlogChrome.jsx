@@ -58,7 +58,7 @@ function QuizActivity({ block }) {
       </div>
       {done && (
         <p style={{ margin: "var(--space-3) 0 0", font: "var(--text-body)", color: "var(--color-text-secondary)" }}>
-          <strong style={{ color: right ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>{right ? "Correct — " : "Not quite — "}</strong>
+          <strong style={{ color: right ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>{right ? "Correct, " : "Not quite, "}</strong>
           {block.explain}
         </p>
       )}
@@ -239,7 +239,7 @@ export function BlogCTA() {
       <TrendingUp size={32} style={{ color: "var(--yellow-500)" }} />
       <div style={{ font: "var(--text-h2)", marginTop: "var(--space-2)" }}>Turn these lessons into your edge</div>
       <p style={{ font: "var(--text-body)", color: "var(--color-text-secondary)", maxWidth: 480, margin: "var(--space-2) auto var(--space-4)" }}>
-        JournalX logs your trades, scores your discipline, and shows exactly where your P&amp;L comes from — free to start.
+        JournalX logs your trades, scores your discipline, and shows exactly where your P&amp;L comes from, free to start.
       </p>
       <a href={`${SITE_URL}/register`} style={{ textDecoration: "none" }}>
         <button className="jx-btn jx-btn--primary jx-btn--lg">

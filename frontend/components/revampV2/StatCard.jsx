@@ -3,13 +3,13 @@
 import { TrendingUp, TrendingDown, CircleDollarSign } from "lucide-react";
 
 /**
- * revampV2 StatCard — Figma "Components / Stat Cards"
+ * revampV2 StatCard, Figma "Components / Stat Cards"
  * props:
- *  label, value          — required
+ *  label, value, required
  *  delta (number %), deltaLabel
  *  icon (lucide component)
- *  bars (number[])       — mini bar sparkline, sign decides color
- *  positive (bool)       — force delta direction
+ *  bars (number[]), mini bar sparkline, sign decides color
+ *  positive (bool), force delta direction
  */
 export default function StatCard({
   label,

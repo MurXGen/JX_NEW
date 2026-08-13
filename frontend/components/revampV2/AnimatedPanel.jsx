@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * revampV2 AnimatedPanel — wraps tab content so switching tabs
+ * revampV2 AnimatedPanel, wraps tab content so switching tabs
  * cross-fades + slides. Key it by the active tab id.
  *
  * <AnimatedPanel id={activeTab}> {content} </AnimatedPanel>

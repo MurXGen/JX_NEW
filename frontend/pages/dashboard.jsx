@@ -115,7 +115,7 @@ export default function Dashboard() {
   /* ---------- data loading (same flow as old dashboard-web) ---------- */
   const loadedOnceRef = useRef(false);
   useEffect(() => {
-    // run the full load only once per mount — navigating between in-app tabs
+    // run the full load only once per mount, navigating between in-app tabs
     // (e.g. opening Settings) must never re-trigger the whole reload.
     if (loadedOnceRef.current) return;
     loadedOnceRef.current = true;
@@ -197,7 +197,7 @@ export default function Dashboard() {
       // Fresh login/register: connect Google Drive now (alongside auth) so
       // backups never prompt later. If already connected, just refresh the
       // token silently. (If the browser blocks this popup, the first manual
-      // Backup click — a user gesture — will connect instead.)
+      // Backup click, a user gesture, will connect instead.)
       if (isDriveConfigured()) {
         if (isDriveConnected()) warmDriveConnection();
         else connectDrive().catch(() => {});
@@ -235,8 +235,8 @@ export default function Dashboard() {
      Trades are stored in the JOURNAL's own currency. The Journals modal and the
      Log/Edit modal always work in that native currency. The dashboard + trades
      log can DISPLAY in a chosen "display currency" (Settings → Base currency,
-     stored as jx-display-currency). We never mutate trades for display — panels
-     convert at format time using fxRate — so editing can never be corrupted. */
+     stored as jx-display-currency). We never mutate trades for display, panels
+     convert at format time using fxRate, so editing can never be corrupted. */
   const journalCurrency = (currentAccount?.currency || "USD").toUpperCase();
   const [displayCurrency, setDisplayCurrency] = useState(journalCurrency);
   const [fxRate, setFxRate] = useState(1);
@@ -452,7 +452,7 @@ export default function Dashboard() {
         user={userData}
       />
 
-      {/* Log trade modal (Quick log / Detailed) — blurred backdrop */}
+      {/* Log trade modal (Quick log / Detailed), blurred backdrop */}
       <LogTradeModal
         open={showLogTrade}
         onClose={() => setShowLogTrade(false)}
@@ -508,7 +508,7 @@ export default function Dashboard() {
         onSkip={() => { setShowGetStarted(false); setShowOnboarding(true); }}
       />
 
-      {/* Settings — glassmorphic modal */}
+      {/* Settings, glassmorphic modal */}
       <SettingsModal
         open={activeTab === "settings" && !isMobile}
         user={userData}

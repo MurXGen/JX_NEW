@@ -6,7 +6,7 @@ import HeaderSection from "./HeaderSection";
 
 const features = [
   {
-    title: "Free to Use — No Barriers",
+    title: "Free to Use, No Barriers",
     description:
       "Get started instantly and experience the power of trading insights without spending a dime. Build habits that improve your results from day one.",
     image: "/assets/free_use.svg",
@@ -14,7 +14,7 @@ const features = [
   {
     title: "Unlimited Logs, Effortless Flow",
     description:
-      "Journal every trade in seconds — no limits, no clutter. Stay consistent, stay in control, and let JournalX do the heavy lifting.",
+      "Journal every trade in seconds, no limits, no clutter. Stay consistent, stay in control, and let JournalX do the heavy lifting.",
     image: "/assets/easy_smooth.svg",
   },
   {
@@ -30,7 +30,7 @@ const ChooseJournalX = () => {
     <section className="flexClm gap_32 landingBody">
       <HeaderSection
         title="Powerful Trade Insights"
-        subtitle="From free journaling to advanced performance analytics — JournalX grows with your trading journey."
+        subtitle="From free journaling to advanced performance analytics, JournalX grows with your trading journey."
       />
 
       <div className="flexClm gap_32">

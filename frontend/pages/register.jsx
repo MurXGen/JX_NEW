@@ -1,6 +1,6 @@
 "use client";
 
-/* /register — revamp v2 auth. Name/email/password with Turnstile,
+/* /register, revamp v2 auth. Name/email/password with Turnstile,
    Google OAuth, then 6-digit OTP verification. */
 
 import { useEffect, useState } from "react";
@@ -105,13 +105,13 @@ export default function RegisterPage() {
       setStep("otp");
       setCooldown(60);
       trackSignUp("email"); // funnel: account created
-      flash("success", "Account created — check your email for the code");
+      flash("success", "Account created, check your email for the code");
     } catch (err) {
       const data = err.response?.data;
       if (err.response?.status === 409) {
-        flash("danger", "Account already exists — log in instead");
+        flash("danger", "Account already exists, log in instead");
       } else {
-        flash("danger", data?.message || "Registration failed — try again");
+        flash("danger", data?.message || "Registration failed, try again");
       }
     } finally {
       setBusy(false);
@@ -127,7 +127,7 @@ export default function RegisterPage() {
       trackEmailVerified(); // funnel: account activated (email verified)
       // signal the dashboard to show the onboarding guide (registration only)
       try { localStorage.setItem("jx-show-onboarding", "1"); } catch {}
-      flash("success", "You're in — welcome to JournalX!");
+      flash("success", "You're in, welcome to JournalX!");
       setTimeout(() => router.push("/dashboard"), 800);
     } catch (err) {
       flash("danger", err.response?.data?.message || "Invalid code");
@@ -149,18 +149,18 @@ export default function RegisterPage() {
   return (
     <>
       <Head>
-        <title>JournalX Sign Up — Create Your Free Trading Journal | journalx.app</title>
-        <meta name="description" content="Create your free JournalX account and get trade log analysis in under 10 seconds. Sign up at journalx.app — no card required — and start increasing your profitability today." />
+        <title>JournalX Sign Up, Create Your Free Trading Journal | journalx.app</title>
+        <meta name="description" content="Create your free JournalX account and get trade log analysis in under 10 seconds. Sign up at journalx.app, no card required, and start increasing your profitability today." />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://journalx.app/register" />
-        <meta property="og:title" content="JournalX Sign Up — Create Your Free Trading Journal" />
-        <meta property="og:description" content="Start your free JournalX trading journal at journalx.app — no card required." />
+        <meta property="og:title" content="JournalX Sign Up, Create Your Free Trading Journal" />
+        <meta property="og:description" content="Start your free JournalX trading journal at journalx.app, no card required." />
         <meta property="og:url" content="https://journalx.app/register" />
-        <meta name="twitter:title" content="JournalX Sign Up — Create Your Free Trading Journal" />
+        <meta name="twitter:title" content="JournalX Sign Up, Create Your Free Trading Journal" />
       </Head>
       <AuthLayout
         title={step === "form" ? "Create your account" : "Verify your email"}
-        subtitle={step === "form" ? "Free to start — log your first trade in under a minute" : `We sent a 6-digit code to ${email}`}
+        subtitle={step === "form" ? "Free to start, log your first trade in under a minute" : `We sent a 6-digit code to ${email}`}
       >
       <Toast toast={toast} />
       <AnimatePresence mode="wait">

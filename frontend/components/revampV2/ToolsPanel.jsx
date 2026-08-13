@@ -1,6 +1,6 @@
 "use client";
 
-/* In-app Tools / calculators — the same maths as the public /tools pages, but
+/* In-app Tools / calculators, the same maths as the public /tools pages, but
    themed for the dashboard and with a live trade-setup chart (area or
    candlestick) that illustrates the entry / stop / target / exit the user
    types. Reached from the desktop sidebar and the mobile Settings list. */
@@ -183,7 +183,7 @@ function PositionSize({ sym }) {
         <Field label="Risk per trade (%)" value={riskPct} onChange={setRiskPct} />
         <Field label={`Entry (${sym})`} value={entry} onChange={setEntry} />
         <Field label={`Stop (${sym})`} value={stop} onChange={setStop} />
-        <Field label={`Target (${sym}) — optional`} value={target} onChange={setTarget} placeholder="e.g. 106" />
+        <Field label={`Target (${sym}), optional`} value={target} onChange={setTarget} placeholder="e.g. 106" />
       </div>
       {perUnit > 0 && (
         <>
@@ -264,7 +264,7 @@ function Pnl({ sym }) {
         <Field label={`Entry (${sym})`} value={entry} onChange={setEntry} />
         <Field label={`Exit (${sym})`} value={exit} onChange={setExit} />
         <Field label="Quantity" value={qty} onChange={setQty} />
-        <Field label={`Fees (${sym}) — optional`} value={fees} onChange={setFees} placeholder="brokerage + tax" />
+        <Field label={`Fees (${sym}), optional`} value={fees} onChange={setFees} placeholder="brokerage + tax" />
       </div>
       {q > 0 && en > 0 && (
         <>
@@ -333,7 +333,7 @@ function RiskOfRuin() {
   }, [inp.winRate, inp.payoff, inp.riskPct, inp.dd, inp.trades]);
   const exp = (inp.winRate / 100) * inp.payoff - (1 - inp.winRate / 100);
   const col = ror < 5 ? "var(--color-success)" : ror < 25 ? "var(--yellow-500)" : "var(--color-danger)";
-  const verdict = ror < 5 ? "Low risk — survivable" : ror < 25 ? "Caution — consider smaller size" : "Dangerous — reduce risk per trade";
+  const verdict = ror < 5 ? "Low risk, survivable" : ror < 25 ? "Caution, consider smaller size" : "Dangerous, reduce risk per trade";
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 14 }}>
@@ -350,7 +350,7 @@ function RiskOfRuin() {
         <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: 6 }}>
           Expectancy {exp >= 0 ? "+" : ""}{exp.toFixed(2)}R · {inp.trades} trades · Monte Carlo (5,000 runs)
         </div>
-        {exp < 0 && <div style={{ font: "var(--text-caption)", color: "var(--color-danger)", marginTop: 6 }}>Negative edge — no position size makes this safe. Fix the strategy first.</div>}
+        {exp < 0 && <div style={{ font: "var(--text-caption)", color: "var(--color-danger)", marginTop: 6 }}>Negative edge, no position size makes this safe. Fix the strategy first.</div>}
       </div>
     </>
   );

@@ -3,7 +3,7 @@
 import { useRef } from "react";
 
 /**
- * OtpInput — 6-box code grid. Auto-advance, backspace navigation,
+ * OtpInput, 6-box code grid. Auto-advance, backspace navigation,
  * full-code paste support. Fixed-size boxes, centered row.
  * value: string, onChange(string).
  */

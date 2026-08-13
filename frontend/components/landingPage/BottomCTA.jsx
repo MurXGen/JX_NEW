@@ -28,7 +28,7 @@ export default function BottomCTA() {
               <span className="flexClm gap_4">
                 <strong>Ready to level-up your performance!</strong>
                 <span className="font_12">
-                  Start journaling smarter with <span>JournalX.app</span> —
+                  Start journaling smarter with <span>JournalX.app</span>, 
                   built by traders, for traders.
                 </span>
               </span>

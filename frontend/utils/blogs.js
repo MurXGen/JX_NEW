@@ -1,4 +1,4 @@
-/* blogs.js — read helpers over data/blogs.json.
+/* blogs.js, read helpers over data/blogs.json.
    Single source of truth for the dashboard Learn & News panel and the
    public /blogs pages. Update the JSON daily and both surfaces refresh. */
 
@@ -58,7 +58,7 @@ export const articleJsonLd = (post) => {
 export const blogListJsonLd = () => ({
   "@context": "https://schema.org",
   "@type": "Blog",
-  name: "JournalX Blog — Trading insights & journaling guides",
+  name: "JournalX Blog, Trading insights & journaling guides",
   url: `${SITE_URL}/blogs`,
   blogPost: getAllPosts().map((p) => ({
     "@type": "BlogPosting",

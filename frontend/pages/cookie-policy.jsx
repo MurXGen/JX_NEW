@@ -22,23 +22,23 @@ export default function CookiePolicy() {
           body: [
             "We use cookies and local storage for the following purposes:",
             [
-              "Essential — to keep you signed in, remember the journal and currency you have selected, and secure the Service. The Service cannot function without these.",
-              "Preferences — to remember choices such as your theme (light/dark), collapsed sections, and monthly target.",
-              "Local data cache — to store your trades and settings on your device for fast loading and offline resilience.",
-              "Analytics — to understand, in aggregate, how the Service is used so we can improve it.",
+              "Essential, to keep you signed in, remember the journal and currency you have selected, and secure the Service. The Service cannot function without these.",
+              "Preferences, to remember choices such as your theme (light/dark), collapsed sections, and monthly target.",
+              "Local data cache, to store your trades and settings on your device for fast loading and offline resilience.",
+              "Analytics, to understand, in aggregate, how the Service is used so we can improve it.",
             ],
           ],
         },
         {
           h: "3. Third-Party Cookies",
           body: [
-            "Some features rely on third-party providers — for example, payment processing, bot-protection (CAPTCHA), and embedded market widgets — which may set their own cookies. These are governed by the respective providers' policies.",
+            "Some features rely on third-party providers, for example, payment processing, bot-protection (CAPTCHA), and embedded market widgets, which may set their own cookies. These are governed by the respective providers' policies.",
           ],
         },
         {
           h: "4. Managing Cookies",
           body: [
-            "Most browsers let you refuse or delete cookies through their settings. Please note that disabling essential cookies and local storage will prevent core features — including staying signed in and caching your trades — from working correctly.",
+            "Most browsers let you refuse or delete cookies through their settings. Please note that disabling essential cookies and local storage will prevent core features, including staying signed in and caching your trades, from working correctly.",
           ],
         },
         {

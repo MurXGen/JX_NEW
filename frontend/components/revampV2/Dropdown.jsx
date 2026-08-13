@@ -6,22 +6,22 @@ import { motion } from "framer-motion";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 
 /**
- * revampV2 Dropdown — Figma "Dropdowns & Filters" (22683:51248).
+ * revampV2 Dropdown, Figma "Dropdowns & Filters" (22683:51248).
  *
  * The open panel is rendered in a portal with fixed positioning so it always
- * floats above sibling cards/modals — parent containers that create their own
+ * floats above sibling cards/modals, parent containers that create their own
  * stacking context (e.g. backdrop-filter) can no longer clip or cover it.
  *
  * props:
  *  value, onChange(value)
  *  options: string[] | {value,label}[]
- *  label          — uppercase panel heading
+ *  label, uppercase panel heading
  *  placeholder
- *  searchable     — show search input; typed text can be picked as custom
- *  allowCustom    — pressing Enter / "Use ___" picks free text
- *  leading        — element rendered before the value in the trigger
+ *  searchable, show search input; typed text can be picked as custom
+ *  allowCustom, pressing Enter / "Use ___" picks free text
+ *  leading, element rendered before the value in the trigger
  *  triggerStyle
- *  onRemove(value) — if set, each option shows an × to delete it
+ *  onRemove(value), if set, each option shows an × to delete it
  */
 export default function Dropdown({
   value,
@@ -34,6 +34,7 @@ export default function Dropdown({
   leading = null,
   triggerStyle = {},
   onRemove = null,
+  triggerPrefix = null, // e.g. "Direction" → trigger reads "Direction: All"
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -104,6 +105,9 @@ export default function Dropdown({
         transition={{ duration: 0.13 }}
         onMouseDown={(e) => e.stopPropagation()}
         style={{
+          // positioning + sizing only, the look (background, border, radius,
+          // shadow, padding) comes from `.jx-dd__panel` so it matches the
+          // 3-dot row menu exactly.
           position: "fixed",
           top: coords.openUp ? "auto" : coords.top + 6,
           bottom: coords.openUp ? window.innerHeight - coords.top + 6 : "auto",
@@ -115,14 +119,6 @@ export default function Dropdown({
           maxHeight: 300,
           overflowY: "auto",
           overflowX: "hidden",
-          // solid, self-contained panel (inline so it can never render as a
-          // see-through box) — lightened a touch so it clearly separates from
-          // the near-black page behind it
-          background: "color-mix(in srgb, var(--color-bg-elevated), var(--color-text-primary) 8%)",
-          border: "1px solid var(--color-border-strong)",
-          borderRadius: "var(--radius-lg)",
-          boxShadow: "0 18px 48px rgba(0,0,0,0.55)",
-          padding: "var(--space-2)",
           zIndex: 4000,
         }}
       >
@@ -218,7 +214,9 @@ export default function Dropdown({
             whiteSpace: "nowrap",
           }}
         >
-          {current?.label || value || placeholder}
+          {triggerPrefix && (current || value)
+            ? `${triggerPrefix}: ${current?.label ?? value}`
+            : current?.label || value || placeholder}
         </span>
         <ChevronDown
           size={15}

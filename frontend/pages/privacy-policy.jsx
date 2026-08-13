@@ -8,7 +8,7 @@ export default function PrivacyPolicy() {
       title="Privacy Policy"
       path="/privacy-policy"
       updated="June 8, 2026"
-      description="JournalX Privacy Policy — how we collect, use, store, and protect your data. We never sell your personal data; you retain full control over export and deletion."
+      description="JournalX Privacy Policy, how we collect, use, store, and protect your data. We never sell your personal data; you retain full control over export and deletion."
       intro="JournalX (“JournalX”, “we”, “us”, or “our”) is committed to protecting your privacy. This Privacy Policy explains what information we collect, how we use it, the legal bases on which we rely, and the rights available to you. By accessing or using JournalX, you agree to the practices described in this policy. JournalX is a journaling and analytics software tool only; it is not a financial institution and does not provide financial services. The trading data you store is information you create or import for your own record-keeping."
       sections={[
         {
@@ -16,11 +16,11 @@ export default function PrivacyPolicy() {
           body: [
             "We collect the following categories of information in order to provide and improve our services:",
             [
-              "Account information — your name, email address, and authentication credentials (passwords are stored only as salted hashes; we never store them in plain text).",
-              "Trading data — the trades, journals, notes, screenshots, tags, and analytics you create or import into the platform.",
-              "Connected-exchange data — where you choose to connect an exchange, read-only API credentials and the trade history retrieved using them. Read-only keys are stored locally on your device wherever technically possible.",
-              "Technical data — IP address, device and browser type, and usage analytics collected to operate and secure the service.",
-              "Payment data — processed by our third-party payment processors. We do not store full card numbers on our servers.",
+              "Account information, your name, email address, and authentication credentials (passwords are stored only as salted hashes; we never store them in plain text).",
+              "Trading data, the trades, journals, notes, screenshots, tags, and analytics you create or import into the platform.",
+              "Connected-exchange data, where you choose to connect an exchange, read-only API credentials and the trade history retrieved using them. Read-only keys are stored locally on your device wherever technically possible.",
+              "Technical data, IP address, device and browser type, and usage analytics collected to operate and secure the service.",
+              "Payment data, processed by our third-party payment processors. We do not store full card numbers on our servers.",
             ],
           ],
         },

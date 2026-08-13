@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { jxEase } from "./easing";
 
 /**
- * revampV2 CountUp — animates from 0 on first mount and between value
+ * revampV2 CountUp, animates from 0 on first mount and between value
  * changes afterwards, using the JX cubic-bezier curve (0.16, 1, 0.3, 1).
  *
  *   <CountUp value={netPnl} format={(v) => money(v, "$")} />

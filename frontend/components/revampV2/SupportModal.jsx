@@ -4,7 +4,7 @@
    ───────────────────────────────────────────────────────────────────
    Submissions are sent to a Google Form, which writes rows to the
    linked Google Sheet. Google Forms don't allow reading the response
-   cross-origin, so we POST with mode:"no-cors" (fire-and-forget) — the
+   cross-origin, so we POST with mode:"no-cors" (fire-and-forget), the
    request still lands in the sheet.
 
    ▶ TO WIRE THIS UP, fill in the config below:
@@ -67,7 +67,7 @@ function parseCsv(text) {
 }
 const idxOf = (headers, ...keys) => headers.findIndex((h) => keys.some((k) => h.includes(k)));
 
-/* read the user's tickets — show their message and our reply (if any).
+/* read the user's tickets, show their message and our reply (if any).
    The "Responses" column holds the team's reply; empty = still pending. */
 function ticketsForUser(csv, email) {
   const rows = parseCsv(csv);
@@ -169,11 +169,11 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
           body: fd,
         });
       } else {
-        // Not yet configured — fall back to opening the user's mail client
+        // Not yet configured, fall back to opening the user's mail client
         // so feedback isn't silently lost.
         const subject = encodeURIComponent(`[${category}] JournalX feedback`);
         const body = encodeURIComponent(
-          `${message.trim()}\n\n—\nFrom: ${user?.name || ""} <${user?.email || ""}>\nPlan: ${plan}`,
+          `${message.trim()}\n\n, \nFrom: ${user?.name || ""} <${user?.email || ""}>\nPlan: ${plan}`,
         );
         window.open(`mailto:officialjournalx@gmail.com?subject=${subject}&body=${body}`, "_blank");
       }

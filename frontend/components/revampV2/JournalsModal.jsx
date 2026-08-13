@@ -21,7 +21,7 @@ import { getFromIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { compactNumber } from "@/utils/formatNumbers";
 
-/* Figma "Journals Modal" (22811:53855) — two views:
+/* Figma "Journals Modal" (22811:53855), two views:
    list (switch/manage) ⇄ create journal. Blurred backdrop,
    framer-motion entrance. Switching sets the account cookie and
    reloads; create calls POST /api/account/create. */
@@ -90,7 +90,7 @@ export default function JournalsModal({
   const save = async () => {
     if (!name.trim()) return setError("Give your journal a name");
 
-    /* edit path — update name/currency/balance, then refresh */
+    /* edit path, update name/currency/balance, then refresh */
     if (editingId) {
       setSaving(true);
       setError(null);
@@ -106,7 +106,7 @@ export default function JournalsModal({
         window.location.reload();
       } catch (e) {
         console.error(e);
-        setError("Could not save changes — try again");
+        setError("Could not save changes, try again");
         setSaving(false);
       }
       return;
@@ -142,7 +142,7 @@ export default function JournalsModal({
       window.location.reload(); // then refresh data with the new journal selected
     } catch (e) {
       console.error(e);
-      setError("Could not create journal — try again");
+      setError("Could not create journal, try again");
       setSaving(false);
     }
   };
@@ -193,7 +193,7 @@ export default function JournalsModal({
                   <div style={{ padding: "var(--space-5) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-3)", overflowY: "auto" }}>
                     {accounts.length === 0 && (
                       <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)", textAlign: "center" }}>
-                        No journals yet — create your first one below.
+                        No journals yet, create your first one below.
                       </span>
                     )}
                     {accounts.map((acc, i) => {

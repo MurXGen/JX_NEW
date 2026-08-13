@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 /**
- * revampV2 Accordion — collapsible section persisted to localStorage
+ * revampV2 Accordion, collapsible section persisted to localStorage
  * (`jx-acc-<id>`). Uses the CSS grid-rows trick instead of measured
  * height animation: buttery smooth, no layout shake, and content is
  * fully interactive in both states.

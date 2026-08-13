@@ -1,6 +1,6 @@
 "use client";
 
-/* AcquisitionModal — asks a new user where they heard about JournalX and saves
+/* AcquisitionModal, asks a new user where they heard about JournalX and saves
    it to the backend. Shown right after registration, before the get-started
    guide. "Other" reveals a free-text field. */
 
@@ -40,7 +40,7 @@ export default function AcquisitionModal({ open, onDone }) {
         );
       }
     } catch {
-      /* best-effort — never block onboarding */
+      /* best-effort, never block onboarding */
     } finally {
       setBusy(false);
       try { localStorage.setItem("jx-acq-done", "1"); } catch {}

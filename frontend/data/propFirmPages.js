@@ -1,7 +1,7 @@
 /* Programmatic per-prop-firm landing pages. Same config shape as
    data/marketPages.js, rendered via pages/[slug].jsx through MarketLanding.
    These complement the general /prop-firm-trading-journal page by targeting
-   "[firm] trading journal" / "[firm] journal" — high-intent, low-competition.
+   "[firm] trading journal" / "[firm] journal", high-intent, low-competition.
 
    Rules change often, so copy stays general and tells traders to check current
    firm terms rather than quoting exact numbers that may go stale. */
@@ -21,7 +21,7 @@ export const PROP_FIRM_PAGES = {
       "how to pass ftmo", "ftmo challenge journal", "funded account journal",
     ],
     intro:
-      "Most FTMO accounts don't fail on strategy — they fail on the daily loss limit and discipline. JournalX tracks your daily and max drawdown against your target so you can see a breach coming before it ends your challenge.",
+      "Most FTMO accounts don't fail on strategy, they fail on the daily loss limit and discipline. JournalX tracks your daily and max drawdown against your target so you can see a breach coming before it ends your challenge.",
     extra: { icon: "shield", title: "FTMO rule tracking", body: "Monitor your daily loss, max loss and profit-target progress, and score the discipline that keeps an FTMO account alive. Always confirm current limits in your FTMO dashboard." },
     faqs: [
       ["Can JournalX track my FTMO drawdown?", "Yes. Log or import your trades and JournalX shows your running daily and max drawdown plus profit-target progress, so you can stay inside FTMO's limits. Always confirm exact figures in your FTMO dashboard, as rules can change."],
@@ -44,10 +44,10 @@ export const PROP_FIRM_PAGES = {
       "the5ers drawdown", "funded account journal", "prop firm journal",
     ],
     intro:
-      "The5ers rewards steady, scaled growth — exactly the style a journal helps you keep. Track your drawdown and discipline in JournalX so a single bad session doesn't undo weeks of careful scaling.",
+      "The5ers rewards steady, scaled growth, exactly the style a journal helps you keep. Track your drawdown and discipline in JournalX so a single bad session doesn't undo weeks of careful scaling.",
     extra: { icon: "shield", title: "Drawdown & discipline tracking", body: "Monitor your drawdown and profit targets and score discipline on every trade. Confirm current limits with The5ers, as program rules change." },
     faqs: [
-      ["Does JournalX track The5ers rules?", "Yes — log or import trades and track your drawdown and profit-target progress, plus discipline analytics. Always confirm exact rules in your The5ers account, as they can change."],
+      ["Does JournalX track The5ers rules?", "Yes, log or import trades and track your drawdown and profit-target progress, plus discipline analytics. Always confirm exact rules in your The5ers account, as they can change."],
       ["How do I import my trades?", "Export your MT4/MT5 account history as a CSV and import it, or quick-log trades in seconds."],
       ["Is it good for scaling accounts?", "Yes. JournalX's equity-curve and consistency views are ideal for the gradual scaling The5ers is known for."],
     ],
@@ -72,7 +72,7 @@ export const PROP_FIRM_PAGES = {
     faqs: [
       ["Can it track Topstep's trailing drawdown?", "Yes. JournalX tracks your trailing drawdown buffer and daily loss as you log trades, so you can stop before a rule does it for you. Confirm exact figures in your Topstep account."],
       ["How do I import Topstep trades?", "Export your trade history from your trading platform (e.g., NinjaTrader, Tradovate) as a CSV and import it, or quick-log trades manually."],
-      ["Is it built for futures?", "Yes — JournalX handles futures contracts with the right precision and per-session analytics for futures traders."],
+      ["Is it built for futures?", "Yes, JournalX handles futures contracts with the right precision and per-session analytics for futures traders."],
     ],
   },
 
@@ -95,7 +95,7 @@ export const PROP_FIRM_PAGES = {
     faqs: [
       ["Can JournalX track the FundedNext consistency rule?", "Yes. It surfaces your best-day P&L as a share of total profit, so you can keep within consistency requirements and avoid a payout block. Confirm exact thresholds with FundedNext."],
       ["How do I import FundedNext trades?", "Export your MT4/MT5 account history as a CSV and import it into JournalX, or quick-log trades in seconds."],
-      ["Does it track drawdown too?", "Yes — daily and max drawdown plus profit-target progress are tracked on every trade."],
+      ["Does it track drawdown too?", "Yes, daily and max drawdown plus profit-target progress are tracked on every trade."],
     ],
   },
 
@@ -118,7 +118,7 @@ export const PROP_FIRM_PAGES = {
     faqs: [
       ["Can it track Apex's trailing threshold?", "Yes. JournalX tracks your trailing drawdown and risk usage as you log trades. Always confirm exact figures with Apex Trader Funding."],
       ["How do I import Apex trades?", "Export your platform history (e.g., Tradovate, NinjaTrader, Rithmic) as a CSV and import it, or quick-log trades manually."],
-      ["Is it suitable for futures scalping?", "Yes — JournalX handles high-frequency futures with per-session and per-setup analytics."],
+      ["Is it suitable for futures scalping?", "Yes, JournalX handles high-frequency futures with per-session and per-setup analytics."],
     ],
   },
 
@@ -139,7 +139,7 @@ export const PROP_FIRM_PAGES = {
       "E8 gives flexible targets, but drawdown and discipline still decide who keeps the account. JournalX tracks both so your evaluation and funded phase stay on the rails.",
     extra: { icon: "shield", title: "Drawdown & discipline tracking", body: "Track daily and max drawdown plus discipline on every trade. Confirm current E8 rules in your dashboard." },
     faqs: [
-      ["Does JournalX track E8 rules?", "Yes — log or import trades to track drawdown and profit-target progress plus discipline analytics. Confirm exact rules with E8 Markets."],
+      ["Does JournalX track E8 rules?", "Yes, log or import trades to track drawdown and profit-target progress plus discipline analytics. Confirm exact rules with E8 Markets."],
       ["How do I import E8 trades?", "Export your MT4/MT5 account history as a CSV and import it, or quick-log trades manually in seconds."],
       ["Is there a free plan?", "Yes, start free with no card required."],
     ],
@@ -164,7 +164,7 @@ export const PROP_FIRM_PAGES = {
     faqs: [
       ["Can it track the Funding Pips consistency rule?", "Yes. JournalX shows your best-day P&L as a share of total profit so you can stay within consistency limits. Confirm exact thresholds with Funding Pips."],
       ["How do I import Funding Pips trades?", "Export your MT4/MT5 account history as a CSV and import it into JournalX, or quick-log trades in seconds."],
-      ["Does it track drawdown?", "Yes — daily and max drawdown plus profit-target progress are tracked on every trade."],
+      ["Does it track drawdown?", "Yes, daily and max drawdown plus profit-target progress are tracked on every trade."],
     ],
   },
 };

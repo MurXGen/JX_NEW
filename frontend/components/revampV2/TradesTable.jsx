@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import Badge from "./Badge";
 
 /**
- * revampV2 TradesTable — recent trades list per Figma table styling.
+ * revampV2 TradesTable, recent trades list per Figma table styling.
  * trades: [{ symbol|ticker, direction, pnl, closeTime, totalQuantity }]
  */
 export default function TradesTable({ trades = [], currencySymbol = "$", limit = 8 }) {
@@ -23,7 +23,7 @@ export default function TradesTable({ trades = [], currencySymbol = "$", limit =
           font: "var(--text-body)",
         }}
       >
-        No closed trades yet — log your first trade to see it here.
+        No closed trades yet, log your first trade to see it here.
       </div>
     );
   }
@@ -46,7 +46,7 @@ export default function TradesTable({ trades = [], currencySymbol = "$", limit =
             const pnl = Number(t.pnl) || 0;
             return (
               <tr key={t._id || i}>
-                <td style={{ fontWeight: 600 }}>{t.symbol || t.ticker || "—"}</td>
+                <td style={{ fontWeight: 600 }}>{t.symbol || t.ticker || ", "}</td>
                 <td>
                   <Badge
                     variant={isLong ? "success" : "danger"}
@@ -55,14 +55,14 @@ export default function TradesTable({ trades = [], currencySymbol = "$", limit =
                     {isLong ? "Buy / Long" : "Sell / Short"}
                   </Badge>
                 </td>
-                <td>{t.totalQuantity ?? "—"}</td>
+                <td>{t.totalQuantity ?? ", "}</td>
                 <td>
                   {t.closeTime
                     ? new Date(t.closeTime).toLocaleDateString("en-GB", {
                         day: "2-digit",
                         month: "short",
                       })
-                    : "—"}
+                    : ", "}
                 </td>
                 <td
                   style={{

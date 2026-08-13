@@ -29,7 +29,7 @@ export default function BreakevenWinRateCalculator() {
   const worked = R > 0
     ? [
         `Breakeven win rate = 1 ÷ (1 + reward:risk) = 1 ÷ (1 + ${fmt(R)}) = ${fmt(beWinRate / 100)}`,
-        `= ${fmt(beWinRate)}% — above this win rate, this reward:risk makes money`,
+        `= ${fmt(beWinRate)}%, above this win rate, this reward:risk makes money`,
         `Your expectancy = (win% × R) − loss% = (${fmt(wr)}% × ${fmt(R)}) − ${fmt(100 - wr)}% = ${expectancyR >= 0 ? "+" : ""}${fmt(expectancyR)}R per trade`,
       ]
     : [];
@@ -46,14 +46,14 @@ export default function BreakevenWinRateCalculator() {
     <ToolPage
       slug="breakeven-win-rate-calculator"
       h1="Breakeven Win-Rate Calculator"
-      title="Breakeven Win-Rate Calculator (Free) — Win Rate vs Risk:Reward | JournalX"
-      description="Free breakeven win-rate calculator. Enter your reward:risk to see the win rate you need just to break even — and whether your actual win rate gives you a real edge."
+      title="Breakeven Win-Rate Calculator (Free), Win Rate vs Risk:Reward | JournalX"
+      description="Free breakeven win-rate calculator. Enter your reward:risk to see the win rate you need just to break even, and whether your actual win rate gives you a real edge."
       keywords={["breakeven win rate calculator", "win rate calculator trading", "risk reward win rate", "minimum win rate calculator", "trading expectancy calculator", "win rate vs risk reward"]}
-      intro="A higher reward:risk needs a lower win rate to make money — and vice-versa. Enter your reward:risk to see the win rate you must beat just to break even, then add your real win rate to see if you actually have an edge."
+      intro="A higher reward:risk needs a lower win rate to make money, and vice-versa. Enter your reward:risk to see the win rate you must beat just to break even, then add your real win rate to see if you actually have an edge."
       explainer={[
         { h: "Win rate and reward:risk are a pair", p: "Neither number means anything alone. A 35% win rate is excellent at 3R reward:risk, but a losing strategy at 1R. This tool ties them together so you stop chasing 'high win rate' for its own sake." },
         { h: "The breakeven line", p: "With reward:risk R, you break even at a win rate of 1 ÷ (1 + R). At 1R you need 50%; at 2R only 33.3%; at 3R just 25%. Beat that line and you're profitable; fall short and you bleed, however good it feels." },
-        { h: "Turn it into expectancy", p: "Above the line, your edge is positive expectancy — average R per trade. JournalX measures your real win rate and average R from logged trades, so you can see whether your live edge matches the plan." },
+        { h: "Turn it into expectancy", p: "Above the line, your edge is positive expectancy, average R per trade. JournalX measures your real win rate and average R from logged trades, so you can see whether your live edge matches the plan." },
       ]}
       faqs={[
         ["What win rate do I need to be profitable?", "It depends on your reward:risk. Breakeven win rate = 1 ÷ (1 + reward:risk). At 2R you only need to win about 33.3% of trades to break even; anything above is profit."],
@@ -69,7 +69,7 @@ export default function BreakevenWinRateCalculator() {
             <input id="bw-rr" style={toolInput} inputMode="decimal" value={rr} onChange={(e) => setRr(e.target.value)} />
           </div>
           <div>
-            <label style={toolLabel} htmlFor="bw-wr">Your win rate (%) — optional</label>
+            <label style={toolLabel} htmlFor="bw-wr">Your win rate (%), optional</label>
             <input id="bw-wr" style={toolInput} inputMode="decimal" value={winRate} onChange={(e) => setWinRate(e.target.value)} />
           </div>
         </div>
@@ -86,7 +86,7 @@ export default function BreakevenWinRateCalculator() {
 
             <p style={{ font: "400 13px/1.6 Poppins", color: TC.muted, margin: "14px 0 0" }}>
               At {fmt(R)}R you need to win <strong style={{ color: TC.yellow }}>{fmt(beWinRate)}%</strong> of trades just to break even.
-              {" "}Your {fmt(wr)}% win rate is <strong style={{ color: profitable ? TC.green : TC.red }}>{profitable ? "above" : "below"}</strong> that —
+              {" "}Your {fmt(wr)}% win rate is <strong style={{ color: profitable ? TC.green : TC.red }}>{profitable ? "above" : "below"}</strong> that, 
               {" "}{profitable ? "you have a real edge." : "this combination loses money over time."}
             </p>
 

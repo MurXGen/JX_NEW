@@ -1,6 +1,6 @@
-/* Dynamic sitemap — public pages + every blog slug. Served at /sitemap.xml
+/* Dynamic sitemap, public pages + every blog slug. Served at /sitemap.xml
    Rebuilds on every request from data/blogs.json, so newly published blogs
-   appear automatically. Each URL carries an accurate <lastmod> — the signal
+   appear automatically. Each URL carries an accurate <lastmod>, the signal
    Google uses to decide what to recrawl. The homepage and /blogs index inherit
    the date of the newest post (they genuinely change whenever a blog ships),
    so adding a post updates their lastmod and prompts a recrawl. */

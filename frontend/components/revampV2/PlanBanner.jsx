@@ -1,6 +1,6 @@
 "use client";
 
-/* Plan status banner — shows at the top of the dashboard on desktop AND
+/* Plan status banner, shows at the top of the dashboard on desktop AND
    mobile. Two states:
    • subscription inactive/expired → "upgrade now" (brand/urgent)
    • active 7-day trial ending within 5 days → countdown nudge

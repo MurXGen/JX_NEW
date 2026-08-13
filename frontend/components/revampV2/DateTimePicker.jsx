@@ -7,7 +7,7 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock } from "luci
 import Button from "./Button";
 
 /**
- * revampV2 DateTimePicker — Figma "Components / Date & Time Picker"
+ * revampV2 DateTimePicker, Figma "Components / Date & Time Picker"
  * (22686:51267). Trigger field opens a calendar + time popover with
  * quick ranges, Cancel/Apply.
  *
@@ -205,7 +205,7 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
             {/* footer */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "var(--space-3)", gap: "var(--space-2)" }}>
               <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                {day ? day.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "—"} · {time}
+                {day ? day.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ", "} · {time}
               </span>
               <span style={{ display: "flex", gap: 8 }}>
                 <button type="button" className="jx-btn jx-btn--outline jx-btn--sm" onClick={() => setOpen(false)}>

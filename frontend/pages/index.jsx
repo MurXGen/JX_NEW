@@ -416,7 +416,7 @@ function JournalMock() {
   const wrapRef = useRef(null);
   const [inView, setInView] = useState(false);
 
-  // only animate while the mock is actually on screen — running the row
+  // only animate while the mock is actually on screen, running the row
   // insert/remove loop off-screen reflows the page and "shakes" the scroll
   useEffect(() => {
     const el = wrapRef.current;

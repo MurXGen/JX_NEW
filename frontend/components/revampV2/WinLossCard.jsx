@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * revampV2 WinLossCard — win/loss split with progress bar.
+ * revampV2 WinLossCard, win/loss split with progress bar.
  */
 export default function WinLossCard({ title, total, wins, losses }) {
   const winPct = total ? (wins / total) * 100 : 0;

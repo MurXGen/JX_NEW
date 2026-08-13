@@ -1,20 +1,20 @@
 "use client";
 
-/* Premium payment modal — one shared component used by /pricing, /pricingpage,
+/* Premium payment modal, one shared component used by /pricing, /pricingpage,
    the landing pricing section and the in-dashboard upgrade flow.
 
    Design goal: a self-contained, premium dark checkout (inspired by the best
    Paddle integrations) that's fully on-brand. It runs in two views inside the
    same dialog so the experience never breaks to a jarring white popup:
 
-     1. "select"  — plan period toggle, price, feature grid, payment-method
+     1. "select", plan period toggle, price, feature grid, payment-method
                     pills, promo code and a single CTA.
-     2. "checkout" — Paddle's INLINE checkout embedded in our own dark surface
+     2. "checkout", Paddle's INLINE checkout embedded in our own dark surface
                     (theme:"dark", transparent frame) on the left, with our own
                     branded order summary on the right.
 
    Paddle only lets you theme the payment form (light/dark) + brand colour/logo
-   in the dashboard — the form fields themselves can't be restyled. So the win
+   in the dashboard, the form fields themselves can't be restyled. So the win
    is in this wrapper + embedding inline (dark) instead of the default overlay,
    which removes the white-popup hand-off entirely.
 
@@ -43,7 +43,7 @@ import { PLANS_FEATURES } from "@/utils/plans";
 import { saveToIndexedDB } from "@/utils/indexedDB";
 
 /* Fixed premium-dark palette so the checkout looks identical (and on-brand)
-   regardless of the surrounding app theme — like the best SaaS checkouts. */
+   regardless of the surrounding app theme, like the best SaaS checkouts. */
 const C = {
   text: "#ffffff",
   muted: "#aeb4bc",
@@ -169,7 +169,7 @@ export default function PaymentModal({
               displayMode: "inline",
               frameTarget: "jx-paddle-frame",
               frameInitialHeight: 460,
-              // Light theme on a white card — Paddle's dark theme renders
+              // Light theme on a white card, Paddle's dark theme renders
               // low-contrast (near-invisible) label/input text unless dark
               // colours are configured in the Paddle dashboard branding, which
               // we can't control from code. A white form (like UltraTrader's)
@@ -188,7 +188,7 @@ export default function PaymentModal({
         }
       } else if (tries > 60) {
         clearInterval(id);
-        setError("Payment system is still loading — please try again.");
+        setError("Payment system is still loading, please try again.");
         setView("select");
       }
     }, 50);
@@ -261,7 +261,7 @@ export default function PaymentModal({
       return;
     }
     if (!window?.Paddle?.Checkout) {
-      setError("Payment system is still loading — please try again in a moment.");
+      setError("Payment system is still loading, please try again in a moment.");
       return;
     }
     setBusy(true);
@@ -340,7 +340,7 @@ export default function PaymentModal({
           {view === "select" && (
             <motion.div key="select" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
               <div className="jx-pay-select" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-                {/* LEFT — plan + price + features */}
+                {/* LEFT, plan + price + features */}
                 <div style={{ padding: "26px 24px", display: "flex", flexDirection: "column", gap: 18 }}>
                   {/* header */}
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -409,7 +409,7 @@ export default function PaymentModal({
                   </div>
                 </div>
 
-                {/* RIGHT — payment method + promo + CTA */}
+                {/* RIGHT, payment method + promo + CTA */}
                 <div className="jx-pay-select__right" style={{ padding: "26px 24px", background: "linear-gradient(165deg, rgba(252,213,53,0.06), rgba(13,17,23,0.35))", borderLeft: `1px solid ${C.borderSoft}`, display: "flex", flexDirection: "column" }}>
                   <p style={{ font: "600 12px Poppins", color: C.muted, textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 10px" }}>Payment method</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
@@ -486,7 +486,7 @@ export default function PaymentModal({
           {view === "checkout" && (
             <motion.div key="checkout" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
               <div className="jx-pay-checkout" style={{ display: "grid", gridTemplateColumns: "1.35fr 1fr" }}>
-                {/* left — Paddle inline frame */}
+                {/* left, Paddle inline frame */}
                 <div style={{ padding: "22px 22px 26px", minWidth: 0 }}>
                   <button onClick={() => { try { window?.Paddle?.Checkout?.close?.(); } catch {} openedRef.current = false; setCheckoutArgs(null); setView("select"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.muted, font: "500 13px Poppins", cursor: "pointer", padding: 0, marginBottom: 14 }}>
                     <ArrowLeft size={15} /> Back
@@ -498,7 +498,7 @@ export default function PaymentModal({
                   </div>
                 </div>
 
-                {/* right — branded order summary */}
+                {/* right, branded order summary */}
                 <aside className="jx-pay-summary" style={{ padding: "26px 24px", background: "linear-gradient(165deg, rgba(252,213,53,0.08), rgba(13,17,23,0.4))", borderLeft: `1px solid ${C.borderSoft}`, display: "flex", flexDirection: "column", gap: 18 }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 7, alignSelf: "flex-start", padding: "5px 12px", borderRadius: 999, background: `linear-gradient(145deg, ${C.yellow}, ${C.yellowDeep})`, color: "#1e2329", font: "700 12px Poppins" }}>
                     <Crown size={13} /> Premium

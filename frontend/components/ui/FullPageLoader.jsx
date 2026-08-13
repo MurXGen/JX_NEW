@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 
 /**
- * FullPageLoader — trading-themed candlestick loader (revamp v2).
+ * FullPageLoader, trading-themed candlestick loader (revamp v2).
  * Five candles pulse like a live chart while a price line sweeps
  * underneath. Used as the page loader across the app.
  */

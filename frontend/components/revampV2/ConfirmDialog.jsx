@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Download, Trash2, X } from "lucide-react";
 
-/* Figma "Components / Modal" (22663:51006) — confirmation dialog with
+/* Figma "Components / Modal" (22663:51006), confirmation dialog with
    blurred backdrop, icon, title, message, Cancel + action button. */
 
 function Spinner() {
@@ -22,11 +22,11 @@ function Spinner() {
 
 /**
  * props:
- *  open, onClose, onConfirm (may be async — spinner shows while pending)
+ *  open, onClose, onConfirm (may be async, spinner shows while pending)
  *  title, message
  *  confirmLabel, variant: 'danger' | 'primary'
- *  icon — defaults by variant (Trash2 for danger, Download otherwise)
- *  loading — controlled busy state
+ *  icon, defaults by variant (Trash2 for danger, Download otherwise)
+ *  loading, controlled busy state
  */
 export default function ConfirmDialog({
   open,

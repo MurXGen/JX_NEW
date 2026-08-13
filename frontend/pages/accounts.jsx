@@ -1,6 +1,6 @@
 "use client";
 
-/* /accounts — Journals page, revamp v2.
+/* /accounts, Journals page, revamp v2.
    Lists every journal with live stats; click to switch (sets the
    account cookie and returns to the dashboard). Create opens the
    v2 Journals modal directly in create view. */

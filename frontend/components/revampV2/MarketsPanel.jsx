@@ -6,10 +6,10 @@ import Badge from "./Badge";
 import Accordion from "./Accordion";
 
 /**
- * MarketsPanel — replaces the old Heatmap tab.
+ * MarketsPanel, replaces the old Heatmap tab.
  * TradingView embeds picked for what a journaling trader actually
  * checks between sessions: a ticker tape, market heatmaps
- * (crypto/stocks/forex), the economic calendar, and top stories —
+ * (crypto/stocks/forex), the economic calendar, and top stories, 
  * plus local analytics: live session clock and your most-traded
  * symbols as quote widgets.
  */
@@ -21,7 +21,7 @@ const tvTheme = () =>
     : "dark";
 
 /* Generic TradingView embed: injects the widget script into a container.
-   TradingView embeds expect an inner `__widget` div — without it some
+   TradingView embeds expect an inner `__widget` div, without it some
    widgets (stock/forex heatmaps) fail to render. */
 function TVWidget({ script, config, height = 1000 }) {
   const ref = useRef(null);
@@ -235,7 +235,7 @@ function EdgeForecast({ trades }) {
             color: "var(--color-text-muted)",
           }}
         >
-          Projected from your own history — not financial advice
+          Projected from your own history, not financial advice
         </span>
       </div>
       <div
@@ -415,7 +415,7 @@ export default function MarketsPanel({ trades = [] }) {
         <div
           style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}
         >
-          Live market context for your next session — heatmaps, calendar, and
+          Live market context for your next session, heatmaps, calendar, and
           news.
         </div>
       </div>
@@ -506,7 +506,7 @@ export default function MarketsPanel({ trades = [] }) {
               </button>
             ))}
           </div>
-          {/* all three stay mounted; tabs just toggle visibility — avoids
+          {/* all three stay mounted; tabs just toggle visibility, avoids
               TradingView re-injection issues and switches instantly */}
           {Object.entries(heatmaps).map(([kind, w]) => (
             <div
@@ -524,7 +524,7 @@ export default function MarketsPanel({ trades = [] }) {
         </div>
       </Accordion>
 
-      {/* calendar + news — plain side-by-side, no accordion */}
+      {/* calendar + news, plain side-by-side, no accordion */}
       <div
         style={{
           display: "grid",

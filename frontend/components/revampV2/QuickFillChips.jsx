@@ -1,6 +1,6 @@
 "use client";
 
-/* QuickFillChips — tappable chips that prefill a numeric field (position size,
+/* QuickFillChips, tappable chips that prefill a numeric field (position size,
    P&L, …). Ships a few defaults; users can add their own with "+ Custom",
    which persist in localStorage and can be removed with the × on the chip.
    Wraps responsively. */
@@ -67,7 +67,7 @@ export default function QuickFillChips({
 
   return (
     <div style={{ display: "flex", flexWrap: "nowrap", gap: "var(--space-2)", alignItems: "center", overflowX: "auto", paddingBottom: 2, WebkitOverflowScrolling: "touch" }}>
-      {/* Custom first — typed values persist to localStorage and appear after */}
+      {/* Custom first, typed values persist to localStorage and appear after */}
       {adding ? (
         <span className="jx-input" style={{ height: 32, width: 124, flexShrink: 0 }}>
           <input

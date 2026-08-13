@@ -1,6 +1,6 @@
 "use client";
 
-/* /blogs/[slug] — public article. Full SEO (meta, OG, Twitter,
+/* /blogs/[slug], public article. Full SEO (meta, OG, Twitter,
    BlogPosting JSON-LD, canonical). Static generation via
    getStaticPaths/getStaticProps so each article is crawlable. */
 
@@ -63,7 +63,7 @@ export default function BlogPost({ post, related }) {
   return (
     <>
       <Head>
-        <title>{post.metaTitle || `${post.title} — JournalX`}</title>
+        <title>{post.metaTitle || `${post.title}, JournalX`}</title>
         <meta name="description" content={post.metaDescription || post.excerpt} />
         <meta name="keywords" content={(post.keywords || []).join(", ")} />
         <meta name="author" content={author.name} />
@@ -126,7 +126,7 @@ export default function BlogPost({ post, related }) {
                   position: idx + 1,
                   item: {
                     "@type": "Review",
-                    name: `${rv.name} — editorial review`,
+                    name: `${rv.name}, editorial review`,
                     itemReviewed: {
                       "@type": "SoftwareApplication",
                       name: rv.name,
@@ -171,7 +171,7 @@ export default function BlogPost({ post, related }) {
 
           <h1 style={{ font: "var(--text-h1)", margin: 0 }}>{post.title}</h1>
 
-          {/* SEO lead — uses the meta description as an intro paragraph */}
+          {/* SEO lead, uses the meta description as an intro paragraph */}
           {(post.metaDescription || post.excerpt) && (
             <p style={{ font: "var(--text-body-lg)", color: "var(--color-text-muted)", margin: 0 }}>
               {post.metaDescription || post.excerpt}

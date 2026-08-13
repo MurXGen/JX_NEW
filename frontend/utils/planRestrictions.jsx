@@ -15,7 +15,7 @@ export const PLAN_RULES = {
       imagesPerTrade: 1, // 1 screenshot per trade
       imageLimitPerMonth: Infinity, // gated per-trade instead of per-month
       maxImageSizeMB: 10,
-      chartLogLimitPerMonth: 5, // chart annotation (entry/exit) — 5 / month
+      chartLogLimitPerMonth: 5, // chart annotation (entry/exit), 5 / month
       historyDays: 30,
     },
     features: {
@@ -214,7 +214,7 @@ export const canUploadImage = async (userData, newImageSizeMB) => {
   return imagesThisMonth < imageLimitPerMonth;
 };
 
-// Chart annotation (entry/exit marking) — count this month across the
+// Chart annotation (entry/exit marking), count this month across the
 // active journal. A "chart log" is a trade carrying a chartAnnotatedAt date.
 export const countChartLogsThisMonth = (userData) => {
   const user = userData?.value || userData;
@@ -237,7 +237,7 @@ export const canChartLog = (userData) => {
   return countChartLogsThisMonth(userData) < limit;
 };
 
-// Trade ids whose chart should be LOCKED (blurred) — for free users who have
+// Trade ids whose chart should be LOCKED (blurred), for free users who have
 // more chart logs this month than their allowance (e.g. after a downgrade).
 // The earliest `limit` of the month stay unlocked; the rest are gated.
 export const lockedChartTradeIds = (userData) => {
