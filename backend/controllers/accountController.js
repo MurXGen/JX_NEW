@@ -85,7 +85,12 @@ const updateAccount = async (req, res) => {
 
     account.name = accountName;
     account.currency = currency;
-    account.startingBalance.amount = balance;
+    // guard: older journals may not have a startingBalance subdocument yet
+    if (!account.startingBalance) {
+      account.startingBalance = { amount: Number(balance) || 0, time: new Date() };
+    } else {
+      account.startingBalance.amount = Number(balance) || 0;
+    }
 
     await account.save();
 

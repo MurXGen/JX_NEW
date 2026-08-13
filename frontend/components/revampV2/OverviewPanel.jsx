@@ -808,6 +808,7 @@ export default function OverviewPanel({
   startingBalance: startingBalanceProp = 0,
   onLogTrade,
   onImport,
+  onSetBalance,
 }) {
   // Convert NATIVE trades to the chosen display currency here (Overview never
   // edits trades, so converting for display is safe). All downstream code uses
@@ -2155,9 +2156,23 @@ export default function OverviewPanel({
               </span>
             </>
           ) : (
-            <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
-              Set your journal&apos;s starting balance to track progress toward doubling your capital.
-            </span>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "var(--space-3)" }}>
+              <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
+                Set your journal&apos;s starting balance to track progress toward doubling your capital.
+              </span>
+              <button
+                type="button"
+                onClick={() => onSetBalance?.()}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "8px 14px", borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--color-border-strong)", background: "transparent",
+                  color: "var(--yellow-500)", font: "var(--text-body-md)", fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                Set starting balance <span aria-hidden>→</span>
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -2338,8 +2353,8 @@ export default function OverviewPanel({
             </div>
             <span style={{ font: "var(--text-caption)", color: holdTime.holdsLosersLonger ? "var(--color-danger-strong)" : "var(--color-text-muted)" }}>
               {holdTime.holdsLosersLonger
-                ? `⚠️ You hold losers about ${fmt(holdTime.ratio, 1)}× longer than winners, a classic sign of loss aversion. Cut losers at your stop and give winners room.`
-                : "Healthy, you're not clinging to losing trades. Keep letting winners run."}
+                ? `⚠️ You hold losers ${fmt(holdTime.ratio, 1)}× longer than winners. Cut them at your stop.`
+                : "Healthy — you're not clinging to losers. Let winners run."}
             </span>
           </div>
         );
@@ -2377,8 +2392,8 @@ export default function OverviewPanel({
           </div>
           <span style={{ font: "var(--text-caption)", color: revenge.revPnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-muted)" }}>
             {revenge.revPnl < 0
-              ? `These impulsive trades cost you ${k(Math.abs(revenge.revPnl), currencySymbol)}. After a loss, step away for a few minutes before the next trade.`
-              : "Your post-loss trades are holding up, but a short pause after a red trade keeps it that way."}
+              ? `Revenge trades cost you ${k(Math.abs(revenge.revPnl), currencySymbol)}. Pause after a loss.`
+              : "Post-loss trades holding up — keep pausing after reds."}
           </span>
         </div>
       )}
@@ -2517,7 +2532,7 @@ export default function OverviewPanel({
               <span style={{ font: "var(--text-caption)" }}>
                 {SESSIONS.best && SESSIONS.best.pnl > 0 ? (
                   <>
-                    Best window: <strong>{SESSIONS.best.label}</strong> ({SESSIONS.best.window.replace(" UTC", "")} UTC · local {localFromUtcHour(SESSIONS.best.lo)}–{localFromUtcHour(SESSIONS.best.hi)}), up {k(SESSIONS.best.pnl, currencySymbol)} at {fmt(SESSIONS.best.winRate, 0)}% win. Trade your A+ setups then.
+                    Best: <strong>{SESSIONS.best.label}</strong> ({SESSIONS.best.window.replace(" UTC", "")} UTC) — {k(SESSIONS.best.pnl, currencySymbol)} at {fmt(SESSIONS.best.winRate, 0)}% win. Trade A+ setups then.
                   </>
                 ) : (
                   <>No session is clearly profitable yet, keep logging with timestamps to find your best UTC window.</>
@@ -2576,7 +2591,7 @@ export default function OverviewPanel({
                 <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
                 <span style={{ font: "var(--text-caption)" }}>
                   {EDGE.expectancy >= 0
-                    ? <>Your system is <strong>+EV</strong> at {k(EDGE.expectancy, currencySymbol)}/trade. <strong>{EDGE.bestDow.label}</strong> is your strongest day, and keep risk per trade well under your {k(-EDGE.maxDD, currencySymbol).replace("+", "")} max drawdown.</>
+                    ? <><strong>+EV</strong> at {k(EDGE.expectancy, currencySymbol)}/trade. Strongest day: <strong>{EDGE.bestDow.label}</strong>. Keep risk under {k(-EDGE.maxDD, currencySymbol).replace("+", "")} drawdown.</>
                     : <>Your average trade is currently <strong>negative</strong> ({k(EDGE.expectancy, currencySymbol)}). Focus on raising your payoff (cut losers faster, let winners run) before sizing up.</>}
                 </span>
               </div>
@@ -2947,15 +2962,17 @@ export default function OverviewPanel({
                         format={(v) => `${currencySymbol}${fmt(v, 0)}`}
                       />
                     </div>
-                    <Badge
-                      variant={
-                        equityNow >= startingBalance ? "success" : "danger"
-                      }
+                    <span
+                      style={{
+                        font: "var(--text-caption)",
+                        fontWeight: 700,
+                        color: equityNow >= startingBalance ? "var(--color-success-strong)" : "var(--color-danger-strong)",
+                      }}
                     >
                       {growth != null
                         ? `${growth >= 0 ? "+" : ""}${fmt(growth, 1)}% since ${currencySymbol}${fmt(startingBalance, 0)} start`
                         : `from ${currencySymbol}${fmt(startingBalance, 0)} starting balance`}
-                    </Badge>
+                    </span>
                   </div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "nowrap", justifyContent: "flex-end", flexShrink: 0 }}>
                     {/* timeframe: tabs by default, compact dropdown when tight */}

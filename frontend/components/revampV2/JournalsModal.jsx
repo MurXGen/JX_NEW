@@ -39,12 +39,9 @@ export default function JournalsModal({
   currentBalances = {},
   currentAccountId,
   initialView = "list",
+  editAccountId = null, // when set, open straight on this journal's edit form
 }) {
   const [view, setView] = useState(initialView); // 'list' | 'create'
-
-  useEffect(() => {
-    if (open) setView(initialView);
-  }, [open, initialView]);
   const [name, setName] = useState("");
   const [balance, setBalance] = useState("");
   const [currency, setCurrency] = useState("USD");
@@ -66,6 +63,15 @@ export default function JournalsModal({
     setError(null);
     setView("create");
   };
+
+  useEffect(() => {
+    if (!open) return;
+    // deep-link: jump straight to the active journal's edit form (balance)
+    const target = editAccountId && accounts.find((a) => a._id === editAccountId);
+    if (target) startEdit(target);
+    else setView(initialView);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialView, editAccountId]);
 
   const pnlByAccount = useMemo(() => {
     const m = {};

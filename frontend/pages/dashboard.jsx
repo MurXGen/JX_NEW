@@ -81,6 +81,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
+  const [journalEditId, setJournalEditId] = useState(null); // deep-link to a journal's edit form
   const [showSupport, setShowSupport] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAcq, setShowAcq] = useState(false);
@@ -302,6 +303,7 @@ export default function Dashboard() {
         setActiveTab("trades");
         setImportSignal((s) => s + 1); // opens the import modal in Trades log
       }}
+      onSetBalance={() => { setJournalEditId(currentAccount?._id || null); setShowSwitchModal(true); }}
     />
   );
 
@@ -464,11 +466,12 @@ export default function Dashboard() {
 
       <JournalsModal
         open={showSwitchModal}
-        onClose={() => setShowSwitchModal(false)}
+        onClose={() => { setShowSwitchModal(false); setJournalEditId(null); }}
         accounts={accounts}
         trades={accountTrades}
         currentBalances={currentBalances}
         currentAccountId={currentAccount?._id}
+        editAccountId={journalEditId}
       />
 
       <SupportModal
