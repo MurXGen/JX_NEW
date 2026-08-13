@@ -11974,6 +11974,344 @@
           "a": "Log session, catalyst (FOMC/CPI/geopolitical/none), ATR or daily range at entry, stop distance in pips, and whether a stop-out was a real reversal or a tail spike. Over 30–50 trades these fields reveal your genuine XAUUSD edge."
         }
       ]
+    },
+    {
+      "slug": "how-to-pass-fundingpips-2026",
+      "title": "How to Pass FundingPips in 2026: Rules, Splits, and the Traps That Fail Most Traders",
+      "metaTitle": "How to Pass FundingPips 2026: Rules, Profit Splits and Consistency | JournalX",
+      "metaDescription": "A clear 2026 guide to passing FundingPips: the 1% max risk limit, the 35% consistency rule, tiered profit splits, and the journal setup that gets you funded.",
+      "keywords": [
+        "how to pass fundingpips",
+        "fundingpips rules 2026",
+        "fundingpips consistency rule",
+        "fundingpips profit split",
+        "fundingpips 1% max risk",
+        "fundingpips review"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-08-13",
+      "featured": false,
+      "excerpt": "FundingPips is one of the biggest prop firms in 2026, and its rules are more flexible than most. But the 1% max risk limit and the 35% consistency rule quietly fail traders who do not plan for them. Here is how to pass.",
+      "helpful": {
+        "up": 46,
+        "down": 1,
+        "saves": 42
+      },
+      "tags": [
+        "FundingPips",
+        "prop firm",
+        "consistency",
+        "funded"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "FundingPips has grown into one of the largest names in prop trading. Public figures reported for 2026 put total payouts north of $260 million, with reviews citing a strong Trustpilot rating and tens of millions paid out in the first half of the year alone. Numbers like that pull in thousands of new traders every month. The problem is not getting in. It is that a few specific rules quietly end most evaluations, and they are not the ones beginners worry about. This guide walks through how FundingPips works in 2026 and, more importantly, how to actually pass it. Rules change often in this space, so always confirm the current terms on the firm's own site before you buy a challenge."
+        },
+        {
+          "type": "h2",
+          "text": "The FundingPips model in one minute"
+        },
+        {
+          "type": "p",
+          "text": "Per 2026 reviews and the firm's published materials, FundingPips runs simulated funded accounts across three main paths: a 1-step evaluation, a 2-step evaluation, and an instant-funding product often called FundingPips Zero. Pass the evaluation, respect the funded-stage rules, and you reach payouts with profit splits reported to run as high as 90 to 95 percent. What makes the firm popular is choice: you can pick a payout cycle that trades a higher split for less frequency, or take money more often at a lower percentage."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Payout cycle (as reported, 2026)",
+            "Profit split",
+            "Consistency rule"
+          ],
+          "rows": [
+            [
+              "Weekly",
+              "~60%",
+              "None"
+            ],
+            [
+              "Bi-weekly",
+              "~80%",
+              "None"
+            ],
+            [
+              "On-Demand",
+              "~90%",
+              "35% consistency applies"
+            ],
+            [
+              "Monthly",
+              "~100%",
+              "None"
+            ],
+            [
+              "Zero (instant) accounts",
+              "~95% bi-weekly",
+              "Fixed cycle"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Treat those splits and cycles as reported figures for 2026 that the firm can change. The takeaway is the structure, not the exact percentage: the highest-split option carries an extra condition, and the simplest cycles do not."
+        },
+        {
+          "type": "h2",
+          "text": "The rule that fails most traders: the 1% max risk limit"
+        },
+        {
+          "type": "p",
+          "text": "FundingPips is reported to enforce a 1% Maximum Risk Limit, meaning your floating, open profit and loss cannot fall below minus 1 percent of the account size at any moment. Cross it, even briefly on an open position, and the account is breached. This is not the same as a daily loss limit you can watch at the end of the day. It is a live, per-moment cap on how much any single open trade can be underwater. Traders who size positions to a 2 or 3 percent stop, the way they might on a personal account, breach on their first ordinary drawdown. The fix is simple to say and hard to unlearn: size every position so that its full stop distance risks well under 1 percent of the account, leaving a buffer for spread and slippage."
+        },
+        {
+          "type": "quote",
+          "text": "You do not fail FundingPips on a bad week. You fail it on a single trade you sized like the rule was not watching."
+        },
+        {
+          "type": "h2",
+          "text": "The 35% consistency rule, decoded"
+        },
+        {
+          "type": "p",
+          "text": "If you choose the On-Demand cycle for the top split, reviews describe a 35% consistency rule: your single best trading day cannot make up more than 35 percent of your total profit when you request a payout. One giant win followed by small days will actually lock your payout, because that one day is too large a share of the total. The rule resets after each successful payout. The other cycles, weekly, bi-weekly, and monthly, are reported to carry no consistency requirement. So the choice is real: chase the highest split and trade in steady, similar-sized pieces, or take a lower split with fewer constraints. Neither is wrong. What fails traders is picking the high-split cycle and then trading like the rule does not exist."
+        },
+        {
+          "type": "h2",
+          "text": "The rules change after you pass"
+        },
+        {
+          "type": "p",
+          "text": "A common complaint in 2026 reviews is that some rules only switch on after you clear the evaluation. News-trading restrictions, the consistency requirement, and certain instrument limits are reported to apply mainly in the funded stage. That means a strategy that sails through the challenge can suddenly bump into a wall once real payout rules kick in. Read the funded-stage rulebook before you start the evaluation, not after you pass, so you are not building an edge on trades you will not be allowed to keep taking."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Your FundingPips pre-challenge checklist",
+          "prompt": "Tick what you have actually confirmed and set up. Anything unchecked is a likely reason a challenge ends early.",
+          "items": [
+            "I sized my max position so its full stop risks under 1% (with buffer for spread)",
+            "I picked my payout cycle and know if the 35% consistency rule applies to it",
+            "I read the funded-stage rules (news, instruments, consistency), not just the evaluation rules",
+            "I have a daily loss cap I stop at, separate from the firm's limit",
+            "I journal every trade so I can prove my day-to-day sizes stay consistent",
+            "I know the exact drawdown type and whether it is static or trailing"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You are buying a challenge blind. Confirm the risk limit and consistency terms before you pay for anything."
+            },
+            {
+              "min": 4,
+              "text": "Good prep. Close the last gaps, especially the funded-stage rules that switch on after you pass."
+            },
+            {
+              "min": 6,
+              "text": "This is how funded traders actually clear FundingPips: sized for the 1% cap, consistent by design, and reading the whole rulebook up front."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "The journal setup that gets you funded"
+        },
+        {
+          "type": "p",
+          "text": "Passing FundingPips is a consistency problem before it is a strategy problem. The 1% max risk limit rewards traders whose position sizes barely move from trade to trade. The 35% consistency rule rewards traders whose daily results cluster rather than spike. Both are things you can see only if you track them. Log your risk in dollars and as a percent of the account on every trade, and watch that number stay flat. Track your daily profit distribution so no single day balloons past a third of your total. The traders who pass are rarely the ones with the biggest wins. They are the ones whose journal looks boringly even."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX lets you log risk as a percent of account on every trade and flags when a position drifts toward the 1% max risk limit, then charts your daily profit distribution so you can see at a glance whether any single day is creeping past the 35% consistency threshold before you request a payout."
+        },
+        {
+          "type": "why",
+          "text": "Most trackers just store your trades. JournalX is built around the metrics prop firms actually grade you on, consistent per-trade risk and an even daily profit spread, so the discipline FundingPips demands becomes something your dashboard shows you in real time instead of a rule you discover the hard way."
+        },
+        {
+          "type": "p",
+          "text": "FundingPips gives you flexibility that most firms do not. Use it deliberately: size for the live 1 percent cap, choose a payout cycle you can actually satisfy, and read the funded-stage rules before the evaluation, not after. Do that, and the firm's rules stop being traps and start being the exact behavior that keeps you paid."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is the hardest FundingPips rule to pass?",
+          "a": "For most traders it is the reported 1% Maximum Risk Limit: your open floating loss cannot fall below minus 1 percent of the account at any moment. It fails traders who carry over the larger position sizes they use on personal accounts. Size every trade so its full stop risks well under 1 percent."
+        },
+        {
+          "q": "How does the FundingPips 35% consistency rule work?",
+          "a": "On the On-Demand payout cycle (the highest split), your single best trading day cannot make up more than 35 percent of total profit when you request a payout, per 2026 reviews. It resets after each payout. The weekly, bi-weekly, and monthly cycles are reported to have no consistency rule."
+        },
+        {
+          "q": "What profit split does FundingPips offer?",
+          "a": "As reported for 2026, splits are tiered by cycle: roughly 60% weekly, 80% bi-weekly, 90% on-demand with the consistency rule, and up to 100% monthly, with instant Zero accounts around 95%. Confirm current numbers on the firm's site, as these change."
+        },
+        {
+          "q": "Do FundingPips rules change after you pass the challenge?",
+          "a": "Reviews note that some rules, including news-trading restrictions, consistency, and certain instrument limits, apply mainly in the funded stage rather than the evaluation. Read the funded-stage rulebook before you buy a challenge so your strategy stays compliant after you pass."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-choose-a-prop-firm-2026-checklist",
+      "title": "How to Choose a Prop Firm in 2026: A 9-Point Checklist Before You Pay for a Challenge",
+      "metaTitle": "How to Choose a Prop Firm 2026: 9-Point Checklist Before You Pay | JournalX",
+      "metaDescription": "Not sure which prop firm to pick in 2026? Compare drawdown types, splits, consistency rules and firm stability with this 9-point checklist before you pay.",
+      "keywords": [
+        "how to choose a prop firm",
+        "best prop firm 2026",
+        "prop firm comparison 2026",
+        "prop firm drawdown rules",
+        "prop firm profit split",
+        "which prop firm to choose"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-08-13",
+      "featured": false,
+      "excerpt": "Every prop firm advertises the profit split. Almost none of them lead with the rule that will actually end your account. Here is the checklist that tells you which firm fits your strategy before you pay a cent.",
+      "helpful": {
+        "up": 43,
+        "down": 1,
+        "saves": 40
+      },
+      "tags": [
+        "prop firm",
+        "funded",
+        "comparison",
+        "risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "There are more prop firms than ever in 2026, and their marketing all sounds the same: high splits, big capital, fast payouts. What the ads rarely tell you is that two firms with an identical 90 percent split can be worlds apart in how easy they are to actually pass and get paid from. The difference lives in the rules, not the headline. Before you pay for another challenge, run the firm through this 9-point checklist. It is built to surface the things that quietly decide whether you keep your account, and it works whether you trade forex, futures, indices, or crypto."
+        },
+        {
+          "type": "h2",
+          "text": "Start with the rule that will actually end your account"
+        },
+        {
+          "type": "p",
+          "text": "Most blown challenges die on the drawdown rule, so read it first. The key questions: is the drawdown static (a fixed floor that never moves) or trailing (a floor that follows your equity up)? Is it measured end-of-day or intraday (live, tick by tick)? And is there a separate daily loss limit on top of the overall one? A trailing, intraday drawdown is far less forgiving than a static, end-of-day one, because normal open-trade fluctuation can breach it. A growing number of firms in 2026 also add a per-trade or floating-risk cap, sometimes as tight as 1 percent of the account, that ends the account the instant an open position goes too far underwater. Know exactly which combination you are signing up for."
+        },
+        {
+          "type": "h2",
+          "text": "Profit split versus payout frequency: the real math"
+        },
+        {
+          "type": "p",
+          "text": "A 90 percent split you can only touch once a month may pay you less, sooner, than an 80 percent split you can withdraw weekly, depending on how you trade. Many firms now offer tiered cycles where a higher split comes with a longer wait or an extra condition. Do not anchor on the biggest percentage. Ask how often you can realistically withdraw, what the minimum payout is, and whether the top split carries a consistency requirement that your style can meet. The best split is the one you can actually collect."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "What to compare",
+            "Why it matters",
+            "Red flag"
+          ],
+          "rows": [
+            [
+              "Drawdown type",
+              "Trailing and intraday breach far more easily than static and end-of-day",
+              "Trailing intraday with no clear explanation"
+            ],
+            [
+              "Per-trade risk cap",
+              "A live 1% floating cap can end an account on one oversized trade",
+              "Tight cap buried in the funded-stage rules only"
+            ],
+            [
+              "Profit split and cycle",
+              "A high split you rarely reach can pay less than a lower, frequent one",
+              "Top split gated behind a hard consistency rule"
+            ],
+            [
+              "Consistency rule",
+              "Caps how much one day can contribute to profit",
+              "Applies only after you pass, not disclosed up front"
+            ],
+            [
+              "Firm track record",
+              "Determines whether payouts actually arrive",
+              "No public payout proof or recent complaints about withdrawals"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "The hidden difficulty: consistency and per-trade caps"
+        },
+        {
+          "type": "p",
+          "text": "Two rules quietly separate firms that look identical on paper. The first is the consistency rule, which caps how much of your total profit can come from a single day, often somewhere around a third. It punishes one-big-win trading and rewards steady, similar-sized results. The second is the per-trade or floating-risk cap, a live limit on how far one open position can go underwater. Both reward the same behavior: consistent position sizing. If a firm has neither, passing is more about not blowing up. If it has both, passing is about discipline you can measure. Neither is bad, but you should know which game you are playing before you pay."
+        },
+        {
+          "type": "h2",
+          "text": "Can they actually pay you"
+        },
+        {
+          "type": "p",
+          "text": "A generous rulebook is worthless if the firm cannot fund its payouts. 2026 has already seen firms shut down with little warning, leaving funded traders with pending withdrawals and no recourse. Before you buy, look for public payout proof, a track record measured in years rather than months, transparent ownership, and recent trader reports about withdrawals actually clearing. Regulatory scrutiny of the space is increasing, which is healthy, but it also means some firms will not survive the transition. Favor stability over the flashiest promotion."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Which firm is safer to pick?",
+          "prompt": "Two firms both advertise a 90% split and $100k accounts. Firm A: static end-of-day drawdown, weekly payouts, three years of public payout proof. Firm B: trailing intraday drawdown, a 1% floating cap that only appears in the funded rules, and a brand-new brand with no payout history. Which is the safer choice?",
+          "options": [
+            "Firm B, because trailing drawdown means more capital",
+            "Firm A, because the rules are clearer and the payouts are proven",
+            "Whichever has the cheaper challenge fee",
+            "Impossible to tell from this information"
+          ],
+          "correct": 1,
+          "explain": "Firm A pairs the more forgiving drawdown structure (static, end-of-day) with a proven payout history. Firm B stacks the two hardest rule types and hides one of them in the funded stage, on top of having no track record. The split is identical; everything that actually matters favors Firm A."
+        },
+        {
+          "type": "h2",
+          "text": "Match the firm to your strategy"
+        },
+        {
+          "type": "p",
+          "text": "The final step is fit. A scalper who takes many small trades will breathe easily under a consistency rule but must respect tight intraday drawdown. A swing trader who holds through news needs a firm that allows news trading and uses a drawdown that will not breach on normal overnight fluctuation. A trader who wins in occasional large bursts should avoid the strictest consistency cycles entirely. There is no single best prop firm in 2026. There is only the firm whose rules reward the way you already trade, which you can only know if you have the data on how you actually trade."
+        },
+        {
+          "type": "quote",
+          "text": "Every firm sells you the profit split. The rule they bury three clicks deep is the one that decides whether you ever collect it."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX shows you the profile of how you actually trade, your typical risk per trade, how evenly your profit spreads across days, and how you handle news, so you can match those numbers against a firm's drawdown, consistency, and per-trade rules before you pay, instead of discovering the mismatch halfway through a challenge."
+        },
+        {
+          "type": "why",
+          "text": "Most journals tell you whether you won or lost. JournalX tells you the things prop firms grade you on, sizing consistency and daily profit distribution, so choosing a firm becomes a data decision about fit rather than a guess based on whichever ad had the biggest number."
+        },
+        {
+          "type": "p",
+          "text": "Choosing a prop firm is a risk decision, not a shopping decision. Read the drawdown rule first, price the split against how often you can really withdraw, check that the firm can actually pay, and pick the rulebook that rewards the trader you already are. Do that, and the challenge fee stops being a gamble and starts being an investment in a firm you can beat."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is the most important thing to check before choosing a prop firm?",
+          "a": "The drawdown rule. Whether it is static or trailing, and end-of-day or intraday, decides how easily you breach. A trailing, intraday drawdown paired with a tight per-trade cap is far harder to survive than a static, end-of-day limit, even at the same profit split."
+        },
+        {
+          "q": "Is a higher profit split always better?",
+          "a": "No. A 90 percent split you can only withdraw monthly, or that is gated behind a consistency rule, can pay you less than a lower split you can collect weekly. Compare split, payout frequency, minimum payout, and any consistency requirement together, not the percentage alone."
+        },
+        {
+          "q": "How do I know if a prop firm will actually pay me?",
+          "a": "Look for public payout proof, a multi-year track record, transparent ownership, and recent trader reports of withdrawals clearing. 2026 has seen firms close abruptly, so favor proven stability over the largest promotion or the cheapest challenge fee."
+        },
+        {
+          "q": "How do I match a prop firm to my trading style?",
+          "a": "Know your own numbers first: typical risk per trade, how evenly your profit spreads across days, and whether you trade news. Then pick a firm whose drawdown, consistency, and per-trade rules reward that behavior. A journal that tracks these metrics makes the match obvious."
+        }
+      ]
     }
   ]
 }
