@@ -1585,7 +1585,8 @@ export default function LogTradeModal({
                       {directionBlock}
                     </div>
 
-                    {/* ===== Log on chart (both modes) ===== */}
+                    {/* ===== Log on chart (detailed only) ===== */}
+                    {!isQuick && (
                     <div className="jx-ltgroup">
                       <div
                         style={{
@@ -1684,6 +1685,7 @@ export default function LogTradeModal({
                         )}
                       </AnimatePresence>
                     </div>
+                    )}
 
                     {isQuick ? (
                       <>
@@ -1748,14 +1750,20 @@ export default function LogTradeModal({
                           />
                         </div>
 
-                        {/* Accordion: optional extra details slide out */}
+                        {/* screenshots, now a first-class section (out of the accordion) */}
+                        <div className="jx-ltgroup">
+                          <Sect icon={ImageIcon} title="Screenshots" hint="Attach chart snaps · optional" />
+                          {screenshotsBlock}
+                        </div>
+
+                        {/* Accordion: optional date & note */}
                         <button
                           type="button"
                           className="jx-ltmore"
                           onClick={() => setShowMore((v) => !v)}
                           aria-expanded={showMore}
                         >
-                          <span>{showMore ? "Hide extra details" : "Add more details (date, screenshot, note)"}</span>
+                          <span>{showMore ? "Hide extra details" : "Add more details (date, note)"}</span>
                           <ChevronDown
                             size={18}
                             style={{ transition: "transform .2s ease", transform: showMore ? "rotate(180deg)" : "none" }}
@@ -1778,10 +1786,7 @@ export default function LogTradeModal({
                               </div>
 
                               <div className="jx-ltgroup">
-                                <Sect icon={ImageIcon} title="Screenshot & note" />
-                                <Field label="Screenshots · optional">
-                                  {screenshotsBlock}
-                                </Field>
+                                <Sect icon={Pencil} title="Note" hint="Optional" />
                                 <Field label="Quick note (optional)">
                                   <div className="jx-input">
                                     <span className="jx-input__icon"><Pencil size={15} /></span>
@@ -2378,8 +2383,10 @@ export default function LogTradeModal({
                       </>
                     )}
 
-                    {/* ===== Import from JSON, moved to the bottom, shown in
-                        both P&L and Entry modes, under an "or" divider ===== */}
+                    {/* ===== Import from JSON, detailed (Entry & Exit) only,
+                        under an "or" divider ===== */}
+                    {!isQuick && (
+                    <>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "var(--space-2) 0" }}>
                       <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
                       <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>or import from a trade JSON</span>
@@ -2487,6 +2494,8 @@ export default function LogTradeModal({
                         </div>
                       )}
                     </div>
+                    </>
+                    )}
                   </motion.div>
                 </AnimatePresence>
               </div>
