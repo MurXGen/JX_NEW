@@ -12312,6 +12312,407 @@
           "a": "Know your own numbers first: typical risk per trade, how evenly your profit spreads across days, and whether you trade news. Then pick a firm whose drawdown, consistency, and per-trade rules reward that behavior. A journal that tracks these metrics makes the match obvious."
         }
       ]
+    },
+    {
+      "slug": "how-to-trade-jackson-hole-week",
+      "title": "How to Trade Jackson Hole Week Without Getting Chopped Up",
+      "metaTitle": "How to Trade Jackson Hole Week: Fed Speech Volatility Plan | JournalX",
+      "metaDescription": "A practical plan for trading Jackson Hole and central bank speech weeks: the volatility profile, the three traps, and a checklist that protects your account.",
+      "keywords": [
+        "how to trade jackson hole",
+        "jackson hole symposium trading",
+        "central bank speech volatility",
+        "trading fed speeches",
+        "event risk trading plan"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-08-17",
+      "featured": false,
+      "excerpt": "There is no rate decision at Jackson Hole, and it still produces some of the widest ranges of the late-summer calendar. Here is how to trade the week without donating your month to it.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "Fed",
+        "Event risk",
+        "Volatility",
+        "Macro"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Every August the Federal Reserve Bank of Kansas City hosts its economic policy symposium at Jackson Lake Lodge in Wyoming. The 2026 edition is scheduled for August 27–29, with the chair's keynote traditionally landing Friday morning US time. Around 120 central bankers, academics and policymakers from more than 70 countries attend, and the announced theme this year centres on financial innovation and its implications for payments and policy. Dates and speaker lists occasionally shift, so confirm against the Kansas City Fed's own schedule before you plan around them."
+        },
+        {
+          "type": "p",
+          "text": "There is no rate decision. No dot plot. No red headline number on the calendar. And yet the week reliably produces some of the widest intraday ranges of the late-summer calendar. Understanding why is the difference between trading it deliberately and getting shaken out of three perfectly good setups in a row."
+        },
+        {
+          "type": "h2",
+          "text": "Why a conference with no decision moves markets"
+        },
+        {
+          "type": "p",
+          "text": "A symposium speech is the one venue where a central banker can reframe the policy path without committing to anything. There is no statement to vote on and no forecast to defend line by line, so the language can be looser and more forward-looking than anything in a formal release. Markets have learned that this is where pivots get trailed, and they position accordingly."
+        },
+        {
+          "type": "p",
+          "text": "Late August compounds it. Desks are thinner, holiday coverage is lighter, and order books are shallower than they will be in September. The same size that moves price ten ticks in October can move it thirty in August. You are not trading a bigger event so much as the same event through a narrower pipe. Our piece on thin summer markets covers the liquidity mechanics in more depth."
+        },
+        {
+          "type": "h2",
+          "text": "The volatility profile of the week"
+        },
+        {
+          "type": "p",
+          "text": "The week has a shape, and it is not one long grind of volatility. It is compression, then release, then a second move once the headline algorithms have finished and humans have read the actual text."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Phase",
+            "Typical behaviour",
+            "What it does to your trades"
+          ],
+          "rows": [
+            [
+              "Mon–Wed",
+              "Ranges compress, volume light, trends stall",
+              "Breakout setups fail more often; range fades work better than usual"
+            ],
+            [
+              "Thursday",
+              "Positioning and pre-headline leaks, occasional sharp repricing",
+              "Overnight gap risk rises for swing positions"
+            ],
+            [
+              "Keynote window",
+              "Widest spreads of the week, violent two-way spikes",
+              "Stops fill far from your level; risk per trade is not what you think"
+            ],
+            [
+              "Rest of Friday",
+              "First move often partially retraced as full text is digested",
+              "The 'obvious' direction reverses on many occasions"
+            ],
+            [
+              "Following Monday",
+              "Direction frequently confirmed or rejected on real volume",
+              "Often the cleanest entry of the whole week"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "The three ways traders get chopped up"
+        },
+        {
+          "type": "p",
+          "text": "First, trading the spike. In the sixty seconds after a headline crosses, spread widening and slippage mean your actual risk can be several times your intended risk. You planned a 10-pip stop and filled 35 pips away. The trade can go your direction and still lose money relative to plan."
+        },
+        {
+          "type": "p",
+          "text": "Second, treating the first move as the answer. Speech text gets parsed in stages: headline scanners, then wire summaries, then the footnotes and the Q&A. A first move that reverses inside the hour is common enough that fading it has become its own crowded trade, which is exactly why it sometimes does not reverse."
+        },
+        {
+          "type": "p",
+          "text": "Third, size drift. Traders who would never double their risk on a Tuesday will do it on Friday because the move 'is obviously going to be big.' Bigger expected range is an argument for smaller size, not larger. If the average true range doubles, a constant dollar risk means roughly half the position."
+        },
+        {
+          "type": "quote",
+          "text": "You do not get paid for having an opinion about the speech. You get paid for how you size the opinion."
+        },
+        {
+          "type": "h2",
+          "text": "A plan that survives contact"
+        },
+        {
+          "type": "p",
+          "text": "Decide your participation level before the week starts, in writing, while you are calm. There are only three honest answers: sit it out, trade smaller, or trade the aftermath rather than the event. All three are respectable. What is not respectable is deciding at 09:58 on Friday morning."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Jackson Hole week readiness check",
+          "prompt": "Tick everything you have actually done, not everything you intend to do.",
+          "items": [
+            "I have written down whether I am flat, half-size, or aftermath-only for the keynote window",
+            "I checked the symposium schedule against the Kansas City Fed source, not a forum post",
+            "I know my broker's typical spread widening on my instruments during major speeches",
+            "My open swing positions have a defined plan for a gap through my stop",
+            "I have reduced position size in proportion to the expected range, not increased it",
+            "I know my prop or funded account's news and holding rules for this week",
+            "I have a hard daily loss limit set for Thursday and Friday specifically",
+            "I have pre-written the journal note I will fill in after the event"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You are improvising an event week. That is the single most expensive way to trade one, pick a participation level today."
+            },
+            {
+              "min": 4,
+              "text": "Half prepared. The gaps are usually sizing and broker mechanics. Close those two before Thursday."
+            },
+            {
+              "min": 7,
+              "text": "Well prepared. You have converted an unpredictable week into a set of pre-made decisions, which is all anyone can do."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "If you trade a funded account, read the rulebook first"
+        },
+        {
+          "type": "p",
+          "text": "Prop firm news rules vary widely and have been tightening across the industry, with regulators in several jurisdictions publicly examining how evaluation products are marketed and structured. Some firms prohibit holding through high-impact events entirely; others allow it but void profits made inside a restricted window; many treat a chair's keynote as high-impact even though it is not a scheduled data release. Reading that clause after your payout is denied is not a strategy. Check it now, screenshot it, and keep the screenshot, terms are updated more often than most traders realise."
+        },
+        {
+          "type": "p",
+          "text": "Also check whether your trailing drawdown is intraday or end-of-day. A violent two-way spike can tag an intraday peak-to-trough limit even on a trade that closes green, and that distinction decides whether the week is survivable at all."
+        },
+        {
+          "type": "usecase",
+          "text": "Tag every trade you take during the week with an 'event week' label in JournalX, and add the keynote to your notes with the time you actually entered. After three or four of these weeks you will have a real answer to the question everyone guesses at: does your edge survive event volatility, or does it quietly hand back what your normal weeks earn? Most traders find one specific setup that works and two that do not."
+        },
+        {
+          "type": "why",
+          "text": "JournalX keeps the context alongside the numbers, planned risk versus realised risk, slippage on the fill, market conditions and your own note at the time, so an event week does not just show up as a bad P&L line with no explanation. When you review in September, you can see whether the loss came from the idea, the sizing or the fill."
+        },
+        {
+          "type": "h2",
+          "text": "What to write down before, during and after"
+        },
+        {
+          "type": "p",
+          "text": "Before: your participation level, your expected range, your size adjustment, and one sentence on what you think the market is positioned for. During: nothing, you have already decided. After: your planned stop distance versus your actual fill, whether the first move held, and whether you followed the plan you wrote on Monday."
+        },
+        {
+          "type": "p",
+          "text": "That last field is the one that compounds. Over a few event weeks it separates 'my read was wrong' from 'my read was fine and my execution was not', and those two problems have completely different fixes."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "When is the Jackson Hole symposium in 2026?",
+          "a": "It is scheduled for August 27–29, 2026, hosted by the Federal Reserve Bank of Kansas City at Jackson Lake Lodge in Wyoming, with the chair's keynote traditionally on the Friday morning US time. Confirm the exact schedule on the Kansas City Fed site, as timings and the speaker list can change."
+        },
+        {
+          "q": "Should I close my positions before Jackson Hole?",
+          "a": "There is no universal answer, but the honest options are flat, smaller, or aftermath-only. If you cannot define in advance how you would handle a gap through your stop, being flat is the low-regret choice. If you trade a funded account, your firm's news rules may make the decision for you."
+        },
+        {
+          "q": "Why does the market often reverse after the first spike?",
+          "a": "Headline scanners react to the first sentences, then wire summaries and the full text arrive, then the Q&A adds nuance. Each stage can reprice the move. This is common rather than guaranteed, fading the first move is itself a crowded trade."
+        },
+        {
+          "q": "How much should I reduce my position size?",
+          "a": "A reasonable starting point is to size off expected volatility rather than a fixed stop: if the expected range roughly doubles, holding constant dollar risk means roughly halving the position. Volatility-based sizing methods such as ATR-based sizing formalise this."
+        }
+      ]
+    },
+    {
+      "slug": "swing-trading-journal",
+      "title": "Swing Trading Journal: What to Track When Trades Last Days, Not Minutes",
+      "metaTitle": "Swing Trading Journal: Fields, Reviews and Metrics That Matter | JournalX",
+      "metaDescription": "A swing trading journal needs different fields to a day trading one. Track thesis, hold time, overnight risk and daily management notes, then review weekly.",
+      "keywords": [
+        "swing trading journal",
+        "trading journal for swing traders",
+        "how to journal swing trades",
+        "swing trade review process",
+        "holding period analysis trading"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-08-17",
+      "featured": false,
+      "excerpt": "A day trader's journal records one decision per trade. A swing trader's journal has to record a decision for every day the position is open, which is why most swing journals quietly fail.",
+      "helpful": {
+        "up": 44,
+        "down": 2,
+        "saves": 39
+      },
+      "tags": [
+        "Swing trading",
+        "Journaling",
+        "Review",
+        "Metrics"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Most trading journal advice is written for day traders. Log the entry, log the exit, tag the setup, move on. It works because a day trade is essentially one decision that resolves within hours."
+        },
+        {
+          "type": "p",
+          "text": "A swing trade is not one decision. A position held for six days generates a decision every single day it is open: hold, trim, add, tighten, or exit. If your journal only captures the first and last of those, you have recorded the two moments you thought about least and skipped the four where the outcome was actually determined."
+        },
+        {
+          "type": "h2",
+          "text": "Why a day-trading journal fails swing traders"
+        },
+        {
+          "type": "p",
+          "text": "Three structural mismatches show up immediately. Daily P&L is meaningless when a position spans a week, a red Tuesday inside a winning trade tells you nothing. Overnight and weekend gap risk simply does not exist in the day trader's dataset, so nothing in the template captures it. And 'setup type' as a single tag is too coarse when the thing that decided the trade was a catalyst three days after entry."
+        },
+        {
+          "type": "p",
+          "text": "The result is a journal with a hundred rows and no answers. You can see that you lost money without being able to see where in the holding period you lost it."
+        },
+        {
+          "type": "h2",
+          "text": "The fields that actually matter for multi-day trades"
+        },
+        {
+          "type": "p",
+          "text": "Start from the standard set, entry, exit, stop, size, setup, rules followed, then add the ones that only exist because you are holding overnight."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Field",
+            "Why it matters",
+            "Example value"
+          ],
+          "rows": [
+            [
+              "Thesis (one sentence)",
+              "Lets you judge selection separately from execution",
+              "Sector rotation into industrials, breakout from 6-week base"
+            ],
+            [
+              "Catalyst / expected trigger",
+              "Distinguishes patience from hope",
+              "Earnings 3 Sep; sector ETF holding 50 DMA"
+            ],
+            [
+              "Planned hold window",
+              "Turns 'it's still working' into a testable claim",
+              "5–12 sessions"
+            ],
+            [
+              "Actual hold time",
+              "Feeds holding-period analysis, the most useful swing metric",
+              "7 sessions"
+            ],
+            [
+              "Overnight gap events",
+              "Isolates risk you cannot manage with a stop",
+              "Gapped +1.4R on day 3, no fill risk"
+            ],
+            [
+              "Daily management notes",
+              "Captures the decisions between entry and exit",
+              "Day 4: trimmed half at 2R, trailed rest"
+            ],
+            [
+              "Thesis outcome at exit",
+              "Confirmed / broken / never triggered",
+              "Confirmed"
+            ],
+            [
+              "Market regime tag",
+              "Stops you abandoning a setup that only fails in one regime",
+              "Choppy, VIX elevated"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "The two-minute daily note"
+        },
+        {
+          "type": "p",
+          "text": "This is the habit that separates a swing journal that works from one that does not, and it costs almost nothing. Once a day, for each open position, write one line: what price did, what you decided, and why. That is it."
+        },
+        {
+          "type": "p",
+          "text": "The value is not the note. The value is that writing it forces you to make the hold decision consciously. A large share of swing losses come from positions nobody actively decided to keep, they were simply never looked at until the stop filled. A daily line makes passive holding impossible."
+        },
+        {
+          "type": "quote",
+          "text": "The trade you never re-examined is not a position. It is a bet you forgot you placed."
+        },
+        {
+          "type": "h2",
+          "text": "The weekend review is where swing traders make their money"
+        },
+        {
+          "type": "p",
+          "text": "Day traders review daily because their feedback loop is daily. Yours is weekly. Thirty minutes on a Sunday, done consistently, is worth more than an hour of screen time on Monday morning."
+        },
+        {
+          "type": "p",
+          "text": "Work through it in a fixed order: closed trades and whether the thesis played out; open positions and whether the original thesis still holds today; the watchlist for the week ahead; and one process change, not five. Then stop. Reviews that sprawl get abandoned by week four."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Which review question is doing the most work?",
+          "prompt": "You have thirty minutes for your weekend review. Which question, asked of every closed trade, tends to reveal the most about your process?",
+          "options": [
+            "Did I make money on this trade?",
+            "Did the thesis I wrote at entry actually play out?",
+            "Was my entry price close to the low of the move?",
+            "Did I hold longer than average?"
+          ],
+          "correct": 1,
+          "explain": "P&L already sits in your stats and tells you nothing new. Entry timing is mostly noise over a small sample. Tagging every exit as thesis-confirmed, thesis-broken, or never-triggered splits your results into 'my selection is sound' versus 'my selection is not', and across fifty trades that split tells you whether to fix your process or your patience."
+        },
+        {
+          "type": "h2",
+          "text": "Metrics that only appear when you hold longer"
+        },
+        {
+          "type": "p",
+          "text": "Once you have fifty or so tagged swing trades, three cuts of the data become available that day traders never see. Performance by hold duration: most swing traders find their edge concentrated in a specific window and bleeding outside it. Performance by regime tag: a setup with a poor overall record is often excellent in trending conditions and terrible in chop, and the blended number hides both. And gap contribution: how much of your result came from overnight moves you had no ability to manage."
+        },
+        {
+          "type": "p",
+          "text": "Sample size matters here. Fifty trades is a hint, not a conclusion, academic work on trading performance consistently finds that small samples are dominated by luck, and swing traders accumulate trades slowly. Treat early splits as hypotheses and keep collecting."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX you can attach a thesis and daily management notes to a position that stays open across sessions, tag regime and catalyst, and then filter your stats by hold duration or thesis outcome. That turns 'I think I hold too long' into an actual number, average R by days held, which is a question you can only answer if the data was structured for it from the start."
+        },
+        {
+          "type": "why",
+          "text": "Most journals are built around the closed trade as a single event. JournalX treats the trade as something that has a life: a thesis at entry, notes while it runs, and an outcome tagged against the original idea. For swing traders that difference is the whole point, because the story between entry and exit is where the result was decided."
+        },
+        {
+          "type": "h2",
+          "text": "Start smaller than you think"
+        },
+        {
+          "type": "p",
+          "text": "Adding sixteen fields on day one guarantees abandonment by week three. Add three: thesis at entry, one daily management line, and thesis outcome at exit. Run those for a month. When you feel the absence of a fourth field, usually regime or hold window, add that one. A journal you fill in imperfectly every day beats a perfect template you stopped using in March."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How is a swing trading journal different from a day trading journal?",
+          "a": "A day trade resolves in one session, so one entry and one exit capture it. A swing trade generates a hold-or-exit decision every day it is open, plus overnight gap risk and catalysts that arrive mid-trade. A swing journal needs a thesis, daily management notes, hold duration and a thesis outcome tag to capture that."
+        },
+        {
+          "q": "How often should I update my swing trading journal?",
+          "a": "Once a day, briefly, for each open position, roughly two minutes total. Then a longer thirty-minute review at the weekend covering closed trades, open theses, next week's watchlist, and one process change."
+        },
+        {
+          "q": "What is the single most useful swing trading metric?",
+          "a": "Average R broken down by holding period. Most swing traders discover their edge is concentrated in a specific duration band and decays outside it, which directly informs when to take profits. It only becomes visible if you log actual hold time on every trade."
+        },
+        {
+          "q": "How many trades before my swing journal tells me anything?",
+          "a": "Meaningful splits generally need dozens of trades per bucket, and swing traders accumulate them slowly, often several months. Treat early patterns as hypotheses to test rather than conclusions, and be especially cautious about cutting the data many ways on a small sample."
+        }
+      ]
     }
   ]
 }
