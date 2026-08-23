@@ -12713,6 +12713,418 @@
           "a": "Meaningful splits generally need dozens of trades per bucket, and swing traders accumulate them slowly, often several months. Treat early patterns as hypotheses to test rather than conclusions, and be especially cautious about cutting the data many ways on a small sample."
         }
       ]
+    },
+    {
+      "slug": "what-happens-if-your-prop-firm-shuts-down",
+      "title": "What Happens If Your Prop Firm Shuts Down — And How to Protect Yourself",
+      "metaTitle": "What Happens If Your Prop Firm Shuts Down: Trader Protection Guide | JournalX",
+      "metaDescription": "Prop firms close and change rules retroactively. Learn the warning signs, what happens to your funded account and payouts, and how to spread firm risk.",
+      "keywords": [
+        "what happens if a prop firm shuts down",
+        "prop firm closing traders payouts",
+        "prop firm retroactive rule changes",
+        "prop firm risk management",
+        "is my funded account safe",
+        "prop firm insolvency"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-08-23",
+      "featured": false,
+      "excerpt": "You can pass a challenge, trade clean for months, and still lose everything because the firm folded. Firm risk is a real risk category, and almost nobody sizes for it.",
+      "helpful": {
+        "up": 43,
+        "down": 2,
+        "saves": 38
+      },
+      "tags": [
+        "Prop firms",
+        "Funded",
+        "Risk",
+        "Due diligence"
+      ],
+      "faqs": [
+        {
+          "q": "If my prop firm shuts down, do I lose my funded account?",
+          "a": "In practice, yes. Almost all retail prop accounts are contractual arrangements with the firm rather than brokerage accounts in your name, so when the firm winds down the account simply stops existing. Whether pending payouts and evaluation fees get refunded depends on the firm's own wind-down terms and remaining cash. Reporting on the FundingTicks closure in January 2026 described only partial refunds for affected traders, which is a realistic worst case to plan around."
+        },
+        {
+          "q": "Can a prop firm change its rules retroactively?",
+          "a": "Most terms of service give the firm broad discretion to amend rules, and there have been reported cases of changes applied to trades already taken — FundingTicks reportedly announced in December 2025 that profits from sub-one-minute trades would be deducted, including from trades placed before the announcement. Whether that is enforceable is a legal question that varies by jurisdiction, and regulators in several regions are actively looking at the sector. Assume the rules can move and keep your capital spread out."
+        },
+        {
+          "q": "How many prop firms should I trade with at once?",
+          "a": "Two or three established firms is a reasonable balance for most funded traders. It caps how much a single closure can cost you without splitting your attention across so many dashboards that you start making execution mistakes. Check each firm's copy-trading rules first, because some restrict mirroring the same positions across accounts."
+        },
+        {
+          "q": "What are the earliest warning signs a prop firm is in trouble?",
+          "a": "Payout timelines quietly stretching, a jump in vague compliance rejections, aggressive discounting on challenges, sudden rule tightening that reduces payout liability, support going quiet, and removal from major comparison or listing sites. None is conclusive alone. Two or three together is your cue to withdraw what you can and stop buying new challenges there."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Every funded trader learns to think about drawdown, daily loss limits and consistency rules. Almost nobody builds a plan for the risk that is completely outside their control: the firm itself disappearing while it still owes them money."
+        },
+        {
+          "type": "p",
+          "text": "It happens. In January 2026, FundingTicks announced a full wind-down, and reporting on the closure described traders left with denied withdrawals, retroactive rule changes that invalidated profits, and only partial refunds. It was not the first firm to fold and it will not be the last. The industry is young, thinly capitalised in places, and going through a period of real regulatory scrutiny across the CFTC, FCA, ASIC and EU frameworks — much of which is still in development rather than settled law."
+        },
+        {
+          "type": "p",
+          "text": "None of that means prop trading is a scam. It means firm risk is a risk category, and you should size for it exactly the way you size for market risk."
+        },
+        {
+          "type": "h2",
+          "text": "What you actually own when you are funded"
+        },
+        {
+          "type": "p",
+          "text": "Read your terms of service once, properly, and it usually becomes clear: you do not own a trading account. You own a contract that gives you the right to be paid a share of simulated or hedged performance, subject to rules the firm can amend."
+        },
+        {
+          "type": "p",
+          "text": "That distinction is invisible when everything works. It is the whole story when the firm stops working. A regulated brokerage account in your own name has client-money segregation and, in some jurisdictions, compensation schemes behind it. A prop evaluation account generally has neither. If the entity winds down, your balance is not a deposit waiting to be returned — it is an unsecured claim against a company that has just told you it is out of money."
+        },
+        {
+          "type": "quote",
+          "text": "Treat every dollar sitting in an unpaid prop balance as a receivable from a startup, not as cash in your account. Receivables from startups sometimes do not get paid."
+        },
+        {
+          "type": "h2",
+          "text": "The warning signs, in the order they usually appear"
+        },
+        {
+          "type": "p",
+          "text": "Firms rarely collapse without a run-up. The pattern reported around several closures looks similar enough to be useful as a checklist. Nothing here is proof of anything on its own — firms have legitimate operational reasons for most of these individually. It is the cluster that matters."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Signal",
+            "What it can mean",
+            "Your move"
+          ],
+          "rows": [
+            [
+              "Payout processing quietly slows from days to weeks",
+              "Cash flow tightening",
+              "Withdraw available profit now, stop compounding there"
+            ],
+            [
+              "Sudden rise in vague compliance or 'prohibited strategy' rejections",
+              "Payout liability being managed down",
+              "Screenshot everything, request written reasons"
+            ],
+            [
+              "Rules tightened mid-cycle, especially on hold times or news trading",
+              "Reducing exposure to profitable traders",
+              "Re-read terms, reduce account size at that firm"
+            ],
+            [
+              "Steep permanent discounts on challenges",
+              "Funding operations from new fees",
+              "Do not buy more challenges there"
+            ],
+            [
+              "Delisting from major comparison sites",
+              "Third parties have lost confidence",
+              "Treat as a serious signal, not gossip"
+            ],
+            [
+              "Support latency spiking, community managers going silent",
+              "Staff reduction or wind-down prep",
+              "Assume the worst and act early"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The important thing about this list is the timing. Every one of these signals appears before an announcement, and every one of them gives you a window to withdraw. Traders who lost the most in past closures were almost always traders who saw a signal, rationalised it, and left a large balance in place to compound."
+        },
+        {
+          "type": "h2",
+          "text": "How to structure around firm risk"
+        },
+        {
+          "type": "p",
+          "text": "You cannot diligence your way to certainty here. Financials are private, and a firm that looks healthy in public can be weeks from a wind-down. So stop trying to pick the one safe firm and start structuring so that no single firm can hurt you badly."
+        },
+        {
+          "type": "p",
+          "text": "Four practical rules that cost you almost nothing:"
+        },
+        {
+          "type": "p",
+          "text": "Withdraw on schedule, not on feeling. Pick a cadence — every payout cycle, or every time the balance passes a set number — and take money off the table automatically. A payout in your bank account has zero firm risk. A payout you are letting build because scaling looks attractive has all of it."
+        },
+        {
+          "type": "p",
+          "text": "Cap total exposure per firm. Add up unpaid balance plus challenge fees plus reset fees at one firm. If that number is more than you would be willing to lose to a bad news announcement, it is too high, regardless of how good the scaling plan is."
+        },
+        {
+          "type": "p",
+          "text": "Spread across two or three firms, not one and not eight. Two or three caps your loss from any single closure while keeping your execution simple. Check copy-trading rules before you mirror the same strategy across accounts, because several firms restrict it."
+        },
+        {
+          "type": "p",
+          "text": "Keep your own record of everything. Trade log, payout requests, screenshots of the rules as they were on the day you traded. If a rule changes retroactively, your own timestamped record is the only version of events you control."
+        },
+        {
+          "type": "h2",
+          "text": "Why your own trade log is the asset"
+        },
+        {
+          "type": "p",
+          "text": "Here is the part traders underrate. When a firm closes, you lose the account, the dashboard, the analytics and the history. What you keep is whatever you recorded yourself."
+        },
+        {
+          "type": "p",
+          "text": "That record is what lets you walk into the next firm and be profitable in week one instead of rebuilding from scratch. It is your proof of edge, your setup statistics, your R distribution, your evidence about which sessions and instruments actually pay you. A trader with three years of clean logs treats a firm closure as an administrative annoyance. A trader who relied entirely on the firm's dashboard treats it as starting over."
+        },
+        {
+          "type": "usecase",
+          "text": "Log every funded trade in JournalX alongside which firm and account it was on, and tag payout requests as they go out. You get one continuous performance history that survives any individual firm, plus a per-firm view showing your realised payouts versus fees paid — which is usually the number that tells you whether a firm relationship is actually working."
+        },
+        {
+          "type": "why",
+          "text": "JournalX is deliberately firm-agnostic. Your trades, rules, screenshots and payout history live in your journal, not inside a prop firm's dashboard, so switching firms means changing a tag rather than losing your track record. Multi-account tagging means you can run two or three firms in parallel and still see one honest picture of your edge."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Firm risk audit",
+          "prompt": "Score your current setup. Tick everything that is true right now — not what you intend to do this month.",
+          "items": [
+            "I know the total unpaid balance sitting at each firm I trade",
+            "I have a fixed withdrawal cadence and I have not skipped it",
+            "My capital is spread across at least two firms",
+            "I have read the current terms of service, not the version from when I signed up",
+            "I keep my own trade log independent of any firm dashboard",
+            "I have screenshots or saved copies of the rules I trade under",
+            "No single firm holds more than I would accept losing outright",
+            "I have checked each firm's copy-trading rules before mirroring positions"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Fully exposed. One announcement could erase months of work. Start with the withdrawal cadence — it is the single highest-value fix and takes ten minutes."
+            },
+            {
+              "min": 4,
+              "text": "Partially protected. You would survive a closure but it would hurt. Close the gaps on diversification and your own record-keeping."
+            },
+            {
+              "min": 7,
+              "text": "Well structured. A firm folding would be an inconvenience rather than a disaster. Re-run this audit whenever you add a new firm."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "The mindset shift"
+        },
+        {
+          "type": "p",
+          "text": "Funded trading involves two separate businesses. One is your trading — edge, risk, execution, the part you control and can improve. The other is your counterparty selection — which firms hold your money and how much of it, the part you can only manage by spreading and withdrawing."
+        },
+        {
+          "type": "p",
+          "text": "Most traders obsess over the first and ignore the second entirely, then blame the industry when the second one bites. The regulatory picture is genuinely improving in some jurisdictions and may eventually make this less of a problem, but that process is still unfolding and is not something to wait for. Until then, the assumption that protects you is simple: any firm can close, so keep the balance small, keep the payouts flowing, and keep your own records."
+        }
+      ]
+    },
+    {
+      "slug": "september-effect-trading-seasonality",
+      "title": "The September Effect: How to Use Seasonality Without Getting Fooled By It",
+      "metaTitle": "September Effect Trading: Using Market Seasonality Properly | JournalX",
+      "metaDescription": "September is the weakest month on average for stocks, but averages are not forecasts. How to turn seasonality into a risk setting instead of a trade signal.",
+      "keywords": [
+        "september effect trading",
+        "stock market seasonality strategy",
+        "trading seasonality patterns",
+        "is september bad for stocks",
+        "seasonal trading bias",
+        "how to trade september volatility"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-08-23",
+      "featured": false,
+      "excerpt": "September really is the weakest month on average for US equities. It is also positive nearly half the time, which is exactly why trading the calendar instead of the chart gets people hurt.",
+      "helpful": {
+        "up": 41,
+        "down": 3,
+        "saves": 35
+      },
+      "tags": [
+        "Seasonality",
+        "Markets",
+        "Volatility",
+        "Risk"
+      ],
+      "faqs": [
+        {
+          "q": "Is September really the worst month for the stock market?",
+          "a": "On long-run averages, yes. Depending on the start date and index, studies typically put the average S&P 500 September return somewhere between roughly -0.7% and -1.2%, and it is commonly the only calendar month with a negative long-run average. But the same data sets show September finishing higher roughly 43-45% of the time, so it is a mild negative skew rather than a reliable down month."
+        },
+        {
+          "q": "Can I build a trading strategy on seasonality alone?",
+          "a": "Not one worth trading. A sub-1% monthly edge with a coin-flip hit rate is smaller than most traders' spread, slippage and commission costs over a month of activity, and it is fragile — recent decades include Septembers that ran hard in both directions. Seasonality is better used to set expectations for volatility and position size than as an entry signal."
+        },
+        {
+          "q": "Why is September historically weak?",
+          "a": "There is no single agreed cause, which is itself a reason for caution. Commonly cited explanations include institutional portfolio rebalancing and tax-year effects, fund flows around the Japanese half-year in late September, volume returning after the summer lull, and behavioural factors as desks re-risk. Because no mechanism is settled, treat the pattern as a statistical curiosity with a plausible volatility component rather than a law."
+        },
+        {
+          "q": "What actually changes in my trading in September?",
+          "a": "Mostly volatility assumptions. Liquidity returning after August tends to mean wider ranges and cleaner trends than thin summer chop, plus a dense macro calendar. Practically that means recalculating stop distances from current ATR rather than summer ATR, and being deliberate about size around scheduled events, not skipping the month."
+        }
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Every year around now the September posts start. The worst month for stocks. Sell in September. Some chart of monthly averages with September dyed red. And every year a group of traders reads it, shorts into the calendar, and gets run over by a September that goes straight up."
+        },
+        {
+          "type": "p",
+          "text": "The frustrating part is that the underlying statistic is real. It is just far weaker than the headlines suggest, and the useful conclusion is almost the opposite of the one people draw."
+        },
+        {
+          "type": "h2",
+          "text": "What the data actually says"
+        },
+        {
+          "type": "p",
+          "text": "Across the studies you will see quoted, the average S&P 500 September return over long horizons lands somewhere in the range of roughly -0.7% to -1.2%, with the exact figure depending on whether the sample starts in 1928, 1945 or 1950 and whether dividends are included. Multiple sources describe September as the only calendar month with a negative long-run average return, which is where the reputation comes from."
+        },
+        {
+          "type": "p",
+          "text": "Then read the second number, which headlines usually omit. The same data sets show September closing higher roughly 43% to 45% of the time. That is a slightly loaded coin, not a signal."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Framing",
+            "What it suggests",
+            "What it actually supports"
+          ],
+          "rows": [
+            [
+              "Average return roughly -0.7% to -1.2%",
+              "September is a down month",
+              "A small negative skew, smaller than one bad day"
+            ],
+            [
+              "Higher ~43-45% of the time",
+              "Slightly more losers than winners",
+              "Directional bets on the calendar are close to a coin flip"
+            ],
+            [
+              "Several sharp recent September declines",
+              "The pattern is intensifying",
+              "Small samples cluster; other Septembers rose strongly"
+            ],
+            [
+              "Volume and volatility return after August",
+              "Nothing directional",
+              "Genuinely actionable: range and stop assumptions must change"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Note the last row. The one part of late-summer seasonality with a plausible mechanism and a real trading consequence is not direction at all. It is activity. August tends to be thin, and the return of volume in September widens ranges and produces cleaner follow-through than summer chop. That is a volatility observation, and volatility observations translate directly into position sizing."
+        },
+        {
+          "type": "h2",
+          "text": "Why seasonal signals decay"
+        },
+        {
+          "type": "p",
+          "text": "A pattern this famous cannot be a free edge. If a reliably negative month existed, it would be arbitraged into the price of September options and futures long before you got there."
+        },
+        {
+          "type": "p",
+          "text": "The FX version illustrates the fragility well. Analysts point to late-summer tendencies like yen strength around Japanese repatriation flows before the September half-year, and to seasonal habits in pairs like USD/JPY. Those same write-ups then note the years where the pattern simply did not show up, overwhelmed by whatever the prevailing rate and growth story happened to be. The honest framing across sources is consistent: seasonal averages are a gentle tailwind at best, and prevailing fundamentals decide the year."
+        },
+        {
+          "type": "quote",
+          "text": "A seasonal tendency is a reason to expect something, never a reason to enter something. If the trade only makes sense because of the month, it is not a trade."
+        },
+        {
+          "type": "h2",
+          "text": "How to actually use it"
+        },
+        {
+          "type": "p",
+          "text": "Convert seasonality from a directional opinion into three concrete settings, and it stops being noise."
+        },
+        {
+          "type": "p",
+          "text": "Recalculate volatility inputs. If your stops and targets are sized off ATR, the number you were using in mid-August is probably too small for late September. Refresh it. Traders who carry summer stop distances into an active month get stopped out on noise and conclude their edge broke."
+        },
+        {
+          "type": "p",
+          "text": "Respect the event calendar over the average. September typically carries a dense macro schedule — central bank meetings, inflation prints, quarter-end and quarterly expiry flows. A specific scheduled catalyst on a specific date is worth vastly more of your attention than a 75-year monthly average. Mark the dates and decide your size in advance."
+        },
+        {
+          "type": "p",
+          "text": "Let trend override calendar. Analysts repeatedly note that when the market is trending higher into September, seasonal weakness has often failed to materialise. If your system says long and the calendar says caution, follow the system and size normally. Overriding a working process with a seasonal factoid is how good months get wasted."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Seasonality check",
+          "prompt": "It is the first week of September. Your trend-following system has just given a long signal on an index that has been making higher highs since July. Long-run seasonal data says September averages a small negative return. What do you do?",
+          "options": [
+            "Skip the trade — the seasonal average says risk is elevated",
+            "Take the trade at normal size, with stops recalculated from current volatility",
+            "Take the trade at half size to respect the seasonal bias",
+            "Flip to short, since September is the worst month"
+          ],
+          "correct": 1,
+          "explain": "Take the signal. A sub-1% monthly average with a roughly coin-flip hit rate is far too weak to veto a system signal, and seasonal weakness has historically been least reliable when the market is trending into the month. What genuinely changes is volatility, so the right adjustment is to your stop distance and event-day sizing, not to whether you take the trade."
+        },
+        {
+          "type": "h2",
+          "text": "Test it on your own data first"
+        },
+        {
+          "type": "p",
+          "text": "There is a better question than whether September is weak for the S&P 500, and it is whether September is weak for you. Those are completely different questions, and only one of them affects your account."
+        },
+        {
+          "type": "p",
+          "text": "Your results have their own seasonality, and it usually has nothing to do with market averages. Plenty of traders find their worst stretch is the summer lull, because their breakout strategy needs volume that thin markets do not provide. Others find their drawdowns cluster around holidays, quarter-end, or the weeks they travel. That is a real, personal, actionable pattern — and it is invisible unless you have logged enough trades with dates attached to look."
+        },
+        {
+          "type": "p",
+          "text": "One caution on the analysis. Slicing your own history by month is a small-sample exercise. Two or three years gives you two or three Septembers, which is nowhere near enough to conclude anything. Treat what you find as a hypothesis worth watching, exactly as you should treat the market-wide version."
+        },
+        {
+          "type": "usecase",
+          "text": "Group your logged trades by month and by volatility regime in JournalX and compare average R, win rate and maximum drawdown across the buckets. It takes a minute and answers the only version of the seasonality question that changes your decisions: which conditions your edge actually needs, and whether the calendar has anything to do with it."
+        },
+        {
+          "type": "why",
+          "text": "Most journals stop at a monthly P&L bar chart, which tells you what happened but not why. JournalX ties every trade to setup, session, volatility conditions and your own notes, so a weak month resolves into a specific cause — wrong regime, wrong session, oversized around events — instead of a vague seasonal story."
+        },
+        {
+          "type": "h2",
+          "text": "The takeaway"
+        },
+        {
+          "type": "p",
+          "text": "September earned its reputation honestly and then had it wildly overstated. The average really is negative and really is the weakest of the twelve. It is also small, roughly a coin flip in any given year, and has no settled causal explanation, which together make it useless as an entry signal."
+        },
+        {
+          "type": "p",
+          "text": "So use the part that survives scrutiny. Volume and volatility come back after the summer, the macro calendar is busy, and your stop distances from August are probably stale. Adjust those, mark the event dates, keep trading your process, and go look at your own logged history to find the seasonality that actually applies to you."
+        }
+      ]
     }
   ]
 }
