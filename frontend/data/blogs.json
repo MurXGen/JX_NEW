@@ -14809,6 +14809,381 @@
           "a": "Your ladder must fit inside the firm's daily and overall drawdown limits, with a realistic losing run at your top tier still leaving room. Prop accounts punish variance harder than personal accounts do, so most funded traders should sit one tier below where their raw statistics would allow."
         }
       ]
+    },
+    {
+      "slug": "how-to-trade-triple-witching-week",
+      "title": "How to Trade Triple Witching Week Without Getting Run Over",
+      "metaTitle": "How to Trade Triple Witching Week 2026 | JournalX",
+      "metaDescription": "Triple witching hits four Fridays a year and wrecks setups that work every other week. Here is a practical playbook for sizing, timing and journaling around it.",
+      "keywords": [
+        "triple witching trading strategy",
+        "quadruple witching 2026 dates",
+        "options expiration week trading",
+        "how to trade opex week",
+        "triple witching volatility"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-09-13",
+      "featured": false,
+      "excerpt": "Four Fridays a year, index options, index futures and single-stock options all expire at once. Volume explodes, price stops respecting your levels, and most traders never adjust. Here is what to actually change.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 37
+      },
+      "tags": [
+        "opex",
+        "volatility",
+        "index futures",
+        "seasonality"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Every quarter there is one Friday where the tape stops behaving. Levels that held all month get sliced through on a single print. Volume triples. Your breakout fills three ticks late and immediately reverses. Then Monday it all goes back to normal, and you are left with a red week and no idea what you did wrong."
+        },
+        {
+          "type": "p",
+          "text": "The answer is usually nothing. You traded a normal-week playbook into an abnormal-week tape. That Friday is triple witching, and in 2026 the September one lands on the 18th."
+        },
+        {
+          "type": "h2",
+          "text": "What triple witching actually is"
+        },
+        {
+          "type": "p",
+          "text": "On the third Friday of March, June, September and December, three things expire on the same session: stock index futures, stock index options, and options on individual stocks. People still say \"quadruple witching\" out of habit — the fourth leg was single-stock futures, which no longer trade on a U.S. exchange, so the event is technically triple witching today. The label matters less than the mechanics."
+        },
+        {
+          "type": "p",
+          "text": "Those mechanics are almost entirely non-discretionary. Market makers who are short options have hedges that have to come off. Index funds rebalance against the new constituent weights. Futures traders roll to the next contract. None of that flow has an opinion about where price should go — it has a deadline."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "2026 triple witching Friday",
+            "Quarter",
+            "What typically spikes"
+          ],
+          "rows": [
+            [
+              "March 20",
+              "Q1",
+              "Index futures roll volume"
+            ],
+            [
+              "June 19",
+              "Q2",
+              "Annual index reconstitution flow"
+            ],
+            [
+              "September 18",
+              "Q3",
+              "Post-summer repositioning"
+            ],
+            [
+              "December 18",
+              "Q4",
+              "Year-end hedge unwinds"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Why the volatility shows up, and where"
+        },
+        {
+          "type": "p",
+          "text": "The distortion is not spread evenly across the day. It clusters at the open, at the 9:30 and 4:00 ET settlement windows for various products, and in the final hour when the closing auction absorbs index rebalance orders. Studies of expiration-week behaviour generally find elevated volume and intraday range around these prints without a reliable directional bias — the day is a volume event, not a bull or bear signal."
+        },
+        {
+          "type": "p",
+          "text": "That distinction is the whole trade. If you go in expecting direction, you will force a thesis onto mechanical flow. If you go in expecting range and slippage, you adjust correctly."
+        },
+        {
+          "type": "quote",
+          "text": "Triple witching does not tell you where price is going. It tells you that the cost of being wrong just went up."
+        },
+        {
+          "type": "h2",
+          "text": "The three things that actually change for your execution"
+        },
+        {
+          "type": "p",
+          "text": "First, spreads widen and fills get worse. A strategy with a 1.4 expectancy on normal spreads can drop meaningfully when every entry and exit costs you extra. If your edge is thin per trade — scalping, tight-stop breakouts — expiration Friday eats a bigger share of it than any other session."
+        },
+        {
+          "type": "p",
+          "text": "Second, your stop distance is wrong. A stop sized to a normal-week ATR is now sitting inside the noise band. You get stopped, then watch the move go your way without you. This is not bad luck; it is a sizing input that you failed to update."
+        },
+        {
+          "type": "p",
+          "text": "Third, technical levels lose their usual respect. Support that has held four times becomes a location where a hedge unwind happens to print. The level was never magic — it worked because participants were reacting to it. On expiration Friday, a large share of participants are not reacting to anything except their expiry book."
+        },
+        {
+          "type": "h2",
+          "text": "A simple triple witching week playbook"
+        },
+        {
+          "type": "p",
+          "text": "You do not need a special strategy. You need your normal strategy with three dials turned. Widen stops using that week's ATR rather than your default, cut position size so the wider stop still risks the same dollar amount, and skip the first and last thirty minutes unless your edge is specifically built for auction flow. If your setup genuinely requires tight stops, the honest answer is to sit out the session and keep your monthly numbers clean."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Expiration Friday pre-market check",
+          "prompt": "Run this before the open on any triple witching Friday. Tick what is actually true, not what you intend to do.",
+          "items": [
+            "I looked up this week's ATR and re-sized my stop to it",
+            "I cut position size so the wider stop risks my normal dollar amount",
+            "I know the expiry date and will not hold positions blindly into the close",
+            "I am skipping the first 30 minutes unless my edge is an opening-auction edge",
+            "I set a hard daily loss limit before the open, not during the session",
+            "I tagged today's journal entries as 'opex' so I can review them separately later"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You are about to trade a distorted tape with a normal-week plan. This is how quarters get ruined in one session. Consider sitting out."
+            },
+            {
+              "min": 3,
+              "text": "Partially prepared. The gaps left unticked are exactly where the damage usually comes from — go fix one or two before the bell."
+            },
+            {
+              "min": 5,
+              "text": "Properly adjusted. Now the only job is to follow the plan you just wrote and tag the results so next quarter is easier."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "What not to do"
+        },
+        {
+          "type": "p",
+          "text": "Do not build a directional thesis on \"witching is usually bearish\" or any similar folklore. Backtests of these sessions tend to show no consistent edge in direction, only in volume and range. Do not add size to \"take advantage of the volatility\" — volatility raises variance, not expectancy, and your edge does not scale with the ATR. And do not silently exclude these days from your review. If you had four bad expiration Fridays this year, that is a pattern, and it is worth a rule."
+        },
+        {
+          "type": "p",
+          "text": "The traders who handle these weeks well are boring about it. They shrink, they wait, and they write down what happened. Over four quarters that is the difference between a known, priced-in cost and a recurring mystery drawdown."
+        },
+        {
+          "type": "usecase",
+          "text": "Tag every trade taken during expiration week in JournalX and the platform will show you those sessions as their own cohort — win rate, average slippage, R distribution — next to your normal weeks. Most traders discover their expiration-week expectancy is negative and their normal-week expectancy is fine, which turns a vague feeling into a single, enforceable rule: trade half size on witching Friday, or do not trade it at all."
+        },
+        {
+          "type": "why",
+          "text": "Generic journals give you one blended set of stats, which quietly hides regime-specific bleed. JournalX is built around tagging and segmenting, so you can isolate a handful of sessions a year and prove whether they are costing you money — instead of averaging them into your overall numbers where they disappear."
+        },
+        {
+          "type": "h2",
+          "text": "The quarterly habit worth building"
+        },
+        {
+          "type": "p",
+          "text": "Put the four dates in your calendar at the start of the year with a reminder two days out. When the reminder fires, open last quarter's expiration-week entries and read them before you plan the current one. That five-minute review is the highest-leverage thing you can do for these sessions, because the mistakes repeat almost exactly and your memory of them does not."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Is triple witching bullish or bearish?",
+          "a": "Neither, reliably. Backtests of these sessions generally show elevated volume and intraday range without a dependable directional bias. Treat it as a volatility and liquidity event, not a signal."
+        },
+        {
+          "q": "When is triple witching in 2026?",
+          "a": "The third Friday of March, June, September and December — March 20, June 19, September 18 and December 18, 2026. The June date is usually the largest because it coincides with annual index reconstitution."
+        },
+        {
+          "q": "Should I just skip expiration Friday entirely?",
+          "a": "If your edge depends on tight stops or thin spreads, skipping is a legitimate and often profitable choice. Check your own journal: segment your expiration-week trades and compare their expectancy to your normal weeks before deciding."
+        },
+        {
+          "q": "Does triple witching affect forex and crypto?",
+          "a": "Indirectly. The direct expiry mechanics are equity and index products, but the hedging and rebalancing flow can spill into correlated futures, index-linked FX pairs and risk sentiment generally. The effect is much smaller than it is on index and single-stock products."
+        }
+      ]
+    },
+    {
+      "slug": "losing-streak-protocol-tiered-risk-rules",
+      "title": "The Losing Streak Protocol: Tiered Rules That Stop Tilt Before It Costs You the Account",
+      "metaTitle": "How to Handle a Losing Streak in Trading: Tiered Rules | JournalX",
+      "metaDescription": "Losing streaks are normal. Blowing up during one is optional. Build a tiered de-risking ladder that cuts size and stops you out before emotion takes the wheel.",
+      "keywords": [
+        "how to handle a losing streak in trading",
+        "trading tilt recovery",
+        "consecutive losses rules",
+        "reduce position size after losses",
+        "trading drawdown protocol"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-09-13",
+      "featured": false,
+      "excerpt": "A 60% win rate strategy will hand you five losses in a row more often than you think. The streak is not the problem. What you do on loss number four is.",
+      "helpful": {
+        "up": 44,
+        "down": 2,
+        "saves": 40
+      },
+      "tags": [
+        "tilt",
+        "losing streak",
+        "risk rules",
+        "discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Run the numbers on a strategy that wins 55% of the time. Over 200 trades, a run of five consecutive losses is not unusual — it is close to expected. Six is entirely within range. None of that means your edge broke. It means you are sampling a distribution that has clusters in it, the same way a fair coin produces runs of tails."
+        },
+        {
+          "type": "p",
+          "text": "Every trader knows this in theory. Almost nobody acts like it on loss number four. That gap between what you know and what you do at 2pm on a red Thursday is where accounts die."
+        },
+        {
+          "type": "h2",
+          "text": "Why streaks break traders when the math says they shouldn't"
+        },
+        {
+          "type": "p",
+          "text": "Loss aversion is the usual culprit: a large body of behavioural research finds losses are felt roughly twice as intensely as equivalent gains. Stack four of them and you are not making decisions from the same brain that wrote your trading plan. A 2025 survey of prop traders run by one funding firm reported that well over a third named emotional trading after losses as their single biggest problem — the largest category in the response set."
+        },
+        {
+          "type": "p",
+          "text": "The behaviour that follows is predictable. Size goes up to \"get it back faster.\" Quality standards drop because sitting flat feels like losing. Stops get widened because being stopped out again is intolerable. Each of those individually is survivable. Together, on the same afternoon, they are how a routine 3R drawdown becomes a 15R one."
+        },
+        {
+          "type": "quote",
+          "text": "You cannot make good decisions about risk while you are the one bleeding. So make them in advance, in writing, and let the rule decide for you."
+        },
+        {
+          "type": "h2",
+          "text": "The tiered de-risk ladder"
+        },
+        {
+          "type": "p",
+          "text": "The fix that works is not willpower. It is a ladder of pre-committed responses keyed to consecutive losses, so that by the time your judgment is compromised, the decision has already been made. Adapt the exact thresholds to your own loss-streak history — pull the real distribution from your journal rather than guessing — but the shape should look like this."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Trigger",
+            "Action",
+            "Why it works"
+          ],
+          "rows": [
+            [
+              "2-3 consecutive losses",
+              "Full size, but review the three entries against your checklist before the next trade",
+              "Catches genuine execution drift early without over-reacting to normal variance"
+            ],
+            [
+              "4 consecutive losses",
+              "Cut position size by 50% immediately",
+              "Halves the damage during the exact window where judgment is worst"
+            ],
+            [
+              "5-6 consecutive losses",
+              "Stop trading for the day. No exceptions, no 'one more setup'",
+              "Breaks the intraday feedback loop before revenge trading starts"
+            ],
+            [
+              "Down 50% of your max drawdown",
+              "Stop for 2-3 days. Paper trade or replay, then return at 25% size",
+              "Protects the account itself, not just the session"
+            ],
+            [
+              "Return to full size",
+              "Only after a set number of rule-compliant trades, regardless of P&L",
+              "Rebuilds process confidence instead of gambling for a win to feel better"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice the last row. Most traders define their return to full size by outcome — \"once I have a green day.\" That is backwards, and it rewards exactly the behaviour you are trying to stop: a reckless oversized win would qualify you to go back to full risk. Defining the return by process, such as five consecutive trades executed to plan whatever they made, restores the thing the streak actually damaged."
+        },
+        {
+          "type": "h2",
+          "text": "Write the return criteria before you need them"
+        },
+        {
+          "type": "p",
+          "text": "The single most useful version of this protocol is a note you write while flat and calm, at the start of the week, that says exactly what has to be true before you size back up. It should be objective enough that someone else could check it. \"Feeling confident again\" is not a criterion. \"Five trades taken, each with a pre-defined stop, each logged within an hour, none taken outside my session window\" is."
+        },
+        {
+          "type": "p",
+          "text": "Then the job during the streak is not to make a good decision. It is just to read your own note and obey it. That is a far smaller ask of a rattled brain."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "You are four losses deep. What do you do?",
+          "prompt": "It is Thursday afternoon. Four losses in a row, all valid setups, all executed correctly. Your A+ pattern just printed on your main instrument. Pick the response.",
+          "options": [
+            "Take it at full size — the setup is valid and the losses were bad luck, not bad process",
+            "Take it at half size, per your pre-written rule",
+            "Take it at double size to recover the day in one trade",
+            "Skip trading entirely for the next two weeks to reset"
+          ],
+          "correct": 1,
+          "explain": "Half size is the pre-committed rule, and that is the point — you follow it precisely because the setup looks good and you can argue yourself into full size. Option A is how most traders rationalise their way past the ladder. Option C is revenge trading with extra steps. Option D over-corrects: two weeks off for normal variance treats a statistical cluster as a broken edge, and most traders who do this never return with a plan."
+        },
+        {
+          "type": "h2",
+          "text": "Build it into your journal, not your memory"
+        },
+        {
+          "type": "p",
+          "text": "A protocol you have to remember mid-drawdown is a protocol you do not have. It needs to live where you already look before every trade. Practically, that means a visible consecutive-loss counter, a size field that defaults to your tier rather than your habit, and a review view that shows what happened the last three times you hit tier three."
+        },
+        {
+          "type": "p",
+          "text": "Also log the streaks you handled well. Traders record disasters obsessively and successes never, which produces a journal that reads like evidence they are bad at this. The Tuesday you took four losses, cut size, took two more small ones and finished down 1.2R instead of 6R is your proof the system works. Write it down with the same detail you give the blowups."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX tracks your consecutive-loss runs automatically and shows you the real distribution — how often you actually hit four, five or six in a row — so your tier thresholds come from your own data instead of a number off a forum. Tag the trades you took at reduced size and the platform will show you, side by side, what your streak days cost you before and after you adopted the ladder."
+        },
+        {
+          "type": "why",
+          "text": "Most journals are backward-looking scoreboards. JournalX is built to change the next trade: the rules you set from your own history are surfaced while you are logging, which is the only moment where a protocol can still save you money."
+        },
+        {
+          "type": "h2",
+          "text": "The reframe that makes it stick"
+        },
+        {
+          "type": "p",
+          "text": "A losing streak is not a verdict on your ability. It is a scheduled, unavoidable feature of any edge with a win rate below 100%, which is all of them. Your strategy's job is to produce positive expectancy across hundreds of trades. Your job, during the ugly stretches of those hundreds, is only to still be trading with a functioning account when the distribution mean-reverts."
+        },
+        {
+          "type": "p",
+          "text": "Almost everything that separates traders who last from traders who don't happens in those two or three afternoons a quarter. Decide now, while nothing is on fire, what you will do."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How many losses in a row is normal?",
+          "a": "More than most traders expect. With a 55% win rate, runs of five consecutive losses appear regularly across a few hundred trades, and six is well within range. Pull your own loss-streak distribution from your journal rather than judging by feel."
+        },
+        {
+          "q": "Should I stop trading after a losing streak?",
+          "a": "Stopping for the session after roughly five consecutive losses is a common and sensible rule, because the intraday feedback loop is where revenge trading starts. Stopping for weeks is usually an over-correction unless your review shows genuine edge decay rather than normal variance."
+        },
+        {
+          "q": "How do I know if my edge is broken or it's just variance?",
+          "a": "Variance shows up as a losing cluster inside otherwise normal execution. Edge decay shows up as a change in the setup's underlying stats — win rate, average R, or MAE drifting over a large sample, usually alongside a change in market regime. You need a reasonable sample and clean tagging to tell them apart."
+        },
+        {
+          "q": "Does reducing size after losses hurt my long-run returns?",
+          "a": "Mathematically, sizing down slows recovery slightly if your edge is intact. Behaviourally, it prevents the oversized revenge trades that actually end accounts. For most traders the behavioural protection is worth far more than the theoretical drag."
+        }
+      ]
     }
   ]
 }
