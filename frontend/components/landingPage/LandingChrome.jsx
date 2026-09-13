@@ -28,7 +28,7 @@ export function LandingNav() {
     <header
       style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(13,17,23,0.72)", backdropFilter: "blur(12px)",
+        background: "rgba(0,0,0,0.5)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
         borderBottom: "1px solid rgba(255,255,255,0.08)",
       }}
     >
@@ -113,7 +113,7 @@ export function LandingFooter() {
     { h: "Legal", links: [["Privacy Policy", "/privacy-policy"], ["Terms of Service", "/terms-services"], ["Refund Policy", "/refund-policy"], ["Risk Disclaimer", "/risk-disclaimer"], ["Cookie Policy", "/cookie-policy"]] },
   ];
   return (
-    <footer style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "#0b0e13" }}>
+    <footer style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "#000" }}>
       <div style={{ maxWidth: 1160, margin: "0 auto", padding: "48px 20px 28px", display: "grid", gridTemplateColumns: "1.4fr repeat(4, 1fr)", gap: 32 }} className="lp-footer-grid">
         <div>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>

@@ -58,7 +58,7 @@ const TRADESLOG_SECTIONS = [
 
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
 /* quantity / size, max 2 decimals (avoids 0.293838…) */
-const qty = (v) => (v == null || v === "" ? ", " : Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }));
+const qty = (v) => (v == null || v === "" ? "—" : Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }));
 const money = (v, sym = "$") =>
   `${v < 0 ? "−" : "+"}${sym}${compactNumber(Math.abs(v))}`;
 
@@ -261,7 +261,7 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
             {selected ? <CheckSquare size={17} /> : <Square size={17} />}
           </span>
         )}
-        <span style={{ font: "var(--text-title)" }}>{t.symbol || t.ticker || ", "}</span>
+        <span style={{ font: "var(--text-title)" }}>{t.symbol || t.ticker || "—"}</span>
         <Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge>
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-muted)" }}>
           <span className="jx-badge jx-badge--neutral">
@@ -273,10 +273,10 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-2)", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
         <span>Entry</span><span>Exit</span><span>Size</span><span>R : R</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{entry ? `${sym}${fmt(entry)}` : ", "}</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{exit ? `${sym}${fmt(exit)}` : ", "}</span>
+        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{entry ? `${sym}${fmt(entry)}` : "—"}</span>
+        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{exit ? `${sym}${fmt(exit)}` : "—"}</span>
         <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{qty(t.totalQuantity)}</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : ", "}</span>
+        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
         <span style={{ font: "var(--text-title)", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
@@ -475,7 +475,7 @@ function TradesHeatmap({ trades, sym }) {
               }}
             >
               <span>{new Date(2000, i, 1).toLocaleDateString("en-GB", { month: "short" })}</span>
-              <span style={{ fontWeight: 600 }}>{pnl !== 0 ? money(pnl, sym) : ", "}</span>
+              <span style={{ fontWeight: 600 }}>{pnl !== 0 ? money(pnl, sym) : "—"}</span>
             </div>
           ))}
         </div>
@@ -631,7 +631,7 @@ export default function TradesLogPanel({
       total,
       winRate: total ? ((wins / total) * 100).toFixed(1) : "0",
       netPnl,
-      avgRR: avgLoss > 0 ? (avgWin / avgLoss).toFixed(1) : ", ",
+      avgRR: avgLoss > 0 ? (avgWin / avgLoss).toFixed(1) : "—",
     };
   }, [closed]);
 
@@ -839,7 +839,7 @@ export default function TradesLogPanel({
             { label: "Total trades", value: stats.total },
             { label: "Win rate", value: `${stats.winRate}%` },
             { label: "Net P&L", value: money(stats.netPnl, currencySymbol), color: stats.netPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" },
-            { label: "Avg R : R", value: stats.avgRR === ", " ? ", " : `1 : ${stats.avgRR}`, sub: "target 1 : 2" },
+            { label: "Avg R : R", value: stats.avgRR === "—" ? "—" : `1 : ${stats.avgRR}`, sub: "target 1 : 2" },
           ].map((k) => (
             <div key={k.label} className="jx-card" style={{ padding: "var(--space-4) var(--space-5)" }}>
               <span className="jx-sidebar__section" style={{ padding: 0 }}>{k.label}</span>
@@ -984,9 +984,9 @@ export default function TradesLogPanel({
                 <div
                   key={label}
                   className="jx-card jx-card--flat"
-                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", padding: "var(--space-4)" }}
+                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", padding: "var(--space-4)", border: "none", background: "var(--color-bg-surface)" }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", paddingBottom: "var(--space-2)", borderBottom: "1px solid var(--color-border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", paddingBottom: "var(--space-2)" }}>
                     <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{label}</span>
                     <span className="jx-badge jx-badge--neutral">{list.length} trades</span>
                     <span style={{ marginLeft: "auto", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
@@ -1053,10 +1053,10 @@ export default function TradesLogPanel({
                             </span>
                           </td>
                         )}
-                        <td style={{ fontWeight: 700 }}>{t.symbol || t.ticker || ", "}</td>
+                        <td style={{ fontWeight: 700 }}>{t.symbol || t.ticker || "—"}</td>
                         <td><Badge variant={isLong ? "success" : "danger"} icon={isLong ? TrendingUp : TrendingDown}>{isLong ? "Long" : "Short"}</Badge></td>
-                        <td style={{ textAlign: "right" }}>{entry ? `${currencySymbol}${fmt(entry)}` : ", "}</td>
-                        <td style={{ textAlign: "right" }}>{exit ? `${currencySymbol}${fmt(exit)}` : ", "}</td>
+                        <td style={{ textAlign: "right" }}>{entry ? `${currencySymbol}${fmt(entry)}` : "—"}</td>
+                        <td style={{ textAlign: "right" }}>{exit ? `${currencySymbol}${fmt(exit)}` : "—"}</td>
                         <td style={{ textAlign: "right" }}>{qty(t.totalQuantity)}</td>
                         <td style={{ textAlign: "right", fontWeight: 700, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
                           {money(pnl, currencySymbol)}
@@ -1064,7 +1064,7 @@ export default function TradesLogPanel({
                         <td style={{ textAlign: "center" }}>
                           {t.rr ? (
                             <Badge variant="neutral">{String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`}</Badge>
-                          ) : <span style={{ color: "var(--color-text-muted)" }}>, </span>}
+                          ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
                         </td>
                         <td style={{ color: "var(--color-text-muted)" }}>
                           {new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })} ·{" "}
@@ -1075,7 +1075,7 @@ export default function TradesLogPanel({
                             <span className="jx-badge jx-badge--neutral" style={{ cursor: "zoom-in" }}>
                               <ImageIcon size={11} /> {t.images.length}
                             </span>
-                          ) : <span style={{ color: "var(--color-text-muted)" }}>, </span>}
+                          ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
                         </td>
                         <td style={{ textAlign: "center" }}>
                           {!selectMode && (

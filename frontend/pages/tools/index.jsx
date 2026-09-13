@@ -5,7 +5,7 @@ import { ArrowRight, Calculator, Percent, ShieldAlert, TrendingUp, Target } from
 import { LandingNav, LandingFooter, btnPrimary } from "@/components/landingPage/LandingChrome";
 
 const SITE_URL = "https://journalx.app";
-const C = { text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#0d1117", border: "rgba(255,255,255,0.1)", yellow: "#fcd535", yellowDeep: "#f0b90b" };
+const C = { text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#000", border: "rgba(255,255,255,0.1)", yellow: "#fcd535", yellowDeep: "#f0b90b" };
 
 const TOOLS = [
   { href: "/tools/position-size-calculator", icon: Calculator, title: "Position Size Calculator", desc: "Find the exact quantity to trade so no single loss hurts your account, plus reward and R:R." },
@@ -52,7 +52,7 @@ export default function ToolsIndex() {
         <meta name="twitter:title" content={TITLE} />
         <meta name="twitter:description" content={DESC} />
         <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
-        <meta name="theme-color" content="#0d1117" />
+        <meta name="theme-color" content="#000000" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       </Head>

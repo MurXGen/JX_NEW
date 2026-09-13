@@ -86,7 +86,7 @@ function ReflexGame() {
 
   // interpret the average reaction time into a plain-language rating
   const rating =
-    avg <= 0 ? { label: ", ", color: "var(--color-text-muted)" }
+    avg <= 0 ? { label: "—", color: "var(--color-text-muted)" }
     : avg < 300 ? { label: "⚡ Lightning reflexes", color: "var(--color-success-strong)" }
     : avg < 450 ? { label: "Sharp", color: "var(--color-success)" }
     : avg < 600 ? { label: "Steady", color: "var(--yellow-500)" }
@@ -110,7 +110,7 @@ function ReflexGame() {
         <div style={{ display: "flex", gap: "var(--space-4)" }}>
           <Stat label="Time left" value={`${mm}:${ss}`} />
           <Stat label="Hits" value={hits} />
-          <Stat label="Avg reaction" value={avg ? `${Math.round(avg)}ms` : ", "} />
+          <Stat label="Avg reaction" value={avg ? `${Math.round(avg)}ms` : "—"} />
         </div>
       )}
 
@@ -153,8 +153,8 @@ function ReflexGame() {
             </div>
             <div style={{ display: "flex", gap: "var(--space-6)", justifyContent: "center" }}>
               {[
-                { label: "Avg reaction", value: avg ? `${Math.round(avg)}ms` : ", " },
-                { label: "Fastest", value: fastest ? `${Math.round(fastest)}ms` : ", " },
+                { label: "Avg reaction", value: avg ? `${Math.round(avg)}ms` : "—" },
+                { label: "Fastest", value: fastest ? `${Math.round(fastest)}ms` : "—" },
               ].map((s) => (
                 <div key={s.label} style={{ textAlign: "center" }}>
                   <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", whiteSpace: "nowrap", ...muted }}>{s.label}</div>

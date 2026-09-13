@@ -1,71 +1,82 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
 /**
- * revampV2 Toast, fixed top-center notification.
+ * revampV2 Toast — glassmorphic, compact, top-center notification.
+ * Portalled to <body> so a transformed ancestor (animated cards, modals) can
+ * never break its fixed positioning; it always renders at the true viewport top.
  * toast: { type: 'success' | 'danger' | 'info', msg } | null
+ * duration: ms the parent keeps it visible (drives the progress bar).
  */
-export default function Toast({ toast }) {
-  const Icon =
-    toast?.type === "success" ? CheckCircle2 : toast?.type === "danger" ? AlertTriangle : Info;
-  const color =
-    toast?.type === "success"
-      ? "var(--color-success)"
-      : toast?.type === "danger"
-        ? "var(--color-danger)"
-        : "var(--color-primary)";
+export default function Toast({ toast, duration = 3500 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  // light haptic pulse when a toast appears (supported on most mobile browsers)
   useEffect(() => {
     if (!toast) return;
-    try {
-      navigator.vibrate?.(toast.type === "danger" ? [12, 40, 12] : 18);
-    } catch {}
+    try { navigator.vibrate?.(toast.type === "danger" ? [12, 40, 12] : 16); } catch {}
   }, [toast]);
 
-  return (
+  if (!mounted) return null;
+
+  const Icon = toast?.type === "success" ? CheckCircle2 : toast?.type === "danger" ? AlertTriangle : Info;
+  const color = toast?.type === "success" ? "#2ebd85" : toast?.type === "danger" ? "#f6465d" : "#fcd535";
+
+  return createPortal(
     <AnimatePresence>
       {toast && (
         <motion.div
-          initial={{ opacity: 0, y: -18, scale: 0.96 }}
+          key={toast.msg}
+          initial={{ opacity: 0, y: -16, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ type: "spring", stiffness: 420, damping: 28 }}
-          className={`jx-toast jx-toast--${toast.type}`}
+          exit={{ opacity: 0, y: -12, scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 440, damping: 30 }}
+          role="status"
+          aria-live="polite"
           style={{
             position: "fixed",
-            top: "max(16px, env(safe-area-inset-top))",
+            top: "max(18px, env(safe-area-inset-top))",
             left: "50%",
             translate: "-50% 0",
-            zIndex: 2000,
-            /* glassmorphic surface with a coloured accent border */
-            background: "color-mix(in srgb, var(--color-bg-elevated) 72%, transparent)",
-            backdropFilter: "blur(16px) saturate(150%)",
-            WebkitBackdropFilter: "blur(16px) saturate(150%)",
-            border: "1px solid color-mix(in srgb, #fff 12%, transparent)",
-            borderLeft: `3px solid ${color}`,
-            color: "var(--color-text-primary)",
-            boxShadow: "0 10px 34px rgba(0,0,0,0.32)",
+            zIndex: 100000,
             display: "flex",
             alignItems: "center",
-            gap: "clamp(8px, 2.5vw, 12px)",
-            /* compact on mobile, comfortably wide on desktop */
-            padding: "clamp(10px, 2.6vw, 15px) clamp(14px, 3.6vw, 22px)",
+            gap: 11,
+            padding: "11px 16px 11px 11px",
             borderRadius: 14,
-            fontSize: "clamp(13px, 3.2vw, 15px)",
-            fontWeight: 600,
+            overflow: "hidden",
+            background: "rgba(18,18,20,0.72)",
+            backdropFilter: "blur(18px) saturate(160%)",
+            WebkitBackdropFilter: "blur(18px) saturate(160%)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
+            color: "#fff",
             width: "max-content",
-            minWidth: "min(300px, calc(100vw - 24px))",
-            maxWidth: "min(640px, calc(100vw - 24px))",
+            maxWidth: "min(460px, calc(100vw - 24px))",
           }}
         >
-          <Icon size={18} style={{ color, flexShrink: 0 }} />
-          <span style={{ lineHeight: 1.35 }}>{toast.msg}</span>
+          {/* icon chip */}
+          <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 9, background: `color-mix(in srgb, ${color} 18%, transparent)`, flexShrink: 0 }}>
+            <Icon size={16} style={{ color }} />
+          </span>
+          <span style={{ font: "500 14px/1.35 Poppins, sans-serif", color: "#fff", paddingRight: 2 }}>{toast.msg}</span>
+
+          {/* progress bar */}
+          <motion.span
+            aria-hidden="true"
+            key={`${toast.msg}-bar`}
+            initial={{ scaleX: 1 }}
+            animate={{ scaleX: 0 }}
+            transition={{ duration: duration / 1000, ease: "linear" }}
+            style={{ position: "absolute", left: 0, bottom: 0, height: 2, width: "100%", transformOrigin: "left", background: color, opacity: 0.85 }}
+          />
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

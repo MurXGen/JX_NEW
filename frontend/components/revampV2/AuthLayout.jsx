@@ -26,7 +26,7 @@ export default function AuthLayout({ children, title, subtitle }) {
         fontFamily: "var(--jx-font)",
         color: "var(--color-text-primary)",
         background:
-          "radial-gradient(1200px 800px at -10% -20%, color-mix(in srgb, var(--yellow-300) 26%, transparent), transparent 60%), radial-gradient(900px 700px at 110% 120%, color-mix(in srgb, var(--green-500) 14%, transparent), transparent 60%), var(--color-bg-canvas)",
+          "radial-gradient(1200px 800px at -10% -20%, color-mix(in srgb, var(--yellow-300) 22%, transparent), transparent 60%), radial-gradient(900px 700px at 110% 120%, color-mix(in srgb, var(--green-500) 12%, transparent), transparent 60%), #000",
       }}
       className="jx-auth"
     >

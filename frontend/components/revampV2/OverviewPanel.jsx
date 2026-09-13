@@ -1087,12 +1087,12 @@ export default function OverviewPanel({
     const medHold = holds.length ? holds[Math.floor(holds.length / 2)] : null;
     const holdStr = medHold
       ? `${Math.floor(medHold / 3600000)}h ${Math.round((medHold % 3600000) / 60000)}m`
-      : ", ";
+      : "—";
 
     /* per symbol / allocation / volume, within analytics window */
     const bySym = new Map();
     win.forEach((t) => {
-      const s = t.symbol || t.ticker || ", ";
+      const s = t.symbol || t.ticker || "—";
       bySym.set(s, (bySym.get(s) || 0) + (Number(t.pnl) || 0));
     });
     const symPnl = [...bySym.entries()].sort((a, b) => b[1] - a[1]);
@@ -1101,8 +1101,8 @@ export default function OverviewPanel({
     win.forEach((t) => {
       // base asset: part before "/" but tolerate odd inputs like "/MNS"
       // (split → ["", "MNS"]) by dropping empty parts; fall back to raw symbol
-      const raw = (t.symbol || t.ticker || ", ").trim().toUpperCase();
-      const s = raw.split("/").filter(Boolean)[0] || raw || ", ";
+      const raw = (t.symbol || t.ticker || "—").trim().toUpperCase();
+      const s = raw.split("/").filter(Boolean)[0] || raw || "—";
       const qty = Number(t.totalQuantity ?? t.quantity ?? t.size) || 0;
       const price = Number(t.avgEntryPrice ?? t.entryPrice ?? t.entries?.[0]?.price) || 0;
       // traded notional → fall back to |P&L| → fall back to 1 (equal weight),
@@ -1643,7 +1643,7 @@ export default function OverviewPanel({
     { label: "Avg hold time", value: S.holdStr, sub: "median per trade" },
     {
       label: "Sharpe ratio",
-      value: S.sharpe ? fmt(S.sharpe, 2) : ", ",
+      value: S.sharpe ? fmt(S.sharpe, 2) : "—",
       sub: "risk-adjusted return",
       up: (S.sharpe || 0) > 1,
     },
@@ -1795,8 +1795,8 @@ export default function OverviewPanel({
           >
             <span
               style={{
-                font: "600 36px/42px var(--jx-font)",
-                letterSpacing: "-1px",
+                font: "600 28px/34px var(--jx-font)",
+                letterSpacing: "-0.5px",
                 color:
                   hero.pnl >= 0
                     ? "var(--color-text-primary)"
@@ -2015,7 +2015,7 @@ export default function OverviewPanel({
               {S.profitFactor ? (
                 <CountUp value={S.profitFactor} format={(v) => fmt(v, 2)} />
               ) : (
-                ", "
+                "—"
               )}
             </span>
           </Tip>
@@ -2042,7 +2042,7 @@ export default function OverviewPanel({
           <span style={{ font: "var(--text-stat)", letterSpacing: "-1px" }}>
             {S.discipline.plannedN + S.discipline.unplannedN > 0
               ? `${fmt((S.discipline.plannedN / (S.discipline.plannedN + S.discipline.unplannedN)) * 100, 0)}%`
-              : ", "}
+              : "—"}
           </span>
           <Progress
             pct={
@@ -2449,7 +2449,7 @@ export default function OverviewPanel({
                       flexShrink: 0, width: 64, textAlign: "right", font: "var(--text-caption)", fontWeight: 600,
                       color: tf.pnl > 0 ? "var(--color-success-strong)" : tf.pnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-muted)",
                     }}>
-                      {tf.count > 0 ? k(tf.pnl, currencySymbol) : ", "}
+                      {tf.count > 0 ? k(tf.pnl, currencySymbol) : "—"}
                     </span>
                   </div>
                 );
@@ -2511,7 +2511,7 @@ export default function OverviewPanel({
                         {isBest && <Badge variant="success">Best</Badge>}
                       </span>
                       <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: !traded ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                        {traded ? k(s.pnl, currencySymbol) : ", "}
+                        {traded ? k(s.pnl, currencySymbol) : "—"}
                       </span>
                     </div>
                     <div style={{ height: 5, background: "var(--color-bg-muted)", borderRadius: 999, position: "relative", overflow: "hidden" }}>
@@ -2519,7 +2519,7 @@ export default function OverviewPanel({
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
                       <span>{s.window.replace(" UTC", "")} UTC · local {localFromUtcHour(s.lo)}–{localFromUtcHour(s.hi)}</span>
-                      <span>{traded ? `${s.trades} · ${fmt(s.winRate, 0)}% win` : ", "}</span>
+                      <span>{traded ? `${s.trades} · ${fmt(s.winRate, 0)}% win` : "—"}</span>
                     </div>
                   </div>
                 );
@@ -2564,10 +2564,10 @@ export default function OverviewPanel({
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "var(--space-4)" }}>
               {[
                 { label: "Expectancy / trade", value: k(EDGE.expectancy, currencySymbol), sub: "per trade", up: EDGE.expectancy >= 0, tip: "Average $ you make per trade" },
-                { label: "Expectancy (R)", value: EDGE.expectancyR == null ? ", " : `${EDGE.expectancyR >= 0 ? "+" : ""}${fmt(EDGE.expectancyR, 2)}R`, sub: "per unit risked", up: (EDGE.expectancyR || 0) >= 0, tip: "Profit per unit of risk; above 0 is +EV" },
-                { label: "Payoff (R:R)", value: EDGE.payoff == null ? ", " : `${fmt(EDGE.payoff, 2)}×`, sub: "reward vs risk", up: (EDGE.payoff || 0) >= 1, tip: "Average win ÷ average loss" },
+                { label: "Expectancy (R)", value: EDGE.expectancyR == null ? "—" : `${EDGE.expectancyR >= 0 ? "+" : ""}${fmt(EDGE.expectancyR, 2)}R`, sub: "per unit risked", up: (EDGE.expectancyR || 0) >= 0, tip: "Profit per unit of risk; above 0 is +EV" },
+                { label: "Payoff (R:R)", value: EDGE.payoff == null ? "—" : `${fmt(EDGE.payoff, 2)}×`, sub: "reward vs risk", up: (EDGE.payoff || 0) >= 1, tip: "Average win ÷ average loss" },
                 { label: "Max drawdown", value: k(-EDGE.maxDD, currencySymbol).replace("+", ""), sub: `${fmt(EDGE.maxDDPct, 1)}% of peak`, up: false, tip: "Largest peak-to-valley drop in equity" },
-                { label: "Recovery factor", value: EDGE.recovery == null ? ", " : `${fmt(EDGE.recovery, 2)}×`, sub: "net ÷ drawdown", up: (EDGE.recovery || 0) >= 2, tip: "Net profit ÷ max drawdown; higher is resilient" },
+                { label: "Recovery factor", value: EDGE.recovery == null ? "—" : `${fmt(EDGE.recovery, 2)}×`, sub: "net ÷ drawdown", up: (EDGE.recovery || 0) >= 2, tip: "Net profit ÷ max drawdown; higher is resilient" },
                 { label: "Win rate", value: `${fmt(EDGE.winRate, 1)}%`, sub: "of all trades", up: EDGE.winRate >= 50, tip: "Share of trades that were profitable" },
               ].map((m) => (
                 <div
@@ -2627,7 +2627,7 @@ export default function OverviewPanel({
                 <Tip key={d.label} content={content} follow style={{ flex: 1, minWidth: 0, height: "100%", display: "flex" }}>
                   <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 8, cursor: "help" }}>
                     <span style={{ font: "var(--text-small)", fontWeight: 700, color: empty ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                      {empty ? ", " : k(d.pnl, currencySymbol)}
+                      {empty ? "—" : k(d.pnl, currencySymbol)}
                     </span>
                     <div style={{ width: "100%", height: h, background: empty ? "var(--color-border)" : pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: "var(--radius-md)", transition: "height .8s cubic-bezier(0.16,1,0.3,1)" }} />
                     <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600 }}>{d.label}</span>

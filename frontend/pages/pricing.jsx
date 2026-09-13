@@ -274,7 +274,7 @@ export default function Pricing() {
       <PaddleLoader />
       <LandingNav />
 
-      <div style={{ background: "#0d1117", color: C.text, fontFamily: "Poppins, sans-serif", minHeight: "100vh" }}>
+      <div style={{ background: "#000", color: C.text, fontFamily: "Poppins, sans-serif", minHeight: "100vh" }}>
         {/* Hero */}
         <section style={{ maxWidth: 1160, margin: "0 auto", padding: "72px 20px 32px", textAlign: "center", position: "relative" }}>
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(600px 320px at 50% -10%, rgba(252,213,53,0.16), transparent 70%)", pointerEvents: "none" }} />

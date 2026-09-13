@@ -460,6 +460,9 @@ export default function Dashboard() {
         onClose={() => setShowLogTrade(false)}
         currentAccountId={currentAccount?._id}
         currencySymbol={journalSymbol}
+        accounts={accounts}
+        currentBalances={currentBalances}
+        accountSymbols={accountSymbols}
         onNoJournal={() => setShowSwitchModal(true)}
         onSaved={(trade) => trade && setAccountTrades((prev) => [...prev, trade])}
       />

@@ -321,17 +321,28 @@
 /* ---- dark theme ---- */
 [data-theme="dark"] .jx-overview-premium::before {
   background:
-    radial-gradient(50% 60% at 14% 0%, rgba(252, 213, 53, 0.16), transparent 60%),
-    radial-gradient(46% 56% at 88% 4%, rgba(99, 140, 255, 0.18), transparent 62%),
-    radial-gradient(42% 52% at 62% 0%, rgba(46, 189, 133, 0.13), transparent 60%);
+    radial-gradient(50% 60% at 14% 0%, rgba(252, 213, 53, 0.1), transparent 60%),
+    radial-gradient(46% 56% at 88% 4%, rgba(255, 255, 255, 0.05), transparent 62%),
+    radial-gradient(42% 52% at 62% 0%, rgba(46, 189, 133, 0.07), transparent 60%);
 }
+/* stat/metric TILES — solid elevated fill so they read clearly against the
+   near-black page (this is the "trading edge card" look applied everywhere) */
 [data-theme="dark"] .jx-overview-premium .jx-card:not(.jx-card--flat) {
-  background: linear-gradient(155deg, rgba(46, 51, 60, 0.74), rgba(28, 32, 38, 0.5));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(130% 110% at 0% 0%, rgba(255, 255, 255, 0.05), transparent 58%),
+    linear-gradient(160deg, #17191e, #101216);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow:
-    0 16px 40px -12px rgba(0, 0, 0, 0.55),
-    0 2px 8px rgba(0, 0, 0, 0.35),
+    0 20px 48px -18px rgba(0, 0, 0, 0.62),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+/* CONTAINERS (jx-sec) — a distinct, slightly deeper panel so the tiles nested
+   inside them still pop, while the panel itself stays visible on the page */
+[data-theme="dark"] .jx-overview-premium .jx-card.jx-sec {
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, 0.04), transparent 60%),
+    linear-gradient(160deg, #101216, #0a0b0e);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 [data-theme="dark"] .jx-overview-premium .jx-card:not(.jx-card--flat):hover {
   border-color: rgba(252, 213, 53, 0.42);
@@ -341,8 +352,11 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 [data-theme="dark"] .jx-overview-premium .jx-card--flat {
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
+    rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
@@ -387,10 +401,28 @@ body::before {
   border: 1px solid rgba(15, 23, 41, 0.07);
   box-shadow: 0 8px 24px -10px rgba(15, 23, 41, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
-[data-theme="dark"] .jx-card {
-  background: linear-gradient(160deg, rgba(45, 50, 58, 0.62), rgba(30, 34, 40, 0.44));
+/* visible TILE — used app-wide (Overview, Markets, Learn, Trades log …) so
+   cards read clearly against the near-black page */
+[data-theme="dark"] .jx-card:not(.jx-card--flat) {
+  background:
+    radial-gradient(140% 120% at 0% 0%, rgba(255, 255, 255, 0.05), transparent 58%),
+    linear-gradient(160deg, #17191e, #101216);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 14px 36px -18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+/* CONTAINER panels (jx-sec) — a deeper distinct panel so nested tiles pop */
+[data-theme="dark"] .jx-card.jx-sec {
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, 0.04), transparent 60%),
+    linear-gradient(160deg, #101216, #0a0b0e);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+/* flat insets stay subtle (nested panels inside a tile/container) */
+[data-theme="dark"] .jx-card--flat {
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 /* row action menu — full-width mobile bottom sheet (web only) */
 @media (max-width: 640px) {
@@ -431,7 +463,7 @@ body::before {
 /* ---- Stat card (Analytics Stat Cards in Figma) ---- */
 .jx-stat-card {
   background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: var(--space-5) var(--space-6);
@@ -648,7 +680,10 @@ body::before {
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background: var(--color-bg-canvas);
+  background:
+    radial-gradient(1000px 560px at 100% -8%, rgba(252, 213, 53, 0.055), transparent 60%),
+    radial-gradient(760px 520px at 0% 0%, rgba(255, 255, 255, 0.03), transparent 55%),
+    var(--color-bg-canvas);
   font-family: var(--jx-font);
   color: var(--color-text-primary);
 }
@@ -1243,11 +1278,6 @@ body::before {
   border-top: 1px solid var(--color-border);
   flex-wrap: wrap;
 }
-/* trust strip: shown only in the footer on mobile (hidden on desktop, where
-   the full card lives in the rail). !important is required because the badge
-   sets an inline `display:flex`, which would otherwise win over this rule and
-   leave the strip showing on desktop (inflating the footer and pushing the
-   action buttons out of view). */
 .jx-foot-badge {
   display: none !important;
 }
@@ -1259,13 +1289,377 @@ body::before {
     border-left: none;
     border-top: 1px solid var(--color-border);
   }
-  /* on phones, drop the big rail card and pin the compact strip by the buttons */
   .jx-rail-badge {
     display: none !important;
   }
   .jx-foot-badge {
     display: flex !important;
     margin-bottom: var(--space-2);
+  }
+}
+
+/* =====================================================================
+   Log Trade sheet — exchange-style "deposit" look (scoped to --sheet so
+   the shared rail/grid modals, details & chart, are untouched).
+   Full-screen on mobile, bottom sheet on desktop, one scrolling column,
+   account-to-credit card, large rounded input cards, fixed bottom CTA
+   with the live trader strip pinned above it on every screen size.
+   ===================================================================== */
+/* the sheet overlay is a full dynamic-viewport, bottom-anchored flex box so
+   the sheet's bottom edge always lands on the *visible* viewport bottom (dvh),
+   never behind browser UI — which is what was clipping the footer/CTA. */
+.jx-modal-overlay--sheet {
+  align-items: flex-end !important;
+  justify-content: center;
+  padding: 0 !important;
+  top: 0;
+  bottom: auto;
+  height: 100vh;
+  height: 100dvh;
+}
+.jx-ltmodal--sheet {
+  position: relative;
+  width: min(560px, 100vw);
+  height: auto;
+  max-height: 90vh;
+  max-height: 90dvh;
+  border-radius: 22px 22px 0 0;
+  background: var(--color-bg-canvas);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+[data-theme="dark"] .jx-ltmodal--sheet {
+  background: #0b0b0d;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.jx-ltmodal--sheet .jx-ltmodal__header {
+  border-bottom: none;
+  padding: var(--space-4) var(--space-5) var(--space-2);
+}
+.jx-ltmodal--sheet .jx-ltmodal__body {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: var(--space-1);
+}
+.jx-ltmodal--sheet .jx-ltmodal__form {
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5) var(--space-6);
+}
+.jx-ltmodal--sheet .jx-ltmodal__footer {
+  flex-shrink: 0;
+  padding: var(--space-4) var(--space-5)
+    calc(var(--space-4) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+  background: inherit;
+}
+.jx-ltmodal--sheet .jx-foot-badge {
+  display: flex !important;
+  margin-bottom: var(--space-1);
+}
+
+/* labels sit above each card, small and muted (reference style) */
+.jx-ltmodal--sheet .jx-field__label {
+  font: var(--text-small);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+/* inputs become big rounded cards on an elevated surface */
+.jx-ltmodal--sheet .jx-input {
+  height: 54px;
+  border-radius: var(--radius-lg);
+  padding: 0 12px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+}
+/* profit / loss sign toggle inside the Net P&L input */
+.jx-pnl-sign {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  font: 700 18px/1 var(--jx-font);
+  background: var(--color-success-subtle);
+  color: var(--color-success-strong);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.jx-pnl-sign[data-neg="1"] {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger-strong);
+}
+
+/* chips/badges: filled grey, no border (Recent, quick-fill, +Custom) */
+.jx-ltmodal--sheet .jx-chip {
+  border-color: transparent;
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+}
+.jx-ltmodal--sheet .jx-chip--selected {
+  background: var(--color-primary);
+  border-color: transparent;
+  color: var(--color-primary-foreground);
+}
+.jx-ltmodal--sheet .jx-input:hover {
+  border-color: var(--color-border-strong);
+}
+.jx-ltmodal--sheet .jx-input:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+.jx-ltmodal--sheet .jx-input input,
+.jx-ltmodal--sheet .jx-input select {
+  font: var(--text-body-lg);
+  /* kill the global input{padding:16px} leak → the .jx-input card already
+     provides the horizontal padding (no more double padding) */
+  padding: 0;
+}
+
+/* flatten the grouped "container" cards → clean labelled sections separated
+   by hairline dividers (no bulky grey boxes). Each section reads as an
+   upper-case label + its fields; a thin rule sits between sections. */
+.jx-ltmodal--sheet .jx-ltgroup {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  gap: var(--space-3);
+}
+/* divider + breathing room between consecutive sections */
+.jx-ltmodal--sheet .jx-ltgroup + .jx-ltgroup {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+.jx-ltmodal--sheet .jx-sect__icon {
+  display: none;
+}
+.jx-ltmodal--sheet .jx-sect__title {
+  font: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+/* drop the right-side section hint blurbs ("Just the outcome", "Optional …")
+   across every section — cleaner, less clutter */
+.jx-ltmodal--sheet .jx-sect__hint {
+  display: none;
+}
+
+/* symbol input with Long/Short sitting to its right */
+.jx-asset-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+.jx-asset-row__sym {
+  flex: 1 1 150px;
+  min-width: 0;
+  display: flex;
+}
+.jx-asset-row__sym .jx-input {
+  flex: 1;
+  width: 100%;
+}
+/* Long/Short reduced to icon-only squares beside the symbol input */
+.jx-asset-row .jx-dirbig {
+  flex: 0 0 auto;
+  gap: var(--space-2);
+  grid-template-columns: auto auto;
+}
+.jx-asset-row .jx-dirbig__btn {
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+}
+.jx-asset-row .jx-dirbig__icon {
+  width: 30px;
+  height: 30px;
+  margin: 0;
+}
+.jx-asset-row .jx-dirbig__title,
+.jx-asset-row .jx-dirbig__sub {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .jx-ltmodal--sheet .jx-chip:hover {
+    border-color: transparent;
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+  }
+  .jx-ltmodal--sheet .jx-chip--selected:hover {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+}
+
+/* ----- Journal switch pill (in the sheet header) ----- */
+.jx-journal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 190px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.jx-journal-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+}
+.jx-journal-pill:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.jx-journal-pill__name {
+  font: var(--text-body-md);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ----- In-modal account switch sheet ----- */
+.jx-acct-switch {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  border-radius: inherit;
+}
+.jx-acct-switch__panel {
+  width: 100%;
+  max-height: 82%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5)
+    calc(var(--space-5) + env(safe-area-inset-bottom));
+  background: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.5);
+}
+.jx-acct-switch__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.jx-acct-switch__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+.jx-acct-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.jx-acct-row:hover {
+  border-color: var(--color-border-strong);
+}
+.jx-acct-row--on {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg-elevated));
+}
+.jx-acct-row__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-muted);
+}
+.jx-acct-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.jx-acct-row__name {
+  font: var(--text-body-md);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jx-acct-row__cur {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+.jx-acct-row__bal {
+  font: var(--text-body-md);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+.jx-acct-switch__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: var(--space-1);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--text-body-md);
+  cursor: pointer;
+}
+.jx-acct-switch__add:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ----- Full-screen on mobile ----- */
+@media (max-width: 640px) {
+  .jx-ltmodal--sheet {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .jx-ltmodal--sheet .jx-lt-grab {
+    display: none;
   }
 }
 /* Responsive label helpers — show full text on desktop, short on mobile */
@@ -1509,29 +1903,48 @@ body::before {
   padding: 2px 4px;
 }
 .jx-cal__cell {
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-muted);
-  min-height: 52px;
-  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  min-height: 56px;
+  padding: 7px 9px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   font: var(--text-caption);
+  color: var(--color-text-secondary);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+/* empty (no-trade) days sit quieter than active ones */
+.jx-cal__cell:not(.jx-cal__cell--win):not(.jx-cal__cell--loss) {
+  background: color-mix(in srgb, var(--color-bg-elevated) 55%, transparent);
+  border-color: color-mix(in srgb, var(--color-border) 55%, transparent);
   color: var(--color-text-muted);
 }
+.jx-cal__cell:hover {
+  border-color: var(--color-border-strong);
+}
 .jx-cal__cell--win {
-  background: var(--color-success-subtle);
+  background: color-mix(in srgb, var(--color-success) 14%, var(--color-bg-elevated));
+  border-color: color-mix(in srgb, var(--color-success) 32%, transparent);
+}
+.jx-cal__cell--win:hover {
+  border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
 }
 .jx-cal__cell--loss {
-  background: var(--color-danger-subtle);
+  background: color-mix(in srgb, var(--color-danger) 14%, var(--color-bg-elevated));
+  border-color: color-mix(in srgb, var(--color-danger) 32%, transparent);
+}
+.jx-cal__cell--loss:hover {
+  border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
 }
 .jx-cal__pnl--win {
   color: var(--color-success-strong);
-  font-weight: 600;
+  font-weight: 700;
 }
 .jx-cal__pnl--loss {
   color: var(--color-danger-strong);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ================= Dropdown (Figma "Dropdowns & Filters") ================= */
@@ -1892,11 +2305,8 @@ body::before {
     padding: var(--space-4);
     gap: var(--space-4);
   }
-  .jx-ltmodal__rail {
-    padding: var(--space-4);
-  }
   .jx-ltmodal__footer {
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
   }
   .jx-ltmodal__footer .jx-btn {
     flex: 1;

@@ -44,7 +44,7 @@ export default function ContactUs() {
 
       <div
         style={{
-          background: "#0d1117",
+          background: "#000",
           color: "#fff",
           fontFamily: "Poppins, sans-serif",
           minHeight: "100vh",

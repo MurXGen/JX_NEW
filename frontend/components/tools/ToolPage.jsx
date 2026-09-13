@@ -11,7 +11,7 @@ import { LandingNav, LandingFooter, btnPrimary } from "@/components/landingPage/
 
 const SITE_URL = "https://journalx.app";
 export const TC = {
-  text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#0d1117",
+  text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#000",
   surface: "#161a20", border: "rgba(255,255,255,0.1)", yellow: "#fcd535",
   yellowDeep: "#f0b90b", green: "#2ebd85", red: "#f6465d",
 };
@@ -118,7 +118,7 @@ export default function ToolPage({ slug, title, description, keywords = [], h1, 
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
-        <meta name="theme-color" content="#0d1117" />
+        <meta name="theme-color" content="#000000" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />

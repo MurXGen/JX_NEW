@@ -37,7 +37,7 @@ const DESC =
   "Explore every JournalX feature: 10-second trade logging, auto-import, equity-curve and R-multiple analytics, drawdown & consistency tracking for funded/prop accounts, trading-psychology scoring, a P&L calendar, mark-on-chart logging and a fast mobile app. Works on desktop and mobile across forex, futures, stocks, options and crypto.";
 
 const C = {
-  text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#0d1117",
+  text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#000",
   surface: "#161a20", border: "rgba(255,255,255,0.1)", yellow: "#fcd535", yellowDeep: "#f0b90b", green: "#2ebd85",
 };
 
@@ -130,7 +130,7 @@ export default function FeaturesPage() {
         <meta name="twitter:title" content={TITLE} />
         <meta name="twitter:description" content={DESC} />
         <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
-        <meta name="theme-color" content="#0d1117" />
+        <meta name="theme-color" content="#000000" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       </Head>

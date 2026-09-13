@@ -492,7 +492,7 @@ export default function TradeLogForm({ onSubmit }) {
                 }}
               >
                 {estPnl == null
-                  ? ", "
+                  ? "—"
                   : `${estPnl >= 0 ? "+" : "−"}${Math.abs(estPnl).toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
               </strong>
             </span>

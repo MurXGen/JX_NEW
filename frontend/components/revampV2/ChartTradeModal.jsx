@@ -379,8 +379,8 @@ export default function ChartTradeModal({ open, onClose, onSaved, annotateMode =
                   <div ref={wrapRef} style={{ width: "100%" }} />
                 </div>
                 <div style={{ display: "flex", gap: "var(--space-4)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                  <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry ? `$${fmt(entry.price)}` : ", "}</strong></span>
-                  <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit ? `$${fmt(exit.price)}` : ", "}</strong></span>
+                  <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry ? `$${fmt(entry.price)}` : "—"}</strong></span>
+                  <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit ? `$${fmt(exit.price)}` : "—"}</strong></span>
                 </div>
               </div>
 

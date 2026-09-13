@@ -25,7 +25,7 @@ import Testimonials from "@/components/landingPage/Testimonials";
 
 const SITE_URL = "https://journalx.app";
 const C = {
-  text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#0d1117",
+  text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#000",
   surface: "#161a20", border: "rgba(255,255,255,0.1)", yellow: "#fcd535", yellowDeep: "#f0b90b", green: "#2ebd85",
 };
 const EXTRA_ICONS = { shield: ShieldCheck, clock: Clock, candles: CandlestickChart, calendar: CalendarDays, target: Target };
@@ -92,7 +92,7 @@ export default function MarketLanding({ cfg }) {
         <meta name="twitter:title" content={cfg.title} />
         <meta name="twitter:description" content={cfg.description} />
         <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
-        <meta name="theme-color" content="#0d1117" />
+        <meta name="theme-color" content="#000000" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />

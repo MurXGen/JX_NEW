@@ -24,7 +24,7 @@ export default function LegalLayout({ title, path, description, updated, intro, 
         <meta property="og:type" content="website" />
       </Head>
 
-      <div style={{ background: "#0d1117", color: "#fff", fontFamily: "Poppins, sans-serif", minHeight: "100vh" }}>
+      <div style={{ background: "#000", color: "#fff", fontFamily: "Poppins, sans-serif", minHeight: "100vh" }}>
         <LandingNav />
 
         <main style={{ maxWidth: 880, margin: "0 auto", padding: "56px 20px 96px" }}>

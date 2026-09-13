@@ -55,7 +55,7 @@ const buildStats = (list) => {
 const bySymbol = (list) => {
   const m = new Map();
   list.forEach((t) => {
-    const s = t.symbol || t.ticker || ", ";
+    const s = t.symbol || t.ticker || "—";
     if (!m.has(s)) m.set(s, { pnl: 0, n: 0, w: 0 });
     const e = m.get(s);
     e.pnl += Number(t.pnl) || 0;

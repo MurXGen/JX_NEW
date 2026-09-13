@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -16,10 +17,8 @@ import {
   ExternalLink,
   Flame,
   Image as ImageIcon,
-  Lightbulb,
   LineChart,
   Mic,
-  MoreVertical,
   Pencil,
   Plus,
   Star,
@@ -27,6 +26,7 @@ import {
   TrendingDown,
   TrendingUp,
   Upload,
+  Wallet,
   X,
   Zap,
 } from "lucide-react";
@@ -629,6 +629,9 @@ export default function LogTradeModal({
   currentAccountId = null,
   currencySymbol,
   onNoJournal,
+  accounts = [],
+  currentBalances = {},
+  accountSymbols = {},
 }) {
   const isEdit = !!initialTrade?._id;
   // Currency the user is logging in, prefer the prop from the dashboard,
@@ -665,6 +668,41 @@ export default function LogTradeModal({
   const [customStrategies, setCustomStrategies] = useState([]);
   const [customEmotions, setCustomEmotions] = useState([]);
   const [maxImages, setMaxImages] = useState(MAX_IMAGES); // plan-gated per-trade cap
+  // portal target guard (SSR-safe): only render into <body> on the client so
+  // the fixed overlay escapes any transformed ancestor and truly anchors to
+  // the viewport (otherwise the bottom sheet / CTA can fall below the fold).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  /* ---- which journal this trade logs into (switchable in-modal) ---- */
+  const [activeAccountId, setActiveAccountId] = useState(currentAccountId);
+  const [showAcctSwitch, setShowAcctSwitch] = useState(false);
+  // keep the in-modal selection in sync with the dashboard's active journal
+  // whenever the modal (re)opens or the dashboard switches underneath it.
+  useEffect(() => {
+    if (open) setActiveAccountId(currentAccountId);
+  }, [open, currentAccountId]);
+  const activeAccount = useMemo(
+    () =>
+      accounts.find((a) => a._id === activeAccountId) ||
+      accounts.find((a) => a._id === currentAccountId) ||
+      accounts[0] ||
+      null,
+    [accounts, activeAccountId, currentAccountId],
+  );
+  const acctSym = (acc) =>
+    acc ? (accountSymbols[acc.name] ?? acc.currency ?? sym) : sym;
+  const acctBalance = (acc) => (acc ? (currentBalances[acc.name] ?? 0) : 0);
+  const chooseAccount = (acc) => {
+    if (!acc) return;
+    setActiveAccountId(acc._id);
+    Cookies.set("accountId", acc._id, { expires: 365 });
+    try {
+      localStorage.setItem("jx-account-id", acc._id);
+    } catch {}
+    setShowAcctSwitch(false);
+  };
+
   const fileRef = useRef(null);
   const baselineRef = useRef(null); // form snapshot at open → "unsaved changes"
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -958,6 +996,18 @@ export default function LogTradeModal({
   const quickPnl = form.logMethod === "pnl" ? num(form.netPnl) : calc.pnl;
   const quickOutcome = quickPnl == null ? null : quickPnl >= 0 ? "Win" : "Loss";
 
+  /* net-P&L sign toggle (profit / loss) shown inside the input.
+     Flips the sign of the entered amount — type/tap a number, tap to mark a loss. */
+  const pnlNeg = (() => {
+    const n = num(form.netPnl);
+    return n != null && n < 0;
+  })();
+  const flipPnlSign = () => {
+    const n = Number(String(form.netPnl ?? "").trim());
+    if (!Number.isFinite(n) || n === 0) return;
+    set("netPnl", String(-n));
+  };
+
   /* ---------- images ---------- */
   const totalBytes = form.screenshots.reduce(
     (s, i) => s + (i.file?.size || 0),
@@ -1001,6 +1051,7 @@ export default function LogTradeModal({
     // Prefer the journal the dashboard is currently showing, then the cookie,
     // then the durable localStorage copy.
     const accountId =
+      activeAccountId ||
       currentAccountId ||
       Cookies.get("accountId") ||
       (typeof window !== "undefined" && localStorage.getItem("jx-account-id"));
@@ -1257,23 +1308,20 @@ export default function LogTradeModal({
   const isQuick = mode === "quick";
 
   /* ---------- shared blocks ---------- */
-  const symbolBlock = (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--space-2)",
-      }}
-    >
-      {/* plain symbol input (matches the quick modal), type it, or tap a
-          recent one from the single scrollable row below */}
-      <div className="jx-input">
-        <input
-          placeholder="Symbol (e.g. BTC)"
-          value={form.symbol}
-          onChange={(e) => set("symbol", e.target.value.toUpperCase())}
-        />
-      </div>
+  // just the symbol text input (so Long/Short can sit beside it)
+  const symbolInputBlock = (
+    <div className="jx-input">
+      <input
+        placeholder="Symbol (e.g. BTC)"
+        value={form.symbol}
+        onChange={(e) => set("symbol", e.target.value.toUpperCase())}
+      />
+    </div>
+  );
+
+  // the scrollable "Recent" symbols row (rendered under the asset row)
+  const symbolRecentBlock = (
+    <>
       {symbols.length > 0 && (
         <div
           style={{
@@ -1307,7 +1355,7 @@ export default function LogTradeModal({
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 
   const directionBlock = (
@@ -1333,6 +1381,9 @@ export default function LogTradeModal({
         <button
           key={dir}
           type="button"
+          title={title}
+          aria-label={title}
+          aria-pressed={form.direction === dir}
           className={`jx-dirbig__btn ${form.direction === dir ? `jx-dirbig__btn--${activeCls}` : ""}`}
           onClick={() => set("direction", dir)}
         >
@@ -1480,28 +1531,34 @@ export default function LogTradeModal({
     </div>
   );
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="jx-modal-overlay jx-modal-overlay--blur"
+          className="jx-modal-overlay jx-modal-overlay--blur jx-modal-overlay--sheet"
+          style={{ alignItems: "flex-end", justifyContent: "center", padding: 0 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.2 }}
           onMouseDown={(e) =>
             e.target === e.currentTarget && !saving && onClose?.()
           }
         >
           <Toast toast={toast} />
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 10 }}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="jx-ltmodal"
-            style={{ width: "min(960px, 96vw)" }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 34 }}
+            className="jx-ltmodal jx-ltmodal--sheet"
           >
+            {/* grab handle */}
+            <div className="jx-lt-grab" aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px" }}>
+              <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
+            </div>
             {/* ===== Header (fixed across modes) ===== */}
             <div
               className="jx-ltmodal__header"
@@ -1536,16 +1593,34 @@ export default function LogTradeModal({
                       : "Full trade, entry, exit & size."}
                   </span>
                 </div>
-                <button
-                  className="jx-btn jx-btn--secondary jx-btn--sm"
-                  onClick={onClose}
-                  aria-label="Close"
-                  style={{ padding: 8, flexShrink: 0 }}
-                  disabled={saving}
-                >
-                  <X size={16} />
-                </button>
+                <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+                  {activeAccount && (
+                    <button
+                      className="jx-journal-pill"
+                      onClick={() => setShowAcctSwitch(true)}
+                      aria-label={`Logging to ${activeAccount.name}. Switch journal`}
+                      title="Switch journal"
+                      disabled={saving}
+                    >
+                      <ArrowRightLeft size={14} />
+                      <span className="jx-journal-pill__name">
+                        {activeAccount.name}
+                      </span>
+                      <ChevronDown size={13} style={{ opacity: 0.7, flexShrink: 0 }} />
+                    </button>
+                  )}
+                  <button
+                    className="jx-btn jx-btn--secondary jx-btn--sm"
+                    onClick={onClose}
+                    aria-label="Close"
+                    style={{ padding: 8 }}
+                    disabled={saving}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
+
               {/* full-width mode tabs */}
               <Seg
                 items={[
@@ -1564,7 +1639,7 @@ export default function LogTradeModal({
             </div>
 
             {/* ===== Body, same frame, content cross-fades ===== */}
-            <div className="jx-ltmodal__body" style={{ minHeight: 480 }}>
+            <div className="jx-ltmodal__body">
               <div className="jx-ltmodal__form">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -1581,8 +1656,13 @@ export default function LogTradeModal({
                   >
                     <div className="jx-ltgroup">
                       <Sect icon={CandlestickChart} title="Asset & direction" />
-                      {symbolBlock}
-                      {directionBlock}
+                      <div className="jx-asset-row">
+                        <div className="jx-asset-row__sym">
+                          {symbolInputBlock}
+                        </div>
+                        {directionBlock}
+                      </div>
+                      {symbolRecentBlock}
                     </div>
 
                     {/* ===== Log on chart (detailed only) ===== */}
@@ -1692,13 +1772,23 @@ export default function LogTradeModal({
                         {/* ===== QUICK, symbol + direction (above) + P&L only ===== */}
                         <div className="jx-ltgroup">
                           <Sect icon={Zap} title="Result" hint="Just the outcome" />
-                          <Field label={`Net P&L in ${sym} (use − for a loss)`}>
+                          <Field label={`Net P&L in ${sym}`}>
                             <div className="jx-input">
+                              <button
+                                type="button"
+                                onClick={flipPnlSign}
+                                aria-label={pnlNeg ? "Loss — tap to mark as profit" : "Profit — tap to mark as loss"}
+                                title="Toggle profit / loss"
+                                className="jx-pnl-sign"
+                                data-neg={pnlNeg ? "1" : "0"}
+                              >
+                                {pnlNeg ? "−" : "+"}
+                              </button>
                               <span className="jx-input__icon" style={{ fontWeight: 700 }}>{sym}</span>
                               <input
                                 type="number"
                                 step="any"
-                                placeholder="e.g. 1290 or -340"
+                                placeholder="e.g. 1290"
                                 value={form.netPnl}
                                 onChange={(e) => set("netPnl", e.target.value)}
                               />
@@ -1740,30 +1830,39 @@ export default function LogTradeModal({
                           )}
                         </div>
 
-                        {/* voice note, available directly in Only P&L too */}
+                        {/* ===== Duration (optional) — date & time default to now ===== */}
                         <div className="jx-ltgroup">
-                          <Sect icon={Mic} title="Voice note" hint="Talk it out · auto-transcribed to notes" />
-                          <VoiceNoteRecorder
-                            dashed
-                            onChange={setVoice}
-                            existingUrl={initialTrade?.voiceNote?.url || ""}
-                          />
+                          <Sect icon={Clock} title="Duration" hint="Optional · date & time default to now" />
+                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            {[["15m", "min", "15"], ["30m", "min", "30"], ["1h", "hour", "1"], ["4h", "hour", "4"], ["1d", "hour", "24"]].map(([lbl, unit, val]) => {
+                              const active = form.useDuration && form.durationUnit === unit && String(form.durationVal) === val;
+                              return (
+                                <button
+                                  key={lbl}
+                                  type="button"
+                                  onClick={() => { set("useDuration", true); set("durationUnit", unit); set("durationVal", val); }}
+                                  style={{ font: "600 13px Poppins", padding: "8px 15px", borderRadius: 999, cursor: "pointer", border: "none", background: active ? "var(--color-primary)" : "var(--color-bg-muted)", color: active ? "var(--color-primary-foreground)" : "var(--color-text-secondary)", transition: ".15s" }}
+                                >
+                                  {lbl}
+                                </button>
+                              );
+                            })}
+                            {form.useDuration && (
+                              <button type="button" onClick={() => { set("useDuration", false); set("durationVal", ""); }} style={{ font: "600 13px Poppins", padding: "8px 14px", borderRadius: 999, cursor: "pointer", border: "none", background: "var(--color-bg-muted)", color: "var(--color-text-muted)" }}>
+                                Clear
+                              </button>
+                            )}
+                          </div>
                         </div>
 
-                        {/* screenshots, now a first-class section (out of the accordion) */}
-                        <div className="jx-ltgroup">
-                          <Sect icon={ImageIcon} title="Screenshots" hint="Attach chart snaps · optional" />
-                          {screenshotsBlock}
-                        </div>
-
-                        {/* Accordion: optional date & note */}
+                        {/* Accordion: everything else, collapsed */}
                         <button
                           type="button"
                           className="jx-ltmore"
                           onClick={() => setShowMore((v) => !v)}
                           aria-expanded={showMore}
                         >
-                          <span>{showMore ? "Hide extra details" : "Add more details (date, note)"}</span>
+                          <span>{showMore ? "Hide extra details" : "Add note, voice, screenshots & date"}</span>
                           <ChevronDown
                             size={18}
                             style={{ transition: "transform .2s ease", transform: showMore ? "rotate(180deg)" : "none" }}
@@ -1797,6 +1896,16 @@ export default function LogTradeModal({
                                     />
                                   </div>
                                 </Field>
+                              </div>
+
+                              <div className="jx-ltgroup">
+                                <Sect icon={Mic} title="Voice note" hint="Talk it out · auto-transcribed" />
+                                <VoiceNoteRecorder dashed onChange={setVoice} existingUrl={initialTrade?.voiceNote?.url || ""} />
+                              </div>
+
+                              <div className="jx-ltgroup">
+                                <Sect icon={ImageIcon} title="Screenshots" hint="Attach chart snaps · optional" />
+                                {screenshotsBlock}
                               </div>
                             </motion.div>
                           )}
@@ -2500,156 +2609,6 @@ export default function LogTradeModal({
                 </AnimatePresence>
               </div>
 
-              {/* ===== Right rail (both modes, keeps size identical) ===== */}
-              <div className="jx-ltmodal__rail">
-                <span
-                  style={{
-                    font: "var(--text-label)",
-                    letterSpacing: "0.6px",
-                    textTransform: "uppercase",
-                    color: "var(--color-text-muted)",
-                  }}
-                >
-                  Live preview
-                </span>
-                <div
-                  className="jx-card jx-card--flat"
-                  style={{
-                    padding: "var(--space-4)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "var(--space-2)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "var(--space-2)",
-                    }}
-                  >
-                    <span style={{ font: "var(--text-title)" }}>
-                      {form.symbol || ", "}
-                    </span>
-                    <span
-                      className={`jx-badge ${form.direction === "long" ? "jx-badge--success" : "jx-badge--danger"}`}
-                    >
-                      {form.direction === "long" ? "Long" : "Short"}
-                    </span>
-                    <span
-                      style={{
-                        marginLeft: "auto",
-                        color: "var(--color-text-muted)",
-                        display: "flex",
-                      }}
-                    >
-                      <MoreVertical size={15} />
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(4, auto)",
-                      gap: "var(--space-2)",
-                      font: "var(--text-caption)",
-                      color: "var(--color-text-muted)",
-                    }}
-                  >
-                    <span>Entry</span>
-                    <span>Exit</span>
-                    <span>Size</span>
-                    <span>R : R</span>
-                    <span
-                      style={{
-                        color: "var(--color-text-primary)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {form.entry ? `${sym}${fmt(form.entry)}` : ", "}
-                    </span>
-                    <span
-                      style={{
-                        color: "var(--color-text-primary)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {form.exit ? `${sym}${fmt(form.exit)}` : ", "}
-                    </span>
-                    <span
-                      style={{
-                        color: "var(--color-text-primary)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {form.size
-                        ? form.sizeUnit === "usd"
-                          ? `${sym}${fmt(form.size)}`
-                          : fmt(form.size)
-                        : ", "}
-                    </span>
-                    <span
-                      style={{
-                        color: "var(--color-text-primary)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {calc.plannedRR ? `1 : ${fmt(calc.plannedRR, 1)}` : ", "}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "var(--space-2)",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <span
-                      style={{
-                        font: "var(--text-title)",
-                        color:
-                          (isQuick ? quickPnl : calc.pnl) == null
-                            ? "var(--color-text-muted)"
-                            : (isQuick ? quickPnl : calc.pnl) >= 0
-                              ? "var(--color-success-strong)"
-                              : "var(--color-danger-strong)",
-                      }}
-                    >
-                      {(isQuick ? quickPnl : calc.pnl) == null
-                        ? "P&L, "
-                        : fmtMoney(isQuick ? quickPnl : calc.pnl, sym)}
-                    </span>
-                    {form.screenshots.length > 0 && (
-                      <span className="jx-badge jx-badge--neutral">
-                        <ImageIcon size={11} /> {form.screenshots.length}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* social proof, why traders trust JournalX. On mobile this
-                    full card is hidden; a compact strip is pinned in the footer
-                    instead (so it's visible without scrolling the rail). */}
-                <TradersTodayBadge className="jx-rail-badge" />
-
-                <div
-                  className="jx-banner jx-banner--warn"
-                  style={{ alignItems: "flex-start" }}
-                >
-                  <Lightbulb
-                    size={15}
-                    style={{
-                      color: "var(--yellow-500)",
-                      flexShrink: 0,
-                      marginTop: 2,
-                    }}
-                  />
-                  <span style={{ font: "var(--text-caption)" }}>
-                    Traders who log their emotions cut tilt-driven losses by
-                    ~30%.
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* ===== Footer ===== */}
@@ -2657,20 +2616,8 @@ export default function LogTradeModal({
               className="jx-ltmodal__footer"
               style={{ flexDirection: "column", alignItems: "stretch" }}
             >
-              {/* mobile-only: pin the trust strip right above the action buttons */}
+              {/* live trader-count strip pinned right above the action buttons */}
               <TradersTodayBadge variant="strip" className="jx-foot-badge" />
-              <span
-                style={{
-                  font: "var(--text-small)",
-                  color: "var(--color-text-muted)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <Zap size={14} style={{ color: "var(--yellow-500)" }} />
-                {isQuick ? <>Quick log</> : <>Detailed log</>}
-              </span>
               <div
                 style={{
                   display: "flex",
@@ -2707,9 +2654,109 @@ export default function LogTradeModal({
                 </button>
               </div>
             </div>
+
+            {/* ===== In-modal account switch sheet ===== */}
+            <AnimatePresence>
+              {showAcctSwitch && (
+                <motion.div
+                  className="jx-acct-switch"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  onMouseDown={(e) =>
+                    e.target === e.currentTarget && setShowAcctSwitch(false)
+                  }
+                >
+                  <motion.div
+                    className="jx-acct-switch__panel"
+                    initial={{ y: 24, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 24, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 32 }}
+                  >
+                    <div className="jx-acct-switch__head">
+                      <span style={{ font: "var(--text-h3)" }}>
+                        Switch journal
+                      </span>
+                      <button
+                        className="jx-btn jx-btn--secondary jx-btn--sm"
+                        onClick={() => setShowAcctSwitch(false)}
+                        aria-label="Close"
+                        style={{ padding: 8 }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                    <span
+                      style={{
+                        font: "var(--text-small)",
+                        color: "var(--color-text-muted)",
+                      }}
+                    >
+                      Pick which journal this trade logs into.
+                    </span>
+                    <div className="jx-acct-switch__list">
+                      {accounts.map((acc) => {
+                        const on = acc._id === activeAccountId;
+                        return (
+                          <button
+                            key={acc._id}
+                            type="button"
+                            className={`jx-acct-row ${on ? "jx-acct-row--on" : ""}`}
+                            onClick={() => chooseAccount(acc)}
+                          >
+                            <span className="jx-acct-row__icon">
+                              <Wallet size={16} />
+                            </span>
+                            <span className="jx-acct-row__main">
+                              <span className="jx-acct-row__name">
+                                {acc.name}
+                              </span>
+                              <span className="jx-acct-row__cur">
+                                {(acc.currency || "").toUpperCase()}
+                              </span>
+                            </span>
+                            <span className="jx-acct-row__bal">
+                              {acctSym(acc)}
+                              {acctBalance(acc).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </span>
+                            {on && (
+                              <Check
+                                size={16}
+                                style={{
+                                  color: "var(--color-primary)",
+                                  flexShrink: 0,
+                                }}
+                              />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      className="jx-acct-switch__add"
+                      onClick={() => {
+                        setShowAcctSwitch(false);
+                        onNoJournal
+                          ? onNoJournal()
+                          : (window.location.href = "/create-account");
+                      }}
+                    >
+                      <Plus size={15} /> Create new journal
+                    </button>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
