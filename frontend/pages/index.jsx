@@ -79,7 +79,7 @@ import {
 } from "@/utils/plans";
 
 const SITE_URL = "https://journalx.app";
-const TITLE = "JournalX, Trading Journal for Funded & Prop Firm Traders";
+const TITLE = "JournalX - Trading Journal for Funded & Prop Firm Traders";
 const DESC =
   "Advanced trading journal for funded & prop firm traders. Deep analytics on win rate, risk, drawdown & psychology across forex, futures, stocks & crypto. Start free, no card.";
 
@@ -94,31 +94,51 @@ const C = {
   yellowDeep: "#f0b90b",
   green: "#2ebd85",
   red: "#f6465d",
+  // silver / platinum accents — used for decorative UI (icons, chips, step
+  // numbers, stats). Gold stays reserved for the primary CTAs only.
+  silver: "#c7ccd4",
+  silverBright: "#eaecef",
+  silverDeep: "#8b929c",
+};
+/* metallic silver gradient for large numerals */
+const silverText = {
+  background: "linear-gradient(180deg, #f2f4f6, #b9bec7 55%, #8b929c)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  color: "transparent",
+};
+/* faint masked line-grid — apply behind select sections only, stays subtle */
+const gridBg = {
+  position: "absolute",
+  inset: 0,
+  pointerEvents: "none",
+  zIndex: 0,
+  backgroundImage:
+    "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
+  backgroundSize: "56px 56px",
+  maskImage: "radial-gradient(80% 60% at 50% 40%, #000 30%, transparent 78%)",
+  WebkitMaskImage: "radial-gradient(80% 60% at 50% 40%, #000 30%, transparent 78%)",
 };
 
-/* Shared glassmorphic surface */
+/* Shared card surface — flat bento look (matches BentoGrid .bd-card) */
 const glass = {
-  background: "rgba(22,26,32,0.55)",
-  border: `1px solid ${C.border}`,
-  backdropFilter: "blur(14px)",
-  WebkitBackdropFilter: "blur(14px)",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
+  background: "#0d0d0d",
+  border: "1px solid #1c1c1c",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 const glassDeep = {
-  background: "rgba(13,17,23,0.6)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  backdropFilter: "blur(10px)",
-  WebkitBackdropFilter: "blur(10px)",
+  background: "#111",
+  border: "1px solid #1c1c1c",
 };
 
 /* ===== Aurora gradient backdrop =====
    Low-alpha yellow/green/red blobs drifting slowly behind the whole page.
    Transform-only animation (cheap); static when reduced motion is on. */
 const AURORA = [
-  { top: -220, left: -140, size: 620, color: "rgba(252,213,53,0.13)", dur: 19, dx: 70, dy: 50 },
-  { top: "26%", right: -240, size: 680, color: "rgba(46,189,133,0.11)", dur: 24, dx: -60, dy: 70 },
-  { top: "58%", left: -200, size: 560, color: "rgba(246,70,93,0.085)", dur: 28, dx: 80, dy: -60 },
-  { bottom: -260, right: "8%", size: 640, color: "rgba(240,185,11,0.09)", dur: 23, dx: -70, dy: -50 },
+  { top: -220, left: -140, size: 620, color: "rgba(199,204,212,0.06)", dur: 19, dx: 70, dy: 50 },
+  { top: "26%", right: -240, size: 680, color: "rgba(46,189,133,0.07)", dur: 24, dx: -60, dy: 70 },
+  { top: "58%", left: -200, size: 560, color: "rgba(246,70,93,0.055)", dur: 28, dx: 80, dy: -60 },
+  { bottom: -260, right: "8%", size: 640, color: "rgba(199,204,212,0.05)", dur: 23, dx: -70, dy: -50 },
 ];
 
 function AuroraBackdrop() {
@@ -794,16 +814,121 @@ function JournalMock() {
   );
 }
 
+/* ===== Feature card illustrations =====
+   Subtle silver line-art, positioned absolutely in each card's top-right
+   corner. Semantic green/red only on the candles. Gentle looping animation,
+   frozen under prefers-reduced-motion. */
+const ART_STROKE = "rgba(255,255,255,0.5)";
+const ART_FAINT = "rgba(255,255,255,0.16)";
+function FeatureArt({ id }) {
+  const s = ART_STROKE, f = ART_FAINT;
+  const common = { fill: "none", stroke: s, strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" };
+  let art = null;
+  if (id === "log") {
+    art = (
+      <g>
+        <rect x="20" y="16" width="80" height="88" rx="12" stroke={f} fill="none" strokeWidth="2" />
+        <line x1="34" y1="40" x2="72" y2="40" {...common} className="fa-row" style={{ animationDelay: "0s" }} />
+        <line x1="34" y1="56" x2="86" y2="56" {...common} className="fa-row" style={{ animationDelay: ".25s" }} />
+        <line x1="34" y1="72" x2="60" y2="72" {...common} className="fa-row" style={{ animationDelay: ".5s" }} />
+        <path d="M78 74 l10 0 l-4 10 l10 0 l-14 16 l4 -14 l-8 0 z" fill={s} stroke="none" className="fa-bolt" />
+      </g>
+    );
+  } else if (id === "analytics") {
+    art = (
+      <g>
+        <line x1="18" y1="102" x2="104" y2="102" stroke={f} strokeWidth="2" />
+        <rect x="26" y="70" width="14" height="32" rx="3" {...common} className="fa-bar" style={{ animationDelay: "0s" }} />
+        <rect x="48" y="54" width="14" height="48" rx="3" {...common} className="fa-bar" style={{ animationDelay: ".15s" }} />
+        <rect x="70" y="60" width="14" height="42" rx="3" {...common} className="fa-bar" style={{ animationDelay: ".3s" }} />
+        <rect x="92" y="34" width="14" height="68" rx="3" {...common} className="fa-bar" style={{ animationDelay: ".45s" }} />
+        <path d="M28 66 L55 50 L77 56 L99 30" {...common} strokeWidth="2.2" className="fa-draw" />
+      </g>
+    );
+  } else if (id === "psychology") {
+    art = (
+      <g>
+        <circle cx="60" cy="60" r="34" stroke={f} strokeWidth="8" fill="none" />
+        <circle cx="60" cy="60" r="34" {...common} strokeWidth="8" strokeDasharray="214" strokeDashoffset="70" transform="rotate(-90 60 60)" className="fa-ring" />
+        <circle cx="60" cy="60" r="5" fill={s} stroke="none" />
+        <line x1="60" y1="60" x2="82" y2="44" {...common} strokeWidth="2.4" className="fa-needle" />
+      </g>
+    );
+  } else if (id === "shield") {
+    art = (
+      <g>
+        <path d="M60 18 L94 30 V58 C94 82 78 96 60 104 C42 96 26 82 26 58 V30 Z" {...common} />
+        <path d="M46 60 l10 10 l20 -24" {...common} strokeWidth="2.6" className="fa-check" />
+        <path d="M60 18 L94 30 V58 C94 82 78 96 60 104 C42 96 26 82 26 58 V30 Z" stroke={f} strokeWidth="2" fill="none" className="fa-pulse" />
+      </g>
+    );
+  } else if (id === "calendar") {
+    const cells = [];
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      const on = (r * 4 + c) % 3 === 0;
+      cells.push(<rect key={`${r}-${c}`} x={30 + c * 16} y={40 + r * 16} width="11" height="11" rx="2.5" fill={on ? s : "none"} stroke={on ? "none" : f} strokeWidth="1.6" className={on ? "fa-cell" : ""} style={{ animationDelay: `${(r * 4 + c) * 0.08}s` }} />);
+    }
+    art = (
+      <g>
+        <rect x="22" y="22" width="76" height="82" rx="10" stroke={f} strokeWidth="2" fill="none" />
+        <line x1="22" y1="36" x2="98" y2="36" stroke={f} strokeWidth="2" />
+        {cells}
+      </g>
+    );
+  } else if (id === "market") {
+    art = (
+      <g>
+        <path d="M20 78 L38 66 L52 72 L68 50 L84 58 L100 38" {...common} strokeWidth="2.2" className="fa-draw" />
+        <circle cx="100" cy="38" r="4" fill={s} stroke="none" className="fa-blip" />
+        <line x1="20" y1="94" x2="100" y2="94" stroke={f} strokeWidth="2" />
+        <line x1="20" y1="94" x2="100" y2="94" stroke={s} strokeWidth="2" strokeDasharray="18 62" className="fa-tape" />
+      </g>
+    );
+  } else if (id === "candles") {
+    const g = C.green, r = C.red;
+    art = (
+      <g>
+        {/* wick + body candles */}
+        <line x1="30" y1="40" x2="30" y2="88" stroke={g} strokeWidth="2" className="fa-candle" style={{ animationDelay: "0s" }} />
+        <rect x="24" y="52" width="12" height="26" rx="2" fill={g} className="fa-candle" style={{ animationDelay: "0s" }} />
+        <line x1="52" y1="34" x2="52" y2="82" stroke={r} strokeWidth="2" className="fa-candle" style={{ animationDelay: ".2s" }} />
+        <rect x="46" y="44" width="12" height="24" rx="2" fill={r} className="fa-candle" style={{ animationDelay: ".2s" }} />
+        <line x1="74" y1="28" x2="74" y2="74" stroke={g} strokeWidth="2" className="fa-candle" style={{ animationDelay: ".4s" }} />
+        <rect x="68" y="36" width="12" height="30" rx="2" fill={g} className="fa-candle" style={{ animationDelay: ".4s" }} />
+        <line x1="96" y1="22" x2="96" y2="66" stroke={g} strokeWidth="2" className="fa-candle" style={{ animationDelay: ".6s" }} />
+        <rect x="90" y="30" width="12" height="26" rx="2" fill={g} className="fa-candle" style={{ animationDelay: ".6s" }} />
+      </g>
+    );
+  } else if (id === "devices") {
+    art = (
+      <g>
+        {/* monitor */}
+        <rect x="18" y="26" width="66" height="46" rx="6" {...common} />
+        <line x1="40" y1="84" x2="62" y2="84" {...common} />
+        <line x1="51" y1="72" x2="51" y2="84" {...common} />
+        {/* phone overlapping */}
+        <rect x="74" y="56" width="30" height="50" rx="8" {...common} strokeWidth="2.2" fill="#0d0d0d" className="fa-phone" />
+        <line x1="82" y1="98" x2="96" y2="98" {...common} strokeWidth="2.4" />
+        <line x1="80" y1="66" x2="98" y2="66" stroke={f} strokeWidth="2" />
+        <line x1="80" y1="74" x2="92" y2="74" stroke={f} strokeWidth="2" />
+      </g>
+    );
+  }
+  return (
+    <svg className="feat-art" viewBox="0 0 120 120" width="112" height="112" aria-hidden="true">{art}</svg>
+  );
+}
+
 /* ===== Section copy ===== */
 const FEATURES = [
-  { icon: Zap, title: "Log trades in seconds", body: "Quick log for P&L-only, or full detail with entries, risk, screenshots and emotions. Connect an exchange and trades import automatically." },
-  { icon: BarChart3, title: "Analytics that find your edge", body: "Equity growth candles, P&L calendars, R-multiples, win rate trends, and per-strategy breakdowns, all computed from your real trades." },
-  { icon: BrainCircuit, title: "Master your psychology", body: "Tag emotion and discipline on every trade. See exactly how much tilt and FOMO cost you, and where your real edge comes from." },
-  { icon: ShieldCheck, title: "Protect your funded account", body: "Fixed-risk position sizing, planned vs realised R:R, profit factor and drawdown tracking, the metrics that keep funded and prop firm accounts alive." },
-  { icon: CalendarDays, title: "See every day at a glance", body: "A colour-coded P&L calendar and activity heatmap make your consistency (or lack of it) impossible to ignore." },
-  { icon: LineChartIcon, title: "Live market context", body: "Ticker tape, heatmaps, economic calendar and news, plus an 'if you'd held' live price check on closed trades." },
-  { icon: CandlestickChart, title: "Mark trades on a chart", body: "Drop your entry and exit on a live chart, prices fill in automatically and the marked chart shows on the trade details across multiple timeframes." },
-  { icon: MonitorSmartphone, title: "Works on desktop & mobile", body: "A fully responsive web app plus an installable PWA, journal on your laptop or log a trade from your phone the moment you close a position." },
+  { art: "log", title: "Log trades in seconds", body: "Quick log for P&L-only, or full detail with entries, risk, screenshots and emotions. Connect an exchange and trades import automatically." },
+  { art: "analytics", title: "Analytics that find your edge", body: "Equity growth candles, P&L calendars, R-multiples, win rate trends, and per-strategy breakdowns, all computed from your real trades." },
+  { art: "psychology", title: "Master your psychology", body: "Tag emotion and discipline on every trade. See exactly how much tilt and FOMO cost you, and where your real edge comes from." },
+  { art: "shield", title: "Protect your funded account", body: "Fixed-risk position sizing, planned vs realised R:R, profit factor and drawdown tracking, the metrics that keep funded and prop firm accounts alive." },
+  { art: "calendar", title: "See every day at a glance", body: "A colour-coded P&L calendar and activity heatmap make your consistency (or lack of it) impossible to ignore." },
+  { art: "market", title: "Live market context", body: "Ticker tape, heatmaps, economic calendar and news, plus an 'if you'd held' live price check on closed trades." },
+  { art: "candles", title: "Mark trades on a chart", body: "Drop your entry and exit on a live chart, prices fill in automatically and the marked chart shows on the trade details across multiple timeframes." },
+  { art: "devices", title: "Works on desktop & mobile", body: "A fully responsive web app plus an installable PWA, journal on your laptop or log a trade from your phone the moment you close a position." },
 ];
 
 const WHY = [
@@ -846,7 +971,7 @@ const FAQS = [
 const PIE_DATA = [
   { name: "Wins", value: 58, color: C.green },
   { name: "Losses", value: 34, color: C.red },
-  { name: "Break-even", value: 8, color: C.yellow },
+  { name: "Break-even", value: 8, color: "#9aa1ab" },
 ];
 
 const EQUITY_DATA = [
@@ -888,8 +1013,8 @@ function ChartCard({ title, caption, icon: Icon, height = 240, children, delay =
       style={{ ...glass, borderRadius: 20, padding: 20, display: "flex", flexDirection: "column", minWidth: 0 }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 4 }}>
-        <span style={{ display: "inline-flex", width: 32, height: 32, borderRadius: 9, background: "rgba(252,213,53,0.12)", color: C.yellow, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon size={15} />
+        <span style={{ display: "inline-flex", width: 32, height: 32, borderRadius: 9, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: C.silverBright, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon size={15} strokeWidth={1.7} />
         </span>
         <h3 style={{ font: "600 15px Poppins", margin: 0 }}>{title}</h3>
       </div>
@@ -936,15 +1061,15 @@ function EquityArea() {
       <AreaChart data={EQUITY_DATA} margin={{ top: 6, right: 6, left: -16, bottom: 0 }}>
         <defs>
           <linearGradient id="lpEquityFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={C.yellow} stopOpacity={0.32} />
-            <stop offset="100%" stopColor={C.yellow} stopOpacity={0} />
+            <stop offset="0%" stopColor={C.silver} stopOpacity={0.26} />
+            <stop offset="100%" stopColor={C.silver} stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
         <XAxis dataKey="d" tick={{ fill: C.dim, fontSize: 10, fontFamily: "Poppins" }} axisLine={false} tickLine={false} interval={2} />
         <YAxis tick={{ fill: C.dim, fontSize: 10, fontFamily: "Poppins" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}`} />
-        <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={{ color: C.yellow }} formatter={(v) => [`$${v.toLocaleString()}`, "Equity"]} />
-        <Area type="monotone" dataKey="v" stroke={C.yellow} strokeWidth={2.5} fill="url(#lpEquityFill)" isAnimationActive={!reduced} animationDuration={1400} animationBegin={200} dot={false} activeDot={{ r: 4, fill: C.yellow, stroke: C.canvas }} />
+        <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={{ color: C.silverBright }} formatter={(v) => [`$${v.toLocaleString()}`, "Equity"]} />
+        <Area type="monotone" dataKey="v" stroke={C.silverBright} strokeWidth={2.5} fill="url(#lpEquityFill)" isAnimationActive={!reduced} animationDuration={1400} animationBegin={200} dot={false} activeDot={{ r: 4, fill: C.silverBright, stroke: C.canvas }} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -970,10 +1095,11 @@ function MonthlyBars() {
 }
 
 /* ===== Layout helpers ===== */
-function Section({ children, style, label, id }) {
+function Section({ children, style, label, id, grid }) {
   return (
     <section id={id} aria-label={label} style={{ maxWidth: 1160, margin: "0 auto", padding: "72px 20px", position: "relative", zIndex: 1, ...style }}>
-      {children}
+      {grid && <div aria-hidden="true" style={gridBg} />}
+      {grid ? <div style={{ position: "relative", zIndex: 1 }}>{children}</div> : children}
     </section>
   );
 }
@@ -1050,7 +1176,7 @@ function InteractiveDemo() {
   const money = (n) => `${n < 0 ? "−" : "+"}$${abbr(Math.abs(n))}`;
 
   const inputStyle = {
-    background: "rgba(13,17,23,0.7)", border: `1px solid ${C.border}`, borderRadius: 10,
+    background: "#111", border: "1px solid #1c1c1c", borderRadius: 10,
     padding: "12px 14px", color: C.text, font: "400 14px Poppins",
     width: "100%", maxWidth: "100%", boxSizing: "border-box", display: "block", outline: "none",
   };
@@ -1196,7 +1322,7 @@ function PricingSection() {
     <Section id="pricing" label="Pricing plans" style={{ scrollMarginTop: 80 }}>
       <SectionHead
         kicker="Pricing"
-        title={<>Simple pricing that pays for <span style={{ color: C.yellow }}>itself</span></>}
+        title={<>Simple pricing that pays for <span style={{ color: C.silverBright }}>itself</span></>}
         sub="Start free and upgrade when you're ready. Every plan pays for itself the first time it saves you from one bad habit."
       />
 
@@ -1233,12 +1359,11 @@ function PricingSection() {
               style={{
                 position: "relative", display: "flex", flexDirection: "column",
                 background: c.popular
-                  ? "linear-gradient(160deg, rgba(252,213,53,0.1), rgba(22,26,32,1))"
-                  : "rgba(22,26,32,0.66)",
-                backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-                border: `1px solid ${c.popular ? "rgba(252,213,53,0.42)" : C.border}`,
+                  ? "linear-gradient(160deg, rgba(252,213,53,0.1), #0d0d0d 60%)"
+                  : "#0d0d0d",
+                border: `1px solid ${c.popular ? "rgba(252,213,53,0.42)" : "#1c1c1c"}`,
                 borderRadius: 20, padding: 26,
-                boxShadow: c.popular ? "0 14px 38px rgba(0,0,0,0.34)" : "0 8px 24px rgba(0,0,0,0.22)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
               }}
             >
               {c.popular && (
@@ -1487,7 +1612,7 @@ export default function Home({ posts = [] }) {
               transition={{ delay: 0.3, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
               style={{ position: "relative", zIndex: 1, marginTop: 64, maxWidth: 860, marginInline: "auto" }}
             >
-              <div aria-hidden="true" style={{ position: "absolute", inset: "-40px -60px", background: "radial-gradient(60% 70% at 50% 50%, rgba(252,213,53,0.09), transparent 70%)", pointerEvents: "none", filter: "blur(8px)" }} />
+              <div aria-hidden="true" style={{ position: "absolute", inset: "-40px -60px", background: "radial-gradient(60% 70% at 50% 50%, rgba(255,255,255,0.05), transparent 70%)", pointerEvents: "none", filter: "blur(8px)" }} />
               <JournalMock />
             </motion.div>
           </Section>
@@ -1501,9 +1626,11 @@ export default function Home({ posts = [] }) {
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, maxWidth: 760, margin: "0 auto 52px" }}
             >
-              {[["250k+", "Trades logged"], ["4.8★", "Avg. rating"], ["40+", "Markets"], ["10s", "To log a trade"]].map(([v, l]) => (
+              {[["250k+", "Trades logged"], ["4.8", "Avg. rating", true], ["40+", "Markets"], ["10s", "To log a trade"]].map(([v, l, star]) => (
                 <div key={l} style={{ ...glass, borderRadius: 16, padding: "18px 16px", textAlign: "center" }}>
-                  <div style={{ font: "700 26px Poppins", color: C.yellow, letterSpacing: "-1px" }}>{v}</div>
+                  <div style={{ font: "700 26px Poppins", letterSpacing: "-1px", ...silverText, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    {v}{star && <Star size={20} strokeWidth={0} fill="#d7dbe1" aria-hidden="true" style={{ marginTop: -2 }} />}
+                  </div>
                   <div style={{ font: "400 13px Poppins", color: C.muted }}>{l}</div>
                 </div>
               ))}
@@ -1514,7 +1641,7 @@ export default function Home({ posts = [] }) {
             {/* Asset-class tags, JournalX isn't crypto-only */}
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, margin: "0 auto 24px", maxWidth: 560 }}>
               {MARKET_TAGS.map((m) => (
-                <span key={m} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 13px", borderRadius: 999, background: "rgba(252,213,53,0.08)", border: "1px solid rgba(252,213,53,0.22)", font: "600 12.5px Poppins", color: C.yellow }}>
+                <span key={m} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 13px", borderRadius: 999, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.14)", font: "600 12.5px Poppins", color: C.silver }}>
                   {m}
                 </span>
               ))}
@@ -1530,7 +1657,7 @@ export default function Home({ posts = [] }) {
           </Section>
 
           {/* ===== How it works ===== */}
-          <Section label="How it works">
+          <Section label="How it works" grid>
             <SectionHead kicker="How it works" title="From first log to lasting edge" sub="Three steps, repeated, compound into consistency." />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
               {STEPS.map((s, i) => (
@@ -1539,8 +1666,8 @@ export default function Home({ posts = [] }) {
                   initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.5 }}
                   style={{ ...glass, borderRadius: 18, padding: 28, position: "relative", overflow: "hidden" }}
                 >
-                  <div aria-hidden="true" style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(252,213,53,0.1), transparent 70%)" }} />
-                  <div style={{ font: "700 30px Poppins", background: `linear-gradient(180deg, ${C.yellow}, rgba(252,213,53,0.25))`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", marginBottom: 10 }}>{s.n}</div>
+                  <div aria-hidden="true" style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,255,255,0.055), transparent 70%)" }} />
+                  <div style={{ font: "700 30px Poppins", ...silverText, marginBottom: 10 }}>{s.n}</div>
                   <h3 style={{ font: "600 18px Poppins", margin: "0 0 8px" }}>{s.title}</h3>
                   <p style={{ font: "400 14px/1.6 Poppins", color: C.muted, margin: 0 }}>{s.body}</p>
                 </motion.article>
@@ -1549,25 +1676,24 @@ export default function Home({ posts = [] }) {
           </Section>
 
           {/* ===== Features ===== */}
-          <Section id="features" label="Features" style={{ paddingTop: 24, scrollMarginTop: 80 }}>
+          <Section id="features" label="Features" grid style={{ paddingTop: 24, scrollMarginTop: 80 }}>
             <SectionHead
               kicker="Features"
               title="Everything you need to trade like a pro"
               sub="One journal that scales from a 10-second log to full risk and psychology analytics."
             />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 18 }}>
-              {FEATURES.map(({ icon: Icon, title, body }, i) => (
+              {FEATURES.map(({ art, title, body }, i) => (
                 <motion.article
                   key={title}
                   initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: (i % 3) * 0.08, duration: 0.5 }}
                   whileHover={{ y: -4 }}
-                  style={{ ...glass, borderRadius: 18, padding: 26 }}
+                  className="lp-feat"
+                  style={{ ...glass, borderRadius: 18, padding: 26, position: "relative", overflow: "hidden" }}
                 >
-                  <span style={{ display: "inline-flex", width: 44, height: 44, borderRadius: 12, background: "linear-gradient(140deg, rgba(252,213,53,0.18), rgba(240,185,11,0.06))", border: "1px solid rgba(252,213,53,0.2)", color: C.yellow, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                    <Icon size={20} aria-hidden="true" />
-                  </span>
-                  <h3 style={{ font: "600 18px Poppins", margin: "0 0 8px" }}>{title}</h3>
-                  <p style={{ font: "400 14px/1.6 Poppins", color: C.muted, margin: 0 }}>{body}</p>
+                  <span className="lp-feat__art" aria-hidden="true"><FeatureArt id={art} /></span>
+                  <h3 style={{ font: "600 18px Poppins", margin: "0 0 8px", position: "relative" }}>{title}</h3>
+                  <p style={{ font: "400 14px/1.6 Poppins", color: C.muted, margin: 0, position: "relative", paddingRight: 84 }}>{body}</p>
                 </motion.article>
               ))}
             </div>
@@ -1585,7 +1711,7 @@ export default function Home({ posts = [] }) {
           <Section id="analytics" label="Analytics showcase" style={{ scrollMarginTop: 80 }}>
             <SectionHead
               kicker="Analytics"
-              title={<>See your trading the way the <span style={{ color: C.yellow }}>numbers</span> see it</>}
+              title={<>See your trading the way the <span style={{ color: C.silverBright }}>numbers</span> see it</>}
               sub="Every trade you log feeds live dashboards like these, win/loss breakdowns, equity growth and monthly P&L, computed automatically."
             />
             <div className="lp-charts-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.3fr)", gap: 18 }}>
@@ -1611,7 +1737,7 @@ export default function Home({ posts = [] }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }} className="lp-why-grid">
               <motion.div initial={{ opacity: 0, x: -18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.55 }}>
                 <h2 style={{ font: "300 clamp(26px,4vw,38px)/1.12 Poppins", margin: "0 0 16px", letterSpacing: "-1px" }}>
-                  Why traders switch to <span style={{ color: C.yellow }}>JournalX</span>
+                  Why traders switch to <span style={{ color: C.silverBright }}>JournalX</span>
                 </h2>
                 <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, marginBottom: 24 }}>
                   Spreadsheets are slow and blind. Broker statements are raw. JournalX is the only journal built to turn discipline and risk into metrics you can actually improve.
@@ -1711,7 +1837,7 @@ export default function Home({ posts = [] }) {
                 <div key={q} style={{ ...glass, borderRadius: 14, overflow: "hidden" }}>
                   <button onClick={() => setFaq(faq === i ? -1 : i)} aria-expanded={faq === i} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, background: "none", border: "none", color: C.text, cursor: "pointer", padding: "18px 20px", font: "600 16px Poppins", textAlign: "left" }}>
                     {q}
-                    <span aria-hidden="true" style={{ color: C.yellow, transform: faq === i ? "rotate(45deg)" : "none", transition: "transform .25s ease", flexShrink: 0, fontSize: 20 }}>+</span>
+                    <span aria-hidden="true" style={{ color: C.silver, transform: faq === i ? "rotate(45deg)" : "none", transition: "transform .25s ease", flexShrink: 0, fontSize: 20 }}>+</span>
                   </button>
                   <AnimatePresence initial={false}>
                     {faq === i && (
@@ -1742,6 +1868,40 @@ export default function Home({ posts = [] }) {
       </div>
 
       <style jsx global>{`
+        /* ===== feature card illustrations ===== */
+        .lp-feat__art{ position:absolute; bottom:-10px; right:-8px; z-index:0; opacity:.7; }
+        .feat-art{ display:block; overflow:visible; }
+        .fa-row{ transform-origin:left center; animation:faRow 3.6s ease-in-out infinite; }
+        @keyframes faRow{ 0%,100%{ transform:scaleX(.55); opacity:.5; } 50%{ transform:scaleX(1); opacity:1; } }
+        .fa-bolt{ animation:faBolt 2.4s ease-in-out infinite; transform-origin:center; }
+        @keyframes faBolt{ 0%,100%{ opacity:.5; } 50%{ opacity:1; } }
+        .fa-bar{ transform-origin:center bottom; animation:faBar 3.2s ease-in-out infinite; }
+        @keyframes faBar{ 0%,100%{ transform:scaleY(.55); } 50%{ transform:scaleY(1); } }
+        .fa-draw{ stroke-dasharray:220; stroke-dashoffset:220; animation:faDraw 3.4s ease-in-out infinite; }
+        @keyframes faDraw{ 0%{ stroke-dashoffset:220; } 55%,100%{ stroke-dashoffset:0; } }
+        .fa-ring{ animation:faRing 4s ease-in-out infinite; }
+        @keyframes faRing{ 0%,100%{ stroke-dashoffset:120; } 50%{ stroke-dashoffset:40; } }
+        .fa-needle{ transform-origin:60px 60px; animation:faNeedle 4s ease-in-out infinite; }
+        @keyframes faNeedle{ 0%,100%{ transform:rotate(-18deg); } 50%{ transform:rotate(24deg); } }
+        .fa-check{ stroke-dasharray:44; stroke-dashoffset:44; animation:faCheck 3.4s ease-in-out infinite; }
+        @keyframes faCheck{ 0%,20%{ stroke-dashoffset:44; } 45%,100%{ stroke-dashoffset:0; } }
+        .fa-pulse{ transform-origin:60px 60px; animation:faPulse 3s ease-out infinite; }
+        @keyframes faPulse{ 0%{ transform:scale(1); opacity:.5; } 70%,100%{ transform:scale(1.12); opacity:0; } }
+        .fa-cell{ animation:faCell 3.6s ease-in-out infinite; }
+        @keyframes faCell{ 0%,100%{ opacity:.35; } 50%{ opacity:1; } }
+        .fa-blip{ animation:faBlip 2s ease-in-out infinite; }
+        @keyframes faBlip{ 0%,100%{ opacity:.4; r:3; } 50%{ opacity:1; } }
+        .fa-tape{ animation:faTape 2.6s linear infinite; }
+        @keyframes faTape{ from{ stroke-dashoffset:0; } to{ stroke-dashoffset:-80; } }
+        .fa-candle{ transform-origin:center bottom; animation:faCandle 3s ease-in-out infinite; }
+        @keyframes faCandle{ 0%,100%{ transform:scaleY(.82); opacity:.75; } 50%{ transform:scaleY(1); opacity:1; } }
+        .fa-phone{ animation:faPhone 3.4s ease-in-out infinite; }
+        @keyframes faPhone{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-3px); } }
+        @media (max-width:560px){ .lp-feat__art{ opacity:.6; } .feat-art{ width:88px; height:88px; } }
+        @media (prefers-reduced-motion: reduce){
+          .fa-row,.fa-bolt,.fa-bar,.fa-draw,.fa-ring,.fa-needle,.fa-check,.fa-pulse,.fa-cell,.fa-blip,.fa-tape,.fa-candle,.fa-phone{ animation:none; }
+          .fa-draw,.fa-check{ stroke-dashoffset:0; }
+        }
         .lp-marquee__track {
           animation-name: lp-marquee;
           animation-timing-function: linear;

@@ -24,7 +24,7 @@ export default function Eyebrow({ children, style }) {
         ...style,
       }}
     >
-      <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "#fcd535", boxShadow: "0 0 8px rgba(252,213,53,0.8)", flex: "0 0 auto" }} />
+      <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "#d7dbe1", boxShadow: "0 0 8px rgba(215,219,225,0.7)", flex: "0 0 auto" }} />
       {children}
     </span>
   );

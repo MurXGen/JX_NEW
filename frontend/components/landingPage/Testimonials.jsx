@@ -33,8 +33,8 @@ const COLORS = {
   text: "#fff",
   muted: "#aeb4bc",
   dim: "#707a8a",
-  border: "rgba(255,255,255,0.1)",
-  surface: "rgba(22,26,32,0.6)",
+  border: "#1c1c1c",
+  surface: "#0d0d0d",
   yellow: "#fcd535",
   green: "#2ebd85",
 };
