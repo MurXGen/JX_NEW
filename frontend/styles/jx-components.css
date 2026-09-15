@@ -213,7 +213,7 @@
 .jx-card {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: 10px;
   box-shadow: var(--shadow-sm);
   padding: var(--space-6);
 }
@@ -285,7 +285,7 @@
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   backdrop-filter: blur(18px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: var(--radius-xl);
+  border-radius: 10px;
   box-shadow:
     0 10px 30px -8px rgba(15, 23, 41, 0.16),
     0 2px 8px rgba(15, 23, 41, 0.05),
@@ -307,7 +307,7 @@
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: var(--radius-lg);
+  border-radius: 10px;
 }
 /* gradient greeting headline */
 .jx-overview-premium > div:first-child .jx-overview-greeting,
@@ -328,21 +328,17 @@
 /* stat/metric TILES — solid elevated fill so they read clearly against the
    near-black page (this is the "trading edge card" look applied everywhere) */
 [data-theme="dark"] .jx-overview-premium .jx-card:not(.jx-card--flat) {
-  background:
-    radial-gradient(130% 110% at 0% 0%, rgba(255, 255, 255, 0.05), transparent 58%),
-    linear-gradient(160deg, #17191e, #101216);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #212127;
+  border: 1px solid #38383f;
   box-shadow:
-    0 20px 48px -18px rgba(0, 0, 0, 0.62),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 16px 40px -20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
-/* CONTAINERS (jx-sec) — a distinct, slightly deeper panel so the tiles nested
-   inside them still pop, while the panel itself stays visible on the page */
+/* CONTAINERS (jx-sec) — a slightly deeper panel so the tiles nested inside
+   still pop, while staying visible and not near-black */
 [data-theme="dark"] .jx-overview-premium .jx-card.jx-sec {
-  background:
-    radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, 0.04), transparent 60%),
-    linear-gradient(160deg, #101216, #0a0b0e);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #212127;
+  border: 1px solid #313138;
 }
 [data-theme="dark"] .jx-overview-premium .jx-card:not(.jx-card--flat):hover {
   border-color: rgba(252, 213, 53, 0.42);
@@ -352,10 +348,8 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 [data-theme="dark"] .jx-overview-premium .jx-card--flat {
-  background:
-    radial-gradient(120% 120% at 0% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
-    rgba(255, 255, 255, 0.018);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #2b2b32;
+  border: 1px solid #38383f;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
@@ -404,26 +398,164 @@ body::before {
 /* visible TILE — used app-wide (Overview, Markets, Learn, Trades log …) so
    cards read clearly against the near-black page */
 [data-theme="dark"] .jx-card:not(.jx-card--flat) {
-  background:
-    radial-gradient(140% 120% at 0% 0%, rgba(255, 255, 255, 0.05), transparent 58%),
-    linear-gradient(160deg, #17191e, #101216);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 14px 36px -18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: #212127;
+  border: 1px solid #38383f;
+  box-shadow: 0 12px 30px -20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
-/* CONTAINER panels (jx-sec) — a deeper distinct panel so nested tiles pop */
+/* CONTAINER panels (jx-sec) — a slightly deeper panel so nested tiles pop */
 [data-theme="dark"] .jx-card.jx-sec {
-  background:
-    radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, 0.04), transparent 60%),
-    linear-gradient(160deg, #101216, #0a0b0e);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #212127;
+  border: 1px solid #313138;
 }
 /* flat insets stay subtle (nested panels inside a tile/container) */
 [data-theme="dark"] .jx-card--flat {
-  background:
-    radial-gradient(120% 120% at 0% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
-    rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #2b2b32;
+  border: 1px solid #38383f;
+  /* kill the white inset top-highlight leaking from the frosted .jx-card rule */
+  box-shadow: none;
 }
+
+/* a card nested inside another card sits one shade lighter (consistent) */
+[data-theme="dark"] .jx-card .jx-card:not(.jx-card--flat),
+[data-theme="dark"] .jx-card .jx-card--flat {
+  background: #2b2b32;
+  border: 1px solid #313138;
+}
+
+/* ===== Performance combined viz (donut + meters + bars + chips) ===== */
+.jx-perf__top {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-6);
+  align-items: center;
+}
+.jx-perf__donutwrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+.jx-perf__donutctr {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.jx-perf__donutnum {
+  font: var(--text-h2);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.jx-perf__donutlbl {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+.jx-perf__legend {
+  display: flex;
+  gap: var(--space-4);
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+.jx-perf__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.jx-perf__legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.jx-perf__legend b {
+  color: var(--color-text-primary);
+}
+.jx-perf__meters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.jx-perf__meter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.jx-perf__meterhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font: var(--text-small);
+  color: var(--color-text-muted);
+}
+.jx-perf__meterhead b {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.jx-perf__meterhead em {
+  font-style: normal;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+.jx-perf__wlbar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-bg-muted);
+}
+.jx-perf__wlbar div {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+.jx-perf__chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+.jx-perf__chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.jx-perf__chiplbl {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10.5px;
+}
+.jx-perf__chipval {
+  font: var(--text-title);
+  font-weight: 600;
+}
+.jx-perf__chipsub {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+@media (max-width: 640px) {
+  .jx-perf__top {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+}
+/* session clock: stack on narrow screens */
+@media (max-width: 680px) {
+  .jx-sessgrid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-5) !important;
+  }
+}
+
 /* row action menu — full-width mobile bottom sheet (web only) */
 @media (max-width: 640px) {
   .jx-row-menu__panel {
@@ -560,18 +692,47 @@ body::before {
 
 /* ================= Sidebar ================= */
 .jx-sidebar {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 248px;
   height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--color-bg-surface);
-  border-right: 1px solid var(--color-border);
-  padding: var(--space-5) var(--space-4);
+  background: transparent;
+  padding: var(--space-5) var(--space-3) var(--space-5) var(--space-4);
   gap: var(--space-2);
   transition: width 0.2s ease;
   flex-shrink: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+/* draggable resize handle on the sidebar's right edge */
+.jx-sidebar__resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 5;
+  touch-action: none;
+}
+.jx-sidebar__resize::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 1px;
+  width: 4px;
+  height: 44px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  opacity: 1;
+  transition: background 0.15s ease, height 0.15s ease;
+}
+.jx-sidebar__resize:hover::after {
+  background: var(--color-primary);
+  height: 56px;
 }
 .jx-sidebar::-webkit-scrollbar {
   width: 4px;
@@ -697,11 +858,44 @@ body::before {
   overflow-x: hidden; /* never scroll sideways */
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  padding: var(--space-8);
+  /* the right side is a single rounded panel that holds all the content */
+  margin: var(--space-3) var(--space-3) var(--space-3) 0;
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+  padding: var(--space-6) var(--space-6) 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  margin-bottom: 24px;
+}
+[data-theme="dark"] .jx-shell__main {
+  background: #17171b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/* ---- Profile avatar ---- */
+.jx-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(140deg, #3a3d46, #23252b);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  color: #eaecef;
+  user-select: none;
+}
+.jx-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.jx-avatar__initials {
+  font-family: var(--jx-font);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1;
 }
 /* Some browsers ignore padding-bottom on scroll containers —
    a real spacer element always works. */
@@ -754,7 +948,13 @@ body::before {
     overflow-x: hidden; /* kill the horizontal jitter from wide grids */
     scrollbar-gutter: auto;
     max-width: 100vw;
-    margin-bottom: 80px;
+    /* full-bleed on mobile: no rounded panel, sit on the canvas */
+    margin: 0 0 80px;
+    border-radius: 0;
+    background: transparent;
+  }
+  [data-theme="dark"] .jx-shell__main {
+    background: transparent;
   }
   /* nothing inside the scroll area may exceed the viewport */
   .jx-shell__main > * {
@@ -1064,6 +1264,112 @@ body::before {
   transition: all 0.15s ease;
   text-align: left;
 }
+
+/* ---- Journal cards (reference "Allocation" style) ---- */
+.jx-jcard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.jx-jcard:hover {
+  border-color: var(--color-border-strong);
+}
+.jx-jcard--active {
+  border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-bg-elevated));
+  cursor: default;
+}
+.jx-jcard__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.jx-jcard__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.jx-jcard__title {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.jx-jcard__name {
+  font: var(--text-body-md);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jx-jcard__sub {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+.jx-jcard__edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.jx-jcard__edit:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+.jx-jcard__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+.jx-jcard__divider {
+  height: 1px;
+  background: var(--color-border);
+}
+.jx-jcard__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.jx-jcard__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.jx-jcard__lbl {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+.jx-jcard__val {
+  font: var(--text-body-md);
+  font-weight: 600;
+}
 .jx-journalrow:hover {
   border-color: var(--color-border-strong);
   background: var(--color-bg-muted);
@@ -1138,6 +1444,393 @@ body::before {
 .jx-seg--inline {
   width: auto;
   display: inline-grid;
+}
+.jx-seg--inline .jx-seg__btn {
+  font: var(--text-caption);
+  font-weight: 600;
+  padding: 5px 12px;
+  letter-spacing: 0.4px;
+}
+
+/* ================= Streaks & achievements (merged) ================= */
+/* the global reset does NOT set box-sizing, so force it here — otherwise
+   padding + border overflow the fixed grid rows and break the layout. */
+.jx-streaks,
+.jx-streaks * {
+  box-sizing: border-box;
+}
+.jx-streaks {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: var(--space-5);
+  align-items: stretch;
+}
+@media (max-width: 860px) {
+  .jx-streaks { grid-template-columns: 1fr; }
+}
+
+/* ---- momentum (left) ---- */
+.jx-mom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.jx-mom__bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: var(--space-5);
+  padding: var(--space-2) 0;
+}
+.jx-mom__hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(90% 140% at 0% 0%, rgba(246, 70, 93, 0.18), transparent 60%),
+    var(--color-bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.jx-mom__flame {
+  font-size: 38px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 14px rgba(246, 70, 93, 0.45));
+  animation: jx-flame 1.6s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+@keyframes jx-flame {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  50% { transform: scale(1.12) rotate(2deg); }
+}
+.jx-mom__num {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font: 600 34px/1 var(--jx-font);
+  letter-spacing: -1px;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.jx-mom__num small {
+  font: 600 13px/1 var(--jx-font);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+.jx-mom__herostats {
+  margin-left: auto;
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+  text-align: right;
+}
+.jx-mom__herostats > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+.jx-mom__herostats span {
+  font: var(--text-label);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jx-mom__herostats b {
+  font: 600 18px/1 var(--jx-font);
+  font-variant-numeric: tabular-nums;
+}
+.jx-mom__herodiv {
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-border);
+}
+@media (max-width: 520px) {
+  .jx-mom__herostats { display: none; }
+}
+.jx-mom__bar-row { display: flex; flex-direction: column; gap: 9px; }
+.jx-mom__bar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.jx-mom__bar-label {
+  font: var(--text-label);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jx-mom__bar-val {
+  font: 600 13px/1 var(--jx-font);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.jx-mom__bar-val b { color: var(--color-text-primary); font-size: 15px; }
+.jx-mom__pips { display: flex; gap: 5px; }
+.jx-mom__pip {
+  flex: 1;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border);
+  transition: background 0.5s ease, box-shadow 0.5s ease;
+}
+.jx-mom__pip--on {
+  background: linear-gradient(180deg, #7be0b8, var(--color-success));
+  border-color: transparent;
+  box-shadow: 0 0 10px rgba(46, 189, 133, 0.5);
+}
+.jx-mom__pip--gold.jx-mom__pip--on {
+  background: linear-gradient(180deg, var(--yellow-300), var(--yellow-400));
+  box-shadow: 0 0 10px rgba(252, 213, 53, 0.45);
+}
+.jx-mom__bar {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.jx-mom__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  min-width: 12px;
+  background: linear-gradient(90deg, var(--color-success), #7be0b8);
+  box-shadow: 0 0 12px rgba(46, 189, 133, 0.5);
+  transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.jx-mom__fill--gold {
+  background: linear-gradient(90deg, var(--yellow-400), var(--yellow-300));
+  box-shadow: 0 0 12px rgba(252, 213, 53, 0.45);
+}
+
+/* ---- achievements (right) ---- */
+.jx-achv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.jx-achv__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.jx-achv__ring { position: relative; flex-shrink: 0; width: 92px; height: 92px; }
+.jx-achv__ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.jx-achv__ring-center b {
+  font: 600 22px/1 var(--jx-font);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.jx-achv__ring-center span {
+  font: var(--text-label);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jx-achv__top-txt { display: flex; flex-direction: column; gap: 3px; }
+.jx-achv__top-txt h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 15px/1.2 var(--jx-font);
+  color: var(--color-text-primary);
+}
+.jx-achv__rank {
+  font: 600 10.5px/1 var(--jx-font);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--color-primary-subtle);
+  border: 1px solid rgba(252, 213, 53, 0.3);
+}
+.jx-achv__top-txt p {
+  margin: 0;
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+/* closest-to-unlock spotlight */
+.jx-achv__spot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(90deg, rgba(252, 213, 53, 0.12), rgba(252, 213, 53, 0.02));
+  border: 1px solid rgba(252, 213, 53, 0.28);
+}
+.jx-achv__spot-ico {
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 8px rgba(252, 213, 53, 0.4));
+}
+.jx-achv__spot-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.jx-achv__spot-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.jx-achv__spot-kicker {
+  font: var(--text-label);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+.jx-achv__spot-remain {
+  font: 600 12px/1 var(--jx-font);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.jx-achv__spot-name {
+  font: 600 14px/1.1 var(--jx-font);
+  color: var(--color-text-primary);
+}
+.jx-achv__spot-track {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-bg-muted);
+  overflow: hidden;
+}
+.jx-achv__spot-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--yellow-400), var(--yellow-300));
+  box-shadow: 0 0 10px rgba(252, 213, 53, 0.5);
+  transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.jx-achv__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: 102px;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+@media (max-width: 760px) {
+  .jx-achv__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .jx-achv__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+}
+/* the Tip component wraps each tile in a span — that span is the real grid
+   cell, so it must stretch and never overflow its column. */
+.jx-achv__grid > .jx-tip {
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+.jx-achv__badge {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  text-align: center;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border);
+  cursor: help;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.jx-achv__badge:hover { transform: translateY(-3px); }
+.jx-achv__badge--got {
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(252, 213, 53, 0.14), transparent 70%),
+    var(--color-bg-muted);
+  border-color: var(--color-primary);
+}
+.jx-achv__badge--next {
+  border-color: var(--color-border-strong);
+  animation: jx-nextpulse 2.4s ease-in-out infinite;
+}
+@keyframes jx-nextpulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(252, 213, 53, 0); }
+  50% { box-shadow: 0 0 0 3px rgba(252, 213, 53, 0.12); }
+}
+.jx-achv__badge-ico {
+  font-size: 24px;
+  line-height: 1;
+  transition: filter 0.16s ease;
+}
+.jx-achv__badge--got .jx-achv__badge-ico { filter: drop-shadow(0 3px 8px rgba(252, 213, 53, 0.4)); }
+.jx-achv__badge:not(.jx-achv__badge--got) .jx-achv__badge-ico { filter: grayscale(1) opacity(0.55); }
+.jx-achv__badge-lbl {
+  font: 600 11px/1.2 var(--jx-font);
+  color: var(--color-text-muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jx-achv__badge--got .jx-achv__badge-lbl { color: var(--color-text-primary); }
+.jx-achv__badge-foot {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.jx-achv__badge-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+.jx-achv__badge-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-text-disabled);
+  transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.jx-achv__badge--next .jx-achv__badge-fill,
+.jx-achv__badge--got .jx-achv__badge-fill {
+  background: linear-gradient(90deg, var(--yellow-400), var(--yellow-300));
+  box-shadow: 0 0 8px rgba(252, 213, 53, 0.4);
+}
+.jx-achv__badge-pct {
+  font: 600 9.5px/1 var(--jx-font);
+  letter-spacing: 0.3px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.jx-achv__badge--got .jx-achv__badge-pct { color: var(--color-primary); font-weight: 700; }
+.jx-achv__badge-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ================= Banners ================= */
@@ -1333,7 +2026,7 @@ body::before {
 }
 [data-theme="dark"] .jx-ltmodal--sheet {
   background: #0b0b0d;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #38383f;
 }
 .jx-ltmodal--sheet .jx-ltmodal__header {
   border-bottom: none;
@@ -1903,47 +2596,50 @@ body::before {
   padding: 2px 4px;
 }
 .jx-cal__cell {
-  border-radius: var(--radius-md);
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
   min-height: 56px;
   padding: 7px 9px;
   display: flex;
   flex-direction: column;
   gap: 3px;
   font: var(--text-caption);
-  color: var(--color-text-secondary);
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-/* empty (no-trade) days sit quieter than active ones */
-.jx-cal__cell:not(.jx-cal__cell--win):not(.jx-cal__cell--loss) {
-  background: color-mix(in srgb, var(--color-bg-elevated) 55%, transparent);
-  border-color: color-mix(in srgb, var(--color-border) 55%, transparent);
   color: var(--color-text-muted);
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 .jx-cal__cell:hover {
   border-color: var(--color-border-strong);
 }
+/* the day number reads clearly; the trade-count stays quiet */
+.jx-cal__cell > span:first-child {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+/* profit days: clean, readable green tint */
 .jx-cal__cell--win {
-  background: color-mix(in srgb, var(--color-success) 14%, var(--color-bg-elevated));
-  border-color: color-mix(in srgb, var(--color-success) 32%, transparent);
+  background: color-mix(in srgb, var(--color-success) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+  color: var(--color-text-secondary);
 }
 .jx-cal__cell--win:hover {
   border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
 }
+/* loss days: clean red tint */
 .jx-cal__cell--loss {
-  background: color-mix(in srgb, var(--color-danger) 14%, var(--color-bg-elevated));
-  border-color: color-mix(in srgb, var(--color-danger) 32%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  color: var(--color-text-secondary);
 }
 .jx-cal__cell--loss:hover {
   border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
 }
 .jx-cal__pnl--win {
-  color: var(--color-success-strong);
+  color: #4ade9b;
   font-weight: 700;
 }
 .jx-cal__pnl--loss {
-  color: var(--color-danger-strong);
+  color: #ff6b7e;
   font-weight: 700;
 }
 

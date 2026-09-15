@@ -247,9 +247,12 @@ export default function BentoGrid() {
         .bd-ddfill{height:100%;border-radius:999px;}
         .bd-ddnote{font:400 12px Poppins;color:#7a7a7a;}
 
-        @media (max-width:1000px){ .bd-grid{grid-template-columns:repeat(2,1fr);} .bd-card--wide{grid-column:span 2;} }
+        /* desktop keeps the 3-col bento; tablet & mobile get one full-width
+           column so every card stretches edge-to-edge */
+        @media (max-width:1200px){ .bd-grid{grid-template-columns:repeat(2,1fr);} .bd-card--wide{grid-column:1 / -1;} }
+        @media (max-width:1024px){ .bd-grid{grid-template-columns:1fr;} .bd-card,.bd-card--wide{grid-column:1 / -1;} }
         @media (max-width:768px){ .bd{padding:72px 16px;} }
-        @media (max-width:560px){ .bd-grid{grid-template-columns:1fr;} .bd-card--wide{grid-column:span 1;} .bd-psych{flex-direction:column;align-items:flex-start;gap:16px;} }
+        @media (max-width:560px){ .bd-psych{flex-direction:column;align-items:stretch;gap:16px;} .bd-psych>svg{align-self:center;} .bd-pside{width:100%;flex:none;} .bd-tags{flex-wrap:wrap;} }
         @media (prefers-reduced-motion:reduce){ .bd-eqline{animation:none;stroke-dashoffset:0;} .bd-caret{animation:none;opacity:.5;} }
       `}</style>
     </section>

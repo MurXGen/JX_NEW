@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRightLeft,
@@ -11,8 +11,8 @@ import {
   PanelLeftOpen,
   PlusCircle,
   Sun,
-  User,
 } from "lucide-react";
+import Avatar from "./Avatar";
 import Button from "./Button";
 import { useSupportBadge } from "./useSupportBadge";
 import { SidebarInstallButton } from "@/components/pwa/InstallPwa";
@@ -62,11 +62,19 @@ export default function Sidebar({
   onUpgrade,
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [width, setWidth] = useState(248);
+  const widthRef = useRef(248);
+  const resizingRef = useRef(false);
   const { theme, toggleTheme } = useTheme();
   const { showDot: supportDot, markViewed: markSupportViewed } = useSupportBadge(user?.email);
 
   useEffect(() => {
     setCollapsed(localStorage.getItem("jx-sidebar-collapsed") === "1");
+    const w = Number(localStorage.getItem("jx-sidebar-width"));
+    if (w >= 200 && w <= 460) {
+      setWidth(w);
+      widthRef.current = w;
+    }
   }, []);
 
   const toggleCollapsed = () => {
@@ -75,13 +83,50 @@ export default function Sidebar({
     localStorage.setItem("jx-sidebar-collapsed", next ? "1" : "0");
   };
 
+  // drag the right edge to resize the sidebar (persisted, clamped)
+  const startResize = (e) => {
+    e.preventDefault();
+    resizingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    const move = (ev) => {
+      const x = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      const w = Math.max(200, Math.min(460, x));
+      widthRef.current = w;
+      setWidth(w);
+    };
+    const end = () => {
+      resizingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", end);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", end);
+      try { localStorage.setItem("jx-sidebar-width", String(Math.round(widthRef.current))); } catch {}
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", end);
+    window.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", end);
+  };
+
   return (
     <motion.aside
-      animate={{ width: collapsed ? 76 : 248 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      animate={{ width: collapsed ? 76 : width }}
+      transition={resizingRef.current ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
       className={`jx-sidebar ${collapsed ? "jx-sidebar--collapsed" : ""}`}
-      style={{ width: undefined }}
     >
+      {!collapsed && (
+        <div
+          className="jx-sidebar__resize"
+          onMouseDown={startResize}
+          onTouchStart={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+        />
+      )}
       {/* Brand */}
       <div className="jx-sidebar__brand">
         {collapsed ? (
@@ -263,7 +308,7 @@ export default function Sidebar({
               title={collapsed ? user.name : undefined}
               style={{ flex: 1, minWidth: 0, justifyContent: "flex-start", textAlign: "left" }}
             >
-              <User size={20} style={{ flexShrink: 0 }} />
+              <Avatar name={user.name} src={user.avatarUrl} size={collapsed ? 30 : 34} />
               {!collapsed && (
                 <span
                   style={{

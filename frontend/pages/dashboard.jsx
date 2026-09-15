@@ -426,10 +426,8 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <PlanBanner
-          subscription={userData?.subscription}
-          onUpgrade={() => setActiveTab("pricingpage")}
-        />
+        {/* Plan status lives subtly in the sidebar ("Upgrade plan"); no big
+            banner at the top of every page. */}
 
         <AnimatedPanel id={activeTab}>
           {activeTab === "settings" && isMobile ? (

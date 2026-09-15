@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Coffee, EyeOff, Flame, Info, Plus, Shield, Sparkles, Sprout, TrendingUp } from "lucide-react";
+import { Check, Coffee, EyeOff, Flame, Info, Plus, Shield, Sparkles, Sprout, Trophy, TrendingUp } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import CountUp from "./CountUp";
@@ -10,6 +10,7 @@ import Dropdown from "./Dropdown";
 import Tip from "./Tip";
 import SampleDataBanner from "./SampleDataBanner";
 import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
+import { PnlCalendar, TradesHeatmap } from "./TradesLogPanel";
 import { compactNumber } from "@/utils/formatNumbers";
 import { convertTrade } from "@/utils/fx";
 import { jxEase } from "./easing";
@@ -26,6 +27,7 @@ const OVERVIEW_SECTIONS = [
   { id: "timeframe", label: "Timeframe analysis" },
   { id: "sessions", label: "Session performance" },
   { id: "edge", label: "Your trading edge" },
+  { id: "calendar", label: "Calendar & heatmap" },
   { id: "dayOfWeek", label: "Day-of-week P&L" },
   { id: "streaks", label: "Streaks & achievements" },
   { id: "keyMetrics", label: "Key metrics" },
@@ -750,6 +752,98 @@ function Progress({ pct, color = "var(--color-success)" }) {
   );
 }
 
+const SESSION_COLORS = {
+  sydney: "#a78bfa",
+  asia: "#38bdf8",
+  london: "#34d399",
+  newyork: "#fbbf24",
+};
+
+/* 24-hour radial session clock: each FX session is an arc on the ring, the
+   live one glows, and a hand sweeps to the current UTC time (live). */
+function SessionClock({ sessions }) {
+  const [now, setNow] = useState(() => new Date());
+  const [h12, setH12] = useState(false); // 12-hour (AM/PM) vs 24-hour
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const cx = 100, cy = 100, r = 78;
+  const C = 2 * Math.PI * r;
+  const utcHNow = now.getUTCHours();
+  const utcFrac = utcHNow + now.getUTCMinutes() / 60;
+  const handAngle = (utcFrac / 24) * 360;
+  const pad = (n) => String(n).padStart(2, "0");
+  const hh = now.getHours();
+  const ampm = hh >= 12 ? "PM" : "AM";
+  const localTime = h12
+    ? `${((hh + 11) % 12) + 1}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+    : `${pad(hh)}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const utcHM = now.toLocaleTimeString("en-GB", { timeZone: "UTC", hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}>
+    <svg viewBox="0 0 200 200" style={{ width: "100%", maxWidth: 260, display: "block", margin: "0 auto", overflow: "visible" }}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={15} />
+      {/* hour ticks */}
+      {[...Array(24)].map((_, h) => {
+        const ang = (h / 24) * 2 * Math.PI - Math.PI / 2;
+        const major = h % 6 === 0;
+        const r1 = r + 10, r2 = r + (major ? 17 : 14);
+        return (
+          <line key={h}
+            x1={cx + r1 * Math.cos(ang)} y1={cy + r1 * Math.sin(ang)}
+            x2={cx + r2 * Math.cos(ang)} y2={cy + r2 * Math.sin(ang)}
+            stroke={major ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.13)"}
+            strokeWidth={major ? 1.5 : 1} />
+        );
+      })}
+      {[0, 6, 12, 18].map((h) => {
+        const ang = (h / 24) * 2 * Math.PI - Math.PI / 2;
+        const rr = r + 28;
+        return (
+          <text key={h} x={cx + rr * Math.cos(ang)} y={cy + rr * Math.sin(ang) + 3.5} textAnchor="middle" fill="var(--color-text-muted)" style={{ font: "600 9px Poppins" }}>
+            {String(h).padStart(2, "0")}
+          </text>
+        );
+      })}
+      {/* session arcs */}
+      <g transform={`rotate(-90 ${cx} ${cy})`}>
+        {sessions.map((s) => {
+          const live = s.test(utcHNow);
+          const col = SESSION_COLORS[s.id] || "var(--color-primary)";
+          const startLen = (s.lo / 24) * C;
+          const arcLen = ((s.hi - s.lo) / 24) * C;
+          return (
+            <circle key={s.id} cx={cx} cy={cy} r={r} fill="none"
+              stroke={col} strokeWidth={live ? 17 : 13}
+              strokeDasharray={`${Math.max(0, arcLen - 2)} ${C - arcLen + 2}`}
+              strokeDashoffset={-startLen}
+              opacity={s.trades > 0 ? 1 : 0.45}
+              style={{ transition: "stroke-width .3s ease, opacity .3s ease", filter: live ? `drop-shadow(0 0 5px ${col})` : "none" }}>
+              {live && <animate attributeName="opacity" values="1;0.6;1" dur="2.4s" repeatCount="indefinite" />}
+            </circle>
+          );
+        })}
+      </g>
+      {/* now hand — rotate in view-box space so it pivots on the true centre */}
+      <g style={{ transform: `rotate(${handAngle}deg)`, transformBox: "view-box", transformOrigin: "100px 100px", transition: "transform 0.9s cubic-bezier(0.4,0,0.2,1)" }}>
+        <line x1={cx} y1={cy} x2={cx} y2={cy - r - 5} stroke="#fff" strokeWidth={2} strokeLinecap="round" opacity="0.9" />
+        <circle cx={cx} cy={cy - r} r={4.5} fill="#fff" style={{ filter: "drop-shadow(0 0 4px rgba(255,255,255,0.6))" }} />
+      </g>
+      {/* center face */}
+      <circle cx={cx} cy={cy} r={52} fill="var(--color-bg-elevated)" stroke="rgba(255,255,255,0.06)" />
+      <text x={cx} y={cy - 4} textAnchor="middle" fill="var(--color-text-primary)" style={{ font: "600 17px Poppins", letterSpacing: "-0.3px", fontVariantNumeric: "tabular-nums" }}>{localTime}</text>
+      <text x={cx} y={cy + 13} textAnchor="middle" fill="var(--color-text-muted)" style={{ font: "600 9px Poppins", letterSpacing: "0.6px" }}>{h12 ? `${ampm} · ` : ""}{utcHM} UTC</text>
+    </svg>
+    <div className="jx-seg jx-seg--inline" role="tablist" aria-label="Time format">
+      <button type="button" className={`jx-seg__btn${!h12 ? " jx-seg__btn--active" : ""}`} aria-pressed={!h12} onClick={() => setH12(false)}>24H</button>
+      <button type="button" className={`jx-seg__btn${h12 ? " jx-seg__btn--active" : ""}`} aria-pressed={h12} onClick={() => setH12(true)}>AM/PM</button>
+    </div>
+    </div>
+  );
+}
+
 const LABEL = {
   font: "var(--text-label)",
   letterSpacing: "0.6px",
@@ -1245,80 +1339,38 @@ export default function OverviewPanel({
     const winRate = total ? (wins / total) * 100 : 0;
     const greenDays = days.filter((v) => v > 0).length;
 
-    // achievement badges (milestones)
-    const badges = [
-      {
-        id: "first",
-        icon: "🎯",
-        label: "First trade",
-        got: total >= 1,
-        hint: "Log your first trade",
-      },
-      {
-        id: "ten",
-        icon: "📒",
-        label: "10 trades",
-        got: total >= 10,
-        hint: "Log 10 trades",
-      },
-      {
-        id: "fifty",
-        icon: "📚",
-        label: "50 trades",
-        got: total >= 50,
-        hint: "Log 50 trades",
-      },
-      {
-        id: "hundred",
-        icon: "🏛️",
-        label: "Centurion",
-        got: total >= 100,
-        hint: "Log 100 trades",
-      },
-      {
-        id: "streak5",
-        icon: "🔥",
-        label: "5-win streak",
-        got: bestWin >= 5,
-        hint: "Win 5 in a row",
-      },
-      {
-        id: "streak10",
-        icon: "⚡",
-        label: "10-win streak",
-        got: bestWin >= 10,
-        hint: "Win 10 in a row",
-      },
-      {
-        id: "green5",
-        icon: "🌱",
-        label: "5 green days",
-        got: bestGreenDays >= 5,
-        hint: "5 profitable days in a row",
-      },
-      {
-        id: "profit1k",
-        icon: "💰",
-        label: "$1k profit",
-        got: net >= 1000,
-        hint: "Reach $1,000 net P&L",
-      },
-      {
-        id: "profit10k",
-        icon: "💎",
-        label: "$10k profit",
-        got: net >= 10000,
-        hint: "Reach $10,000 net P&L",
-      },
-      {
-        id: "wr60",
-        icon: "🎖️",
-        label: "60% win rate",
-        got: total >= 20 && winRate >= 60,
-        hint: "60%+ win rate over 20+ trades",
-      },
+    // achievement badges (milestones) — each carries current value + target so
+    // the UI can show real progress, not just locked/unlocked.
+    const wrGate = Math.min(total, 20); // win-rate badge needs 20+ trades
+    const rawBadges = [
+      { id: "first", icon: "🎯", label: "First trade", group: "Volume", cur: total, target: 1, type: "count", hint: "Log your first trade" },
+      { id: "ten", icon: "📒", label: "10 trades", group: "Volume", cur: total, target: 10, type: "count", hint: "Log 10 trades" },
+      { id: "fifty", icon: "📚", label: "50 trades", group: "Volume", cur: total, target: 50, type: "count", hint: "Log 50 trades" },
+      { id: "hundred", icon: "🏛️", label: "Centurion", group: "Volume", cur: total, target: 100, type: "count", hint: "Log 100 trades" },
+      { id: "streak5", icon: "🔥", label: "5-win streak", group: "Streaks", cur: bestWin, target: 5, type: "count", hint: "Win 5 trades in a row" },
+      { id: "streak10", icon: "⚡", label: "10-win streak", group: "Streaks", cur: bestWin, target: 10, type: "count", hint: "Win 10 trades in a row" },
+      { id: "green5", icon: "🌱", label: "5 green days", group: "Consistency", cur: bestGreenDays, target: 5, type: "count", hint: "5 profitable days in a row" },
+      { id: "wr60", icon: "🎖️", label: "60% win rate", group: "Consistency", cur: winRate, target: 60, type: "pct", gate: total >= 20, gateCur: wrGate, gateTarget: 20, hint: "60%+ win rate over 20+ trades" },
+      { id: "profit1k", icon: "💰", label: "₹1k profit", group: "Profit", cur: net, target: 1000, type: "money", hint: "Reach ₹1,000 net P&L" },
+      { id: "profit10k", icon: "💎", label: "₹10k profit", group: "Profit", cur: net, target: 10000, type: "money", hint: "Reach ₹10,000 net P&L" },
     ];
+    const badges = rawBadges.map((b) => {
+      let ratio = b.target > 0 ? Math.max(0, b.cur) / b.target : 0;
+      // gated badges (e.g. 60% win rate needs 20+ trades) — progress reflects
+      // whichever requirement is further behind, so it never shows 100% early.
+      if (b.gate !== undefined) {
+        const gateRatio = b.gateTarget > 0 ? Math.max(0, b.gateCur) / b.gateTarget : 1;
+        ratio = Math.min(ratio, gateRatio);
+      }
+      const got = (b.gate === undefined ? true : b.gate) && b.cur >= b.target;
+      return { ...b, prog: Math.max(0, Math.min(1, ratio)), got };
+    });
     const unlocked = badges.filter((b) => b.got).length;
+    // "next" milestone = the locked badge closest to completion
+    const nextBadge =
+      badges
+        .filter((b) => !b.got)
+        .sort((a, b) => b.prog - a.prog)[0] || null;
 
     return {
       curWin,
@@ -1331,6 +1383,9 @@ export default function OverviewPanel({
       badges,
       unlocked,
       total,
+      net,
+      winRate,
+      nextBadge,
     };
   }, [closed]);
 
@@ -1657,7 +1712,10 @@ export default function OverviewPanel({
 
   const { hidden, toggle, reset, isVisible } = useHiddenSections(
     "jx-overview-sections",
-    ["drawdown", "revenge"], // hidden by default; users can enable in Customize
+    // Trimmed for focus — keep Core KPIs, Equity, Calendar/day-of-week, and
+    // Trading edge & session up front. The deeper cuts stay one tap away in
+    // Customize (users who already customized keep their own choice).
+    ["capital", "pace", "payoff", "drawdown", "holdtime", "revenge", "timeframe"],
   );
 
   // small hover "hide" eye shown on each section card; re-show via Customize
@@ -2467,67 +2525,47 @@ export default function OverviewPanel({
           <span className="jx-card__title">Session performance</span>
           <InfoTip text="P&L grouped by trading session, by open time" />
         </div>
-        {/* running local + UTC clock */}
-        <div style={{ marginBottom: "var(--space-3)" }}>
-          <LiveClock />
+        {/* live 24h session clock + ranked legend */}
+        <div className="jx-sessgrid" style={{ display: "grid", gridTemplateColumns: "minmax(210px, 250px) 1fr", gap: "var(--space-6)", alignItems: "center", marginBottom: "var(--space-3)" }}>
+          <SessionClock sessions={SESSIONS.list} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", minWidth: 0 }}>
+            {SESSIONS.list.map((s) => {
+              const pos = s.pnl >= 0;
+              const pct = Math.round((Math.abs(s.pnl) / SESSIONS.maxAbs) * 100);
+              const isBest = SESSIONS.best && s.id === SESSIONS.best.id && s.pnl > 0;
+              const traded = s.trades > 0;
+              const live = s.test(new Date().getUTCHours());
+              const col = SESSION_COLORS[s.id] || "var(--color-primary)";
+              return (
+                <div key={s.id} style={{ display: "flex", flexDirection: "column", gap: 6, padding: "10px 12px", borderRadius: "var(--radius-md)", border: `1px solid ${live ? "var(--color-success)" : "var(--color-border)"}`, background: live ? "color-mix(in srgb, var(--color-success) 8%, transparent)" : "transparent" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: col, flexShrink: 0, boxShadow: live ? `0 0 6px ${col}` : "none" }} />
+                    <span style={{ font: "var(--text-body-md)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.label}</span>
+                    {live && (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "var(--text-caption)", fontWeight: 700, color: "var(--color-success-strong)" }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-success-strong)", boxShadow: "0 0 0 3px color-mix(in srgb, var(--color-success) 30%, transparent)" }} /> Live
+                      </span>
+                    )}
+                    {isBest && <Badge variant="success">Best</Badge>}
+                    <span style={{ marginLeft: "auto", font: "var(--text-body-md)", fontWeight: 700, color: !traded ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                      {traded ? k(s.pnl, currencySymbol) : "—"}
+                    </span>
+                  </div>
+                  <div style={{ height: 5, background: "var(--color-bg-muted)", borderRadius: 999, overflow: "hidden" }}>
+                    <div style={{ width: `${traded ? pct : 0}%`, height: "100%", background: col, borderRadius: 999, transition: "width .8s cubic-bezier(0.16,1,0.3,1)" }} />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                    <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.window.replace(" UTC", "")} UTC</span>
+                    <span style={{ whiteSpace: "nowrap" }}>{traded ? `${s.trades} · ${fmt(s.winRate, 0)}% win` : "—"}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {SESSIONS.totalTraded === 0 ? (
-          <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
-            Log a few trades to see which session suits you best.
-          </span>
-        ) : (
-          <>
-            {/* session rows, one below the other, active session highlighted */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-              {SESSIONS.list.map((s) => {
-                const pos = s.pnl >= 0;
-                const pct = Math.round((Math.abs(s.pnl) / SESSIONS.maxAbs) * 100);
-                const isBest = SESSIONS.best && s.id === SESSIONS.best.id && s.pnl > 0;
-                const traded = s.trades > 0;
-                const nowH = new Date().getUTCHours();
-                const isActive = nowH >= s.lo && nowH <= s.hi;
-                return (
-                  <div
-                    key={s.id}
-                    style={{
-                      padding: "var(--space-3)",
-                      borderRadius: "var(--radius-md)",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 6,
-                      border: `1px solid ${isBest ? "var(--color-primary)" : isActive ? "var(--color-border-strong)" : "var(--color-border)"}`,
-                      background: isBest ? "var(--color-primary-subtle)" : isActive ? "var(--color-bg-muted)" : "transparent",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 6, font: "var(--text-body-md)", fontWeight: 600 }}>
-                        <span>{s.emoji}</span> {s.label}
-                        {isActive && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "var(--text-caption)", fontWeight: 700, color: "var(--color-success-strong)" }}>
-                            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--color-success-strong)", boxShadow: "0 0 0 3px color-mix(in srgb, var(--color-success) 30%, transparent)" }} /> Live
-                          </span>
-                        )}
-                        {isBest && <Badge variant="success">Best</Badge>}
-                      </span>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: !traded ? "var(--color-text-muted)" : pos ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                        {traded ? k(s.pnl, currencySymbol) : "—"}
-                      </span>
-                    </div>
-                    <div style={{ height: 5, background: "var(--color-bg-muted)", borderRadius: 999, position: "relative", overflow: "hidden" }}>
-                      <div style={{ position: "absolute", inset: 0, width: `${traded ? pct : 0}%`, background: pos ? "var(--color-success)" : "var(--color-danger)", borderRadius: 999, transition: "width .8s cubic-bezier(0.16,1,0.3,1)" }} />
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                      <span>{s.window.replace(" UTC", "")} UTC · local {localFromUtcHour(s.lo)}–{localFromUtcHour(s.hi)}</span>
-                      <span>{traded ? `${s.trades} · ${fmt(s.winRate, 0)}% win` : "—"}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* key insight */}
-            <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start", marginTop: "var(--space-3)" }}>
+        {SESSIONS.totalTraded > 0 && (
+          <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start", marginTop: "var(--space-3)" }}>
               <Flame size={14} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
               <span style={{ font: "var(--text-caption)" }}>
                 {SESSIONS.best && SESSIONS.best.pnl > 0 ? (
@@ -2539,7 +2577,6 @@ export default function OverviewPanel({
                 )}
               </span>
             </div>
-          </>
         )}
       </div>
       )}
@@ -2601,6 +2638,21 @@ export default function OverviewPanel({
       </div>
       )}
 
+      {/* ===== Calendar & heatmap (moved here from Trades log) ===== */}
+      {isVisible("calendar") && (
+        <div className="jx-card jx-sec" style={{ gridColumn: "1 / -1" }}>
+          <HideBtn id="calendar" />
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-4)" }}>
+            <span className="jx-card__title">Calendar &amp; heatmap</span>
+            <InfoTip text="Daily P&L calendar and activity heatmap" />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "var(--space-4)" }}>
+            <PnlCalendar trades={closed} sym={currencySymbol} />
+            <TradesHeatmap trades={closed} sym={currencySymbol} />
+          </div>
+        </div>
+      )}
+
       {/* ===== Day-of-week P&L (spans both columns) ===== */}
       {isVisible("dayOfWeek") && EDGE.dowHasData && (
         <div className="jx-card jx-sec" style={{ gridColumn: "1 / -1" }}>
@@ -2642,249 +2694,259 @@ export default function OverviewPanel({
       {/* ===== end analytics grid ===== */}
 
       {/* ===== Streaks & achievements (moved up: right after the KPI cards) ===== */}
-      {isVisible("streaks") && (
-      <div style={{ order: -1, display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
-      <div>
-        <span className="jx-card__title">Streaks &amp; achievements</span>
-        <div
-          style={{
-            font: "var(--text-caption)",
-            color: "var(--color-text-muted)",
-          }}
-        >
-          Momentum and milestones from your full history
-        </div>
-      </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr)",
-          gap: "var(--space-4)",
-          marginTop: "calc(var(--space-3) * -1)",
-        }}
-        className="jx-ach-grid"
-      >
-        {/* streak stats */}
-        <div
-          className="jx-card"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-3)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-2)",
-            }}
-          >
-            <span className="jx-sect__icon">
-              <Flame size={15} />
-            </span>
-            <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
-              Current momentum
-            </span>
+      {isVisible("streaks") && (() => {
+        const segs = (cur, best) => {
+          const n = Math.min(Math.max(best, 1), 12);
+          return Array.from({ length: n }, (_, i) => i < cur);
+        };
+        const winSegs = segs(ACH.curWin, ACH.bestWin);
+        const greenSegs = segs(ACH.curGreenDays, ACH.bestGreenDays);
+        const achTotal = ACH.badges.length;
+        const achPct = achTotal ? (ACH.unlocked / achTotal) * 100 : 0;
+        const nextBadge = ACH.nextBadge;
+        const RR = 40, RC = 2 * Math.PI * RR;
+        // rank ladder from how many milestones are unlocked
+        const RANKS = ["Rookie", "Novice", "Consistent", "Sharp", "Elite"];
+        const rank = RANKS[Math.min(RANKS.length - 1, Math.floor((ACH.unlocked / achTotal) * RANKS.length))];
+        // format "current / target" text for a badge
+        const badgeVal = (b) => {
+          if (b.type === "money") return `${k(b.cur, currencySymbol)} / ${k(b.target, currencySymbol)}`;
+          if (b.type === "pct") return b.gate ? `${fmt(b.cur, 0)}% / ${b.target}%` : `${b.gateCur}/${b.gateTarget} trades`;
+          return `${Math.max(0, Math.min(b.cur, b.target))} / ${b.target}`;
+        };
+        const badgeRemain = (b) => {
+          if (b.type === "money") return `${k(Math.max(0, b.target - b.cur), currencySymbol)} to go`;
+          if (b.type === "pct") return b.gate ? `${fmt(Math.max(0, b.target - b.cur), 0)}% to go` : `${Math.max(0, b.gateTarget - b.gateCur)} more trades`;
+          return `${Math.max(0, b.target - b.cur)} to go`;
+        };
+        return (
+        <div className="jx-card jx-sec" style={{ order: -1 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)", marginBottom: "var(--space-4)", flexWrap: "wrap" }}>
+            <div>
+              <span className="jx-card__title">Streaks &amp; achievements</span>
+              <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                Momentum and milestones from your full history
+              </div>
+            </div>
             {ACH.curWin > 0 && (
               <Badge variant="success">{ACH.curWin}-trade win streak 🔥</Badge>
             )}
           </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))",
-              gap: "var(--space-3)",
-            }}
-          >
-            {[
-              ["Win streak", ACH.curWin, `best ${ACH.bestWin}`],
-              [
-                "Green-day streak",
-                ACH.curGreenDays,
-                `best ${ACH.bestGreenDays}`,
-              ],
-              [
-                "Streak P&L",
-                k(ACH.streakPnl, currencySymbol),
-                "this run",
-                ACH.streakPnl >= 0,
-              ],
-              [
-                "Biggest win",
-                k(ACH.biggestWin, currencySymbol),
-                "single trade",
-                true,
-              ],
-            ].map(([l, v, sub, up]) => (
-              <div
-                key={l}
-                className="jx-card jx-card--flat"
-                style={{
-                  padding: "var(--space-4) var(--space-5)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 4,
-                }}
-              >
-                <span style={LABEL}>{l}</span>
-                <span
-                  style={{
-                    font: "var(--text-h2)",
-                    fontVariantNumeric: "tabular-nums",
-                    color:
-                      up === undefined
-                        ? "var(--color-text-primary)"
-                        : up
-                          ? "var(--color-success-strong)"
-                          : "var(--color-danger-strong)",
-                  }}
-                >
-                  {typeof v === "number" ? <CountUp value={v} /> : v}
-                </span>
-                <span
-                  style={{
-                    font: "var(--text-caption)",
-                    color: "var(--color-text-muted)",
-                  }}
-                >
-                  {sub}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* achievement badges */}
-        <div
-          className="jx-card"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-3)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-2)",
-            }}
-          >
-            <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
-              Achievements
-            </span>
-            <Badge variant="brand">
-              {ACH.unlocked}/{ACH.badges.length} unlocked
-            </Badge>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(96px, 1fr))",
-              gap: "var(--space-2)",
-            }}
-          >
-            {ACH.badges.map((b) => (
-              <Tip
-                key={b.id}
-                content={`${b.label}${b.got ? ", unlocked" : `, ${b.hint}`}`}
-                block
-              >
-                <div
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 4,
-                    textAlign: "center",
-                    padding: "var(--space-3) var(--space-2)",
-                    borderRadius: "var(--radius-md)",
-                    background: b.got
-                      ? "var(--color-primary-subtle)"
-                      : "var(--color-bg-muted)",
-                    border: `1px solid ${b.got ? "var(--color-primary)" : "var(--color-border)"}`,
-                    opacity: b.got ? 1 : 0.5,
-                    cursor: "help",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 22,
-                      filter: b.got ? "none" : "grayscale(1)",
-                    }}
-                  >
-                    {b.icon}
-                  </span>
-                  <span
-                    style={{
-                      font: "var(--text-caption)",
-                      fontWeight: 600,
-                      color: b.got
-                        ? "var(--color-text-primary)"
-                        : "var(--color-text-muted)",
-                    }}
-                  >
-                    {b.label}
-                  </span>
+          <div className="jx-streaks">
+            {/* ---- momentum ---- */}
+            <div className="jx-mom">
+              <div className="jx-mom__hero">
+                <div className="jx-mom__flame">🔥</div>
+                <div>
+                  <div className="jx-mom__num">
+                    <CountUp value={ACH.curWin} /><small>/ best {ACH.bestWin}</small>
+                  </div>
+                  <div style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+                    consecutive winning trades
+                  </div>
                 </div>
-              </Tip>
-            ))}
+                <div className="jx-mom__herostats">
+                  <div>
+                    <span>Streak P&amp;L</span>
+                    <b style={{ color: ACH.streakPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                      {k(ACH.streakPnl, currencySymbol)}
+                    </b>
+                  </div>
+                  <div className="jx-mom__herodiv" />
+                  <div>
+                    <span>Biggest win</span>
+                    <b style={{ color: "var(--color-success-strong)" }}>{k(ACH.biggestWin, currencySymbol)}</b>
+                  </div>
+                </div>
+              </div>
+
+              <div className="jx-mom__bars">
+                <div className="jx-mom__bar-row">
+                  <div className="jx-mom__bar-head">
+                    <span className="jx-mom__bar-label">Win streak</span>
+                    <span className="jx-mom__bar-val"><b>{ACH.curWin}</b> / {ACH.bestWin || 0} best</span>
+                  </div>
+                  <div className="jx-mom__pips">
+                    {winSegs.map((on, i) => (
+                      <div key={i} className={`jx-mom__pip${on ? " jx-mom__pip--on" : ""}`} />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="jx-mom__bar-row">
+                  <div className="jx-mom__bar-head">
+                    <span className="jx-mom__bar-label">Green-day streak</span>
+                    <span className="jx-mom__bar-val"><b>{ACH.curGreenDays}</b> / {ACH.bestGreenDays || 0} best</span>
+                  </div>
+                  <div className="jx-mom__pips">
+                    {greenSegs.map((on, i) => (
+                      <div key={i} className={`jx-mom__pip jx-mom__pip--gold${on ? " jx-mom__pip--on" : ""}`} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ---- achievements ---- */}
+            <div className="jx-achv">
+              <div className="jx-achv__top">
+                <div className="jx-achv__ring">
+                  <svg viewBox="0 0 92 92" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
+                    <circle cx="46" cy="46" r={RR} fill="none" stroke="var(--color-bg-muted)" strokeWidth="7" />
+                    <circle
+                      cx="46" cy="46" r={RR} fill="none"
+                      stroke="var(--color-primary)" strokeWidth="7" strokeLinecap="round"
+                      strokeDasharray={RC}
+                      strokeDashoffset={RC - (RC * achPct) / 100}
+                      style={{ transition: "stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)", filter: "drop-shadow(0 0 5px rgba(252,213,53,0.5))" }}
+                    />
+                  </svg>
+                  <div className="jx-achv__ring-center">
+                    <b>{ACH.unlocked}<span style={{ color: "var(--color-text-muted)", textTransform: "none", letterSpacing: 0, font: "600 13px var(--jx-font)" }}>/{achTotal}</span></b>
+                    <span>unlocked</span>
+                  </div>
+                </div>
+                <div className="jx-achv__top-txt">
+                  <h4>
+                    <Trophy size={14} style={{ verticalAlign: "-2px", marginRight: 5, color: "var(--color-primary)" }} />
+                    Achievements
+                    <span className="jx-achv__rank">{rank}</span>
+                  </h4>
+                  <p>Unlock any milestone to level up — {achTotal - ACH.unlocked} still open</p>
+                </div>
+              </div>
+
+              {nextBadge && (
+                <div className="jx-achv__spot">
+                  <span className="jx-achv__spot-ico">{nextBadge.icon}</span>
+                  <div className="jx-achv__spot-body">
+                    <div className="jx-achv__spot-head">
+                      <span className="jx-achv__spot-kicker">Closest to unlock</span>
+                      <span className="jx-achv__spot-remain">{badgeRemain(nextBadge)}</span>
+                    </div>
+                    <div className="jx-achv__spot-name">{nextBadge.label}</div>
+                    <div className="jx-achv__spot-track">
+                      <div className="jx-achv__spot-fill" style={{ width: `${Math.max(4, nextBadge.prog * 100)}%` }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="jx-achv__grid">
+                {ACH.badges.map((b) => {
+                  const isNext = nextBadge && b.id === nextBadge.id;
+                  return (
+                  <Tip key={b.id} content={b.got ? `${b.label} — unlocked ✓` : `${b.hint} · ${badgeVal(b)}`} block>
+                    <div className={`jx-achv__badge${b.got ? " jx-achv__badge--got" : isNext ? " jx-achv__badge--next" : ""}`}>
+                      {b.got && (
+                        <span className="jx-achv__badge-check"><Check size={9} strokeWidth={3.5} /></span>
+                      )}
+                      <span className="jx-achv__badge-ico">{b.icon}</span>
+                      <span className="jx-achv__badge-lbl">{b.label}</span>
+                      <span className="jx-achv__badge-foot">
+                        <span className="jx-achv__badge-track">
+                          <span className="jx-achv__badge-fill" style={{ width: `${b.got ? 100 : Math.max(4, b.prog * 100)}%` }} />
+                        </span>
+                        <span className="jx-achv__badge-pct">{b.got ? "Done" : `${Math.round(b.prog * 100)}%`}</span>
+                      </span>
+                    </div>
+                  </Tip>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      </div>
-      )}
+        );
+      })()}
 
-      {/* ===== Key metrics (moved up: right after streaks) ===== */}
-      {isVisible("keyMetrics") && (
-      <div style={{ order: -2, display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-          gap: "var(--space-4)",
-        }}
-      >
-        {kpis.map((m) => (
-          <div
-            key={m.label}
-            className="jx-card"
-            style={{
-              padding: "var(--space-4) var(--space-5)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 4,
-            }}
-          >
-            <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>
-              {m.label} {KPI_TIPS[m.label] && <InfoTip text={KPI_TIPS[m.label]} />}
-            </span>
-            <Tip content={`${m.label}, ${m.sub}`}>
-              <span style={{ font: "var(--text-h2)", cursor: "help" }}>
-                {m.value}
-              </span>
-            </Tip>
-            <span
-              style={{
-                font: "var(--text-caption)",
-                color:
-                  m.up === undefined
-                    ? "var(--color-text-muted)"
-                    : m.up
-                      ? "var(--color-success)"
-                      : "var(--color-danger)",
-              }}
-            >
-              {m.up !== undefined && (m.up ? "↑ " : "↓ ")}
-              <span style={{ color: "var(--color-text-muted)" }}>{m.sub}</span>
-            </span>
+      {/* ===== Performance (combined viz: donut + meters + bars) ===== */}
+      {isVisible("keyMetrics") && (() => {
+        const payoff = S.avgLoss > 0 ? S.avgWin / S.avgLoss : null;
+        const wl = S.avgWin + S.avgLoss;
+        const winShare = wl > 0 ? (S.avgWin / wl) * 100 : 50;
+        const meters = [
+          { label: "Win rate", pct: S.winRate, text: `${fmt(S.winRate, 0)}%`, color: "var(--color-success)" },
+          { label: "Profit factor", pct: S.profitFactor ? Math.min(100, (S.profitFactor / 3) * 100) : 0, text: S.profitFactor ? fmt(S.profitFactor, 2) : "—", sub: "target 3.0", color: "var(--color-primary)" },
+          { label: "Payoff (R:R)", pct: payoff ? Math.min(100, (payoff / 2) * 100) : 0, text: payoff ? `1 : ${fmt(payoff, 1)}` : "—", sub: "target 1 : 2", color: "#7c9cff" },
+        ];
+        const chips = [
+          { label: "Net P&L", value: k(S.net, currencySymbol), up: S.net >= 0 },
+          { label: "Total trades", value: S.total },
+          { label: "Largest win", value: k(S.largestWin, currencySymbol), up: true },
+          { label: "Win streak", value: S.streak, sub: `best ${S.bestStreak}` },
+          { label: "Sharpe", value: S.sharpe != null ? fmt(S.sharpe, 2) : "—" },
+          { label: "Avg hold", value: S.holdStr },
+        ];
+        return (
+          <div className="jx-card jx-sec jx-perf" style={{ order: -2 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-4)" }}>
+              <span className="jx-card__title">Performance</span>
+              <InfoTip text="Your headline numbers at a glance" />
+            </div>
+
+            <div className="jx-perf__top">
+              {/* win / loss donut */}
+              <div className="jx-perf__donutwrap">
+                <div style={{ position: "relative", width: 148, height: 148 }}>
+                  <Donut
+                    size={148}
+                    segments={[
+                      { value: S.winCount, color: "var(--color-success)", label: "Wins" },
+                      { value: S.lossCount, color: "var(--color-danger)", label: "Losses" },
+                    ]}
+                  />
+                  <div className="jx-perf__donutctr">
+                    <span className="jx-perf__donutnum">{fmt(S.winRate, 0)}%</span>
+                    <span className="jx-perf__donutlbl">win rate</span>
+                  </div>
+                </div>
+                <div className="jx-perf__legend">
+                  <span><i style={{ background: "var(--color-success)" }} />Wins <b>{S.winCount}</b></span>
+                  <span><i style={{ background: "var(--color-danger)" }} />Losses <b>{S.lossCount}</b></span>
+                </div>
+              </div>
+
+              {/* meters */}
+              <div className="jx-perf__meters">
+                {meters.map((m) => (
+                  <div key={m.label} className="jx-perf__meter">
+                    <div className="jx-perf__meterhead">
+                      <span>{m.label}</span>
+                      <b>{m.text}{m.sub && <em> · {m.sub}</em>}</b>
+                    </div>
+                    <Progress pct={m.pct} color={m.color} />
+                  </div>
+                ))}
+
+                {/* avg win vs avg loss diverging bar */}
+                <div className="jx-perf__meter">
+                  <div className="jx-perf__meterhead">
+                    <span>Avg win vs loss</span>
+                    <b><span style={{ color: "var(--color-success-strong)" }}>{k(S.avgWin, currencySymbol)}</span> · <span style={{ color: "var(--color-danger-strong)" }}>−{currencySymbol}{fmt(S.avgLoss, 0)}</span></b>
+                  </div>
+                  <div className="jx-perf__wlbar">
+                    <div style={{ width: `${winShare}%`, background: "var(--color-success)" }} />
+                    <div style={{ width: `${100 - winShare}%`, background: "var(--color-danger)" }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* compact stat chips */}
+            <div className="jx-perf__chips">
+              {chips.map((c) => (
+                <div key={c.label} className="jx-perf__chip">
+                  <span className="jx-perf__chiplbl">{c.label}</span>
+                  <span className="jx-perf__chipval" style={{ color: c.up === undefined ? "var(--color-text-primary)" : c.up ? "var(--color-success-strong)" : "var(--color-text-primary)" }}>{c.value}</span>
+                  {c.sub && <span className="jx-perf__chipsub">{c.sub}</span>}
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-      </div>
-      )}
+        );
+      })()}
 
       {/* ===== Analytics ===== */}
       {isVisible("analytics") && (

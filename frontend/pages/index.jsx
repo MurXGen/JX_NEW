@@ -177,14 +177,21 @@ const HERO_WORDS = ["edge", "leaks", "patterns", "mistakes"];
 function RotatingWord() {
   const reduce = useReducedMotion();
   const [i, setI] = useState(0);
+  const [w, setW] = useState(null);
+  const sizeRef = useRef(null);
   useEffect(() => {
     if (reduce) return;
     const t = setInterval(() => setI((v) => (v + 1) % HERO_WORDS.length), 2600);
     return () => clearInterval(t);
   }, [reduce]);
   const word = reduce ? HERO_WORDS[0] : HERO_WORDS[i];
+  // measure the exact rendered width so there's no trailing ch-overshoot gap
+  useEffect(() => {
+    if (sizeRef.current) setW(sizeRef.current.getBoundingClientRect().width);
+  }, [word]);
   return (
-    <span style={{ position: "relative", display: "inline-flex", justifyContent: "flex-start", width: `${word.length + 0.15}ch`, verticalAlign: "bottom", whiteSpace: "nowrap", transition: "width .4s cubic-bezier(0.22,1,0.36,1)" }}>
+    <span style={{ position: "relative", display: "inline-flex", justifyContent: "flex-start", width: w != null ? `${Math.ceil(w)}px` : `${word.length + 0.15}ch`, verticalAlign: "bottom", whiteSpace: "nowrap", transition: "width .4s cubic-bezier(0.22,1,0.36,1)" }}>
+      <span ref={sizeRef} aria-hidden="true" style={{ position: "absolute", visibility: "hidden", whiteSpace: "nowrap", pointerEvents: "none", left: 0 }}>{word}</span>
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           key={word}
@@ -651,19 +658,21 @@ function JournalMock() {
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: C.yellow, opacity: 0.85 }} />
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: C.green, opacity: 0.85 }} />
         </span>
-        <span style={{ font: "600 12px Poppins", color: C.muted, display: "flex", alignItems: "center", gap: 7 }}>
-          Journal<span style={{ color: C.yellow, marginLeft: -6 }}>X</span> · My Futures Journal
+        <span style={{ font: "600 12px Poppins", color: C.muted, display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/JournalX_Favicon.png" alt="JournalX" style={{ height: 16, width: "auto", display: "block", flexShrink: 0 }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>· My Futures Journal</span>
         </span>
         {/* journal-created toast */}
-        <span style={{ marginLeft: "auto", minHeight: 22 }}>
+        <span style={{ marginLeft: "auto", minHeight: 22, flexShrink: 0 }}>
           <AnimatePresence mode="wait">
             {!reduced && count === 0 && (
-              <motion.span key="creating" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 11px Poppins", color: C.yellow, background: "rgba(252,213,53,0.1)", border: "1px solid rgba(252,213,53,0.25)", borderRadius: 999, padding: "3px 10px" }}>
+              <motion.span key="creating" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 11px Poppins", color: C.yellow, background: "rgba(252,213,53,0.1)", border: "1px solid rgba(252,213,53,0.25)", borderRadius: 999, padding: "4px 11px", whiteSpace: "nowrap" }}>
                 <Sparkles size={11} /> Creating journal…
               </motion.span>
             )}
             {(reduced || count > 0) && (
-              <motion.span key="created" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 11px Poppins", color: C.green, background: "rgba(46,189,133,0.1)", border: "1px solid rgba(46,189,133,0.25)", borderRadius: 999, padding: "3px 10px" }}>
+              <motion.span key="created" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 11px Poppins", color: C.green, background: "rgba(46,189,133,0.1)", border: "1px solid rgba(46,189,133,0.25)", borderRadius: 999, padding: "4px 11px", whiteSpace: "nowrap" }}>
                 <Check size={11} /> Journal created
               </motion.span>
             )}
@@ -1436,6 +1445,10 @@ export default function Home({ posts = [] }) {
           <Section label="Hero" style={{ paddingTop: 96, paddingBottom: 72, position: "relative", background: "transparent" }}>
             {/* full-bleed pure-black backdrop so the hero has no navy seams on the sides */}
             <div aria-hidden="true" style={{ position: "absolute", top: 0, bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100vw", background: "#000", zIndex: 0, pointerEvents: "none" }} />
+            {/* masked glassmorphic grid with an animated glowing shine sweep */}
+            <div className="hero-grid" aria-hidden="true">
+              <span className="hero-grid__shine" />
+            </div>
             <HeroGlow />
             {/* centered intro copy (SEO unchanged) */}
             <motion.div className="lp-hero-copy" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: "min(1080px, 94vw)", marginInline: "auto" }}>
@@ -1450,13 +1463,13 @@ export default function Home({ posts = [] }) {
               </p>
               <div className="lp-hero-actions" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
                 <a href="/register" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnPrimary, fontFamily: "Poppins, sans-serif", fontWeight: 600, padding: "13px 26px", fontSize: 15, background: C.yellow, color: "#1e2329", border: "1px solid " + C.yellow, boxShadow: "none" }}>
+                  <button style={{ ...btnPrimary, width: "100%", justifyContent: "center", fontFamily: "Poppins, sans-serif", fontWeight: 600, padding: "13px 26px", fontSize: 15, background: C.yellow, color: "#1e2329", border: "1px solid " + C.yellow, boxShadow: "none" }}>
                     Start journaling free <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </a>
                 <a href="/dashboard" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnGhost, fontFamily: "Poppins, sans-serif", fontWeight: 500, padding: "13px 26px", fontSize: 15, color: "#fff", background: "transparent", border: "1px solid rgba(255,255,255,0.22)" }}>
-                    Try the live demo
+                  <button style={{ ...btnGhost, width: "100%", justifyContent: "center", fontFamily: "Poppins, sans-serif", fontWeight: 500, padding: "13px 26px", fontSize: 15, color: "#fff", background: "transparent", border: "1px solid rgba(255,255,255,0.22)" }}>
+                    Try demo
                   </button>
                 </a>
               </div>
@@ -1743,6 +1756,47 @@ export default function Home({ posts = [] }) {
         @media (prefers-reduced-motion: reduce) {
           .lp-marquee__track { animation: none; }
         }
+        /* hero: masked glassmorphic line-grid with an animated glowing shine */
+        .hero-grid{
+          position:absolute; top:0; bottom:0; left:50%; transform:translateX(-50%);
+          width:100vw; z-index:0; pointer-events:none; overflow:hidden;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+          background-size:46px 46px;
+          -webkit-mask-image:radial-gradient(115% 85% at 50% 32%, #000 0%, rgba(0,0,0,0.55) 46%, transparent 76%);
+          mask-image:radial-gradient(115% 85% at 50% 32%, #000 0%, rgba(0,0,0,0.55) 46%, transparent 76%);
+          -webkit-backdrop-filter:blur(0.5px);backdrop-filter:blur(0.5px);
+        }
+        /* soft brand glow pinned behind the grid so the lines read as lit glass */
+        .hero-grid::after{
+          content:"";position:absolute;inset:0;
+          background:
+            radial-gradient(46% 40% at 50% 30%, rgba(252,213,53,0.10), transparent 70%),
+            radial-gradient(60% 50% at 50% 26%, rgba(255,255,255,0.05), transparent 72%);
+          mix-blend-mode:screen;
+        }
+        /* diagonal light band that drifts across, subtly glowing as it passes */
+        .hero-grid__shine{
+          position:absolute;top:-40%;left:-30%;width:55%;height:180%;
+          background:linear-gradient(115deg,
+            transparent 44%,
+            rgba(255,255,255,0.04) 49%,
+            rgba(252,213,53,0.06) 51%,
+            transparent 58%);
+          filter:blur(10px);
+          transform:translateX(-30%) rotate(2deg);
+          animation:heroGridSheen 12s cubic-bezier(0.4,0,0.2,1) infinite;
+        }
+        @keyframes heroGridSheen{
+          0%{ transform:translateX(-40%) rotate(2deg); opacity:0; }
+          14%{ opacity:0.55; }
+          52%{ opacity:0.55; }
+          72%,100%{ transform:translateX(320%) rotate(2deg); opacity:0; }
+        }
+        @media (prefers-reduced-motion: reduce){
+          .hero-grid__shine{ animation:none; opacity:0; }
+        }
         /* hero: light sweeping across the bold "journal" word */
         .hero-shine{
           font-weight:600;
@@ -1788,6 +1842,10 @@ export default function Home({ posts = [] }) {
         }
         @media (max-width: 640px) {
           :global(.lp-pricing-grid) { grid-template-columns: 1fr !important; gap: 16px !important; max-width: 420px; margin: 0 auto; width: 100%; }
+          /* hero CTAs: keep both on one row, compact */
+          :global(.lp-hero-actions) { flex-wrap: nowrap !important; gap: 10px !important; }
+          :global(.lp-hero-actions) a { flex: 1 1 0; min-width: 0; }
+          :global(.lp-hero-actions) button { width: 100% !important; padding: 11px 12px !important; font-size: 13px !important; white-space: nowrap; }
         }
         @media (max-width: 820px) {
           :global(.lp-why-grid) { grid-template-columns: 1fr !important; gap: 28px !important; }

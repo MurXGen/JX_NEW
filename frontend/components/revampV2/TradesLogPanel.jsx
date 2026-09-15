@@ -48,8 +48,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /* sections the user can show/hide on the trades log */
 const TRADESLOG_SECTIONS = [
-  { id: "performance", label: "Performance" },
-  { id: "calendar", label: "Calendar & heatmap" },
   { id: "allTrades", label: "All trades table" },
 ];
 
@@ -237,12 +235,13 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
   const entry = t.avgEntryPrice || t.entryPrice || t.entries?.[0]?.price;
   const exit = t.avgExitPrice || t.exitPrice || t.exits?.[0]?.price;
   const imgs = t.images?.length || 0;
-  // subtle lighter green/red fill by outcome, breakeven (pnl === 0) stays default
+  // subtle green/red hint by outcome on a lighter card base (breakeven keeps
+  // the default tile background)
   const tint =
     pnl > 0
-      ? "color-mix(in srgb, var(--color-success) 4%, var(--color-bg-surface))"
+      ? "color-mix(in srgb, var(--color-success) 9%, var(--color-bg-elevated))"
       : pnl < 0
-        ? "color-mix(in srgb, var(--color-danger) 4%, var(--color-bg-surface))"
+        ? "color-mix(in srgb, var(--color-danger) 9%, var(--color-bg-elevated))"
         : undefined;
   return (
     <div
@@ -306,7 +305,7 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
 }
 
 /* ---------- Monthly P&L calendar ---------- */
-function PnlCalendar({ trades, sym }) {
+export function PnlCalendar({ trades, sym }) {
   const latest = trades.length
     ? new Date(Math.max(...trades.map((t) => new Date(t.closeTime).getTime())))
     : new Date();
@@ -334,14 +333,17 @@ function PnlCalendar({ trades, sym }) {
   return (
     <div className="jx-card">
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)", flexWrap: "wrap" }}>
-        <span className="jx-card__title">{month.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</span>
-        <Button variant="ghost" size="sm" onClick={() => nav(-1)} aria-label="Previous month"><ChevronLeft size={15} /></Button>
-        <Button variant="ghost" size="sm" onClick={() => nav(1)} aria-label="Next month"><ChevronRight size={15} /></Button>
+        <span style={{ font: "var(--text-label)", fontWeight: 600, letterSpacing: "0.6px", textTransform: "uppercase", color: "var(--color-text-secondary)" }}>Profit &amp; loss · daily</span>
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "var(--space-2)", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
           <span style={{ color: "var(--color-success)" }}>● Profit</span>
           <span style={{ color: "var(--color-danger)" }}>● Loss</span>
           <Badge variant={total >= 0 ? "success" : "danger"}>{money(total, sym)}</Badge>
         </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)", flexWrap: "wrap" }}>
+        <span className="jx-card__title" style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{month.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</span>
+        <Button variant="ghost" size="sm" onClick={() => nav(-1)} aria-label="Previous month"><ChevronLeft size={15} /></Button>
+        <Button variant="ghost" size="sm" onClick={() => nav(1)} aria-label="Next month"><ChevronRight size={15} /></Button>
       </div>
       <div className="jx-cal">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
@@ -369,7 +371,7 @@ function PnlCalendar({ trades, sym }) {
 }
 
 /* ---------- Activity heatmap (Monthly / Yearly) ---------- */
-function TradesHeatmap({ trades, sym }) {
+export function TradesHeatmap({ trades, sym }) {
   const [view, setView] = useState("monthly");
   const latest = trades.length
     ? new Date(Math.max(...trades.map((t) => new Date(t.closeTime).getTime())))
@@ -377,10 +379,11 @@ function TradesHeatmap({ trades, sym }) {
   const [month, setMonth] = useState(new Date(latest.getFullYear(), latest.getMonth(), 1));
 
   const level = (pnl, maxAbs) => {
-    if (pnl === 0) return "var(--color-bg-muted)";
+    if (pnl === 0) return "rgba(255,255,255,0.03)";
     const i = Math.min(1, Math.abs(pnl) / (maxAbs || 1));
     const base = pnl > 0 ? "var(--color-success)" : "var(--color-danger)";
-    return `color-mix(in srgb, ${base} ${20 + i * 80}%, var(--color-bg-muted))`;
+    // tint on transparent so the greens/reds read the same as the P&L calendar
+    return `color-mix(in srgb, ${base} ${18 + i * 44}%, transparent)`;
   };
 
   const monthly = useMemo(() => {
@@ -411,6 +414,16 @@ function TradesHeatmap({ trades, sym }) {
   return (
     <div className="jx-card">
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)", flexWrap: "wrap" }}>
+        <span style={{ font: "var(--text-label)", fontWeight: 600, letterSpacing: "0.6px", textTransform: "uppercase", color: "var(--color-text-secondary)" }}>Activity heatmap</span>
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+          Less
+          {[0.2, 0.4, 0.6, 0.8, 1].map((i) => (
+            <span key={i} style={{ width: 13, height: 13, borderRadius: 3, background: `color-mix(in srgb, var(--color-success) ${18 + i * 44}%, transparent)`, border: "1px solid color-mix(in srgb, var(--color-success) 26%, transparent)" }} />
+          ))}
+          More
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)", flexWrap: "wrap" }}>
         <div className="jx-seg jx-seg--inline" style={{ padding: 3 }}>
           {["monthly", "yearly"].map((v) => (
             <button key={v} className={`jx-seg__btn ${view === v ? "jx-seg__btn--active" : ""}`} style={{ padding: "5px 12px", font: "var(--text-caption)", fontWeight: 600 }} onClick={() => setView(v)}>
@@ -418,24 +431,17 @@ function TradesHeatmap({ trades, sym }) {
             </button>
           ))}
         </div>
-        <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
+        <span style={{ marginLeft: "auto", font: "var(--text-body-md)", fontWeight: 600 }}>
           {view === "monthly"
             ? month.toLocaleDateString("en-GB", { month: "long", year: "numeric" })
             : month.getFullYear()}
         </span>
         <Button variant="ghost" size="sm" onClick={() => setMonth(new Date(month.getFullYear() - (view === "yearly" ? 1 : 0), month.getMonth() - (view === "monthly" ? 1 : 0), 1))} aria-label="Previous"><ChevronLeft size={15} /></Button>
         <Button variant="ghost" size="sm" onClick={() => setMonth(new Date(month.getFullYear() + (view === "yearly" ? 1 : 0), month.getMonth() + (view === "monthly" ? 1 : 0), 1))} aria-label="Next"><ChevronRight size={15} /></Button>
-        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-          Less
-          {[0.2, 0.4, 0.6, 0.8, 1].map((i) => (
-            <span key={i} style={{ width: 12, height: 12, borderRadius: 3, background: `color-mix(in srgb, var(--color-success) ${i * 100}%, var(--color-bg-muted))` }} />
-          ))}
-          More
-        </span>
       </div>
 
       {view === "monthly" ? (
-        <div className="jx-cal" style={{ gap: 4 }}>
+        <div className="jx-cal">
           {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
             <span key={i} className="jx-cal__head" style={{ textAlign: "center" }}>{d}</span>
           ))}
@@ -447,12 +453,13 @@ function TradesHeatmap({ trades, sym }) {
                 key={i}
                 title={`${i + 1}: ${money(pnl, sym)}`}
                 style={{
-                  borderRadius: 6, minHeight: 34,
+                  borderRadius: 8, minHeight: 56,
                   background: level(pnl, maxAbsM),
+                  border: `1px solid ${pnl !== 0 ? "color-mix(in srgb, " + (pnl > 0 ? "var(--color-success)" : "var(--color-danger)") + " 26%, transparent)" : "rgba(255,255,255,0.05)"}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  font: "var(--text-caption)",
-                  color: pnl !== 0 ? "#fff" : "var(--color-text-muted)",
-                  fontWeight: pnl !== 0 ? 600 : 400,
+                  font: "var(--text-body-md)",
+                  color: pnl > 0 ? "var(--color-success-strong)" : pnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-secondary)",
+                  fontWeight: pnl !== 0 ? 600 : 500,
                 }}
               >
                 {i + 1}
@@ -469,9 +476,10 @@ function TradesHeatmap({ trades, sym }) {
               style={{
                 borderRadius: 8, minHeight: 56, padding: 6,
                 background: level(pnl, maxAbsY),
+                border: `1px solid ${pnl !== 0 ? "color-mix(in srgb, " + (pnl > 0 ? "var(--color-success)" : "var(--color-danger)") + " 26%, transparent)" : "transparent"}`,
                 display: "flex", flexDirection: "column", justifyContent: "space-between",
                 font: "var(--text-caption)",
-                color: pnl !== 0 ? "#fff" : "var(--color-text-muted)",
+                color: pnl > 0 ? "var(--color-success-strong)" : pnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-muted)",
               }}
             >
               <span>{new Date(2000, i, 1).toLocaleDateString("en-GB", { month: "short" })}</span>
@@ -831,35 +839,8 @@ export default function TradesLogPanel({
         <SampleDataBanner onLog={onAddTrade} onImport={() => setShowImport(true)} />
       )}
 
-      {/* ===== Performance (accordion) ===== */}
-      {isVisible("performance") && (
-      <Accordion id="trades-performance" title="Performance">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "var(--space-4)" }}>
-          {[
-            { label: "Total trades", value: stats.total },
-            { label: "Win rate", value: `${stats.winRate}%` },
-            { label: "Net P&L", value: money(stats.netPnl, currencySymbol), color: stats.netPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" },
-            { label: "Avg R : R", value: stats.avgRR === "—" ? "—" : `1 : ${stats.avgRR}`, sub: "target 1 : 2" },
-          ].map((k) => (
-            <div key={k.label} className="jx-card" style={{ padding: "var(--space-4) var(--space-5)" }}>
-              <span className="jx-sidebar__section" style={{ padding: 0 }}>{k.label}</span>
-              <div style={{ font: "var(--text-stat)", letterSpacing: "-1px", color: k.color || "var(--color-text-primary)" }}>{k.value}</div>
-              {k.sub && <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{k.sub}</span>}
-            </div>
-          ))}
-        </div>
-      </Accordion>
-      )}
-
-      {/* ===== Calendar & heatmap (accordion) ===== */}
-      {isVisible("calendar") && (
-      <Accordion id="trades-calendar" title="Calendar & heatmap">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "var(--space-4)" }}>
-          <PnlCalendar trades={closed} sym={currencySymbol} />
-          <TradesHeatmap trades={closed} sym={currencySymbol} />
-        </div>
-      </Accordion>
-      )}
+      {/* Performance stats and the Calendar & heatmap moved to the Overview
+          (analytics) page to keep the Trades log focused on the trade list. */}
 
       {/* ===== All trades (header, filters, bulk bar, views) ===== */}
       {isVisible("allTrades") && (
@@ -984,7 +965,7 @@ export default function TradesLogPanel({
                 <div
                   key={label}
                   className="jx-card jx-card--flat"
-                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", padding: "var(--space-4)", border: "none", background: "var(--color-bg-surface)" }}
+                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", padding: "var(--space-4)", border: "none", background: "rgba(255,255,255,0.022)" }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", paddingBottom: "var(--space-2)" }}>
                     <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{label}</span>

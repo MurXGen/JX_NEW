@@ -8,6 +8,7 @@ import {
   Check,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   Pencil,
   Plus,
   Search,
@@ -209,58 +210,61 @@ export default function JournalsModal({
                       const accColor = ACCENTS[i % ACCENTS.length];
                       const sym = getCurrencySymbol((acc.currency || "USD").toLowerCase());
                       return (
-                        <div key={acc._id} style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                         <button
-                          className={`jx-journalrow ${active ? "jx-journalrow--active" : ""}`}
+                          key={acc._id}
+                          className={`jx-jcard ${active ? "jx-jcard--active" : ""}`}
                           onClick={() => !active && switchTo(acc)}
-                          style={{ flex: 1, minWidth: 0 }}
                         >
-                          <span
-                            style={{
-                              width: 38, height: 38, borderRadius: "var(--radius-md)",
-                              background: active ? "var(--color-primary)" : "var(--color-bg-muted)",
-                              color: active ? "var(--color-primary-foreground)" : "var(--color-text-muted)",
-                              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                            }}
-                          >
-                            <Wallet size={17} />
-                          </span>
-                          <span style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-                            <span style={{ font: "var(--text-body-md)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {acc.name}
+                          <div className="jx-jcard__top">
+                            <span
+                              className="jx-jcard__icon"
+                              style={{
+                                background: `color-mix(in srgb, ${accColor} 18%, transparent)`,
+                                color: accColor,
+                              }}
+                            >
+                              <Wallet size={18} />
                             </span>
-                            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", textTransform: "capitalize" }}>
-                              {(acc.accountType || "spot")} · {(acc.currency || "USD").toUpperCase()}
+                            <span className="jx-jcard__title">
+                              <span className="jx-jcard__name">{acc.name}</span>
+                              <span className="jx-jcard__sub">
+                                {(acc.accountType || "spot")} · {(acc.currency || "USD").toUpperCase()}
+                              </span>
                             </span>
-                          </span>
-                          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                            <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{fmt(bal, sym)}</span>
-                            <span style={{ font: "var(--text-caption)", color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
-                              {pnl >= 0 ? "+" : "−"}{fmt(pnl, sym)} all-time
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`Edit ${acc.name}`}
+                              title="Edit journal"
+                              className="jx-jcard__edit"
+                              onClick={(e) => { e.stopPropagation(); startEdit(acc); }}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); startEdit(acc); } }}
+                            >
+                              <Pencil size={14} />
                             </span>
-                          </span>
-                          <span
-                            style={{
-                              width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              background: active ? "var(--color-primary)" : "transparent",
-                              border: active ? "none" : "1.5px solid var(--color-border-strong)",
-                              color: "var(--color-primary-foreground)",
-                            }}
-                          >
-                            {active && <Check size={13} />}
-                          </span>
+                            {active ? (
+                              <span className="jx-jcard__check"><Check size={13} /></span>
+                            ) : (
+                              <ChevronRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                            )}
+                          </div>
+                          <div className="jx-jcard__divider" />
+                          <div className="jx-jcard__stats">
+                            <span className="jx-jcard__stat">
+                              <span className="jx-jcard__lbl">Balance</span>
+                              <span className="jx-jcard__val">{fmt(bal, sym)}</span>
+                            </span>
+                            <span className="jx-jcard__stat">
+                              <span className="jx-jcard__lbl">P&amp;L · all-time</span>
+                              <span
+                                className="jx-jcard__val"
+                                style={{ color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}
+                              >
+                                {pnl >= 0 ? "+" : "−"}{fmt(pnl, sym)}
+                              </span>
+                            </span>
+                          </div>
                         </button>
-                        <button
-                          className="jx-btn jx-btn--secondary jx-btn--sm"
-                          onClick={() => startEdit(acc)}
-                          aria-label={`Edit ${acc.name}`}
-                          title="Edit journal"
-                          style={{ padding: 9, flexShrink: 0 }}
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        </div>
                       );
                     })}
                   </div>
