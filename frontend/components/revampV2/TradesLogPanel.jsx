@@ -235,14 +235,10 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
   const entry = t.avgEntryPrice || t.entryPrice || t.entries?.[0]?.price;
   const exit = t.avgExitPrice || t.exitPrice || t.exits?.[0]?.price;
   const imgs = t.images?.length || 0;
-  // subtle green/red hint by outcome on a lighter card base (breakeven keeps
-  // the default tile background)
-  const tint =
-    pnl > 0
-      ? "color-mix(in srgb, var(--color-success) 9%, var(--color-bg-elevated))"
-      : pnl < 0
-        ? "color-mix(in srgb, var(--color-danger) 9%, var(--color-bg-elevated))"
-        : undefined;
+  // neutral card; outcome is signalled by a subtle left accent bar + badge,
+  // not a full green/red wash.
+  const accent =
+    pnl > 0 ? "var(--color-success)" : pnl < 0 ? "var(--color-danger)" : "var(--color-border-strong)";
   return (
     <div
       className="jx-card jx-trade-card"
@@ -250,7 +246,7 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
       style={{
         padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)",
         cursor: "pointer",
-        background: tint,
+        boxShadow: `inset 3px 0 0 0 ${accent}`,
         outline: selected ? "2px solid var(--color-primary)" : "none",
       }}
     >
@@ -261,7 +257,10 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
           </span>
         )}
         <span style={{ font: "var(--text-title)" }}>{t.symbol || t.ticker || "—"}</span>
-        <Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge>
+        <span className="jx-badge jx-badge--neutral">
+          {isLong ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+          {isLong ? "Long" : "Short"}
+        </span>
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-muted)" }}>
           <span className="jx-badge jx-badge--neutral">
             {t.source === "auto" ? <Download size={11} /> : <User size={11} />}
@@ -277,19 +276,24 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
         <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{qty(t.totalQuantity)}</span>
         <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}</span>
       </div>
+      {imgs > 0 && t.images?.[0]?.url && (
+        <div
+          onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
+          style={{ position: "relative", height: 84, borderRadius: "var(--radius-sm)", overflow: "hidden", cursor: "zoom-in", border: "1px solid var(--color-border)" }}
+        >
+          <img src={t.images[0].url} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <span
+            className="jx-badge jx-badge--neutral"
+            style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+          >
+            <ImageIcon size={11} /> {imgs}
+          </span>
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
         <span style={{ font: "var(--text-title)", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
           {money(pnl, sym)}
         </span>
-        {imgs > 0 && (
-          <span
-            className="jx-badge jx-badge--neutral"
-            style={{ cursor: "zoom-in" }}
-            onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
-          >
-            <ImageIcon size={11} /> {imgs}
-          </span>
-        )}
         <span style={{ marginLeft: "auto", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
           {t.closeTime && new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
@@ -961,17 +965,30 @@ export default function TradesLogPanel({
             </div>
           ) : view === "cards" ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-              {groups.map(([label, list]) => (
+              {groups.map(([label, list]) => {
+                const net = list.reduce((s, t) => s + (Number(t.pnl) || 0), 0);
+                const netColor = net > 0 ? "var(--color-success-strong)" : net < 0 ? "var(--color-danger-strong)" : "var(--color-text-secondary)";
+                const d0 = new Date(list[0]?.closeTime || Date.now());
+                const weekday = d0.toLocaleDateString("en-GB", { weekday: "long" });
+                const dateStr = d0.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+                const rel = label.startsWith("Today") ? "Today" : label.startsWith("Yesterday") ? "Yesterday" : null;
+                return (
                 <div
                   key={label}
-                  className="jx-card jx-card--flat"
-                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", padding: "var(--space-4)", border: "none", background: "rgba(255,255,255,0.022)" }}
+                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", paddingBottom: "var(--space-2)" }}>
-                    <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{label}</span>
-                    <span className="jx-badge jx-badge--neutral">{list.length} trades</span>
-                    <span style={{ marginLeft: "auto", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                      Net {money(list.reduce((s, t) => s + (Number(t.pnl) || 0), 0), currencySymbol)}
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "var(--text-h3)", fontWeight: 600, letterSpacing: "-0.2px" }}>
+                        {weekday}
+                        {rel && <span className="jx-badge jx-badge--brand" style={{ fontSize: 10 }}>{rel}</span>}
+                      </span>
+                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", letterSpacing: "0.2px" }}>{dateStr}</span>
+                    </div>
+                    <span className="jx-badge jx-badge--neutral" style={{ alignSelf: "center" }}>{list.length} {list.length === 1 ? "trade" : "trades"}</span>
+                    <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "baseline", gap: 6 }}>
+                      <span style={{ font: "var(--text-label)", letterSpacing: "0.6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Net</span>
+                      <span style={{ font: "var(--text-h3)", fontWeight: 700, color: netColor, fontVariantNumeric: "tabular-nums" }}>{money(net, currencySymbol)}</span>
                     </span>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "var(--space-4)" }}>
@@ -997,7 +1014,8 @@ export default function TradesLogPanel({
                     ))}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="jx-card jx-table-wrap" style={{ padding: 0, overflowX: "auto" }}>
