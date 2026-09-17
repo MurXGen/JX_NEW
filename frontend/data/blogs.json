@@ -16025,6 +16025,489 @@
           "a": "Faster from your own journal than from commentary. Watch rolling 20-trade blocks for changes in average time-in-trade and average R. Those shift before your equity curve makes it obvious."
         }
       ]
+    },
+    {
+      "slug": "trade-grading-system-score-every-setup",
+      "title": "The Trade Grading System: How to Score Every Setup A to F",
+      "metaTitle": "Trade Grading System: How to Grade Every Setup A to F | JournalX",
+      "metaDescription": "Grade every trade on process, not profit. Build an A-to-F scoring system that shows which setups actually pay you and which ones quietly bleed your account.",
+      "keywords": [
+        "trade grading system",
+        "how to grade your trades",
+        "a+ setup checklist",
+        "trade quality score",
+        "setup grading trading journal",
+        "process vs outcome trading"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-09-17",
+      "featured": false,
+      "excerpt": "Most traders review trades by asking 'did it win?' That question teaches you almost nothing. Grading every setup A to F on process turns a pile of trades into a map of your actual edge.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 37
+      },
+      "tags": [
+        "grading",
+        "process",
+        "checklist",
+        "review"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Open any trading journal and you will find a column for profit and loss. Open a good one and you will find a column for grade. The difference matters more than most traders realise: P&L tells you what the market did, a grade tells you what you did. Over a hundred trades, only one of those two columns is under your control."
+        },
+        {
+          "type": "h2",
+          "text": "Why your P&L is a terrible grader"
+        },
+        {
+          "type": "p",
+          "text": "A single trade outcome is mostly noise. You can break every rule in your plan, size four times too large, chase an entry twenty points late, and still close green because a data release happened to push price your way. You can also follow your plan perfectly and lose. If you let the result decide whether the trade was 'good', you are training yourself on randomly labelled data. That is exactly how traders end up repeating their worst habits: the habit got rewarded once, and the reward was louder than the rulebook."
+        },
+        {
+          "type": "quote",
+          "text": "Judge the decision by what you knew at the moment you clicked. Judge the outcome separately, later, in aggregate."
+        },
+        {
+          "type": "p",
+          "text": "Grading separates those two things. It gives you a score you can assign the second the trade closes, before you know whether the run continued without you, and long before you know whether the month is green."
+        },
+        {
+          "type": "h2",
+          "text": "The five criteria that make up a grade"
+        },
+        {
+          "type": "p",
+          "text": "Keep the rubric small enough that you can score a trade in under thirty seconds, or you will stop doing it by week three. Five binary criteria is the sweet spot. Each one is worth a point, and each one has to be answerable with yes or no — 'kind of' is how rubrics die."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Criterion",
+            "Earns the point when",
+            "Loses the point when"
+          ],
+          "rows": [
+            [
+              "Setup match",
+              "The trade is one of the named setups in your plan, with every condition present",
+              "You improvised, or forced a B-grade version of an A setup"
+            ],
+            [
+              "Entry location",
+              "You entered at your defined trigger or better",
+              "You chased after the move started, or entered early to 'get position'"
+            ],
+            [
+              "Risk size",
+              "Risk was at your standard unit, or a planned fraction of it",
+              "You sized up because you felt confident, or sized down out of fear after a loss"
+            ],
+            [
+              "Stop discipline",
+              "The stop was placed at the structural level and left alone",
+              "You widened it, removed it, or moved it into open risk"
+            ],
+            [
+              "Exit rule",
+              "You exited at target, trail, or invalidation as written",
+              "You bailed on a wobble, or held past your rule hoping for more"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Turning criteria into a letter grade"
+        },
+        {
+          "type": "p",
+          "text": "Add the points. Five out of five is an A — a trade you would be happy to make a thousand times. Four is a B: one slip, usually in exit timing. Three is a C, which is where most traders actually live and where the honest work starts. Two or fewer is a D or F, and those trades deserve a written note, not just a score. The letter is not there to make you feel good or bad; it is there so that a hundred rows later you can filter on it."
+        },
+        {
+          "type": "p",
+          "text": "One rule keeps the system honest: the grade never depends on the result. An A that lost money is still an A. An F that made money is still an F, and it is the most dangerous row in your journal, because your nervous system just learned the wrong lesson and you need the record to argue back."
+        },
+        {
+          "type": "h2",
+          "text": "The four-box that changes how you trade"
+        },
+        {
+          "type": "p",
+          "text": "Once you have grades and outcomes side by side, every trade falls into one of four boxes. What you do next depends entirely on which box it landed in."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Grade",
+            "Outcome",
+            "What it means",
+            "What to do"
+          ],
+          "rows": [
+            [
+              "A or B",
+              "Win",
+              "Process paid. The system works",
+              "Repeat. Note what made it clean"
+            ],
+            [
+              "A or B",
+              "Loss",
+              "A normal cost of doing business",
+              "Nothing. Do not change the rule"
+            ],
+            [
+              "D or F",
+              "Win",
+              "You got paid for bad behaviour",
+              "Flag it. This is the one to review twice"
+            ],
+            [
+              "D or F",
+              "Loss",
+              "The expensive but useful lesson",
+              "Find which criterion failed and fix that one thing"
+            ]
+          ]
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Grade your last trade",
+          "prompt": "Score the most recent trade you closed. One point per yes — be strict, and ignore whether it made money.",
+          "items": [
+            "It matched a named setup in my written plan, with all conditions present",
+            "I entered at my defined trigger, not after chasing the move",
+            "My risk was my standard unit, not adjusted by how I felt",
+            "My stop was structural and I did not touch it after entry",
+            "I exited by rule: target, trail, or invalidation"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "D or F. This was a decision problem, not a market problem. Write one sentence naming the criterion that failed and the trigger behind it."
+            },
+            {
+              "min": 3,
+              "text": "C. Playable, but leaky. One criterion is costing you repeatedly — find it across your last twenty trades before changing anything else."
+            },
+            {
+              "min": 4,
+              "text": "B. Solid. The gap is usually exit discipline. Tighten that one rule and your B grades become A grades."
+            },
+            {
+              "min": 5,
+              "text": "A. Clean execution. Whether it won or lost is irrelevant — this is the trade you want to be able to repeat a thousand times."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Reading your grade data after 50 trades"
+        },
+        {
+          "type": "p",
+          "text": "Fifty graded trades is roughly where the picture stops being anecdote. Sort by grade and compare average R. In most traders' data the A and B rows carry the entire account, and the C, D and F rows collectively give it all back. That single comparison is more actionable than any indicator study, because it tells you that you do not need a new strategy — you need fewer C trades."
+        },
+        {
+          "type": "p",
+          "text": "Then break down which criterion fails most often. If entry location is your weak point, the fix is a limit order and patience. If risk size is, the fix is a fixed position calculator you cannot argue with. If exit rule is, the fix is usually a written partial-exit plan set before entry. Each of those is a small, specific change — which is exactly why grading beats vague resolutions like 'be more disciplined'."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, you can tag each trade with a grade and a mistake tag as you log it, then filter your analytics by grade to see average R, win rate and expectancy for A trades versus C trades side by side. The moment you see that your C-grade trades have negative expectancy while your A trades are comfortably positive, the size of the opportunity stops being theoretical."
+        },
+        {
+          "type": "why",
+          "text": "Most journals are built to record what happened. JournalX is built to record why you did it — grades, mistake tags, notes and screenshots attached to the same trade, so your review is a search query rather than an archaeology project. Your edge lives in the pattern across trades, not in any single one, and the tool should make that pattern impossible to miss."
+        },
+        {
+          "type": "h2",
+          "text": "Common mistakes when grading"
+        },
+        {
+          "type": "p",
+          "text": "Three failure modes come up again and again. First, grading generously — if 90% of your trades are A grades, your rubric is not measuring anything. Second, grading late; do it within an hour of the close, before the story rewrites itself. Third, changing the rubric constantly, which makes historical comparison impossible. Freeze the five criteria for at least a quarter, then revise deliberately if a criterion has stopped discriminating."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Grade check",
+          "prompt": "You entered a valid setup at your exact trigger with standard risk and a structural stop, then closed manually for a small profit well before target because the candle looked weak. What grade is it?",
+          "options": [
+            "A — it made money",
+            "B — four of five criteria met, exit rule broken",
+            "C — profit taking is always fine",
+            "F — any manual exit is a failure"
+          ],
+          "correct": 1,
+          "explain": "Four criteria were met cleanly; only the exit rule broke. That is a B. The profit is irrelevant to the grade, and 'the candle looked weak' is a discretionary override you did not plan — which is precisely the leak that shows up as a lower average R on B trades versus A trades."
+        },
+        {
+          "type": "p",
+          "text": "Start tonight with your last ten trades. It takes about fifteen minutes, and the distribution alone usually tells you where the next month of work belongs."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Should the grade ever depend on whether the trade made money?",
+          "a": "No. The whole value of the system comes from separating process from outcome. A losing A-grade trade is a cost of running a positive-expectancy system; a winning F-grade trade is a warning that a bad habit just got rewarded. Keep P&L in its own column."
+        },
+        {
+          "q": "How many criteria should I use?",
+          "a": "Five binary criteria works well for most traders. Fewer than four and the grade stops discriminating between trades; more than six and scoring becomes slow enough that you quietly abandon it. Make each one answerable with a clean yes or no."
+        },
+        {
+          "q": "How many graded trades before the data is useful?",
+          "a": "Around fifty gives you a readable split between grade bands, and a hundred or more makes per-criterion breakdowns reliable. Before that, treat the grades as a discipline habit rather than a statistical finding."
+        },
+        {
+          "q": "What if I grade everything an A?",
+          "a": "Then your rubric is too loose or you are grading generously. Tighten the wording so each criterion has a specific, checkable trigger, and have a rule that any discretionary override — of entry, size, stop or exit — automatically loses that point."
+        }
+      ]
+    },
+    {
+      "slug": "monte-carlo-simulation-for-traders",
+      "title": "Monte Carlo Simulation for Traders: Stress-Test Your Edge Before the Market Does",
+      "metaTitle": "Monte Carlo Simulation for Traders: Stress-Test Your Edge | JournalX",
+      "metaDescription": "Your backtest is one lucky path. Monte Carlo reshuffles your trades thousands of times to reveal the real drawdown and risk you should plan for.",
+      "keywords": [
+        "monte carlo simulation trading",
+        "stress test trading strategy",
+        "sequence risk trading",
+        "expected drawdown trading",
+        "monte carlo drawdown",
+        "trading strategy simulation"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-09-17",
+      "featured": false,
+      "excerpt": "Your backtest is one path out of millions that your edge could have produced. Monte Carlo simulation reshuffles the same trades thousands of times so you can size for the drawdown you have not met yet.",
+      "helpful": {
+        "up": 44,
+        "down": 2,
+        "saves": 40
+      },
+      "tags": [
+        "monte carlo",
+        "drawdown",
+        "risk",
+        "statistics"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "You backtest a strategy over two hundred trades. Peak-to-trough drawdown comes out at 12%, the equity curve slopes up, and you decide 12% is what you should prepare for. That conclusion is where a lot of accounts quietly go wrong — because the backtest showed you one specific ordering of your trades, and the market was never obliged to deliver them in that order."
+        },
+        {
+          "type": "h2",
+          "text": "Your backtest is one lucky path"
+        },
+        {
+          "type": "p",
+          "text": "Imagine your two hundred trades as cards in a deck. The backtest dealt them in one particular sequence. Shuffle the same deck and deal again: identical trades, identical win rate, identical average win and loss, but a completely different equity curve. In one shuffle your six losers cluster in week two and you are down 20% before the system has a chance to work. In another they spread out and you barely feel them. Same edge, very different experience — and very different odds of you still being in the chair at the end."
+        },
+        {
+          "type": "quote",
+          "text": "The order of your trades is not part of your edge. It is the part you cannot control, and it is the part that decides whether you survive long enough to collect the edge."
+        },
+        {
+          "type": "h2",
+          "text": "How a Monte Carlo actually works"
+        },
+        {
+          "type": "p",
+          "text": "A Monte Carlo simulation takes your historical trade results and randomly reorders or resamples them, thousands of times, recording what happens on each run. The output is not a single number but a distribution: here is the median outcome, here is the 5th percentile, here is the worst 1%. You stop asking 'what did happen' and start asking 'what could reasonably happen'."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Input",
+            "Where it comes from",
+            "Why it matters"
+          ],
+          "rows": [
+            [
+              "Trade results in R",
+              "Your journal, as multiples of risk",
+              "R-normalised results can be reshuffled meaningfully across different position sizes"
+            ],
+            [
+              "Sample size",
+              "Number of closed trades you feed in",
+              "Under ~100 trades the distribution is wide and conclusions stay tentative"
+            ],
+            [
+              "Number of runs",
+              "1,000 to 10,000 reshuffles",
+              "Practitioner guides commonly cite 1,000+ runs for stable percentile estimates"
+            ],
+            [
+              "Risk per trade",
+              "Your sizing rule",
+              "Scales the whole distribution; the key lever you actually control"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Two variants are worth knowing. Reshuffling keeps your exact set of trades and only changes their order — it isolates sequence risk. Resampling with replacement lets some trades appear twice and others not at all, which additionally accounts for the possibility that your sample simply got a favourable mix. The second is more conservative and generally more useful for risk decisions."
+        },
+        {
+          "type": "h2",
+          "text": "The number that matters: percentile drawdown"
+        },
+        {
+          "type": "p",
+          "text": "The headline output is the drawdown distribution. Your backtest drawdown typically lands somewhere in the middle of it, which is exactly the problem: half of all plausible futures are worse. Simulation vendors and quant practitioners commonly report that worst-case simulated drawdowns run well beyond the backtested figure — often on the order of two to three times larger at the tail — so planning around the historical number is planning around an optimistic case."
+        },
+        {
+          "type": "p",
+          "text": "The practical convention is to size for roughly the 95th percentile drawdown: the level that only 5% of simulated paths exceed. If you cannot emotionally or contractually survive that number, your risk per trade is too high, regardless of how good the backtest looked."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Risk per trade",
+            "Typical backtest drawdown",
+            "Rough 95th percentile in simulation",
+            "Practical read"
+          ],
+          "rows": [
+            [
+              "0.5%",
+              "6%",
+              "10-14%",
+              "Comfortable for most funded accounts"
+            ],
+            [
+              "1%",
+              "12%",
+              "20-28%",
+              "Workable on personal capital, tight against a 10% prop limit"
+            ],
+            [
+              "2%",
+              "24%",
+              "40-55%",
+              "Recoverable only with a strong, stable edge"
+            ],
+            [
+              "3%",
+              "36%",
+              "60%+",
+              "One bad cluster from account failure"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Those ranges are illustrative, not promises — they scale roughly with risk per trade and widen as win rate falls. Run the numbers on your own trade history rather than borrowing anyone else's table, including this one."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Sequence risk check",
+          "prompt": "A strategy wins 45% of trades at 2R and loses 1R otherwise. Across 10,000 simulated runs of 200 trades, what is the most useful number to pull out?",
+          "options": [
+            "The average final equity across all runs",
+            "The single best run, to know the upside",
+            "The 95th percentile drawdown across runs",
+            "The number of runs that finished profitable"
+          ],
+          "correct": 2,
+          "explain": "Average final equity mostly restates the expectancy you already knew, and the best run is survivorship porn. The 95th percentile drawdown is the number that determines your position size, because it tells you the pain level you must be able to sit through — or, on a funded account, the level that would breach your drawdown limit and end the game before the edge can pay."
+        },
+        {
+          "type": "h2",
+          "text": "What simulation tells funded traders specifically"
+        },
+        {
+          "type": "p",
+          "text": "If you trade an evaluation or funded account, this analysis is not academic. Your maximum drawdown is a hard contractual boundary — cross it and the account is gone regardless of what your expectancy would have produced over the next two hundred trades. Run your own trade history through a simulation, count what fraction of paths breach your firm's drawdown limit, and treat that fraction as your probability of failing the account for reasons that have nothing to do with skill. If it is above a few percent, cut risk per trade until it is not."
+        },
+        {
+          "type": "h2",
+          "text": "Turning simulation output into rules"
+        },
+        {
+          "type": "p",
+          "text": "Numbers only help if they change behaviour. Three concrete outputs are worth writing into your plan: a maximum risk per trade that keeps your 95th percentile drawdown inside what you can tolerate, a longest-losing-streak expectation so a run of six reds feels like arithmetic rather than a crisis, and a drawdown threshold at which you reduce size automatically rather than deciding in the moment."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Stress-test readiness",
+          "prompt": "Tick what is already true for your current account and strategy.",
+          "items": [
+            "I have at least 100 closed trades recorded in R multiples",
+            "I know my longest historical losing streak, not just my win rate",
+            "My risk per trade is set from a drawdown tolerance, not a round number",
+            "I have a written rule for reducing size inside a drawdown",
+            "I know what fraction of simulated paths would breach my account's max drawdown"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You are sizing on vibes. Start by logging trades in R so you have something to simulate at all — everything else depends on that one habit."
+            },
+            {
+              "min": 2,
+              "text": "Foundations are there. Your next step is running a reshuffle on your existing history and finding the 95th percentile drawdown."
+            },
+            {
+              "min": 4,
+              "text": "Strong. You are sizing from a distribution rather than a single path — which is what separates a survivable system from a lucky one."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX records every trade in R multiples alongside its setup, grade and outcome, so your trade history is already in the format a simulation needs — no export-and-reformat ritual. You can filter to a single strategy or session and stress-test that subset on its own, which usually reveals that one of your setups is carrying far more drawdown risk than the blended numbers suggest."
+        },
+        {
+          "type": "why",
+          "text": "Most trading journals stop at describing the past: here is your win rate, here is your equity curve. JournalX is built around the questions that change what you do next — is this edge real, how much of it is sample luck, and what size can you carry through the bad stretch without losing the account. Clean R-based data is the prerequisite for all three, so that is what the journal is designed to produce."
+        },
+        {
+          "type": "h2",
+          "text": "The limits of the method"
+        },
+        {
+          "type": "p",
+          "text": "Monte Carlo is honest about randomness but it is not clairvoyant. Reshuffling assumes your trades are independent, which breaks down if your results are autocorrelated — if you tilt after losses, or if your strategy clusters trades in the same regime. It also assumes the future draws from the same distribution as the past, which is exactly what fails when volatility regimes change or a strategy's edge decays. And it cannot conjure information that is not in your sample: fifty trades in, the output is a wide shrug dressed up as a number."
+        },
+        {
+          "type": "p",
+          "text": "Used properly, it is a humility engine. It takes the one comfortable story your backtest told and shows you the thousand other stories the same edge could have written — several of which would have ended your account. Size for those, and the good version takes care of itself."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How many trades do I need before a Monte Carlo is meaningful?",
+          "a": "Around 100 closed trades is a practical floor, and 200 or more gives noticeably tighter percentile estimates. Below that the simulation mostly reflects the randomness of your small sample rather than the behaviour of your strategy, so treat the output as directional only."
+        },
+        {
+          "q": "Reshuffling or resampling with replacement — which should I use?",
+          "a": "Reshuffling isolates sequence risk by keeping your exact set of trades and only changing their order. Resampling with replacement also varies the mix, so it accounts for the chance your sample was unusually kind. For sizing decisions, resampling is the more conservative and generally more useful choice."
+        },
+        {
+          "q": "Why is the simulated drawdown so much worse than my backtest?",
+          "a": "Because your backtest is a single path through the distribution and is as likely to be a fortunate ordering as an unfortunate one. Practitioners routinely find tail drawdowns running well beyond the historical figure, so the historical number is best read as an optimistic case rather than a planning number."
+        },
+        {
+          "q": "Does this replace forward testing?",
+          "a": "No. Simulation tells you how much variance your existing edge implies; it cannot tell you whether that edge still exists in current conditions. Forward testing answers the second question, and the two are complements rather than substitutes."
+        }
+      ]
     }
   ]
 }
