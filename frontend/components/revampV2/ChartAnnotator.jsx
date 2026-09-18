@@ -335,42 +335,45 @@ export default function ChartAnnotator({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-      {/* symbol bar */}
-      <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center", flexWrap: "wrap" }}>
+      {/* symbol + search row */}
+      <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
         <span
           style={{
-            display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px",
-            borderRadius: 999, background: "var(--color-primary-subtle)", color: "var(--color-text-primary)",
-            font: "var(--text-small)", fontWeight: 700,
+            display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 12px",
+            borderRadius: "var(--radius-md)", background: "var(--color-primary-subtle)", color: "var(--color-text-primary)",
+            font: "var(--text-small)", fontWeight: 700, flexShrink: 0, whiteSpace: "nowrap",
           }}
         >
           {symbol || "No symbol"}
-          {chartReady && <span style={{ font: "var(--text-caption)", color: "var(--color-success-strong)", fontWeight: 600 }}>● live</span>}
+          {chartReady && <span style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "var(--text-caption)", color: "var(--color-success-strong)", fontWeight: 600 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-success)" }} />live</span>}
           {embedMode && <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600 }}>TradingView</span>}
         </span>
         <button
           type="button"
           className="jx-btn jx-btn--secondary jx-btn--sm"
+          style={{ flex: 1, justifyContent: "center", minWidth: 0 }}
           onClick={() => setSearchOpen((v) => !v)}
         >
           <Search size={14} /> Search TradingView
         </button>
-        {chartReady && (
-          <div className="jx-seg jx-seg--inline" style={{ flexWrap: "wrap", marginLeft: "auto" }}>
-            {TIMEFRAMES.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={`jx-seg__btn ${tf === f.id ? "jx-seg__btn--active" : ""}`}
-                style={{ padding: "5px 9px", font: "var(--text-caption)", fontWeight: 600 }}
-                onClick={() => setTf(f.id)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* timeframe selector — full width, evenly spaced */}
+      {chartReady && (
+        <div className="jx-seg" style={{ width: "100%" }}>
+          {TIMEFRAMES.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className={`jx-seg__btn ${tf === f.id ? "jx-seg__btn--active" : ""}`}
+              style={{ padding: "8px 4px", font: "var(--text-caption)", fontWeight: 600 }}
+              onClick={() => setTf(f.id)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* search dropdown */}
       {searchOpen && (
@@ -496,36 +499,22 @@ export default function ChartAnnotator({
                   onChange={(e) => setSize(e.target.value)}
                 />
               </div>
-              {/* unit toggle, both options visible; unselected keeps a bg */}
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+              {/* unit toggle — segmented tab UI (matches Mins/Hours) */}
+              <div className="jx-seg jx-seg--inline" style={{ flexShrink: 0 }}>
                 {[
                   { v: "asset", l: symbol ? symbol.split("/")[0].slice(0, 6) : "Asset" },
                   { v: "usd", l: quoteCode || "USD" },
-                ].map((o) => {
-                  const on = sizeUnit === o.v;
-                  return (
-                    <button
-                      key={o.v}
-                      type="button"
-                      onClick={() => setSizeUnit(o.v)}
-                      style={{
-                        height: 44,
-                        padding: "0 14px",
-                        borderRadius: "var(--radius-md)",
-                        cursor: "pointer",
-                        border: `1px solid ${on ? "var(--color-primary)" : "var(--color-border-strong)"}`,
-                        background: on ? "var(--color-primary)" : "var(--color-bg-surface)",
-                        color: on ? "var(--color-primary-foreground)" : "var(--color-text-secondary)",
-                        font: "var(--text-body-md)",
-                        fontWeight: on ? 700 : 600,
-                        whiteSpace: "nowrap",
-                        transition: "all 0.15s ease",
-                      }}
-                    >
-                      {o.l}
-                    </button>
-                  );
-                })}
+                ].map((o) => (
+                  <button
+                    key={o.v}
+                    type="button"
+                    className={`jx-seg__btn ${sizeUnit === o.v ? "jx-seg__btn--active" : ""}`}
+                    onClick={() => setSizeUnit(o.v)}
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    {o.l}
+                  </button>
+                ))}
               </div>
             </div>
             <div style={{ marginTop: "var(--space-2)" }}>
@@ -539,30 +528,73 @@ export default function ChartAnnotator({
             </div>
           </div>
 
-          {/* live P&L from the chart marks */}
-          {calc.pnl != null && (
-            <div
-              className={`jx-banner ${calc.pnl >= 0 ? "jx-banner--success" : ""}`}
-              style={calc.pnl < 0 ? { background: "var(--color-danger-subtle)" } : undefined}
-            >
-              <MousePointerClick size={15} style={{ color: calc.pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }} />
-              <span>
-                Net P&amp;L from chart{" "}
-                <strong style={{ color: calc.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                  {calc.pnl < 0 ? "−" : "+"}{sym}{fmtMoney(Math.abs(calc.pnl))}
-                </strong>
-                {calc.retPct != null && <> · {calc.retPct >= 0 ? "+" : ""}{fmt(Math.round(calc.retPct * 10) / 10)}%</>}
-              </span>
-            </div>
-          )}
-
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-            <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{entry?.price ? fmt(entry.price) : "—"}</strong></span>
-            <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{exit?.price ? fmt(exit.price) : "—"}</strong></span>
-            <button type="button" className="jx-btn jx-btn--ghost jx-btn--sm" onClick={reset} style={{ marginLeft: "auto" }}>
-              <RotateCcw size={13} /> Reset points
-            </button>
-          </div>
+          {/* calculated P&L result card — shows cash P&L when a size is set,
+             otherwise the % return so there's always feedback from the marks */}
+          {(() => {
+            const e = entry?.price, x = exit?.price;
+            if (!e || !x) {
+              return (
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                  <span>Entry: <strong style={{ color: "var(--color-text-primary)" }}>{e ? fmt(e) : "—"}</strong></span>
+                  <span>Exit: <strong style={{ color: "var(--color-text-primary)" }}>{x ? fmt(x) : "—"}</strong></span>
+                  <button type="button" className="jx-btn jx-btn--ghost jx-btn--sm" onClick={reset} style={{ marginLeft: "auto" }}>
+                    <RotateCcw size={13} /> Reset points
+                  </button>
+                </div>
+              );
+            }
+            const dir = direction === "long" ? 1 : -1;
+            const pricePct = ((x - e) / e) * 100 * dir;
+            const hasCash = calc.pnl != null;
+            const positive = hasCash ? calc.pnl >= 0 : pricePct >= 0;
+            const col = positive ? "var(--color-success-strong)" : "var(--color-danger-strong)";
+            return (
+              <div
+                className="jx-card jx-card--flat"
+                style={{
+                  padding: "var(--space-4)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-3)",
+                  boxShadow: `inset 3px 0 0 0 ${col}`,
+                  background: positive
+                    ? "color-mix(in srgb, var(--color-success) 8%, var(--color-bg-elevated))"
+                    : "color-mix(in srgb, var(--color-danger) 8%, var(--color-bg-elevated))",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-2)" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                    <span style={{ font: "var(--text-label)", letterSpacing: "0.6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>
+                      Estimated P&amp;L
+                    </span>
+                    <span style={{ font: "var(--text-h2)", fontWeight: 700, color: col, fontVariantNumeric: "tabular-nums", lineHeight: 1.1 }}>
+                      {hasCash
+                        ? `${calc.pnl < 0 ? "−" : "+"}${sym}${fmtMoney(Math.abs(calc.pnl))}`
+                        : `${pricePct >= 0 ? "+" : "−"}${fmt(Math.abs(Math.round(pricePct * 100) / 100))}%`}
+                    </span>
+                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                      {hasCash
+                        ? <>Return {pricePct >= 0 ? "+" : "−"}{fmt(Math.abs(Math.round(pricePct * 100) / 100))}% · {direction === "long" ? "Long" : "Short"}</>
+                        : "Enter a position size above for the cash P&L"}
+                    </span>
+                  </div>
+                  <button type="button" className="jx-btn jx-btn--ghost jx-btn--sm" onClick={reset} style={{ flexShrink: 0 }}>
+                    <RotateCcw size={13} /> Reset
+                  </button>
+                </div>
+                <div style={{ display: "flex", gap: "var(--space-2)" }}>
+                  <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2, padding: "8px 12px", borderRadius: "var(--radius-md)", background: "var(--color-bg-muted)" }}>
+                    <span style={{ font: "var(--text-label)", letterSpacing: "0.5px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Entry</span>
+                    <span style={{ font: "var(--text-body-md)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{fmt(e)}</span>
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2, padding: "8px 12px", borderRadius: "var(--radius-md)", background: "var(--color-bg-muted)" }}>
+                    <span style={{ font: "var(--text-label)", letterSpacing: "0.5px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Exit</span>
+                    <span style={{ font: "var(--text-body-md)", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{fmt(x)}</span>
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>

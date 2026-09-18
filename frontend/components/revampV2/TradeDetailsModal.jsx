@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
@@ -145,6 +146,17 @@ export default function TradeDetailsModal({
   // localTrade lets us reflect a freshly-saved chart annotation without a refetch
   const [localTrade, setLocalTrade] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const mq = window.matchMedia("(max-width: 768px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener?.("change", sync);
+    return () => mq.removeEventListener?.("change", sync);
+  }, []);
 
   useEffect(() => {
     // reset local copy whenever a different trade opens
@@ -288,23 +300,32 @@ export default function TradeDetailsModal({
     </div>
   );
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && trade && (
         <motion.div
-          className="jx-modal-overlay jx-modal-overlay--blur"
+          className={`jx-modal-overlay ${isMobile ? "jx-modal-overlay--sheet" : "jx-modal-overlay--blur"}`}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
+          style={isMobile ? { alignItems: "flex-end", justifyContent: "center", padding: 0 } : undefined}
           onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 10 }}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="jx-ltmodal jx-ltmodal--popup"
-            style={{ width: "min(980px, 96vw)" }}
+            initial={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.96, y: 16 }}
+            animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.97, y: 10 }}
+            transition={{ type: "spring", stiffness: 340, damping: 32 }}
+            className={`jx-ltmodal ${isMobile ? "jx-ltmodal--sheet" : "jx-ltmodal--popup"}`}
+            style={isMobile ? undefined : { width: "min(980px, 96vw)" }}
+            onClick={(e) => e.stopPropagation()}
           >
+            {isMobile && (
+              <div aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px", flexShrink: 0 }}>
+                <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
+              </div>
+            )}
             {/* header */}
             <div className="jx-ltmodal__header jx-td__header" style={{ alignItems: "flex-start", gap: "var(--space-2)", flexWrap: "wrap" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0, flex: 1 }}>
@@ -333,23 +354,14 @@ export default function TradeDetailsModal({
             </div>
 
             {/* body */}
-            <div className="jx-ltmodal__body">
-              <div className="jx-ltmodal__form" style={{ gap: "var(--space-4)" }}>
-                {/* stats, bento grid of bordered cells */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(108px, 1fr))", gap: "var(--space-2)" }}>
+            <div className="jx-ltmodal__body jx-td-body">
+              <div className="jx-ltmodal__form jx-td-flow" style={{ gap: "var(--space-4)" }}>
+                {/* headline stats — minimal, borderless, divider-separated */}
+                <div className="jx-td-stats">
                   {stats.map(([l, v, color]) => (
-                    <div
-                      key={l}
-                      style={{
-                        display: "flex", flexDirection: "column", gap: 3,
-                        padding: "var(--space-3)",
-                        background: "var(--color-bg-elevated)",
-                        border: "1px solid var(--color-border-strong)",
-                        borderRadius: "var(--radius-md)",
-                      }}
-                    >
-                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{l}</span>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: color || "var(--color-text-primary)" }}>{v}</span>
+                    <div key={l} className="jx-td-stat">
+                      <span className="jx-td-stat__l">{l}</span>
+                      <span className="jx-td-stat__v" style={{ color: color || "var(--color-text-primary)" }}>{v}</span>
                     </div>
                   ))}
                 </div>
@@ -605,7 +617,7 @@ export default function TradeDetailsModal({
               </div>
 
               {/* right rail */}
-              <div className="jx-ltmodal__rail">
+              <div className="jx-ltmodal__rail jx-td-flow">
                 {/* gamified quality */}
                 <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                   <QualityRing pct={quality} />
@@ -628,22 +640,13 @@ export default function TradeDetailsModal({
                 <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)" }}>
                   <div style={{ font: "var(--text-body-md)", fontWeight: 600, marginBottom: "var(--space-3)" }}>Trade details</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
+                    {/* Direction, status and source already shown in the header —
+                        not repeated here to keep the section minimal. */}
                     <DetailRow label="Date opened" value={dt(t.openTime)} />
                     <DetailRow label="Date closed" value={dt(t.closeTime)} />
-                    <DetailRow label="Direction" value={isLong ? "Long" : "Short"} />
-                    <DetailRow label="Status" valueEl={<Badge variant="neutral">{t.tradeStatus || "closed"}</Badge>} />
                     <DetailRow label="Size unit" value={t.sizeUnit === "usd" ? "Cash" : `${assetName || "Asset"} units`} />
                     <DetailRow label="Leverage" value={t.leverage && t.leverage !== 1 ? `${t.leverage}×` : "—"} />
                     <DetailRow label="Position value" value={t.quantityUSD ? `${currencySymbol}${fmt(t.quantityUSD)}` : "—"} />
-                    <DetailRow
-                      label="Source"
-                      valueEl={
-                        <span className="jx-badge jx-badge--neutral">
-                          {t.source === "auto" ? <Download size={11} /> : <User size={11} />}
-                          {t.source === "auto" ? "Exchange" : t.source === "tradingview" ? "Chart" : "Manual"}
-                        </span>
-                      }
-                    />
                   </div>
                 </div>
 
@@ -678,6 +681,7 @@ export default function TradeDetailsModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

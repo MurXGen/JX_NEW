@@ -48,21 +48,31 @@ export function useHiddenSections(key, defaultHidden = []) {
 const FAB = 52;         // button diameter
 const POS_KEY = "jx-customize-fab-pos";
 
-export default function CustomizeSections({ sections, hidden, onToggle, onReset }) {
+const EDGE = 14; // gap kept from the screen edge when snapped
+
+export default function CustomizeSections({ sections, hidden, onToggle, onReset, enabled = true }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState(null); // {left, top}
+  const [animate, setAnimate] = useState(false); // smooth snap after release
   const drag = useRef(null);
 
   // clamp a position inside the viewport (keep clear of edges + bottom nav)
   const clamp = (left, top) => {
     if (typeof window === "undefined") return { left, top };
-    const maxL = window.innerWidth - FAB - 8;
-    const maxT = window.innerHeight - FAB - 84; // leave room above bottom nav
+    const maxL = window.innerWidth - FAB - EDGE;
+    const maxT = window.innerHeight - FAB - 96; // leave room above bottom nav
     return {
-      left: Math.max(8, Math.min(left, maxL)),
+      left: Math.max(EDGE, Math.min(left, maxL)),
       top: Math.max(72, Math.min(top, maxT)),
     };
+  };
+  // snap horizontally to whichever edge the button is nearer to
+  const snapEdge = (left, top) => {
+    if (typeof window === "undefined") return { left, top };
+    const center = left + FAB / 2;
+    const right = window.innerWidth - FAB - EDGE;
+    return clamp(center < window.innerWidth / 2 ? EDGE : right, top);
   };
 
   useEffect(() => {
@@ -73,10 +83,11 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset 
       if (raw) init = JSON.parse(raw);
     } catch {}
     if (!init && typeof window !== "undefined") {
-      init = { left: window.innerWidth - FAB - 12, top: Math.round(window.innerHeight * 0.42) };
+      // default: bottom-right, above the mobile bottom nav
+      init = { left: window.innerWidth - FAB - EDGE, top: window.innerHeight - FAB - 110 };
     }
-    setPos(clamp(init?.left ?? 0, init?.top ?? 0));
-    const onResize = () => setPos((p) => (p ? clamp(p.left, p.top) : p));
+    setPos(snapEdge(init?.left ?? 0, init?.top ?? 0));
+    const onResize = () => setPos((p) => (p ? snapEdge(p.left, p.top) : p));
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,13 +95,15 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset 
 
   const onPointerDown = (e) => {
     e.currentTarget.setPointerCapture?.(e.pointerId);
+    setAnimate(false);
     drag.current = { sx: e.clientX, sy: e.clientY, ox: pos.left, oy: pos.top, moved: false };
   };
   const onPointerMove = (e) => {
     if (!drag.current) return;
     const dx = e.clientX - drag.current.sx;
     const dy = e.clientY - drag.current.sy;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) drag.current.moved = true;
+    // higher threshold so a normal tap (with tiny finger jitter) still opens
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) drag.current.moved = true;
     setPos(clamp(drag.current.ox + dx, drag.current.oy + dy));
   };
   const onPointerUp = () => {
@@ -98,15 +111,22 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset 
     const moved = drag.current.moved;
     drag.current = null;
     if (moved) {
-      try { localStorage.setItem(POS_KEY, JSON.stringify(pos)); } catch {}
+      setAnimate(true);
+      setPos((p) => {
+        const snapped = snapEdge(p.left, p.top);
+        try { localStorage.setItem(POS_KEY, JSON.stringify(snapped)); } catch {}
+        return snapped;
+      });
     } else {
-      setOpen(true); // treat as a tap
+      setOpen(true); // treat as a tap → open the sheet
     }
   };
 
   const shown = sections.filter((s) => !hidden.has(s.id)).length;
 
-  if (!mounted || !pos) return null;
+  useEffect(() => { if (!enabled) setOpen(false); }, [enabled]);
+
+  if (!mounted || !pos || !enabled) return null;
 
   return createPortal(
     <>
@@ -134,6 +154,7 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset 
           border: "1px solid var(--color-border-strong)",
           color: "var(--color-text-primary)",
           boxShadow: "0 8px 24px rgba(0,0,0,0.45)",
+          transition: animate ? "left 0.28s cubic-bezier(0.22,1,0.36,1), top 0.28s cubic-bezier(0.22,1,0.36,1)" : "none",
         }}
       >
         <SlidersHorizontal size={20} />

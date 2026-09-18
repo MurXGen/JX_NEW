@@ -133,8 +133,9 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
                   ? Math.max(8, rect.top - 384 - 6)
                   : rect.bottom + 6,
               width: 300,
+              minWidth: 0, // override .jx-dd__panel min-width:100% (portaled to body)
               maxWidth: "calc(100vw - 16px)",
-              maxHeight: "min(420px, calc(100vh - 16px))",
+              maxHeight: "min(440px, calc(100dvh - 16px))",
               overflowY: "auto",
               zIndex: 6000,
               padding: "var(--space-3)",

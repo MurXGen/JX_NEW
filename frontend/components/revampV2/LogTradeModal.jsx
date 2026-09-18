@@ -16,6 +16,7 @@ import {
   Copy,
   ExternalLink,
   Flame,
+  Eye,
   Image as ImageIcon,
   LineChart,
   Mic,
@@ -120,7 +121,7 @@ function TimingInput({ form, set, mode }) {
         gap: "var(--space-3)",
       }}
     >
-      <div style={{ display: "flex", gap: 6, alignSelf: "flex-start" }}>
+      <div style={{ display: "flex", width: "100%", borderBottom: "1px solid var(--color-border)" }}>
         {[
           { v: false, l: "Date & time" },
           { v: true, l: "Just duration" },
@@ -132,16 +133,18 @@ function TimingInput({ form, set, mode }) {
               type="button"
               onClick={() => set("useDuration", o.v)}
               style={{
-                padding: "9px 14px",
-                borderRadius: "var(--radius-md)",
+                flex: 1,
+                padding: "11px 0",
+                background: "transparent",
+                border: "none",
+                borderBottom: `2px solid ${on ? "var(--color-primary)" : "transparent"}`,
+                marginBottom: -1,
                 cursor: "pointer",
-                border: `1px solid ${on ? "var(--color-primary)" : "var(--color-border-strong)"}`,
-                background: on ? "var(--color-primary)" : "var(--color-bg-surface)",
-                color: on ? "var(--color-primary-foreground)" : "var(--color-text-secondary)",
+                color: on ? "var(--color-text-primary)" : "var(--color-text-muted)",
                 font: "var(--text-body-md)",
                 fontWeight: on ? 700 : 600,
                 whiteSpace: "nowrap",
-                transition: "all 0.15s ease",
+                transition: "color 0.15s ease, border-color 0.15s ease",
               }}
             >
               {o.l}
@@ -190,6 +193,31 @@ function TimingInput({ form, set, mode }) {
                   </button>
                 ))}
               </div>
+            </div>
+            {/* quick-fill duration presets */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: "var(--space-2)" }}>
+              {[
+                ["5", "min", "5m"],
+                ["15", "min", "15m"],
+                ["30", "min", "30m"],
+                ["1", "hour", "1h"],
+                ["2", "hour", "2h"],
+                ["4", "hour", "4h"],
+                ["24", "hour", "1d"],
+              ].map(([v, u, lbl]) => {
+                const on = String(form.durationVal) === v && form.durationUnit === u;
+                return (
+                  <button
+                    key={lbl}
+                    type="button"
+                    className={`jx-chip ${on ? "jx-chip--selected" : ""}`}
+                    style={{ padding: "6px 12px", font: "var(--text-caption)", fontWeight: 600 }}
+                    onClick={() => { set("durationVal", v); set("durationUnit", u); }}
+                  >
+                    {lbl}
+                  </button>
+                );
+              })}
             </div>
           </Field>
         </div>
@@ -682,6 +710,7 @@ export default function LogTradeModal({
   /* ---- which journal this trade logs into (switchable in-modal) ---- */
   const [activeAccountId, setActiveAccountId] = useState(currentAccountId);
   const [showAcctSwitch, setShowAcctSwitch] = useState(false);
+  const [previewImg, setPreviewImg] = useState(null); // screenshot lightbox url
   // keep the in-modal selection in sync with the dashboard's active journal
   // whenever the modal (re)opens or the dashboard switches underneath it.
   useEffect(() => {
@@ -1446,14 +1475,27 @@ export default function LogTradeModal({
             <img
               src={img.url}
               alt={img.name}
+              onClick={() => setPreviewImg(img.url)}
               style={{
                 width: 64,
                 height: 64,
                 objectFit: "cover",
                 borderRadius: "var(--radius-sm)",
                 border: "1px solid var(--color-border)",
+                cursor: "zoom-in",
               }}
             />
+            {/* preview affordance */}
+            <span
+              onClick={() => setPreviewImg(img.url)}
+              style={{
+                position: "absolute", bottom: 3, right: 3, width: 18, height: 18, borderRadius: 6,
+                background: "rgba(0,0,0,0.6)", color: "#fff", display: "flex", alignItems: "center",
+                justifyContent: "center", cursor: "zoom-in", backdropFilter: "blur(2px)",
+              }}
+            >
+              <Eye size={11} />
+            </span>
             <button
               type="button"
               aria-label="Remove"
@@ -1550,6 +1592,7 @@ export default function LogTradeModal({
   if (!mounted) return null;
 
   return createPortal(
+    <>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -1980,37 +2023,22 @@ export default function LogTradeModal({
                                     onChange={(e) => set("size", e.target.value)}
                                   />
                                 </div>
-                                {/* unit toggle, both options visible; the unselected
-                                    one keeps a visible surface bg (not transparent) */}
-                                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                {/* unit toggle — segmented tab UI (matches Mins/Hours) */}
+                                <div className="jx-seg jx-seg--inline" style={{ flexShrink: 0 }}>
                                   {[
                                     { v: "asset", l: form.symbol ? form.symbol.split("/")[0] : "Asset" },
                                     { v: "usd", l: curCode || "USD" },
-                                  ].map((o) => {
-                                    const on = form.sizeUnit === o.v;
-                                    return (
-                                      <button
-                                        key={o.v}
-                                        type="button"
-                                        onClick={() => set("sizeUnit", o.v)}
-                                        style={{
-                                          height: 44,
-                                          padding: "0 16px",
-                                          borderRadius: "var(--radius-md)",
-                                          cursor: "pointer",
-                                          border: `1px solid ${on ? "var(--color-primary)" : "var(--color-border-strong)"}`,
-                                          background: on ? "var(--color-primary)" : "var(--color-bg-surface)",
-                                          color: on ? "var(--color-primary-foreground)" : "var(--color-text-secondary)",
-                                          font: "var(--text-body-md)",
-                                          fontWeight: on ? 700 : 600,
-                                          whiteSpace: "nowrap",
-                                          transition: "all 0.15s ease",
-                                        }}
-                                      >
-                                        {o.l}
-                                      </button>
-                                    );
-                                  })}
+                                  ].map((o) => (
+                                    <button
+                                      key={o.v}
+                                      type="button"
+                                      className={`jx-seg__btn ${form.sizeUnit === o.v ? "jx-seg__btn--active" : ""}`}
+                                      onClick={() => set("sizeUnit", o.v)}
+                                      style={{ whiteSpace: "nowrap" }}
+                                    >
+                                      {o.l}
+                                    </button>
+                                  ))}
                                 </div>
                               </div>
                               <div style={{ marginTop: "var(--space-2)" }}>
@@ -2382,66 +2410,8 @@ export default function LogTradeModal({
                               placeholder="e.g. Anxious"
                             />
                           </Field>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              flexWrap: "wrap",
-                              gap: "var(--space-2)",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  font: "var(--text-body-md)",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Did you follow your plan?
-                              </span>
-                              <span
-                                style={{
-                                  font: "var(--text-caption)",
-                                  color: "var(--color-text-muted)",
-                                }}
-                              >
-                                Discipline is the #1 predictor of long-term edge
-                              </span>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "var(--space-2)",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  font: "var(--text-small)",
-                                  fontWeight: 600,
-                                  color: form.followedPlan
-                                    ? "var(--color-success-strong)"
-                                    : "var(--color-text-muted)",
-                                }}
-                              >
-                                {form.followedPlan ? "Yes" : "No"}
-                              </span>
-                              <button
-                                type="button"
-                                className={`jx-switch ${form.followedPlan ? "jx-switch--on" : ""}`}
-                                onClick={() =>
-                                  set("followedPlan", !form.followedPlan)
-                                }
-                                aria-pressed={form.followedPlan}
-                              />
-                            </div>
-                          </div>
+                          {/* "Followed your plan?" now lives in the fixed footer
+                              so it's always visible without scrolling. */}
                           <Field label="Mistakes (be honest)">
                             <div
                               style={{
@@ -2632,6 +2602,30 @@ export default function LogTradeModal({
               className="jx-ltmodal__footer"
               style={{ flexDirection: "column", alignItems: "stretch" }}
             >
+              {/* discipline toggle, always visible in the fixed action bar */}
+              <button
+                type="button"
+                onClick={() => set("followedPlan", !form.followedPlan)}
+                aria-pressed={form.followedPlan}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)",
+                  width: "100%", padding: "10px 14px", marginBottom: "var(--space-2)",
+                  borderRadius: "var(--radius-md)", cursor: "pointer", textAlign: "left",
+                  background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
+                  color: "var(--color-text-primary)",
+                }}
+              >
+                <span style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
+                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Followed your plan?</span>
+                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Discipline is the #1 predictor of edge</span>
+                </span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                  <span style={{ font: "var(--text-caption)", fontWeight: 700, color: form.followedPlan ? "var(--color-success-strong)" : "var(--color-text-muted)" }}>
+                    {form.followedPlan ? "Yes" : "No"}
+                  </span>
+                  <span className={`jx-switch ${form.followedPlan ? "jx-switch--on" : ""}`} />
+                </span>
+              </button>
               {/* live trader-count strip pinned right above the action buttons */}
               <TradersTodayBadge variant="strip" className="jx-foot-badge" />
               <div
@@ -2772,7 +2766,38 @@ export default function LogTradeModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>,
+    </AnimatePresence>
+
+    {/* screenshot preview lightbox */}
+    <AnimatePresence>
+      {previewImg && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          onClick={() => setPreviewImg(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 4200, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-4)" }}
+        >
+          <button
+            type="button"
+            aria-label="Close preview"
+            onClick={() => setPreviewImg(null)}
+            className="jx-btn jx-btn--secondary jx-btn--sm"
+            style={{ position: "absolute", top: "calc(env(safe-area-inset-top) + 12px)", right: 12, padding: 8 }}
+          >
+            <X size={18} />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <motion.img
+            src={previewImg}
+            alt="Screenshot preview"
+            initial={{ scale: 0.94 }} animate={{ scale: 1 }} exit={{ scale: 0.96 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "100%", maxHeight: "88dvh", objectFit: "contain", borderRadius: "var(--radius-md)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)" }}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>,
     document.body,
   );
 }

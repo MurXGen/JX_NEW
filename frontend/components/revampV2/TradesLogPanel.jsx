@@ -9,6 +9,7 @@ import {
   CheckSquare,
   ChevronLeft,
   ChevronRight,
+  Clock,
   BookOpen,
   Download,
   Gamepad2,
@@ -269,35 +270,38 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
           {!selectMode && menu}
         </span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-2)", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-        <span>Entry</span><span>Exit</span><span>Size</span><span>R : R</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{entry ? `${sym}${fmt(entry)}` : "—"}</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{exit ? `${sym}${fmt(exit)}` : "—"}</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{qty(t.totalQuantity)}</span>
-        <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}</span>
-      </div>
-      {imgs > 0 && t.images?.[0]?.url && (
+      {/* screenshots — small, horizontally scrollable; tap opens the viewer */}
+      {imgs > 0 && (
         <div
+          className="jx-trade-thumbs"
+          style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}
           onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
-          style={{ position: "relative", height: 84, borderRadius: "var(--radius-sm)", overflow: "hidden", cursor: "zoom-in", border: "1px solid var(--color-border)" }}
         >
-          <img src={t.images[0].url} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          <span
-            className="jx-badge jx-badge--neutral"
-            style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-          >
-            <ImageIcon size={11} /> {imgs}
-          </span>
+          {t.images.filter((im) => im?.url).map((im, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={i}
+              src={im.url}
+              alt=""
+              loading="lazy"
+              style={{ width: 46, height: 46, flexShrink: 0, objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", cursor: "zoom-in" }}
+            />
+          ))}
         </div>
       )}
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-        <span style={{ font: "var(--text-title)", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-          {money(pnl, sym)}
-        </span>
-        <span style={{ marginLeft: "auto", font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-          {t.closeTime && new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        {/* left: closed-time (with context) + outcome */}
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "var(--text-caption)", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
+          <Clock size={12} />
+          {t.closeTime
+            ? `Closed ${new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+            : "Open"}
         </span>
         <Badge variant={pnl >= 0 ? "success" : "danger"}>{pnl >= 0 ? "Win" : "Loss"}</Badge>
+        {/* right: P&L */}
+        <span style={{ marginLeft: "auto", font: "var(--text-title)", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+          {money(pnl, sym)}
+        </span>
         {!selectMode && (
           <span title="Open details" style={{ display: "flex", alignItems: "center", color: "var(--yellow-500)" }}>
             <ChevronRight size={18} strokeWidth={2.5} />
@@ -825,13 +829,13 @@ export default function TradesLogPanel({
           />
           {!usingDummy && (
             <>
-              <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)} aria-label="Import trades">
+              <Button variant="outline" icon={Upload} onClick={() => setShowImport(true)} aria-label="Import trades" className="jx-tl-import">
                 <span className="jx-lbl-full">Import trades</span>
                 <span className="jx-lbl-short">Import</span>
               </Button>
-              <Button variant="primary" icon={Plus} onClick={onAddTrade} aria-label="Add trade">
-                <span className="jx-lbl-full">Add trade</span>
-                <span className="jx-lbl-short">Add</span>
+              <Button variant="primary" icon={Plus} onClick={onAddTrade} aria-label="Log trade">
+                <span className="jx-lbl-full">Log trade</span>
+                <span className="jx-lbl-short">Log</span>
               </Button>
             </>
           )}

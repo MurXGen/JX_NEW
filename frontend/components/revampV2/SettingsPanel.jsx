@@ -653,8 +653,6 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
         <div className="jx-settings__mlist">
           <div className="jx-settings__mtitle" style={{ padding: "2px 0 4px" }}>Settings</div>
 
-          <TopControls journalName={activeJournalName} onSwitchJournal={onSwitchJournal} theme={theme} toggleTheme={toggleTheme} />
-
           <div className="jx-settings__profilecard" onClick={() => openMobileSection("profile")}>
             <Avatar url={avatarUrl} name={name} size={56} />
             <div style={{ minWidth: 0, flex: 1 }}>
@@ -663,6 +661,8 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
             </div>
             <ChevronRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
           </div>
+
+          <TopControls journalName={activeJournalName} onSwitchJournal={onSwitchJournal} theme={theme} toggleTheme={toggleTheme} />
 
           <button type="button" className="jx-settings__plancard" onClick={() => openMobileSection("billing")}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>

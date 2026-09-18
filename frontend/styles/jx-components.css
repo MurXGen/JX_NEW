@@ -23,6 +23,7 @@
   justify-content: center;
   gap: var(--space-2);
   font: var(--text-body-md);
+  font-weight: 400; /* lighter buttons; primary CTA keeps a touch more weight */
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   padding: 10px 18px;
@@ -58,6 +59,7 @@
 .jx-btn--primary {
   background: var(--color-primary);
   color: var(--color-primary-foreground);
+  font-weight: 500;
 }
 .jx-btn--primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
@@ -642,7 +644,7 @@ body::before {
   align-items: center;
   gap: 4px;
   font: var(--text-caption);
-  font-weight: 500;
+  font-weight: 400;
   padding: 3px 8px;
   border-radius: var(--radius-sm);
 }
@@ -1095,15 +1097,20 @@ body::before {
   align-items: center;
   gap: 6px;
   font: var(--text-body-md);
+  font-weight: 400 !important; /* lighter chips (overrides inline 600s too) */
   color: var(--color-text-secondary);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);
   padding: 7px 14px;
   cursor: pointer;
+  outline: none; /* no blue browser focus ring (theme conflict) */
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent; /* no grey flash on mobile tap */
+}
+.jx-chip:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 50%, transparent);
 }
 /* hover only on real pointer devices — stops the muted state "sticking" after
    a tap on touchscreens */
@@ -1419,10 +1426,12 @@ body::before {
   border: none;
   background: transparent;
   font: var(--text-body-md);
+  font-weight: 400;
   color: var(--color-text-secondary);
   padding: 9px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
+  outline: none;
   transition: all 0.15s ease;
   white-space: nowrap;
   /* center icon + label so an icon-only tab never overlaps its neighbour */
@@ -1446,7 +1455,7 @@ body::before {
 .jx-seg__btn--active {
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
-  font-weight: 600;
+  font-weight: 500;
   box-shadow: var(--shadow-sm);
 }
 .jx-seg--inline {
@@ -1999,6 +2008,50 @@ body::before {
 .jx-foot-badge {
   display: none !important;
 }
+
+/* ===== Trade details modal — minimal, divider-based (no boxy cards) ===== */
+.jx-td-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 1px;
+  background: var(--color-border);          /* shows through as hairlines */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.jx-td-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-surface);
+}
+.jx-td-stat__l {
+  font: var(--text-label);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jx-td-stat__v {
+  font: var(--text-body-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* flatten the stacked cards into borderless sections split by hairline rules */
+.jx-td-flow .jx-card--flat {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-top: 1px solid var(--color-border) !important;
+  padding: var(--space-5) 0 var(--space-1) !important;
+}
+/* the rail on desktop already has its own left border → give its sections air */
+.jx-ltmodal__rail.jx-td-flow .jx-card--flat:first-child {
+  border-top: none !important;
+  padding-top: 0 !important;
+}
+
 @media (max-width: 900px) {
   .jx-ltmodal__body {
     grid-template-columns: 1fr;
@@ -2073,7 +2126,9 @@ body::before {
   padding: var(--space-4) var(--space-5)
     calc(var(--space-4) + env(safe-area-inset-bottom));
   border-top: 1px solid var(--color-border);
-  background: inherit;
+  /* slightly lighter than the near-black sheet body so the action bar reads
+     as its own section */
+  background: rgba(255, 255, 255, 0.045);
 }
 .jx-ltmodal--sheet .jx-foot-badge {
   display: flex !important;
@@ -2144,16 +2199,16 @@ body::before {
 /* flatten the grouped "container" cards → clean labelled sections separated
    by hairline dividers (no bulky grey boxes). Each section reads as an
    upper-case label + its fields; a thin rule sits between sections. */
+/* each section is a filled, borderless card with padding (no divider rules) */
 .jx-ltmodal--sheet .jx-ltgroup {
-  background: transparent;
+  background: var(--color-bg-surface);
   border: 0;
-  border-radius: 0;
-  padding: 0;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-4) var(--space-5);
   gap: var(--space-3);
 }
-/* divider + breathing room between consecutive sections */
 .jx-ltmodal--sheet .jx-ltgroup + .jx-ltgroup {
-  border-top: 1px solid var(--color-border);
+  border-top: none;
   padding-top: var(--space-4);
 }
 .jx-ltmodal--sheet .jx-sect__icon {
@@ -2391,6 +2446,17 @@ body::before {
   .jx-lbl-short {
     display: inline !important;
   }
+  /* Trades-log header: Import becomes a compact icon-only square button, Add
+     keeps its label; both stay pinned to the right */
+  .jx-tl-import .jx-lbl-short {
+    display: none !important;
+  }
+  .jx-tl-import {
+    flex: 0 0 auto !important;
+    width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+  }
 }
 
 @media (max-width: 600px) {
@@ -2466,11 +2532,9 @@ body::before {
 .jx-ltgroup .jx-sect {
   margin-bottom: var(--space-1);
 }
-/* divided groups: a hairline between each element (not after the last), with
-   balanced spacing above/below the line — the flex gap sits above, the
-   padding sits below, so the rule reads centred between two elements */
-.jx-ltgroup--divided > * + * {
-  /* light-grey hairline, visible on the muted section bg in dark + light */
+/* divided groups: only a single hairline UNDER the section header — the fields
+   inside a section are no longer separated by rules */
+.jx-ltgroup--divided > .jx-sect + * {
   border-top: 1px solid color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
   padding-top: var(--space-3);
 }
@@ -2798,7 +2862,8 @@ body::before {
 
 /* ================= Calendar (Figma "Date & Time Picker") ================= */
 .jx-dtp {
-  width: 280px;
+  width: 300px;
+  min-width: 0; /* never inherit the dropdown's min-width:100% when portaled */
 }
 .jx-dtp__grid {
   display: grid;
@@ -2819,12 +2884,20 @@ body::before {
   color: var(--color-text-primary);
   width: 100%;
   aspect-ratio: 1;
+  max-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 0.12s ease;
+  outline: none; /* kill the browser's blue focus ring (theme conflict) */
+  transition: background 0.12s ease, box-shadow 0.12s ease;
 }
 .jx-dtp__day:hover {
   background: var(--color-bg-muted);
+}
+.jx-dtp__day:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 55%, transparent);
 }
 .jx-dtp__day--muted {
   color: var(--color-text-disabled);
@@ -3302,17 +3375,15 @@ body::before {
 
   /* top header: stack the title above the Import / Add buttons instead of
      cramming them beside a wrapping subtitle */
+  /* keep the title and the actions on one row, actions pinned right */
   .jx-tl-tophead {
-    flex-direction: column;
-    align-items: stretch !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between;
   }
   .jx-tl-topactions {
-    justify-content: flex-start !important;
-  }
-  /* let Import / Add share the row evenly and stay tappable */
-  .jx-tl-topactions > .jx-btn {
-    flex: 1 1 0;
-    justify-content: center;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
   }
 }
 
