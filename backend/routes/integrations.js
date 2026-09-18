@@ -6,6 +6,21 @@ const crypto = require("crypto");
 const Trade = require("../models/Trade");
 const User = require("../models/User");
 const Account = require("../models/Account");
+const {
+  connectExchange,
+  syncExchange,
+  disconnectExchange,
+  exchangeStatus,
+} = require("../controllers/exchangeController");
+
+/* ======================================================
+   EXCHANGE INTEGRATIONS (Binance, Bybit) — Pro-only.
+   Encrypted key storage, preview, dedup sync, disconnect.
+====================================================== */
+router.get("/exchange/status", exchangeStatus);
+router.post("/exchange/:id/connect", connectExchange);
+router.post("/exchange/:id/sync", syncExchange);
+router.post("/exchange/:id/disconnect", disconnectExchange);
 
 /* ======================================================
    TRADINGVIEW — issue/fetch a per-user webhook token

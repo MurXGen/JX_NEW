@@ -184,6 +184,10 @@ const tradeSchema = new mongoose.Schema(
     // origin: manual | auto (exchange) | tradingview (webhook)
     source: { type: String, default: "manual" },
 
+    // Stable id from the source exchange (e.g. "binance:usdm:<tradeId>"), used to
+    // dedupe on re-sync so the same fill is never imported twice.
+    externalId: { type: String, default: null, index: true },
+
     // TradingView marker metadata — lets the details page redraw the
     // entry/exit chart when there are no screenshots
     tvChart: {
@@ -213,6 +217,13 @@ const tradeSchema = new mongoose.Schema(
     avgSLPrice: { type: Number, default: 0 },
   },
   { timestamps: true }
+);
+
+// Dedup guard for exchange sync: the same fill (per user + journal) can't be
+// inserted twice. Sparse so manual trades (externalId: null) are unaffected.
+tradeSchema.index(
+  { userId: 1, accountId: 1, externalId: 1 },
+  { unique: true, partialFilterExpression: { externalId: { $type: "string" } } }
 );
 
 module.exports = mongoose.model("Trade", tradeSchema);

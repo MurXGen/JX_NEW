@@ -34,6 +34,13 @@ export default function VoiceNoteRecorder({ onChange, existingUrl = "", dashed =
   const timerRef = useRef(null);
   const audioElRef = useRef(null);
   const finalRef = useRef("");
+  const interimRef = useRef("");   // last interim (not-yet-final) words
+  const blobRef = useRef(null);    // recorded blob, so we can re-emit when STT ends
+  const secRef = useRef(0);        // latest duration, avoids stale closure
+
+  // final + interim, whitespace-collapsed — captures words STT hadn't finalised
+  const composeTranscript = () =>
+    `${finalRef.current} ${interimRef.current}`.replace(/\s+/g, " ").trim();
 
   useEffect(() => {
     setSupported(typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia && typeof window !== "undefined" && !!window.MediaRecorder);
@@ -53,21 +60,26 @@ export default function VoiceNoteRecorder({ onChange, existingUrl = "", dashed =
       streamRef.current = stream;
       chunksRef.current = [];
       finalRef.current = "";
+      interimRef.current = "";
+      blobRef.current = null;
       setTranscript("");
       setInterim("");
       setSeconds(0);
+      secRef.current = 0;
 
       const mr = new MediaRecorder(stream);
       mediaRef.current = mr;
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        blobRef.current = blob;
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
         setPhase("recorded");
-        const finalTranscript = (finalRef.current || "").trim();
-        setTranscript(finalTranscript);
-        onChange?.({ blob, transcript: finalTranscript, durationSec: seconds });
+        const t = composeTranscript();
+        setTranscript(t);
+        // emit now; if late speech-recognition results arrive, rec.onend re-emits
+        onChange?.({ blob, transcript: t, durationSec: secRef.current });
         try { streamRef.current?.getTracks().forEach((t) => t.stop()); } catch {}
       };
       mr.start();
@@ -86,15 +98,25 @@ export default function VoiceNoteRecorder({ onChange, existingUrl = "", dashed =
             if (e.results[i].isFinal) finalRef.current += chunk + " ";
             else interimTxt += chunk;
           }
+          interimRef.current = interimTxt;
           setInterim(interimTxt);
-          setTranscript(finalRef.current.trim());
+          setTranscript(composeTranscript());
         };
         rec.onerror = () => {};
+        // when recognition ends (after stop), any last words are in the refs —
+        // re-emit so the parent gets the complete transcript for the notes.
+        rec.onend = () => {
+          const t = composeTranscript();
+          setTranscript(t);
+          if (blobRef.current) {
+            onChange?.({ blob: blobRef.current, transcript: t, durationSec: secRef.current });
+          }
+        };
         recogRef.current = rec;
         try { rec.start(); } catch {}
       }
 
-      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+      timerRef.current = setInterval(() => setSeconds((s) => { secRef.current = s + 1; return s + 1; }), 1000);
       setPhase("recording");
     } catch (e) {
       setError("Microphone permission is needed to record a voice note.");
@@ -110,6 +132,10 @@ export default function VoiceNoteRecorder({ onChange, existingUrl = "", dashed =
   const reset = () => {
     setPhase("idle");
     setSeconds(0);
+    secRef.current = 0;
+    finalRef.current = "";
+    interimRef.current = "";
+    blobRef.current = null;
     setTranscript("");
     setInterim("");
     setPlaying(false);

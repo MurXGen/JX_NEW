@@ -82,6 +82,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [journalEditId, setJournalEditId] = useState(null); // deep-link to a journal's edit form
+  const [journalsView, setJournalsView] = useState("list"); // 'list' | 'create'
   const [showSupport, setShowSupport] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAcq, setShowAcq] = useState(false);
@@ -149,6 +150,31 @@ export default function Dashboard() {
         setAccountSymbols(result.accountSymbols || {});
         setCurrentBalances(result.currentBalances || {});
         setAccountTrades(result.trades || []);
+
+        // background: auto-sync connected exchanges (Binance/Bybit), then refresh
+        // trades if anything new came in. Fire-and-forget — never blocks the UI.
+        if (userData) {
+          (async () => {
+            try {
+              const st = await axios.get(`${API_BASE}/api/integrations/exchange/status`, { withCredentials: true });
+              if (!st.data?.pro) return;
+              const ex = st.data.exchanges || {};
+              let importedAny = 0;
+              for (const id of Object.keys(ex)) {
+                if (ex[id]?.connected && ex[id]?.autoSync !== false) {
+                  try {
+                    const r = await axios.post(`${API_BASE}/api/integrations/exchange/${id}/sync`, {}, { withCredentials: true });
+                    importedAny += r.data?.imported || 0;
+                  } catch { /* one exchange failing shouldn't stop others */ }
+                }
+              }
+              if (importedAny > 0) {
+                const fresh = await fetchAccountsAndTrades();
+                setAccountTrades(fresh.trades || []);
+              }
+            } catch { /* not pro / offline — skip silently */ }
+          })();
+        }
       } catch (err) {
         const status = err?.response?.status;
         // 401 (no session) / 404 (stale userId cookie → user not in DB) just
@@ -461,18 +487,19 @@ export default function Dashboard() {
         accounts={accounts}
         currentBalances={currentBalances}
         accountSymbols={accountSymbols}
-        onNoJournal={() => setShowSwitchModal(true)}
+        onNoJournal={() => { setJournalsView("create"); setShowSwitchModal(true); }}
         onSaved={(trade) => trade && setAccountTrades((prev) => [...prev, trade])}
       />
 
       <JournalsModal
         open={showSwitchModal}
-        onClose={() => { setShowSwitchModal(false); setJournalEditId(null); }}
+        onClose={() => { setShowSwitchModal(false); setJournalEditId(null); setJournalsView("list"); }}
         accounts={accounts}
         trades={accountTrades}
         currentBalances={currentBalances}
         currentAccountId={currentAccount?._id}
         editAccountId={journalEditId}
+        initialView={journalsView}
       />
 
       <SupportModal

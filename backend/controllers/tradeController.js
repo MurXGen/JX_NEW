@@ -399,6 +399,49 @@ exports.updateTrade = async (req, res) => {
       tradeData.voiceNote = null;
     }
 
+    // --- v2 screenshots: merge kept existing + newly uploaded ---
+    // `keepImages` is a JSON array of the urls the client wants to retain.
+    // Only touch the images array when the client sent image info; otherwise
+    // leave whatever is stored untouched.
+    let removedImageUrls = [];
+    const sentKeep = body.keepImages !== undefined;
+    if (sentKeep || files?.images?.length) {
+      const oldImages = Array.isArray(oldTrade.images) ? oldTrade.images : [];
+      const keepUrls = parseJSON(body.keepImages, [])
+        .map((k) => (typeof k === "string" ? k : k?.url))
+        .filter(Boolean);
+      const keptImgs = oldImages.filter((img) => keepUrls.includes(img.url));
+
+      let uploaded = [];
+      if (files?.images?.length) {
+        const newBytes = files.images.reduce((s, f) => s + f.size, 0);
+        const keptBytes = keptImgs.reduce(
+          (s, i) => s + (Number(i.sizeKB) || 0) * 1024,
+          0,
+        );
+        if (
+          keptImgs.length + files.images.length > 4 ||
+          keptBytes + newBytes > 10 * 1024 * 1024
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: "Screenshots exceed 4 per trade or 10MB combined",
+          });
+        }
+        uploaded = await Promise.all(
+          files.images.map((f) => handleUpload(f, "trade-images")),
+        );
+      }
+
+      tradeData.images = [...keptImgs, ...uploaded];
+      removedImageUrls = oldImages
+        .filter((img) => !keepUrls.includes(img.url))
+        .map((img) => img.url)
+        .filter(Boolean);
+    }
+    // never persist the transient keepImages field
+    delete tradeData.keepImages;
+
     // ✅ Update trade
     const updatedTrade = await Trade.findByIdAndUpdate(tradeId, tradeData, {
       new: true,
@@ -487,6 +530,10 @@ exports.updateTrade = async (req, res) => {
           oldTrade.closeImageUrl !== updatedTrade.closeImageUrl
         ) {
           await deleteImageFromB2(oldTrade.closeImageUrl);
+        }
+        // v2 screenshots the user removed on edit
+        for (const url of removedImageUrls) {
+          await deleteImageFromB2(url);
         }
       } catch (cleanupErr) {
         console.error("Image cleanup failed:", cleanupErr.message);

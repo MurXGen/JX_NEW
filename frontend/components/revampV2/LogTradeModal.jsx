@@ -615,6 +615,11 @@ const tradeToForm = (t) => {
     emotion: t.emotion || null,
     followedPlan: !!t.rulesFollowed,
     mistakes: t.mistakes || [],
+    // load already-saved screenshots so edits (add/remove) start from the real
+    // set; these have a url + sizeKB but no `file` (nothing to re-upload).
+    screenshots: (t.images || [])
+      .filter((i) => i?.url)
+      .map((i) => ({ name: i.name || "screenshot", url: i.url, sizeKB: i.sizeKB || 0, existing: true })),
     notes: t.learnings || "",
     netPnl: t.pnl ?? "",
   };
@@ -1010,7 +1015,7 @@ export default function LogTradeModal({
 
   /* ---------- images ---------- */
   const totalBytes = form.screenshots.reduce(
-    (s, i) => s + (i.file?.size || 0),
+    (s, i) => s + (i.file?.size || (i.sizeKB ? i.sizeKB * 1024 : 0)),
     0,
   );
   const addImages = (files) => {
@@ -1210,9 +1215,20 @@ export default function LogTradeModal({
     fd.append("confidence", form.confidence);
     fd.append("emotion", form.emotion || "");
     fd.append("mistakes", JSON.stringify(form.mistakes));
+    // new files to upload
     form.screenshots.forEach(
       (img) => img.file && fd.append("images", img.file),
     );
+    // on edit, tell the server which already-saved screenshots to keep (the ones
+    // without a fresh `file`); anything omitted was removed by the user.
+    if (isEdit) {
+      fd.append(
+        "keepImages",
+        JSON.stringify(
+          form.screenshots.filter((img) => !img.file && img.url).map((img) => img.url),
+        ),
+      );
+    }
     if (voice?.blob) {
       fd.append("voiceNote", voice.blob, "voice-note.webm");
       fd.append("voiceNoteTranscript", voiceT);

@@ -21,6 +21,7 @@ import Button from "./Button";
 import Dropdown from "./Dropdown";
 import Toast from "./Toast";
 import ExchangeConnectModal, { PLATFORMS } from "./ExchangeConnectModal";
+import ExchangeSyncModal from "./ExchangeSyncModal";
 import PlanLimitsCard from "./PlanLimitsCard";
 import { useTheme } from "./Sidebar";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
@@ -367,6 +368,38 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
     else window.scrollTo({ top: 0, behavior: "auto" });
   }, [mobileSection]);
 
+  /* ---- URL param sync for mobile drill-in ----
+     Opening a section pushes ?settings=<id> so the phone/browser Back button
+     (and the on-screen back arrow) return to the param-free settings list. */
+  const openMobileSection = (id) => {
+    setMobileSection(id);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("settings", id);
+      window.history.pushState({ jxSettings: id }, "", url.toString());
+    }
+  };
+  const closeMobileSection = () => {
+    // go back so the ?settings param is removed from history, not just hidden
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("settings")) {
+      window.history.back();
+    } else {
+      setMobileSection(null);
+    }
+  };
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    // initialise from the URL (supports deep-links / refreshes on a section)
+    const initial = new URLSearchParams(window.location.search).get("settings");
+    if (initial) setMobileSection(initial);
+    const onPop = () => {
+      const s = new URLSearchParams(window.location.search).get("settings");
+      setMobileSection(s || null);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   /* subscription (for the mobile header status) */
   const [sub, setSub] = useState(null);
   const [toast, setToast] = useState(null);
@@ -395,6 +428,16 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
   const [binanceConnected, setBinanceConnected] = useState(false);
   const [autoSync, setAutoSync] = useState(true);
   const [lastSync, setLastSync] = useState(null);
+  /* live exchange sync (Binance / Bybit) */
+  const [exchStatus, setExchStatus] = useState({ pro: false, exchanges: {} });
+  const [syncModal, setSyncModal] = useState(null); // 'binance' | 'bybit' | null
+  const loadExchangeStatus = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/integrations/exchange/status`, { withCredentials: true });
+      setExchStatus(res.data || { pro: false, exchanges: {} });
+    } catch { /* not signed in / offline — leave defaults */ }
+  };
+  useEffect(() => { loadExchangeStatus(); }, []);
 
   /* backup & restore (Google Drive) */
   const driveReady = isDriveConfigured();
@@ -612,7 +655,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
 
           <TopControls journalName={activeJournalName} onSwitchJournal={onSwitchJournal} theme={theme} toggleTheme={toggleTheme} />
 
-          <div className="jx-settings__profilecard" onClick={() => setMobileSection("profile")}>
+          <div className="jx-settings__profilecard" onClick={() => openMobileSection("profile")}>
             <Avatar url={avatarUrl} name={name} size={56} />
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="jx-settings__mname">{name || "Your name"}</div>
@@ -621,7 +664,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
             <ChevronRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
           </div>
 
-          <button type="button" className="jx-settings__plancard" onClick={() => setMobileSection("billing")}>
+          <button type="button" className="jx-settings__plancard" onClick={() => openMobileSection("billing")}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
               {isTop && <Crown size={16} style={{ color: "var(--yellow-500)" }} />}
               <span className="jx-settings__mname" style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{planName} plan</span>
@@ -634,7 +677,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
 
           <div className="jx-settings__group">
             {mobileRows.map((t) => (
-              <button key={t.id} type="button" className="jx-settings__mrow" onClick={() => setMobileSection(t.id)}>
+              <button key={t.id} type="button" className="jx-settings__mrow" onClick={() => openMobileSection(t.id)}>
                 <t.icon size={18} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>{t.label}</span>
                 <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
@@ -673,7 +716,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
       <div className="jx-settings__content">
       {isMobile && mobileSection && (
         <div className="jx-settings__mhead">
-          <button type="button" className="jx-settings__mback" onClick={() => setMobileSection(null)} aria-label="Back to settings">
+          <button type="button" className="jx-settings__mback" onClick={closeMobileSection} aria-label="Back to settings">
             <ChevronLeft size={20} />
           </button>
           <span className="jx-settings__mtitle">{sectionLabel}</span>
@@ -918,23 +961,43 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
       {/* ===== Connected exchanges (read-only API key) ===== */}
       {active === "integrations" && (
       <div className="jx-card">
-        <div className="jx-card__title">Connected exchanges &amp; brokers</div>
+        <div className="jx-card__title" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+          Connected exchanges &amp; brokers
+          {!exchStatus.pro && <Badge variant="brand"><Crown size={11} /> Pro</Badge>}
+        </div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
-          Direct exchange &amp; broker connections are coming soon. For now, bring your trades in via CSV from <strong>Import / Export</strong>.
+          {exchStatus.pro
+            ? <>Connect Binance or Bybit with a <strong>read-only</strong> API key to auto-import your trades. Others are coming soon — for now use CSV from <strong>Import / Export</strong>.</>
+            : <>Live exchange sync is a <strong>Pro</strong> feature. Upgrade to auto-import from Binance &amp; Bybit. You can still bring trades in via CSV from <strong>Import / Export</strong>.</>}
         </div>
 
-        {PLATFORMS.map((p) => (
+        {/* Live: Binance & Bybit */}
+        {["binance", "bybit"].map((id) => {
+          const st = exchStatus.exchanges?.[id] || {};
+          const name = id === "binance" ? "Binance" : "Bybit";
+          return (
+            <Row
+              key={id}
+              title={name}
+              sub={st.connected
+                ? `Connected · ••••${st.keyHint || ""}${st.lastSyncAt ? ` · synced ${new Date(st.lastSyncAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}` : ""}`
+                : "Read-only API key · auto-sync"}
+            >
+              {st.connected && <Badge variant="success">Connected</Badge>}
+              <Button variant={st.connected ? "outline" : "primary"} size="sm" onClick={() => setSyncModal(id)}>
+                {st.connected ? "Manage" : "Connect"}
+              </Button>
+            </Row>
+          );
+        })}
+
+        {/* Coming soon: everything else */}
+        {PLATFORMS.filter((p) => !["binance", "bybit"].includes(p.id)).map((p) => (
           <Row key={p.id} title={p.name} sub="Coming soon">
             <Badge variant="neutral">Coming soon</Badge>
           </Row>
         ))}
-
-        <Row title="Auto-import" sub="Pull new trades automatically, coming soon">
-          <Badge variant="neutral">Coming soon</Badge>
-        </Row>
       </div>
-
-
       )}
 
       {/* ===== Danger zone ===== */}
@@ -971,6 +1034,14 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
           setBinanceConnected(!!localStorage.getItem("binance_api_key"));
         }}
         onImported={() => setLastSync(new Date().toISOString())}
+      />
+      <ExchangeSyncModal
+        open={!!syncModal}
+        exchange={syncModal}
+        status={syncModal ? exchStatus.exchanges?.[syncModal] : null}
+        isPro={exchStatus.pro}
+        onClose={() => setSyncModal(null)}
+        onChanged={loadExchangeStatus}
       />
     </div>
   );

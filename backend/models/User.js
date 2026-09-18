@@ -14,6 +14,43 @@ const userSchema = new mongoose.Schema(
     // TradingView webhook integration — per-user secret token
     tvWebhookToken: { type: String, index: true },
 
+    // ------------------------------------------------------------------
+    // Exchange integrations (Binance, Bybit) — encrypted keys + sync state.
+    // Secrets are stored via utils/vault (AES-256-GCM), never in plaintext.
+    // ------------------------------------------------------------------
+    integrations: {
+      binance: {
+        connected: { type: Boolean, default: false },
+        apiKeyEnc: { type: String, default: "" },
+        apiSecretEnc: { type: String, default: "" },
+        keyHint: { type: String, default: "" }, // last 4 chars for the UI
+        markets: { type: [String], default: [] }, // spot | usdm | coinm
+        window: { type: Number, default: 90 }, // sync look-back in days
+        connectedAt: { type: Date },
+        lastSyncAt: { type: Date },
+        autoSync: { type: Boolean, default: true },
+        _id: false,
+      },
+      bybit: {
+        connected: { type: Boolean, default: false },
+        apiKeyEnc: { type: String, default: "" },
+        apiSecretEnc: { type: String, default: "" },
+        keyHint: { type: String, default: "" },
+        markets: { type: [String], default: [] }, // spot | linear | inverse
+        window: { type: Number, default: 90 },
+        connectedAt: { type: Date },
+        lastSyncAt: { type: Date },
+        autoSync: { type: Boolean, default: true },
+        _id: false,
+      },
+    },
+    // simple sliding-window rate limiter for connect attempts (anti-brute-force)
+    integrationRate: {
+      count: { type: Number, default: 0 },
+      windowStart: { type: Date },
+      _id: false,
+    },
+
     password: {
       type: String,
       required: function () {

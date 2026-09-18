@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import Cookies from "js-cookie";
 import {
@@ -9,9 +10,10 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Coins,
   Pencil,
   Plus,
-  Search,
+  Type,
   Wallet,
   X,
 } from "lucide-react";
@@ -43,6 +45,17 @@ export default function JournalsModal({
   editAccountId = null, // when set, open straight on this journal's edit form
 }) {
   const [view, setView] = useState(initialView); // 'list' | 'create'
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const mq = window.matchMedia("(max-width: 640px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener?.("change", sync);
+    return () => mq.removeEventListener?.("change", sync);
+  }, []);
   const [name, setName] = useState("");
   const [balance, setBalance] = useState("");
   const [currency, setCurrency] = useState("USD");
@@ -154,25 +167,46 @@ export default function JournalsModal({
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="jx-modal-overlay jx-modal-overlay--blur"
+          className="jx-modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 3000, background: "rgba(0,0,0,0.5)",
+            display: "flex", justifyContent: "center",
+            alignItems: isMobile ? "flex-end" : "center",
+            padding: isMobile ? 0 : "var(--space-3)",
+          }}
           onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="jx-ltmodal jx-ltmodal--narrow"
-            style={{ width: "min(520px, 96vw)" }}
+            initial={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.94, y: 16 }}
+            animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+            className="jx-ltmodal jx-ltmodal--narrow jx-ltmodal--flat"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: isMobile ? "100%" : "min(520px, 96vw)",
+              maxHeight: isMobile ? "92dvh" : "90dvh",
+              display: "flex", flexDirection: "column",
+              borderTopLeftRadius: isMobile ? "var(--radius-xl)" : undefined,
+              borderTopRightRadius: isMobile ? "var(--radius-xl)" : undefined,
+              borderBottomLeftRadius: isMobile ? 0 : undefined,
+              borderBottomRightRadius: isMobile ? 0 : undefined,
+              paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : undefined,
+            }}
           >
+            {isMobile && (
+              <div style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)", margin: "10px auto 0", flexShrink: 0 }} />
+            )}
             <AnimatePresence mode="wait">
               {view === "list" ? (
                 <motion.div
@@ -291,7 +325,12 @@ export default function JournalsModal({
                       <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => setView("list")} aria-label="Back" style={{ padding: 8, borderRadius: "50%" }}>
                         <ChevronLeft size={16} />
                       </button>
-                      <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>{editingId ? "Edit journal" : "Create journal"}</span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>{editingId ? "Edit journal" : "Create journal"}</span>
+                        <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
+                          {editingId ? "Update this journal's details" : "Track a strategy or account separately"}
+                        </span>
+                      </div>
                     </div>
                     <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}>
                       <X size={16} />
@@ -309,17 +348,22 @@ export default function JournalsModal({
                     <div className="jx-field">
                       <span className="jx-sidebar__section" style={{ padding: 0 }}>Journal name</span>
                       <div className="jx-input">
-                        <span className="jx-input__icon"><Search size={15} /></span>
+                        <span className="jx-input__icon"><Type size={15} /></span>
                         <input placeholder="e.g. Swing trades" value={name} onChange={(e) => setName(e.target.value)} />
                       </div>
+                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                        Name it after a strategy, account, or prop firm.
+                      </span>
                     </div>
 
                     <div className="jx-form-row">
                       <div className="jx-field" style={{ flex: 2 }}>
                         <span className="jx-sidebar__section" style={{ padding: 0 }}>Starting balance</span>
                         <div className="jx-input">
-                          <span className="jx-input__icon"><Search size={15} /></span>
-                          <input type="number" step="any" placeholder="$10k" value={balance} onChange={(e) => setBalance(e.target.value)} />
+                          <span className="jx-input__icon" style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-text-secondary)" }}>
+                            {getCurrencySymbol((currency || "USD").toLowerCase())}
+                          </span>
+                          <input type="number" step="any" placeholder="10,000" value={balance} onChange={(e) => setBalance(e.target.value)} />
                         </div>
                       </div>
                       <div className="jx-field" style={{ flex: 1, minWidth: 110 }}>
@@ -380,6 +424,7 @@ export default function JournalsModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
