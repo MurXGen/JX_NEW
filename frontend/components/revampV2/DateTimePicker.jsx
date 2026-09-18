@@ -21,6 +21,7 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const panelRef = useRef(null);
+  const timeRef = useRef(null);
   const [rect, setRect] = useState(null);
   const [mounted, setMounted] = useState(false);
 
@@ -67,19 +68,30 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
     }
   }, [value, open]);
 
-  const apply = () => {
-    const d = day || new Date();
-    const [h, m] = time.split(":").map(Number);
-    const out = new Date(d.getFullYear(), d.getMonth(), d.getDate(), h || 0, m || 0);
+  // write the chosen date+time straight to the form (no Apply step)
+  const commit = (d, tm) => {
+    const day0 = d || new Date();
+    const [h, m] = (tm || time).split(":").map(Number);
+    const out = new Date(day0.getFullYear(), day0.getMonth(), day0.getDate(), h || 0, m || 0);
     onChange(toVal(out));
-    setOpen(false);
+  };
+
+  // pick a day → set it, save it, then pop the time picker so the user can
+  // confirm the time; picking a time closes the panel automatically.
+  const pickDay = (d) => {
+    setDay(d);
+    commit(d, time);
+    setTimeout(() => {
+      try { timeRef.current?.showPicker?.(); } catch {}
+      timeRef.current?.focus?.();
+    }, 60);
   };
 
   const quick = (offsetDays) => {
     const d = new Date();
     d.setDate(d.getDate() - offsetDays);
-    setDay(d);
     setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+    pickDay(d);
   };
 
   const firstDow = (new Date(month.getFullYear(), month.getMonth(), 1).getDay() + 6) % 7;
@@ -186,7 +198,7 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
                     key={i}
                     type="button"
                     className={`jx-dtp__day ${same(d, day) ? "jx-dtp__day--selected" : ""} ${same(d, today) && !same(d, day) ? "jx-dtp__day--today" : ""}`}
-                    onClick={() => setDay(d)}
+                    onClick={() => pickDay(d)}
                   >
                     {i + 1}
                   </button>
@@ -196,10 +208,20 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
 
             {/* time */}
             <div className="jx-field" style={{ marginTop: "var(--space-2)" }}>
-              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Time</span>
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Time · picks &amp; sets automatically</span>
               <div className="jx-input" style={{ height: 38 }}>
                 <span className="jx-input__icon"><Clock size={14} /></span>
-                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+                <input
+                  ref={timeRef}
+                  type="time"
+                  value={time}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setTime(v);
+                    commit(day, v);   // save immediately
+                    setOpen(false);   // …and close, no Apply needed
+                  }}
+                />
               </div>
             </div>
 
@@ -208,14 +230,9 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
               <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
                 {day ? day.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "—"} · {time}
               </span>
-              <span style={{ display: "flex", gap: 8 }}>
-                <button type="button" className="jx-btn jx-btn--outline jx-btn--sm" onClick={() => setOpen(false)}>
-                  Cancel
-                </button>
-                <Button variant="primary" size="sm" type="button" onClick={apply}>
-                  Apply
-                </Button>
-              </span>
+              <button type="button" className="jx-btn jx-btn--outline jx-btn--sm" onClick={() => setOpen(false)}>
+                Done
+              </button>
             </div>
           </motion.div>
         )}

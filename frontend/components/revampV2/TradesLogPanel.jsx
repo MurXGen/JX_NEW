@@ -983,11 +983,11 @@ export default function TradesLogPanel({
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "var(--text-h3)", fontWeight: 600, letterSpacing: "-0.2px" }}>
-                        {weekday}
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "var(--text-h3)", fontWeight: 700, letterSpacing: "-0.3px" }}>
+                        {dateStr}
                         {rel && <span className="jx-badge jx-badge--brand" style={{ fontSize: 10 }}>{rel}</span>}
                       </span>
-                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", letterSpacing: "0.2px" }}>{dateStr}</span>
+                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", letterSpacing: "0.4px", textTransform: "uppercase" }}>{weekday}</span>
                     </div>
                     <span className="jx-badge jx-badge--neutral" style={{ alignSelf: "center" }}>{list.length} {list.length === 1 ? "trade" : "trades"}</span>
                     <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "baseline", gap: 6 }}>

@@ -38,6 +38,7 @@ import ChartAnnotator from "./ChartAnnotator";
 import QuickFillChips from "./QuickFillChips";
 import TradersTodayBadge from "./TradersTodayBadge";
 import VoiceNoteRecorder from "./VoiceNoteRecorder";
+import TradeSaveLoader from "./TradeSaveLoader";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -194,7 +195,7 @@ function TimingInput({ form, set, mode }) {
                 ))}
               </div>
             </div>
-            {/* quick-fill duration presets */}
+            {/* quick-fill duration presets + custom */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: "var(--space-2)" }}>
               {[
                 ["5", "min", "5m"],
@@ -211,13 +212,22 @@ function TimingInput({ form, set, mode }) {
                     key={lbl}
                     type="button"
                     className={`jx-chip ${on ? "jx-chip--selected" : ""}`}
-                    style={{ padding: "6px 12px", font: "var(--text-caption)", fontWeight: 600 }}
+                    style={{ padding: "6px 12px", font: "var(--text-caption)" }}
                     onClick={() => { set("durationVal", v); set("durationUnit", u); }}
                   >
                     {lbl}
                   </button>
                 );
               })}
+              {/* custom: clear the preset so the user types their own value above */}
+              <button
+                type="button"
+                className="jx-chip"
+                style={{ padding: "6px 12px", font: "var(--text-caption)" }}
+                onClick={() => set("durationVal", "")}
+              >
+                + Custom
+              </button>
             </div>
           </Field>
         </div>
@@ -1613,7 +1623,12 @@ export default function LogTradeModal({
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 34 }}
             className="jx-ltmodal jx-ltmodal--sheet"
+            style={{ position: "relative" }}
           >
+            {/* playful save overlay — interactive instead of a bare spinner */}
+            <AnimatePresence>
+              {saving && <TradeSaveLoader label={isEdit ? "Updating your trade" : "Logging your trade"} />}
+            </AnimatePresence>
             {/* grab handle */}
             <div className="jx-lt-grab" aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px" }}>
               <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
@@ -1889,29 +1904,10 @@ export default function LogTradeModal({
                           )}
                         </div>
 
-                        {/* ===== Duration (optional) — date & time default to now ===== */}
+                        {/* ===== Timing — date & time or just duration (defaults to today) ===== */}
                         <div className="jx-ltgroup">
-                          <Sect icon={Clock} title="Duration" hint="Optional · date & time default to now" />
-                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                            {[["15m", "min", "15"], ["30m", "min", "30"], ["1h", "hour", "1"], ["4h", "hour", "4"], ["1d", "hour", "24"]].map(([lbl, unit, val]) => {
-                              const active = form.useDuration && form.durationUnit === unit && String(form.durationVal) === val;
-                              return (
-                                <button
-                                  key={lbl}
-                                  type="button"
-                                  onClick={() => { set("useDuration", true); set("durationUnit", unit); set("durationVal", val); }}
-                                  style={{ font: "600 13px Poppins", padding: "8px 15px", borderRadius: 999, cursor: "pointer", border: "none", background: active ? "var(--color-primary)" : "var(--color-bg-muted)", color: active ? "var(--color-primary-foreground)" : "var(--color-text-secondary)", transition: ".15s" }}
-                                >
-                                  {lbl}
-                                </button>
-                              );
-                            })}
-                            {form.useDuration && (
-                              <button type="button" onClick={() => { set("useDuration", false); set("durationVal", ""); }} style={{ font: "600 13px Poppins", padding: "8px 14px", borderRadius: 999, cursor: "pointer", border: "none", background: "var(--color-bg-muted)", color: "var(--color-text-muted)" }}>
-                                Clear
-                              </button>
-                            )}
-                          </div>
+                          <Sect icon={Clock} title="Timing" hint="Defaults to today" />
+                          <TimingInput form={form} set={set} mode="quick" />
                         </div>
 
                         {/* Accordion: everything else, collapsed */}
@@ -1938,11 +1934,7 @@ export default function LogTradeModal({
                               transition={{ duration: 0.22, ease: "easeOut" }}
                               style={{ overflow: "hidden", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
                             >
-                              <div className="jx-ltgroup">
-                                <Sect icon={Clock} title="When" hint="Date / time, optional" />
-                                <TimingInput form={form} set={set} mode="quick" />
-                              </div>
-
+                              {/* Timing now lives in the main quick form (above), not here */}
                               <div className="jx-ltgroup">
                                 <Sect icon={Pencil} title="Note" hint="Optional" />
                                 <Field label="Quick note (optional)">

@@ -55,7 +55,9 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset,
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState(null); // {left, top}
   const [animate, setAnimate] = useState(false); // smooth snap after release
+  const [hint, setHint] = useState(false); // "press & hold" tooltip on touch tap
   const drag = useRef(null);
+  const longPressRef = useRef(null);
 
   // clamp a position inside the viewport (keep clear of edges + bottom nav)
   const clamp = (left, top) => {
@@ -96,29 +98,47 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset,
   const onPointerDown = (e) => {
     e.currentTarget.setPointerCapture?.(e.pointerId);
     setAnimate(false);
-    drag.current = { sx: e.clientX, sy: e.clientY, ox: pos.left, oy: pos.top, moved: false };
+    setHint(false);
+    drag.current = { sx: e.clientX, sy: e.clientY, ox: pos.left, oy: pos.top, moved: false, touch: e.pointerType !== "mouse", opened: false };
+    // touch: a press-and-hold opens the sheet (a quick tap shows the hint)
+    if (drag.current.touch) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = setTimeout(() => {
+        if (drag.current && !drag.current.moved) { drag.current.opened = true; setOpen(true); }
+      }, 380);
+    }
   };
   const onPointerMove = (e) => {
     if (!drag.current) return;
     const dx = e.clientX - drag.current.sx;
     const dy = e.clientY - drag.current.sy;
-    // higher threshold so a normal tap (with tiny finger jitter) still opens
-    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) drag.current.moved = true;
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+      drag.current.moved = true;
+      clearTimeout(longPressRef.current); // it's a drag, not a hold
+    }
     setPos(clamp(drag.current.ox + dx, drag.current.oy + dy));
   };
   const onPointerUp = () => {
     if (!drag.current) return;
-    const moved = drag.current.moved;
+    clearTimeout(longPressRef.current);
+    const d = drag.current;
     drag.current = null;
-    if (moved) {
+    if (d.moved) {
       setAnimate(true);
       setPos((p) => {
         const snapped = snapEdge(p.left, p.top);
         try { localStorage.setItem(POS_KEY, JSON.stringify(snapped)); } catch {}
         return snapped;
       });
+    } else if (d.opened) {
+      /* long-press already opened it */
+    } else if (!d.touch) {
+      setOpen(true); // desktop: a plain click opens
     } else {
-      setOpen(true); // treat as a tap → open the sheet
+      // touch quick tap → hint the user to press & hold
+      setHint(true);
+      clearTimeout(longPressRef.current);
+      longPressRef.current = setTimeout(() => setHint(false), 2400);
     }
   };
 
@@ -159,6 +179,37 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset,
       >
         <SlidersHorizontal size={20} />
       </button>
+
+      {/* "press & hold" hint shown on a quick touch tap */}
+      <AnimatePresence>
+        {hint && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              position: "fixed",
+              top: pos.top + FAB / 2 - 14,
+              left: pos.left < window.innerWidth / 2 ? pos.left + FAB + 8 : undefined,
+              right: pos.left < window.innerWidth / 2 ? undefined : window.innerWidth - pos.left + 8,
+              zIndex: 901,
+              padding: "7px 11px",
+              borderRadius: "var(--radius-md)",
+              background: "var(--color-bg-elevated)",
+              border: "1px solid var(--color-border-strong)",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.5)",
+              color: "var(--color-text-primary)",
+              font: "var(--text-caption)",
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+            }}
+          >
+            Press &amp; hold to customize
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* bottom slide-up sheet */}
       <AnimatePresence>
