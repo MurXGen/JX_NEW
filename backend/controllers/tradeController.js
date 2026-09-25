@@ -5,6 +5,7 @@ const cloudinary = require("cloudinary").v2;
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { deleteImageFromB2 } = require("../utils/backblaze");
 const getUserData = require("../utils/getUserData");
+const { FREE_TRADE_CAP, isPro, tradesThisMonth, freeTradesRemaining } = require("../utils/planLimits");
 
 const OpenAI = require("openai");
 
@@ -61,6 +62,23 @@ exports.addTrade = async (req, res) => {
       return res
         .status(401)
         .json({ success: false, message: "Not authenticated" });
+    }
+
+    // 🔒 Free plan: hard-cap trades per month (safety net; the UI blocks first)
+    try {
+      const u = await User.findById(userId).select("subscriptionPlan subscriptionStatus subscriptionExpiresAt");
+      if (u && !isPro(u)) {
+        const used = await tradesThisMonth(userId, accountId);
+        if (used >= FREE_TRADE_CAP) {
+          return res.status(403).json({
+            success: false,
+            code: "LIMIT",
+            message: `Free plan is limited to ${FREE_TRADE_CAP} trades per month. Upgrade to log more.`,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("trade-limit check failed (allowing):", e.message);
     }
 
     // ✅ Parse structured fields safely
@@ -921,19 +939,78 @@ exports.addTradesBulk = async (req, res) => {
       return res.status(400).json({ success: false, message: errors[0], errors });
     }
 
-    const inserted = await Trade.insertMany(docs);
-    // base 10 XP per imported quick-log trade
+    // stable dedup key per row → re-importing the same rows is skipped, not duplicated
+    docs.forEach((d) => {
+      const openMs = d.openTime ? new Date(d.openTime).getTime() : 0;
+      const closeMs = d.closeTime ? new Date(d.closeTime).getTime() : 0;
+      d.externalId = `csv:${d.symbol}:${d.direction}:${openMs}:${closeMs}:${Number(d.pnl) || 0}`;
+    });
+
+    // 🔒 Free plan: import only the most recent slots that fit this month's cap
+    let toImport = docs;
+    let truncated = false;
+    let cap = null;
     try {
-      await Account.findByIdAndUpdate(accountId, {
-        $inc: { xp: inserted.length * 10, xpTrades: inserted.length },
-      });
+      const user = await User.findById(userId).select("subscriptionPlan subscriptionStatus subscriptionExpiresAt");
+      const remaining = await freeTradesRemaining(user, accountId);
+      if (remaining !== Infinity) {
+        cap = FREE_TRADE_CAP;
+        if (remaining <= 0) {
+          return res.status(403).json({
+            success: false, code: "LIMIT",
+            message: `Free plan is limited to ${FREE_TRADE_CAP} trades per month. Upgrade to import more.`,
+          });
+        }
+        if (docs.length > remaining) {
+          toImport = docs.slice(-remaining); // keep the most recent rows
+          truncated = true;
+        }
+      }
+    } catch (e) {
+      console.warn("import-limit check failed (allowing):", e.message);
+    }
+
+    // dedup-aware insert (upsert by externalId; existing rows are skipped)
+    let imported = 0;
+    let skipped = 0;
+    const importedIds = [];
+    for (const d of toImport) {
+      try {
+        const r = await Trade.updateOne(
+          { userId, accountId, externalId: d.externalId },
+          { $setOnInsert: d },
+          { upsert: true },
+        );
+        if (r.upsertedCount) { imported++; importedIds.push(d.externalId); }
+        else skipped++;
+      } catch (e) {
+        if (e.code === 11000) skipped++;
+        else throw e;
+      }
+    }
+
+    // fetch the freshly inserted docs (with _id) so the client can sync them
+    const inserted = importedIds.length
+      ? await Trade.find({ userId, accountId, externalId: { $in: importedIds } })
+      : [];
+
+    try {
+      if (imported) await Account.findByIdAndUpdate(accountId, { $inc: { xp: imported * 10, xpTrades: imported } });
     } catch (e) {
       console.error("Bulk XP update failed:", e.message);
     }
+
     res.status(201).json({
       success: true,
-      message: `${inserted.length} trades imported`,
+      imported,
+      skipped,
+      truncated,
+      cap,
+      total: docs.length,
       trades: inserted,
+      message: imported
+        ? `${imported} trade${imported === 1 ? "" : "s"} imported${skipped ? ` · ${skipped} already logged` : ""}${truncated ? ` · only the latest ${toImport.length} kept (Free limit)` : ""}`
+        : "Nothing new to import — these trades are already logged",
     });
   } catch (err) {
     console.error("Bulk import error:", err);

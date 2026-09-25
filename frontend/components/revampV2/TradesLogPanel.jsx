@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Crown,
   BookOpen,
   Download,
   Gamepad2,
@@ -34,6 +35,8 @@ import Dropdown from "./Dropdown";
 import Accordion from "./Accordion";
 import Toast from "./Toast";
 import ConfirmDialog from "./ConfirmDialog";
+import UpgradeSheet from "./UpgradeSheet";
+import { getPlanRules } from "@/utils/planRestrictions";
 import TradeDetailsModal from "./TradeDetailsModal";
 import ImportTradesModal from "./ImportTradesModal";
 import ImageViewerModal from "./ImageViewerModal";
@@ -242,72 +245,65 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
     pnl > 0 ? "var(--color-success)" : pnl < 0 ? "var(--color-danger)" : "var(--color-border-strong)";
   return (
     <div
-      className="jx-card jx-trade-card"
+      className="jx-trow"
       onClick={() => (selectMode ? onToggleSelect() : onOpen?.(t))}
       style={{
-        padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)",
+        display: "flex", alignItems: "center", gap: "var(--space-3)",
+        padding: "11px var(--space-4)",
         cursor: "pointer",
         boxShadow: `inset 3px 0 0 0 ${accent}`,
-        outline: selected ? "2px solid var(--color-primary)" : "none",
+        background: selected ? "var(--color-primary-subtle)" : undefined,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-        {selectMode && (
-          <span style={{ color: selected ? "var(--yellow-500)" : "var(--color-text-muted)", display: "flex" }}>
-            {selected ? <CheckSquare size={17} /> : <Square size={17} />}
-          </span>
-        )}
-        <span style={{ font: "var(--text-title)" }}>{t.symbol || t.ticker || "—"}</span>
-        <span className="jx-badge jx-badge--neutral">
-          {isLong ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-          {isLong ? "Long" : "Short"}
+      {selectMode && (
+        <span style={{ color: selected ? "var(--yellow-500)" : "var(--color-text-muted)", display: "flex", flexShrink: 0 }}>
+          {selected ? <CheckSquare size={17} /> : <Square size={17} />}
         </span>
-        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, color: "var(--color-text-muted)" }}>
-          <span className="jx-badge jx-badge--neutral">
-            {t.source === "auto" ? <Download size={11} /> : <User size={11} />}
-            {t.source === "auto" ? "Auto" : "Manual"}
+      )}
+
+      {/* left: symbol + side, then a tight meta line */}
+      <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <span style={{ font: "var(--text-body-lg)", fontWeight: 700, letterSpacing: "-0.2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {t.symbol || t.ticker || "—"}
           </span>
-          {!selectMode && menu}
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, flexShrink: 0, font: "var(--text-caption)", fontWeight: 600, color: isLong ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+            {isLong ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            {isLong ? "Long" : "Short"}
+          </span>
+        </div>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "var(--text-caption)", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
+          <Clock size={11} />
+          {t.closeTime ? new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Open"}
+          <span style={{ opacity: 0.45 }}>·</span>
+          {t.source === "auto" ? "Auto" : "Manual"}
+          {imgs > 0 && (
+            <>
+              <span style={{ opacity: 0.45 }}>·</span>
+              <span
+                onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 3, cursor: "zoom-in" }}
+                title="View screenshots"
+              >
+                <ImageIcon size={11} /> {imgs}
+              </span>
+            </>
+          )}
         </span>
       </div>
-      {/* screenshots — small, horizontally scrollable; tap opens the viewer */}
-      {imgs > 0 && (
-        <div
-          className="jx-trade-thumbs"
-          style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}
-          onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
-        >
-          {t.images.filter((im) => im?.url).map((im, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={im.url}
-              alt=""
-              loading="lazy"
-              style={{ width: 46, height: 46, flexShrink: 0, objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", cursor: "zoom-in" }}
-            />
-          ))}
-        </div>
-      )}
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-        {/* left: closed-time (with context) + outcome */}
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "var(--text-caption)", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
-          <Clock size={12} />
-          {t.closeTime
-            ? `Closed ${new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-            : "Open"}
-        </span>
-        <Badge variant={pnl >= 0 ? "success" : "danger"}>{pnl >= 0 ? "Win" : "Loss"}</Badge>
-        {/* right: P&L */}
-        <span style={{ marginLeft: "auto", font: "var(--text-title)", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+
+      {/* right: P&L over Win/Loss */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1, flexShrink: 0 }}>
+        <span style={{ font: "var(--text-title)", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
           {money(pnl, sym)}
         </span>
-        {!selectMode && (
-          <span title="Open details" style={{ display: "flex", alignItems: "center", color: "var(--yellow-500)" }}>
-            <ChevronRight size={18} strokeWidth={2.5} />
-          </span>
-        )}
+        <span style={{ font: "var(--text-caption)", fontWeight: 600, color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
+          {pnl >= 0 ? "Win" : "Loss"}
+        </span>
       </div>
+
+      {!selectMode && <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }} onClick={(e) => e.stopPropagation()}>{menu}</span>}
+      {!selectMode && <ChevronRight size={18} strokeWidth={2.5} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />}
     </div>
   );
 }
@@ -577,6 +573,18 @@ export default function TradesLogPanel({
   const [busy, setBusy] = useState(false);
   const [viewerTrade, setViewerTrade] = useState(null);
   const [editTrade, setEditTrade] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  // Free plan history window: trades older than this are locked (blurred)
+  const [historyDays, setHistoryDays] = useState(Infinity);
+  useEffect(() => {
+    (async () => {
+      try {
+        const userData = await getFromIndexedDB("user-data");
+        setHistoryDays(getPlanRules(userData).limits.historyDays);
+      } catch { setHistoryDays(Infinity); }
+    })();
+  }, []);
+  const historyCutoffMs = historyDays === Infinity ? -Infinity : Date.now() - historyDays * 864e5;
   const flash = (type, msg, ms = 3000) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), ms);
@@ -736,6 +744,9 @@ export default function TradesLogPanel({
 
   const handleImagesChanged = (tradeId, images) => {
     onTradeUpdated?.({ _id: tradeId, images }, { partial: true });
+    // keep the open details modal in sync so newly added/removed screenshots
+    // show up immediately (and still show after the viewer is closed)
+    setOpenTrade((prev) => (prev && prev._id === tradeId ? { ...prev, images } : prev));
   };
 
   const toggleSelect = (id) => {
@@ -968,8 +979,15 @@ export default function TradesLogPanel({
               No trades match these filters.
             </div>
           ) : view === "cards" ? (
+            (() => {
+              const lockedIdx = historyCutoffMs === -Infinity ? -1 : groups.findIndex(
+                ([, l]) => new Date(l[0]?.closeTime || l[0]?.openTime || Date.now()).getTime() < historyCutoffMs,
+              );
+              return (
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-              {groups.map(([label, list]) => {
+              {groups.map(([label, list], gi) => {
+                if (lockedIdx >= 0 && gi > lockedIdx) return null; // rest fully hidden
+                const locked = lockedIdx >= 0 && gi === lockedIdx;
                 const net = list.reduce((s, t) => s + (Number(t.pnl) || 0), 0);
                 const netColor = net > 0 ? "var(--color-success-strong)" : net < 0 ? "var(--color-danger-strong)" : "var(--color-text-secondary)";
                 const d0 = new Date(list[0]?.closeTime || Date.now());
@@ -977,9 +995,25 @@ export default function TradesLogPanel({
                 const dateStr = d0.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
                 const rel = label.startsWith("Today") ? "Today" : label.startsWith("Yesterday") ? "Yesterday" : null;
                 return (
+                <div key={label} style={{ position: "relative" }}>
+                {locked && (
+                  <div
+                    onClick={() => setShowUpgrade(true)}
+                    style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-3)", textAlign: "center", padding: "var(--space-5)", cursor: "pointer", background: "color-mix(in srgb, var(--color-bg-canvas) 45%, transparent)", borderRadius: "var(--radius-lg)" }}
+                  >
+                    <span style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Crown size={22} />
+                    </span>
+                    <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Older history is locked</span>
+                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)", maxWidth: 300 }}>
+                      Free shows the last {historyDays} days. Upgrade to Pro for your full trade history.
+                    </span>
+                    <span className="jx-btn jx-btn--primary jx-btn--sm"><Crown size={14} /> Upgrade to view</span>
+                  </div>
+                )}
                 <div
-                  key={label}
-                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", ...(locked ? { filter: "blur(7px)", pointerEvents: "none", userSelect: "none" } : {}) }}
+                  aria-hidden={locked || undefined}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -995,7 +1029,7 @@ export default function TradesLogPanel({
                       <span style={{ font: "var(--text-h3)", fontWeight: 700, color: netColor, fontVariantNumeric: "tabular-nums" }}>{money(net, currencySymbol)}</span>
                     </span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "var(--space-4)" }}>
+                  <div className="jx-trow-list">
                     {list.map((t, i) => (
                       <TradeCard
                         key={t._id || i}
@@ -1018,9 +1052,12 @@ export default function TradesLogPanel({
                     ))}
                   </div>
                 </div>
+                </div>
                 );
               })}
             </div>
+              );
+            })()
           ) : (
             <div className="jx-card jx-table-wrap" style={{ padding: 0, overflowX: "auto" }}>
               <table className="jx-table jx-table--log">
@@ -1028,12 +1065,12 @@ export default function TradesLogPanel({
                   <tr>
                     {selectMode && <th style={{ width: 36 }} />}
                     <th>Pair</th><th>Side</th>
-                    <th style={{ textAlign: "right" }}>Entry</th>
-                    <th style={{ textAlign: "right" }}>Exit</th>
-                    <th style={{ textAlign: "right" }}>Size</th>
+                    <th className="jx-col-sm-hide" style={{ textAlign: "right" }}>Entry</th>
+                    <th className="jx-col-sm-hide" style={{ textAlign: "right" }}>Exit</th>
+                    <th className="jx-col-sm-hide" style={{ textAlign: "right" }}>Size</th>
                     <th style={{ textAlign: "right" }}>P&L</th>
-                    <th style={{ textAlign: "center" }}>R : R</th>
-                    <th>Date</th><th style={{ textAlign: "center" }}>Img</th>
+                    <th className="jx-col-sm-hide" style={{ textAlign: "center" }}>R : R</th>
+                    <th>Date</th><th className="jx-col-sm-hide" style={{ textAlign: "center" }}>Img</th>
                     <th style={{ textAlign: "center" }}>···</th>
                   </tr>
                 </thead>
@@ -1058,13 +1095,13 @@ export default function TradesLogPanel({
                         )}
                         <td style={{ fontWeight: 700 }}>{t.symbol || t.ticker || "—"}</td>
                         <td><Badge variant={isLong ? "success" : "danger"} icon={isLong ? TrendingUp : TrendingDown}>{isLong ? "Long" : "Short"}</Badge></td>
-                        <td style={{ textAlign: "right" }}>{entry ? `${currencySymbol}${fmt(entry)}` : "—"}</td>
-                        <td style={{ textAlign: "right" }}>{exit ? `${currencySymbol}${fmt(exit)}` : "—"}</td>
-                        <td style={{ textAlign: "right" }}>{qty(t.totalQuantity)}</td>
+                        <td className="jx-col-sm-hide" style={{ textAlign: "right" }}>{entry ? `${currencySymbol}${fmt(entry)}` : "—"}</td>
+                        <td className="jx-col-sm-hide" style={{ textAlign: "right" }}>{exit ? `${currencySymbol}${fmt(exit)}` : "—"}</td>
+                        <td className="jx-col-sm-hide" style={{ textAlign: "right" }}>{qty(t.totalQuantity)}</td>
                         <td style={{ textAlign: "right", fontWeight: 700, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
                           {money(pnl, currencySymbol)}
                         </td>
-                        <td style={{ textAlign: "center" }}>
+                        <td className="jx-col-sm-hide" style={{ textAlign: "center" }}>
                           {t.rr ? (
                             <Badge variant="neutral">{String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`}</Badge>
                           ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
@@ -1073,7 +1110,7 @@ export default function TradesLogPanel({
                           {new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })} ·{" "}
                           {new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </td>
-                        <td style={{ textAlign: "center" }} onClick={(e) => { e.stopPropagation(); setViewerTrade(t); }}>
+                        <td className="jx-col-sm-hide" style={{ textAlign: "center" }} onClick={(e) => { e.stopPropagation(); setViewerTrade(t); }}>
                           {t.images?.length ? (
                             <span className="jx-badge jx-badge--neutral" style={{ cursor: "zoom-in" }}>
                               <ImageIcon size={11} /> {t.images.length}
@@ -1153,6 +1190,13 @@ export default function TradesLogPanel({
         open={showImport}
         onClose={() => setShowImport(false)}
         onImported={(newTrades) => onTradesAdded?.(newTrades)}
+      />
+
+      <UpgradeSheet
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="Unlock your full history"
+        reason={`Free shows the last ${historyDays} days of trades. Upgrade to Pro to see everything.`}
       />
 
       {/* Confirm export / delete */}

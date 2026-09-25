@@ -229,6 +229,26 @@
     box-shadow 0.28s ease, border-color 0.28s ease;
   will-change: transform;
 }
+
+/* ---- compact trades list (grouped per day, no bulky per-trade box) ---- */
+.jx-trow-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}
+.jx-trow {
+  position: relative;
+  transition: background 0.14s ease;
+}
+.jx-trow + .jx-trow {
+  border-top: 1px solid var(--color-border);
+}
+.jx-trow:hover {
+  background: var(--color-bg-muted);
+}
 .jx-trade-card::before {
   content: "";
   position: absolute;
@@ -1002,6 +1022,17 @@ body::before {
   /* keep columns comfortable; the wrapper scrolls horizontally on small screens
      so R:R and prices never squash */
   min-width: 820px;
+}
+/* on phones, drop the low-value columns (entry/exit/size/RR/img) and let the
+   table fit the viewport so Pair · Side · P&L · Date · actions stay readable
+   without a sideways scroll that hides P&L */
+@media (max-width: 640px) {
+  .jx-table--log {
+    min-width: 0;
+  }
+  .jx-table--log .jx-col-sm-hide {
+    display: none;
+  }
 }
 .jx-table--log th {
   text-transform: uppercase;
@@ -2559,6 +2590,74 @@ body::before {
 .jx-ltmore:hover {
   background: var(--color-bg-muted);
   color: var(--color-text-primary);
+}
+
+/* ---- Customize (drag to reorder log sections) ---- */
+.jx-ltcustomize {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  font: var(--text-caption);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.jx-ltcustomize:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+.jx-ltcustomize--on {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--yellow-600);
+}
+.jx-ltcustomize:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* a section while the modal is in reorder mode */
+.jx-ltsec {
+  transition: outline-color 0.15s ease, background 0.15s ease;
+}
+.jx-ltsec--reorder {
+  cursor: grab;
+  border-radius: var(--radius-lg);
+  outline: 1.5px dashed var(--color-border-strong);
+  outline-offset: 3px;
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none; /* let framer own the vertical drag on touch */
+}
+.jx-ltsec--reorder:active {
+  cursor: grabbing;
+}
+/* freeze inner controls while arranging, so a drag never focuses an input */
+.jx-ltsec--reorder > *:not(.jx-ltsec__grip) {
+  pointer-events: none;
+}
+.jx-ltsec__grip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-sm);
 }
 .jx-sect__left {
   display: flex;

@@ -15,6 +15,7 @@ import {
   CreditCard,
   Crown,
   Lock,
+  Mail,
   Sparkles,
   X,
 } from "lucide-react";
@@ -121,6 +122,18 @@ export default function UpgradePanel({ currentPlan }) {
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
         <Lock size={14} style={{ color: "var(--color-success)" }} /> Secure checkout · cancel anytime · 7-day money-back guarantee
+      </div>
+
+      {/* direct support contact for pricing questions */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginTop: "var(--space-2)" }}>
+        <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Questions about a plan, team pricing, or a custom deal?</span>
+        <a
+          href={`mailto:support@journalx.app?subject=${encodeURIComponent("JournalX pricing question")}&body=${encodeURIComponent("Hi JournalX team,\n\nI have a question about your plans:\n\n")}`}
+          className="jx-btn jx-btn--outline jx-btn--sm"
+          style={{ textDecoration: "none" }}
+        >
+          <Mail size={14} /> Email us about pricing
+        </a>
       </div>
 
       <AnimatePresence>

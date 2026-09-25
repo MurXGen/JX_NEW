@@ -85,6 +85,8 @@ async function getUserData(user) {
     userId: user._id,
     name: user.name,
     email: user.email,
+    // custom log-trade section order (JSON string, drag-to-reorder feature)
+    logSectionOrder: user.logSectionOrder || "",
 
     subscription: {
       plan: user.subscriptionPlan,

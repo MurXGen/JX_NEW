@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, Reorder } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
 import {
@@ -17,11 +17,13 @@ import {
   ExternalLink,
   Flame,
   Eye,
+  GripVertical,
   Image as ImageIcon,
   LineChart,
   Mic,
   Pencil,
   Plus,
+  SlidersHorizontal,
   Star,
   Target,
   TrendingDown,
@@ -39,6 +41,7 @@ import QuickFillChips from "./QuickFillChips";
 import TradersTodayBadge from "./TradersTodayBadge";
 import VoiceNoteRecorder from "./VoiceNoteRecorder";
 import TradeSaveLoader from "./TradeSaveLoader";
+import UpgradeSheet from "./UpgradeSheet";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -49,6 +52,38 @@ import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { scheduleAutoBackup } from "@/utils/driveBackup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+/* ---------------- customizable section order ----------------
+   Users can reorder the log-trade sections (free, no gate). The order is
+   kept per-mode and persisted as ONE JSON string in the profile
+   (`logSectionOrder`) plus mirrored into IndexedDB, so no repeat API calls
+   are needed to render the modal. */
+const DEFAULT_SECTION_ORDER = {
+  quick: ["asset", "result", "timing", "note", "voice", "screenshots"],
+  detailed: [
+    "asset",
+    "chart",
+    "entryexit",
+    "risk",
+    "timing",
+    "edge",
+    "psychology",
+    "screenshots",
+    "notes",
+  ],
+};
+
+/* keep a saved order valid against the current defaults: drop unknown ids,
+   keep the user's sequence, then append any new sections at the end. */
+function mergeSectionOrder(saved, defaults) {
+  if (!Array.isArray(saved) || !saved.length) return [...defaults];
+  const allowed = new Set(defaults);
+  const out = saved.filter((id) => allowed.has(id));
+  defaults.forEach((id) => {
+    if (!out.includes(id)) out.push(id);
+  });
+  return out;
+}
 
 /* ---------------- primitives ---------------- */
 
@@ -698,6 +733,10 @@ export default function LogTradeModal({
   }, []);
   const [mode, setMode] = useState("quick");
   const [showMore, setShowMore] = useState(false); // quick-log "add more details" accordion
+  // ---- customizable section order (free, drag to reorder) ----
+  const [customize, setCustomize] = useState(false); // reorder mode on/off
+  const [sectionOrder, setSectionOrder] = useState(DEFAULT_SECTION_ORDER);
+  const orderSaveTimer = useRef(null);
   const [useChart, setUseChart] = useState(false); // "Log on chart" toggle
   const [chartMeta, setChartMeta] = useState(null); // {symbol,timeframe,entryPrice,exitPrice,entryTime,exitTime}
   const [voice, setVoice] = useState(null); // { blob, transcript, durationSec }
@@ -721,11 +760,110 @@ export default function LogTradeModal({
   const [activeAccountId, setActiveAccountId] = useState(currentAccountId);
   const [showAcctSwitch, setShowAcctSwitch] = useState(false);
   const [previewImg, setPreviewImg] = useState(null); // screenshot lightbox url
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState("");
   // keep the in-modal selection in sync with the dashboard's active journal
   // whenever the modal (re)opens or the dashboard switches underneath it.
   useEffect(() => {
     if (open) setActiveAccountId(currentAccountId);
   }, [open, currentAccountId]);
+
+  /* ---- load the saved section order when the modal opens (from the local
+     IndexedDB cache, so there's no extra API call). Falls back to defaults. */
+  useEffect(() => {
+    if (!open) return;
+    setCustomize(false); // never open straight into reorder mode
+    let active = true;
+    (async () => {
+      try {
+        const u = await getFromIndexedDB("user-data");
+        const raw = u?.logSectionOrder;
+        if (!raw || !active) return;
+        const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (!parsed || typeof parsed !== "object") return;
+        setSectionOrder({
+          quick: mergeSectionOrder(parsed.quick, DEFAULT_SECTION_ORDER.quick),
+          detailed: mergeSectionOrder(parsed.detailed, DEFAULT_SECTION_ORDER.detailed),
+        });
+      } catch {
+        /* corrupt/absent → keep defaults */
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [open]);
+
+  /* persist a new order: write to IndexedDB immediately (so the next open is
+     instant) and best-effort sync to the profile string, debounced. */
+  const persistSectionOrder = (next) => {
+    const str = JSON.stringify(next);
+    (async () => {
+      try {
+        const u = (await getFromIndexedDB("user-data")) || {};
+        await saveToIndexedDB("user-data", { ...u, logSectionOrder: str });
+      } catch {
+        /* ignore cache write failures */
+      }
+    })();
+    clearTimeout(orderSaveTimer.current);
+    orderSaveTimer.current = setTimeout(() => {
+      axios
+        .put(
+          `${API_BASE}/api/auth/update-profile`,
+          { logSectionOrder: str },
+          { withCredentials: true },
+        )
+        .catch(() => {
+          /* best-effort — the local cache is the source of truth for render */
+        });
+    }, 700);
+  };
+
+  const handleReorder = (nextIds) => {
+    setSectionOrder((prev) => {
+      const next = { ...prev, [mode]: nextIds };
+      persistSectionOrder(next);
+      return next;
+    });
+  };
+
+  /* ---- auto-scroll the modal body while dragging a section near an edge,
+     so you can drop a section above/below the current fold ---- */
+  const bodyScrollRef = useRef(null);
+  const dragPointerY = useRef(0);
+  const autoScrollRAF = useRef(null);
+  const runAutoScroll = () => {
+    const el = bodyScrollRef.current;
+    if (!el) {
+      autoScrollRAF.current = null;
+      return;
+    }
+    const rect = el.getBoundingClientRect();
+    const EDGE = 74; // px zone near each edge that triggers scrolling
+    const MAX = 15; // px per frame at full intensity
+    const y = dragPointerY.current;
+    let dy = 0;
+    if (y < rect.top + EDGE) {
+      dy = -Math.ceil(MAX * Math.min(1, (rect.top + EDGE - y) / EDGE));
+    } else if (y > rect.bottom - EDGE) {
+      dy = Math.ceil(MAX * Math.min(1, (y - (rect.bottom - EDGE)) / EDGE));
+    }
+    if (dy) el.scrollTop += dy;
+    autoScrollRAF.current = requestAnimationFrame(runAutoScroll);
+  };
+  const startAutoScroll = () => {
+    if (autoScrollRAF.current == null) {
+      autoScrollRAF.current = requestAnimationFrame(runAutoScroll);
+    }
+  };
+  const stopAutoScroll = () => {
+    if (autoScrollRAF.current != null) {
+      cancelAnimationFrame(autoScrollRAF.current);
+      autoScrollRAF.current = null;
+    }
+  };
+  useEffect(() => () => stopAutoScroll(), []);
   const activeAccount = useMemo(
     () =>
       accounts.find((a) => a._id === activeAccountId) ||
@@ -1112,20 +1250,19 @@ export default function LogTradeModal({
       localStorage.setItem("jx-account-id", accountId);
     } catch {}
 
-    /* plan limit: trades per month */
-    try {
-      const userData = await getFromIndexedDB("user-data");
-      const status = mode === "quick" ? "running" : "closed";
-      const allowed = await canAddTrade(userData, status);
-      if (!allowed) {
-        const limit = getPlanRules(userData).limits.tradeLimitPerMonth;
-        flash(
-          "danger",
-          `You've hit your plan's limit of ${limit} trades this month. Upgrade for unlimited logging.`,
-        );
-        return;
-      }
-    } catch {}
+    /* plan limit: trades per month — only on NEW trades, edits are always allowed */
+    if (!isEdit) {
+      try {
+        const userData = await getFromIndexedDB("user-data");
+        const allowed = await canAddTrade(userData);
+        if (!allowed) {
+          const limit = getPlanRules(userData).limits.tradeLimitPerMonth;
+          setUpgradeReason(`You've logged all ${limit} trades on your Free plan this month.`);
+          setShowUpgrade(true);
+          return;
+        }
+      } catch {}
+    }
 
     const isQuickPnl = mode === "quick"; // quick log is always net-P&L based
     const pnl = isQuickPnl ? Number(form.netPnl) : (calc.pnl ?? 0);
@@ -1351,10 +1488,13 @@ export default function LogTradeModal({
       else setTimeout(() => onClose?.(), 900);
     } catch (err) {
       console.error("Save trade failed:", err);
-      flash(
-        "danger",
-        err.response?.data?.message || "Could not save trade, try again",
-      );
+      // backend safety-cap hit → show the upgrade sheet, not a red toast
+      if (err.response?.status === 403 && err.response?.data?.code === "LIMIT") {
+        setUpgradeReason(err.response.data.message || "You've hit your Free plan trade limit.");
+        setShowUpgrade(true);
+      } else {
+        flash("danger", err.response?.data?.message || "Could not save trade, try again");
+      }
     } finally {
       setSaving(false);
     }
@@ -1710,10 +1850,43 @@ export default function LogTradeModal({
                 value={mode}
                 onChange={setMode}
               />
+
+              {/* customize (drag to reorder sections) — free, no gate */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "var(--space-2)",
+                }}
+              >
+                <span
+                  style={{
+                    font: "var(--text-caption)",
+                    color: customize
+                      ? "var(--yellow-600)"
+                      : "var(--color-text-muted)",
+                    minWidth: 0,
+                  }}
+                >
+                  {customize
+                    ? "Drag the handles to arrange your sections"
+                    : "Arrange the form to match how you log"}
+                </span>
+                <button
+                  type="button"
+                  className={`jx-ltcustomize ${customize ? "jx-ltcustomize--on" : ""}`}
+                  onClick={() => setCustomize((v) => !v)}
+                  disabled={saving}
+                >
+                  {customize ? <Check size={14} /> : <SlidersHorizontal size={14} />}
+                  {customize ? "Done" : "Customize"}
+                </button>
+              </div>
             </div>
 
             {/* ===== Body, same frame, content cross-fades ===== */}
-            <div className="jx-ltmodal__body">
+            <div className="jx-ltmodal__body" ref={bodyScrollRef}>
               <div className="jx-ltmodal__form">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -1728,6 +1901,9 @@ export default function LogTradeModal({
                       gap: "var(--space-6)",
                     }}
                   >
+                    {(() => {
+                    const N = {};
+                    N.asset = (
                     <div className="jx-ltgroup">
                       <Sect icon={CandlestickChart} title="Asset & direction" />
                       <div className="jx-asset-row">
@@ -1738,9 +1914,10 @@ export default function LogTradeModal({
                       </div>
                       {symbolRecentBlock}
                     </div>
+                    );
 
                     {/* ===== Log on chart (detailed only) ===== */}
-                    {!isQuick && (
+                    if (!isQuick) N.chart = (
                     <div className="jx-ltgroup">
                       <div
                         style={{
@@ -1839,11 +2016,11 @@ export default function LogTradeModal({
                         )}
                       </AnimatePresence>
                     </div>
-                    )}
+                    );
 
-                    {isQuick ? (
-                      <>
-                        {/* ===== QUICK, symbol + direction (above) + P&L only ===== */}
+                    if (isQuick) {
+                        /* ===== QUICK, symbol + direction (above) + P&L only ===== */
+                        N.result = (
                         <div className="jx-ltgroup">
                           <Sect icon={Zap} title="Result" hint="Just the outcome" />
                           <Field label={`Net P&L in ${sym}`}>
@@ -1903,68 +2080,49 @@ export default function LogTradeModal({
                             </div>
                           )}
                         </div>
+                        );
 
-                        {/* ===== Timing — date & time or just duration (defaults to today) ===== */}
+                        /* ===== Timing — date & time or just duration (defaults to today) ===== */
+                        N.timing = (
                         <div className="jx-ltgroup">
                           <Sect icon={Clock} title="Timing" hint="Defaults to today" />
                           <TimingInput form={form} set={set} mode="quick" />
                         </div>
+                        );
 
-                        {/* Accordion: everything else, collapsed */}
-                        <button
-                          type="button"
-                          className="jx-ltmore"
-                          onClick={() => setShowMore((v) => !v)}
-                          aria-expanded={showMore}
-                        >
-                          <span>{showMore ? "Hide extra details" : "Add note, voice, screenshots & date"}</span>
-                          <ChevronDown
-                            size={18}
-                            style={{ transition: "transform .2s ease", transform: showMore ? "rotate(180deg)" : "none" }}
-                          />
-                        </button>
+                        /* note, voice & screenshots — each its own movable section */
+                        N.note = (
+                        <div className="jx-ltgroup">
+                          <Sect icon={Pencil} title="Note" hint="Optional" />
+                          <Field label="Quick note (optional)">
+                            <div className="jx-input">
+                              <span className="jx-input__icon"><Pencil size={15} /></span>
+                              <input
+                                placeholder="e.g. Breakout retest, clean setup"
+                                value={form.notes}
+                                onChange={(e) => set("notes", e.target.value)}
+                              />
+                            </div>
+                          </Field>
+                        </div>
+                        );
 
-                        <AnimatePresence initial={false}>
-                          {showMore && (
-                            <motion.div
-                              key="quick-more"
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.22, ease: "easeOut" }}
-                              style={{ overflow: "hidden", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
-                            >
-                              {/* Timing now lives in the main quick form (above), not here */}
-                              <div className="jx-ltgroup">
-                                <Sect icon={Pencil} title="Note" hint="Optional" />
-                                <Field label="Quick note (optional)">
-                                  <div className="jx-input">
-                                    <span className="jx-input__icon"><Pencil size={15} /></span>
-                                    <input
-                                      placeholder="e.g. Breakout retest, clean setup"
-                                      value={form.notes}
-                                      onChange={(e) => set("notes", e.target.value)}
-                                    />
-                                  </div>
-                                </Field>
-                              </div>
+                        N.voice = (
+                        <div className="jx-ltgroup">
+                          <Sect icon={Mic} title="Voice note" hint="Talk it out · auto-transcribed" />
+                          <VoiceNoteRecorder dashed onChange={setVoice} existingUrl={initialTrade?.voiceNote?.url || ""} />
+                        </div>
+                        );
 
-                              <div className="jx-ltgroup">
-                                <Sect icon={Mic} title="Voice note" hint="Talk it out · auto-transcribed" />
-                                <VoiceNoteRecorder dashed onChange={setVoice} existingUrl={initialTrade?.voiceNote?.url || ""} />
-                              </div>
-
-                              <div className="jx-ltgroup">
-                                <Sect icon={ImageIcon} title="Screenshots" hint="Attach chart snaps · optional" />
-                                {screenshotsBlock}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </>
-                    ) : (
-                      <>
-                        {/* ===== DETAILED ===== */}
+                        N.screenshots = (
+                        <div className="jx-ltgroup">
+                          <Sect icon={ImageIcon} title="Screenshots" hint="Attach chart snaps · optional" />
+                          {screenshotsBlock}
+                        </div>
+                        );
+                    } else {
+                        /* ===== DETAILED ===== */
+                        N.entryexit = (
                         <div className="jx-ltgroup">
                           <Sect
                             icon={ArrowRightLeft}
@@ -2190,6 +2348,8 @@ export default function LogTradeModal({
                             </div>
                           )}
                         </div>
+                        );
+                        N.risk = (
                         <div className="jx-ltgroup">
                           <Sect
                             icon={AlertTriangle}
@@ -2251,6 +2411,8 @@ export default function LogTradeModal({
                             </div>
                           )}
                         </div>
+                        );
+                        N.timing = (
                         <div className="jx-ltgroup">
                           <Sect
                             icon={Clock}
@@ -2289,6 +2451,8 @@ export default function LogTradeModal({
                             </button>
                           </div>
                         </div>
+                        );
+                        N.edge = (
                         <div className="jx-ltgroup jx-ltgroup--divided">
                           <Sect
                             icon={LineChart}
@@ -2383,6 +2547,8 @@ export default function LogTradeModal({
                             </div>
                           </Field>
                         </div>
+                        );
+                        N.psychology = (
                         <div className="jx-ltgroup jx-ltgroup--divided">
                           <Sect
                             icon={Flame}
@@ -2442,10 +2608,14 @@ export default function LogTradeModal({
                             </div>
                           </Field>
                         </div>
+                        );
+                        N.screenshots = (
                         <div className="jx-ltgroup">
                           <Sect icon={ImageIcon} title="Screenshots" />
                           {screenshotsBlock}
                         </div>
+                        );
+                        N.notes = (
                         <div className="jx-ltgroup">
                           <Sect
                             icon={Pencil}
@@ -2467,8 +2637,65 @@ export default function LogTradeModal({
                             />
                           </div>
                         </div>
-                      </>
-                    )}
+                        );
+                    }
+
+                    // resolve the render order for this mode, tolerating a
+                    // stale saved order (missing/extra ids handled gracefully)
+                    const base =
+                      Array.isArray(sectionOrder[mode]) && sectionOrder[mode].length
+                        ? sectionOrder[mode]
+                        : DEFAULT_SECTION_ORDER[mode];
+                    const order = base.filter((id) => N[id]);
+                    Object.keys(N).forEach((id) => {
+                      if (!order.includes(id)) order.push(id);
+                    });
+
+                    return (
+                      <Reorder.Group
+                        axis="y"
+                        values={order}
+                        onReorder={handleReorder}
+                        as="div"
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "var(--space-6)",
+                          listStyleType: "none",
+                          margin: 0,
+                          padding: 0,
+                        }}
+                      >
+                        {order.map((id) => (
+                          <Reorder.Item
+                            key={id}
+                            value={id}
+                            as="div"
+                            dragListener={customize}
+                            onDragStart={() => startAutoScroll()}
+                            onDrag={(e, info) => {
+                              dragPointerY.current = info.point.y;
+                            }}
+                            onDragEnd={() => stopAutoScroll()}
+                            whileDrag={{
+                              scale: 1.015,
+                              boxShadow: "var(--shadow-lg)",
+                              zIndex: 6,
+                            }}
+                            className={`jx-ltsec${customize ? " jx-ltsec--reorder" : ""}`}
+                            style={{ position: "relative", listStyleType: "none" }}
+                          >
+                            {customize && (
+                              <span className="jx-ltsec__grip" aria-hidden="true">
+                                <GripVertical size={15} />
+                              </span>
+                            )}
+                            {N[id]}
+                          </Reorder.Item>
+                        ))}
+                      </Reorder.Group>
+                    );
+                    })()}
 
                     {/* ===== Import from JSON, detailed (Entry & Exit) only,
                         under an "or" divider ===== */}
@@ -2759,6 +2986,14 @@ export default function LogTradeModal({
         </motion.div>
       )}
     </AnimatePresence>
+
+    {/* plan-limit upgrade prompt (shared component) */}
+    <UpgradeSheet
+      open={showUpgrade}
+      onClose={() => setShowUpgrade(false)}
+      title="You're on a roll 📈"
+      reason={upgradeReason}
+    />
 
     {/* screenshot preview lightbox */}
     <AnimatePresence>

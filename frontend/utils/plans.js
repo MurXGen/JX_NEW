@@ -7,9 +7,9 @@ export const lifetimePriceId = process.env.NEXT_PUBLIC_PADDLE_LIFETIME_PRICE_ID;
 
 export const PLANS_FEATURES = {
   free: [
-    { text: "30 trades / month" },
+    { text: "20 trades / month" },
     { text: "1 journal" },
-    { text: "1 screenshot per trade" },
+    { text: "4 screenshots per trade · 10MB" },
     { text: "Chart logging · 5 / month" },
     { text: "Basic charts · 30-day history" },
   ],

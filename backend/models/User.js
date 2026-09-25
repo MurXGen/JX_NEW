@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema(
     avatarUrl: { type: String, default: "" },
     avatarSizeKB: { type: Number, default: 0 },
     baseCurrency: { type: String, default: "USD" },
+    // user's custom order of the log-trade sections (comma-separated ids),
+    // persisted so we don't re-fetch layout prefs on every load
+    logSectionOrder: { type: String, default: "" },
 
     // TradingView webhook integration — per-user secret token
     tvWebhookToken: { type: String, index: true },

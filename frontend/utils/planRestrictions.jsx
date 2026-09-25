@@ -9,11 +9,12 @@ import { getFromIndexedDB } from "./indexedDB";
 export const PLAN_RULES = {
   free: {
     limits: {
-      tradeLimitPerMonth: 30,
-      quickTradeLimitPerMonth: 30,
+      // 20 trades / month TOTAL — quick or detailed both count toward the same cap
+      tradeLimitPerMonth: 20,
+      quickTradeLimitPerMonth: 20,
       accountLimit: 1, // 1 journal
-      imagesPerTrade: 1, // 1 screenshot per trade
-      imageLimitPerMonth: Infinity, // gated per-trade instead of per-month
+      imagesPerTrade: 4, // up to 4 screenshots per trade (no monthly image cap)
+      imageLimitPerMonth: Infinity, // gated only by the per-trade count + trade cap
       maxImageSizeMB: 10,
       chartLogLimitPerMonth: 5, // chart annotation (entry/exit), 5 / month
       historyDays: 30,
@@ -140,39 +141,35 @@ export const canShowAds = (userData) => {
 // Cookie account id
 const getActiveAccountId = () => Cookies.get("accountId");
 
-// Trade limit
-export const canAddTrade = async (userData, tradeStatus = "closed") => {
+// Count trades logged this month for the active journal (quick + detailed).
+export const countTradesThisMonth = (userData) => {
   const user = userData?.value || userData;
-  const rules = getPlanRules(userData);
-
-  const tradeLimit =
-    tradeStatus === "running"
-      ? rules.limits.quickTradeLimitPerMonth
-      : rules.limits.tradeLimitPerMonth;
-
-  if (tradeLimit === Infinity) return true;
-
   const trades = user?.trades || [];
   const now = dayjs();
   const activeAccountId = getActiveAccountId();
-
-  const tradesThisMonth = trades.filter((t) => {
-    if (!t.openTime) return false;
+  return trades.filter((t) => {
+    const when = t.openTime || t.createdAt || t.closeTime;
+    if (!when) return false;
     if (activeAccountId && t.accountId !== activeAccountId) return false;
-
-    const tradeDate = dayjs(t.openTime);
-    if (
-      tradeDate.isValid() &&
-      tradeDate.month() === now.month() &&
-      tradeDate.year() === now.year()
-    ) {
-      if (tradeStatus === "running") return t.status === "running";
-      return t.status === "closed";
-    }
-    return false;
+    const d = dayjs(when);
+    return d.isValid() && d.month() === now.month() && d.year() === now.year();
   }).length;
+};
 
-  return tradesThisMonth < tradeLimit;
+// Trade limit — quick and detailed both count toward the SAME monthly cap.
+export const canAddTrade = async (userData) => {
+  const rules = getPlanRules(userData);
+  const tradeLimit = rules.limits.tradeLimitPerMonth;
+  if (tradeLimit === Infinity) return true;
+  return countTradesThisMonth(userData) < tradeLimit;
+};
+
+// How many trades remain this month (Infinity for unlimited plans).
+export const tradesRemaining = (userData) => {
+  const rules = getPlanRules(userData);
+  const limit = rules.limits.tradeLimitPerMonth;
+  if (limit === Infinity) return Infinity;
+  return Math.max(0, limit - countTradesThisMonth(userData));
 };
 
 // Account limit

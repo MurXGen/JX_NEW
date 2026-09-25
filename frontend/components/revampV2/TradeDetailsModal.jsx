@@ -11,6 +11,7 @@ import {
   Download,
   Flame,
   Image as ImageIcon,
+  Info,
   Mic,
   Pencil,
   Star,
@@ -146,6 +147,7 @@ export default function TradeDetailsModal({
   // localTrade lets us reflect a freshly-saved chart annotation without a refetch
   const [localTrade, setLocalTrade] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [ctxTip, setCtxTip] = useState(false); // "Trade in context" info tooltip
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const [isMobile, setIsMobile] = useState(false);
@@ -300,6 +302,60 @@ export default function TradeDetailsModal({
     </div>
   );
 
+  /* where this trade sits among all logged trades, and how it compares to the
+     trades logged just before and after it (chronologically) */
+  const ctx = useMemo(() => {
+    const all = (userData?.trades || [])
+      .filter((x) => x && (x.closeTime || x.openTime))
+      .slice()
+      .sort((a, b) => new Date(a.closeTime || a.openTime) - new Date(b.closeTime || b.openTime));
+    if (!all.length || !t?._id) return null;
+    const idx = all.findIndex((x) => x._id === t._id);
+    if (idx === -1) return null;
+    const prev = idx > 0 ? all[idx - 1] : null;
+    const next = idx < all.length - 1 ? all[idx + 1] : null;
+    const prevPnl = prev ? Number(prev.pnl) || 0 : null;
+    const win = pnl >= 0;
+    // streak of the same outcome ending at this trade
+    let streak = 1;
+    for (let i = idx - 1; i >= 0; i--) {
+      if (((Number(all[i].pnl) || 0) >= 0) === win) streak++;
+      else break;
+    }
+    return {
+      total: all.length,
+      pos: idx + 1,
+      prev,
+      next,
+      vsPrev: prevPnl != null ? pnl - prevPnl : null,
+      win,
+      streak,
+    };
+  }, [userData, t?._id, pnl]);
+
+  // one small neighbour cell (Previous / This / Next) for the context strip
+  const ctxCell = (label, tr, highlight) => {
+    const p = tr ? Number(tr.pnl) || 0 : null;
+    return (
+      <div
+        style={{
+          display: "flex", flexDirection: "column", gap: 2, minWidth: 0, textAlign: "center",
+          padding: "var(--space-2)", borderRadius: "var(--radius-md)",
+          background: highlight ? "var(--color-primary-subtle)" : "var(--color-bg-muted)",
+          border: highlight ? "1px solid var(--color-primary)" : "1px solid var(--color-border)",
+        }}
+      >
+        <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: ".4px" }}>{label}</span>
+        <span style={{ font: "var(--text-caption)", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {tr ? (tr.symbol || tr.ticker || "—") : "—"}
+        </span>
+        <span style={{ font: "var(--text-caption)", fontWeight: 700, color: p == null ? "var(--color-text-muted)" : p >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+          {p == null ? "—" : kf(p, currencySymbol)}
+        </span>
+      </div>
+    );
+  };
+
   if (!mounted) return null;
 
   return createPortal(
@@ -326,12 +382,12 @@ export default function TradeDetailsModal({
                 <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
               </div>
             )}
-            {/* header */}
-            <div className="jx-ltmodal__header jx-td__header" style={{ alignItems: "flex-start", gap: "var(--space-2)", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0, flex: 1 }}>
+            {/* header — clean identity block, actions live in the footer now */}
+            <div className="jx-ltmodal__header jx-td__header" style={{ alignItems: "flex-start", gap: "var(--space-2)", flexWrap: "nowrap" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0, flex: 1 }}>
                 <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Trade details</span>
+                <span style={{ font: "var(--text-h2)" }}>{t.symbol || t.ticker || "—"}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
-                  <span style={{ font: "var(--text-h2)" }}>{t.symbol || t.ticker || "—"}</span>
                   <Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge>
                   <Badge variant={pnl >= 0 ? "success" : "danger"}>{pnl >= 0 ? "Win" : "Loss"}</Badge>
                   <Badge variant="brand">
@@ -340,22 +396,72 @@ export default function TradeDetailsModal({
                   </Badge>
                   {session && <Badge variant="neutral"><Clock size={11} /> {session}</Badge>}
                 </div>
-                <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                  Opened {dt(t.openTime)} → Closed {dt(t.closeTime)}
-                </span>
               </div>
-              <div className="jx-td__actions" style={{ display: "flex", gap: "var(--space-2)", alignItems: "center", flexShrink: 0 }}>
-                <Button variant="outline" size="sm" icon={Pencil} onClick={() => onEdit?.(t)}>Edit</Button>
-                <Button variant="danger-outline" size="sm" icon={Trash2} onClick={() => onDelete?.(t)}>Delete</Button>
-                <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }}>
-                  <X size={16} />
-                </button>
-              </div>
+              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8, flexShrink: 0 }}>
+                <X size={16} />
+              </button>
             </div>
 
             {/* body */}
             <div className="jx-ltmodal__body jx-td-body">
               <div className="jx-ltmodal__form jx-td-flow" style={{ gap: "var(--space-4)" }}>
+                {/* screenshots — big, horizontally scrollable; tap opens the viewer */}
+                {images.length > 0 && (
+                  <div style={{ display: "flex", gap: "var(--space-3)", overflowX: "auto", paddingBottom: 4 }}>
+                    {images.map((img, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={img.url}
+                        src={img.url}
+                        alt={`screenshot ${i + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                        onClick={() => onImageClick?.(t)}
+                        style={{ height: 200, minWidth: 260, maxWidth: 360, flexShrink: 0, objectFit: "cover", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", cursor: "zoom-in" }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* highlighted summary — symbol, P&L and open/close time.
+                    Wins get a natural, leafy forest-green wash; losses a warm ember. */}
+                <div
+                  style={{
+                    position: "relative", overflow: "hidden",
+                    borderRadius: "var(--radius-lg)",
+                    padding: "var(--space-4) var(--space-5)",
+                    background: pnl >= 0
+                      ? "radial-gradient(135% 150% at 92% -25%, color-mix(in srgb, var(--color-success) 30%, transparent), transparent 55%), radial-gradient(120% 120% at 0% 120%, color-mix(in srgb, var(--color-success) 14%, transparent), transparent 50%), linear-gradient(140deg, color-mix(in srgb, var(--color-success) 18%, var(--color-bg-surface)) 0%, var(--color-bg-surface) 72%)"
+                      : "radial-gradient(135% 150% at 92% -25%, color-mix(in srgb, var(--color-danger) 26%, transparent), transparent 55%), linear-gradient(140deg, color-mix(in srgb, var(--color-danger) 15%, var(--color-bg-surface)) 0%, var(--color-bg-surface) 72%)",
+                    border: `1px solid ${pnl >= 0 ? "color-mix(in srgb, var(--color-success) 55%, var(--color-border))" : "color-mix(in srgb, var(--color-danger) 50%, var(--color-border))"}`,
+                    boxShadow: pnl >= 0
+                      ? "inset 0 1px 0 color-mix(in srgb, var(--color-success) 22%, transparent)"
+                      : "inset 0 1px 0 color-mix(in srgb, var(--color-danger) 20%, transparent)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+                      <span style={{ font: "var(--text-h2)" }}>{t.symbol || t.ticker || "—"}</span>
+                      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+                        <Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge>
+                        <Badge variant={pnl >= 0 ? "success" : "danger"}>{pnl >= 0 ? "Win" : "Loss"}</Badge>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Net P&amp;L</div>
+                      <div style={{ font: "var(--text-stat)", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                        {kf(pnl, currencySymbol)}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: "var(--space-3)", font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Clock size={13} /> Opened {dt(t.openTime)}</span>
+                    <span style={{ opacity: 0.5 }}>→</span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Clock size={13} /> Closed {dt(t.closeTime)}</span>
+                    {duration !== "—" && (<><span style={{ opacity: 0.5 }}>·</span><span>{duration}</span></>)}
+                  </div>
+                </div>
+
                 {/* headline stats — minimal, borderless, divider-separated */}
                 <div className="jx-td-stats">
                   {stats.map(([l, v, color]) => (
@@ -365,6 +471,88 @@ export default function TradeDetailsModal({
                     </div>
                   ))}
                 </div>
+
+                {/* trade in context — progress through the journal + neighbour compare */}
+                {ctx && (
+                  <div className="jx-card jx-card--flat" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-2)" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "var(--text-body-md)", fontWeight: 600 }}>
+                        Trade in context
+                        <span style={{ position: "relative", display: "inline-flex" }}>
+                          <button
+                            type="button"
+                            onClick={() => setCtxTip((v) => !v)}
+                            onMouseEnter={() => setCtxTip(true)}
+                            onMouseLeave={() => setCtxTip(false)}
+                            aria-label="What is Trade in context?"
+                            style={{ display: "inline-flex", alignItems: "center", color: ctxTip ? "var(--yellow-500)" : "var(--color-text-muted)", cursor: "pointer", background: "none", border: "none", padding: 2 }}
+                          >
+                            <Info size={14} />
+                          </button>
+                          <AnimatePresence>
+                            {ctxTip && (
+                              <motion.span
+                                role="tooltip"
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.14 }}
+                                style={{
+                                  position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 6,
+                                  width: 240, maxWidth: "72vw", padding: "9px 11px",
+                                  background: "var(--color-bg-elevated)", border: "1px solid var(--color-border-strong)",
+                                  borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)",
+                                  font: "var(--text-caption)", fontWeight: 400, color: "var(--color-text-secondary)",
+                                  whiteSpace: "normal", lineHeight: 1.5,
+                                }}
+                              >
+                                Where this trade sits in your journal timeline, and how its result compares to the trades logged just before and after it.
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </span>
+                      </span>
+                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontVariantNumeric: "tabular-nums" }}>
+                        Trade {ctx.pos} of {ctx.total}
+                      </span>
+                    </div>
+
+                    {/* progress through the journal timeline */}
+                    <div style={{ height: 6, borderRadius: 999, background: "var(--color-bg-muted)", overflow: "hidden" }}>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(ctx.pos / ctx.total) * 100}%` }}
+                        transition={{ type: "spring", stiffness: 120, damping: 22 }}
+                        style={{ height: "100%", borderRadius: 999, background: "linear-gradient(90deg, var(--yellow-400), var(--yellow-500))" }}
+                      />
+                    </div>
+
+                    {/* previous · this · next */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-2)" }}>
+                      {ctxCell("Previous", ctx.prev, false)}
+                      {ctxCell("This trade", t, true)}
+                      {ctxCell("Next", ctx.next, false)}
+                    </div>
+
+                    {/* one-line insight */}
+                    <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
+                      <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ font: "var(--text-small)" }}>
+                        {ctx.streak >= 2
+                          ? (ctx.win
+                              ? <>You&apos;re on a <strong>{ctx.streak}-trade winning streak</strong> — keep repeating what works.</>
+                              : <><strong>{ctx.streak} losses in a row</strong> — step back and check what&apos;s repeating.</>)
+                          : ctx.vsPrev == null
+                            ? <>This is your <strong>first logged trade</strong> — your journey starts here.</>
+                            : ctx.vsPrev > 0
+                              ? <>Up <strong>{kf(ctx.vsPrev, currencySymbol)}</strong> versus your previous trade.</>
+                              : ctx.vsPrev < 0
+                                ? <>Down <strong>{kf(Math.abs(ctx.vsPrev), currencySymbol)}</strong> versus your previous trade.</>
+                                : <>Flat versus your previous trade.</>}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* price action */}
                 {entry > 0 && exit > 0 && (
@@ -590,29 +778,15 @@ export default function TradeDetailsModal({
                   </div>
                 )}
 
-                {/* screenshots, real B2 urls */}
+                {/* screenshots — shown big at the top; this is just the add / manage entry */}
                 <div className="jx-card jx-card--flat">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
                     <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Screenshots &amp; attachments</span>
                     {images.length > 0 && <Badge variant="neutral"><ImageIcon size={11} /> {images.length}/4</Badge>}
                   </div>
-                  <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-                    {images.map((img, i) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        key={img.url}
-                        src={img.url}
-                        alt={`screenshot ${i + 1}`}
-                        loading="lazy"
-                        decoding="async"
-                        onClick={() => onImageClick?.(t)}
-                        style={{ width: 150, height: 96, objectFit: "cover", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", cursor: "zoom-in" }}
-                      />
-                    ))}
-                    <button className="jx-dropzone" style={{ width: 150, height: 96, padding: 0, gap: 4 }} onClick={() => onImageClick?.(t)}>
-                      <ImageIcon size={15} /> {images.length ? "View / manage" : "Add screenshots"}
-                    </button>
-                  </div>
+                  <button className="jx-dropzone" style={{ width: "100%", height: 72, padding: 0, gap: 6 }} onClick={() => onImageClick?.(t)}>
+                    <ImageIcon size={15} /> {images.length ? "View / manage screenshots" : "Add screenshots"}
+                  </button>
                 </div>
               </div>
 
@@ -677,6 +851,17 @@ export default function TradeDetailsModal({
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* footer — primary actions live here now (stretch on mobile,
+                content-width & right-aligned on desktop) */}
+            <div className="jx-ltmodal__footer" style={{ gap: "var(--space-3)", justifyContent: "flex-end" }}>
+              <Button variant="danger-outline" icon={Trash2} onClick={() => onDelete?.(t)} style={{ justifyContent: "center" }}>
+                Delete
+              </Button>
+              <Button variant="primary" icon={Pencil} onClick={() => onEdit?.(t)} style={{ justifyContent: "center" }}>
+                Edit trade
+              </Button>
             </div>
           </motion.div>
         </motion.div>

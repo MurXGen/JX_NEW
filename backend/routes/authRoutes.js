@@ -158,6 +158,10 @@ router.put(
       ) {
         user.baseCurrency = req.body.baseCurrency.trim().toUpperCase();
       }
+      // custom log-trade section order (comma-separated ids)
+      if (typeof req.body.logSectionOrder === "string") {
+        user.logSectionOrder = req.body.logSectionOrder.slice(0, 500);
+      }
 
       // avatar upload → Backblaze (replaces previous one)
       if (req.file) {
@@ -192,6 +196,7 @@ router.put(
           email: user.email,
           avatarUrl: user.avatarUrl,
           baseCurrency: user.baseCurrency,
+          logSectionOrder: user.logSectionOrder,
         },
       });
     } catch (err) {

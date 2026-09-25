@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Download,
+  FileDown,
   Upload,
   X,
 } from "lucide-react";
@@ -18,7 +19,8 @@ import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { logTradeToSheet, tradeToSheetPayload } from "@/utils/tradeSheetLog";
 import { scheduleAutoBackup } from "@/utils/driveBackup";
-import { getPlanRules } from "@/utils/planRestrictions";
+import { getPlanRules, tradesRemaining } from "@/utils/planRestrictions";
+import UpgradeSheet from "./UpgradeSheet";
 import { QUICK_TEMPLATE, DETAILED_TEMPLATE, downloadTemplate } from "@/utils/csvTemplates";
 import { parseImportRows } from "@/utils/importParse";
 
@@ -60,6 +62,21 @@ function Spinner() {
   );
 }
 
+/* matches the Log-trade sheet's section header (uppercase label under --sheet) */
+function Sect({ icon: Icon, title, hint }) {
+  return (
+    <div className="jx-sect">
+      <div className="jx-sect__left">
+        <span className="jx-sect__icon">
+          <Icon size={15} />
+        </span>
+        <span className="jx-sect__title">{title}</span>
+      </div>
+      {hint && <span className="jx-sect__hint">{hint}</span>}
+    </div>
+  );
+}
+
 export default function ImportTradesModal({ open, onClose, onImported }) {
   const fileRef = useRef(null);
   const [rows, setRows] = useState([]);
@@ -68,6 +85,18 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
   const [computedCount, setComputedCount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState("");
+  const [freeRemaining, setFreeRemaining] = useState(Infinity); // free monthly slots left
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      try {
+        const userData = await getFromIndexedDB("user-data");
+        setFreeRemaining(tradesRemaining(userData));
+      } catch { setFreeRemaining(Infinity); }
+    })();
+  }, [open]);
   const flash = (type, msg, ms = 3500) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), ms);
@@ -129,17 +158,10 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
     Cookies.set("accountId", accountId, { expires: 365 });
     try { localStorage.setItem("jx-account-id", accountId); } catch {}
 
-    /* plan limit: free plans can't bulk-import beyond their monthly cap */
-    try {
-      const userData = await getFromIndexedDB("user-data");
-      const limit = getPlanRules(userData).limits.tradeLimitPerMonth;
-      if (limit !== Infinity) {
-        return flash("danger", `Bulk import is a Pro feature. Your plan is capped at ${limit} trades/month, upgrade to import in bulk.`);
-      }
-    } catch {}
-
     setSaving(true);
     try {
+      // the backend caps Free imports to the remaining monthly slots and skips
+      // rows already logged (dedup) — we just send everything and read the result
       const res = await axios.post(
         `${API_BASE}/api/trades/bulk`,
         { accountId, trades: rows },
@@ -164,122 +186,157 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
       scheduleAutoBackup();
 
       onImported?.(trades);
-      flash("success", `${trades.length} trades imported`);
+      flash(res.data?.imported ? "success" : "info", res.data?.message || `${trades.length} trades imported`);
       setTimeout(() => {
         reset();
         onClose?.();
-      }, 1000);
+      }, 1400);
     } catch (err) {
       console.error("Import failed:", err);
-      flash("danger", err.response?.data?.message || "Import failed, try again");
+      // free monthly cap fully used → prompt upgrade
+      if (err.response?.status === 403 && err.response?.data?.code === "LIMIT") {
+        setUpgradeReason(err.response.data.message || "You've used your Free import allowance this month.");
+        setShowUpgrade(true);
+      } else {
+        flash("danger", err.response?.data?.message || "Import failed, try again");
+      }
     } finally {
       setSaving(false);
     }
   };
 
   return (
+    <>
+    <UpgradeSheet open={showUpgrade} onClose={() => setShowUpgrade(false)} title="Import allowance reached" reason={upgradeReason} />
     <AnimatePresence>
       {open && (
         <motion.div
-          className="jx-modal-overlay jx-modal-overlay--blur"
+          className="jx-modal-overlay jx-modal-overlay--blur jx-modal-overlay--sheet"
+          style={{ alignItems: "flex-end", justifyContent: "center", padding: 0 }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.2 }}
           onMouseDown={(e) => e.target === e.currentTarget && !saving && onClose?.()}
         >
           <Toast toast={toast} />
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 10 }}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="jx-ltmodal jx-ltmodal--narrow"
-            style={{ width: "min(560px, 96vw)" }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 34 }}
+            className="jx-ltmodal jx-ltmodal--sheet"
+            style={{ position: "relative" }}
           >
-            {/* header */}
-            <div className="jx-ltmodal__header">
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Import trades</span>
-                <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                  Download the template, fill in your trades, and upload it here.
-                </span>
-              </div>
-              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }} disabled={saving}>
-                <X size={16} />
-              </button>
+            {/* grab handle */}
+            <div className="jx-lt-grab" aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px" }}>
+              <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
             </div>
 
-            <div style={{ padding: "var(--space-5) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)", overflowY: "auto" }}>
-              {/* templates, two one-line buttons, no descriptions */}
-              <div className="jx-card jx-card--flat" style={{ padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
-                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Only P&amp;L log template</span>
-                  <Button variant="outline" size="sm" icon={Download} onClick={() => downloadTemplate(QUICK_TEMPLATE.key)}>Download</Button>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
-                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Detailed log template</span>
-                  <Button variant="outline" size="sm" icon={Download} onClick={() => downloadTemplate(DETAILED_TEMPLATE.key)}>Download</Button>
-                </div>
-              </div>
-
-              {/* or divider */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
-                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>or upload your filled file</span>
-                <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
-              </div>
-
-              {/* dropzone */}
-              <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ""; }} />
-              <div
-                className="jx-dropzone"
-                style={{ borderColor: "var(--color-primary)", background: "var(--color-primary-subtle)", cursor: "pointer" }}
-                onClick={() => fileRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => { e.preventDefault(); handleFile(e.dataTransfer.files?.[0]); }}
-              >
-                <span className="jx-sect__icon" style={{ borderRadius: "50%", width: 36, height: 36 }}>
-                  <Upload size={16} />
-                </span>
-                <strong style={{ color: "var(--color-text-primary)" }}>
-                  {fileName || "Drop your CSV here"}
-                </strong>
-                <span style={{ font: "var(--text-caption)" }}>Click or drag &amp; drop · CSV</span>
-              </div>
-
-              {/* validation results */}
-              {errors.length > 0 && (
-                <div className="jx-card jx-card--flat" style={{ padding: "var(--space-3) var(--space-4)", borderColor: "var(--color-danger)" }}>
-                  <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-danger)", display: "flex", alignItems: "center", gap: 6 }}>
-                    <AlertTriangle size={15} /> Fix these and re-upload
+            {/* header */}
+            <div className="jx-ltmodal__header" style={{ flexDirection: "column", alignItems: "stretch", gap: "var(--space-2)" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-2)" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ font: "var(--text-h2)" }}>Import trades</span>
+                  <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
+                    Download a template, fill in your trades, and upload it here.
                   </span>
-                  <ul style={{ margin: "var(--space-2) 0 0", paddingLeft: 18, font: "var(--text-small)", color: "var(--color-text-secondary)" }}>
-                    {errors.slice(0, 6).map((e, i) => (<li key={i}>{e}</li>))}
-                    {errors.length > 6 && <li>…and {errors.length - 6} more</li>}
-                  </ul>
                 </div>
-              )}
+                <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }} disabled={saving}>
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
 
-              {rows.length > 0 && (
-                <div className="jx-card jx-card--flat" style={{ padding: "var(--space-3) var(--space-4)" }}>
-                  <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-success-strong)", display: "flex", alignItems: "center", gap: 6 }}>
-                    <CheckCircle2 size={15} /> All looks good, {rows.length} trades ready
-                  </span>
-                  <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", marginTop: "var(--space-2)" }}>
-                    {rows.slice(0, 5).map((r, i) => (
-                      <Badge key={i} variant={r.pnl >= 0 ? "success" : "danger"}>
-                        {r.symbol} {r.pnl >= 0 ? "+" : ""}{r.pnl}
-                      </Badge>
-                    ))}
-                    {rows.length > 5 && <Badge variant="neutral">+{rows.length - 5} more</Badge>}
+            <div className="jx-ltmodal__body">
+              <div className="jx-ltmodal__form">
+                {/* Free-plan import allowance warning */}
+                {freeRemaining !== Infinity && (
+                  <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
+                    <AlertTriangle size={16} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 1 }} />
+                    <span style={{ font: "var(--text-caption)" }}>
+                      Free plan: only the <strong>latest {freeRemaining}</strong> trade{freeRemaining === 1 ? "" : "s"} you can still log this month will be imported. Rows already logged are skipped automatically. <strong>Upgrade</strong> to import everything.
+                    </span>
                   </div>
-                  {computedCount > 0 && (
-                    <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", marginTop: "var(--space-2)", display: "flex", gap: 6 }}>
-                      <AlertTriangle size={13} style={{ color: "var(--color-warning, var(--yellow-500))", flexShrink: 0, marginTop: 1 }} />
-                      <span>{computedCount} trade{computedCount === 1 ? "" : "s"} had no P&amp;L column, we computed it from entry/exit/size (with futures point values). For exact numbers, include your platform&apos;s realized P&amp;L column and re-upload.</span>
+                )}
+
+                {/* Templates section */}
+                <div className="jx-ltgroup">
+                  <Sect icon={FileDown} title="Download a template" />
+                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 500 }}>Only P&amp;L log</span>
+                      <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => downloadTemplate(QUICK_TEMPLATE.key)}>
+                        <Download size={14} /> Download
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
+                      <span style={{ font: "var(--text-body-md)", fontWeight: 500 }}>Detailed log</span>
+                      <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => downloadTemplate(DETAILED_TEMPLATE.key)}>
+                        <Download size={14} /> Download
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Upload section */}
+                <div className="jx-ltgroup">
+                  <Sect icon={Upload} title="Upload your filled file" />
+                  <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ""; }} />
+                  <div
+                    className="jx-dropzone"
+                    style={{ cursor: "pointer", background: "var(--color-bg-elevated)" }}
+                    onClick={() => fileRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => { e.preventDefault(); handleFile(e.dataTransfer.files?.[0]); }}
+                  >
+                    <span className="jx-sect__icon" style={{ borderRadius: "50%", width: 40, height: 40, display: "flex" }}>
+                      <Upload size={17} />
+                    </span>
+                    <strong style={{ color: "var(--color-text-primary)" }}>
+                      {fileName || "Drop your CSV here"}
+                    </strong>
+                    <span style={{ font: "var(--text-caption)" }}>Click or drag &amp; drop · CSV</span>
+                  </div>
+
+                  {/* validation errors */}
+                  {errors.length > 0 && (
+                    <div className="jx-banner" style={{ alignItems: "flex-start", background: "var(--color-danger-subtle)", marginTop: "var(--space-1)" }}>
+                      <AlertTriangle size={15} style={{ color: "var(--color-danger)", flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ font: "var(--text-caption)" }}>
+                        <strong style={{ color: "var(--color-danger-strong)" }}>Fix these and re-upload</strong>
+                        <ul style={{ margin: "6px 0 0", paddingLeft: 16, color: "var(--color-text-secondary)" }}>
+                          {errors.slice(0, 6).map((e, i) => (<li key={i}>{e}</li>))}
+                          {errors.length > 6 && <li>…and {errors.length - 6} more</li>}
+                        </ul>
+                      </span>
                     </div>
                   )}
                 </div>
-              )}
+
+                {/* Ready-to-import preview */}
+                {rows.length > 0 && (
+                  <div className="jx-ltgroup">
+                    <Sect icon={CheckCircle2} title={`Ready · ${rows.length} trades`} />
+                    <div className="jx-banner jx-banner--success">
+                      <CheckCircle2 size={16} style={{ color: "var(--color-success)" }} />
+                      <span>All looks good, <strong style={{ color: "var(--color-success-strong)" }}>{rows.length} trades</strong> ready to import.</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+                      {rows.slice(0, 6).map((r, i) => (
+                        <Badge key={i} variant={r.pnl >= 0 ? "success" : "danger"}>
+                          {r.symbol} {r.pnl >= 0 ? "+" : ""}{r.pnl}
+                        </Badge>
+                      ))}
+                      {rows.length > 6 && <Badge variant="neutral">+{rows.length - 6} more</Badge>}
+                    </div>
+                    {computedCount > 0 && (
+                      <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", display: "flex", gap: 6 }}>
+                        <AlertTriangle size={13} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 1 }} />
+                        <span>{computedCount} trade{computedCount === 1 ? "" : "s"} had no P&amp;L column, we computed it from entry/exit/size (with futures point values). For exact numbers, include your platform&apos;s realized P&amp;L column and re-upload.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* footer */}
@@ -295,5 +352,6 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }
