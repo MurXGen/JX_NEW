@@ -73,6 +73,22 @@ const DEFAULT_SECTION_ORDER = {
   ],
 };
 
+/* human labels + icons for the Customize sheet's reorder list */
+const SECTION_META = {
+  asset: { label: "Asset & direction", icon: CandlestickChart },
+  chart: { label: "Log on chart", icon: LineChart },
+  result: { label: "Result (P&L)", icon: Zap },
+  entryexit: { label: "Entry, exit & size", icon: ArrowRightLeft },
+  risk: { label: "Risk management", icon: AlertTriangle },
+  timing: { label: "Timing", icon: Clock },
+  edge: { label: "Your edge & context", icon: LineChart },
+  psychology: { label: "Psychology & discipline", icon: Flame },
+  screenshots: { label: "Screenshots", icon: ImageIcon },
+  notes: { label: "Notes", icon: Pencil },
+  note: { label: "Note", icon: Pencil },
+  voice: { label: "Voice note", icon: Mic },
+};
+
 /* keep a saved order valid against the current defaults: drop unknown ids,
    keep the user's sequence, then append any new sections at the end. */
 function mergeSectionOrder(saved, defaults) {
@@ -820,34 +836,50 @@ export default function LogTradeModal({
     }, 700);
   };
 
+  // latest order, persisted once the drag settles (avoids spamming the
+  // rate-limited /update-profile endpoint on every crossing → 429s)
+  const pendingOrderRef = useRef(null);
   const handleReorder = (nextIds) => {
+    // a short haptic tick each time a section crosses another (mobile)
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(12);
     setSectionOrder((prev) => {
       const next = { ...prev, [mode]: nextIds };
-      persistSectionOrder(next);
+      pendingOrderRef.current = next;
       return next;
     });
   };
+  const flushOrder = () => {
+    if (pendingOrderRef.current) {
+      persistSectionOrder(pendingOrderRef.current);
+      pendingOrderRef.current = null;
+    }
+  };
 
-  /* ---- auto-scroll the modal body while dragging a section near an edge,
-     so you can drop a section above/below the current fold ---- */
+  /* ---- auto-scroll the scroll container while dragging a section near an
+     edge, so you can drop a section above/below the current fold. In customize
+     mode the Reorder group itself scrolls (groupScrollRef) so framer keeps the
+     dragged section glued to the pointer; otherwise the modal body scrolls. ---- */
   const bodyScrollRef = useRef(null);
+  const groupScrollRef = useRef(null);
   const dragPointerY = useRef(0);
   const autoScrollRAF = useRef(null);
   const runAutoScroll = () => {
-    const el = bodyScrollRef.current;
+    const el = groupScrollRef.current || bodyScrollRef.current;
     if (!el) {
       autoScrollRAF.current = null;
       return;
     }
     const rect = el.getBoundingClientRect();
-    const EDGE = 74; // px zone near each edge that triggers scrolling
-    const MAX = 15; // px per frame at full intensity
+    const EDGE = 90; // px zone near each edge that triggers scrolling
+    const MAX = 9; // px per frame at full intensity (gentler, so it keeps pace with the drag)
     const y = dragPointerY.current;
     let dy = 0;
     if (y < rect.top + EDGE) {
-      dy = -Math.ceil(MAX * Math.min(1, (rect.top + EDGE - y) / EDGE));
+      const t = Math.min(1, (rect.top + EDGE - y) / EDGE);
+      dy = -Math.ceil(MAX * t * t); // ease-in so it ramps up smoothly, not a jump
     } else if (y > rect.bottom - EDGE) {
-      dy = Math.ceil(MAX * Math.min(1, (y - (rect.bottom - EDGE)) / EDGE));
+      const t = Math.min(1, (y - (rect.bottom - EDGE)) / EDGE);
+      dy = Math.ceil(MAX * t * t);
     }
     if (dy) el.scrollTop += dy;
     autoScrollRAF.current = requestAnimationFrame(runAutoScroll);
@@ -1741,6 +1773,9 @@ export default function LogTradeModal({
 
   if (!mounted) return null;
 
+  // ordered section ids for the current mode, used by the Customize sheet
+  const custOrder = mergeSectionOrder(sectionOrder[mode], DEFAULT_SECTION_ORDER[mode]);
+
   return createPortal(
     <>
     <AnimatePresence>
@@ -1851,7 +1886,7 @@ export default function LogTradeModal({
                 onChange={setMode}
               />
 
-              {/* customize (drag to reorder sections) — free, no gate */}
+              {/* customize (opens a sheet to reorder sections) — free, no gate */}
               <div
                 style={{
                   display: "flex",
@@ -1863,29 +1898,27 @@ export default function LogTradeModal({
                 <span
                   style={{
                     font: "var(--text-caption)",
-                    color: customize
-                      ? "var(--yellow-600)"
-                      : "var(--color-text-muted)",
+                    color: "var(--color-text-muted)",
                     minWidth: 0,
                   }}
                 >
-                  {customize
-                    ? "Drag the handles to arrange your sections"
-                    : "Arrange the form to match how you log"}
+                  Arrange the form to match how you log
                 </span>
                 <button
                   type="button"
-                  className={`jx-ltcustomize ${customize ? "jx-ltcustomize--on" : ""}`}
-                  onClick={() => setCustomize((v) => !v)}
+                  className="jx-ltcustomize"
+                  onClick={() => setCustomize(true)}
                   disabled={saving}
                 >
-                  {customize ? <Check size={14} /> : <SlidersHorizontal size={14} />}
-                  {customize ? "Done" : "Customize"}
+                  <SlidersHorizontal size={14} /> Customize
                 </button>
               </div>
             </div>
 
-            {/* ===== Body, same frame, content cross-fades ===== */}
+            {/* ===== Body, same frame, content cross-fades =====
+                motion.div + layoutScroll so framer compensates the drag for
+                this container's scroll (otherwise a reordered section "sticks"
+                and drifts away from the pointer while auto-scrolling). */}
             <div className="jx-ltmodal__body" ref={bodyScrollRef}>
               <div className="jx-ltmodal__form">
                 <AnimatePresence mode="wait">
@@ -2651,54 +2684,19 @@ export default function LogTradeModal({
                       if (!order.includes(id)) order.push(id);
                     });
 
+                    // sections render in the saved order; reordering itself
+                    // happens in the dedicated Customize sheet (below)
                     return (
-                      <Reorder.Group
-                        axis="y"
-                        values={order}
-                        onReorder={handleReorder}
-                        as="div"
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "var(--space-6)",
-                          listStyleType: "none",
-                          margin: 0,
-                          padding: 0,
-                        }}
-                      >
+                      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
                         {order.map((id) => (
-                          <Reorder.Item
-                            key={id}
-                            value={id}
-                            as="div"
-                            dragListener={customize}
-                            onDragStart={() => startAutoScroll()}
-                            onDrag={(e, info) => {
-                              dragPointerY.current = info.point.y;
-                            }}
-                            onDragEnd={() => stopAutoScroll()}
-                            whileDrag={{
-                              scale: 1.015,
-                              boxShadow: "var(--shadow-lg)",
-                              zIndex: 6,
-                            }}
-                            className={`jx-ltsec${customize ? " jx-ltsec--reorder" : ""}`}
-                            style={{ position: "relative", listStyleType: "none" }}
-                          >
-                            {customize && (
-                              <span className="jx-ltsec__grip" aria-hidden="true">
-                                <GripVertical size={15} />
-                              </span>
-                            )}
-                            {N[id]}
-                          </Reorder.Item>
+                          <div key={id}>{N[id]}</div>
                         ))}
-                      </Reorder.Group>
+                      </div>
                     );
                     })()}
 
                     {/* ===== Import from JSON, detailed (Entry & Exit) only,
-                        under an "or" divider ===== */}
+                        under an "or" divider. ===== */}
                     {!isQuick && (
                     <>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "var(--space-2) 0" }}>
@@ -2982,6 +2980,95 @@ export default function LogTradeModal({
                 </motion.div>
               )}
             </AnimatePresence>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* Customize sections — dedicated bottom sheet with a short draggable list
+        (avoids the scroll-during-drag problems of in-form reordering) */}
+    <AnimatePresence>
+      {customize && (
+        <motion.div
+          className="jx-modal-overlay jx-modal-overlay--blur jx-modal-overlay--sheet"
+          style={{ zIndex: 5200, alignItems: "flex-end", justifyContent: "center", padding: 0 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          onMouseDown={(e) => e.target === e.currentTarget && setCustomize(false)}
+        >
+          <motion.div
+            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 320, damping: 34 }}
+            className="jx-ltmodal jx-ltmodal--sheet"
+            style={{ position: "relative", height: "auto", maxHeight: "82vh", borderRadius: "22px 22px 0 0" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px", flexShrink: 0 }}>
+              <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
+            </div>
+            <div className="jx-ltmodal__header" style={{ alignItems: "center", gap: "var(--space-2)" }}>
+              <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
+                <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Customize sections</span>
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                  Drag to reorder your {isQuick ? "quick" : "detailed"} log
+                </span>
+              </div>
+              <button
+                type="button"
+                className="jx-btn jx-btn--ghost jx-btn--sm"
+                onClick={() => {
+                  const next = { ...sectionOrder, [mode]: [...DEFAULT_SECTION_ORDER[mode]] };
+                  setSectionOrder(next);
+                  persistSectionOrder(next);
+                }}
+              >
+                Reset
+              </button>
+              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => setCustomize(false)} aria-label="Close" style={{ padding: 8 }}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="jx-ltmodal__body" style={{ padding: "var(--space-2) var(--space-4) var(--space-4)" }}>
+              <Reorder.Group
+                axis="y"
+                values={custOrder}
+                onReorder={handleReorder}
+                as="div"
+                style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", listStyleType: "none", margin: 0, padding: 0 }}
+              >
+                {custOrder.map((id) => {
+                  const meta = SECTION_META[id] || { label: id, icon: SlidersHorizontal };
+                  const Icon = meta.icon;
+                  return (
+                    <Reorder.Item
+                      key={id}
+                      value={id}
+                      as="div"
+                      onDragStart={() => { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(8); }}
+                      onDragEnd={flushOrder}
+                      whileDrag={{ scale: 1.02, boxShadow: "var(--shadow-lg)", zIndex: 3 }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: "var(--space-3)",
+                        padding: "11px 12px", borderRadius: "var(--radius-md)",
+                        background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)",
+                        listStyleType: "none", cursor: "grab", touchAction: "none",
+                      }}
+                    >
+                      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "var(--radius-sm)", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", flexShrink: 0 }}>
+                        <Icon size={15} />
+                      </span>
+                      <span style={{ flex: 1, font: "var(--text-body-md)", fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta.label}</span>
+                      <GripVertical size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                    </Reorder.Item>
+                  );
+                })}
+              </Reorder.Group>
+            </div>
+            <div className="jx-ltmodal__footer">
+              <button className="jx-btn jx-btn--primary" onClick={() => setCustomize(false)} style={{ flex: 1, justifyContent: "center" }}>
+                <Check size={16} /> Done
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}

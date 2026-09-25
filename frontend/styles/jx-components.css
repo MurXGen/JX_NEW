@@ -2574,6 +2574,84 @@ body::before {
 }
 
 /* Quick-log "add more details" accordion toggle */
+/* ---- Live trading-session strip (top of dashboard) ---- */
+.jx-livestrip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+}
+.jx-livestrip[data-best="1"] {
+  background: var(--color-success-subtle);
+  border-color: var(--color-success);
+}
+.jx-livestrip__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: var(--text-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--yellow-600);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.jx-livestrip[data-best="1"] .jx-livestrip__live {
+  color: var(--color-success-strong);
+}
+.jx-livestrip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--yellow-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--yellow-500) 25%, transparent);
+}
+.jx-livestrip[data-best="1"] .jx-livestrip__dot {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 25%, transparent);
+}
+.jx-livestrip__label {
+  font: var(--text-body-md);
+  font-weight: 600;
+  min-width: 0;
+}
+.jx-livestrip__meta {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .jx-livestrip {
+    gap: 6px 10px;
+    padding: 9px 12px;
+  }
+  .jx-livestrip__live {
+    font-size: 10px;
+  }
+  .jx-livestrip__label {
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+  /* time drops to its own full-width line, flush-left under the LIVE badge
+     (not floating right on a lonely second row) */
+  .jx-livestrip__meta {
+    margin-left: 0;
+    width: 100%;
+    padding-left: 0;
+    font-size: 11px;
+  }
+}
+
 .jx-ltmore {
   display: flex;
   align-items: center;

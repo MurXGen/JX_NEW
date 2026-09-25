@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Coffee, EyeOff, Flame, Info, Plus, Shield, Sparkles, Sprout, Trophy, TrendingUp } from "lucide-react";
+import { Check, Clock, Coffee, Crown, EyeOff, Flame, Info, Plus, Shield, Sparkles, Sprout, Trophy, TrendingUp } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import CountUp from "./CountUp";
@@ -1422,6 +1422,29 @@ export default function OverviewPanel({
     return { list, traded, best, worst, maxAbs, totalTraded: traded.length };
   }, [closed]);
 
+  /* ---- which trading session is live right now + time left, so the top of
+     the dashboard nudges the user when their most profitable window opens ---- */
+  const [minuteTick, setMinuteTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setMinuteTick((t) => t + 1), 60000);
+    return () => clearInterval(id);
+  }, []);
+  const liveSession = useMemo(() => {
+    const now = new Date();
+    const h = now.getUTCHours();
+    const m = now.getUTCMinutes();
+    const cur = SESSIONS.list.find((d) => d.test(h));
+    if (!cur) return null;
+    const remMin = Math.max(0, cur.hi * 60 - (h * 60 + m));
+    return {
+      cur,
+      remH: Math.floor(remMin / 60),
+      remM: remMin % 60,
+      isBest: !!(SESSIONS.best && SESSIONS.best.id === cur.id && SESSIONS.best.pnl > 0),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [SESSIONS, minuteTick]);
+
   /* ---- trader edge: the metrics that actually predict long-term results ---- */
   const EDGE = useMemo(() => {
     const pnls = closed.map((t) => Number(t.pnl) || 0);
@@ -1794,6 +1817,27 @@ export default function OverviewPanel({
           )}
         </div>
       </div>
+
+      {/* ===== Live session strip — which session is open now + time left ===== */}
+      {liveSession && !usingDummy && (
+        <div className="jx-livestrip" data-best={liveSession.isBest ? "1" : "0"} style={{ order: -2 }}>
+          <span className="jx-livestrip__live">
+            <span className="jx-livestrip__dot" />
+            Live
+          </span>
+          <span className="jx-livestrip__label">
+            {liveSession.cur.label} session{liveSession.isBest ? " — your most profitable window" : " is open"}
+          </span>
+          {liveSession.isBest && (
+            <Badge variant="success"><Crown size={11} /> Best</Badge>
+          )}
+          <span className="jx-livestrip__meta">
+            <Clock size={13} />
+            {liveSession.remH > 0 ? `${liveSession.remH}h ` : ""}{liveSession.remM}m left
+            {liveSession.cur.trades > 0 ? ` · ${Math.round(liveSession.cur.winRate)}% win here` : ""}
+          </span>
+        </div>
+      )}
 
       {/* sample-data nudge */}
       {usingDummy && (

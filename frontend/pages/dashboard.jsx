@@ -80,6 +80,44 @@ export default function Dashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  /* keep the active section (and Support) in the URL so deep-links, refreshes
+     and the browser/phone Back button work — mirrors the ?settings=<id>
+     behaviour inside Settings. */
+  const navTab = (id) => {
+    setActiveTab(id);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (id && id !== "overview") url.searchParams.set("view", id);
+    else url.searchParams.delete("view");
+    if (id !== "settings") url.searchParams.delete("settings"); // drop sub-section
+    url.searchParams.delete("support");
+    window.history.pushState({ jxView: id }, "", url.toString());
+  };
+  const openSupport = () => {
+    setShowSupport(true);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("support", "1");
+    window.history.pushState({ jxSupport: 1 }, "", url.toString());
+  };
+  const closeSupport = () => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("support")) {
+      window.history.back();
+    } else {
+      setShowSupport(false);
+    }
+  };
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const apply = () => {
+      const p = new URLSearchParams(window.location.search);
+      setActiveTab(p.get("view") || "overview");
+      setShowSupport(!!p.get("support"));
+    };
+    apply();
+    window.addEventListener("popstate", apply);
+    return () => window.removeEventListener("popstate", apply);
+  }, []);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [journalEditId, setJournalEditId] = useState(null); // deep-link to a journal's edit form
   const [journalsView, setJournalsView] = useState("list"); // 'list' | 'create'
@@ -342,7 +380,7 @@ export default function Dashboard() {
         fxRate={fxRate}
         usingDummy={usingDummy}
         onAddTrade={() => setShowLogTrade(true)}
-        onOpenTab={setActiveTab}
+        onOpenTab={navTab}
         openImportSignal={importSignal}
         onTradesAdded={(newTrades) =>
           setAccountTrades((prev) => [...prev, ...(newTrades || [])])
@@ -396,15 +434,15 @@ export default function Dashboard() {
       <Sidebar
         items={NAV_ITEMS}
         active={activeTab}
-        onChange={setActiveTab}
+        onChange={navTab}
         accountName={currentAccount?.name}
         onAccountSwitch={() => setShowSwitchModal(true)}
         onLogTrade={() => setShowLogTrade(true)}
         user={userData}
-        onProfile={() => setActiveTab("settings")}
-        onSupport={() => setShowSupport(true)}
+        onProfile={() => navTab("settings")}
+        onSupport={openSupport}
         showUpgrade={needsUpgrade}
-        onUpgrade={() => setActiveTab("pricingpage")}
+        onUpgrade={() => navTab("pricingpage")}
       />
 
       <main className="jx-shell__main">
@@ -459,8 +497,8 @@ export default function Dashboard() {
           {activeTab === "settings" && isMobile ? (
             <SettingsPanel
               user={userData}
-              onNavigate={(id) => setActiveTab(id)}
-              onSupport={() => setShowSupport(true)}
+              onNavigate={(id) => navTab(id)}
+              onSupport={openSupport}
               onSwitchJournal={() => setShowSwitchModal(true)}
             />
           ) : (
@@ -472,9 +510,9 @@ export default function Dashboard() {
       {/* Mobile bottom navigation (hidden on desktop) */}
       <BottomBar
         active={activeTab}
-        onChange={setActiveTab}
+        onChange={navTab}
         onLogTrade={() => setShowLogTrade(true)}
-        onSupport={() => setShowSupport(true)}
+        onSupport={openSupport}
         user={userData}
       />
 
@@ -504,7 +542,7 @@ export default function Dashboard() {
 
       <SupportModal
         open={showSupport}
-        onClose={() => setShowSupport(false)}
+        onClose={closeSupport}
         user={userData}
         plan={userData?.subscription?.plan || "free"}
       />
@@ -535,7 +573,7 @@ export default function Dashboard() {
       <GetStartedModal
         open={showGetStarted}
         onLog={() => { setShowGetStarted(false); setShowLogTrade(true); }}
-        onImport={() => { setShowGetStarted(false); setActiveTab("importexport"); }}
+        onImport={() => { setShowGetStarted(false); navTab("importexport"); }}
         onSkip={() => { setShowGetStarted(false); setShowOnboarding(true); }}
       />
 
@@ -543,9 +581,9 @@ export default function Dashboard() {
       <SettingsModal
         open={activeTab === "settings" && !isMobile}
         user={userData}
-        onClose={() => setActiveTab("overview")}
-        onNavigate={(id) => setActiveTab(id)}
-        onSupport={() => { setActiveTab("overview"); setShowSupport(true); }}
+        onClose={() => navTab("overview")}
+        onNavigate={(id) => navTab(id)}
+        onSupport={() => { navTab("overview"); openSupport(); }}
         onSwitchJournal={() => setShowSwitchModal(true)}
       />
     </div>
