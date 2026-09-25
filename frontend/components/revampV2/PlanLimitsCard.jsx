@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Cookies from "js-cookie";
-import { ArrowRight, Crown, Infinity as InfinityIcon } from "lucide-react";
+import { ArrowRight, Crown, Infinity as InfinityIcon, Mail } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
 import { getPlanRules } from "@/utils/planRestrictions";
@@ -232,6 +232,42 @@ export default function PlanLimitsCard() {
         </div>
       )}
 
+      {/* billing support — payment failed / debited but plan not reflecting */}
+      <div
+        style={{
+          marginTop: "var(--space-4)",
+          paddingTop: "var(--space-4)",
+          borderTop: "1px solid var(--color-border)",
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-3)",
+          flexWrap: "wrap",
+        }}
+      >
+        <span style={{ flex: 1, minWidth: 180 }}>
+          <span style={{ font: "var(--text-body-md)", fontWeight: 600, display: "block" }}>Payment or billing issue?</span>
+          <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+            Charged but your plan isn&apos;t showing, or a payment failed? Email us and we&apos;ll sort it out fast.
+          </span>
+        </span>
+        <a
+          href={`mailto:support@journalx.app?subject=${encodeURIComponent(
+            "JournalX — payment / billing help",
+          )}&body=${encodeURIComponent(
+            "Hi JournalX team,\n\nI need help with a billing issue:\n\n" +
+              "• What happened: (e.g. payment debited but plan not reflecting / payment failed)\n" +
+              "• Amount & date: \n" +
+              "• Payment method: \n" +
+              "• Transaction / reference ID: \n\n" +
+              `• Current plan shown in app: ${planName}\n` +
+              "• My account email: \n\nThanks,",
+          )}`}
+          className="jx-btn jx-btn--outline"
+          style={{ textDecoration: "none", flexShrink: 0 }}
+        >
+          <Mail size={15} /> Contact us
+        </a>
+      </div>
     </div>
   );
 }

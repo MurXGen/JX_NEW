@@ -540,15 +540,15 @@ export default function TradeDetailsModal({
                       <span style={{ font: "var(--text-small)" }}>
                         {ctx.streak >= 2
                           ? (ctx.win
-                              ? <>You&apos;re on a <strong>{ctx.streak}-trade winning streak</strong> — keep repeating what works.</>
-                              : <><strong>{ctx.streak} losses in a row</strong> — step back and check what&apos;s repeating.</>)
-                          : ctx.vsPrev == null
+                              ? <>That&apos;s <strong>{ctx.streak} wins in a row</strong> — keep repeating what works.</>
+                              : <>That&apos;s <strong>{ctx.streak} losses in a row</strong> — worth reviewing what keeps repeating.</>)
+                          : ctx.prev == null
                             ? <>This is your <strong>first logged trade</strong> — your journey starts here.</>
                             : ctx.vsPrev > 0
-                              ? <>Up <strong>{kf(ctx.vsPrev, currencySymbol)}</strong> versus your previous trade.</>
+                              ? <><strong>Better</strong> than your previous trade — {kf(Number(ctx.prev.pnl) || 0, currencySymbol)} → {kf(pnl, currencySymbol)}.</>
                               : ctx.vsPrev < 0
-                                ? <>Down <strong>{kf(Math.abs(ctx.vsPrev), currencySymbol)}</strong> versus your previous trade.</>
-                                : <>Flat versus your previous trade.</>}
+                                ? <><strong>Worse</strong> than your previous trade — {kf(Number(ctx.prev.pnl) || 0, currencySymbol)} → {kf(pnl, currencySymbol)}.</>
+                                : <><strong>Same result</strong> as your previous trade ({kf(pnl, currencySymbol)}).</>}
                       </span>
                     </div>
                   </div>

@@ -1203,6 +1203,9 @@ body::before {
   border: 1.5px dashed var(--color-border-strong);
   border-radius: var(--radius-md);
   padding: var(--space-6);
+  /* themed, dim fill so it never falls back to the browser's light button
+     colour on dark surfaces */
+  background: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
   color: var(--color-text-muted);
   font: var(--text-body);
   cursor: pointer;
