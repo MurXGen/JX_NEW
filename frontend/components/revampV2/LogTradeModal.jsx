@@ -161,10 +161,53 @@ function Field({ label, children }) {
   );
 }
 
+/* pretty duration from milliseconds → "45m" / "2h 15m" / "3d 4h" */
+function fmtDur(ms) {
+  if (ms == null || !isFinite(ms) || ms <= 0) return "—";
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h < 24) return m ? `${h}h ${m}m` : `${h}h`;
+  const d = Math.floor(h / 24);
+  const hr = h % 24;
+  return hr ? `${d}d ${hr}h` : `${d}d`;
+}
+
 /* Timing input: either full date/time pickers, or a simple "just duration"
    (mins/hours) on an optional date. mode = "quick" | "detailed". */
 function TimingInput({ form, set, mode }) {
   const dur = form.useDuration;
+
+  // this trade's From→To span (live preview)
+  const spanMs =
+    form.entryTime && form.exitTime
+      ? new Date(form.exitTime).getTime() - new Date(form.entryTime).getTime()
+      : null;
+
+  // the trader's historical avg hold time, split by win / loss
+  const [hold, setHold] = useState(null);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const u = await getFromIndexedDB("user-data");
+        const trades = u?.trades || [];
+        let wSum = 0, wN = 0, lSum = 0, lN = 0;
+        trades.forEach((t) => {
+          if (!t.openTime || !t.closeTime) return;
+          const ms = new Date(t.closeTime).getTime() - new Date(t.openTime).getTime();
+          if (!(ms > 0)) return;
+          if ((Number(t.pnl) || 0) >= 0) { wSum += ms; wN += 1; }
+          else { lSum += ms; lN += 1; }
+        });
+        if (active) setHold({ win: wN ? wSum / wN : null, winN: wN, loss: lN ? lSum / lN : null, lossN: lN });
+      } catch {
+        /* ignore — preview just won't show */
+      }
+    })();
+    return () => { active = false; };
+  }, []);
   return (
     <div
       style={{
@@ -217,8 +260,8 @@ function TimingInput({ form, set, mode }) {
             </div>
           </Field>
           <Field label="Trade duration">
-            <div style={{ display: "flex", gap: 8 }}>
-              <div className="jx-input" style={{ flex: 1 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div className="jx-input" style={{ flex: 1, minWidth: 120 }}>
                 <input
                   type="number"
                   min="0"
@@ -230,7 +273,7 @@ function TimingInput({ form, set, mode }) {
                   onChange={(e) => set("durationVal", e.target.value)}
                 />
               </div>
-              <div className="jx-seg jx-seg--inline">
+              <div className="jx-seg jx-seg--inline" style={{ flexShrink: 0 }}>
                 {[
                   ["min", "Mins"],
                   ["hour", "Hours"],
@@ -282,26 +325,68 @@ function TimingInput({ form, set, mode }) {
             </div>
           </Field>
         </div>
-      ) : mode === "quick" ? (
-        <DateTimePicker
-          value={form.exitTime}
-          onChange={(v) => set("exitTime", v)}
-        />
       ) : (
-        <div className="jx-form-grid">
-          <Field label="Entry date & time">
-            <DateTimePicker
-              value={form.entryTime}
-              onChange={(v) => set("entryTime", v)}
-            />
-          </Field>
-          <Field label="Exit date & time">
-            <DateTimePicker
-              value={form.exitTime}
-              onChange={(v) => set("exitTime", v)}
-            />
-          </Field>
-        </div>
+        <>
+          <div className="jx-form-grid">
+            <Field label="From · opened">
+              <DateTimePicker
+                value={form.entryTime}
+                onChange={(v) => set("entryTime", v)}
+              />
+            </Field>
+            <Field label="To · closed">
+              <DateTimePicker
+                value={form.exitTime}
+                onChange={(v) => set("exitTime", v)}
+              />
+            </Field>
+          </div>
+
+          {/* live duration preview once both ends are set */}
+          {spanMs != null && (
+            spanMs > 0 ? (
+              <div
+                className="jx-banner jx-banner--success"
+                style={{ background: "var(--color-bg-elevated)" }}
+              >
+                <Clock size={15} style={{ color: "var(--yellow-500)" }} />
+                <span>
+                  This trade lasted <strong>{fmtDur(spanMs)}</strong>.
+                </span>
+              </div>
+            ) : (
+              <div className="jx-banner jx-banner--warn">
+                <AlertTriangle size={15} style={{ color: "var(--yellow-500)" }} />
+                <span>Close time is before open time — check your From / To.</span>
+              </div>
+            )
+          )}
+
+          {/* the trader's historical average hold time, by outcome */}
+          {hold && (hold.win != null || hold.loss != null) && (
+            <div
+              style={{
+                display: "flex",
+                gap: "var(--space-2)",
+                flexWrap: "wrap",
+                font: "var(--text-caption)",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              <span style={{ alignSelf: "center" }}>Your avg hold:</span>
+              {hold.win != null && (
+                <span className="jx-badge jx-badge--success">
+                  Wins {fmtDur(hold.win)}
+                </span>
+              )}
+              {hold.loss != null && (
+                <span className="jx-badge jx-badge--danger">
+                  Losses {fmtDur(hold.loss)}
+                </span>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

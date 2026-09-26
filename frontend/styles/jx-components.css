@@ -880,8 +880,9 @@ body::before {
   overflow-x: hidden; /* never scroll sideways */
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  /* the right side is a single rounded panel that holds all the content */
-  margin: var(--space-3) var(--space-3) var(--space-3) 0;
+  /* the right side is a single rounded panel that holds all the content —
+     symmetric left/right margin so it sits inset from the sidebar and edge */
+  margin: var(--space-3) var(--space-4) var(--space-3) var(--space-4);
   border-radius: 16px;
   background: var(--color-bg-surface);
   padding: var(--space-6) var(--space-6) 0;
@@ -2577,13 +2578,204 @@ body::before {
 /* ---- Live trading-session strip (top of dashboard) ---- */
 .jx-livestrip {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  padding: 10px 14px;
+  flex-direction: column;
+  gap: 9px;
+  padding: 11px 14px;
   border-radius: var(--radius-lg);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
+}
+.jx-livestrip__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.jx-livestrip__date {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+.jx-livestrip__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  padding-top: 9px;
+  border-top: 1px solid var(--color-border);
+  line-height: 1.45;
+}
+.jx-livestrip[data-best="1"] .jx-livestrip__note {
+  border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));
+}
+
+/* 30-day daily P&L mini bar chart inside the live strip */
+.jx-livestrip__chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 9px;
+  border-top: 1px solid var(--color-border);
+}
+.jx-livestrip[data-best="1"] .jx-livestrip__chart {
+  border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));
+}
+.jx-livestrip__chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+/* merged 30-day headline stats row */
+.jx-livestrip__stats {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-5);
+  padding-top: 9px;
+  border-top: 1px solid var(--color-border);
+}
+.jx-livestrip[data-best="1"] .jx-livestrip__stats {
+  border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));
+}
+.jx-livestrip__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.jx-livestrip__stat-l {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.jx-livestrip__stat-v {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.jx-livestrip__delta {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.jx-livestrip__bars {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  height: 86px;
+}
+/* faint zero line at the up/down boundary (34px = one bar half) */
+.jx-livestrip__baseline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 34px;
+  height: 1px;
+  background: var(--color-border);
+  pointer-events: none;
+}
+.jx-livestrip__bar {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 0 3px;
+  transition: background 0.12s ease;
+}
+.jx-livestrip__bar.is-hover {
+  background: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+}
+/* current weekday — dashed ring + accent label so it reads as "today" */
+.jx-livestrip__bar.is-today {
+  outline: 1.5px dashed color-mix(in srgb, var(--color-primary) 75%, transparent);
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+.jx-livestrip__bar.is-today .jx-livestrip__bar-label {
+  color: var(--yellow-500);
+  font-weight: 700;
+}
+.jx-livestrip__bar-label {
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.jx-livestrip__bar-half {
+  height: 34px;
+  display: flex;
+  overflow: hidden;
+}
+.jx-livestrip__bar-half > span {
+  width: 100%;
+  min-width: 3px;
+  display: block;
+  margin: 0 auto;
+}
+@keyframes jx-bar-rise {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+.jx-livestrip__bar-half--up {
+  align-items: flex-end;
+}
+.jx-livestrip__bar-half--up > span {
+  border-radius: 2px 2px 0 0;
+  transform-origin: bottom;
+  animation: jx-bar-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jx-livestrip__bar-half--down {
+  align-items: flex-start;
+}
+.jx-livestrip__bar-half--down > span {
+  border-radius: 0 0 2px 2px;
+  transform-origin: top;
+  animation: jx-bar-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .jx-livestrip__bar-half > span {
+    animation: none;
+  }
+}
+/* no-trade day: a small muted tick sitting on the baseline */
+.jx-livestrip__bar-empty {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-border-strong);
+  opacity: 0.7;
+}
+/* custom hover tooltip */
+.jx-livestrip__tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
+  font-size: 11.5px;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .jx-livestrip[data-best="1"] {
   background: var(--color-success-subtle);
@@ -2593,7 +2785,7 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font: var(--text-caption);
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -2617,8 +2809,8 @@ body::before {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 25%, transparent);
 }
 .jx-livestrip__label {
-  font: var(--text-body-md);
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   min-width: 0;
 }
 .jx-livestrip__meta {
@@ -2626,20 +2818,23 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font: var(--text-caption);
+  font-size: 13px;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
 @media (max-width: 600px) {
   .jx-livestrip {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .jx-livestrip__row {
     gap: 6px 10px;
-    padding: 9px 12px;
   }
   .jx-livestrip__live {
-    font-size: 10px;
+    font-size: 11px;
   }
   .jx-livestrip__label {
-    font-size: 12.5px;
+    font-size: 15px;
     line-height: 1.35;
   }
   /* time drops to its own full-width line, flush-left under the LIVE badge
@@ -2648,7 +2843,34 @@ body::before {
     margin-left: 0;
     width: 100%;
     padding-left: 0;
+    font-size: 12px;
+  }
+  .jx-livestrip__note {
+    font-size: 12px;
+    padding-top: 8px;
+  }
+  .jx-livestrip__chart-head {
     font-size: 11px;
+  }
+  .jx-livestrip__bars {
+    height: 79px;
+    gap: 5px;
+  }
+  .jx-livestrip__bar-half {
+    height: 32px;
+  }
+  .jx-livestrip__baseline {
+    top: 32px;
+  }
+  .jx-livestrip__bar-label {
+    height: 15px;
+    font-size: 10px;
+  }
+  .jx-livestrip__stats {
+    gap: var(--space-4);
+  }
+  .jx-livestrip__stat-v {
+    font-size: 18px;
   }
 }
 

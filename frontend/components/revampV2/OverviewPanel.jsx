@@ -1429,6 +1429,7 @@ export default function OverviewPanel({
     const id = setInterval(() => setMinuteTick((t) => t + 1), 60000);
     return () => clearInterval(id);
   }, []);
+  const [barHover, setBarHover] = useState(null); // index of hovered day bar
   const liveSession = useMemo(() => {
     const now = new Date();
     const h = now.getUTCHours();
@@ -1444,6 +1445,53 @@ export default function OverviewPanel({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [SESSIONS, minuteTick]);
+
+  /* ---- last-30-days P&L summed per weekday (Mon→Sun): 7 bars, green profit /
+     red loss, best weekday highlighted, for the mini chart in the live strip ---- */
+  const weekday7 = useMemo(() => {
+    const DAYS = 30;
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (DAYS - 1));
+    const short = ["M", "T", "W", "T", "F", "S", "S"];
+    const full = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const acc = Array.from({ length: 7 }, () => ({ pnl: 0, trades: 0, wins: 0 }));
+    closed.forEach((t) => {
+      const when = t.closeTime || t.openTime;
+      if (!when) return;
+      const d = new Date(when);
+      if (d < start) return;
+      const idx = (d.getDay() + 6) % 7; // Mon=0 … Sun=6
+      const p = Number(t.pnl) || 0;
+      acc[idx].pnl += p;
+      acc[idx].trades += 1;
+      if (p > 0) acc[idx].wins += 1;
+    });
+    const bars = acc.map((a, i) => ({ ...a, label: short[i], full: full[i], has: a.trades > 0 }));
+    const maxAbs = Math.max(1, ...bars.map((b) => Math.abs(b.pnl)));
+    const profitDays = bars.filter((b) => b.pnl > 0).length;
+    const lossDays = bars.filter((b) => b.pnl < 0).length;
+    let bestIdx = -1;
+    bars.forEach((b, i) => {
+      if (b.pnl > 0 && (bestIdx < 0 || b.pnl > bars[bestIdx].pnl)) bestIdx = i;
+    });
+    // last-30-day totals (the "minimal" numbers merged into the top strip)
+    const net = bars.reduce((s, b) => s + b.pnl, 0);
+    const trades = bars.reduce((s, b) => s + b.trades, 0);
+    const wins = acc.reduce((s, a) => s + a.wins, 0);
+    const winRate = trades ? (wins / trades) * 100 : 0;
+    const todayIdx = (new Date().getDay() + 6) % 7;
+    // change vs the previous 30-day window, for the headline badge
+    const prevStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (DAYS * 2 - 1));
+    let prevNet = 0;
+    closed.forEach((t) => {
+      const when = t.closeTime || t.openTime;
+      if (!when) return;
+      const d = new Date(when);
+      if (d >= prevStart && d < start) prevNet += Number(t.pnl) || 0;
+    });
+    const changePct = prevNet !== 0 ? ((net - prevNet) / Math.abs(prevNet)) * 100 : net > 0 ? 100 : 0;
+    return { bars, maxAbs, profitDays, lossDays, bestIdx, best: bestIdx >= 0 ? bars[bestIdx] : null, net, trades, winRate, todayIdx, changePct, hasPrev: prevNet !== 0 };
+  }, [closed]);
 
   /* ---- trader edge: the metrics that actually predict long-term results ---- */
   const EDGE = useMemo(() => {
@@ -1821,21 +1869,151 @@ export default function OverviewPanel({
       {/* ===== Live session strip — which session is open now + time left ===== */}
       {liveSession && !usingDummy && (
         <div className="jx-livestrip" data-best={liveSession.isBest ? "1" : "0"} style={{ order: -2 }}>
-          <span className="jx-livestrip__live">
-            <span className="jx-livestrip__dot" />
-            Live
-          </span>
-          <span className="jx-livestrip__label">
-            {liveSession.cur.label} session{liveSession.isBest ? " — your most profitable window" : " is open"}
-          </span>
-          {liveSession.isBest && (
-            <Badge variant="success"><Crown size={11} /> Best</Badge>
-          )}
-          <span className="jx-livestrip__meta">
-            <Clock size={13} />
-            {liveSession.remH > 0 ? `${liveSession.remH}h ` : ""}{liveSession.remM}m left
-            {liveSession.cur.trades > 0 ? ` · ${Math.round(liveSession.cur.winRate)}% win here` : ""}
-          </span>
+          <div className="jx-livestrip__row">
+            <span className="jx-livestrip__live">
+              <span className="jx-livestrip__dot" />
+              Live
+            </span>
+            <span className="jx-livestrip__label">
+              {liveSession.cur.label} session{liveSession.isBest ? " — your most profitable window" : " is open"}
+            </span>
+            {liveSession.isBest && (
+              <Badge variant="success"><Crown size={11} /> Best</Badge>
+            )}
+            <span className="jx-livestrip__meta">
+              <span className="jx-livestrip__date">
+                {new Date().toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}
+              </span>
+              <span style={{ opacity: 0.4 }}>·</span>
+              <Clock size={13} />
+              {liveSession.remH > 0 ? `${liveSession.remH}h ` : ""}{liveSession.remM}m left
+              {liveSession.cur.trades > 0 ? ` · ${Math.round(liveSession.cur.winRate)}% win here` : ""}
+            </span>
+          </div>
+          {/* merged 30-day headline stats (from the old profit card) */}
+          <div className="jx-livestrip__stats">
+            <div className="jx-livestrip__stat">
+              <span className="jx-livestrip__stat-l">Net P&amp;L · 30d</span>
+              <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                <span
+                  className="jx-livestrip__stat-v"
+                  style={{ color: weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}
+                >
+                  {k(weekday7.net, currencySymbol)}
+                </span>
+                {weekday7.hasPrev && (
+                  <span
+                    className="jx-livestrip__delta"
+                    style={{
+                      color: weekday7.changePct >= 0 ? "var(--color-success)" : "var(--color-danger)",
+                      background: weekday7.changePct >= 0 ? "var(--color-success-subtle)" : "var(--color-danger-subtle)",
+                    }}
+                  >
+                    {weekday7.changePct >= 0 ? "▲" : "▼"} {Math.abs(Math.round(weekday7.changePct))}%
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="jx-livestrip__stat">
+              <span className="jx-livestrip__stat-l">Trades</span>
+              <span className="jx-livestrip__stat-v">{weekday7.trades}</span>
+            </div>
+            <div className="jx-livestrip__stat">
+              <span className="jx-livestrip__stat-l">Win rate</span>
+              <span className="jx-livestrip__stat-v">{Math.round(weekday7.winRate)}%</span>
+            </div>
+          </div>
+
+          <div className="jx-livestrip__note">
+            <Coffee size={13} style={{ flexShrink: 0, color: "var(--yellow-500)" }} />
+            <span>
+              Trade your plan, not your mood — if you&apos;re stressed or on tilt, take a breather and reset before you log a trade.
+            </span>
+          </div>
+
+          {/* P&L by weekday (last 30 days) — 7 summed bars */}
+          <div className="jx-livestrip__chart">
+            <div className="jx-livestrip__chart-head">
+              <span style={{ fontWeight: 600, color: "var(--color-text-secondary)" }}>P&amp;L by weekday · 30d</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-success)" }}>
+                  <span style={{ width: 7, height: 7, borderRadius: 2, background: "var(--color-success)" }} />
+                  {weekday7.profitDays} up
+                </span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-danger)" }}>
+                  <span style={{ width: 7, height: 7, borderRadius: 2, background: "var(--color-danger)" }} />
+                  {weekday7.lossDays} down
+                </span>
+                {weekday7.best && (
+                  <span style={{ color: "var(--yellow-600)", fontWeight: 600 }}>
+                    Best {k(weekday7.best.pnl, currencySymbol)} · {weekday7.best.full}
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="jx-livestrip__bars" onMouseLeave={() => setBarHover(null)}>
+              {/* zero baseline */}
+              <span className="jx-livestrip__baseline" aria-hidden="true" />
+
+              {/* custom tooltip for the hovered weekday */}
+              {barHover != null && weekday7.bars[barHover] && (() => {
+                const b = weekday7.bars[barHover];
+                const pos = ((barHover + 0.5) / weekday7.bars.length) * 100;
+                return (
+                  <div
+                    className="jx-livestrip__tip"
+                    style={{ left: `${pos}%`, transform: `translateX(${barHover < 1 ? "0" : barHover > weekday7.bars.length - 2 ? "-100%" : "-50%"})` }}
+                  >
+                    <span style={{ color: "var(--color-text-muted)" }}>
+                      {b.full} · {b.trades} trade{b.trades === 1 ? "" : "s"}
+                    </span>
+                    <strong style={{ color: !b.has ? "var(--color-text-muted)" : b.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                      {b.has ? `${b.pnl >= 0 ? "+" : "−"}${currencySymbol}${fmt(Math.abs(b.pnl), 0)}` : "No trades"}
+                    </strong>
+                  </div>
+                );
+              })()}
+
+              {weekday7.bars.map((b, i) => {
+                const up = b.pnl > 0;
+                const down = b.pnl < 0;
+                // gentle power scale + high floor so every traded weekday reads
+                // as a proper bar (not a sliver) next to the biggest one
+                const h = b.has ? Math.max(16, Math.round(Math.pow(Math.abs(b.pnl) / weekday7.maxAbs, 0.4) * 34)) : 0;
+                const isBest = i === weekday7.bestIdx;
+                const isToday = i === weekday7.todayIdx;
+                return (
+                  <div
+                    key={i}
+                    className={`jx-livestrip__bar${i === barHover ? " is-hover" : ""}${isToday ? " is-today" : ""}`}
+                    onMouseEnter={() => setBarHover(i)}
+                  >
+                    <span className="jx-livestrip__bar-half jx-livestrip__bar-half--up">
+                      {up && (
+                        <span
+                          style={{
+                            height: h,
+                            background: isBest ? "var(--yellow-400)" : "var(--color-success)",
+                            boxShadow: isBest ? "0 0 7px color-mix(in srgb, var(--yellow-400) 65%, transparent)" : "none",
+                          }}
+                        />
+                      )}
+                    </span>
+                    <span className="jx-livestrip__bar-half jx-livestrip__bar-half--down">
+                      {down && <span style={{ height: h, background: "var(--color-danger)" }} />}
+                      {!b.has && <span className="jx-livestrip__bar-empty" />}
+                    </span>
+                    <span
+                      className="jx-livestrip__bar-label"
+                      style={isBest ? { color: "var(--yellow-600)", fontWeight: 700 } : undefined}
+                    >
+                      {b.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1844,7 +2022,9 @@ export default function OverviewPanel({
         <SampleDataBanner onLog={onLogTrade} onImport={onImport} />
       )}
 
-      {/* ===== Hero card ===== */}
+      {/* ===== Hero card removed — its headline numbers are merged into the
+          live strip above; kept out of render so the top is a single card ===== */}
+      {false && (
       <div
         className="jx-card jx-hero-grid"
         style={{
@@ -1985,6 +2165,7 @@ export default function OverviewPanel({
           />
         </div>
       </div>
+      )}
 
       {/* ===== Progress cards ===== */}
       {isVisible("progress") && (
