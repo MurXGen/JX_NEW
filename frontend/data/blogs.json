@@ -17435,6 +17435,400 @@
           "text": "Set up your four dimensions this week. Keep the lists short. Tag at entry. In sixty days you will know something about your trading that you currently only suspect."
         }
       ]
+    },
+    {
+      "slug": "0dte-options-trading-journal",
+      "title": "The 0DTE Options Journal: How to Track Trades That Live and Die in One Session",
+      "metaTitle": "0DTE Options Trading Journal: How to Track Same-Day Expiry Trades | JournalX",
+      "metaDescription": "0DTE options now dominate SPX volume. Learn what to log, how to tag time-of-day, and how to size same-day expiry trades so your journal actually helps you.",
+      "keywords": [
+        "0dte options trading journal",
+        "how to journal 0dte trades",
+        "same day expiry options journal",
+        "0dte options risk management",
+        "track spx 0dte trades",
+        "0dte trading log"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-09-26",
+      "featured": false,
+      "excerpt": "Same-day expiry options compress an entire trade lifecycle into a few hours — and a standard trading journal loses almost all of the information that matters. Here is what to log instead.",
+      "helpful": {
+        "up": 42,
+        "down": 2,
+        "saves": 37
+      },
+      "tags": [
+        "0DTE",
+        "Options",
+        "Journaling",
+        "Risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Zero-days-to-expiry options have gone from a niche instrument to the main event. Per Cboe's own 2026 disclosures, 0DTE contracts have been running at roughly two-thirds of total SPX options volume in recent months, with overall 0DTE volume reported up around 46% year to date. Whatever you think of that trend, it means a large share of active retail traders are now placing trades whose entire life — entry, thesis, decay, exit — fits inside a single session."
+        },
+        {
+          "type": "p",
+          "text": "Here is the problem. Most trading journals were designed for swing trades and intraday futures. They ask for entry price, exit price, stop, target, P&L. Run a 0DTE book through those five fields and you end up with a spreadsheet full of numbers that cannot tell you why you lost. The variables that actually decide a same-day expiry outcome — the clock, implied volatility at entry, how far out of the money you reached, whether you were early or simply wrong — are not in there at all."
+        },
+        {
+          "type": "h2",
+          "text": "Why a normal journal fails on same-day expiry"
+        },
+        {
+          "type": "p",
+          "text": "On a swing trade, time is roughly neutral. You can be right a day late and still get paid. On 0DTE, time is an active opponent. Theta is not a background cost, it is the largest single force acting on your position through the afternoon, and it accelerates into the close. A journal that does not record time cannot separate two completely different failures that look identical on the P&L line."
+        },
+        {
+          "type": "p",
+          "text": "Trade A: you read direction wrong, the index went the other way. That is a thesis problem — fix the setup. Trade B: you read direction right, the index eventually went your way, but it took ninety minutes and your contract had already bled most of its premium. That is a timing and structure problem — fix the strike selection or the entry window. Same red number, opposite lessons. Without timestamps and greeks at entry, you will treat them the same and learn nothing from either."
+        },
+        {
+          "type": "h2",
+          "text": "The fields a 0DTE journal actually needs"
+        },
+        {
+          "type": "p",
+          "text": "Keep the standard fields, then add the ones below. This is the minimum set that makes a monthly review worth sitting down for."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Field",
+            "Why it matters on 0DTE",
+            "Example"
+          ],
+          "rows": [
+            [
+              "Entry timestamp (to the minute)",
+              "Separates morning trend trades from afternoon decay trades. Your edge almost certainly lives in one window and dies in another.",
+              "10:07 ET"
+            ],
+            [
+              "Minutes held",
+              "0DTE outcomes cluster by hold time. Most traders have a duration past which expectancy turns negative.",
+              "18 min"
+            ],
+            [
+              "Strike distance from spot",
+              "Far-OTM lottery tickets and near-the-money contracts are different strategies. Log distance in points or percent.",
+              "15 pts OTM"
+            ],
+            [
+              "IV or VIX at entry",
+              "A 12-VIX morning and a 24-VIX morning are not the same market. Premium paid and realistic targets both scale with it.",
+              "VIX 17.4"
+            ],
+            [
+              "Premium paid per contract",
+              "Your real risk unit. Not the notional, not the strike — the premium is what can go to zero.",
+              "$2.15"
+            ],
+            [
+              "Catalyst or setup tag",
+              "Opening range break, VWAP reclaim, CPI reaction, or nothing. The 'nothing' tag is the most revealing one.",
+              "VWAP reclaim"
+            ],
+            [
+              "Max favorable excursion",
+              "Shows whether your exits leave money behind or you hold through a peak you should have sold.",
+              "+68%"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Time of day is your single most valuable tag"
+        },
+        {
+          "type": "p",
+          "text": "If you only add one field, add the entry timestamp and start bucketing it. Academic work on SPX 0DTE order flow describes pronounced intraday periodicity — volume arriving in bursts clustered at fixed clock times rather than spread evenly across the session. Your own results will show the same lumpiness, with your personal distortions layered on top."
+        },
+        {
+          "type": "p",
+          "text": "Bucket every trade into four windows: 9:30–10:00, 10:00–12:00, 12:00–14:00, and 14:00 to the close. After fifty trades, compute expectancy per bucket. The pattern most traders find is uncomfortable and useful: one window carries the entire edge, one is roughly flat, and one — usually the lunch chop, or the revenge hour after a morning loss — quietly erases the rest. You do not need a new strategy. You need to stop trading in that bucket."
+        },
+        {
+          "type": "quote",
+          "text": "On 0DTE, 'I was right' and 'I was paid' are separate events. Your journal has to record both, or you will keep repeating the trades that were right and unprofitable."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "0DTE pre-trade checklist",
+          "prompt": "Run this before every same-day expiry entry. Honest answers only — this is a diagnostic, not a score to win.",
+          "items": [
+            "I know the exact premium I am risking and I am prepared for it to go to zero",
+            "This entry falls inside my highest-expectancy time window",
+            "I have a specific catalyst or setup, not just a directional feeling",
+            "My strike is close enough to spot that a normal move actually pays me",
+            "I have a time stop, not only a price stop (for example: out by 11:15 regardless)",
+            "This is not a recovery trade for an earlier loss today",
+            "I have checked VIX or IV, so I know whether premium is cheap or expensive today",
+            "I am still under my daily trade limit"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Step away from the order ticket. This is a mood, not a trade."
+            },
+            {
+              "min": 4,
+              "text": "Marginal. If you take it, halve your normal premium risk and log why you took it."
+            },
+            {
+              "min": 6,
+              "text": "Acceptable. Take it, log the timestamp, and honour your time stop."
+            },
+            {
+              "min": 8,
+              "text": "This is your A-setup. Size normally and do not talk yourself out of the exit plan."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Sizing when the instrument can print zero"
+        },
+        {
+          "type": "p",
+          "text": "The most common 0DTE blowup is not a bad read, it is a sizing model borrowed from stock trading. With shares you size off a stop distance, because your loss is bounded by where you exit. With a same-day option that expires worthless, your realistic worst case is the full premium — and on a fast move against you, spreads can widen enough that 'I'll just cut it' is not available at the price you pictured."
+        },
+        {
+          "type": "p",
+          "text": "So size off premium, not off notional and not off a theoretical stop. If your account risk per trade is 1%, the total premium you pay should be about that 1%. Treat any stop you set on top of that as a bonus rather than as the thing defining your risk. Traders who make this one change usually find their worst days shrink sharply, well before their win rate moves at all."
+        },
+        {
+          "type": "h2",
+          "text": "Reviewing a 0DTE book without drowning in it"
+        },
+        {
+          "type": "p",
+          "text": "0DTE traders generate a lot of rows. Reviewing them one by one is unsustainable; reviewing them only in aggregate hides everything. The workable middle is to review by slice, once a week: pick one dimension — time bucket, strike distance, or setup tag — and look only at that. Next week, pick another. Over a month you cover the whole book without a four-hour review session that you were always going to skip."
+        },
+        {
+          "type": "p",
+          "text": "Also log the trades you wanted and did not take. On 0DTE the passed trades carry real signal, because the impulse to click is the thing you are actually managing. If your skipped trades would have outperformed your taken trades, your filter is inverted, and that is worth finding out early rather than after another quarter of premium."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX you log the entry timestamp, premium, strike distance and setup tag once, then let the analytics slice it — expectancy by time bucket, by hold duration, by tag. Instead of scrolling a spreadsheet you see that your 9:30–10:00 trades carry positive expectancy while your post-2pm trades quietly gave it all back. Screenshot import means logging a fast 0DTE trade takes seconds, which is the only reason the habit survives a busy session."
+        },
+        {
+          "type": "why",
+          "text": "Most journals treat every trade as the same shape. JournalX supports custom fields and tags per instrument type, so your 0DTE book is analysed on its own terms — time, premium and decay — rather than being flattened into the same entry/exit table as your swing positions. The review tooling is built around slices, so you answer one question per week instead of trying to read everything at once."
+        },
+        {
+          "type": "p",
+          "text": "None of this makes same-day expiry safe. It is a high-variance instrument where the clock works against you and a plausible thesis can still pay nothing. What a proper journal does is stop the variance from being invisible. After a few hundred logged trades you stop arguing with yourself about whether 0DTE 'works' and start reading a table that tells you which hour, which strike distance and which setup have earned the right to stay in the book."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What should I log on a 0DTE trade that a normal journal misses?",
+          "a": "Entry timestamp to the minute, minutes held, strike distance from spot, IV or VIX at entry, and premium paid. These five explain most 0DTE outcomes and are absent from standard journal templates."
+        },
+        {
+          "q": "How do I size a 0DTE options trade?",
+          "a": "Size off the premium you pay, not notional value or a theoretical stop distance. Assume the contract can go to zero and keep total premium at or below your normal per-trade account risk, commonly 0.5% to 1%."
+        },
+        {
+          "q": "Why am I right on direction but still losing on 0DTE?",
+          "a": "That is usually a timing or strike-selection problem rather than a thesis problem. Theta accelerates through the session, so a move arriving 60-90 minutes late can leave a correct directional call worthless. Logging timestamps and hold duration is what separates the two failures."
+        },
+        {
+          "q": "How often should I review a 0DTE journal?",
+          "a": "Weekly, but by slice. Pick one dimension per week — time of day, hold duration, strike distance, or setup tag — rather than attempting a full review of every trade, which most traders abandon within a month."
+        }
+      ]
+    },
+    {
+      "slug": "weekly-trading-review-routine",
+      "title": "The Weekly Trading Review: A 45-Minute Routine That Turns a Journal Into Improvement",
+      "metaTitle": "Weekly Trading Review: A 45-Minute Routine for Traders | JournalX",
+      "metaDescription": "Logging trades is data collection; the weekly review is where improvement happens. A step-by-step routine, the five numbers to open with, and what to change.",
+      "keywords": [
+        "weekly trading review",
+        "trading review routine",
+        "how to review your trades",
+        "weekly trade review process",
+        "trading performance review",
+        "trading journal review checklist"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-09-26",
+      "featured": false,
+      "excerpt": "Most traders log every trade and review none of them. The weekly review is the step that converts a pile of entries into an actual change in behaviour — and it takes under an hour.",
+      "helpful": {
+        "up": 45,
+        "down": 1,
+        "saves": 41
+      },
+      "tags": [
+        "Review",
+        "Routine",
+        "Journaling",
+        "Process"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "There is a gap that swallows most trading journals. The trader logs diligently for three months, builds up four hundred entries, and then does nothing with them. The journal becomes an archive instead of an instrument. Logging is the data collection step. The review is the analysis step, and if you skip it, most of the logging was wasted effort."
+        },
+        {
+          "type": "p",
+          "text": "This matters more than any single tactical fix, because the recurring finding across broker and regulator disclosures is that retail underperformance is behavioural rather than informational. ESMA and FCA disclosures have consistently put the share of losing retail CFD accounts somewhere in the 70-85% band, varying by jurisdiction and period. Traders in that band do not generally lack strategies. They lack a feedback loop that catches them doing the same destructive thing for the eleventh time."
+        },
+        {
+          "type": "h2",
+          "text": "Why the daily journal is not enough"
+        },
+        {
+          "type": "p",
+          "text": "A daily note is written inside the emotional weather of that day. After a losing session you write 'was impatient, need discipline.' After a winner you write 'good execution.' Both are true and neither is actionable, because one day is too small a sample to show a pattern and too close in time to see clearly."
+        },
+        {
+          "type": "p",
+          "text": "A week is the smallest unit where patterns surface and the emotion has cooled enough for honesty. You can see that the impatience showed up on Tuesday and Thursday, both times after a morning loss, both times in the same instrument. That is a rule you can write. 'Need discipline' is not."
+        },
+        {
+          "type": "h2",
+          "text": "Open with five numbers, not with charts"
+        },
+        {
+          "type": "p",
+          "text": "Start with the quantitative picture, before any individual trade. Looking at charts first lets the most emotionally vivid trade of the week hijack the whole session. Pull these five and write them next to last week's figures."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Metric",
+            "What it tells you",
+            "Red flag"
+          ],
+          "rows": [
+            [
+              "Net P&L",
+              "Baseline, and nothing more. Do not draw conclusions from it alone.",
+              "A green week built entirely on one outsized trade"
+            ],
+            [
+              "Number of trades",
+              "The clearest overtrading signal you have.",
+              "Well above your normal weekly count"
+            ],
+            [
+              "Profit factor",
+              "Gross profit divided by gross loss. The best one-number health check.",
+              "Below 1.0, or falling three weeks running"
+            ],
+            [
+              "Expectancy in R",
+              "Average R won or lost per trade. Comparable across position sizes.",
+              "Negative while the win rate still looks fine"
+            ],
+            [
+              "Rule adherence rate",
+              "Percentage of trades that followed your written plan.",
+              "Below 80% — your strategy is not what is being tested"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "That last row does the heaviest lifting and almost nobody tracks it. If adherence is 60%, your P&L tells you nothing about your strategy, because you did not trade your strategy. Fixing adherence has to come before any strategy change, since until it is high you have no clean data to change a strategy on."
+        },
+        {
+          "type": "h2",
+          "text": "Then read three winners and three losers"
+        },
+        {
+          "type": "p",
+          "text": "Not all of them. Three of each, chosen as your largest by R. For each, answer two questions in one line: was the decision to enter correct given what I knew at the time, and was the exit correct given what I knew at the time. Neither question asks whether it made money. A well-executed loss is a good trade. A rule-breaking win is a bad trade you happened to get paid for, and it is the most dangerous entry of the week because it teaches the wrong lesson with a reward attached."
+        },
+        {
+          "type": "p",
+          "text": "Mark each as process-good or process-bad, independent of outcome. Over a few months the share of process-good trades is the metric that actually predicts improvement — usually well before the equity curve confirms it."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Which trade should worry you most?",
+          "prompt": "You review four trades from last week. All four were profitable. Which deserves the most attention in your review?",
+          "options": [
+            "A +0.4R scalp that followed the plan exactly",
+            "A +3.1R winner where you moved your stop wider to avoid being stopped out, then it reversed in your favour",
+            "A +1.2R trade you exited slightly early at a logical level",
+            "A +0.8R trade in a setup you have traded a hundred times"
+          ],
+          "correct": 1,
+          "explain": "The +3.1R is the dangerous one. You broke a risk rule and were rewarded for it, which is exactly how a habit forms. The next time you widen a stop it may cost several times what this one paid. Flag it as process-bad despite the green number — that reframing is the entire point of separating process from outcome."
+        },
+        {
+          "type": "h2",
+          "text": "Make exactly one adjustment"
+        },
+        {
+          "type": "p",
+          "text": "This is the discipline that makes the routine work. One change per week. Not three, and not a rewritten trading plan. One specific, testable rule, written into the journal with the date attached."
+        },
+        {
+          "type": "p",
+          "text": "'No new entries after 2pm ET for the next two weeks' is a valid adjustment. 'Be more patient' is not, because next Saturday you cannot tell whether you did it. Write it as something you could audit from your own trade log, then audit it in the next review. Change three things at once and you will never learn which one helped — you will just hold a different set of untested rules and the same uncertainty."
+        },
+        {
+          "type": "quote",
+          "text": "The journal is data collection. The review is the analysis. Most traders do the tedious half and skip the half that pays."
+        },
+        {
+          "type": "h2",
+          "text": "Making it survive a losing week"
+        },
+        {
+          "type": "p",
+          "text": "The review you most need is the one after a bad week, and it is the one you are most likely to skip. Build the routine so skipping is harder than doing it: the same time every week, ideally Saturday or Sunday morning when markets are closed and Friday has enough distance to look at objectively. Put it in the calendar as a fixed appointment. Cap it at 45 minutes and set a timer — an open-ended review drifts into rumination, which is a different activity wearing the same clothes."
+        },
+        {
+          "type": "p",
+          "text": "If a week was genuinely brutal, shorten rather than skip. Five minutes on the numbers, one sentence on what happened, one adjustment. The streak matters more than the depth of any single session, because the value compounds from consistency. Twelve shallow reviews beat three thorough ones and nine skipped."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX pulls the five opening numbers — net P&L, trade count, profit factor, expectancy in R and rule adherence — into a single weekly view, so the first ten minutes of your review are already done. Tag trades as process-good or process-bad and the platform tracks that ratio over time as its own curve, alongside your equity curve. Your written weekly adjustment stays attached to its date, so next week's review starts by checking whether last week's rule actually held."
+        },
+        {
+          "type": "why",
+          "text": "Most journals stop at logging and leave the review to you and a blank page. JournalX treats the review as a first-class part of the workflow: a repeatable weekly template, metrics pre-computed against last week's baseline, and adjustments stored as dated, auditable entries rather than loose notes. The process-versus-outcome distinction is built into the tagging, which is what makes rule-breaking winners visible instead of invisible."
+        },
+        {
+          "type": "p",
+          "text": "Forty-five minutes a week is about thirty-nine hours a year. Set against the time most traders spend hunting for a better indicator, it is the cheapest edge available — and the only one that works on the part of the problem that is actually yours."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How long should a weekly trading review take?",
+          "a": "Around 30 to 45 minutes, with a timer. Shorter reviews stay shallow and open-ended ones drift into rumination rather than analysis. If a week was especially bad, run a five-minute version rather than skipping it — consistency matters more than depth."
+        },
+        {
+          "q": "When is the best time to do a weekly review?",
+          "a": "Saturday or Sunday morning works for most traders. Markets are closed, the week is still fresh, and there is enough distance from Friday's session to assess it without the emotion. The specific slot matters less than it being the same one every week."
+        },
+        {
+          "q": "What metrics should I look at in a weekly review?",
+          "a": "Net P&L, trade count, profit factor, expectancy in R, and rule adherence rate. Adherence is the most important and least tracked — if you followed your plan on only 60% of trades, your P&L says little about whether the strategy works."
+        },
+        {
+          "q": "How many changes should I make after a review?",
+          "a": "One, written as a specific and auditable rule. Multiple simultaneous changes make it impossible to attribute later improvement, leaving you with more untested rules and no more knowledge than you started with."
+        }
+      ]
     }
   ]
 }
