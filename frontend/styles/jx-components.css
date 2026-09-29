@@ -259,6 +259,8 @@
 }
 .jx-trow {
   position: relative;
+  display: flex;
+  flex-direction: column;
   transition: background 0.14s ease;
 }
 .jx-trow + .jx-trow {
@@ -266,6 +268,48 @@
 }
 .jx-trow:hover {
   background: var(--color-bg-muted);
+}
+.jx-trow__main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px var(--space-4);
+  cursor: pointer;
+}
+/* horizontal screenshot strip on a card */
+.jx-trow__thumbs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 var(--space-4) 12px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+.jx-trow__thumbs::-webkit-scrollbar {
+  height: 5px;
+}
+.jx-trow__thumbs::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+.jx-trow__thumbs img {
+  height: 72px;
+  width: 108px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  cursor: zoom-in;
+  transition: border-color 0.14s ease, transform 0.14s ease;
+}
+.jx-trow__thumbs img:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+/* date group: a divider under every day (including the last) */
+.jx-tgroup {
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 .jx-trade-card::before {
   content: "";

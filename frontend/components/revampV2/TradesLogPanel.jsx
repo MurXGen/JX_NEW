@@ -233,14 +233,14 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
 }
 
 /* ---------- Trade card ---------- */
-function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu, onImageClick }) {
+function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu, onImageClick, showImages }) {
   const isLong = t.direction?.toLowerCase() === "long";
   const pnl = Number(t.pnl) || 0;
-  const entry = t.avgEntryPrice || t.entryPrice || t.entries?.[0]?.price;
-  const exit = t.avgExitPrice || t.exitPrice || t.exits?.[0]?.price;
-  const imgs = t.images?.length || 0;
-  // neutral card; outcome is signalled by a subtle left accent bar + badge,
-  // not a full green/red wash.
+  const images = (t.images || [])
+    .map((i) => (typeof i === "string" ? { url: i } : i))
+    .filter((i) => i?.url);
+  const imgs = images.length;
+  // neutral card; outcome is signalled by a subtle left accent bar + badge.
   const accent =
     pnl > 0 ? "var(--color-success)" : pnl < 0 ? "var(--color-danger)" : "var(--color-border-strong)";
   return (
@@ -248,62 +248,77 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
       className="jx-trow"
       onClick={() => (selectMode ? onToggleSelect() : onOpen?.(t))}
       style={{
-        display: "flex", alignItems: "center", gap: "var(--space-3)",
-        padding: "11px var(--space-4)",
-        cursor: "pointer",
         boxShadow: `inset 3px 0 0 0 ${accent}`,
         background: selected ? "var(--color-primary-subtle)" : undefined,
       }}
     >
-      {selectMode && (
-        <span style={{ color: selected ? "var(--yellow-500)" : "var(--color-text-muted)", display: "flex", flexShrink: 0 }}>
-          {selected ? <CheckSquare size={17} /> : <Square size={17} />}
-        </span>
-      )}
-
-      {/* left: symbol + side, then a tight meta line */}
-      <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <span style={{ font: "var(--text-body-lg)", fontWeight: 700, letterSpacing: "-0.2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {t.symbol || t.ticker || "—"}
+      <div className="jx-trow__main">
+        {selectMode && (
+          <span style={{ color: selected ? "var(--yellow-500)" : "var(--color-text-muted)", display: "flex", flexShrink: 0 }}>
+            {selected ? <CheckSquare size={17} /> : <Square size={17} />}
           </span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, flexShrink: 0, font: "var(--text-caption)", fontWeight: 600, color: isLong ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-            {isLong ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-            {isLong ? "Long" : "Short"}
+        )}
+
+        {/* left: symbol + side, then a tight meta line */}
+        <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            <span style={{ font: "var(--text-body-lg)", fontWeight: 700, letterSpacing: "-0.2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {t.symbol || t.ticker || "—"}
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, flexShrink: 0, font: "var(--text-caption)", fontWeight: 600, color: isLong ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+              {isLong ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+              {isLong ? "Long" : "Short"}
+            </span>
+          </div>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "var(--text-caption)", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
+            <Clock size={11} />
+            {t.closeTime ? new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Open"}
+            <span style={{ opacity: 0.45 }}>·</span>
+            {t.source === "auto" ? "Auto" : "Manual"}
+            {imgs > 0 && (
+              <>
+                <span style={{ opacity: 0.45 }}>·</span>
+                <span
+                  onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 3, cursor: "zoom-in" }}
+                  title="View screenshots"
+                >
+                  <ImageIcon size={11} /> {imgs}
+                </span>
+              </>
+            )}
           </span>
         </div>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "var(--text-caption)", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
-          <Clock size={11} />
-          {t.closeTime ? new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Open"}
-          <span style={{ opacity: 0.45 }}>·</span>
-          {t.source === "auto" ? "Auto" : "Manual"}
-          {imgs > 0 && (
-            <>
-              <span style={{ opacity: 0.45 }}>·</span>
-              <span
-                onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
-                style={{ display: "inline-flex", alignItems: "center", gap: 3, cursor: "zoom-in" }}
-                title="View screenshots"
-              >
-                <ImageIcon size={11} /> {imgs}
-              </span>
-            </>
-          )}
-        </span>
+
+        {/* right: P&L over Win/Loss */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1, flexShrink: 0 }}>
+          <span style={{ font: "var(--text-title)", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+            {money(pnl, sym)}
+          </span>
+          <span style={{ font: "var(--text-caption)", fontWeight: 600, color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
+            {pnl >= 0 ? "Win" : "Loss"}
+          </span>
+        </div>
+
+        {!selectMode && <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }} onClick={(e) => e.stopPropagation()}>{menu}</span>}
+        {!selectMode && <ChevronRight size={18} strokeWidth={2.5} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />}
       </div>
 
-      {/* right: P&L over Win/Loss */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1, flexShrink: 0 }}>
-        <span style={{ font: "var(--text-title)", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-          {money(pnl, sym)}
-        </span>
-        <span style={{ font: "var(--text-caption)", fontWeight: 600, color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
-          {pnl >= 0 ? "Win" : "Loss"}
-        </span>
-      </div>
-
-      {!selectMode && <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }} onClick={(e) => e.stopPropagation()}>{menu}</span>}
-      {!selectMode && <ChevronRight size={18} strokeWidth={2.5} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />}
+      {/* horizontal screenshot strip — tap any thumb to open the zoomable viewer */}
+      {showImages && imgs > 0 && (
+        <div className="jx-trow__thumbs" onClick={(e) => e.stopPropagation()}>
+          {images.map((img, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={img.url || i}
+              src={img.url}
+              alt={`screenshot ${i + 1}`}
+              loading="lazy"
+              onClick={() => onImageClick?.()}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -560,6 +575,20 @@ export default function TradesLogPanel({
   const [showImport, setShowImport] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState(new Set());
+  // show screenshot thumbnails on the trade cards (persisted, cards view only)
+  const [showCardImages, setShowCardImages] = useState(true);
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("jx-card-images");
+      if (v != null) setShowCardImages(v === "1");
+    } catch {}
+  }, []);
+  const toggleCardImages = () =>
+    setShowCardImages((v) => {
+      const n = !v;
+      try { localStorage.setItem("jx-card-images", n ? "1" : "0"); } catch {}
+      return n;
+    });
   const [toast, setToast] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false); // compact filters popover
   /* confirm dialog: { type: 'delete'|'export', trades: [...] } */
@@ -931,6 +960,17 @@ export default function TradesLogPanel({
                 </AnimatePresence>
               </div>
 
+              {view === "cards" && (
+                <Button
+                  variant={showCardImages ? "primary" : "outline"}
+                  size="sm"
+                  icon={ImageIcon}
+                  onClick={toggleCardImages}
+                  title={showCardImages ? "Hide screenshots on cards" : "Show screenshots on cards"}
+                >
+                  <span className="jx-tl-selbl">Images</span>
+                </Button>
+              )}
               <Button variant={selectMode ? "primary" : "outline"} size="sm" icon={CheckSquare}
                 onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); }}>
                 <span className="jx-tl-selbl">{selectMode ? "Done" : "Select"}</span>
@@ -1012,7 +1052,7 @@ export default function TradesLogPanel({
                 const dateStr = d0.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
                 const rel = label.startsWith("Today") ? "Today" : label.startsWith("Yesterday") ? "Yesterday" : null;
                 return (
-                <div key={label} style={{ position: "relative" }}>
+                <div key={label} className="jx-tgroup" style={{ position: "relative" }}>
                 {locked && (
                   <div
                     onClick={() => setShowUpgrade(true)}
@@ -1057,6 +1097,7 @@ export default function TradesLogPanel({
                         selected={selected.has(t._id)}
                         onToggleSelect={() => toggleSelect(t._id)}
                         onImageClick={() => setViewerTrade(t)}
+                        showImages={showCardImages}
                         menu={
                           <RowMenu
                             onEdit={() => openEdit(t)}

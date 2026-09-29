@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
-import { ChevronLeft, ChevronRight, Download, Plus, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Plus, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
 import ConfirmDialog from "./ConfirmDialog";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
@@ -17,6 +17,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 export default function ImageViewerModal({ open, trade, onClose, onImagesChanged }) {
   const [index, setIndex] = useState(0);
   const [images, setImages] = useState([]);
+  const [zoom, setZoom] = useState(1); // 1 = fit, >1 = zoomed (pan by drag)
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
@@ -35,6 +36,8 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
     mq.addEventListener?.("change", sync);
     return () => mq.removeEventListener?.("change", sync);
   }, []);
+  // reset zoom whenever the shown image changes
+  useEffect(() => { setZoom(1); }, [index, open]);
 
   useEffect(() => {
     if (open && trade) {
@@ -164,18 +167,29 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
                     src={current.url}
                     alt={`screenshot ${index + 1}`}
                     loading="lazy"
-                    drag={images.length > 1 ? "x" : false}
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.18}
+                    draggable={false}
+                    drag={zoom > 1 ? true : images.length > 1 ? "x" : false}
+                    dragConstraints={zoom > 1 ? { left: -600, right: 600, top: -400, bottom: 400 } : { left: 0, right: 0 }}
+                    dragElastic={zoom > 1 ? 0.05 : 0.18}
                     onDragEnd={(e, info) => {
+                      if (zoom > 1) return; // panning while zoomed, don't navigate
                       if (info.offset.x < -60) setIndex((i) => (i + 1) % images.length);
                       else if (info.offset.x > 60) setIndex((i) => (i - 1 + images.length) % images.length);
                     }}
+                    onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}
                     initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    animate={{ opacity: 1, scale: zoom }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.16 }}
-                    style={{ maxWidth: "100%", maxHeight: isMobile ? "62vh" : "58vh", borderRadius: "var(--radius-md)", objectFit: "contain", cursor: images.length > 1 ? "grab" : "default", touchAction: "pan-y" }}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: isMobile ? "62vh" : "58vh",
+                      borderRadius: "var(--radius-md)",
+                      objectFit: "contain",
+                      cursor: zoom > 1 ? "grab" : "zoom-in",
+                      userSelect: "none",
+                      touchAction: "none",
+                    }}
                   />
                 </AnimatePresence>
               ) : (
@@ -193,6 +207,19 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
                     <ChevronRight size={16} />
                   </button>
                 </>
+              )}
+
+              {/* zoom toggle (double-click/tap the image also toggles) */}
+              {current && (
+                <button
+                  className="jx-btn jx-btn--secondary jx-btn--sm"
+                  style={{ position: "absolute", right: 12, bottom: 12, padding: 8 }}
+                  onClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}
+                  aria-label={zoom > 1 ? "Zoom out" : "Zoom in"}
+                  title={zoom > 1 ? "Zoom out" : "Zoom in (or double-tap the image)"}
+                >
+                  {zoom > 1 ? <ZoomOut size={16} /> : <ZoomIn size={16} />}
+                </button>
               )}
             </div>
 
