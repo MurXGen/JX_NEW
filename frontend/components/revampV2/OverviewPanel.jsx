@@ -1182,6 +1182,13 @@ export default function OverviewPanel({
     const holdStr = medHold
       ? `${Math.floor(medHold / 3600000)}h ${Math.round((medHold % 3600000) / 60000)}m`
       : "—";
+    // average hold time split by outcome (ms) so we can show win vs loss
+    const durOf = (t) => new Date(t.closeTime) - new Date(t.openTime);
+    const winHoldArr = win.filter((t) => t.openTime && t.closeTime && (Number(t.pnl) || 0) >= 0).map(durOf).filter((d) => d > 0);
+    const lossHoldArr = win.filter((t) => t.openTime && t.closeTime && (Number(t.pnl) || 0) < 0).map(durOf).filter((d) => d > 0);
+    const avgMs = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : null);
+    const holdWinMs = avgMs(winHoldArr);
+    const holdLossMs = avgMs(lossHoldArr);
 
     /* per symbol / allocation / volume, within analytics window */
     const bySym = new Map();
@@ -1274,6 +1281,9 @@ export default function OverviewPanel({
       avgWin: wins.length ? grossWin / wins.length : 0,
       avgLoss: losses.length ? grossLoss / losses.length : 0,
       largestWin: wins.length ? Math.max(...wins) : 0,
+      largestLoss: losses.length ? Math.min(...losses) : 0,
+      holdWinMs,
+      holdLossMs,
       profitFactor: grossLoss > 0 ? grossWin / grossLoss : null,
       sharpe: sd > 0 ? (mean / sd) * Math.sqrt(252) : null,
       streak,
@@ -1866,8 +1876,9 @@ export default function OverviewPanel({
         </div>
       </div>
 
-      {/* ===== Live session strip — which session is open now + time left ===== */}
-      {liveSession && !usingDummy && (
+      {/* ===== Live session strip — which session is open now + time left.
+          Shown even before the first trade (stats fall back to dashes). ===== */}
+      {liveSession && (
         <div className="jx-livestrip" data-best={liveSession.isBest ? "1" : "0"} style={{ order: -2 }}>
           <div className="jx-livestrip__row">
             <span className="jx-livestrip__live">
@@ -1897,9 +1908,9 @@ export default function OverviewPanel({
               <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
                 <span
                   className="jx-livestrip__stat-v"
-                  style={{ color: weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}
+                  style={{ color: !weekday7.trades ? "var(--color-text-muted)" : weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}
                 >
-                  {k(weekday7.net, currencySymbol)}
+                  {weekday7.trades ? k(weekday7.net, currencySymbol) : "—"}
                 </span>
                 {weekday7.hasPrev && (
                   <span
@@ -1920,7 +1931,7 @@ export default function OverviewPanel({
             </div>
             <div className="jx-livestrip__stat">
               <span className="jx-livestrip__stat-l">Win rate</span>
-              <span className="jx-livestrip__stat-v">{Math.round(weekday7.winRate)}%</span>
+              <span className="jx-livestrip__stat-v">{weekday7.trades ? `${Math.round(weekday7.winRate)}%` : "—"}</span>
             </div>
           </div>
 
@@ -1979,7 +1990,7 @@ export default function OverviewPanel({
                 const down = b.pnl < 0;
                 // gentle power scale + high floor so every traded weekday reads
                 // as a proper bar (not a sliver) next to the biggest one
-                const h = b.has ? Math.max(16, Math.round(Math.pow(Math.abs(b.pnl) / weekday7.maxAbs, 0.4) * 34)) : 0;
+                const h = b.has ? Math.max(30, Math.round(Math.pow(Math.abs(b.pnl) / weekday7.maxAbs, 0.4) * 48)) : 0;
                 const isBest = i === weekday7.bestIdx;
                 const isToday = i === weekday7.todayIdx;
                 return (
@@ -3097,12 +3108,14 @@ export default function OverviewPanel({
           { label: "Payoff (R:R)", pct: payoff ? Math.min(100, (payoff / 2) * 100) : 0, text: payoff ? `1 : ${fmt(payoff, 1)}` : "—", sub: "target 1 : 2", color: "#7c9cff" },
         ];
         const chips = [
-          { label: "Net P&L", value: k(S.net, currencySymbol), up: S.net >= 0 },
+          { label: "Net P&L", value: k(S.net, currencySymbol), color: S.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" },
           { label: "Total trades", value: S.total },
-          { label: "Largest win", value: k(S.largestWin, currencySymbol), up: true },
+          { label: "Largest win", value: S.winCount ? k(S.largestWin, currencySymbol) : "—", color: S.winCount ? "var(--color-success-strong)" : undefined },
+          { label: "Largest loss", value: S.lossCount ? k(S.largestLoss, currencySymbol) : "—", color: S.lossCount ? "var(--color-danger-strong)" : undefined },
           { label: "Win streak", value: S.streak, sub: `best ${S.bestStreak}` },
           { label: "Sharpe", value: S.sharpe != null ? fmt(S.sharpe, 2) : "—" },
-          { label: "Avg hold", value: S.holdStr },
+          { label: "Avg hold · win", value: S.holdWinMs != null ? fmtDur(S.holdWinMs) : "—" },
+          { label: "Avg hold · loss", value: S.holdLossMs != null ? fmtDur(S.holdLossMs) : "—" },
         ];
         return (
           <div className="jx-card jx-sec jx-perf" style={{ order: -2 }}>
@@ -3164,7 +3177,7 @@ export default function OverviewPanel({
               {chips.map((c) => (
                 <div key={c.label} className="jx-perf__chip">
                   <span className="jx-perf__chiplbl">{c.label}</span>
-                  <span className="jx-perf__chipval" style={{ color: c.up === undefined ? "var(--color-text-primary)" : c.up ? "var(--color-success-strong)" : "var(--color-text-primary)" }}>{c.value}</span>
+                  <span className="jx-perf__chipval" style={{ color: c.color || "var(--color-text-primary)" }}>{c.value}</span>
                   {c.sub && <span className="jx-perf__chipsub">{c.sub}</span>}
                 </div>
               ))}

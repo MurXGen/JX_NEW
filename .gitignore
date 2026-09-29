@@ -1,6 +1,12 @@
 # --- Dependencies ---
 frontend/node_modules/
 backend/node_modules/
+# any stray/root-level node install (e.g. an accidental `npm i` in the repo root)
+/node_modules/
+/package.json
+/package-lock.json
+# scratch temp files
+.blog_posts_tmp.py
 
 # --- Next.js build outputs ---
 frontend/.next/
@@ -35,3 +41,6 @@ gsc-*.json
 
 # git lock-file trash (auto-created, safe to ignore)
 .lock_trash/
+
+# Mobile app (separate project — not part of the web repo)
+journalx-mobile/
