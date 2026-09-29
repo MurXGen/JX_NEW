@@ -2247,8 +2247,8 @@ export default function OverviewPanel({
       </div>
       )}
 
-      {/* ===== Progress cards ===== */}
-      {isVisible("progress") && (
+      {/* ===== Progress cards — removed; this data now lives in the Performance grid above ===== */}
+      {false && isVisible("progress") && (
       <div
         style={{
           order: -2,
