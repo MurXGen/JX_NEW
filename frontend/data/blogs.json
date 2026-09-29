@@ -17829,6 +17829,377 @@
           "a": "One, written as a specific and auditable rule. Multiple simultaneous changes make it impossible to attribute later improvement, leaving you with more untested rules and no more knowledge than you started with."
         }
       ]
+    },
+    {
+      "slug": "quarter-end-rebalancing-trading-flows-month-end",
+      "title": "Quarter-End Rebalancing: How Month-End and Quarter-End Flows Move Your Trades",
+      "metaTitle": "Quarter-End Rebalancing & Month-End Flows for Traders | JournalX",
+      "metaDescription": "Understand quarter-end rebalancing, window dressing and month-end flows, and learn how to journal and adapt your trading around them without guesswork.",
+      "keywords": [
+        "quarter-end rebalancing",
+        "month-end flows trading",
+        "window dressing",
+        "end of quarter volatility",
+        "trading around rebalancing"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "featured": false,
+      "excerpt": "The last days of a quarter often behave differently: bigger closes, odd reversals, thin follow-through. Here is what is usually behind it and how to test it in your own data.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "rebalancing",
+        "month-end",
+        "flows",
+        "volatility"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "If you have ever watched a clean intraday trend die at 3:30 p.m. on the last trading day of a quarter, you have met calendar flows. They are not a secret edge, and they do not work every time, but they are a real reason your usual setups can behave oddly in the final days of a month or quarter. Today is the last week of Q3, so it is a good moment to look at them."
+        },
+        {
+          "type": "h2",
+          "text": "What quarter-end rebalancing actually is"
+        },
+        {
+          "type": "p",
+          "text": "Large allocators such as pension funds, balanced funds and target-date funds hold targeted mixes of stocks and bonds. When one asset class outruns the other over a month or quarter, those mixes drift, and managers sell what rose and buy what lagged to get back to target. Banks and research desks publish estimates of these flows each quarter, and the estimates are often large. Treat any specific dollar figure as an estimate: actual flows depend on assumptions, timing and how much rebalancing already happened earlier."
+        },
+        {
+          "type": "h2",
+          "text": "Window dressing and other end-of-period effects"
+        },
+        {
+          "type": "p",
+          "text": "Some managers buy recent winners or sell losers before reporting dates so holdings look better in statements, often called window dressing. Academic studies have found evidence of this around period ends, though the size varies by market and era. Add month-end index changes, options and futures expiries, and funding pressure in short-term rates, and you get a cluster of reasons for unusual volume and sharp closes."
+        },
+        {
+          "type": "quote",
+          "text": "Calendar flows are a tendency, not a forecast. Your job is to measure whether they show up in your instrument, on your timeframe, in your trades."
+        },
+        {
+          "type": "h2",
+          "text": "How it can show up on your chart"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Behavior",
+            "What you may see",
+            "Risk to your plan"
+          ],
+          "rows": [
+            [
+              "Late-session imbalance",
+              "Sudden one-way push into the close",
+              "Stops hit by a move with no news"
+            ],
+            [
+              "Reversal on the first day of the new period",
+              "Prior trend fades after fresh money arrives",
+              "Trend-following entries fail more often"
+            ],
+            [
+              "Wider spreads and thinner books",
+              "Slippage on market orders",
+              "Real cost per trade rises"
+            ],
+            [
+              "Funding and rate spikes",
+              "Volatility in FX swaps and short rates",
+              "Overnight financing surprises"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Turn the folklore into a test"
+        },
+        {
+          "type": "p",
+          "text": "Instead of trusting a headline, tag every trade you take in the last three sessions and first two sessions of each month as month-end. After a quarter or two, compare win rate, average R, slippage and average hold time against your normal days. If the numbers match, ignore the calendar. If your expectancy drops, you have a concrete rule to write down, such as smaller size or no new entries after a set time."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Month-end readiness check",
+          "prompt": "Tick what you have already done before the next month-end.",
+          "items": [
+            "I tagged month-end trades in my journal",
+            "I know my average slippage on those days",
+            "I set a size rule for the last session of the month",
+            "I checked the economic and expiry calendar",
+            "I decided whether to hold positions overnight into the new month"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You are trading the calendar blind. Start by tagging trades."
+            },
+            {
+              "min": 3,
+              "text": "Good foundation. Add a written size rule and review after one quarter."
+            },
+            {
+              "min": 5,
+              "text": "Well prepared. Compare your month-end stats with normal days."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, add a month-end tag to trades in the last three and first two sessions, then filter by that tag on the analytics view. You can compare expectancy, win rate and average R against untagged days and see whether calendar flows really change your results."
+        },
+        {
+          "type": "why",
+          "text": "Most journals show one blended equity curve. JournalX lets you slice performance by any tag you define, so a theory like 'my trades are worse at quarter-end' becomes a number you can act on rather than a hunch."
+        },
+        {
+          "type": "h2",
+          "text": "Prop-firm angle"
+        },
+        {
+          "type": "p",
+          "text": "On a funded account, an outsized month-end candle can threaten a daily or trailing drawdown limit while you are nowhere near your normal risk. Check your firm's rules on holding positions and news or volatility restrictions, and lean toward smaller size when liquidity is thin. Rules differ by firm and change, so confirm them in the current terms."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "How do you treat month-end?",
+          "prompt": "Pick the option closest to your habit.",
+          "options": [
+            {
+              "label": "I trade normally",
+              "response": "Fine, if your data supports it. Tag those days and verify."
+            },
+            {
+              "label": "I cut size",
+              "response": "A sensible default when liquidity is thin. Track whether it helped."
+            },
+            {
+              "label": "I avoid new entries late in the session",
+              "response": "Reasonable. Journal what you skipped to see if it was right."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "A practical example: suppose you trade index futures and your journal shows 40 trades in month-end windows over two quarters. If your average R there is clearly below your normal-day average, and slippage is higher, a rule such as 'half size after 2 p.m. on the last session' is justified by your own evidence. If the difference is small, you have saved yourself from inventing a rule. Either result is useful, and both are better than trading on a headline."
+        },
+        {
+          "type": "p",
+          "text": "This post is educational and not financial advice. Flow estimates are approximate and markets can ignore them entirely."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Is quarter-end rebalancing predictable?",
+          "a": "Partly. Analysts publish estimates, but actual flows depend on assumptions and timing, so treat them as context rather than a signal."
+        },
+        {
+          "q": "What is window dressing?",
+          "a": "Portfolio managers adjusting holdings before reporting dates to make statements look better. Academic evidence exists, though effects vary."
+        },
+        {
+          "q": "Should I avoid trading at month-end?",
+          "a": "Not necessarily. Tag those trades, compare your results to normal days, and decide from your own data."
+        },
+        {
+          "q": "Does this matter for prop firm accounts?",
+          "a": "It can, because sharp closes can stress drawdown limits. Check your firm's current rules and consider smaller size."
+        }
+      ],
+      "date": "2026-09-29"
+    },
+    {
+      "slug": "trading-journal-emotion-tracking-mood-log",
+      "title": "Emotion Tracking in Your Trading Journal: How to Log Your Mental State",
+      "metaTitle": "Trading Journal Emotion Tracking: Log Your Mental State | JournalX",
+      "metaDescription": "Learn a simple emotion-tracking system for your trading journal, using tags, a 1–5 scale and weekly reviews that reveal which moods hurt your results.",
+      "keywords": [
+        "trading journal emotions",
+        "emotion tracking trading",
+        "trading psychology journal",
+        "mood log for traders",
+        "track emotions while trading"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "featured": false,
+      "excerpt": "Your entries and exits are visible in the data. The state of mind behind them is not, unless you log it. Here is a lightweight way to do it.",
+      "helpful": {
+        "up": 44,
+        "down": 1,
+        "saves": 38
+      },
+      "tags": [
+        "emotions",
+        "psychology",
+        "journaling",
+        "discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Most traders can tell you their setup, their stop and their target. Far fewer can tell you how they felt when they took the trade. Yet behavioral finance research has long linked emotional states such as overconfidence, loss aversion and stress to worse decision quality. You do not need a psychology degree to use this. You need a consistent way to record your state and a habit of reviewing it."
+        },
+        {
+          "type": "h2",
+          "text": "Why emotion belongs in the journal"
+        },
+        {
+          "type": "p",
+          "text": "Two trades with the same setup can have very different outcomes because of execution: early entries out of impatience, moved stops out of hope, oversized positions after a win. Price and P&L show what happened. Emotion tags help explain why. Over time they turn vague advice like 'be more disciplined' into specific findings such as 'my trades taken while frustrated average a full R worse'."
+        },
+        {
+          "type": "h2",
+          "text": "A simple system: three fields"
+        },
+        {
+          "type": "p",
+          "text": "Keep it short or you will stop doing it. Log three things at entry: a state tag, an intensity from 1 to 5, and one line on the trigger. Add a second quick tag at exit for how you felt after."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Field",
+            "Example values",
+            "Why it helps"
+          ],
+          "rows": [
+            [
+              "State tag",
+              "calm, confident, anxious, frustrated, bored, FOMO",
+              "Groups trades by mindset"
+            ],
+            [
+              "Intensity (1–5)",
+              "1 = faint, 5 = overwhelming",
+              "Shows when emotion is strong enough to hurt"
+            ],
+            [
+              "Trigger",
+              "'missed first move', 'just took a loss'",
+              "Finds patterns you can interrupt"
+            ],
+            [
+              "Exit feeling",
+              "relieved, angry, neutral",
+              "Reveals emotional exits"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Log before the result, not after"
+        },
+        {
+          "type": "p",
+          "text": "Hindsight rewrites memory. If you win, you will remember feeling confident. Record the state before you know the outcome, ideally in the minute before you click. If you forgot, mark the entry as logged late so you can filter it out of your analysis."
+        },
+        {
+          "type": "quote",
+          "text": "You cannot manage a pattern you have never measured."
+        },
+        {
+          "type": "h2",
+          "text": "The weekly review that makes it useful"
+        },
+        {
+          "type": "p",
+          "text": "Once a week, group your trades by state tag and compare win rate, average R and average size. Look for two things: the moods that consistently cost you, and the moods that produce your best work. Then write one rule per finding. Example: 'If I log frustrated at 3 or higher, I take a ten-minute break and cut size in half.' Keep the rule small, specific and testable."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Spot the better log",
+          "prompt": "Which entry gives you data you can actually analyze later?",
+          "options": [
+            "'Felt off today.'",
+            "'Frustrated, 4/5, trigger: stopped out twice in a row.'",
+            "'Good vibes, strong day.'"
+          ],
+          "correct": 1,
+          "explain": "Option two has a state, an intensity and a trigger, so it can be filtered, counted and compared. The others are too vague to review."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, add emotion tags and a note to each trade, then filter your history by tag. Compare average R and win rate for calm versus frustrated trades and see the cost of a bad state in plain numbers."
+        },
+        {
+          "type": "why",
+          "text": "JournalX keeps your psychology notes attached to the same trade record as entries, exits and risk, so your review connects mindset to results without switching between a spreadsheet and a notes app."
+        },
+        {
+          "type": "h2",
+          "text": "Common mistakes"
+        },
+        {
+          "type": "p",
+          "text": "Using too many tags makes logging feel like homework. Judging yourself for negative moods makes you hide them, which defeats the point. And logging only after losses biases the data. Log every trade, keep the vocabulary small, and treat the data as information rather than a verdict on your character."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Emotion journal starter",
+          "prompt": "Tick what you already do.",
+          "items": [
+            "I use a fixed list of 5–6 state tags",
+            "I rate intensity 1–5 at entry",
+            "I log before I know the result",
+            "I review by tag every week",
+            "I have at least one written rule from my findings"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Start with tags and a 1–5 rating on your next trade."
+            },
+            {
+              "min": 3,
+              "text": "Solid habit. Add a weekly review and a written rule."
+            },
+            {
+              "min": 5,
+              "text": "Excellent. Now test whether your rules actually improve results."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Consider a trader who logs 60 trades in a month. Grouped by state, the calm trades average +0.4R while the frustrated ones average -0.6R. That single comparison is worth more than a page of resolutions, because it shows what the mood is costing in units the trader already understands. From there the fix can be tiny: a pause, a smaller size, or a hard stop on trading after two consecutive losses."
+        },
+        {
+          "type": "p",
+          "text": "This is educational content, not medical or financial advice. If stress around trading feels overwhelming, consider talking with a qualified professional."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How many emotion tags should I use?",
+          "a": "Five or six is enough. More tags make logging slower and the data harder to compare."
+        },
+        {
+          "q": "When should I log my emotions?",
+          "a": "Before you know the outcome, ideally right before entry, so hindsight does not rewrite the record."
+        },
+        {
+          "q": "How long until I see patterns?",
+          "a": "Often after a few dozen logged trades, though more data makes the findings more reliable."
+        },
+        {
+          "q": "Does this replace a trading plan?",
+          "a": "No. It complements a plan by showing when your emotional state causes you to break it."
+        }
+      ],
+      "date": "2026-09-29"
     }
   ]
 }
