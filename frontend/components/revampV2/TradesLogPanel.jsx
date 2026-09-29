@@ -574,6 +574,17 @@ export default function TradesLogPanel({
   const [viewerTrade, setViewerTrade] = useState(null);
   const [editTrade, setEditTrade] = useState(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  // brief skeleton right after a log/edit reload, for a smooth hand-off
+  const [booting, setBooting] = useState(false);
+  useEffect(() => {
+    let flagged = false;
+    try { flagged = sessionStorage.getItem("jx-post-save") === "1"; } catch {}
+    if (!flagged) return undefined;
+    try { sessionStorage.removeItem("jx-post-save"); } catch {}
+    setBooting(true);
+    const id = setTimeout(() => setBooting(false), 750);
+    return () => clearTimeout(id);
+  }, []);
   // Free plan history window: trades older than this are locked (blurred)
   const [historyDays, setHistoryDays] = useState(Infinity);
   useEffect(() => {
@@ -974,7 +985,13 @@ export default function TradesLogPanel({
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.16 }}
         >
-          {filtered.length === 0 ? (
+          {booting ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="jx-skel-row" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="jx-card" style={{ textAlign: "center", color: "var(--color-text-muted)" }}>
               No trades match these filters.
             </div>

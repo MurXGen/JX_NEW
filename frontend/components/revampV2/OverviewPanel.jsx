@@ -1880,34 +1880,13 @@ export default function OverviewPanel({
           Shown even before the first trade (stats fall back to dashes). ===== */}
       {liveSession && (
         <div className="jx-livestrip" data-best={liveSession.isBest ? "1" : "0"} style={{ order: -2 }}>
-          <div className="jx-livestrip__row">
-            <span className="jx-livestrip__live">
-              <span className="jx-livestrip__dot" />
-              Live
-            </span>
-            <span className="jx-livestrip__label">
-              {liveSession.cur.label} session{liveSession.isBest ? " — your most profitable window" : " is open"}
-            </span>
-            {liveSession.isBest && (
-              <Badge variant="success"><Crown size={11} /> Best</Badge>
-            )}
-            <span className="jx-livestrip__meta">
-              <span className="jx-livestrip__date">
-                {new Date().toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}
-              </span>
-              <span style={{ opacity: 0.4 }}>·</span>
-              <Clock size={13} />
-              {liveSession.remH > 0 ? `${liveSession.remH}h ` : ""}{liveSession.remM}m left
-              {liveSession.cur.trades > 0 ? ` · ${Math.round(liveSession.cur.winRate)}% win here` : ""}
-            </span>
-          </div>
-          {/* merged 30-day headline stats (from the old profit card) */}
-          <div className="jx-livestrip__stats">
-            <div className="jx-livestrip__stat">
-              <span className="jx-livestrip__stat-l">Net P&amp;L · 30d</span>
-              <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+          {/* ── hero row: the money on the left, the live session as a distinct widget on the right ── */}
+          <div className="jx-livestrip__hero">
+            <div className="jx-livestrip__metric">
+              <span className="jx-livestrip__mlabel">Net P&amp;L · last 30 days</span>
+              <div className="jx-livestrip__valrow">
                 <span
-                  className="jx-livestrip__stat-v"
+                  className="jx-livestrip__value"
                   style={{ color: !weekday7.trades ? "var(--color-text-muted)" : weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}
                 >
                   {weekday7.trades ? k(weekday7.net, currencySymbol) : "—"}
@@ -1920,26 +1899,46 @@ export default function OverviewPanel({
                       background: weekday7.changePct >= 0 ? "var(--color-success-subtle)" : "var(--color-danger-subtle)",
                     }}
                   >
-                    {weekday7.changePct >= 0 ? "▲" : "▼"} {Math.abs(Math.round(weekday7.changePct))}%
+                    {weekday7.changePct >= 0 ? "▲" : "▼"} {Math.abs(Math.round(weekday7.changePct))}% vs prev 30d
                   </span>
                 )}
+              </div>
+              <div className="jx-livestrip__substats">
+                <span>Win rate <b>{weekday7.trades ? `${Math.round(weekday7.winRate)}%` : "—"}</b></span>
+                <i />
+                <span>Trades <b>{weekday7.trades}</b></span>
+                <i />
+                <span>
+                  Avg / trade{" "}
+                  <b style={{ color: !weekday7.trades ? undefined : weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                    {weekday7.trades ? k(weekday7.net / weekday7.trades, currencySymbol) : "—"}
+                  </b>
+                </span>
+              </div>
+            </div>
+
+            <div className="jx-livestrip__livecard">
+              <div className="jx-livestrip__liverow">
+                <span className="jx-livestrip__livebadge">
+                  <span className="jx-livestrip__dot" /> Live now
+                </span>
+                {liveSession.cur.trades > 0 && (
+                  <span className="jx-livestrip__livewr">
+                    {Math.round(liveSession.cur.winRate)}% win here
+                  </span>
+                )}
+              </div>
+              <span className="jx-livestrip__livetitle">
+                {liveSession.cur.label}
+                {liveSession.isBest && <span style={{ color: "var(--color-success-strong)" }}> · your best</span>}
+              </span>
+              <span className="jx-livestrip__livetime">
+                <Clock size={14} /> {liveSession.remH > 0 ? `${liveSession.remH}h ` : ""}{liveSession.remM}m left
+              </span>
+              <span className="jx-livestrip__livesub">
+                {new Date().toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}
               </span>
             </div>
-            <div className="jx-livestrip__stat">
-              <span className="jx-livestrip__stat-l">Trades</span>
-              <span className="jx-livestrip__stat-v">{weekday7.trades}</span>
-            </div>
-            <div className="jx-livestrip__stat">
-              <span className="jx-livestrip__stat-l">Win rate</span>
-              <span className="jx-livestrip__stat-v">{weekday7.trades ? `${Math.round(weekday7.winRate)}%` : "—"}</span>
-            </div>
-          </div>
-
-          <div className="jx-livestrip__note">
-            <Coffee size={13} style={{ flexShrink: 0, color: "var(--yellow-500)" }} />
-            <span>
-              Trade your plan, not your mood — if you&apos;re stressed or on tilt, take a breather and reset before you log a trade.
-            </span>
           </div>
 
           {/* P&L by weekday (last 30 days) — 7 summed bars */}
@@ -2024,6 +2023,76 @@ export default function OverviewPanel({
                 );
               })}
             </div>
+          </div>
+
+          {/* ── Performance — meters + key stats, merged in from the old card ── */}
+          {(() => {
+            const payoff = S.avgLoss > 0 ? S.avgWin / S.avgLoss : null;
+            const wl = S.avgWin + S.avgLoss;
+            const winShare = wl > 0 ? (S.avgWin / wl) * 100 : 50;
+            const maxMag = Math.max(Math.abs(S.largestWin || 0), Math.abs(S.largestLoss || 0), 1);
+            const hw = S.holdWinMs;
+            const hl = S.holdLossMs;
+            const holdTotal = (hw || 0) + (hl || 0);
+            const holdWinShare = holdTotal > 0 ? ((hw || 0) / holdTotal) * 100 : 50;
+            const holdsLosersLonger = hw != null && hl != null && hl > hw * 1.1;
+            const wlbar = (share) => (
+              <div className="jx-perf__wlbar">
+                <div style={{ width: `${share}%`, background: "var(--color-success)" }} />
+                <div style={{ width: `${100 - share}%`, background: "var(--color-danger)" }} />
+              </div>
+            );
+            // every metric is a uniform grid cell: label · value · bar
+            const perfCells = [
+              { label: "Win rate", value: `${fmt(S.winRate, 0)}%`, bar: <Progress pct={S.winRate} color="var(--color-success)" /> },
+              { label: "Profit factor", value: S.profitFactor ? fmt(S.profitFactor, 2) : "—", bar: <Progress pct={S.profitFactor ? Math.min(100, (S.profitFactor / 3) * 100) : 0} color="var(--color-primary)" /> },
+              { label: "Payoff (R:R)", value: payoff ? `1 : ${fmt(payoff, 1)}` : "—", bar: <Progress pct={payoff ? Math.min(100, (payoff / 2) * 100) : 0} color="#7c9cff" /> },
+              { label: "Avg win vs loss", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{k(S.avgWin, currencySymbol)}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>−{currencySymbol}{fmt(S.avgLoss, 0)}</span></>), bar: wlbar(winShare) },
+              { label: "Avg hold · W/L", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{hw != null ? fmtDur(hw) : "—"}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>{hl != null ? fmtDur(hl) : "—"}</span></>), bar: wlbar(holdWinShare) },
+              { label: "Largest win", value: S.winCount ? k(S.largestWin, currencySymbol) : "—", color: S.winCount ? "var(--color-success-strong)" : undefined, bar: <Progress pct={S.winCount ? (Math.abs(S.largestWin) / maxMag) * 100 : 0} color="var(--color-success)" /> },
+              { label: "Largest loss", value: S.lossCount ? k(S.largestLoss, currencySymbol) : "—", color: S.lossCount ? "var(--color-danger-strong)" : undefined, bar: <Progress pct={S.lossCount ? (Math.abs(S.largestLoss) / maxMag) * 100 : 0} color="var(--color-danger)" /> },
+              { label: "Win streak", value: S.streak, sub: `best ${S.bestStreak}`, bar: <Progress pct={S.bestStreak > 0 ? Math.min(100, (S.streak / S.bestStreak) * 100) : (S.streak > 0 ? 100 : 0)} color="var(--color-primary)" /> },
+              { label: "Sharpe", value: S.sharpe != null ? fmt(S.sharpe, 2) : "—", bar: <Progress pct={S.sharpe != null ? Math.min(100, Math.max(0, (S.sharpe / 3) * 100)) : 0} color="#7c9cff" /> },
+            ];
+            return (
+              <div className="jx-livestrip__perf">
+                <div className="jx-livestrip__chart-head">
+                  <span style={{ fontWeight: 600, color: "var(--color-text-secondary)" }}>Performance</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-success)" }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--color-success)" }} /> {S.winCount}W
+                    </span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-danger)" }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--color-danger)" }} /> {S.lossCount}L
+                    </span>
+                  </span>
+                </div>
+
+                {/* every metric as a uniform bordered grid cell */}
+                <div className="jx-perfgrid">
+                  {perfCells.map((c) => (
+                    <div key={c.label} className="jx-perfgrid__cell">
+                      <span className="jx-perfgrid__lbl">{c.label}</span>
+                      <span className="jx-perfgrid__val" style={{ color: c.color || "var(--color-text-primary)" }}>{c.valueEl || c.value}</span>
+                      {c.sub && <span className="jx-perfgrid__sub">{c.sub}</span>}
+                      <div className="jx-perfgrid__bar">{c.bar}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {holdsLosersLonger && (
+                  <span style={{ font: "var(--text-caption)", color: "var(--color-danger-strong)" }}>
+                    You hold losers longer than winners — try cutting them sooner.
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* slim mindset nudge — low-emphasis footer, not a headline */}
+          <div className="jx-livestrip__note">
+            <Coffee size={13} style={{ flexShrink: 0, color: "var(--yellow-500)" }} />
+            <span>Trade your plan, not your mood — if you&apos;re stressed or on tilt, take a breather before you log.</span>
           </div>
         </div>
       )}
@@ -3097,8 +3166,8 @@ export default function OverviewPanel({
         );
       })()}
 
-      {/* ===== Performance (combined viz: donut + meters + bars) ===== */}
-      {isVisible("keyMetrics") && (() => {
+      {/* ===== Performance — merged into the top live card above ===== */}
+      {false && isVisible("keyMetrics") && (() => {
         const payoff = S.avgLoss > 0 ? S.avgWin / S.avgLoss : null;
         const wl = S.avgWin + S.avgLoss;
         const winShare = wl > 0 ? (S.avgWin / wl) * 100 : 50;

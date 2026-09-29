@@ -230,6 +230,24 @@
   will-change: transform;
 }
 
+/* ---- skeleton row (brief loading state after a log/edit reload) ---- */
+@keyframes jx-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.jx-skel-row {
+  height: 66px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-surface) 0%,
+    color-mix(in srgb, var(--color-text-primary) 6%, var(--color-bg-surface)) 50%,
+    var(--color-bg-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: jx-shimmer 1.3s ease-in-out infinite;
+}
+
 /* ---- compact trades list (grouped per day, no bulky per-trade box) ---- */
 .jx-trow-list {
   display: flex;
@@ -2607,6 +2625,137 @@ body::before {
   gap: var(--space-3);
   flex-wrap: wrap;
 }
+
+/* ── hero row: focal P&L metric (left) + live session widget (right) ── */
+.jx-livestrip__hero {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+}
+.jx-livestrip__metric {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+.jx-livestrip__mlabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jx-livestrip__valrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.jx-livestrip__value {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+.jx-livestrip__substats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.jx-livestrip__substats b {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  margin-left: 3px;
+}
+.jx-livestrip__substats i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+  flex-shrink: 0;
+}
+
+/* live session widget — a distinct, tinted, actionable card */
+.jx-livestrip__livecard {
+  flex-shrink: 0;
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-bg-elevated));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+}
+.jx-livestrip[data-best="1"] .jx-livestrip__livecard {
+  background: color-mix(in srgb, var(--color-success) 11%, var(--color-bg-elevated));
+  border-color: color-mix(in srgb, var(--color-success) 36%, var(--color-border));
+}
+.jx-livestrip__liverow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.jx-livestrip__livewr {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--color-success-strong);
+  background: var(--color-success-subtle);
+  white-space: nowrap;
+}
+.jx-livestrip__livebadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--yellow-600);
+}
+.jx-livestrip[data-best="1"] .jx-livestrip__livebadge {
+  color: var(--color-success-strong);
+}
+.jx-livestrip__livetitle {
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.jx-livestrip__livetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.jx-livestrip__livesub {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+@media (max-width: 640px) {
+  .jx-livestrip__hero {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .jx-livestrip__livecard {
+    width: 100%;
+  }
+  .jx-livestrip__value {
+    font-size: 30px;
+  }
+}
 .jx-livestrip__date {
   color: var(--color-text-secondary);
   font-weight: 600;
@@ -2632,6 +2781,72 @@ body::before {
   gap: 6px;
   padding-top: 9px;
   border-top: 1px solid var(--color-border);
+}
+/* merged Performance subsection inside the live card */
+.jx-livestrip__perf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+/* key stats — a clean bordered grid (1px gaps show as grid lines) */
+.jx-perfgrid {
+  display: grid;
+  /* two-column bordered grid; 1px gaps show as grid lines */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+/* if there's an odd number of cells, the last one fills the whole final row
+   (no empty background cell) */
+.jx-perfgrid__cell:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+.jx-perfgrid__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  background: var(--color-bg-surface);
+  min-width: 0; /* let the cell shrink so its bar never overflows the grid */
+  overflow: hidden;
+}
+.jx-perfgrid__cell .jx-progress {
+  width: 100%;
+}
+.jx-perfgrid__lbl {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jx-perfgrid__val {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.jx-perfgrid__sub {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.jx-perfgrid__bar {
+  margin-top: auto; /* pin the bar to the cell bottom so bars align across a row */
+  padding-top: 10px;
+}
+/* one consistent bar height across every bar in the Performance block
+   (meters, diverging bars, and the grid-cell bars) */
+.jx-livestrip__perf .jx-progress {
+  height: 8px !important;
+}
+.jx-livestrip__perf .jx-perf__wlbar {
+  height: 8px;
+}
+.jx-livestrip[data-best="1"] .jx-livestrip__perf {
+  border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));
 }
 .jx-livestrip[data-best="1"] .jx-livestrip__chart {
   border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));

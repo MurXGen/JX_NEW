@@ -40,7 +40,7 @@ import ChartAnnotator from "./ChartAnnotator";
 import QuickFillChips from "./QuickFillChips";
 import TradersTodayBadge from "./TradersTodayBadge";
 import VoiceNoteRecorder from "./VoiceNoteRecorder";
-import TradeSaveLoader from "./TradeSaveLoader";
+import SplashLoader from "./SplashLoader";
 import UpgradeSheet from "./UpgradeSheet";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
@@ -847,6 +847,7 @@ export default function LogTradeModal({
   const [form, setForm] = useState(EMPTY);
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
+  const reloadingRef = useRef(false); // keep the splash up through the post-save reload
   const [symbols, setSymbols] = useState([]);
   const [customStrategies, setCustomStrategies] = useState([]);
   const [customEmotions, setCustomEmotions] = useState([]);
@@ -1600,9 +1601,21 @@ export default function LogTradeModal({
 
       onSaved?.(trade, { updated: isEdit });
       onSubmit?.(trade);
-      flash("success", isEdit ? "Trade updated" : "Trade logged");
-      if (addAnother && !isEdit) setForm(EMPTY);
-      else setTimeout(() => onClose?.(), 900);
+
+      if (addAnother && !isEdit) {
+        // stay in the modal for the next entry
+        flash("success", "Trade logged");
+        setForm(EMPTY);
+      } else {
+        // IndexedDB is now updated → hand off smoothly: keep the splash up, flag
+        // the trades page to show a skeleton on reload, then refresh so every
+        // view (dashboard, trades, stats) reflects the new trade.
+        reloadingRef.current = true;
+        try {
+          sessionStorage.setItem("jx-post-save", "1");
+        } catch {}
+        setTimeout(() => window.location.reload(), 650);
+      }
     } catch (err) {
       console.error("Save trade failed:", err);
       // backend safety-cap hit → show the upgrade sheet, not a red toast
@@ -1613,7 +1626,8 @@ export default function LogTradeModal({
         flash("danger", err.response?.data?.message || "Could not save trade, try again");
       }
     } finally {
-      setSaving(false);
+      // keep the splash visible while we reload; otherwise clear it
+      if (!reloadingRef.current) setSaving(false);
     }
   };
 
@@ -1887,7 +1901,7 @@ export default function LogTradeModal({
           >
             {/* playful save overlay — interactive instead of a bare spinner */}
             <AnimatePresence>
-              {saving && <TradeSaveLoader label={isEdit ? "Updating your trade" : "Logging your trade"} />}
+              {saving && <SplashLoader label={isEdit ? "Updating your trade…" : "Logging your trade…"} />}
             </AnimatePresence>
             {/* grab handle */}
             <div className="jx-lt-grab" aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px" }}>
