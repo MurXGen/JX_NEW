@@ -2656,13 +2656,6 @@ body::before {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 34px rgba(0, 0, 0, 0.28);
 }
 /* when the live session is the trader's best, tint the glow green instead */
-.jx-livestrip[data-best="1"] {
-  background:
-    radial-gradient(130% 150% at 100% -20%, color-mix(in srgb, var(--color-success) 16%, transparent), transparent 55%),
-    radial-gradient(120% 130% at 0% 120%, color-mix(in srgb, var(--color-success) 7%, transparent), transparent 50%),
-    var(--color-bg-surface);
-  border-color: color-mix(in srgb, var(--color-success) 40%, var(--color-border));
-}
 .jx-livestrip__row {
   display: flex;
   align-items: center;
@@ -2738,10 +2731,6 @@ body::before {
   background: color-mix(in srgb, var(--color-primary) 9%, var(--color-bg-elevated));
   border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
 }
-.jx-livestrip[data-best="1"] .jx-livestrip__livecard {
-  background: color-mix(in srgb, var(--color-success) 11%, var(--color-bg-elevated));
-  border-color: color-mix(in srgb, var(--color-success) 36%, var(--color-border));
-}
 .jx-livestrip__liverow {
   display: flex;
   align-items: center;
@@ -2788,6 +2777,84 @@ body::before {
   font-size: 12px;
   color: var(--color-text-muted);
 }
+/* moved-below variant — a full-width horizontal strip under the chart */
+.jx-livestrip__livecard--below {
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 14px;
+}
+.jx-livestrip__livecard--below .jx-livestrip__liverow {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.jx-livestrip__livecard--below .jx-livestrip__livetitle {
+  font-size: 14px;
+}
+
+/* ── capital-growth journey indicator (start → now → 7-day projection) ── */
+.jx-journey {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 2px 2px;
+}
+.jx-journey__track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-bg-muted);
+}
+.jx-journey__seg {
+  position: absolute;
+  top: 0;
+  height: 6px;
+  border-radius: 999px;
+}
+.jx-journey__seg--proj {
+  top: 2px;
+  height: 0;
+  background: transparent;
+  border-top: 2px dashed var(--color-border-strong);
+  opacity: 0.75;
+}
+/* centered with margins (not transform) so framer-motion's scale animation
+   doesn't knock the dot off the track line */
+.jx-journey__pin {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+  border: 2px solid var(--color-bg-surface);
+  z-index: 2;
+}
+.jx-journey__pin--now {
+  width: 15px;
+  height: 15px;
+  margin-left: -7.5px;
+  margin-top: -7.5px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+.jx-journey__pin--proj {
+  background: var(--color-bg-surface);
+  border-style: dashed;
+}
+.jx-journey__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.jx-journey__meta {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
 @media (max-width: 640px) {
   .jx-livestrip__hero {
     flex-direction: column;
@@ -2814,9 +2881,6 @@ body::before {
   border-top: 1px solid var(--color-border);
   line-height: 1.45;
 }
-.jx-livestrip[data-best="1"] .jx-livestrip__note {
-  border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));
-}
 
 /* 30-day daily P&L mini bar chart inside the live strip */
 .jx-livestrip__chart {
@@ -2825,6 +2889,32 @@ body::before {
   gap: 6px;
   padding-top: 9px;
   border-top: 1px solid var(--color-border);
+}
+/* plain variant — no panel background or padding; the chart breathes into the
+   card, just the thin divider above from the base rule */
+.jx-livestrip__chart--plain {
+  background: transparent;
+}
+/* draggable handle beneath the chart to resize its height */
+.jx-chart-resize {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  margin-top: 2px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.jx-chart-resize__grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-border-strong);
+  transition: background 0.16s ease, width 0.16s ease;
+}
+.jx-chart-resize:hover .jx-chart-resize__grip {
+  background: var(--color-primary);
+  width: 54px;
 }
 /* merged Performance subsection inside the live card */
 .jx-livestrip__perf {
@@ -2889,12 +2979,6 @@ body::before {
 .jx-livestrip__perf .jx-perf__wlbar {
   height: 8px;
 }
-.jx-livestrip[data-best="1"] .jx-livestrip__perf {
-  border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));
-}
-.jx-livestrip[data-best="1"] .jx-livestrip__chart {
-  border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));
-}
 .jx-livestrip__chart-head {
   display: flex;
   align-items: center;
@@ -2911,9 +2995,6 @@ body::before {
   gap: var(--space-5);
   padding-top: 9px;
   border-top: 1px solid var(--color-border);
-}
-.jx-livestrip[data-best="1"] .jx-livestrip__stats {
-  border-top-color: color-mix(in srgb, var(--color-success) 28%, var(--color-border));
 }
 .jx-livestrip__stat {
   display: flex;
@@ -3051,10 +3132,6 @@ body::before {
   line-height: 1.35;
   white-space: nowrap;
   pointer-events: none;
-}
-.jx-livestrip[data-best="1"] {
-  background: var(--color-success-subtle);
-  border-color: var(--color-success);
 }
 .jx-livestrip__live {
   display: inline-flex;

@@ -9,11 +9,29 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { Check, Eye, EyeOff, SlidersHorizontal } from "lucide-react";
+import { AnimatePresence, motion, Reorder, useDragControls } from "framer-motion";
+import { Check, Eye, EyeOff, GripVertical, SlidersHorizontal } from "lucide-react";
 
-export function useHiddenSections(key, defaultHidden = []) {
+export function useHiddenSections(key, defaultHidden = [], allIds = []) {
   const [hidden, setHidden] = useState(() => new Set(defaultHidden));
+  // user-defined section order (array of ids). Defaults to the natural order.
+  const [order, setOrderState] = useState(() => allIds);
+  const orderKey = `${key}-order`;
+
+  // keep a stable reference to the canonical id list for reconciliation
+  const allRef = useRef(allIds);
+  allRef.current = allIds;
+
+  // reconcile a saved order against the current id list: keep saved positions,
+  // append any new ids, drop any that no longer exist.
+  const reconcile = (saved) => {
+    const canon = allRef.current;
+    if (!Array.isArray(saved) || !saved.length) return canon;
+    const known = new Set(canon);
+    const kept = saved.filter((id) => known.has(id));
+    const missing = canon.filter((id) => !kept.includes(id));
+    return [...kept, ...missing];
+  };
 
   useEffect(() => {
     try {
@@ -23,6 +41,12 @@ export function useHiddenSections(key, defaultHidden = []) {
       setHidden(raw == null ? new Set(defaultHidden) : new Set(JSON.parse(raw)));
     } catch {
       setHidden(new Set(defaultHidden));
+    }
+    try {
+      const rawO = localStorage.getItem(orderKey);
+      setOrderState(reconcile(rawO ? JSON.parse(rawO) : null));
+    } catch {
+      setOrderState(allRef.current);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
@@ -37,12 +61,31 @@ export function useHiddenSections(key, defaultHidden = []) {
       persist(next);
       return next;
     });
+  const reorder = (ids) => {
+    const next = reconcile(ids);
+    setOrderState(next);
+    try { localStorage.setItem(orderKey, JSON.stringify(next)); } catch {}
+  };
   const reset = () => {
     setHidden(new Set(defaultHidden));
-    try { localStorage.removeItem(key); } catch {}
+    setOrderState(allRef.current);
+    try { localStorage.removeItem(key); localStorage.removeItem(orderKey); } catch {}
   };
 
-  return { hidden, toggle, reset, isVisible: (id) => !hidden.has(id) };
+  const orderIndex = (id) => {
+    const i = order.indexOf(id);
+    return i < 0 ? order.length + 1 : i;
+  };
+
+  return {
+    hidden,
+    toggle,
+    reset,
+    order,
+    reorder,
+    orderIndex,
+    isVisible: (id) => !hidden.has(id),
+  };
 }
 
 const FAB = 52;         // button diameter
@@ -50,7 +93,56 @@ const POS_KEY = "jx-customize-fab-pos";
 
 const EDGE = 14; // gap kept from the screen edge when snapped
 
-export default function CustomizeSections({ sections, hidden, onToggle, onReset, enabled = true }) {
+/* One draggable row in the customize sheet. The whole row is NOT a drag
+   listener — only the grip handle starts a drag, so tapping the checkbox still
+   toggles visibility cleanly. */
+function SortableRow({ section, vis, onToggle }) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      value={section.id}
+      dragListener={false}
+      dragControls={controls}
+      style={{ listStyle: "none" }}
+      whileDrag={{ scale: 1.02, boxShadow: "0 10px 26px rgba(0,0,0,0.45)" }}
+    >
+      <div
+        className="jx-dd__option"
+        style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 8px", borderRadius: "var(--radius-md)", background: "var(--color-bg-elevated)" }}
+      >
+        <span
+          onPointerDown={(e) => controls.start(e)}
+          style={{ display: "flex", flexShrink: 0, cursor: "grab", touchAction: "none", color: "var(--color-text-muted)", padding: "2px" }}
+          title="Drag to reorder"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical size={16} />
+        </span>
+        <button
+          type="button"
+          onClick={() => onToggle(section.id)}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}
+        >
+          <span
+            style={{
+              width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+              border: `1.5px solid ${vis ? "var(--color-primary)" : "var(--color-border-strong)"}`,
+              background: vis ? "var(--color-primary)" : "transparent",
+              color: "var(--color-primary-foreground)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            {vis && <Check size={13} />}
+          </span>
+          <span style={{ flex: 1, font: "var(--text-body-md)", color: vis ? "var(--color-text-primary)" : "var(--color-text-muted)" }}>{section.label}</span>
+          {vis ? <Eye size={16} style={{ color: "var(--color-text-muted)" }} /> : <EyeOff size={16} style={{ color: "var(--color-text-muted)" }} />}
+        </button>
+      </div>
+    </Reorder.Item>
+  );
+}
+
+export default function CustomizeSections({ sections, hidden, onToggle, onReset, order, onReorder, enabled = true }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState(null); // {left, top}
@@ -243,37 +335,29 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset,
                 <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Customize dashboard</span>
                 <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={onReset}>Reset</button>
               </div>
-              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", padding: "0 var(--space-5) var(--space-2)" }}>
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", padding: "0 var(--space-5) 2px" }}>
                 Showing {shown} of {sections.length} sections
               </span>
-              <div style={{ overflowY: "auto", padding: "0 var(--space-3) var(--space-4)", display: "flex", flexDirection: "column", gap: 2 }}>
-                {sections.map((s) => {
-                  const vis = !hidden.has(s.id);
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      className="jx-dd__option"
-                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 10px" }}
-                      onClick={() => onToggle(s.id)}
-                    >
-                      <span
-                        style={{
-                          width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                          border: `1.5px solid ${vis ? "var(--color-primary)" : "var(--color-border-strong)"}`,
-                          background: vis ? "var(--color-primary)" : "transparent",
-                          color: "var(--color-primary-foreground)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                        }}
-                      >
-                        {vis && <Check size={13} />}
-                      </span>
-                      <span style={{ flex: 1, textAlign: "left", font: "var(--text-body-md)" }}>{s.label}</span>
-                      {vis ? <Eye size={16} style={{ color: "var(--color-text-muted)" }} /> : <EyeOff size={16} style={{ color: "var(--color-text-muted)" }} />}
-                    </button>
-                  );
-                })}
-              </div>
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", padding: "0 var(--space-5) var(--space-2)", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <GripVertical size={12} /> Drag to reorder · tap to show or hide
+              </span>
+              {(() => {
+                const list = (order && order.length ? order : sections.map((s) => s.id))
+                  .map((id) => sections.find((s) => s.id === id))
+                  .filter(Boolean);
+                return (
+                  <Reorder.Group
+                    axis="y"
+                    values={order && order.length ? order : sections.map((s) => s.id)}
+                    onReorder={onReorder}
+                    style={{ overflowY: "auto", padding: "0 var(--space-3) var(--space-4)", margin: 0, display: "flex", flexDirection: "column", gap: 4 }}
+                  >
+                    {list.map((s) => (
+                      <SortableRow key={s.id} section={s} vis={!hidden.has(s.id)} onToggle={onToggle} />
+                    ))}
+                  </Reorder.Group>
+                );
+              })()}
             </motion.div>
           </motion.div>
         )}

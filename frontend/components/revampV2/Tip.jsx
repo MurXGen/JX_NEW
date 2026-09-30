@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 /**
  * revampV2 Tip, lightweight hover tooltip.
@@ -58,7 +58,22 @@ function TipBody({ content }) {
 
 export default function Tip({ content, children, style, block, follow = false }) {
   const wrapRef = useRef(null);
-  const [pos, setPos] = useState(null); // {x,y} relative to the wrapper
+  const bubbleRef = useRef(null);
+  const [pos, setPos] = useState(null); // {x,y} in client (viewport) coords
+  const [place, setPlace] = useState(null); // clamped {left, top}
+
+  // keep the follow bubble fully inside the viewport (never off the edge)
+  useLayoutEffect(() => {
+    if (!follow || !pos || !bubbleRef.current) return;
+    const b = bubbleRef.current.getBoundingClientRect();
+    const PAD = 8;
+    let left = pos.x - b.width / 2;
+    left = Math.max(PAD, Math.min(left, window.innerWidth - b.width - PAD));
+    let top = pos.y - b.height - 14; // prefer above the cursor
+    if (top < PAD) top = pos.y + 18;  // flip below if there's no room above
+    top = Math.min(top, window.innerHeight - b.height - PAD);
+    setPlace({ left, top });
+  }, [pos, follow]);
 
   if (content == null || content === "") return children || null;
 
@@ -73,12 +88,8 @@ export default function Tip({ content, children, style, block, follow = false })
     );
   }
 
-  const onMove = (e) => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setPos({ x: e.clientX - r.left, y: e.clientY - r.top });
-  };
+  const onMove = (e) => setPos({ x: e.clientX, y: e.clientY });
+  const clear = () => { setPos(null); setPlace(null); };
 
   return (
     <span
@@ -86,14 +97,21 @@ export default function Tip({ content, children, style, block, follow = false })
       className={`jx-tip jx-tip--follow ${block ? "jx-tip--block" : ""}`}
       style={{ ...style, position: "relative" }}
       onMouseMove={onMove}
-      onMouseLeave={() => setPos(null)}
+      onMouseLeave={clear}
     >
       {children}
       {pos && (
         <span
+          ref={bubbleRef}
           className="jx-tip__bubble jx-tip__bubble--follow"
           role="tooltip"
-          style={{ left: pos.x, top: pos.y - 14 }}
+          style={{
+            position: "fixed",
+            left: place ? place.left : pos.x,
+            top: place ? place.top : pos.y,
+            transform: "none",
+            opacity: place ? 1 : 0,
+          }}
         >
           <TipBody content={content} />
         </span>

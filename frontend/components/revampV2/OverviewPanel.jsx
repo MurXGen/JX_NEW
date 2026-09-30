@@ -508,7 +508,9 @@ function Empty({ height }) {
 /* Equity candles. When `candleWidth` > 0 the chart becomes a fixed-width,
    horizontally scrollable + drag-to-pan surface (TradingView-style) for long
    histories; otherwise candles flex to fill the width. */
-function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
+function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0, mode = "candle", axis = false }) {
+  const area = mode === "area";
+  const gradId = useRef(`eqgrad-${Math.random().toString(36).slice(2)}`).current;
   const outerRef = useRef(null);
   const scrollRef = useRef(null);
   const drag = useRef({ down: false, startX: 0, startLeft: 0 });
@@ -558,6 +560,13 @@ function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
   };
   const onMove = (e) => {
     track(e);
+    if (area) {
+      const r = outerRef.current?.getBoundingClientRect();
+      if (r && r.width) {
+        const idx = Math.round(((e.clientX - r.left) / r.width) * (candles.length - 1));
+        setHoverI(Math.max(0, Math.min(candles.length - 1, idx)));
+      }
+    }
     if (drag.current.down && scrollRef.current) {
       scrollRef.current.scrollLeft = drag.current.startLeft - (e.clientX - drag.current.startX);
     }
@@ -595,6 +604,7 @@ function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
         }}
       >
         <div
+          key={area ? "area" : "candle"}
           style={{
             display: "flex",
             alignItems: "stretch",
@@ -604,7 +614,58 @@ function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
             minWidth: scrollable ? totalW : "100%",
           }}
         >
-          {candles.map((c, i) => {
+          {area && (() => {
+            const cs = shown.map((c) => c.c);
+            const loA = Math.min(...cs, ...candles.map((c) => c.c));
+            const hiA = Math.max(...cs, ...candles.map((c) => c.c));
+            const spanA = hiA - loA || 1;
+            const yA = (v) => height - 8 - ((v - loA) / spanA) * (height - 16);
+            const N = candles.length;
+            const stepX = N > 1 ? 100 / (N - 1) : 0;
+            const pts = candles.map((c, i) => `${(i * stepX).toFixed(3)},${yA(c.c).toFixed(2)}`);
+            const rising = candles[N - 1].c >= candles[0].c;
+            const stroke = rising ? "var(--color-success)" : "var(--color-danger)";
+            const linePath = `M ${pts.join(" L ")}`;
+            const areaPath = `M 0,${height} L ${pts.join(" L ")} L 100,${height} Z`;
+            return (
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={`0 0 100 ${height}`}
+                preserveAspectRatio="none"
+                style={{ display: "block", overflow: "visible" }}
+              >
+                <defs>
+                  <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={stroke} stopOpacity="0.34" />
+                    <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {/* level-up: area + line grow from the baseline on load / switch */}
+                <motion.g
+                  initial={{ scaleY: 0, opacity: 0.5 }}
+                  animate={{ scaleY: 1, opacity: 1 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ transformOrigin: "bottom", transformBox: "fill-box" }}
+                >
+                  <path d={areaPath} fill={`url(#${gradId})`} />
+                  <motion.path
+                    d={linePath}
+                    fill="none"
+                    stroke={stroke}
+                    strokeWidth="2"
+                    vectorEffect="non-scaling-stroke"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.7, ease: "easeInOut" }}
+                  />
+                </motion.g>
+              </svg>
+            );
+          })()}
+          {!area && candles.map((c, i) => {
             const up = c.c >= c.o;
             const color = up ? "var(--color-success)" : "var(--color-danger)";
             const bodyTop = y(Math.max(c.o, c.c));
@@ -623,15 +684,51 @@ function CandleChart({ candles, height = 220, sym = "$", candleWidth = 0 }) {
                   borderRadius: 3,
                 }}
               >
-                {/* wick */}
-                <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", top: y(c.h), height: Math.max(1, y(c.l) - y(c.h)), width: 1.5, background: color, opacity: 0.8, transition: "top 0.1s linear, height 0.1s linear" }} />
-                {/* body */}
-                <span style={{ position: "absolute", left: "12%", right: "12%", top: bodyTop, height: bodyH, background: color, borderRadius: 2, transition: "top 0.1s linear, height 0.1s linear" }} />
+                {/* wick + body grow up from the baseline, staggered by index */}
+                <motion.span
+                  initial={{ scaleY: 0, opacity: 0 }}
+                  animate={{ scaleY: 1, opacity: 0.8 }}
+                  transition={{ duration: 0.45, delay: Math.min(i, 40) * 0.012, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ position: "absolute", left: "calc(50% - 0.75px)", top: y(c.h), height: Math.max(1, y(c.l) - y(c.h)), width: 1.5, background: color, transformOrigin: "bottom", transition: "top 0.1s linear, height 0.1s linear" }}
+                />
+                <motion.span
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ duration: 0.5, delay: Math.min(i, 40) * 0.012, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ position: "absolute", left: "12%", right: "12%", top: bodyTop, height: bodyH, background: color, borderRadius: 2, transformOrigin: "bottom", transition: "top 0.1s linear, height 0.1s linear" }}
+                />
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* x-axis date ticks */}
+      {axis && candles.length > 1 && (
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, font: "var(--text-caption)", color: "var(--color-text-muted)", pointerEvents: "none" }}>
+          {(() => {
+            const N = candles.length;
+            const idxs = [...new Set([0, Math.round((N - 1) * 0.25), Math.round((N - 1) * 0.5), Math.round((N - 1) * 0.75), N - 1])];
+            return idxs.map((i) => <span key={i}>{candles[i].label}</span>);
+          })()}
+        </div>
+      )}
+
+      {/* area mode: vertical crosshair + marker at the hovered point */}
+      {area && hc && candles.length > 1 && (
+        <span
+          style={{
+            position: "absolute",
+            left: `${(hoverI / (candles.length - 1)) * 100}%`,
+            top: 0,
+            bottom: 0,
+            width: 1,
+            background: "var(--color-border-strong)",
+            pointerEvents: "none",
+            zIndex: 20,
+          }}
+        />
+      )}
 
       {/* cursor-following tooltip */}
       {hc && (
@@ -916,6 +1013,39 @@ export default function OverviewPanel({
   const [candleTF, setCandleTF] = useState("1D");
   const [equityRange, setEquityRange] = useState("All"); // 7D | 14D | 30D | All
   const [equityZoom] = useState(18); // candle px width in scroll mode
+  // hero "Capital growth" chart type — area (default) vs candles — persisted
+  const [heroChartMode, setHeroChartMode] = useState("area");
+  const [heroChartH, setHeroChartH] = useState(160); // resizable chart height
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("jx-hero-chart-mode");
+      if (v === "area" || v === "candle") setHeroChartMode(v);
+      const h = parseInt(localStorage.getItem("jx-hero-chart-h") || "", 10);
+      if (h >= 120 && h <= 460) setHeroChartH(h);
+    } catch {}
+  }, []);
+  const setHeroMode = (m) => {
+    setHeroChartMode(m);
+    try { localStorage.setItem("jx-hero-chart-mode", m); } catch {}
+  };
+  // drag the bottom handle to resize the hero chart's height (persisted)
+  const onHeroResizeDown = (e) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = heroChartH;
+    let latest = startH;
+    const move = (ev) => {
+      latest = Math.max(120, Math.min(460, startH + (ev.clientY - startY)));
+      setHeroChartH(latest);
+    };
+    const up = () => {
+      try { localStorage.setItem("jx-hero-chart-h", String(Math.round(latest))); } catch {}
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
   const analyticsRange = "ALL"; // header range tabs removed, charts cover full history
   const [pnlRange, setPnlRange] = useState("1M");
   const [dailyRange, setDailyRange] = useState("Week");
@@ -1165,13 +1295,24 @@ export default function OverviewPanel({
           )
         : 0;
 
+    // Break-even trades (pnl === 0) are neutral: they neither extend nor break
+    // a win streak — only an actual loss (pnl < 0) resets it.
     let streak = 0;
-    for (let i = allPnls.length - 1; i >= 0 && allPnls[i] > 0; i--) streak++;
+    for (let i = allPnls.length - 1; i >= 0; i--) {
+      if (allPnls[i] > 0) streak++;
+      else if (allPnls[i] < 0) break;
+      // pnl === 0 → skip (carry the streak)
+    }
     let best = 0,
       cur = 0;
     allPnls.forEach((p) => {
-      cur = p > 0 ? cur + 1 : 0;
-      best = Math.max(best, cur);
+      if (p > 0) {
+        cur += 1;
+        best = Math.max(best, cur);
+      } else if (p < 0) {
+        cur = 0;
+      }
+      // p === 0 → neutral, keep cur unchanged
     });
 
     const holds = win
@@ -1310,15 +1451,25 @@ export default function OverviewPanel({
     const pnls = all.map((t) => Number(t.pnl) || 0);
     const total = all.length;
 
-    // win streaks
+    // win streaks — break-even trades (pnl === 0) are neutral: they don't
+    // count as a win but they also don't break the streak; only a loss does.
     let curWin = 0,
       bestWin = 0,
       run = 0;
     pnls.forEach((p) => {
-      run = p > 0 ? run + 1 : 0;
-      bestWin = Math.max(bestWin, run);
+      if (p > 0) {
+        run += 1;
+        bestWin = Math.max(bestWin, run);
+      } else if (p < 0) {
+        run = 0;
+      }
+      // p === 0 → neutral, carry run
     });
-    for (let i = pnls.length - 1; i >= 0 && pnls[i] > 0; i--) curWin++;
+    for (let i = pnls.length - 1; i >= 0; i--) {
+      if (pnls[i] > 0) curWin++;
+      else if (pnls[i] < 0) break;
+      // pnls[i] === 0 → skip
+    }
 
     // green-day streaks
     const byDay = new Map();
@@ -1338,10 +1489,13 @@ export default function OverviewPanel({
     });
     for (let i = days.length - 1; i >= 0 && days[i] > 0; i--) curGreenDays++;
 
-    // P&L captured during the current win streak
+    // P&L captured during the current win streak (skip break-even, stop on loss)
     let streakPnl = 0;
-    for (let i = pnls.length - 1; i >= 0 && pnls[i] > 0; i--)
-      streakPnl += pnls[i];
+    for (let i = pnls.length - 1; i >= 0; i--) {
+      if (pnls[i] > 0) streakPnl += pnls[i];
+      else if (pnls[i] < 0) break;
+      // pnls[i] === 0 → skip
+    }
 
     const net = pnls.reduce((s, p) => s + p, 0);
     const biggestWin = pnls.length ? Math.max(...pnls, 0) : 0;
@@ -1791,13 +1945,17 @@ export default function OverviewPanel({
     },
   ];
 
-  const { hidden, toggle, reset, isVisible } = useHiddenSections(
+  const { hidden, toggle, reset, isVisible, order, reorder, orderIndex } = useHiddenSections(
     "jx-overview-sections",
     // Trimmed for focus — keep Core KPIs, Equity, Calendar/day-of-week, and
     // Trading edge & session up front. The deeper cuts stay one tap away in
     // Customize (users who already customized keep their own choice).
     ["capital", "pace", "payoff", "drawdown", "holdtime", "revenge", "timeframe"],
+    OVERVIEW_SECTIONS.map((s) => s.id),
   );
+  // CSS flex `order` for a section card, so Customize can reorder the dashboard.
+  // Greeting/live-strip stay pinned above via their own negative order.
+  const secOrder = (id) => ({ order: orderIndex(id) });
 
   // small hover "hide" eye shown on each section card; re-show via Customize
   const HideBtn = ({ id }) => (
@@ -1866,6 +2024,8 @@ export default function OverviewPanel({
             hidden={hidden}
             onToggle={toggle}
             onReset={reset}
+            order={order}
+            onReorder={reorder}
           />
           {!usingDummy && (
             <Button variant="primary" icon={Plus} onClick={onLogTrade}>
@@ -1917,111 +2077,205 @@ export default function OverviewPanel({
               </div>
             </div>
 
-            <div className="jx-livestrip__livecard">
-              <div className="jx-livestrip__liverow">
-                <span className="jx-livestrip__livebadge">
-                  <span className="jx-livestrip__dot" /> Live now
-                </span>
-                {liveSession.cur.trades > 0 && (
-                  <span className="jx-livestrip__livewr">
-                    {Math.round(liveSession.cur.winRate)}% win here
+          </div>
+
+          {/* Capital growth — equity candles from the starting balance */}
+          {(() => {
+            const candles = buildEquityCandles(closed, startingBalance, "1D").slice(-30);
+            const equityNow = candles.length ? candles[candles.length - 1].c : startingBalance;
+            const growth =
+              startingBalance > 0 ? ((equityNow - startingBalance) / startingBalance) * 100 : null;
+            const up = equityNow >= startingBalance;
+
+            // ── journey: where they started → where they are → where this pace
+            //    lands them in 7 days (pace = avg net change per trading day) ──
+            const tradingDays = candles.length;
+            const netChange = equityNow - startingBalance;
+            const perDay = tradingDays > 0 ? netChange / tradingDays : 0;
+            const proj7 = equityNow + perDay * 7;
+            const projPct = startingBalance > 0 ? ((proj7 - startingBalance) / startingBalance) * 100 : null;
+            const j = { startingBalance, equityNow, proj7, perDay, tradingDays, projPct, hasData: tradingDays > 0 && netChange !== 0 };
+            const jLo = Math.min(j.startingBalance, j.equityNow, j.proj7);
+            const jHi = Math.max(j.startingBalance, j.equityNow, j.proj7);
+            const jSpan = jHi - jLo || 1;
+            const jPos = (v) => ((v - jLo) / jSpan) * 100;
+            const paceUp = j.perDay >= 0;
+            const proj7Date = new Date(Date.now() + 7 * 864e5).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+
+            return (
+              <div className="jx-livestrip__chart jx-livestrip__chart--plain">
+                <div className="jx-livestrip__chart-head">
+                  <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ fontWeight: 600, color: "var(--color-text-secondary)" }}>
+                      Capital growth
+                    </span>
+                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                      from {currencySymbol}{fmt(startingBalance, 0)}
+                    </span>
                   </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    {/* area ↔ candles toggle (persisted) — text labels, Week/Month style */}
+                    <div className="jx-seg jx-seg--inline" role="group" aria-label="Chart type" style={{ padding: 3 }}>
+                      <button
+                        type="button"
+                        className={`jx-seg__btn ${heroChartMode === "area" ? "jx-seg__btn--active" : ""}`}
+                        onClick={() => setHeroMode("area")}
+                        aria-pressed={heroChartMode === "area"}
+                        style={{ padding: "5px 12px", font: "var(--text-caption)", fontWeight: 600 }}
+                      >
+                        Area
+                      </button>
+                      <button
+                        type="button"
+                        className={`jx-seg__btn ${heroChartMode === "candle" ? "jx-seg__btn--active" : ""}`}
+                        onClick={() => setHeroMode("candle")}
+                        aria-pressed={heroChartMode === "candle"}
+                        style={{ padding: "5px 12px", font: "var(--text-caption)", fontWeight: 600 }}
+                      >
+                        Candles
+                      </button>
+                    </div>
+                  </span>
+                </div>
+
+                {/* journey indicator — start → you are here → 7-day projection */}
+                <motion.div
+                  className="jx-journey"
+                  key={`journey-${heroChartMode}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div className="jx-journey__track">
+                    {/* filled path start → now grows in */}
+                    <motion.span
+                      className="jx-journey__seg jx-journey__seg--done"
+                      style={{
+                        left: `${jPos(Math.min(startingBalance, equityNow))}%`,
+                        background: up ? "var(--color-success)" : "var(--color-danger)",
+                      }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.abs(jPos(equityNow) - jPos(startingBalance))}%` }}
+                      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                    {/* projected dashed path now → 7-day extends after */}
+                    <motion.span
+                      className="jx-journey__seg jx-journey__seg--proj"
+                      style={{
+                        left: `${jPos(Math.min(equityNow, proj7))}%`,
+                        borderColor: paceUp ? "var(--color-success)" : "var(--color-danger)",
+                      }}
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: `${Math.abs(jPos(proj7) - jPos(equityNow))}%`, opacity: 0.75 }}
+                      transition={{ duration: 0.6, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                    <motion.span
+                      className="jx-journey__pin"
+                      style={{ left: `${jPos(startingBalance)}%` }}
+                      title="Start"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3, ease: "backOut" }}
+                    />
+                    <motion.span
+                      className="jx-journey__pin jx-journey__pin--now"
+                      style={{ left: `${jPos(equityNow)}%`, background: up ? "var(--color-success)" : "var(--color-danger)" }}
+                      title="You are here"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.35, delay: 0.5, ease: "backOut" }}
+                    />
+                    <motion.span
+                      className="jx-journey__pin jx-journey__pin--proj"
+                      style={{ left: `${jPos(proj7)}%`, borderColor: paceUp ? "var(--color-success)" : "var(--color-danger)" }}
+                      title="7-day projection"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.35, delay: 1.05, ease: "backOut" }}
+                    />
+                  </div>
+                  <div className="jx-journey__labels">
+                    <span>Start · {currencySymbol}{fmt(startingBalance, 0)}</span>
+                    <span style={{ color: "var(--color-text-secondary)", fontWeight: 600 }}>
+                      You are here · {currencySymbol}{fmt(equityNow, 0)}
+                    </span>
+                    <span>7-day · {currencySymbol}{fmt(proj7, 0)}</span>
+                  </div>
+                  <motion.div
+                    className="jx-journey__meta"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.7 }}
+                  >
+                    {j.hasData ? (
+                      <>
+                        <span style={{ color: paceUp ? "var(--color-success-strong)" : "var(--color-danger-strong)", fontWeight: 700 }}>
+                          {paceUp ? "▲" : "▼"} {currencySymbol}{fmt(Math.abs(perDay), 0)}/day
+                        </span>
+                        <span>
+                          {" "}· at this pace you reach {currencySymbol}{fmt(proj7, 0)} by {proj7Date}
+                          {projPct != null ? ` (${projPct >= 0 ? "+" : ""}${fmt(projPct, 1)}%)` : ""}
+                        </span>
+                      </>
+                    ) : (
+                      <span>Log a few trades and your pace &amp; 7-day projection appear here.</span>
+                    )}
+                  </motion.div>
+                </motion.div>
+
+                {candles.length ? (
+                  <CandleChart candles={candles} sym={currencySymbol} height={heroChartH} candleWidth={0} mode={heroChartMode} axis />
+                ) : (
+                  <div
+                    style={{
+                      height: heroChartH,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                      color: "var(--color-text-muted)",
+                      font: "var(--text-caption)",
+                    }}
+                  >
+                    No closed trades yet — your equity curve grows here.
+                  </div>
                 )}
+                {/* drag handle to resize the chart height */}
+                <div
+                  className="jx-chart-resize"
+                  onPointerDown={onHeroResizeDown}
+                  role="separator"
+                  aria-label="Drag to resize chart height"
+                  title="Drag to resize"
+                >
+                  <span className="jx-chart-resize__grip" />
+                </div>
               </div>
-              <span className="jx-livestrip__livetitle">
+            );
+          })()}
+
+          {/* Live session — moved below the chart, as a full-width strip */}
+          <div className="jx-livestrip__livecard jx-livestrip__livecard--below">
+            <div className="jx-livestrip__liverow">
+              <span className="jx-livestrip__livebadge">
+                <span className="jx-livestrip__dot" /> Live now
+              </span>
+              <span className="jx-livestrip__livetitle" style={{ margin: 0 }}>
                 {liveSession.cur.label}
                 {liveSession.isBest && <span style={{ color: "var(--color-success-strong)" }}> · your best</span>}
               </span>
-              <span className="jx-livestrip__livetime">
+              {liveSession.cur.trades > 0 && (
+                <span className="jx-livestrip__livewr">
+                  {Math.round(liveSession.cur.winRate)}% win here
+                </span>
+              )}
+              <span style={{ flex: 1 }} />
+              <span className="jx-livestrip__livetime" style={{ margin: 0 }}>
                 <Clock size={14} /> {liveSession.remH > 0 ? `${liveSession.remH}h ` : ""}{liveSession.remM}m left
               </span>
-              <span className="jx-livestrip__livesub">
+              <span className="jx-livestrip__livesub" style={{ margin: 0 }}>
                 {new Date().toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}
               </span>
-            </div>
-          </div>
-
-          {/* P&L by weekday (last 30 days) — 7 summed bars */}
-          <div className="jx-livestrip__chart">
-            <div className="jx-livestrip__chart-head">
-              <span style={{ fontWeight: 600, color: "var(--color-text-secondary)" }}>P&amp;L by weekday · 30d</span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-success)" }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 2, background: "var(--color-success)" }} />
-                  {weekday7.profitDays} up
-                </span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-danger)" }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 2, background: "var(--color-danger)" }} />
-                  {weekday7.lossDays} down
-                </span>
-                {weekday7.best && (
-                  <span style={{ color: "var(--yellow-600)", fontWeight: 600 }}>
-                    Best {k(weekday7.best.pnl, currencySymbol)} · {weekday7.best.full}
-                  </span>
-                )}
-              </span>
-            </div>
-            <div className="jx-livestrip__bars" onMouseLeave={() => setBarHover(null)}>
-              {/* zero baseline */}
-              <span className="jx-livestrip__baseline" aria-hidden="true" />
-
-              {/* custom tooltip for the hovered weekday */}
-              {barHover != null && weekday7.bars[barHover] && (() => {
-                const b = weekday7.bars[barHover];
-                const pos = ((barHover + 0.5) / weekday7.bars.length) * 100;
-                return (
-                  <div
-                    className="jx-livestrip__tip"
-                    style={{ left: `${pos}%`, transform: `translateX(${barHover < 1 ? "0" : barHover > weekday7.bars.length - 2 ? "-100%" : "-50%"})` }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)" }}>
-                      {b.full} · {b.trades} trade{b.trades === 1 ? "" : "s"}
-                    </span>
-                    <strong style={{ color: !b.has ? "var(--color-text-muted)" : b.pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                      {b.has ? `${b.pnl >= 0 ? "+" : "−"}${currencySymbol}${fmt(Math.abs(b.pnl), 0)}` : "No trades"}
-                    </strong>
-                  </div>
-                );
-              })()}
-
-              {weekday7.bars.map((b, i) => {
-                const up = b.pnl > 0;
-                const down = b.pnl < 0;
-                // gentle power scale + high floor so every traded weekday reads
-                // as a proper bar (not a sliver) next to the biggest one
-                const h = b.has ? Math.max(30, Math.round(Math.pow(Math.abs(b.pnl) / weekday7.maxAbs, 0.4) * 48)) : 0;
-                const isBest = i === weekday7.bestIdx;
-                const isToday = i === weekday7.todayIdx;
-                return (
-                  <div
-                    key={i}
-                    className={`jx-livestrip__bar${i === barHover ? " is-hover" : ""}${isToday ? " is-today" : ""}`}
-                    onMouseEnter={() => setBarHover(i)}
-                  >
-                    <span className="jx-livestrip__bar-half jx-livestrip__bar-half--up">
-                      {up && (
-                        <span
-                          style={{
-                            height: h,
-                            background: isBest ? "var(--yellow-400)" : "var(--color-success)",
-                            boxShadow: isBest ? "0 0 7px color-mix(in srgb, var(--yellow-400) 65%, transparent)" : "none",
-                          }}
-                        />
-                      )}
-                    </span>
-                    <span className="jx-livestrip__bar-half jx-livestrip__bar-half--down">
-                      {down && <span style={{ height: h, background: "var(--color-danger)" }} />}
-                      {!b.has && <span className="jx-livestrip__bar-empty" />}
-                    </span>
-                    <span
-                      className="jx-livestrip__bar-label"
-                      style={isBest ? { color: "var(--yellow-600)", fontWeight: 700 } : undefined}
-                    >
-                      {b.label}
-                    </span>
-                  </div>
-                );
-              })}
             </div>
           </div>
 
@@ -2433,7 +2687,7 @@ export default function OverviewPanel({
 
       {/* ===== Capital growth toward doubling (gamified) ===== */}
       {isVisible("capital") && (
-        <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+        <div className="jx-card" style={{ ...secOrder("capital"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap" }}>
             <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               Capital growth <InfoTip text="Progress toward doubling your starting balance (100% = 2×). Based on net P&L." />
@@ -2559,7 +2813,7 @@ export default function OverviewPanel({
           ["Post-loss rushes", `${Math.round(pace.revengeRate * 100)}%`],
         ];
         return (
-          <div className="jx-card jx-sec">
+          <div className="jx-card jx-sec" style={secOrder("pace")}>
             <HideBtn id="pace" />
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-3)" }}>
               <span className="jx-card__title">Trading pace</span>
@@ -2605,7 +2859,7 @@ export default function OverviewPanel({
             const maxAvg = Math.max(payoff.avgWin, payoff.avgLoss, 1);
             const lossBigger = payoff.avgLoss > payoff.avgWin && payoff.avgWin > 0;
             return (
-              <div className="jx-card jx-sec" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+              <div className="jx-card jx-sec" style={{ ...secOrder("payoff"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
                 <HideBtn id="payoff" />
                 <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                   Payoff <InfoTip text="Average win vs average loss. A high win rate still loses money if your losses are bigger than your wins." />
@@ -2650,7 +2904,7 @@ export default function OverviewPanel({
           })()}
 
           {isVisible("drawdown") && drawdown && (
-            <div className="jx-card jx-sec" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+            <div className="jx-card jx-sec" style={{ ...secOrder("drawdown"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
               <HideBtn id="drawdown" />
               <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 Drawdown &amp; risk <InfoTip text="The biggest drop from an equity peak. Large drawdowns usually come from oversizing or revenge trading." />
@@ -2693,7 +2947,7 @@ export default function OverviewPanel({
       {isVisible("holdtime") && holdTime && (() => {
         const maxDur = Math.max(holdTime.winAvg, holdTime.lossAvg, 1);
         return (
-          <div className="jx-card jx-sec" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <div className="jx-card jx-sec" style={{ ...secOrder("holdtime"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
             <HideBtn id="holdtime" />
             <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               Hold time, winners vs losers <InfoTip text="Traders tend to hold losers too long and cut winners too early (the disposition effect). Aim to hold winners at least as long as losers." />
@@ -2725,7 +2979,7 @@ export default function OverviewPanel({
 
       {/* ===== Revenge trading cost ===== */}
       {isVisible("revenge") && revenge && (
-        <div className="jx-card jx-sec" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+        <div className="jx-card jx-sec" style={{ ...secOrder("revenge"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
           <HideBtn id="revenge" />
           <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             Revenge-trading cost <InfoTip text="P&L from trades you opened within 30 minutes of a loss, often impulsive 'win it back' trades." />
@@ -2763,7 +3017,7 @@ export default function OverviewPanel({
 
       {/* ===== Timeframe analysis (which timeframes they trade most) ===== */}
       {isVisible("timeframe") && (
-        <div className="jx-card jx-sec">
+        <div className="jx-card jx-sec" style={secOrder("timeframe")}>
           <HideBtn id="timeframe" />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap", marginBottom: "var(--space-3)" }}>
             <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -2824,7 +3078,7 @@ export default function OverviewPanel({
 
       {/* ===== Session performance ===== */}
       {isVisible("sessions") && (
-      <div className="jx-card jx-sec">
+      <div className="jx-card jx-sec" style={secOrder("sessions")}>
         <HideBtn id="sessions" />
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
           <span className="jx-card__title">Session performance</span>
@@ -2888,7 +3142,7 @@ export default function OverviewPanel({
 
       {/* ===== Trader edge ===== */}
       {isVisible("edge") && (
-      <div className="jx-card jx-sec">
+      <div className="jx-card jx-sec" style={secOrder("edge")}>
         <HideBtn id="edge" />
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
           <span className="jx-card__title">Your trading edge</span>
@@ -2945,7 +3199,7 @@ export default function OverviewPanel({
 
       {/* ===== Calendar & heatmap (moved here from Trades log) ===== */}
       {isVisible("calendar") && (
-        <div className="jx-card jx-sec" style={{ gridColumn: "1 / -1" }}>
+        <div className="jx-card jx-sec" style={{ ...secOrder("calendar"), gridColumn: "1 / -1" }}>
           <HideBtn id="calendar" />
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-4)" }}>
             <span className="jx-card__title">Calendar &amp; heatmap</span>
@@ -2960,7 +3214,7 @@ export default function OverviewPanel({
 
       {/* ===== Day-of-week P&L (spans both columns) ===== */}
       {isVisible("dayOfWeek") && EDGE.dowHasData && (
-        <div className="jx-card jx-sec" style={{ gridColumn: "1 / -1" }}>
+        <div className="jx-card jx-sec" style={{ ...secOrder("dayOfWeek"), gridColumn: "1 / -1" }}>
           <HideBtn id="dayOfWeek" />
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
             <span className="jx-card__title">Day-of-week P&amp;L</span>
@@ -3025,7 +3279,7 @@ export default function OverviewPanel({
           return `${Math.max(0, b.target - b.cur)} to go`;
         };
         return (
-        <div className="jx-card jx-sec" style={{ order: -1 }}>
+        <div className="jx-card jx-sec" style={secOrder("streaks")}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)", marginBottom: "var(--space-4)", flexWrap: "wrap" }}>
             <div>
               <span className="jx-card__title">Streaks &amp; achievements</span>
@@ -3258,7 +3512,7 @@ export default function OverviewPanel({
       {/* ===== Analytics ===== */}
       {isVisible("analytics") && (
       <>
-      <div>
+      <div style={secOrder("analytics")}>
         <span className="jx-card__title">Analytics</span>
         <div
           style={{
@@ -3272,6 +3526,7 @@ export default function OverviewPanel({
 
       <div
         style={{
+          ...secOrder("analytics"),
           display: "grid",
           gridTemplateColumns: "minmax(0, 1.6fr) minmax(240px, 1fr)",
           gap: "var(--space-4)",

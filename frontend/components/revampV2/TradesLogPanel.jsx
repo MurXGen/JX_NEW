@@ -290,13 +290,16 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
           </span>
         </div>
 
-        {/* right: P&L over Win/Loss */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1, flexShrink: 0 }}>
-          <span style={{ font: "var(--text-title)", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+        {/* right: P&L above an aligned outcome badge */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5, flexShrink: 0 }}>
+          <span style={{ font: "var(--text-title)", fontWeight: 700, fontVariantNumeric: "tabular-nums", lineHeight: 1, color: pnl > 0 ? "var(--color-success-strong)" : pnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-secondary)" }}>
             {money(pnl, sym)}
           </span>
-          <span style={{ font: "var(--text-caption)", fontWeight: 600, color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
-            {pnl >= 0 ? "Win" : "Loss"}
+          <span
+            className={`jx-badge jx-badge--${pnl > 0 ? "success" : pnl < 0 ? "danger" : "neutral"}`}
+            style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.02em" }}
+          >
+            {pnl > 0 ? "Win" : pnl < 0 ? "Loss" : "Even"}
           </span>
         </div>
 
