@@ -18200,6 +18200,397 @@
         }
       ],
       "date": "2026-09-29"
+    },
+    {
+      "slug": "broker-backed-prop-firms-vs-independent-prop-firms",
+      "title": "Broker-Backed Prop Firms vs Independent Prop Firms: What Changes for Your Funded Account",
+      "metaTitle": "Broker-Backed vs Independent Prop Firms: Which Is Safer? | JournalX",
+      "metaDescription": "Brokers are launching their own prop programs. Compare broker-backed and independent prop firms on payouts, rules, execution and risk before buying.",
+      "keywords": [
+        "broker-backed prop firm",
+        "independent prop firm vs broker prop",
+        "prop firm counterparty risk",
+        "best prop firm 2026",
+        "funded account safety"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-09-30",
+      "featured": false,
+      "excerpt": "Regulated brokers are entering the prop space, and the model behind your funded account matters more than the logo. Here is how to compare who actually stands behind your payout.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "Prop Firms",
+        "Payouts",
+        "Due Diligence",
+        "Funded"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Trade-industry press has reported that established retail brokers are launching their own prop-trading programs, with at least one large listed broker reported to be starting its offering on 1 October. Whatever you think of the trend, it puts an old question back on the table: when you buy a challenge, who exactly is on the other side of your account? The answer changes your risk in ways the marketing rarely explains."
+        },
+        {
+          "type": "h2",
+          "text": "Two very different business models"
+        },
+        {
+          "type": "p",
+          "text": "An independent prop firm typically earns revenue from challenge fees and, in some cases, from trading the capital or hedging flow with liquidity partners. A broker-backed program sits inside a company that already earns from spreads, commissions and client flow. That does not make one honest and the other not. It means the incentives, the regulation and the failure modes are different, and you should know which you are dealing with."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Factor",
+            "Independent firm",
+            "Broker-backed program"
+          ],
+          "rows": [
+            [
+              "Main revenue",
+              "Challenge fees, sometimes trading profits",
+              "Broader broker revenue plus challenge fees"
+            ],
+            [
+              "Regulatory oversight",
+              "Varies widely, often light",
+              "Parent may be regulated, but the prop product may sit outside that perimeter"
+            ],
+            [
+              "Execution and data",
+              "Third-party or white-label feeds",
+              "Often the broker's own feed and platforms"
+            ],
+            [
+              "Balance-sheet depth",
+              "Can be thin; depends on fee inflow",
+              "Usually a larger parent, though not a guarantee"
+            ],
+            [
+              "Rule flexibility",
+              "Often more variety and faster changes",
+              "May be more standardised and conservative"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "What regulation does and does not cover"
+        },
+        {
+          "type": "p",
+          "text": "Read the fine print on which legal entity you are contracting with. A regulated broker parent does not automatically mean your simulated or funded prop account is covered by client-money protections. Many prop products are structured as training or evaluation services, and regulators in several jurisdictions have been reported to be paying closer attention to how they are marketed. Treat regulation as something to verify on the firm's own terms page, not as an assumption from the brand name."
+        },
+        {
+          "type": "h2",
+          "text": "Payout reliability is the real test"
+        },
+        {
+          "type": "p",
+          "text": "The number that matters is not the profit split on the homepage. It is how often traders actually receive payouts, how long it takes, and what conditions can void them. Look for published payout proof that is recent and verifiable, a clear payout policy with defined review windows, and a track record of not changing rules retroactively. Our guides on why payouts get denied and on retroactive rule changes cover the traps in detail."
+        },
+        {
+          "type": "quote",
+          "text": "A brand you recognise reduces some risks and adds others. Judge the contract, the payout history and the rules, not the logo."
+        },
+        {
+          "type": "h2",
+          "text": "Where broker-backed programs can genuinely help"
+        },
+        {
+          "type": "p",
+          "text": "There are real potential upsides. Execution and platform infrastructure may be more mature, spreads and commissions closer to what live clients see, and the firm is less likely to vanish overnight if it has a diversified parent. If you plan to eventually trade live with the same broker, a program that maps to real accounts could shorten the path. Those are possibilities to test, not promises. Ask whether funded accounts are simulated or live, and how the firm hedges."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Prop firm model check",
+          "prompt": "Tick every item you have verified in writing before paying for a challenge.",
+          "items": [
+            "I know the exact legal entity that issues the account",
+            "I know whether funded accounts are simulated or live-routed",
+            "I found recent, verifiable payout evidence",
+            "The payout policy states review times and void conditions",
+            "Rule-change and refund terms are in the contract",
+            "I compared at least three firms on total cost to pass"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Too many unknowns. Do not pay yet."
+            },
+            {
+              "min": 3,
+              "text": "Halfway there. Close the gaps before buying."
+            },
+            {
+              "min": 5,
+              "text": "Solid due diligence. You are ahead of most buyers."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "How to compare firms using your own data"
+        },
+        {
+          "type": "p",
+          "text": "Marketing claims are averages across everyone. Your journal is the only dataset that tells you whether a given rule set fits your style. If you scalp, an intraday trailing drawdown may hurt you more than a slower firm's static drawdown. If you hold through news, check restriction windows. Log each challenge attempt with the firm, rules, fee and outcome so you can see your true cost per funded account."
+        },
+        {
+          "type": "usecase",
+          "text": "Tag every trade in JournalX with the firm and account type, then compare drawdown usage, rule violations and payout timing across firms. After a few attempts you will see which rule sets suit your edge, and which ones quietly cost you fees."
+        },
+        {
+          "type": "why",
+          "text": "JournalX tracks multiple accounts and prop rule sets side by side, so the decision between an independent and a broker-backed firm rests on your own numbers instead of a comparison blog's opinion."
+        },
+        {
+          "type": "h2",
+          "text": "A practical decision framework"
+        },
+        {
+          "type": "p",
+          "text": "Start with the contract, then the payout record, then the rules, and only then the price. Cheap challenges are expensive if the rules do not fit you. Begin with the smallest account size that lets you test the firm's payout process, and treat the first payout as the real pass. Never fund an account with money you cannot afford to lose, and keep your total spend on challenges tracked as a business expense line."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Which model would you lean toward?",
+          "prompt": "Be honest about what drives your choice.",
+          "options": [
+            {
+              "label": "Independent firm with the best rules",
+              "response": "Fine, if payout evidence is strong. Verify it independently."
+            },
+            {
+              "label": "Broker-backed program",
+              "response": "Reasonable, but confirm what is actually regulated and how accounts are routed."
+            },
+            {
+              "label": "Whichever is cheapest",
+              "response": "Price-first is how many traders end up paying for resets. Compare cost to pass instead."
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Are broker-backed prop firms safer than independent ones?",
+          "a": "Not automatically. A larger parent can reduce insolvency risk, but the prop product may sit outside client-money protections. Check the contracting entity and payout history."
+        },
+        {
+          "q": "How do I check if a prop firm pays out reliably?",
+          "a": "Look for recent, verifiable payout evidence, a clear payout policy, and independent trader reports. Be cautious of firms that change rules retroactively."
+        },
+        {
+          "q": "Do funded accounts trade real money?",
+          "a": "It varies. Many are simulated with profit shares paid from firm revenue; some route to live markets. Ask the firm directly and get the answer in writing."
+        },
+        {
+          "q": "What should I track when comparing prop firms?",
+          "a": "Fee per attempt, pass rate, drawdown usage, rule violations, payout timing and total cost per funded account. A journal makes this comparison objective."
+        }
+      ]
+    },
+    {
+      "slug": "move-stop-to-breakeven-good-or-bad",
+      "title": "Should You Move Your Stop to Breakeven? What the Numbers Usually Show",
+      "metaTitle": "Move Stop to Breakeven: Does It Help or Hurt Your Edge? | JournalX",
+      "metaDescription": "Moving your stop to breakeven feels safe but can cut winners short. Learn how to test it with your own journal data and decide with expectancy, not emotion.",
+      "keywords": [
+        "move stop to breakeven",
+        "breakeven stop loss strategy",
+        "trade management rules",
+        "stop loss trailing vs breakeven",
+        "trading expectancy"
+      ],
+      "category": "Strategy",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-09-30",
+      "featured": false,
+      "excerpt": "Breakeven stops feel like free insurance, but insurance has a premium. Here is how to measure what it costs your strategy before you make it a habit.",
+      "helpful": {
+        "up": 44,
+        "down": 1,
+        "saves": 38
+      },
+      "tags": [
+        "Trade Management",
+        "Stop Loss",
+        "Expectancy",
+        "Exits"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Almost every trader learns the same rule early: once the trade moves in your favour, slide the stop to breakeven and you can no longer lose. It feels responsible. It also quietly changes your win rate, your average winner and your expectancy, usually in ways you never measured. Whether it helps depends on your strategy, and you can test that instead of guessing."
+        },
+        {
+          "type": "h2",
+          "text": "Why breakeven stops feel so good"
+        },
+        {
+          "type": "p",
+          "text": "A breakeven stop converts an open risk into a guaranteed non-loss, and that removes anxiety. The psychological relief is real and worth something, especially on a funded account where drawdown rules are strict. But relief is not the same as edge. The question is what happens to the trades that would have pulled back, tagged your entry, and then gone on to reach the target."
+        },
+        {
+          "type": "h2",
+          "text": "The hidden cost: stopped out at zero, then price runs"
+        },
+        {
+          "type": "p",
+          "text": "Most price action retests the entry area before continuing. If your breakeven stop sits exactly at entry, normal noise can take you out for nothing right before the move you predicted. Those trades become scratches instead of winners. Your win rate may look fine while your average R per winner shrinks, because the runners that would have paid for many losses were clipped."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Approach",
+            "Typical effect on win rate",
+            "Typical effect on average winner",
+            "Main risk"
+          ],
+          "rows": [
+            [
+              "No stop adjustment",
+              "Lower",
+              "Higher",
+              "Full loss on reversals"
+            ],
+            [
+              "Breakeven at 1R",
+              "Often similar or higher (more scratches)",
+              "Lower",
+              "Stopped out before continuation"
+            ],
+            [
+              "Breakeven plus buffer",
+              "Between the two",
+              "Between the two",
+              "Slightly more open risk"
+            ],
+            [
+              "Structure-based trail",
+              "Depends on setup",
+              "Can be higher on trend trades",
+              "Late exits on fast reversals"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "These are tendencies, not laws. Your strategy, timeframe and market decide which column applies. That is exactly why you test."
+        },
+        {
+          "type": "h2",
+          "text": "A simple way to test it with your journal"
+        },
+        {
+          "type": "p",
+          "text": "Take your last 50 to 100 trades and record two extra fields: the maximum favourable excursion in R, and whether price later returned to entry before reaching your target. Then replay each trade with a breakeven stop at 1R and count outcomes. Compare expectancy in R for both versions. If breakeven lifts expectancy or meaningfully cuts drawdown without hurting it, keep it. If it lowers expectancy, you are paying a premium for comfort."
+        },
+        {
+          "type": "quote",
+          "text": "A rule that makes you feel safe but lowers your expectancy is not risk management. It is anxiety management."
+        },
+        {
+          "type": "h2",
+          "text": "When breakeven stops usually make sense"
+        },
+        {
+          "type": "p",
+          "text": "They tend to earn their place when a trade has moved far enough that reversal to entry would signal your thesis is broken, when a high-impact news event is approaching, or when a prop drawdown buffer is thin and protecting the day matters more than squeezing the last R. Mean-reversion and scalping styles, where targets are near and reversals sharp, often use them differently from trend-following styles that need room to breathe."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick check",
+          "prompt": "Your strategy wins 40% of the time with an average winner of 3R. You move to breakeven at 1R and your win rate stays 40% but many winners become scratches. What most likely happens to expectancy?",
+          "options": [
+            "It rises because losses shrink",
+            "It falls because average winner shrinks",
+            "It stays exactly the same",
+            "It cannot be estimated"
+          ],
+          "correct": 1,
+          "explain": "Scratching trades that would have reached 3R reduces average winner size. Unless losses shrink enough to offset it, expectancy falls. Test with your own data."
+        },
+        {
+          "type": "h2",
+          "text": "Better alternatives to a hard breakeven"
+        },
+        {
+          "type": "p",
+          "text": "Consider a stop moved to just below the last swing or structure point instead of exactly at entry, partial profits at 1R with the rest managed on a wider trail, or a time-based rule that moves the stop only after price closes beyond a level. Each keeps some protection while giving the trade room. Test each version the same way and let the numbers pick."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, log MAE and MFE on every trade and add a tag for stop-management style. Filter by tag to compare expectancy, average R and drawdown for breakeven versus trailing trades, so the rule you follow is one your data supports."
+        },
+        {
+          "type": "why",
+          "text": "JournalX turns exit-management debates into a measurable experiment. Instead of copying a rule from a course, you see how each approach actually performs across your own trades, sessions and setups."
+        },
+        {
+          "type": "h2",
+          "text": "Make it a rule, not a mood"
+        },
+        {
+          "type": "p",
+          "text": "The worst version of the breakeven stop is the improvised one, moved when you feel nervous and left alone when you feel confident. Write down when the stop moves, by how much and why. Then review it monthly. Consistent rules can be improved; mood-based ones can only be endured."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Breakeven rule audit",
+          "prompt": "Tick what is already true for you.",
+          "items": [
+            "I have a written rule for when the stop moves",
+            "I log MFE for every trade",
+            "I know my expectancy with and without breakeven",
+            "I reviewed scratched trades that later hit target",
+            "I adjust the rule only after a full-sample review"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You are managing by feel. Start logging today."
+            },
+            {
+              "min": 3,
+              "text": "Good foundation. Add the missing tests."
+            },
+            {
+              "min": 5,
+              "text": "Data-driven exits. Keep reviewing monthly."
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Is moving a stop to breakeven a good idea?",
+          "a": "It depends on your strategy. It reduces losses but can cut winners short. Test it against your own trade history using expectancy in R."
+        },
+        {
+          "q": "When should I move my stop to breakeven?",
+          "a": "Common triggers are a favourable move of about 1R, a broken thesis if price returns to entry, or a nearby high-impact news event. Write the rule down and test it."
+        },
+        {
+          "q": "Does breakeven lower my win rate?",
+          "a": "It usually converts some losers and some would-be winners into scratches. Win rate can look unchanged or higher while average winner size falls."
+        },
+        {
+          "q": "What is a better alternative to a breakeven stop?",
+          "a": "Structure-based trailing stops, partial profits at 1R, or moving the stop with a small buffer beyond entry. Compare each version with your journal data."
+        }
+      ]
     }
   ]
 }
