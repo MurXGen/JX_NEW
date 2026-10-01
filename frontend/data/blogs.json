@@ -18591,6 +18591,319 @@
           "a": "Structure-based trailing stops, partial profits at 1R, or moving the stop with a small buffer beyond entry. Compare each version with your journal data."
         }
       ]
+    },
+    {
+      "slug": "weekend-gap-risk-holding-trades-over-the-weekend",
+      "title": "Weekend Gap Risk: Should You Hold Trades Over the Weekend on a Funded Account?",
+      "metaTitle": "Weekend Gap Risk: Holding Trades Over the Weekend (Prop Firm Guide) | JournalX",
+      "metaDescription": "Gaps can jump straight past your stop. Learn how weekend gap risk works, what prop firms usually allow, and how to size and journal weekend holds safely.",
+      "keywords": [
+        "weekend gap risk",
+        "hold trades over the weekend",
+        "prop firm weekend holding rules",
+        "forex weekend gap",
+        "overnight position risk"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-01",
+      "featured": false,
+      "excerpt": "A stop loss is a request, not a guarantee, and nowhere is that clearer than Monday's open. Here is how to decide whether a weekend hold is worth the gap risk.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "Gap Risk",
+        "Weekend Holding",
+        "Prop Firms",
+        "Stop Loss"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Friday afternoon is when many traders feel the most pressure. The trade is working, or it is losing and you want one more chance, and the market is about to close for two days. Holding through the weekend can feel like patience, but it adds a kind of risk that your stop loss cannot fully control: the gap."
+        },
+        {
+          "type": "h2",
+          "text": "What a weekend gap actually is"
+        },
+        {
+          "type": "p",
+          "text": "Most markets that close for the weekend reopen at a price that can differ from Friday's close. News, geopolitical events, central bank commentary and shifts in sentiment keep arriving while you cannot trade. When the market reopens, price does not walk through the levels in between. It simply starts from a new level. If your stop sat inside that jump, a standard stop order is typically filled at the next available price, which can be materially worse than the level you chose. This is called slippage through the stop, and it is why a stop is a request rather than a guarantee."
+        },
+        {
+          "type": "p",
+          "text": "Gap size varies widely by instrument and by week. Most weekends the opening price is close to Friday's close, and large gaps are the exception. The problem is that the exception is the one that damages an account, and you never know in advance which weekend it will be."
+        },
+        {
+          "type": "h2",
+          "text": "Why it matters more on a funded account"
+        },
+        {
+          "type": "p",
+          "text": "On a personal account a bad gap hurts. On a funded account it can end the challenge, because drawdown limits are measured against equity and a gap can cross the line before you can react. Many firms also publish their own weekend or overnight policies. Some allow holding, some restrict it on evaluation accounts, and some charge differently around specific events. Rules change and differ by firm and by account type, so read the current terms for your exact account rather than relying on a blog post, including this one."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Question to ask",
+            "Why it matters"
+          ],
+          "rows": [
+            [
+              "Is weekend holding allowed on my account type?",
+              "Evaluation and funded stages sometimes have different rules."
+            ],
+            [
+              "How is drawdown measured?",
+              "Equity-based or trailing limits react to gaps instantly."
+            ],
+            [
+              "What happens if a gap breaches the limit?",
+              "A fill beyond your stop still counts against you."
+            ],
+            [
+              "Are there news or holiday restrictions?",
+              "Long weekends and event risk can add extra rules."
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "A rule-based way to decide"
+        },
+        {
+          "type": "p",
+          "text": "Instead of deciding on Friday at 4 pm with your emotions running, decide on Monday morning with a written rule. A workable framework has three parts. First, a hard permission test: the trade must have a clear structural reason to be held, such as a higher-timeframe setup that has not played out, not simply the fact that it is currently red. Second, a size reduction: if you normally risk 1%, consider risking half of that or less on anything you plan to hold over the weekend, because the real risk is larger than the distance to your stop. Third, a distance test: how far is your stop from the nearest plausible gap level, and would a gap through it still leave you inside your daily and overall limits?"
+        },
+        {
+          "type": "quote",
+          "text": "If a gap through my stop would break my account rules, the position is too big, no matter how good the setup looks."
+        },
+        {
+          "type": "h2",
+          "text": "Test your own weekend trades"
+        },
+        {
+          "type": "p",
+          "text": "Most traders have never separated their weekend holds from the rest of their trades. Pull out every position that was open across a Friday close and compare it with your normal trades. Look at average R, the worst single outcome, and how often you closed early on Monday out of nerves. You may find that your weekend holds are fine, or that a few oversized ones account for most of your worst days. Either answer is more useful than a guess."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Friday close checklist",
+          "prompt": "Tick each item before you decide to hold a trade over the weekend.",
+          "items": [
+            "My account rules explicitly allow weekend holding",
+            "The trade has a structural reason to be held, not just hope",
+            "My size is reduced compared with a normal day",
+            "A gap through my stop still keeps me inside my drawdown limits",
+            "I have checked the calendar for events and holidays",
+            "I wrote my Monday plan before closing the platform"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Close the trade. You are not ready to hold it."
+            },
+            {
+              "min": 4,
+              "text": "Borderline. Cut size or tighten the plan before holding."
+            },
+            {
+              "min": 6,
+              "text": "Rules satisfied. Hold it, and journal the outcome."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "Tag every trade that crosses a weekend in JournalX, then filter by that tag. Compare average R, largest loss and win rate against your regular trades, and add a note on how you felt on Sunday night. After a few weeks you will see whether weekend holds are part of your edge or a leak."
+        },
+        {
+          "type": "why",
+          "text": "JournalX is built around your own data and rules, so you can measure weekend holds separately instead of relying on generic advice. Pair it with your drawdown limits and see exactly how close a gap would have taken you to the line."
+        },
+        {
+          "type": "h2",
+          "text": "The calm option is always available"
+        },
+        {
+          "type": "p",
+          "text": "Flat is a position. Closing before the weekend costs you only the possibility of more profit, while holding can cost you the account. Many consistent traders simply treat Friday afternoon as a time to reduce exposure and review the week. If you do hold, hold deliberately, at smaller size, with a written plan, and with the number you can afford to lose already decided."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Can a stop loss protect me from a weekend gap?",
+          "a": "Not fully. A standard stop becomes a market order once triggered, so after a gap it is usually filled at the next available price, which may be worse than your stop level."
+        },
+        {
+          "q": "Do all prop firms allow weekend holding?",
+          "a": "No. Policies differ by firm and by account stage, and they change over time, so check the current rules for your specific account before holding."
+        },
+        {
+          "q": "How much should I reduce size for a weekend hold?",
+          "a": "There is no universal number. Many traders cut size by around half, then check that a gap through the stop would still stay inside their daily and overall loss limits."
+        },
+        {
+          "q": "Are weekend gaps common?",
+          "a": "Small gaps are common and large gaps are rare, but the rare ones are what hurt, which is why the size and limit checks matter more than predicting the gap."
+        }
+      ]
+    },
+    {
+      "slug": "how-to-trade-with-a-full-time-job",
+      "title": "How to Trade With a Full-Time Job: A Realistic Part-Time Trader's Plan",
+      "metaTitle": "How to Trade With a Full-Time Job: Part-Time Trader Plan | JournalX",
+      "metaDescription": "Working 9 to 5 and trading too? Build a part-time trading routine with the right timeframe, fixed alerts, strict risk and a short journal that fits your day.",
+      "keywords": [
+        "how to trade with a full-time job",
+        "part-time trader",
+        "trade while working 9 to 5",
+        "swing trading with a job",
+        "part-time trading routine"
+      ],
+      "category": "Strategy",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-01",
+      "featured": false,
+      "excerpt": "You do not need six screens and all day to trade well. You need a timeframe that fits your schedule, rules you set in advance and a journal that takes ten minutes.",
+      "helpful": {
+        "up": 46,
+        "down": 1,
+        "saves": 40
+      },
+      "tags": [
+        "Part-Time Trading",
+        "Swing Trading",
+        "Routine",
+        "Time Management"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Most people who trade are not doing it full time. They have a job, a commute and a life, and they trade around it. The common mistake is trying to run a day-trading style on a part-time schedule: sneaking looks at charts during meetings, taking impulsive trades from a phone and reacting to price instead of following a plan. A better approach is to design the strategy around the hours you actually have."
+        },
+        {
+          "type": "h2",
+          "text": "Start with your real schedule"
+        },
+        {
+          "type": "p",
+          "text": "Write down the time windows when you can look at a chart without distraction. For many people that is one block in the evening, perhaps one in the morning, and weekends. Be honest, because the plan has to survive a busy week. A strategy that needs you to watch price at 2 pm on a Tuesday is not a part-time strategy, however good it looks in a backtest."
+        },
+        {
+          "type": "h2",
+          "text": "Choose a timeframe that matches the hours"
+        },
+        {
+          "type": "p",
+          "text": "The fewer hours you can watch, the higher the timeframe should be. Slower charts produce fewer, larger decisions, which suits someone who checks in rather than stares. Fast scalping reacts to noise that you will not be present for, and a missed exit costs more when targets are tight."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Time available",
+            "Suitable style",
+            "Typical check-ins"
+          ],
+          "rows": [
+            [
+              "30 to 60 minutes a day",
+              "Swing trading on 4-hour or daily charts",
+              "Once in the evening"
+            ],
+            [
+              "1 to 2 hours, fixed session",
+              "Session-based trades (for example London or New York open)",
+              "One planned window"
+            ],
+            [
+              "Weekends only",
+              "Position trading on weekly or daily charts",
+              "Weekly review"
+            ],
+            [
+              "Irregular and unpredictable",
+              "Fewer trades, wider stops, alerts only",
+              "Alert-driven"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Let alerts and orders do the watching"
+        },
+        {
+          "type": "p",
+          "text": "Part-time traders win by pre-deciding. Mark your levels in the evening, set price alerts and place pending or limit orders with the stop loss and target attached. If the trade triggers while you are at work, the plan is already in force. If it does not, nothing is lost. This removes the temptation to open the platform mid-meeting and improvise, which is where many part-time accounts quietly leak."
+        },
+        {
+          "type": "p",
+          "text": "Size also matters more when you cannot react quickly. Because you will not always be there to manage a trade, risk a smaller fixed percentage per trade than you would with full screen time, and keep a cap on how many positions can be open at once so that several losers cannot stack up unattended."
+        },
+        {
+          "type": "h2",
+          "text": "Keep the journal short enough to actually do"
+        },
+        {
+          "type": "p",
+          "text": "A journal that takes an hour will be abandoned by Wednesday. For part-time trading, a ten-minute version is enough: a screenshot or the key levels, the reason for the entry, the planned risk, the outcome in R, and one line on whether you followed your rules. The goal is not literature. It is a record you can analyse after twenty or thirty trades, which for a swing trader may take a few months. That is normal. Patience with the sample is part of the job."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick check",
+          "prompt": "You can only look at charts for about 45 minutes each evening. Which approach fits best?",
+          "options": [
+            "Scalping the 1-minute chart whenever you can",
+            "Swing trading daily or 4-hour setups with alerts and pending orders",
+            "Checking your phone every hour and trading news spikes",
+            "Moving your stop constantly during work hours"
+          ],
+          "correct": 1,
+          "explain": "With limited, fixed screen time, higher timeframes and pre-placed orders let the plan work while you are away, and they avoid the impulse trades that come from constant checking."
+        },
+        {
+          "type": "usecase",
+          "text": "Log each trade in JournalX in a couple of minutes after your evening session, tag it with the setup, and note whether you followed your plan. Over time you can see which setups and which days of the week actually pay for your limited screen time."
+        },
+        {
+          "type": "why",
+          "text": "JournalX focuses on the metrics that matter, such as R-multiples, expectancy and rule adherence, so a short entry gives you real insight rather than a pile of unread notes."
+        },
+        {
+          "type": "h2",
+          "text": "Protect your job and your account"
+        },
+        {
+          "type": "p",
+          "text": "Treat trading as something that must not interfere with your income. Never trade money you need for bills, avoid taking calls or placing trades from the office in ways your employer would not accept, and check any workplace policy on personal trading. Pace matters too. A small, steady process you can run for years beats a burst of effort that collapses after a month."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Can you make a living trading part time?",
+          "a": "Some people build meaningful income this way, but most part-time traders should treat results as supplementary and focus first on consistency and risk control. Outcomes vary widely and are never guaranteed."
+        },
+        {
+          "q": "What is the best timeframe for a trader with a job?",
+          "a": "Many part-time traders prefer 4-hour and daily charts because they allow one planned check-in rather than constant screen time."
+        },
+        {
+          "q": "How many trades should a part-time trader take?",
+          "a": "Fewer is fine. A handful of well-planned trades a week with strict risk usually beats many rushed ones."
+        },
+        {
+          "q": "Can I trade a prop firm challenge while working full time?",
+          "a": "It can be done with a slower style, but check the firm's minimum trading days and any rules on holding positions, since those affect how you plan around your schedule."
+        }
+      ]
     }
   ]
 }
