@@ -13,12 +13,14 @@ import {
   Coins,
   Pencil,
   Plus,
+  Trash2,
   Type,
   Wallet,
   X,
 } from "lucide-react";
 import Button from "./Button";
-import { createAccount, updateAccount } from "@/api/auth";
+import ConfirmDialog from "./ConfirmDialog";
+import { createAccount, updateAccount, deleteAccount } from "@/api/auth";
 import { canAddAccount, getPlanRules } from "@/utils/planRestrictions";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -96,6 +98,51 @@ export default function JournalsModal({
     return m;
   }, [trades]);
 
+  const tradeCountByAccount = useMemo(() => {
+    const m = {};
+    trades.forEach((t) => {
+      if (!t.accountId) return;
+      m[t.accountId] = (m[t.accountId] || 0) + 1;
+    });
+    return m;
+  }, [trades]);
+
+  // delete-journal confirmation flow
+  const [confirmDel, setConfirmDel] = useState(null); // account pending delete
+  const [deleting, setDeleting] = useState(false);
+  const [delError, setDelError] = useState(null);
+
+  const confirmDeleteJournal = async () => {
+    if (!confirmDel) return;
+    setDeleting(true);
+    setDelError(null);
+    try {
+      await deleteAccount(confirmDel._id);
+      // if the deleted journal was active, hand over to a remaining one
+      if (confirmDel._id === currentAccountId) {
+        const next = accounts.find((a) => a._id !== confirmDel._id);
+        try {
+          if (next) {
+            Cookies.set("accountId", next._id, { expires: 365 });
+            Cookies.set("selectedAccount", next._id, { expires: 365 });
+            localStorage.setItem("jx-account-id", next._id);
+            if (next.currency) localStorage.setItem("jx-base-currency", next.currency.toUpperCase());
+          } else {
+            Cookies.remove("accountId");
+            Cookies.remove("selectedAccount");
+            localStorage.removeItem("jx-account-id");
+          }
+        } catch {}
+      }
+      onClose?.();
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+      setDelError("Could not delete journal, try again");
+      setDeleting(false);
+    }
+  };
+
   const switchTo = (acc) => {
     Cookies.set("accountId", acc._id, { expires: 365 });
     Cookies.set("selectedAccount", acc._id, { expires: 365 });
@@ -170,6 +217,7 @@ export default function JournalsModal({
   if (!mounted) return null;
 
   return createPortal(
+    <>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -275,6 +323,17 @@ export default function JournalsModal({
                               onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); startEdit(acc); } }}
                             >
                               <Pencil size={14} />
+                            </span>
+                            <span
+                              role="button"
+                              tabIndex={accounts.length > 1 ? 0 : -1}
+                              aria-label={`Delete ${acc.name}`}
+                              title={accounts.length > 1 ? "Delete journal" : "You can't delete your only journal"}
+                              className={`jx-jcard__edit jx-jcard__delete${accounts.length > 1 ? "" : " is-disabled"}`}
+                              onClick={(e) => { e.stopPropagation(); if (accounts.length > 1) { setDelError(null); setConfirmDel(acc); } }}
+                              onKeyDown={(e) => { if (e.key === "Enter" && accounts.length > 1) { e.stopPropagation(); setDelError(null); setConfirmDel(acc); } }}
+                            >
+                              <Trash2 size={14} />
                             </span>
                             {active ? (
                               <span className="jx-jcard__check"><Check size={13} /></span>
@@ -424,7 +483,31 @@ export default function JournalsModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>,
+    </AnimatePresence>
+
+    {/* delete-journal confirmation — same enhanced dialog used across the app */}
+    <ConfirmDialog
+      open={!!confirmDel}
+      variant="danger"
+      icon={Trash2}
+      title="Delete this journal?"
+      message={
+        delError
+          ? delError
+          : confirmDel
+            ? `“${confirmDel.name}” and ${
+                (tradeCountByAccount[confirmDel._id] || 0) === 0
+                  ? "all of its data"
+                  : `all ${tradeCountByAccount[confirmDel._id]} trade${tradeCountByAccount[confirmDel._id] === 1 ? "" : "s"}`
+              } logged in it will be permanently deleted. This can't be undone.`
+            : ""
+      }
+      confirmLabel={deleting ? "Deleting…" : "Delete journal"}
+      loading={deleting}
+      onClose={() => !deleting && setConfirmDel(null)}
+      onConfirm={confirmDeleteJournal}
+    />
+    </>,
     document.body,
   );
 }

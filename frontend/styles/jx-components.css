@@ -1449,6 +1449,15 @@ body::before {
   background: var(--color-bg-muted);
   color: var(--color-text-primary);
 }
+.jx-jcard__delete:hover {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+.jx-jcard__delete.is-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .jx-jcard__check {
   display: inline-flex;
   align-items: center;

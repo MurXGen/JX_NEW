@@ -155,6 +155,60 @@ const deactivateAccount = async (req, res) => {
   }
 };
 
+// Permanently delete a journal AND every trade attached to it
+const deleteAccount = async (req, res) => {
+  try {
+    const { accountId } = req.body;
+    const userId = req.cookies.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    if (!accountId) {
+      return res.status(400).json({ message: "Account ID is required" });
+    }
+
+    // 🔹 Make sure the journal exists and belongs to this user
+    const account = await Account.findOne({ _id: accountId, userId });
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+
+    // 🔹 Bulk-delete every trade logged against this journal, then the journal
+    const tradeResult = await Trade.deleteMany({ userId, accountId });
+    await Account.deleteOne({ _id: accountId, userId });
+
+    // 🔹 If the deleted journal was the active one, clear/repoint the cookie
+    const activeAccountId = req.cookies.accountId;
+    if (activeAccountId && String(activeAccountId) === String(accountId)) {
+      const next = await Account.findOne({ userId }).select("_id").lean();
+      if (next) {
+        res.cookie("accountId", next._id.toString(), {
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 10 * 365 * 24 * 60 * 60 * 1000,
+        });
+      } else {
+        res.clearCookie("accountId");
+      }
+    }
+
+    const user = await User.findById(userId);
+    const userData = await getUserData(user);
+
+    res.status(200).json({
+      message: "🗑️ Journal and all its trades deleted",
+      deletedTrades: tradeResult.deletedCount || 0,
+      userData,
+    });
+  } catch (error) {
+    console.error("deleteAccount error:", error);
+    res
+      .status(500)
+      .json({ message: "Server error: could not delete journal" });
+  }
+};
+
 // // Fetch all accounts for a user
 // const getUserAccounts = async (req, res) => {
 //   try {
@@ -261,4 +315,4 @@ const getAccountsXp = async (req, res) => {
   }
 };
 
-module.exports = { createAccount, updateAccount, deactivateAccount, getAccountsXp };
+module.exports = { createAccount, updateAccount, deactivateAccount, deleteAccount, getAccountsXp };

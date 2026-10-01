@@ -52,3 +52,11 @@ export const updateAccount = (accountId, accountName, currency, balance) =>
     { accountId, accountName, currency, balance },
     { withCredentials: true },
   );
+
+/* permanently delete a journal AND every trade logged against it */
+export const deleteAccount = (accountId) =>
+  axios.post(
+    `${API_BASE}/api/account/delete`,
+    { accountId },
+    { withCredentials: true },
+  );
