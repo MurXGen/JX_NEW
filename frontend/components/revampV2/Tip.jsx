@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * revampV2 Tip, lightweight hover tooltip.
@@ -13,9 +14,12 @@ import { useLayoutEffect, useRef, useState } from "react";
  *                          key → value rows)
  *   - any React node    → rendered as-is
  *
- * follow: the bubble tracks the cursor and appears right next to the pointer
- *   instead of anchored to the top of the element, use it on tall chart bars
- *   so the tooltip shows where the user is actually hovering.
+ * The bubble is rendered in a portal on <body> and positioned with fixed
+ * coordinates clamped to the viewport, so it never gets clipped by a card's
+ * overflow or trapped inside a transformed (animated) ancestor.
+ *
+ * follow: the bubble tracks the cursor (use on tall chart bars); otherwise it
+ *   anchors just above the hovered element.
  */
 function TipBody({ content }) {
   // structured { title, rows: [[key, value], …] }, OHLC-style
@@ -59,63 +63,61 @@ function TipBody({ content }) {
 export default function Tip({ content, children, style, block, follow = false }) {
   const wrapRef = useRef(null);
   const bubbleRef = useRef(null);
-  const [pos, setPos] = useState(null); // {x,y} in client (viewport) coords
+  const [anchor, setAnchor] = useState(null); // {x, y} viewport coords
   const [place, setPlace] = useState(null); // clamped {left, top}
 
-  // keep the follow bubble fully inside the viewport (never off the edge)
+  // keep the bubble fully inside the viewport (never clipped / off-screen)
   useLayoutEffect(() => {
-    if (!follow || !pos || !bubbleRef.current) return;
+    if (!anchor || !bubbleRef.current) return;
     const b = bubbleRef.current.getBoundingClientRect();
     const PAD = 8;
-    let left = pos.x - b.width / 2;
+    let left = anchor.x - b.width / 2;
     left = Math.max(PAD, Math.min(left, window.innerWidth - b.width - PAD));
-    let top = pos.y - b.height - 14; // prefer above the cursor
-    if (top < PAD) top = pos.y + 18;  // flip below if there's no room above
+    let top = anchor.y - b.height - 10; // prefer above
+    if (top < PAD) top = anchor.y + 16; // flip below if no room above
     top = Math.min(top, window.innerHeight - b.height - PAD);
     setPlace({ left, top });
-  }, [pos, follow]);
+  }, [anchor]);
 
   if (content == null || content === "") return children || null;
 
-  if (!follow) {
-    return (
-      <span className={`jx-tip ${block ? "jx-tip--block" : ""}`} style={style}>
-        {children}
-        <span className="jx-tip__bubble" role="tooltip">
-          <TipBody content={content} />
-        </span>
-      </span>
-    );
-  }
-
-  const onMove = (e) => setPos({ x: e.clientX, y: e.clientY });
-  const clear = () => { setPos(null); setPlace(null); };
+  const showAtPointer = (e) => setAnchor({ x: e.clientX, y: e.clientY });
+  const showAtElement = () => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setAnchor({ x: r.left + r.width / 2, y: r.top });
+  };
+  const clear = () => { setAnchor(null); setPlace(null); };
 
   return (
     <span
       ref={wrapRef}
-      className={`jx-tip jx-tip--follow ${block ? "jx-tip--block" : ""}`}
+      className={`jx-tip ${block ? "jx-tip--block" : ""}`}
       style={{ ...style, position: "relative" }}
-      onMouseMove={onMove}
+      onMouseEnter={follow ? undefined : showAtElement}
+      onMouseMove={follow ? showAtPointer : undefined}
       onMouseLeave={clear}
     >
       {children}
-      {pos && (
-        <span
-          ref={bubbleRef}
-          className="jx-tip__bubble jx-tip__bubble--follow"
-          role="tooltip"
-          style={{
-            position: "fixed",
-            left: place ? place.left : pos.x,
-            top: place ? place.top : pos.y,
-            transform: "none",
-            opacity: place ? 1 : 0,
-          }}
-        >
-          <TipBody content={content} />
-        </span>
-      )}
+      {anchor && typeof document !== "undefined" &&
+        createPortal(
+          <span
+            ref={bubbleRef}
+            className="jx-tip__bubble jx-tip__bubble--portal"
+            role="tooltip"
+            style={{
+              position: "fixed",
+              left: place ? place.left : anchor.x,
+              top: place ? place.top : anchor.y,
+              transform: "none",
+              opacity: place ? 1 : 0,
+            }}
+          >
+            <TipBody content={content} />
+          </span>,
+          document.body,
+        )}
     </span>
   );
 }

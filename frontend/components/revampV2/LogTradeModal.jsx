@@ -617,6 +617,25 @@ const writeStoredSymbols = (list) => {
     localStorage.setItem(SYMBOLS_KEY, JSON.stringify(list));
   } catch {}
 };
+
+/* most-recently-used symbols (localStorage), newest first — drives the first
+   chips in the "Recent" row so the pair you last logged is right there. */
+const RECENT_SYMBOLS_KEY = "jx-recent-symbols";
+const readRecentSymbols = () => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(RECENT_SYMBOLS_KEY) || "null");
+    if (Array.isArray(raw)) return raw.map((s) => String(s).toUpperCase());
+  } catch {}
+  return [];
+};
+const pushRecentSymbol = (symbol) => {
+  const s = String(symbol || "").toUpperCase().trim();
+  if (!s) return;
+  try {
+    const next = [s, ...readRecentSymbols().filter((x) => x !== s)].slice(0, 8);
+    localStorage.setItem(RECENT_SYMBOLS_KEY, JSON.stringify(next));
+  } catch {}
+};
 const TIMEFRAMES = ["1m", "5m", "15m", "1H", "4H", "1D"];
 const MISTAKES = [
   "None",
@@ -1154,10 +1173,14 @@ export default function LogTradeModal({
             const s = (t.symbol || "").toUpperCase();
             if (s && !seen.has(s)) seen.set(s, true);
           });
-        // merge: stored list (or defaults) + any symbols seen in real trades
+        // order: most-recently-used (localStorage) → symbols seen in real
+        // trades (recency) → stored/defaults, so the last pair you logged leads
         const stored = readStoredSymbols() || DEFAULT_SYMBOLS;
+        const recent = readRecentSymbols();
         const merged = [
-          ...new Set([...stored, ...seen.keys()].map((s) => s.toUpperCase())),
+          ...new Set(
+            [...recent, ...seen.keys(), ...stored].map((s) => s.toUpperCase()),
+          ),
         ];
         writeStoredSymbols(merged);
         setSymbols(merged);
@@ -1577,6 +1600,9 @@ export default function LogTradeModal({
             withCredentials: true,
           });
       const trade = res.data?.trade;
+
+      // remember this pair as most-recently-used so it leads the chips next time
+      pushRecentSymbol(trade?.symbol || form.symbol);
 
       // mirror new trades to the tracking sheet (fire-and-forget, client-only)
       if (!isEdit && trade) {

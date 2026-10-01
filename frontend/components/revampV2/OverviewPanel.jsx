@@ -1016,14 +1016,21 @@ export default function OverviewPanel({
   // hero "Capital growth" chart type — area (default) vs candles — persisted
   const [heroChartMode, setHeroChartMode] = useState("area");
   const [heroChartH, setHeroChartH] = useState(160); // resizable chart height
+  const [heroMonths, setHeroMonths] = useState(3); // projection horizon in months
   useEffect(() => {
     try {
       const v = localStorage.getItem("jx-hero-chart-mode");
       if (v === "area" || v === "candle") setHeroChartMode(v);
       const h = parseInt(localStorage.getItem("jx-hero-chart-h") || "", 10);
       if (h >= 120 && h <= 460) setHeroChartH(h);
+      const m = parseInt(localStorage.getItem("jx-hero-months") || "", 10);
+      if (m >= 1 && m <= 12) setHeroMonths(m);
     } catch {}
   }, []);
+  const setMonths = (m) => {
+    setHeroMonths(m);
+    try { localStorage.setItem("jx-hero-months", String(m)); } catch {}
+  };
   const setHeroMode = (m) => {
     setHeroChartMode(m);
     try { localStorage.setItem("jx-hero-chart-mode", m); } catch {}
@@ -2049,7 +2056,7 @@ export default function OverviewPanel({
                   className="jx-livestrip__value"
                   style={{ color: !weekday7.trades ? "var(--color-text-muted)" : weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}
                 >
-                  {weekday7.trades ? k(weekday7.net, currencySymbol) : "—"}
+                  {weekday7.trades ? k(weekday7.net, currencySymbol) : k(0, currencySymbol)}
                 </span>
                 {weekday7.hasPrev && (
                   <span
@@ -2064,14 +2071,14 @@ export default function OverviewPanel({
                 )}
               </div>
               <div className="jx-livestrip__substats">
-                <span>Win rate <b>{weekday7.trades ? `${Math.round(weekday7.winRate)}%` : "—"}</b></span>
+                <span>Win rate <b>{weekday7.trades ? `${Math.round(weekday7.winRate)}%` : "0%"}</b></span>
                 <i />
                 <span>Trades <b>{weekday7.trades}</b></span>
                 <i />
                 <span>
                   Avg / trade{" "}
                   <b style={{ color: !weekday7.trades ? undefined : weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                    {weekday7.trades ? k(weekday7.net / weekday7.trades, currencySymbol) : "—"}
+                    {weekday7.trades ? k(weekday7.net / weekday7.trades, currencySymbol) : k(0, currencySymbol)}
                   </b>
                 </span>
               </div>
@@ -2087,20 +2094,46 @@ export default function OverviewPanel({
               startingBalance > 0 ? ((equityNow - startingBalance) / startingBalance) * 100 : null;
             const up = equityNow >= startingBalance;
 
-            // ── journey: where they started → where they are → where this pace
-            //    lands them in 7 days (pace = avg net change per trading day) ──
+            // ── projection pace: blend the all-time average daily change with
+            //    recent momentum AND per-trade expectancy, so it's a smarter
+            //    estimate than a flat average alone ──
             const tradingDays = candles.length;
             const netChange = equityNow - startingBalance;
-            const perDay = tradingDays > 0 ? netChange / tradingDays : 0;
-            const proj7 = equityNow + perDay * 7;
-            const projPct = startingBalance > 0 ? ((proj7 - startingBalance) / startingBalance) * 100 : null;
-            const j = { startingBalance, equityNow, proj7, perDay, tradingDays, projPct, hasData: tradingDays > 0 && netChange !== 0 };
-            const jLo = Math.min(j.startingBalance, j.equityNow, j.proj7);
-            const jHi = Math.max(j.startingBalance, j.equityNow, j.proj7);
+            const avgDaily = tradingDays > 0 ? netChange / tradingDays : 0;
+            // recent momentum: slope across the last up-to-7 candles
+            const recN = Math.min(7, candles.length - 1);
+            const recentDaily = recN > 0
+              ? (candles[candles.length - 1].c - candles[candles.length - 1 - recN].c) / recN
+              : avgDaily;
+            // expectancy per day: (win% × avgWin − loss% × avgLoss) × trades/day
+            const perDayTrades = tradingDays > 0 ? S.total / tradingDays : 0;
+            const expLoss = S.avgLoss || 0;
+            const winP = (S.winRate || 0) / 100;
+            const expectancyDaily = perDayTrades * (winP * (S.avgWin || 0) - (1 - winP) * expLoss);
+            // weighted blend (recent momentum leads, then expectancy, then avg)
+            const perDay = tradingDays >= 3
+              ? 0.5 * recentDaily + 0.3 * expectancyDaily + 0.2 * avgDaily
+              : avgDaily;
+            const paceUp = perDay >= 0;
+            const perMonth = perDay * 30;
+
+            // month-based projection: slide 1–12 months ahead at the blended pace
+            const MAX_MONTHS = 12;
+            const projFor = (months) => equityNow + perMonth * months;
+            const projTarget = projFor(heroMonths);
+            const projPct = startingBalance > 0 ? ((projTarget - startingBalance) / startingBalance) * 100 : null;
+            const addMonths = (n) => { const d = new Date(); d.setMonth(d.getMonth() + n); return d; };
+            const targetDate = addMonths(heroMonths);
+            const fmtDate = (d) => d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+            const monthLabel = heroMonths === 12 ? "1Y" : `${heroMonths}M`;
+            const hasData = tradingDays > 0 && netChange !== 0;
+
+            // track scale spans start → now → the selected-month projection, so
+            // the bar always fills to the projection end (and tweens as you slide)
+            const jLo = Math.min(startingBalance, equityNow, projTarget);
+            const jHi = Math.max(startingBalance, equityNow, projTarget);
             const jSpan = jHi - jLo || 1;
             const jPos = (v) => ((v - jLo) / jSpan) * 100;
-            const paceUp = j.perDay >= 0;
-            const proj7Date = new Date(Date.now() + 7 * 864e5).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 
             return (
               <div className="jx-livestrip__chart jx-livestrip__chart--plain">
@@ -2138,7 +2171,7 @@ export default function OverviewPanel({
                   </span>
                 </div>
 
-                {/* journey indicator — start → you are here → 7-day projection */}
+                {/* projection journey — start → you are here → pick a horizon / goal */}
                 <motion.div
                   className="jx-journey"
                   key={`journey-${heroChartMode}`}
@@ -2146,52 +2179,71 @@ export default function OverviewPanel({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 >
+                  {/* headline — pace + where it lands you at the chosen month */}
+                  <div className="jx-journey__head">
+                    {hasData ? (
+                      <>
+                        <span className="jx-journey__pace" style={{ color: paceUp ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                          {paceUp ? "▲" : "▼"} {currencySymbol}{fmt(Math.abs(perMonth), 0)}<small>/mo</small>
+                        </span>
+                        <span className="jx-journey__stmt">
+                          <b style={{ color: projTarget >= equityNow ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                            {currencySymbol}{fmt(projTarget, 0)}
+                          </b>{" "}
+                          by {fmtDate(targetDate)}
+                          {projPct != null ? ` · ${projPct >= 0 ? "+" : ""}${fmt(projPct, 1)}%` : ""}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="jx-journey__stmt">Log a few trades to see your pace &amp; projection.</span>
+                    )}
+                  </div>
+
                   <div className="jx-journey__track">
                     {/* filled path start → now grows in */}
                     <motion.span
                       className="jx-journey__seg jx-journey__seg--done"
-                      style={{
+                      style={{ background: up ? "var(--color-success)" : "var(--color-danger)" }}
+                      initial={{ left: `${jPos(Math.min(startingBalance, equityNow))}%`, width: 0 }}
+                      animate={{
                         left: `${jPos(Math.min(startingBalance, equityNow))}%`,
-                        background: up ? "var(--color-success)" : "var(--color-danger)",
+                        width: `${Math.abs(jPos(equityNow) - jPos(startingBalance))}%`,
                       }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.abs(jPos(equityNow) - jPos(startingBalance))}%` }}
-                      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                     />
-                    {/* projected dashed path now → 7-day extends after */}
+                    {/* projected dashed path now → target — tweens as you slide months */}
                     <motion.span
                       className="jx-journey__seg jx-journey__seg--proj"
-                      style={{
-                        left: `${jPos(Math.min(equityNow, proj7))}%`,
-                        borderColor: paceUp ? "var(--color-success)" : "var(--color-danger)",
+                      animate={{
+                        left: `${jPos(Math.min(equityNow, projTarget))}%`,
+                        width: `${Math.abs(jPos(projTarget) - jPos(equityNow))}%`,
+                        opacity: 0.75,
                       }}
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: `${Math.abs(jPos(proj7) - jPos(equityNow))}%`, opacity: 0.75 }}
-                      transition={{ duration: 0.6, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ borderColor: paceUp ? "var(--color-success)" : "var(--color-danger)" }}
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     />
                     <motion.span
                       className="jx-journey__pin"
                       style={{ left: `${jPos(startingBalance)}%` }}
                       title="Start"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
+                      initial={{ scale: 0 }} animate={{ scale: 1 }}
                       transition={{ duration: 0.3, ease: "backOut" }}
                     />
                     <motion.span
                       className="jx-journey__pin jx-journey__pin--now"
-                      style={{ left: `${jPos(equityNow)}%`, background: up ? "var(--color-success)" : "var(--color-danger)" }}
+                      style={{ background: up ? "var(--color-success)" : "var(--color-danger)" }}
                       title="You are here"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.35, delay: 0.5, ease: "backOut" }}
+                      initial={{ left: `${jPos(equityNow)}%`, scale: 0 }}
+                      animate={{ left: `${jPos(equityNow)}%`, scale: 1 }}
+                      transition={{ left: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }, scale: { duration: 0.35, ease: "backOut" } }}
                     />
                     <motion.span
                       className="jx-journey__pin jx-journey__pin--proj"
-                      style={{ left: `${jPos(proj7)}%`, borderColor: paceUp ? "var(--color-success)" : "var(--color-danger)" }}
-                      title="7-day projection"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.35, delay: 1.05, ease: "backOut" }}
+                      style={{ borderColor: paceUp ? "var(--color-success)" : "var(--color-danger)" }}
+                      title="Projection"
+                      animate={{ left: `${jPos(projTarget)}%`, scale: 1 }}
+                      initial={{ left: `${jPos(projTarget)}%`, scale: 0 }}
+                      transition={{ left: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }, scale: { duration: 0.35, ease: "backOut" } }}
                     />
                   </div>
                   <div className="jx-journey__labels">
@@ -2199,28 +2251,42 @@ export default function OverviewPanel({
                     <span style={{ color: "var(--color-text-secondary)", fontWeight: 600 }}>
                       You are here · {currencySymbol}{fmt(equityNow, 0)}
                     </span>
-                    <span>7-day · {currencySymbol}{fmt(proj7, 0)}</span>
+                    <span>{monthLabel} · {currencySymbol}{fmt(projTarget, 0)}</span>
                   </div>
-                  <motion.div
-                    className="jx-journey__meta"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 0.7 }}
-                  >
-                    {j.hasData ? (
-                      <>
-                        <span style={{ color: paceUp ? "var(--color-success-strong)" : "var(--color-danger-strong)", fontWeight: 700 }}>
-                          {paceUp ? "▲" : "▼"} {currencySymbol}{fmt(Math.abs(perDay), 0)}/day
-                        </span>
-                        <span>
-                          {" "}· at this pace you reach {currencySymbol}{fmt(proj7, 0)} by {proj7Date}
-                          {projPct != null ? ` (${projPct >= 0 ? "+" : ""}${fmt(projPct, 1)}%)` : ""}
-                        </span>
-                      </>
-                    ) : (
-                      <span>Log a few trades and your pace &amp; 7-day projection appear here.</span>
-                    )}
-                  </motion.div>
+
+                  {/* month slider — drag to look 1→12 months ahead at this pace */}
+                  {(() => {
+                    const pct = ((heroMonths - 1) / (MAX_MONTHS - 1)) * 100;
+                    const bubbleLeft = Math.max(7, Math.min(93, pct));
+                    return (
+                      <div className="jx-journey__slider">
+                        <div className="jx-slider">
+                          {/* value bubble floating above the thumb */}
+                          <div
+                            className="jx-slider__bubble"
+                            style={{ left: `${bubbleLeft}%`, background: projTarget >= equityNow ? "var(--color-success)" : "var(--color-danger)" }}
+                          >
+                            {monthLabel} · {currencySymbol}{fmt(projTarget, 0)}
+                          </div>
+                          <input
+                            className="jx-range"
+                            type="range"
+                            min={1}
+                            max={MAX_MONTHS}
+                            step={1}
+                            value={heroMonths}
+                            onChange={(e) => setMonths(Number(e.target.value))}
+                            aria-label="Months ahead"
+                            style={{
+                              background: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${pct}%, color-mix(in srgb, var(--color-primary) 22%, transparent) ${pct}%, color-mix(in srgb, var(--color-primary) 22%, transparent) 100%)`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <span className="jx-journey__note">Blended pace · recent momentum + win/loss expectancy</span>
                 </motion.div>
 
                 {candles.length ? (
@@ -2254,8 +2320,9 @@ export default function OverviewPanel({
             );
           })()}
 
-          {/* Live session — moved below the chart, as a full-width strip */}
-          <div className="jx-livestrip__livecard jx-livestrip__livecard--below">
+          {/* Live session — pinned to the bottom so the Capital-growth chart
+              sits directly above (grouped into) the Performance section */}
+          <div className="jx-livestrip__livecard jx-livestrip__livecard--below" style={{ order: 3 }}>
             <div className="jx-livestrip__liverow">
               <span className="jx-livestrip__livebadge">
                 <span className="jx-livestrip__dot" /> Live now
@@ -2299,14 +2366,14 @@ export default function OverviewPanel({
             // every metric is a uniform grid cell: label · value · bar
             const perfCells = [
               { label: "Win rate", value: `${fmt(S.winRate, 0)}%`, bar: <Progress pct={S.winRate} color="var(--color-success)" /> },
-              { label: "Profit factor", value: S.profitFactor ? fmt(S.profitFactor, 2) : "—", bar: <Progress pct={S.profitFactor ? Math.min(100, (S.profitFactor / 3) * 100) : 0} color="var(--color-primary)" /> },
-              { label: "Payoff (R:R)", value: payoff ? `1 : ${fmt(payoff, 1)}` : "—", bar: <Progress pct={payoff ? Math.min(100, (payoff / 2) * 100) : 0} color="#7c9cff" /> },
-              { label: "Avg win vs loss", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{k(S.avgWin, currencySymbol)}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>−{currencySymbol}{fmt(S.avgLoss, 0)}</span></>), bar: wlbar(winShare) },
-              { label: "Avg hold · W/L", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{hw != null ? fmtDur(hw) : "—"}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>{hl != null ? fmtDur(hl) : "—"}</span></>), bar: wlbar(holdWinShare) },
-              { label: "Largest win", value: S.winCount ? k(S.largestWin, currencySymbol) : "—", color: S.winCount ? "var(--color-success-strong)" : undefined, bar: <Progress pct={S.winCount ? (Math.abs(S.largestWin) / maxMag) * 100 : 0} color="var(--color-success)" /> },
-              { label: "Largest loss", value: S.lossCount ? k(S.largestLoss, currencySymbol) : "—", color: S.lossCount ? "var(--color-danger-strong)" : undefined, bar: <Progress pct={S.lossCount ? (Math.abs(S.largestLoss) / maxMag) * 100 : 0} color="var(--color-danger)" /> },
+              { label: "Profit factor", value: S.profitFactor ? fmt(S.profitFactor, 2) : fmt(0, 2), bar: <Progress pct={S.profitFactor ? Math.min(100, (S.profitFactor / 3) * 100) : 0} color="var(--color-primary)" /> },
+              { label: "Payoff (R:R)", value: payoff ? `1 : ${fmt(payoff, 1)}` : `1 : ${fmt(0, 1)}`, bar: <Progress pct={payoff ? Math.min(100, (payoff / 2) * 100) : 0} color="#7c9cff" /> },
+              { label: "Avg win vs loss", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{k(S.avgWin || 0, currencySymbol)}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>−{currencySymbol}{fmt(S.avgLoss || 0, 0)}</span></>), bar: wlbar(winShare) },
+              { label: "Avg hold · W/L", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{hw != null ? fmtDur(hw) : fmtDur(0)}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>{hl != null ? fmtDur(hl) : fmtDur(0)}</span></>), bar: wlbar(holdWinShare) },
+              { label: "Largest win", value: S.winCount ? k(S.largestWin, currencySymbol) : k(0, currencySymbol), color: S.winCount ? "var(--color-success-strong)" : undefined, bar: <Progress pct={S.winCount ? (Math.abs(S.largestWin) / maxMag) * 100 : 0} color="var(--color-success)" /> },
+              { label: "Largest loss", value: S.lossCount ? k(S.largestLoss, currencySymbol) : k(0, currencySymbol), color: S.lossCount ? "var(--color-danger-strong)" : undefined, bar: <Progress pct={S.lossCount ? (Math.abs(S.largestLoss) / maxMag) * 100 : 0} color="var(--color-danger)" /> },
               { label: "Win streak", value: S.streak, sub: `best ${S.bestStreak}`, bar: <Progress pct={S.bestStreak > 0 ? Math.min(100, (S.streak / S.bestStreak) * 100) : (S.streak > 0 ? 100 : 0)} color="var(--color-primary)" /> },
-              { label: "Sharpe", value: S.sharpe != null ? fmt(S.sharpe, 2) : "—", bar: <Progress pct={S.sharpe != null ? Math.min(100, Math.max(0, (S.sharpe / 3) * 100)) : 0} color="#7c9cff" /> },
+              { label: "Sharpe", value: S.sharpe != null ? fmt(S.sharpe, 2) : fmt(0, 2), bar: <Progress pct={S.sharpe != null ? Math.min(100, Math.max(0, (S.sharpe / 3) * 100)) : 0} color="#7c9cff" /> },
             ];
             return (
               <div className="jx-livestrip__perf">
@@ -2685,6 +2752,9 @@ export default function OverviewPanel({
       </div>
       )}
 
+      {/* ===== Reorderable sections — single column so Customize drag-order maps
+          1:1 to the on-screen order ===== */}
+      <div className="jx-analytics-grid">
       {/* ===== Capital growth toward doubling (gamified) ===== */}
       {isVisible("capital") && (
         <div className="jx-card" style={{ ...secOrder("capital"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -2794,8 +2864,6 @@ export default function OverviewPanel({
         </div>
       )}
 
-      {/* ===== Analytics / psychology cards, 2-per-row grid ===== */}
-      <div className="jx-analytics-grid">
       {/* ===== Trading pace & composure (overtrading vs calm) ===== */}
       {isVisible("pace") && pace && (() => {
         const toneColor =

@@ -1437,26 +1437,84 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 9px;
   flex-shrink: 0;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
 }
 .jx-jcard__edit:hover {
   background: var(--color-bg-muted);
   color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}
+.jx-jcard__delete {
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
 }
 .jx-jcard__delete:hover {
   background: var(--color-danger-subtle);
   color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
 }
 .jx-jcard__delete.is-disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
+/* ── trades-log bulk selection bar ── */
+.jx-selbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: 10px var(--space-4);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-bg-elevated));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+}
+.jx-selbar__all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 6px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: var(--text-caption);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.jx-selbar__all:hover {
+  background: var(--color-bg-muted);
+}
+.jx-selbar__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+}
+.jx-selbar__box.is-on,
+.jx-selbar__box.is-part {
+  color: var(--yellow-500);
+}
+.jx-selbar__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-strong);
 }
 .jx-jcard__check {
   display: inline-flex;
@@ -2862,7 +2920,176 @@ body::before {
 .jx-journey__meta {
   font-size: 12.5px;
   color: var(--color-text-muted);
-  line-height: 1.35;
+  line-height: 1.4;
+}
+.jx-journey__note {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+/* headline — big pace + concise projection statement */
+.jx-journey__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.jx-journey__pace {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
+}
+.jx-journey__pace small {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-left: 1px;
+}
+.jx-journey__stmt {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+.jx-journey__stmt b { color: var(--color-text-primary); }
+/* custom goal input (sits below the chips when Goal is active) */
+.jx-journey__goalwrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}
+.jx-journey__goalsym {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+.jx-journey__goalinput {
+  flex: 1;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: var(--text-body-md);
+  font-weight: 600;
+}
+.jx-journey__goalinput::-webkit-outer-spin-button,
+.jx-journey__goalinput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/* month slider — drag to look N months ahead (value bubble above the thumb) */
+.jx-journey__slider {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.jx-slider {
+  position: relative;
+  padding-top: 32px; /* room for the floating value bubble */
+}
+.jx-slider__bubble {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  padding: 3px 9px;
+  border-radius: 7px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transition: left 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease;
+}
+.jx-slider__bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: inherit; /* matches the bubble's (dynamic) background colour */
+  transform: translate(-50%, -55%) rotate(45deg);
+  border-radius: 1px;
+}
+.jx-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  padding: 0; /* override the global input padding that inflates the track */
+  margin: 0;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  outline: none;
+  cursor: pointer;
+}
+.jx-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: none;
+  box-shadow: 0 2px 7px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  cursor: grab;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.jx-range::-webkit-slider-thumb:hover { transform: scale(1.08); }
+.jx-range::-webkit-slider-thumb:active { transform: scale(1.15); cursor: grabbing; }
+.jx-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: none;
+  box-shadow: 0 2px 7px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  cursor: grab;
+}
+.jx-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+.jx-journey__ticks {
+  position: relative;
+  height: 16px;
+}
+.jx-journey__tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.jx-journey__tick:first-child { transform: translateX(0); }
+.jx-journey__tick:last-child { transform: translateX(-100%); }
+.jx-journey__tick:hover { color: var(--color-text-secondary); }
+.jx-journey__tick.is-active { color: var(--color-primary); }
+.jx-journey__chip-k {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.jx-journey__chip-v {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 @media (max-width: 640px) {
   .jx-livestrip__hero {
@@ -3512,13 +3739,14 @@ body::before {
    Cards in the same row stretch to equal height so the layout reads as a
    clean, uniform grid instead of ragged columns. */
 .jx-analytics-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* single column so the Customize drag-order maps 1:1 to the on-screen order
+     (a 2-col grid flows items left→right→down, which doesn't match a vertical
+     reorder list). CSS `order` on each section now gives a clean linear order. */
+  display: flex;
+  flex-direction: column;
   gap: var(--space-4);
-  align-items: stretch;
 }
 .jx-analytics-grid > .jx-card {
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -3757,6 +3985,17 @@ body::before {
 }
 .jx-tip__bubble--follow::after {
   display: none; /* no arrow — the bubble floats by the cursor */
+}
+/* portaled variant — rendered on <body>, fixed + viewport-clamped so it is
+   never clipped by a card's overflow or a transformed ancestor */
+.jx-tip__bubble--portal {
+  position: fixed;
+  bottom: auto;
+  z-index: 5000;
+  pointer-events: none;
+}
+.jx-tip__bubble--portal::after {
+  display: none;
 }
 /* hover highlight for invisible chart columns */
 .jx-tip--col {

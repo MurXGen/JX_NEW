@@ -16,6 +16,7 @@ import {
   Gamepad2,
   Image as ImageIcon,
   Loader2,
+  Minus,
   MoreVertical,
   Pencil,
   Wind,
@@ -801,6 +802,9 @@ export default function TradesLogPanel({
   };
 
   const selectedTrades = filtered.filter((t) => selected.has(t._id));
+  const allSelected = filtered.length > 0 && selected.size >= filtered.length;
+  const toggleSelectAll = () =>
+    setSelected(allSelected ? new Set() : new Set(filtered.map((t) => t._id)));
   const selFilters = (direction !== "all" ? 1 : 0) + (outcome !== "all" ? 1 : 0);
 
   const { hidden, toggle, reset, isVisible } = useHiddenSections(
@@ -990,29 +994,52 @@ export default function TradesLogPanel({
         );
       })()}
 
-      {/* ===== Bulk action bar ===== */}
+      {/* ===== Bulk action bar (shown whenever in select mode) ===== */}
       <AnimatePresence>
-        {selectMode && selected.size > 0 && (
+        {selectMode && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="jx-card jx-card--flat"
-            style={{ padding: "var(--space-3) var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}
+            className="jx-selbar"
           >
-            <Badge variant="brand">{selected.size} selected</Badge>
-            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-              Net {money(selectedTrades.reduce((s, t) => s + (Number(t.pnl) || 0), 0), currencySymbol)}
-            </span>
+            {/* select-all toggle */}
+            <button
+              type="button"
+              className="jx-selbar__all"
+              onClick={toggleSelectAll}
+              aria-pressed={allSelected}
+            >
+              <span className={`jx-selbar__box${allSelected ? " is-on" : ""}${!allSelected && selected.size > 0 ? " is-part" : ""}`}>
+                {allSelected ? <CheckSquare size={16} /> : selected.size > 0 ? <Minus size={13} /> : <Square size={16} />}
+              </span>
+              {allSelected ? "Deselect all" : `Select all (${filtered.length})`}
+            </button>
+
+            <span className="jx-selbar__divider" aria-hidden="true" />
+
+            {selected.size > 0 ? (
+              <>
+                <Badge variant="brand">{selected.size} selected</Badge>
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                  Net {money(selectedTrades.reduce((s, t) => s + (Number(t.pnl) || 0), 0), currencySymbol)}
+                </span>
+              </>
+            ) : (
+              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                Pick trades, or select all
+              </span>
+            )}
+
             <span style={{ marginLeft: "auto", display: "flex", gap: "var(--space-2)" }}>
-              <Button variant="outline" size="sm" icon={Download} onClick={() => askExport(selectedTrades)}>
-                Export {selected.size}
+              <Button variant="outline" size="sm" icon={Download} disabled={!selected.size} onClick={() => askExport(selectedTrades)}>
+                Export{selected.size ? ` ${selected.size}` : ""}
               </Button>
-              <Button variant="danger" size="sm" icon={Trash2} onClick={() => askDelete(selectedTrades)}>
-                Delete {selected.size}
+              <Button variant="danger" size="sm" icon={Trash2} disabled={!selected.size} onClick={() => askDelete(selectedTrades)}>
+                Delete{selected.size ? ` ${selected.size}` : ""}
               </Button>
-              <Button variant="ghost" size="sm" icon={X} onClick={() => setSelected(new Set())}>
-                Clear
+              <Button variant="ghost" size="sm" icon={X} onClick={() => { setSelected(new Set()); setSelectMode(false); }}>
+                Done
               </Button>
             </span>
           </motion.div>
@@ -1124,7 +1151,21 @@ export default function TradesLogPanel({
               <table className="jx-table jx-table--log">
                 <thead>
                   <tr>
-                    {selectMode && <th style={{ width: 36 }} />}
+                    {selectMode && (
+                      <th style={{ width: 36 }}>
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          aria-label={allSelected ? "Deselect all" : "Select all"}
+                          title={allSelected ? "Deselect all" : "Select all"}
+                          onClick={toggleSelectAll}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSelectAll(); } }}
+                          style={{ display: "inline-flex", cursor: "pointer", color: allSelected ? "var(--yellow-500)" : "var(--color-text-muted)" }}
+                        >
+                          {allSelected ? <CheckSquare size={16} /> : selected.size > 0 ? <Minus size={13} /> : <Square size={16} />}
+                        </span>
+                      </th>
+                    )}
                     <th>Pair</th><th>Side</th>
                     <th className="jx-col-sm-hide" style={{ textAlign: "right" }}>Entry</th>
                     <th className="jx-col-sm-hide" style={{ textAlign: "right" }}>Exit</th>

@@ -40,6 +40,7 @@ export default function ConfirmDialog({
   variant = "primary",
   icon: Icon,
   loading = false,
+  zIndex = 1500,
 }) {
   const ActionIcon = Icon || (variant === "danger" ? Trash2 : Download);
   const [isMobile, setIsMobile] = useState(false);
@@ -97,7 +98,7 @@ export default function ConfirmDialog({
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           style={{
-            position: "fixed", inset: 0, zIndex: 1500,
+            position: "fixed", inset: 0, zIndex,
             background: "rgba(0,0,0,0.45)",
             display: "flex",
             alignItems: isMobile ? "flex-end" : "center",

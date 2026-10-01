@@ -488,6 +488,7 @@ export default function JournalsModal({
     {/* delete-journal confirmation — same enhanced dialog used across the app */}
     <ConfirmDialog
       open={!!confirmDel}
+      zIndex={4000}
       variant="danger"
       icon={Trash2}
       title="Delete this journal?"
