@@ -18904,6 +18904,397 @@
           "a": "It can be done with a slower style, but check the firm's minimum trading days and any rules on holding positions, since those affect how you plan around your schedule."
         }
       ]
+    },
+    {
+      "slug": "prop-firm-inactivity-rules-minimum-trading-days",
+      "title": "Prop Firm Inactivity Rules and Minimum Trading Days: Don't Lose a Funded Account for Doing Nothing",
+      "metaTitle": "Prop Firm Inactivity Rules & Minimum Trading Days Explained | JournalX",
+      "metaDescription": "Inactivity windows and minimum trading days can close a funded account without a single bad trade. Learn how they work and how to track them in your journal.",
+      "keywords": [
+        "prop firm inactivity rule",
+        "prop firm minimum trading days",
+        "funded account inactivity",
+        "prop firm account closed inactivity",
+        "minimum trading days challenge"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-06",
+      "featured": false,
+      "excerpt": "Most traders fear the drawdown rule. Plenty of accounts actually die from silence: a missed minimum-day count or an inactivity window nobody was tracking.",
+      "helpful": {
+        "up": 38,
+        "down": 1,
+        "saves": 34
+      },
+      "tags": [
+        "Prop Firms",
+        "Rules",
+        "Funded",
+        "Discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Ask a funded trader what ends accounts and you will hear drawdown, consistency, and news rules. Far fewer will mention the quiet rules: minimum trading days and inactivity windows. These do not punish a bad trade. They punish a gap in your calendar, and they are easy to trip when you are being patient, travelling, or sitting out a market you do not like."
+        },
+        {
+          "type": "h2",
+          "text": "Two rules that sound similar but are not"
+        },
+        {
+          "type": "p",
+          "text": "A minimum trading days rule is a challenge-phase requirement. You must place trades on a set number of separate calendar days before the firm will let you pass, even if you already hit the profit target. Publicly listed requirements across firms commonly range from none at all to roughly 3-5 days, but this varies by firm and by plan, so always read your own terms."
+        },
+        {
+          "type": "p",
+          "text": "An inactivity rule is about the opposite risk. Many firms state that an account can be closed or flagged if you place no trades for a stated window, often described in public rule pages as something like 30 days on evaluation or funded accounts, sometimes shorter or longer. Terms, definitions of what counts as activity, and consequences differ widely, and firms can change them, so treat any number here as an example, not a promise."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Rule",
+            "What it targets",
+            "Typical trap",
+            "What to track"
+          ],
+          "rows": [
+            [
+              "Minimum trading days",
+              "Passing too fast on one lucky day",
+              "Hitting target on day 2 and being unable to pass",
+              "Count of distinct trading days"
+            ],
+            [
+              "Inactivity window",
+              "Dormant accounts",
+              "Waiting for a perfect setup for weeks",
+              "Days since last qualifying trade"
+            ],
+            [
+              "Minimum trade size / duration",
+              "Tiny or instant 'ping' trades counted as activity",
+              "Placing a token trade that the firm ignores",
+              "Whether your trade meets the stated minimum"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Why disciplined traders get caught"
+        },
+        {
+          "type": "p",
+          "text": "The patient trader is the most exposed. If your edge needs A+ conditions and the market gives you none for three weeks, sitting out is correct trading. But a calendar rule does not care that you were right to wait. The failure mode is then predictable: the deadline approaches, you take a trade you would normally skip just to stay active, and a rule meant to protect the firm now forces you into a low-quality entry."
+        },
+        {
+          "type": "p",
+          "text": "The second trap is the minimum-day count after a fast start. You make the target in two sessions, feel relieved, and then discover you have to keep trading for several more days. The risk now is that you give profit back out of boredom or overconfidence. Plan for that stretch on day one instead of discovering it on day three."
+        },
+        {
+          "type": "quote",
+          "text": "A rule you only learn about when it ends your account is not a rule you broke. It is a rule you never tracked."
+        },
+        {
+          "type": "h2",
+          "text": "How to plan around both rules"
+        },
+        {
+          "type": "p",
+          "text": "Start by writing your firm's exact wording for each rule into your trading plan, with the date you last read it. Firms revise terms, and traders in forums regularly report disputes over how 'a trading day' or 'activity' is defined. Screenshot or save the current rule text so you have a record of what applied when you signed up."
+        },
+        {
+          "type": "h2",
+          "text": "Build a weekly check into your routine"
+        },
+        {
+          "type": "p",
+          "text": "Then build a low-risk way to meet the requirement that is consistent with your strategy. For minimum days, that usually means scheduling your normal setup on more days at your normal size rather than leaving it to chance. For inactivity, it means a calendar check, for example every Friday, asking when your last qualifying trade was. If a window is closing and you have no setup, the honest options are to take a small, plan-compliant trade at reduced risk, or to contact support in writing before the deadline to ask what is required. Do not make up a trade at full size to beat a clock."
+        },
+        {
+          "type": "h2",
+          "text": "Confirm what actually counts as activity"
+        },
+        {
+          "type": "p",
+          "text": "Finally, never assume activity in a demo or another account counts. Check whether the trade must be on that specific account, must be open for a minimum time, or must meet a minimum size. If the wording is unclear, ask support and keep the reply."
+        },
+        {
+          "type": "usecase",
+          "text": "Log every trade with its account name and date in JournalX, then use your calendar and trade count views to see distinct trading days per account and the gap since your last trade. A glance each week tells you whether a minimum-day target or inactivity window is getting close, long before it becomes a problem."
+        },
+        {
+          "type": "why",
+          "text": "A journal built around multiple accounts keeps each evaluation and funded account separate, so the day count and the dormancy gap for Account A never get mixed up with Account B."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Quiet-rule audit",
+          "prompt": "Tick everything you can confirm for your current account.",
+          "items": [
+            "I have the exact minimum trading days rule written in my plan",
+            "I have the exact inactivity window written in my plan",
+            "I know what counts as a qualifying trade",
+            "I saved the rule text with today's date",
+            "I check days since last trade at least weekly",
+            "I have a plan-compliant low-risk option if a window is closing"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You are exposed. Read your terms and fill in these gaps this week."
+            },
+            {
+              "min": 3,
+              "text": "Partly covered. Close the remaining gaps before the next deadline."
+            },
+            {
+              "min": 6,
+              "text": "Well covered. Keep re-checking the rule text, since firms can change it."
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Your biggest quiet-rule worry",
+          "prompt": "Which of these is closest to you?",
+          "options": [
+            {
+              "label": "Passing too fast and needing more days",
+              "response": "Plan those extra days at normal size. The goal is to not give the profit back."
+            },
+            {
+              "label": "Going inactive while waiting for setups",
+              "response": "Set a weekly calendar check and decide in advance what small compliant trade you would take."
+            },
+            {
+              "label": "Not knowing the exact rule",
+              "response": "That is the cheapest fix. Read the terms and save a dated copy."
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Can a prop firm close my account for inactivity?",
+          "a": "Many firms publish inactivity rules that allow closure or flagging after a stated period without trading. The length and consequences vary by firm, so check your own terms."
+        },
+        {
+          "q": "What are minimum trading days?",
+          "a": "A requirement to place trades on a set number of separate calendar days before you can pass a challenge, even after you reach the profit target. Some firms have none."
+        },
+        {
+          "q": "Does a tiny trade count as activity?",
+          "a": "It depends on the firm. Some require a minimum size or holding time. Confirm in writing with support if the wording is unclear."
+        },
+        {
+          "q": "How do I track this?",
+          "a": "Log each trade by account and date, then review distinct trading days and days since last trade every week."
+        }
+      ]
+    },
+    {
+      "slug": "trading-burnout-when-to-take-a-break",
+      "title": "Trading Burnout: How to Spot It and When to Take a Break (Without Losing Your Edge)",
+      "metaTitle": "Trading Burnout: Signs, Causes and When to Take a Break | JournalX",
+      "metaDescription": "Burnout makes good traders sloppy before they notice. Learn the warning signs, the journal data that reveals them, and a simple break protocol for your edge.",
+      "keywords": [
+        "trading burnout",
+        "how to take a break from trading",
+        "signs of trader burnout",
+        "trading fatigue",
+        "should I stop trading for a while"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-06",
+      "featured": false,
+      "excerpt": "Burnout does not announce itself. It shows up as skipped checklists, wider stops and a bored kind of recklessness, and your journal can see it before you can.",
+      "helpful": {
+        "up": 42,
+        "down": 0,
+        "saves": 39
+      },
+      "tags": [
+        "Burnout",
+        "Mindset",
+        "Discipline",
+        "Routine"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Traders talk endlessly about tilt after a loss, but there is a slower problem that gets less attention: burnout. It builds over weeks of screen time, tight rules, and constant decisions. By the time it feels obvious, your results have often been slipping for a while. This post is about spotting it earlier and having a break plan before you need one."
+        },
+        {
+          "type": "h2",
+          "text": "What trading burnout actually looks like"
+        },
+        {
+          "type": "p",
+          "text": "Burnout is rarely dramatic. It looks like opening the platform later, skimming the pre-trade checklist instead of working through it, or feeling flat after a win and irritable after a scratch. Many traders also report trading more out of restlessness while caring less about each trade. Research on occupational burnout, including the World Health Organization's description of it as a work-related syndrome involving exhaustion, mental distance and reduced effectiveness, offers a useful frame, though it is not a diagnosis tool for your trading. If you are worried about your wellbeing beyond trading, speak with a qualified professional."
+        },
+        {
+          "type": "p",
+          "text": "The key point is that burnout degrades process before it degrades outcomes. A run of decent results can hide it, because variance keeps paying you for a while even as your discipline erodes."
+        },
+        {
+          "type": "h2",
+          "text": "The journal signals that show it early"
+        },
+        {
+          "type": "p",
+          "text": "Feelings are noisy. Your journal is not. These are measurable patterns worth watching over a rolling two-to-four-week window compared with your own baseline:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Signal",
+            "Healthy baseline",
+            "Possible burnout pattern"
+          ],
+          "rows": [
+            [
+              "Checklist completion",
+              "Done before nearly every trade",
+              "Skipped or ticked without thought"
+            ],
+            [
+              "Journal notes",
+              "Specific, with a reason for the trade",
+              "Blank or one word"
+            ],
+            [
+              "Trades per day",
+              "Stable around your plan",
+              "Rising with lower average quality"
+            ],
+            [
+              "Stop adherence",
+              "Stops respected",
+              "Moved, widened or removed"
+            ],
+            [
+              "Time at screen",
+              "Fits your plan",
+              "Much longer with fewer valid setups"
+            ],
+            [
+              "Mood tag",
+              "Mostly neutral or focused",
+              "Mostly bored, annoyed or numb"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "No single row proves anything. What matters is several moving in the wrong direction together. When three or more drift away from your baseline for more than a couple of weeks, treat it as a prompt to act, not as a verdict."
+        },
+        {
+          "type": "quote",
+          "text": "If you are only following the rules when you feel like it, you are not following the rules."
+        },
+        {
+          "type": "h2",
+          "text": "Why a break is a risk-management decision"
+        },
+        {
+          "type": "p",
+          "text": "Many traders resist stepping away because it feels like losing ground, especially on a funded account with a clock and fees. But trading while depleted is a recognised way to pay for the same mistakes over and over. Taking a planned pause is simply position sizing for your attention: you reduce exposure when your edge is compromised."
+        },
+        {
+          "type": "p",
+          "text": "It helps to separate a break from quitting. A break has a start, an end and a purpose. It can also be partial. Many traders find that reducing size and trade count for a week, or trading only their single best setup, restores focus without a complete stop."
+        },
+        {
+          "type": "h2",
+          "text": "A simple break protocol"
+        },
+        {
+          "type": "p",
+          "text": "Decide the protocol while you are calm. First, pick your triggers in advance, for example three or more burnout signals for two weeks, or two broken stop rules in a week. Second, choose the response by severity: a lighter response such as half size and a two-trade daily cap, or a full pause of several days to a week. Third, set a restart condition that is not a feeling. For example, return when you complete a full pre-trade checklist on paper-traded or minimum-size trades for several sessions in a row."
+        },
+        {
+          "type": "p",
+          "text": "Check your account terms before you pause. Some funded firms have inactivity or minimum-day rules, so a long break may need a plan or a message to support first. On a personal account, there is no such clock, which is one reason burnout hits prop traders in a particular way."
+        },
+        {
+          "type": "p",
+          "text": "Use the time away for something that is not a screen. Sleep, movement and time outside will do more for decision quality than another week of staring at charts, and none of it needs an app."
+        },
+        {
+          "type": "usecase",
+          "text": "Tag your mood and checklist completion on each trade in JournalX, then compare the last two weeks against your own 60-day baseline on the review page. A drift in stop adherence or note quality is easy to see when the data is in one place, and you can set your break triggers from your own numbers instead of guessing."
+        },
+        {
+          "type": "why",
+          "text": "JournalX tracks process data such as mood, setup tags and rule adherence next to P&L, so you can see discipline decay before the equity curve shows it."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Burnout check-in",
+          "prompt": "Tick what has been true over the last two weeks.",
+          "items": [
+            "I skipped or rushed my pre-trade checklist",
+            "My journal notes got shorter or stopped",
+            "I moved or widened a stop",
+            "I took trades out of boredom",
+            "I feel flat after wins",
+            "I dread opening the platform"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Looking steady. Keep your routine and review again in two weeks."
+            },
+            {
+              "min": 2,
+              "text": "Early drift. Reduce size or trade count and watch the trend."
+            },
+            {
+              "min": 4,
+              "text": "Strong signals. Consider a planned pause and talk to someone you trust if it is affecting more than trading."
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick quiz",
+          "prompt": "What usually degrades first when a trader is burning out?",
+          "options": [
+            "Win rate",
+            "Process and discipline",
+            "Account size",
+            "Broker execution"
+          ],
+          "correct": 1,
+          "explain": "Process slips first. Outcomes can lag because variance masks poor discipline for a while."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How do I know if I am burned out or just in a drawdown?",
+          "a": "A drawdown is about results. Burnout shows in process: skipped checklists, shorter notes, moved stops and loss of interest. Compare your journal with your own baseline."
+        },
+        {
+          "q": "How long should a break from trading be?",
+          "a": "There is no fixed answer. Many traders use a few days to a week, or a reduced-size period, with a clear restart condition rather than a feeling."
+        },
+        {
+          "q": "Will a break hurt my funded account?",
+          "a": "It can if your firm has inactivity or minimum-day rules. Read your terms and contact support in writing before pausing."
+        },
+        {
+          "q": "Should I see a professional?",
+          "a": "If stress or low mood extends beyond trading or affects daily life, speaking with a qualified professional is a good idea."
+        }
+      ]
     }
   ]
 }
