@@ -19698,6 +19698,396 @@
           "a": "Stop trading, close the platform, and review the day. Write down what happened and one thing to change."
         }
       ]
+    },
+    {
+      "slug": "trading-us-midterm-elections-2026-volatility-playbook",
+      "title": "Trading the 2026 US Midterm Elections: A Volatility Playbook for Retail and Funded Traders",
+      "metaTitle": "Trading the 2026 US Midterm Elections: Volatility Playbook | JournalX",
+      "metaDescription": "Midterm election week can bring gaps, headline spikes and thin fills. Learn what history suggests, how to size down, and a simple plan for funded accounts.",
+      "keywords": [
+        "midterm elections trading",
+        "election day trading strategy",
+        "trading election volatility",
+        "midterm election stock market 2026",
+        "trading headlines on a prop firm account"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-15",
+      "featured": false,
+      "excerpt": "US midterm elections land on November 3, 2026. History offers loose tendencies, not signals, so the edge is in preparation: smaller size, wider assumptions and rules written before the headlines hit.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "Elections",
+        "Volatility",
+        "Event Risk",
+        "Planning"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "The 2026 US midterm elections are scheduled for November 3. For active traders the question is not who wins, it is how price behaves around a known, headline-heavy event, and how your account survives it. This post is about planning that week, not predicting it."
+        },
+        {
+          "type": "h2",
+          "text": "What history suggests (and what it does not)"
+        },
+        {
+          "type": "p",
+          "text": "Market commentary from sources such as asset managers and research desks often notes that midterm years have tended to include more mid-year weakness, with equities frequently recovering in the months after the vote. Treat that as a loose pattern drawn from a small sample of roughly a dozen-plus midterm cycles, not a rule. Every cycle also has its own backdrop: rates, earnings, inflation and geopolitics usually matter more than the ballot box."
+        },
+        {
+          "type": "p",
+          "text": "The practical takeaway is modest. Uncertainty tends to be priced in before the event, and the biggest moves can come from the reaction to results, especially if control of Congress is unclear for days. Your job is to be ready for either a quiet week or a violent one."
+        },
+        {
+          "type": "h2",
+          "text": "Where the real risk sits for your account"
+        },
+        {
+          "type": "p",
+          "text": "For most retail and funded traders the danger is not direction, it is execution. Expect possible gaps, fast headline spikes, wider spreads and slippage, particularly in index futures, FX majors tied to the dollar, and rate-sensitive assets. Late results can arrive overnight, which matters if you hold positions or trade Asian and London sessions."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Risk",
+            "What it looks like",
+            "Plan response"
+          ],
+          "rows": [
+            [
+              "Gap risk",
+              "Open far from prior close, stops skipped",
+              "Avoid holding size through the results window"
+            ],
+            [
+              "Slippage and spreads",
+              "Fills worse than planned",
+              "Use wider stop assumptions and smaller size"
+            ],
+            [
+              "Headline whipsaw",
+              "Spike then full reversal",
+              "Wait for a confirmed structure, not the first candle"
+            ],
+            [
+              "Overnight uncertainty",
+              "Results trickle in after your session",
+              "Flat before you sleep, or hedge with defined risk"
+            ],
+            [
+              "Prop-firm rule exposure",
+              "News or holding restrictions, daily loss caps",
+              "Read your firm's current rules in advance"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "A simple election-week plan"
+        },
+        {
+          "type": "p",
+          "text": "Write the plan before Monday, not on Tuesday night. A workable template: cut risk per trade by a third to a half for election day and the session after, cap total trades, define your no-trade window around poll closes and early results, and decide in advance whether you will hold anything overnight. If your edge is built on calm, mean-reverting conditions, the honest answer may be to sit out the noisiest hours."
+        },
+        {
+          "type": "quote",
+          "text": "You cannot forecast the headline, but you can decide your size before you see it."
+        },
+        {
+          "type": "h2",
+          "text": "Funded accounts: read the fine print early"
+        },
+        {
+          "type": "p",
+          "text": "If you trade a prop account, check your firm's current rules on news-time trading, holding through events, and daily or trailing drawdown. Rules vary by firm and change over time, so verify them directly rather than relying on forum posts. A single gapped position can breach a daily limit in seconds, which is why many traders simply stay flat through the least predictable hours."
+        },
+        {
+          "type": "usecase",
+          "text": "Tag every trade placed during election week with an Event Risk tag in JournalX, then compare slippage, win rate and R-multiple against your normal weeks. After the dust settles, you will know whether you actually have an edge in event conditions or whether you are better off sitting out the next one."
+        },
+        {
+          "type": "why",
+          "text": "JournalX lets you tag events and setups, and review them next to P&L and rule adherence, so you decide about future event weeks from your own data instead of someone's opinion."
+        },
+        {
+          "type": "h2",
+          "text": "After the results: the review that pays"
+        },
+        {
+          "type": "p",
+          "text": "Once the week is over, run a short review. Did you follow the size reduction? Were your stops hit by spread or by true invalidation? Did you trade during your no-trade window? The goal is a reusable event playbook you can apply to FOMC days, jobs reports and the next election. Event weeks are also where revenge trading and FOMO spike, so note your mood alongside each trade."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Election-week readiness",
+          "prompt": "Tick everything you have done before November 3.",
+          "items": [
+            "I reduced risk per trade for the event window",
+            "I set a maximum trade count",
+            "I defined my no-trade hours",
+            "I decided whether I hold anything overnight",
+            "I checked my prop firm's current news and holding rules",
+            "I wrote my plan down before the week started"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Unprepared. Write a one-page plan before the event."
+            },
+            {
+              "min": 3,
+              "text": "Partly ready. Close the gaps on size and overnight holding."
+            },
+            {
+              "min": 5,
+              "text": "Well prepared. Stick to the plan and review afterwards."
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick quiz",
+          "prompt": "What is the best use of historical midterm-year patterns?",
+          "options": [
+            "A reliable buy signal",
+            "A rough context, not a trade trigger",
+            "A reason to ignore stops",
+            "A guarantee of post-election gains"
+          ],
+          "correct": 1,
+          "explain": "Small samples and changing backdrops make history context only. Risk management is what you control."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Should I trade on US election day?",
+          "a": "It depends on your edge and rules. Many traders cut size or sit out the noisiest hours because of gap and slippage risk. Decide in advance."
+        },
+        {
+          "q": "Do midterm years always see market weakness?",
+          "a": "No. Commentary points to loose historical tendencies from a small sample, and each cycle has its own drivers like rates and earnings."
+        },
+        {
+          "q": "Can I hold positions overnight on a prop firm account during results?",
+          "a": "Rules vary by firm and change over time. Check your firm's current terms on holding and news trading, and consider staying flat."
+        },
+        {
+          "q": "How much should I cut my size?",
+          "a": "There is no universal number. A reduction of roughly a third to a half is a common starting point, then adjust from your journal data."
+        }
+      ]
+    },
+    {
+      "slug": "trading-journal-for-smart-money-concepts-ict-traders",
+      "title": "How to Journal Smart Money Concepts (ICT) Trades: Fields That Show If Your Model Has an Edge",
+      "metaTitle": "Trading Journal for Smart Money Concepts (ICT) Traders | JournalX",
+      "metaDescription": "Order blocks, FVGs and liquidity sweeps need structured journaling. Learn the fields to log, how to tag models, and how to test whether your SMC setup works.",
+      "keywords": [
+        "ICT trading journal",
+        "smart money concepts journal",
+        "order block fair value gap journal",
+        "how to journal ICT trades",
+        "SMC trade tracking"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-10-15",
+      "featured": false,
+      "excerpt": "Smart money concepts come with a lot of vocabulary and very little measurement. A tagging system turns order blocks, FVGs and sweeps into data you can actually test.",
+      "helpful": {
+        "up": 38,
+        "down": 2,
+        "saves": 34
+      },
+      "tags": [
+        "ICT",
+        "Smart Money",
+        "Tagging",
+        "Setups"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Smart money concepts (SMC), popularised by ICT-style content, give traders a rich vocabulary: liquidity sweeps, order blocks, fair value gaps, market structure shifts, premium and discount. The weakness is that the vocabulary is subjective. Two traders can mark the same chart differently, and without measurement it is easy to remember the clean winners and forget the messy losers. A journal is how you find out whether your version of the model works."
+        },
+        {
+          "type": "h2",
+          "text": "Why SMC needs a stricter journal than most"
+        },
+        {
+          "type": "p",
+          "text": "Discretionary frameworks bend to hindsight. A zone looks obvious after the move. If you only screenshot trades that worked, you will overrate the model. The fix is to log the criteria before entry and record every trade the same way, including the ones you skipped. This is not a verdict on any methodology, it is simply how you test one honestly."
+        },
+        {
+          "type": "h2",
+          "text": "The fields worth logging"
+        },
+        {
+          "type": "p",
+          "text": "Keep the form short enough to complete in under a minute. The goal is consistent tags, not an essay."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Field",
+            "Example values",
+            "Question it answers"
+          ],
+          "rows": [
+            [
+              "Model",
+              "Sweep + MSS + FVG entry; Breaker; OB retest",
+              "Which model actually pays?"
+            ],
+            [
+              "HTF bias",
+              "Bullish, bearish, unclear",
+              "Does aligning with higher timeframe help?"
+            ],
+            [
+              "Liquidity taken",
+              "Asia high, London low, PDH, PDL",
+              "Which sweeps are reliable?"
+            ],
+            [
+              "Session / killzone",
+              "London open, NY open, off-session",
+              "When does it work best?"
+            ],
+            [
+              "Entry timeframe",
+              "1m, 5m, 15m",
+              "Is lower timeframe noise hurting?"
+            ],
+            [
+              "Planned vs actual R",
+              "2.5R planned, 1.2R realised",
+              "Where do exits leak?"
+            ],
+            [
+              "Grade",
+              "A, B, C setup quality",
+              "Do A grades outperform?"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Tag models, then split the data"
+        },
+        {
+          "type": "p",
+          "text": "The power comes from comparing buckets. After a meaningful sample, filter by model, session and bias alignment and compare win rate, average R and expectancy. A small sample will mislead you, so treat results from fewer than a few dozen trades per bucket as hints, not conclusions. Many traders find that one or two models carry the account and the rest are noise, but only your own data can say."
+        },
+        {
+          "type": "quote",
+          "text": "A setup you cannot define in writing is a setup you cannot measure."
+        },
+        {
+          "type": "p",
+          "text": "Define each model in one or two sentences before you trade it. For example: price sweeps a prior session high, shifts structure on the entry timeframe, then retraces into a fair value gap in the discount half of the move. If a trade does not match the written definition, it gets tagged as a deviation. Over time, comparing on-model trades with deviations is often the most revealing split in the whole journal, because it shows whether your edge comes from the framework or from your improvisation. It also makes screenshots far more useful, since each one carries the same labels."
+        },
+        {
+          "type": "h2",
+          "text": "Log the ones you skipped"
+        },
+        {
+          "type": "p",
+          "text": "Add a lightweight entry for valid setups you did not take, with a reason: hesitation, rule filter, news, or distraction. This reveals whether you are cherry-picking, and shows if fear is costing you good trades. It also protects you from rewriting history, since a zone you mark before the move is evidence while one you mark after is decoration."
+        },
+        {
+          "type": "h2",
+          "text": "Review loop: weekly, not daily"
+        },
+        {
+          "type": "p",
+          "text": "Daily outcomes are mostly variance. Do a weekly review of model-level stats, the grade split, and your top three mistakes. If A-grade trades are not outperforming C-grade, your grading criteria are too loose and need rewriting. If a session performs poorly across weeks, trim it from your plan."
+        },
+        {
+          "type": "usecase",
+          "text": "Create tags in JournalX for your model, session and HTF bias, grade each trade, and attach the chart screenshot. Then filter by tag to see expectancy per model and per killzone, so you can keep the setups that earn and drop the ones that merely feel sophisticated."
+        },
+        {
+          "type": "why",
+          "text": "JournalX is built around setup tagging, R-multiples and screenshots alongside P&L, which suits discretionary frameworks like SMC where the edge lives in a specific, repeatable context."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "SMC journal audit",
+          "prompt": "Tick what your current journal already captures.",
+          "items": [
+            "Model name for every trade",
+            "Higher timeframe bias",
+            "Session or killzone",
+            "Planned and realised R",
+            "Setup grade",
+            "Skipped valid setups with a reason"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Mostly screenshots. Add three tags first: model, session, grade."
+            },
+            {
+              "min": 3,
+              "text": "Good start. Add skipped setups and planned versus actual R."
+            },
+            {
+              "min": 5,
+              "text": "Strong journal. Focus on a weekly split-by-tag review."
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Your biggest SMC journaling gap",
+          "prompt": "Where does your data feel weakest?",
+          "options": [
+            {
+              "label": "Inconsistent zone marking",
+              "response": "Write entry criteria in one sentence per model and grade against them."
+            },
+            {
+              "label": "No record of skipped setups",
+              "response": "Add a quick skipped tag with a reason; it exposes hesitation fast."
+            },
+            {
+              "label": "Exits are untracked",
+              "response": "Log planned versus realised R to see where profit leaks."
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Is ICT or smart money concepts profitable?",
+          "a": "Results depend on the trader, the rules and risk management. Journaling by model lets you test your own version instead of relying on claims."
+        },
+        {
+          "q": "What should I tag on each SMC trade?",
+          "a": "At minimum: model, higher timeframe bias, session, planned and realised R, and a quality grade."
+        },
+        {
+          "q": "How many trades do I need before judging a model?",
+          "a": "More is better. Fewer than a few dozen trades per bucket is mostly noise, so treat early results as hints."
+        },
+        {
+          "q": "Should I log trades I did not take?",
+          "a": "Yes. Skipped valid setups show hesitation and cherry-picking that win-only screenshots hide."
+        }
+      ]
     }
   ]
 }
