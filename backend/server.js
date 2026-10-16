@@ -23,6 +23,11 @@ const createLimiter = require("./utils/rateLimiter");
 
 const app = express();
 
+// Behind Railway's proxy the client IP arrives in X-Forwarded-For. Trust the
+// first proxy hop so express-rate-limit reads the real IP instead of throwing
+// ERR_ERL_UNEXPECTED_X_FORWARDED_FOR (which was 500-ing rate-limited routes).
+app.set("trust proxy", 1);
+
 /* =======================
    ✅ CORS CONFIG
 ======================= */
