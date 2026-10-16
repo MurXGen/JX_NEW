@@ -14,7 +14,9 @@ const REPLY_TO = process.env.BOOKX_EMAIL_REPLY_TO || "uskillbook@gmail.com";
 const INK = "#111111";
 const SITE_URL = "https://www.thebookx.in";
 const REVIEW_URL = "https://www.thebookx.in/review";
-const LOGO_URL = "https://www.thebookx.in/icon-192.png";
+// Use the existing black-and-white favicon (served at /favicon.ico) so the
+// email logo matches the monochrome design — no new asset created.
+const LOGO_URL = "https://www.thebookx.in/favicon.ico";
 
 const esc = (s) =>
   String(s == null ? "" : s)
