@@ -45,12 +45,22 @@ router.post("/order-confirmation", async (req, res) => {
 router.post("/order-status", async (req, res) => {
   if (!guard(req, res)) return;
   try {
-    const { to, order, status, tracking, invoiceBase64 } = req.body || {};
+    const { to, order, status, tracking, invoiceBase64, heading, subheading, reviewBooks } =
+      req.body || {};
     if (!to || !EMAIL_RE.test(String(to)))
       return res.status(400).json({ success: false, error: "valid 'to' email required" });
     if (!order || typeof order !== "object")
       return res.status(400).json({ success: false, error: "'order' object required" });
-    await sendOrderStatusEmail({ to, order, status, tracking, invoiceBase64 });
+    await sendOrderStatusEmail({
+      to,
+      order,
+      status,
+      tracking,
+      invoiceBase64,
+      heading,
+      subheading,
+      reviewBooks,
+    });
     return res.json({ success: true });
   } catch (err) {
     console.error("order-status email failed:", err?.message || err);
