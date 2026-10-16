@@ -150,6 +150,7 @@ app.use("/api/payments", createLimiter(20), paymentsRoutes);
 app.use("/api/crypto-payments", createLimiter(20), cryptoPaymentsRoutes);
 app.use("/api/telegram", createLimiter(20), telegramRoutes);
 app.use("/api/bookxTelegram", bookxTelegram);
+app.use("/api/bookxEmail", createLimiter(30), require("./routes/bookxEmail"));
 
 app.use(
   "/api/pricingpad",
