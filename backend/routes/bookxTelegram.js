@@ -280,6 +280,13 @@ router.post("/order", async (req, res) => {
       customerPhone,
       totalAmount,
       paymentMethod,
+      // When TheBookX reaches the UPI QR screen it sends actionButtons:"verify"
+      // + the order id so we attach "✅ Passed / ❌ Failed" inline buttons. A tap
+      // is handled in /api/telegram/webhook → it sets the order's sheet status
+      // to Processing (pass) or Unconfirmed (fail). Mirrors the crypto flow
+      // (payment_success_/payment_failed_), but writes to the TheBookX sheet.
+      actionButtons,
+      orderId,
     } = req.body;
 
     if (!orderDetails) {
@@ -298,6 +305,27 @@ router.post("/order", async (req, res) => {
       });
     }
 
+    // Inline Passed/Failed buttons — only when asked for and we have an orderId.
+    const inlineKeyboard =
+      actionButtons === "verify" && orderId
+        ? {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "✅ Passed",
+                    callback_data: `bookx_pass_${orderId}`,
+                  },
+                  {
+                    text: "❌ Failed",
+                    callback_data: `bookx_fail_${orderId}`,
+                  },
+                ],
+              ],
+            },
+          }
+        : {};
+
     const telegramResponse = await axios.post(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
@@ -305,6 +333,7 @@ router.post("/order", async (req, res) => {
         text: orderDetails,
         parse_mode: "Markdown",
         disable_web_page_preview: true,
+        ...inlineKeyboard,
       },
       {
         timeout: 10000,

@@ -126,6 +126,68 @@ router.post("/webhook", async (req, res) => {
             parse_mode: "Markdown",
           },
         );
+      } else if (
+        data.startsWith("bookx_pass_") ||
+        data.startsWith("bookx_fail_")
+      ) {
+        // ── TheBookX order (UPI QR) Passed / Failed ──────────────────────────
+        // Unlike crypto (Mongo), the TheBookX order status lives in a Google
+        // Sheet. We update it through TheBookX's own public order-write proxy
+        // (which talks to its Apps Script), so the sheet URL stays on their
+        // side. Passed → "Processing" (the shopper's verify-poll then flips the
+        // checkout screen to success); Failed → "Unconfirmed".
+        const passed = data.startsWith("bookx_pass_");
+        orderId = data
+          .replace(passed ? "bookx_pass_" : "bookx_fail_", "")
+          .trim();
+        const newStatus = passed ? "Processing" : "Unconfirmed";
+        const base = (
+          process.env.THEBOOKX_API_BASE || "https://thebookx.in"
+        ).replace(/\/$/, "");
+        console.log(
+          `📘 TheBookX order ${orderId} → ${newStatus} (via ${base})`,
+        );
+
+        let ok = false;
+        try {
+          const r = await axios.post(
+            `${base}/api/order-write`,
+            {
+              action: "update",
+              orderId,
+              data: { "Order Status": newStatus },
+            },
+            { timeout: 10000 },
+          );
+          ok = !!r.data?.success;
+        } catch (e) {
+          console.error(
+            "🚨 TheBookX order-write failed:",
+            e.response?.data || e.message,
+          );
+        }
+
+        // Remove the buttons so the decision can't be flipped by a double-tap.
+        try {
+          await axios.post(
+            `https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`,
+            {
+              chat_id: chatId,
+              message_id: message.message_id,
+              reply_markup: { inline_keyboard: [] },
+            },
+          );
+        } catch {}
+
+        await axios.post(
+          `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+          {
+            chat_id: chatId,
+            text: ok
+              ? `${passed ? "✅" : "❌"} TheBookX order ${orderId} marked ${newStatus}.`
+              : `⚠️ Couldn't update TheBookX order ${orderId} (${newStatus}) — check logs.`,
+          },
+        );
       } else {
         console.warn("⚠️ Unknown callback data:", data);
       }
