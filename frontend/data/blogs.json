@@ -20088,6 +20088,338 @@
           "a": "Yes. Skipped valid setups show hesitation and cherry-picking that win-only screenshots hide."
         }
       ]
+    },
+    {
+      "slug": "trading-around-us-market-holidays-thanksgiving-christmas-2026",
+      "title": "Trading Around US Market Holidays: Thanksgiving to Christmas 2026 Liquidity Guide",
+      "metaTitle": "Thanksgiving & Christmas Trading Hours 2026: Liquidity Guide | JournalX",
+      "metaDescription": "Thanksgiving, Black Friday and Christmas Eve change liquidity and spreads. Learn the 2026 schedule, the risks of thin sessions and how to adjust size and rules.",
+      "keywords": [
+        "thanksgiving trading hours 2026",
+        "christmas eve early close stock market",
+        "holiday trading liquidity",
+        "black friday half day trading",
+        "thin market trading risk"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-16",
+      "featured": false,
+      "excerpt": "The last six weeks of the year bring closures, half days and thin books that quietly change how your strategy behaves. Plan the calendar now, before a holiday session surprises your stop.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "Holidays",
+        "Liquidity",
+        "Q4",
+        "Calendar"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Every year the same thing happens in late November and December: a trader who has had a steady quarter takes a normal-sized trade on a half-day session, gets a wider spread and a stop that slips, and gives back a week of progress in one fill. Holiday sessions are not dangerous because anything dramatic happens. They are dangerous because the market your strategy was built on, with deep books and normal participation, is not the market you are trading."
+        },
+        {
+          "type": "h2",
+          "text": "The 2026 calendar to put in your journal now"
+        },
+        {
+          "type": "p",
+          "text": "Based on the published NYSE and Nasdaq holiday schedules, US equity markets are closed on Thanksgiving Day (Thursday, November 26, 2026), with an early 1:00 pm ET close the following day, Black Friday (November 27). Christmas Eve (Thursday, December 24) is also listed with an early close, and markets are closed on Christmas Day (Friday, December 25). Futures exchanges such as CME Group usually publish their own modified holiday hours, which can differ from equities, and forex trades nearly around the clock but with noticeably thinner liquidity. Always confirm the exact times on your exchange or broker calendar, because schedules can be revised."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Date (2026)",
+            "US equities",
+            "What typically changes"
+          ],
+          "rows": [
+            [
+              "Thu Nov 26 (Thanksgiving)",
+              "Closed",
+              "Futures run on shortened hours; global participation drops"
+            ],
+            [
+              "Fri Nov 27 (Black Friday)",
+              "Early close, 1:00 pm ET",
+              "Light volume, quiet drift or sudden air pockets"
+            ],
+            [
+              "Thu Dec 24 (Christmas Eve)",
+              "Early close, 1:00 pm ET",
+              "Very thin books, wide spreads in single names"
+            ],
+            [
+              "Fri Dec 25 (Christmas Day)",
+              "Closed",
+              "Most venues closed; check futures and crypto separately"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "What thin liquidity actually does to your trades"
+        },
+        {
+          "type": "p",
+          "text": "Fewer participants means fewer resting orders at each price. In practice this shows up as wider bid-ask spreads, more slippage on market orders and stops, and price that moves further on less volume. Academic and industry research on holiday-period trading generally reports lower volume around these dates, and many traders describe an equity seasonality sometimes called the Santa Claus rally, but the evidence for tradable edge is mixed and varies by year. Treat it as a tendency to note, not a signal to bet on."
+        },
+        {
+          "type": "p",
+          "text": "The risk side is concrete. A stop placed inside the normal noise of a liquid session can be hit by a single large order in a thin one. A breakout that would normally attract follow-through can fail because nobody is there to chase it. And a fade of a spike can fail because there is nobody on the other side."
+        },
+        {
+          "type": "quote",
+          "text": "If your edge depends on liquidity, a holiday session is a different instrument. Test it before you size it."
+        },
+        {
+          "type": "h2",
+          "text": "Prop firm and funded account angles"
+        },
+        {
+          "type": "p",
+          "text": "If you trade a funded account, holidays add rule friction on top of liquidity. Check whether your firm blocks trading or changes rules around market closures, whether open positions held into a closed session or a weekend are allowed, and how its daily drawdown reset time interacts with shortened sessions. Some firms also have minimum-trading-day or inactivity counters, so a quiet holiday week can matter for those clocks too. Read your firm's current rules rather than relying on last year's memory, and keep screenshots of what you read."
+        },
+        {
+          "type": "h2",
+          "text": "A practical holiday playbook"
+        },
+        {
+          "type": "p",
+          "text": "Most traders do better with a short, written set of adjustments than with improvisation. Decide them in advance, while you are calm, and write them into your plan. Common choices include trading smaller size, widening stops to match the real spread rather than the usual one, using limit orders where possible, skipping the first and last minutes of shortened sessions, and capping total trades. Many experienced traders also simply take the days off, which is a legitimate decision, not a failure of discipline."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Holiday session readiness check",
+          "prompt": "Tick everything you have already done for the Thanksgiving to Christmas stretch.",
+          "items": [
+            "Marked closures and early closes on my calendar",
+            "Checked futures, forex and crypto hours separately",
+            "Read my prop firm's holiday and drawdown reset rules",
+            "Decided a reduced size for thin sessions",
+            "Set a maximum trade count for half days",
+            "Chosen which days I will not trade at all"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Unprepared: build your holiday plan this week, before the first shortened session."
+            },
+            {
+              "min": 3,
+              "text": "Partly ready: finish the remaining items so no holiday decision is made live."
+            },
+            {
+              "min": 6,
+              "text": "Ready: your plan is written, so execution should be calm."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, tag every trade taken from Thanksgiving to New Year with a Holiday session tag. After the season, filter by that tag and compare win rate, average R and slippage against your normal sessions. You will know from your own data whether thin markets help or hurt you, and you can size next year accordingly."
+        },
+        {
+          "type": "h2",
+          "text": "Review it afterwards, with numbers"
+        },
+        {
+          "type": "p",
+          "text": "The most valuable step is the one most traders skip: reviewing the holiday weeks as a separate sample. Compare average spread paid, stop slippage, R multiples and emotional state notes. Eight or ten trades is a small sample, so use it to form a hypothesis, not a conclusion, but even a rough picture beats a vague memory of how December felt."
+        },
+        {
+          "type": "why",
+          "text": "Most journals show you one blended equity curve. JournalX lets you slice by tag, session and rule-adherence, so a thin holiday week stops hiding inside a quarter of normal results."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Are US stock markets open on Thanksgiving 2026?",
+          "a": "No. Per the published NYSE and Nasdaq calendars, US equity markets are closed on Thursday, November 26, 2026, with an early 1:00 pm ET close on Friday, November 27. Confirm with your exchange or broker, as futures hours differ."
+        },
+        {
+          "q": "Is it riskier to trade on half-day sessions?",
+          "a": "It often can be, because lower volume tends to mean wider spreads and more slippage. The risk is manageable with smaller size, limit orders and stops sized to actual spreads."
+        },
+        {
+          "q": "Should I trade during the Santa Claus rally?",
+          "a": "Seasonal tendencies exist in some years but are inconsistent, so treat them as context rather than an edge. Test any seasonal idea in your own journal data first."
+        },
+        {
+          "q": "Do prop firm rules change over holidays?",
+          "a": "Policies vary by firm. Check your firm's current rules on trading around closures, holding positions, daily drawdown reset times and inactivity counters."
+        }
+      ]
+    },
+    {
+      "slug": "good-loss-vs-bad-loss-trading-process-vs-outcome",
+      "title": "Good Loss vs Bad Loss: How to Judge a Trade by Process, Not Outcome",
+      "metaTitle": "Good Loss vs Bad Loss in Trading: Process vs Outcome | JournalX",
+      "metaDescription": "A losing trade is not always a mistake. Learn to separate good losses from bad ones with a simple 2x2 review, so you stop fixing your edge and fix your errors.",
+      "keywords": [
+        "good loss vs bad loss trading",
+        "process vs outcome trading",
+        "how to review losing trades",
+        "trading mistakes vs variance",
+        "trade review framework"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-16",
+      "featured": false,
+      "excerpt": "Most traders grade every loss as a failure and every win as skill, then change a working strategy after normal variance. A process-based review fixes that.",
+      "helpful": {
+        "up": 44,
+        "down": 1,
+        "saves": 39
+      },
+      "tags": [
+        "Process",
+        "Trade review",
+        "Variance",
+        "Discipline"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Ask most traders how their day went and the answer is a number. Green day, good. Red day, bad. That is the oldest mistake in performance review, and poker players have a name for it: resulting, judging a decision by how it turned out rather than by whether it was right given what you knew. In trading it quietly wrecks good strategies and rewards sloppy ones."
+        },
+        {
+          "type": "h2",
+          "text": "Why outcome alone is a bad grade"
+        },
+        {
+          "type": "p",
+          "text": "Any trade with a real edge still loses a meaningful share of the time. A setup that wins 45 percent of the time with a 2R target loses more often than it wins, and is still profitable. If you read each loss as evidence the system is broken, you will keep changing it before it has had a chance to work. The reverse is just as costly: a rule-breaking trade that happened to win teaches you to repeat the rule break."
+        },
+        {
+          "type": "quote",
+          "text": "You can make a great decision and lose, and a terrible decision and win. Only one of those is worth repeating."
+        },
+        {
+          "type": "h2",
+          "text": "The 2x2: grade the decision, then the result"
+        },
+        {
+          "type": "p",
+          "text": "The fix is to grade two things separately. First, did you follow your plan: valid setup, planned risk, planned entry and exit, no rule breaks. Second, what was the result. Crossing them gives four boxes, and each has a different action."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "",
+            "Result: win",
+            "Result: loss"
+          ],
+          "rows": [
+            [
+              "Process: followed the plan",
+              "Deserved win. Nothing to change.",
+              "Good loss. Cost of doing business. Do not change anything."
+            ],
+            [
+              "Process: broke the plan",
+              "Lucky win. Dangerous: log it as a mistake anyway.",
+              "Bad loss. The only box that needs a fix."
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The point is the top-right box. A good loss is not a problem to solve, and treating it as one is how traders end up tweaking indicators after three normal losses in a row."
+        },
+        {
+          "type": "h2",
+          "text": "What counts as a process error"
+        },
+        {
+          "type": "p",
+          "text": "Be specific and write your list down before you trade, not after. Typical entries include entering without a valid setup, sizing above planned risk, moving or removing a stop, adding to a loser, trading outside your hours, ignoring a daily loss limit, and entering because of boredom or a recent loss. If a trade breaks none of your written rules, it cannot be a bad loss, however much it hurt."
+        },
+        {
+          "type": "h2",
+          "text": "Run the review in three minutes"
+        },
+        {
+          "type": "p",
+          "text": "After each trade, or at least at day end, answer three questions: Was this a valid setup under my rules? Did I execute my plan on size, entry, stop and exit? Which box does it belong in? Then add one line on what you would do again. Over a month, count the boxes. If most of your losses are good losses, your issue is variance or edge, which needs a bigger sample. If most are bad losses, you do not have a strategy problem, you have an execution problem, and that is a much cheaper thing to fix."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Which box is it?",
+          "prompt": "You follow your plan exactly: valid setup, 1% risk, stop untouched. The trade hits the stop. How should you grade it?",
+          "options": [
+            "Bad loss: any loss means a mistake",
+            "Good loss: process was right, outcome was normal variance",
+            "Lucky loss: it only counts if it wins",
+            "Unclear: change the strategy to be safe"
+          ],
+          "correct": 1,
+          "explain": "The plan was followed, so this is a good loss. It is the expected cost of a strategy with an edge, and changing the system after it would be reacting to variance."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, add a Process tag (followed plan or broke plan) next to every trade and let the result sit beside it. Filter for broke plan to see exactly what rule violations cost you in R across the month, and filter for followed plan to see the true performance of your system, free of your own mistakes."
+        },
+        {
+          "type": "h2",
+          "text": "The metric that changes your behaviour"
+        },
+        {
+          "type": "p",
+          "text": "Track two numbers: your plan-adherence rate and your average R on adhered trades versus rule-break trades. Many traders are surprised to find their system is profitable on disciplined trades and the whole account's drawdown comes from a handful of violations. That reframes the problem from needing a better strategy to needing fewer exceptions, and it gives you a measurable target. For funded traders, whose accounts end on a rule breach, this matters even more."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Your last three losses",
+          "prompt": "Be honest: how many were bad losses, meaning you broke your own plan?",
+          "options": [
+            {
+              "label": "None, all three followed the plan",
+              "response": "Then variance is likely your issue. Resist changing the system and keep collecting a bigger sample."
+            },
+            {
+              "label": "One of the three",
+              "response": "Good awareness. Find the rule you broke and write a specific guard against it."
+            },
+            {
+              "label": "Two or three",
+              "response": "Execution, not strategy, is the leak. Fix the process before touching your setups."
+            }
+          ]
+        },
+        {
+          "type": "why",
+          "text": "JournalX is built around reviewing the decision, not just the P&L. Tags, rule checks and notes live beside each trade, so your good losses and bad losses separate on their own."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is a good loss in trading?",
+          "a": "A loss on a trade where you followed your plan: valid setup, planned risk, planned stop and exit. It is the normal cost of a strategy with an edge and does not need fixing."
+        },
+        {
+          "q": "How many losses in a row are normal?",
+          "a": "It depends on win rate. Even strategies with a positive edge can see streaks of five or more losses, so judge the process on a large sample rather than a few trades."
+        },
+        {
+          "q": "How do I stop judging trades by outcome?",
+          "a": "Write your rules first, then grade each trade as followed plan or broke plan before you look at the result. A 2x2 of process against outcome helps."
+        },
+        {
+          "q": "Should a lucky win be reviewed?",
+          "a": "Yes. A win that broke your rules reinforces bad habits, so log it as a mistake and review it as seriously as a bad loss."
+        }
+      ]
     }
   ]
 }
