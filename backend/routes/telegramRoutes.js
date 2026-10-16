@@ -140,7 +140,11 @@ router.post("/webhook", async (req, res) => {
         orderId = data
           .replace(passed ? "bookx_pass_" : "bookx_fail_", "")
           .trim();
-        const newStatus = passed ? "Processing" : "Unconfirmed";
+        // Passed → "Processing" (confirmed). Failed → still UNCONFIRMED, but
+        // tagged so the shopper's live poll can tell an explicit failure apart
+        // from the initial pending state (both plain "Unconfirmed" otherwise).
+        // The word "Unconfirmed" keeps manage-orders treating it as unconfirmed.
+        const newStatus = passed ? "Processing" : "Unconfirmed (Payment Failed)";
         const base = (
           process.env.THEBOOKX_API_BASE || "https://thebookx.in"
         ).replace(/\/$/, "");
