@@ -20420,6 +20420,415 @@
           "a": "Yes. A win that broke your rules reinforces bad habits, so log it as a mistake and review it as seriously as a bad loss."
         }
       ]
+    },
+    {
+      "slug": "trading-fed-and-mega-cap-earnings-in-the-same-week",
+      "title": "Fed Week Plus Mega-Cap Earnings: How to Trade Stacked Catalysts Without Blowing Up",
+      "metaTitle": "Trading Fed Week and Mega-Cap Earnings Together: A Risk Plan | JournalX",
+      "metaDescription": "FOMC and big-tech earnings landing in one week? Learn how stacked catalysts compound risk, how to cut size, and a day-by-day plan that protects your account.",
+      "keywords": [
+        "trading fed week and earnings",
+        "fomc and earnings same week",
+        "how to trade event risk",
+        "trading around mega cap earnings",
+        "reduce position size news week"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-28",
+      "featured": false,
+      "excerpt": "Late October often stacks a Fed decision, mega-cap earnings and key data into a few sessions. One event is manageable. Three in a row is a different risk problem.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "Event risk",
+        "FOMC",
+        "Earnings",
+        "Position sizing"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Some weeks the calendar does the damage before you place a single trade. Late October regularly brings a central bank decision, a run of mega-cap earnings reports and a major data release into the same few sessions. Index futures, the dollar, yields and gold all react to the same handful of headlines, and the moves often arrive in bursts with thin follow-through in between."
+        },
+        {
+          "type": "p",
+          "text": "This is not a prediction about any particular week. It is a framework for the weeks where catalysts stack, because that is where otherwise disciplined traders take losses that have nothing to do with their strategy."
+        },
+        {
+          "type": "h2",
+          "text": "Why stacked catalysts are different from single events"
+        },
+        {
+          "type": "p",
+          "text": "A single event has a known shape: quiet run-up, spike, then a digestion period. When two or three events sit close together, the digestion period never finishes. A mega-cap earnings move can shift index futures right before a Fed statement, and the Fed reaction then reprices everything again. Your stop, sized for a normal day, sits inside a range that is suddenly much wider."
+        },
+        {
+          "type": "p",
+          "text": "Correlation also rises. Many positions that looked diversified on a calm day, such as long indices, long a growth stock and short the dollar, can behave like one bet when a macro headline hits. If you have not read it yet, our piece on correlation risk and portfolio heat covers how to measure this."
+        },
+        {
+          "type": "h2",
+          "text": "Step one: map the week before it starts"
+        },
+        {
+          "type": "p",
+          "text": "On the weekend, write every scheduled event on one page with its time in your own time zone: central bank decision and press conference, major earnings after the close, inflation or jobs data, and any Treasury auctions you track. Mark which instruments each one touches. The goal is simple: know in advance which hours are dangerous so you are never surprised inside a position."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Window",
+            "Typical behaviour",
+            "Sensible posture"
+          ],
+          "rows": [
+            [
+              "Run-up (1-2 days before)",
+              "Compressed range, positioning",
+              "Normal or slightly reduced size, avoid chasing breakouts"
+            ],
+            [
+              "Minutes around the release",
+              "Wide spreads, whipsaws, slippage",
+              "Flat or minimum size, no new entries"
+            ],
+            [
+              "First 30-60 minutes after",
+              "Direction often reverses at least once",
+              "Wait for structure, then trade a smaller size"
+            ],
+            [
+              "Day after",
+              "Follow-through or fade, still elevated range",
+              "Normal rules, but widen stops rather than size up"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Step two: cut size by risk, not by feel"
+        },
+        {
+          "type": "p",
+          "text": "If your stop has to be wider because the range is wider, your share or lot size must shrink so that dollars risked stay the same. Many traders do the opposite: they keep the same size and move the stop closer, which just guarantees a stop-out on noise. A practical rule is to halve your normal risk per trade on the most event-heavy days and cap total open risk at a number you set in advance."
+        },
+        {
+          "type": "quote",
+          "text": "On event days the market charges a wider entry fee. Pay it with smaller size, not a tighter stop."
+        },
+        {
+          "type": "h2",
+          "text": "Step three: remember costs and rules"
+        },
+        {
+          "type": "p",
+          "text": "Spreads and slippage can expand sharply around releases, so a trade that looks like 2R on the chart may fill closer to 1.5R. Funded traders should also check their firm's current rules on news trading and holding through events, since these differ between firms and have changed over time. Read your own rulebook for the week rather than relying on memory or a forum post."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Stacked-catalyst week checklist",
+          "prompt": "Tick what you have actually done before Monday's open.",
+          "items": [
+            "Wrote every scheduled event with its local time",
+            "Marked which of my instruments each event touches",
+            "Set reduced risk per trade for event days",
+            "Set a maximum total open risk for the week",
+            "Checked my prop firm's news and holding rules",
+            "Decided in advance whether I trade the release or wait"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You are trading the week blind. Build the event map first."
+            },
+            {
+              "min": 3,
+              "text": "Decent start. Close the gaps on sizing and rules."
+            },
+            {
+              "min": 5,
+              "text": "Well prepared. Execute the plan, not your mood."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Step four: decide your event stance in writing"
+        },
+        {
+          "type": "p",
+          "text": "There are three honest stances: trade the event with defined risk, stay flat through it and trade the aftermath, or hold a position you already have with a hedge or reduced size. All three can be valid. What is not valid is deciding in the moment, because the moment is when fear and greed are loudest. Write the stance for each event before the week begins."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick check",
+          "prompt": "Ranges are twice as wide as normal around a big release. What keeps your dollar risk constant?",
+          "options": [
+            "Keep the same size and tighten the stop",
+            "Widen the stop and reduce position size",
+            "Skip the stop and watch the screen",
+            "Double the size to make up for the noise"
+          ],
+          "correct": 1,
+          "explain": "A wider stop needs a smaller position so the dollars at risk stay the same. Tightening the stop just invites a noise stop-out."
+        },
+        {
+          "type": "usecase",
+          "text": "Tag every trade placed during a catalyst week with an \"event week\" tag in JournalX. After a few of these weeks, filter by that tag and compare your win rate, average R and slippage against normal weeks. The numbers usually show whether your event-day instincts are worth keeping or whether flat-and-wait pays better."
+        },
+        {
+          "type": "why",
+          "text": "Most journals show you results. JournalX lets you slice them by context, so you can see how you perform specifically when the calendar is crowded and adjust your rules from your own data instead of generic advice."
+        },
+        {
+          "type": "h2",
+          "text": "Review it afterwards"
+        },
+        {
+          "type": "p",
+          "text": "When the week ends, compare the plan against what you actually did. Did you trade inside the dangerous windows you marked? Did you size up after a good morning? The most useful lesson from a stacked week is rarely about the market. It is about whether you followed your own rules while everything moved quickly. This is general education, not personalised financial advice, and no plan removes the risk of loss."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Should I avoid trading entirely during a Fed and earnings week?",
+          "a": "Not necessarily. Many traders simply reduce size, avoid the minutes around releases and trade the aftermath. What matters is deciding your approach in advance rather than reacting in the moment."
+        },
+        {
+          "q": "How much should I reduce position size on event days?",
+          "a": "There is no universal number. A common starting point is cutting risk per trade by roughly a third to a half and capping total open risk, then adjusting based on what your own journal data shows."
+        },
+        {
+          "q": "Do prop firms allow trading during news events?",
+          "a": "It varies by firm and rules have changed over time. Check your firm's current rulebook for news trading and holding restrictions before the week starts."
+        },
+        {
+          "q": "Why do stops get hit more often on event days?",
+          "a": "Ranges widen and spreads can expand, so price moves further against you on noise alone. Stops sized for a quiet day sit inside that noise."
+        }
+      ]
+    },
+    {
+      "slug": "monthly-trading-review-month-end-checklist",
+      "title": "The Monthly Trading Review: A 45-Minute Month-End Checklist That Actually Changes Your Results",
+      "metaTitle": "Monthly Trading Review: Month-End Checklist and Template | JournalX",
+      "metaDescription": "Weekly reviews catch mistakes; monthly reviews reveal your edge. Use this 45-minute month-end checklist to find what to keep, cut and test next month.",
+      "keywords": [
+        "monthly trading review",
+        "month end trading review checklist",
+        "trading performance review template",
+        "how to review trading month",
+        "trading journal monthly analysis"
+      ],
+      "category": "Journaling",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-28",
+      "featured": false,
+      "excerpt": "A weekly review catches mistakes. A monthly review shows patterns big enough to change your strategy. Here is a 45-minute routine to run on the last trading day of the month.",
+      "helpful": {
+        "up": 38,
+        "down": 0,
+        "saves": 42
+      },
+      "tags": [
+        "Review",
+        "Journaling",
+        "Routine",
+        "Performance"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Most traders who journal stop at the trade level: what happened, what I felt, what I should have done. That is useful, but a single week is too small a sample to tell you whether a setup works or whether a bad stretch was just variance. The month is the first window with enough trades to see patterns, and the last trading day is the natural time to look."
+        },
+        {
+          "type": "p",
+          "text": "If you already run a weekly review, the monthly one is a zoom-out, not a repeat. You are not re-judging individual trades. You are asking which groups of trades earned their place in your plan."
+        },
+        {
+          "type": "h2",
+          "text": "Before you start: set the rules for the review"
+        },
+        {
+          "type": "p",
+          "text": "Block 45 minutes, close your charts and review closed trades only. Decide your questions before you look at the profit and loss number, because a green month makes everything look smart and a red one makes everything look broken. Both reactions are unreliable. Work through the process first and look at the total last."
+        },
+        {
+          "type": "h2",
+          "text": "Step 1: the scoreboard (5 minutes)"
+        },
+        {
+          "type": "p",
+          "text": "Pull the basics: number of trades, win rate, average win, average loss, expectancy in R, profit factor and maximum drawdown for the month. Compare each with the previous two months, not with an ideal. Direction matters more than the absolute number. If you are new to these, see our guides on R-multiples and expectancy and on profit factor versus win rate."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Metric",
+            "This month",
+            "Last month",
+            "Question to ask"
+          ],
+          "rows": [
+            [
+              "Trades taken",
+              "",
+              "",
+              "Did volume rise without a reason?"
+            ],
+            [
+              "Average R per trade",
+              "",
+              "",
+              "Is expectancy improving or decaying?"
+            ],
+            [
+              "Profit factor",
+              "",
+              "",
+              "Are winners paying for losers with room to spare?"
+            ],
+            [
+              "Max drawdown",
+              "",
+              "",
+              "Was it inside my personal limit?"
+            ],
+            [
+              "Rule-break trades",
+              "",
+              "",
+              "What did they cost in total R?"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Step 2: slice by setup, time and instrument (15 minutes)"
+        },
+        {
+          "type": "p",
+          "text": "This is the step that weekly reviews cannot do. Group trades by setup tag, by session or hour, and by instrument. You are looking for two things: a group that quietly makes most of your money, and a group that quietly loses it. Be careful with small groups. Fewer than roughly 20 trades in a bucket is a hint, not a conclusion, and should be marked \"keep testing\" rather than \"cut\"."
+        },
+        {
+          "type": "quote",
+          "text": "Your edge is rarely your whole strategy. It is usually one or two setups in one or two sessions."
+        },
+        {
+          "type": "h2",
+          "text": "Step 3: separate rule breaks from variance (10 minutes)"
+        },
+        {
+          "type": "p",
+          "text": "Tag every losing trade as either a good loss, where you followed the plan, or a bad loss, where you broke it. Add up the R lost to rule breaks. Many traders discover that the cost of a handful of impulsive trades exceeds the entire month's net loss, which means the strategy was fine and the discipline was the leak. Our post on good loss versus bad loss explains the framework in detail."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "Where did most of your leaks come from this month?",
+          "prompt": "Pick the one that costs you the most.",
+          "options": [
+            {
+              "label": "Oversizing after a win",
+              "response": "Common and costly. Cap size increases and review the scaling-up rules in our winning-streak guide."
+            },
+            {
+              "label": "Moving or removing stops",
+              "response": "This turns planned small losses into unplanned big ones. Make stop moves a tracked rule break."
+            },
+            {
+              "label": "Trading outside my best hours",
+              "response": "Slice by hour in your journal. Often the fix is simply a shorter trading window."
+            },
+            {
+              "label": "Revenge or boredom trades",
+              "response": "Add a cooldown rule after a loss and count these trades separately each month."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Step 4: check the human data (5 minutes)"
+        },
+        {
+          "type": "p",
+          "text": "Look at your mood, sleep and energy notes if you track them. Did your worst days cluster around poor sleep, personal stress or a particular day of the week? You do not need a perfect dataset. Two or three repeating patterns are enough to justify a rule such as \"no new trades after a night under six hours of sleep\"."
+        },
+        {
+          "type": "h2",
+          "text": "Step 5: decide three things (10 minutes)"
+        },
+        {
+          "type": "p",
+          "text": "End with decisions, not observations. Write exactly one thing to keep doing, one thing to stop, and one thing to test next month, with a defined sample size and a review date. Limiting yourself to three prevents the common failure of changing everything at once and learning nothing."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Month-end review checklist",
+          "prompt": "Tick each step you completed this month.",
+          "items": [
+            "Compared core metrics with the last two months",
+            "Sliced results by setup, session and instrument",
+            "Tagged every loss as good or bad",
+            "Totalled R lost to rule breaks",
+            "Reviewed mood and sleep notes",
+            "Wrote one keep, one stop and one test"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "No review yet. Start with the scoreboard and the loss tags."
+            },
+            {
+              "min": 3,
+              "text": "A solid partial review. Add the decision step so it turns into action."
+            },
+            {
+              "min": 6,
+              "text": "Full review done. Now follow through on your three decisions."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, filter your trades by month, then group by setup tag, session and mood to answer steps 1 to 4 in a few clicks rather than rebuilding a spreadsheet. Save your keep, stop and test notes against the month so you can check them next time."
+        },
+        {
+          "type": "why",
+          "text": "A journal only pays off when you read it back. JournalX is built around the review loop, with tags, filters and metrics that make the monthly zoom-out quick enough that you will actually do it."
+        },
+        {
+          "type": "p",
+          "text": "Run the review on the same day every month and keep it short. A consistent 45 minutes beats an exhaustive session you skip. This is educational content, not financial advice, and past results do not predict future performance."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How many trades do I need for a monthly review to be meaningful?",
+          "a": "More is better. With fewer than about 20 trades in a category, treat the result as a hint to keep testing rather than proof that a setup works or fails."
+        },
+        {
+          "q": "Should I review before or after I see my profit and loss?",
+          "a": "Review process and metrics first, and look at the total last. Seeing the profit and loss number first tends to bias how you judge every individual trade."
+        },
+        {
+          "q": "What if I only trade a few times a month?",
+          "a": "Do the same review but extend the window, such as a quarterly slice for setups, while still tagging each loss as good or bad every month."
+        },
+        {
+          "q": "How is a monthly review different from a weekly one?",
+          "a": "A weekly review catches execution errors while they are fresh. A monthly review has enough data to evaluate setups, sessions and expectancy, and to decide what to keep, stop or test."
+        }
+      ]
     }
   ]
 }
