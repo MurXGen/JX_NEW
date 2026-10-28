@@ -274,9 +274,7 @@ async function sendOrderStatusEmail({
   }
   const trackId = tracking && String(tracking).trim();
   if (trackId) {
-    const trackUrl =
-      order.trackUrl ||
-      "https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx";
+    const trackUrl = order.trackUrl || "https://www.indiapost.gov.in/";
     extraTop += `<div style="${extraTop ? "margin-top:10px;" : ""}background:#fafafa;border:1px solid #ebebeb;border-radius:14px;padding:14px 16px;">
       <div style="font-size:11px;color:#9a9a9a;text-transform:uppercase;letter-spacing:.06em;">Tracking ID</div>
       <div style="font-size:17px;font-weight:800;color:${INK};margin-top:3px;letter-spacing:.02em;">${esc(trackId)}</div>
