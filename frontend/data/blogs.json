@@ -20829,6 +20829,397 @@
           "a": "A weekly review catches execution errors while they are fresh. A monthly review has enough data to evaluate setups, sessions and expectancy, and to decide what to keep, stop or test."
         }
       ]
+    },
+    {
+      "slug": "disposition-effect-why-traders-hold-losers-and-cut-winners",
+      "title": "The Disposition Effect: Why You Hold Losers and Cut Winners Too Soon",
+      "metaTitle": "Disposition Effect in Trading: Stop Holding Losers | JournalX",
+      "metaDescription": "Why do traders sell winners early and sit on losers? Learn the disposition effect, how to measure it in your own trading journal, and 5 rules to fix it.",
+      "keywords": [
+        "disposition effect trading",
+        "why do traders hold losing trades",
+        "cutting winners too early",
+        "loss aversion trading",
+        "hold time winners vs losers"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-29",
+      "featured": false,
+      "excerpt": "Most traders know they should cut losers and let winners run. Most still do the opposite. The disposition effect explains why, and your journal can show exactly how much it costs you.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "Psychology",
+        "Loss Aversion",
+        "Trade Management"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "You enter a trade, it goes green, and within minutes you close it for a small gain because 'a profit is a profit.' Another trade goes red and you tell yourself it just needs time. Sound familiar? Behavioral finance has a name for this pattern: the disposition effect, the tendency to sell winning positions too quickly while holding losing ones too long."
+        },
+        {
+          "type": "p",
+          "text": "The term was introduced by Hersh Shefrin and Meir Statman in 1985, and Terrance Odean's 1998 study of retail brokerage accounts found investors were noticeably more likely to realize gains than losses, on the order of roughly 50% more often by proportion. It is not a beginner-only problem. It shows up in experienced traders, and it quietly wrecks risk-reward math."
+        },
+        {
+          "type": "h2",
+          "text": "Why your brain does this"
+        },
+        {
+          "type": "p",
+          "text": "The root is loss aversion from prospect theory (Kahneman and Tversky, 1979). Experimental estimates suggest a loss feels roughly twice as painful as an equivalent gain feels good. A closed loser makes the loss real. An open loser is still 'a trade that might come back,' so the pain is postponed. A winner, meanwhile, feels fragile: the brain wants to bank the good feeling before it vanishes."
+        },
+        {
+          "type": "p",
+          "text": "Add the trading-specific layers: ego (you were wrong), sunk cost (you've watched it for three hours), and hope. Nothing here is a character flaw. It is default human wiring, which is exactly why rules beat willpower."
+        },
+        {
+          "type": "quote",
+          "text": "The goal is not to feel no pain when you take a loss. The goal is to make the decision before the pain shows up."
+        },
+        {
+          "type": "h2",
+          "text": "What it does to your numbers"
+        },
+        {
+          "type": "p",
+          "text": "If you cut winners at +1R but let losers drift to -2R or -3R, you need a very high win rate just to break even. Many traders with a 60% win rate are net negative purely because their average loser is larger than their average winner. This is a payoff-ratio problem disguised as a psychology problem."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Behavior",
+            "Typical sign in your stats",
+            "What it costs"
+          ],
+          "rows": [
+            [
+              "Cutting winners early",
+              "Average win much smaller than planned target",
+              "Caps expectancy even with a good win rate"
+            ],
+            [
+              "Holding losers past the stop",
+              "Average loss larger than planned risk",
+              "Turns small losses into account-damaging ones"
+            ],
+            [
+              "Moving stops further away",
+              "Many trades close 'at market' instead of at the stop",
+              "Hidden risk creep, breaches daily limits"
+            ],
+            [
+              "Closing green trades at first pullback",
+              "Short hold time on winners",
+              "Missed trend moves, low realized R"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "How to measure it in your journal"
+        },
+        {
+          "type": "p",
+          "text": "You can't fix what you haven't measured. Pull these four numbers from your last 50 to 100 trades: average hold time of winners versus losers, average realized R on winners versus losers, percentage of losers that closed beyond your planned stop, and percentage of winners closed before your first target."
+        },
+        {
+          "type": "p",
+          "text": "The tell is a mismatch. If losers are held noticeably longer than winners, or your average loss in R is bigger than 1.0, the disposition effect is in your account. Seeing it as a number is often enough to take the sting out of it, because it stops being a feeling and becomes a pattern."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, log planned stop, planned target, and actual exit on every trade. The hold-time and R-multiple breakdowns split your winners from your losers automatically, so you can see in minutes whether you are holding losers longer and trimming winners earlier. Tag the trades where you moved a stop or exited early and review that tag weekly."
+        },
+        {
+          "type": "h2",
+          "text": "Five rules that counter the effect"
+        },
+        {
+          "type": "p",
+          "text": "First, set the stop before entry and never widen it. Moving it closer to lock in profit is fine; moving it away is the disposition effect in action. Second, use a time stop: if a trade hasn't worked by a set number of bars, exit and reassess rather than hoping. Third, define the exit plan for winners in advance, such as scaling out at a fixed R and trailing the rest, so there is no live decision to make while you're emotional."
+        },
+        {
+          "type": "p",
+          "text": "Fourth, use bracket orders where your platform allows it, so the stop and target exist in the market rather than only in your head. Fifth, run a 'would I enter this now?' check on every open loser. If the honest answer is no, you are not holding a trade, you are holding a hope."
+        },
+        {
+          "type": "usecase",
+          "text": "Pair these rules with a pre-trade checklist so the exit plan is written down before you click buy or sell. That moves the hard decision to a calm moment."
+        },
+        {
+          "type": "why",
+          "text": "Most trading journals record outcomes. JournalX is built around process: planned versus actual exits, R-multiples, hold times and behavior tags, so patterns like the disposition effect show up as clear numbers instead of vague guilt."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Disposition effect self-check",
+          "prompt": "Tick everything that has happened in your last 20 trades.",
+          "items": [
+            "I closed a winner early because I was afraid it would reverse",
+            "I held a loser past my planned stop",
+            "I moved a stop further away",
+            "I told myself a losing trade 'just needs time'",
+            "I did not know my planned exit before entering"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Looking disciplined. Keep logging planned vs actual exits to stay that way."
+            },
+            {
+              "min": 2,
+              "text": "Some leakage. Pick one rule above and track it for two weeks."
+            },
+            {
+              "min": 4,
+              "text": "The disposition effect is likely costing you real R. Start with fixed stops and bracket orders."
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Quick check",
+          "prompt": "A trader has a 60% win rate, average win of +0.6R and average loss of -1.5R. Is the strategy profitable?",
+          "options": [
+            "Yes, 60% is a high win rate",
+            "No, expectancy is negative",
+            "Impossible to say"
+          ],
+          "correct": 1,
+          "explain": "Expectancy = 0.6 x 0.6R - 0.4 x 1.5R = 0.36R - 0.60R = -0.24R per trade. A high win rate cannot rescue a bad payoff ratio."
+        },
+        {
+          "type": "h2",
+          "text": "Bottom line"
+        },
+        {
+          "type": "p",
+          "text": "The disposition effect is not about being weak. It is about a predictable bias meeting a market that punishes it. Measure your hold times and R on winners versus losers, pre-commit your exits, and review the exceptions weekly. Small changes in your average loss usually matter more than any new entry signal. This is educational content, not financial advice."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is the disposition effect in trading?",
+          "a": "It is the tendency to sell winning trades too early while holding losing trades too long, first described by Shefrin and Statman in 1985 and later documented in brokerage data by Odean."
+        },
+        {
+          "q": "How do I know if I have it?",
+          "a": "Compare average hold time and average R on winners versus losers in your journal. Losers held longer and larger than planned risk are the main warning signs."
+        },
+        {
+          "q": "Does a high win rate protect me from it?",
+          "a": "No. If average losses are bigger than average wins, a high win rate can still produce negative expectancy."
+        },
+        {
+          "q": "What is the single best fix?",
+          "a": "Define stop and target before entry and use bracket orders so exits are not decided live under emotion."
+        }
+      ]
+    },
+    {
+      "slug": "micro-futures-position-sizing-mes-mnq-prop-firm-accounts",
+      "title": "Micro Futures Position Sizing: MES and MNQ Math for Prop Firm Accounts",
+      "metaTitle": "Micro Futures Position Sizing (MES, MNQ) Guide | JournalX",
+      "metaDescription": "Learn how to size MES and MNQ micro futures contracts by stop distance and risk per trade, with worked examples for 50K prop firm accounts and drawdown limits.",
+      "keywords": [
+        "micro futures position sizing",
+        "MES MNQ position size",
+        "how many micro contracts to trade",
+        "prop firm futures position sizing",
+        "micro futures risk per trade"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-10-29",
+      "featured": false,
+      "excerpt": "Micro contracts make futures accessible, but sloppy sizing still blows accounts. Here is the exact math for sizing MES and MNQ by stop distance, with prop firm drawdown in mind.",
+      "helpful": {
+        "up": 38,
+        "down": 1,
+        "saves": 34
+      },
+      "tags": [
+        "Futures",
+        "Position Sizing",
+        "Prop Firms"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Micro E-mini futures such as MES (S&P 500) and MNQ (Nasdaq-100) are one-tenth the size of their E-mini counterparts, which is why they are popular with new futures traders and funded-account hopefuls. But 'micro' is relative. Ten MNQ contracts with a wide stop can hurt a small account very quickly. The fix is the same as in any market: size from your stop, not from your confidence."
+        },
+        {
+          "type": "h2",
+          "text": "Know your contract math first"
+        },
+        {
+          "type": "p",
+          "text": "Every position-size calculation starts with how much one point or tick is worth. These are the standard CME contract specifications; always confirm them on the exchange site or your broker before trading, since specs can change."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Contract",
+            "Tick size",
+            "Tick value",
+            "Value per 1 index point"
+          ],
+          "rows": [
+            [
+              "MES (Micro E-mini S&P 500)",
+              "0.25",
+              "$1.25",
+              "$5.00"
+            ],
+            [
+              "MNQ (Micro E-mini Nasdaq-100)",
+              "0.25",
+              "$0.50",
+              "$2.00"
+            ],
+            [
+              "M2K (Micro E-mini Russell 2000)",
+              "0.10",
+              "$0.50",
+              "$5.00"
+            ],
+            [
+              "MYM (Micro E-mini Dow)",
+              "1.00",
+              "$0.50",
+              "$0.50"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice that MES and MNQ look similar in price terms but behave differently. The Nasdaq typically moves more points per day, so the same stop in points means a different dollar risk and a different sensible stop distance."
+        },
+        {
+          "type": "h2",
+          "text": "The sizing formula"
+        },
+        {
+          "type": "p",
+          "text": "Contracts = (account size x risk %) divided by (stop distance in points x dollar value per point). Round down, never up. Then subtract commissions and expected slippage from your risk budget if you want to be precise."
+        },
+        {
+          "type": "p",
+          "text": "Example on a $50,000 account risking 1%, or $500: an MNQ trade with a 25-point stop risks $50 per contract (25 x $2), so the maximum is 10 contracts. An MES trade with an 8-point stop risks $40 per contract (8 x $5), so the maximum is 12 contracts. A wider 20-point MES stop risks $100 per contract, which cuts the size to 5 contracts. The stop decides the size, every time."
+        },
+        {
+          "type": "quote",
+          "text": "Your stop belongs where the trade idea is wrong, not where the position size is convenient."
+        },
+        {
+          "type": "h2",
+          "text": "Why prop firm rules change the answer"
+        },
+        {
+          "type": "p",
+          "text": "On a funded or evaluation account, the number that matters is often not the account balance but the room to your drawdown limit. Many futures prop firms use a trailing drawdown on a 50K account in the neighbourhood of a couple of thousand dollars, though exact amounts, trailing method and contract caps vary by firm, so check your own rules. If your drawdown cushion is about $2,000, a $500 risk per trade means four consecutive losers can end the account."
+        },
+        {
+          "type": "p",
+          "text": "A sensible approach is to size from the cushion rather than the headline balance. Risking 0.25% to 0.5% of account size, or roughly 5% to 10% of the remaining drawdown, per trade gives you far more survivable losing streaks. It also respects any maximum-contract rules and scaling plans your firm applies."
+        },
+        {
+          "type": "usecase",
+          "text": "Log planned risk in dollars and R on every trade in JournalX, along with contracts used and stop distance in points. After a few weeks you can see whether your actual size matched your plan, and whether your largest losses came from oversized positions rather than bad reads."
+        },
+        {
+          "type": "h2",
+          "text": "Common sizing mistakes with micros"
+        },
+        {
+          "type": "p",
+          "text": "The first is treating micros as toys and stacking contracts until the dollar risk equals a full E-mini. The second is sizing off a fixed contract count regardless of stop distance, so a volatile session quietly doubles your risk. The third is ignoring costs: per-contract commissions and slippage are a larger share of the edge on small stops. The fourth is adding to a loser, which turns a planned 1R trade into 2R or 3R."
+        },
+        {
+          "type": "p",
+          "text": "Also watch volatility regimes. On event days such as FOMC or jobs reports, points move faster, stops need to be wider, and the correct size is smaller. Many traders keep a simple volatility-adjusted rule, such as halving size on high-impact news days or skipping them entirely if their prop firm restricts news trading."
+        },
+        {
+          "type": "why",
+          "text": "JournalX is built for futures and prop traders: it tracks risk per trade, contracts, R-multiples and drawdown context, so oversized trades stand out immediately instead of hiding inside a profitable-looking month."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Size it",
+          "prompt": "You have a $50,000 account, risk 1% ($500), and trade MES with a 10-point stop. Maximum contracts?",
+          "options": [
+            "5",
+            "10",
+            "25"
+          ],
+          "correct": 1,
+          "explain": "Risk per contract = 10 points x $5 = $50. $500 / $50 = 10 contracts. Round down if the result is not whole."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Pre-trade sizing checklist",
+          "prompt": "Before every futures entry, confirm each item.",
+          "items": [
+            "Stop distance in points is set by the setup, not the size",
+            "Dollar risk per contract is calculated",
+            "Total risk is within my per-trade limit",
+            "Total risk is a small share of my remaining drawdown",
+            "Size is within the firm's contract limit"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Do not enter yet."
+            },
+            {
+              "min": 3,
+              "text": "Almost there. Finish the remaining checks."
+            },
+            {
+              "min": 5,
+              "text": "Sized correctly. Execute the plan."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Bottom line"
+        },
+        {
+          "type": "p",
+          "text": "Micro futures give you precision, but only if you use it. Know your tick values, size from the stop, anchor risk to your drawdown cushion, and journal planned versus actual size. This is educational content, not financial advice, and futures trading involves substantial risk of loss."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How many MES contracts should I trade on a 50K account?",
+          "a": "It depends on your stop. Divide your dollar risk (for example 1% = $500) by stop points times $5. An 8-point stop allows about 12 contracts, a 20-point stop about 5."
+        },
+        {
+          "q": "Is MNQ riskier than MES?",
+          "a": "Per point MNQ is $2 versus $5 for MES, but the Nasdaq usually moves more points, so dollar risk depends on your stop in points. Size from the stop for each."
+        },
+        {
+          "q": "Should I risk 1% on a prop firm account?",
+          "a": "Many traders risk less because drawdown limits are tight relative to balance. Sizing from the remaining drawdown cushion is often safer."
+        },
+        {
+          "q": "Where do I find official contract specs?",
+          "a": "The CME Group website lists current tick sizes and values, and your broker or prop firm will confirm contract limits."
+        }
+      ]
     }
   ]
 }
