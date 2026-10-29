@@ -5,10 +5,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import { ChevronLeft, ChevronRight, Download, Plus, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
 import ConfirmDialog from "./ConfirmDialog";
+import Kbd from "./Kbd";
 import Toast from "./Toast";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+/* directional slide for prev/next so the preview visibly moves left/right */
+const slideVariants = {
+  enter: (d) => ({ x: d >= 0 ? 70 : -70, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (d) => ({ x: d >= 0 ? -70 : 70, opacity: 0 }),
+};
 
 /* Figma screenshot viewer (22797:53764), large preview, thumbnail
    strip, prev/next, download, add (POST /:id/images) and delete
@@ -16,8 +24,16 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ImageViewerModal({ open, trade, onClose, onImagesChanged }) {
   const [index, setIndex] = useState(0);
+  const [dir, setDir] = useState(0); // slide direction: -1 prev, +1 next
   const [images, setImages] = useState([]);
   const [zoom, setZoom] = useState(1); // 1 = fit, >1 = zoomed (pan by drag)
+  // move to another image with a direction so the slide animates the right way
+  const goTo = (target, direction) => {
+    setDir(direction);
+    setIndex(target);
+  };
+  const next = () => goTo((index + 1) % images.length, 1);
+  const prev = () => goTo((index - 1 + images.length) % images.length, -1);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
@@ -38,6 +54,21 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
   }, []);
   // reset zoom whenever the shown image changes
   useEffect(() => { setZoom(1); }, [index, open]);
+
+  // keyboard: ←/→ navigate · +/− zoom · Esc close
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === "ArrowRight" && images.length > 1) { e.preventDefault(); next(); }
+      else if (e.key === "ArrowLeft" && images.length > 1) { e.preventDefault(); prev(); }
+      else if (e.key === "Escape") { onClose?.(); }
+      else if (e.key === "+" || e.key === "=") { setZoom((z) => (z > 1 ? z : 2.5)); }
+      else if (e.key === "-" || e.key === "_") { setZoom(1); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, images.length, index]);
 
   useEffect(() => {
     if (open && trade) {
@@ -149,8 +180,11 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
                 <span style={{ font: "var(--text-h3)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {trade?.symbol || "Trade"} · screenshots
                 </span>
-                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
+                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   {images.length ? `${index + 1} of ${images.length}` : "No screenshots yet"}
+                  {images.length > 1 && !isMobile && (
+                    <span className="jx-kbd-hint"><Kbd combo={["←", "→"]} sep="/" /> navigate</span>
+                  )}
                 </span>
               </div>
               <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8, flexShrink: 0 }}>
@@ -161,36 +195,44 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
             {/* main preview — swipe left/right on touch, arrows on desktop */}
             <div style={{ position: "relative", background: "var(--color-bg-canvas)", flex: isMobile ? "1 1 auto" : "none", minHeight: isMobile ? 0 : 340, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-4)", overflow: "hidden" }}>
               {current ? (
-                <AnimatePresence mode="wait">
-                  <motion.img
+                <AnimatePresence mode="wait" custom={dir} initial={false}>
+                  <motion.div
                     key={current.url}
-                    src={current.url}
-                    alt={`screenshot ${index + 1}`}
-                    loading="lazy"
-                    draggable={false}
-                    drag={zoom > 1 ? true : images.length > 1 ? "x" : false}
-                    dragConstraints={zoom > 1 ? { left: -600, right: 600, top: -400, bottom: 400 } : { left: 0, right: 0 }}
-                    dragElastic={zoom > 1 ? 0.05 : 0.18}
-                    onDragEnd={(e, info) => {
-                      if (zoom > 1) return; // panning while zoomed, don't navigate
-                      if (info.offset.x < -60) setIndex((i) => (i + 1) % images.length);
-                      else if (info.offset.x > 60) setIndex((i) => (i - 1 + images.length) % images.length);
-                    }}
-                    onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: zoom }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.16 }}
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: isMobile ? "62vh" : "58vh",
-                      borderRadius: "var(--radius-md)",
-                      objectFit: "contain",
-                      cursor: zoom > 1 ? "grab" : "zoom-in",
-                      userSelect: "none",
-                      touchAction: "none",
-                    }}
-                  />
+                    custom={dir}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}
+                  >
+                    <motion.img
+                      src={current.url}
+                      alt={`screenshot ${index + 1}`}
+                      loading="lazy"
+                      draggable={false}
+                      drag={zoom > 1 ? true : images.length > 1 ? "x" : false}
+                      dragConstraints={zoom > 1 ? { left: -600, right: 600, top: -400, bottom: 400 } : { left: 0, right: 0 }}
+                      dragElastic={zoom > 1 ? 0.05 : 0.18}
+                      onDragEnd={(e, info) => {
+                        if (zoom > 1) return; // panning while zoomed, don't navigate
+                        if (info.offset.x < -60) next();
+                        else if (info.offset.x > 60) prev();
+                      }}
+                      onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}
+                      animate={{ scale: zoom }}
+                      transition={{ duration: 0.16 }}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: isMobile ? "62vh" : "58vh",
+                        borderRadius: "var(--radius-md)",
+                        objectFit: "contain",
+                        cursor: zoom > 1 ? "grab" : "zoom-in",
+                        userSelect: "none",
+                        touchAction: "none",
+                      }}
+                    />
+                  </motion.div>
                 </AnimatePresence>
               ) : (
                 <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)", textAlign: "center", padding: "var(--space-6) var(--space-4)" }}>
@@ -200,10 +242,10 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
 
               {images.length > 1 && !isMobile && (
                 <>
-                  <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ position: "absolute", left: 12, padding: 8 }} onClick={() => setIndex((i) => (i - 1 + images.length) % images.length)} aria-label="Previous">
+                  <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ position: "absolute", left: 12, padding: 8, zIndex: 2 }} onClick={prev} aria-label="Previous">
                     <ChevronLeft size={16} />
                   </button>
-                  <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ position: "absolute", right: 12, padding: 8 }} onClick={() => setIndex((i) => (i + 1) % images.length)} aria-label="Next">
+                  <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ position: "absolute", right: 12, padding: 8, zIndex: 2 }} onClick={next} aria-label="Next">
                     <ChevronRight size={16} />
                   </button>
                 </>
@@ -233,7 +275,7 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
                     src={img.url}
                     alt={`thumb ${i + 1}`}
                     loading="lazy"
-                    onClick={() => setIndex(i)}
+                    onClick={() => goTo(i, i >= index ? 1 : -1)}
                     style={{
                       width: 64, height: 44, flexShrink: 0, objectFit: "cover", borderRadius: "var(--radius-sm)", cursor: "pointer",
                       outline: i === index ? "2px solid var(--color-primary)" : "1px solid var(--color-border)",

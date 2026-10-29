@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Download, Trash2, X } from "lucide-react";
+import Kbd from "./Kbd";
 
 /* Confirmation dialog. On mobile it opens as a bottom slide-up sheet (matching
    the trade-row action menu); on desktop it's a centred popup. No backdrop
@@ -43,6 +44,19 @@ export default function ConfirmDialog({
   zIndex = 1500,
 }) {
   const ActionIcon = Icon || (variant === "danger" ? Trash2 : Download);
+
+  // Enter confirms · Esc cancels (while not busy)
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (loading) return;
+      if (e.key === "Enter") { e.preventDefault(); onConfirm?.(); }
+      else if (e.key === "Escape") { e.preventDefault(); onClose?.(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, loading, onConfirm, onClose]);
+
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -75,9 +89,9 @@ export default function ConfirmDialog({
         </button>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "var(--space-3)" }}>
         <button className="jx-btn jx-btn--outline" onClick={onClose} disabled={loading} style={isMobile ? { flex: 1 } : undefined}>
-          Cancel
+          Cancel {!isMobile && <Kbd>Esc</Kbd>}
         </button>
         <button
           className={`jx-btn ${variant === "danger" ? "jx-btn--danger" : "jx-btn--primary"}`}
@@ -85,7 +99,7 @@ export default function ConfirmDialog({
           disabled={loading}
           style={isMobile ? { flex: 1, minWidth: 120 } : { minWidth: 120 }}
         >
-          {loading ? <Spinner /> : <ActionIcon size={15} />} {confirmLabel}
+          {loading ? <Spinner /> : <ActionIcon size={15} />} {confirmLabel} {!isMobile && <Kbd>↵</Kbd>}
         </button>
       </div>
     </div>

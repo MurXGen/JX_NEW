@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Button from "./Button";
 import ConfirmDialog from "./ConfirmDialog";
+import Kbd, { MOD } from "./Kbd";
 import { createAccount, updateAccount, deleteAccount } from "@/api/auth";
 import { canAddAccount, getPlanRules } from "@/utils/planRestrictions";
 import { getFromIndexedDB } from "@/utils/indexedDB";
@@ -213,6 +214,23 @@ export default function JournalsModal({
       setSaving(false);
     }
   };
+
+  /* keyboard: ⌘/Ctrl+Enter saves (in the create/edit view) · Esc closes */
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (confirmDel) return; // the delete dialog handles its own keys
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && view === "create") {
+        e.preventDefault();
+        if (!saving) save();
+      } else if (e.key === "Escape") {
+        if (!saving) onClose?.();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, view, saving, confirmDel]);
 
   if (!mounted) return null;
 
@@ -473,7 +491,7 @@ export default function JournalsModal({
                           {editingId ? "Saving…" : "Creating…"}
                         </>
                       ) : (
-                        editingId ? "Save changes" : "Create journal"
+                        <>{editingId ? "Save changes" : "Create journal"} <Kbd combo={[MOD, "↵"]} /></>
                       )}
                     </Button>
                   </div>

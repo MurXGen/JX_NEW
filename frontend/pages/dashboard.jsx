@@ -44,6 +44,7 @@ import {
 
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import { MobileInstallBanner } from "@/components/pwa/InstallPwa";
+import ShortcutsHelp from "@/components/revampV2/ShortcutsHelp";
 
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
@@ -143,8 +144,37 @@ export default function Dashboard() {
     return () => mq.removeEventListener?.("change", sync);
   }, []);
   const [showLogTrade, setShowLogTrade] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [importSignal, setImportSignal] = useState(0);
   const [, setThemeTick] = useState(0); // re-render the mobile theme icon
+
+  /* ---------- global keyboard shortcuts ----------
+     ? → help · L → log trade · G then O/T/M → navigate.
+     Ignored while typing in a field; letter keys pause while any dialog is open. */
+  useEffect(() => {
+    const isTyping = (el) =>
+      !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
+    let gAt = 0;
+    const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTyping(e.target)) return;
+      if (e.key === "?") { e.preventDefault(); setShowShortcuts((v) => !v); return; }
+      if (typeof document !== "undefined" && document.querySelector(".jx-modal-overlay")) return;
+      const k = e.key.toLowerCase();
+      const now = Date.now();
+      if (k === "g") { gAt = now; return; }
+      if (gAt && now - gAt < 900) {
+        gAt = 0;
+        if (k === "o") { navTab("overview"); return; }
+        if (k === "t") { navTab("trades"); return; }
+        if (k === "m") { navTab("markets"); return; }
+      }
+      if (k === "l") { e.preventDefault(); setShowLogTrade(true); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [userData, setUserData] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -515,6 +545,9 @@ export default function Dashboard() {
         onSupport={openSupport}
         user={userData}
       />
+
+      {/* Global keyboard-shortcuts cheat sheet (press ?) */}
+      <ShortcutsHelp open={showShortcuts} onClose={() => setShowShortcuts(false)} />
 
       {/* Log trade modal (Quick log / Detailed), blurred backdrop */}
       <LogTradeModal

@@ -15,13 +15,14 @@ import {
   Download,
   Gamepad2,
   Image as ImageIcon,
+  LayoutGrid,
+  List,
   Loader2,
   Minus,
   MoreVertical,
   Pencil,
   Wind,
   Plus,
-  SlidersHorizontal,
   Square,
   Trash2,
   TrendingDown,
@@ -837,13 +838,13 @@ export default function TradesLogPanel({
           >
             <Wind size={16} />
           </span>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, minWidth: 0, flex: 1 }}>
-            <span style={{ font: "var(--text-body-md)", fontWeight: 700, whiteSpace: "nowrap" }}>Overtrading</span>
-            <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, minWidth: 160, flex: "1 1 200px", overflow: "hidden" }}>
+            <span style={{ font: "var(--text-body-md)", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>Overtrading</span>
+            <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
               {overtrading.reasons.join(" · ")}
             </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginLeft: "auto", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginLeft: "auto", flexShrink: 0, flexWrap: "wrap" }}>
             <button
               className="jx-btn jx-btn--primary jx-btn--sm"
               onClick={() => { dismissOt(); onOpenTab?.("blogs"); }}
@@ -927,68 +928,96 @@ export default function TradesLogPanel({
             options={[{ value: "newest", label: "Newest first" }, { value: "oldest", label: "Oldest first" }, { value: "pnl-high", label: "P&L: high to low" }, { value: "pnl-low", label: "P&L: low to high" }]}
             triggerStyle={{ height: 38 }} />
         );
+        const moreActive = filtersOpen || selFilters > 0 || selectMode;
         return (
-          <div className="jx-tl-header" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "nowrap" }}>
-            <span className="jx-card__title" style={{ whiteSpace: "nowrap" }}>All trades</span>
-            <span className="jx-tl-count" style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>{filtered.length} trades</span>
-
-            <div style={{ marginLeft: "auto", display: "flex", gap: "var(--space-2)", alignItems: "center", minWidth: 0 }}>
-              {/* inline filters, desktop */}
-              <div className="jx-tl-filters-inline" style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-                {selFilters > 0 && (
-                  <button className="jx-chip jx-chip--selected" onClick={() => { setDirection("all"); setOutcome("all"); }}>Clear ({selFilters})</button>
-                )}
-                <div style={{ width: 150 }}>{directionDD}</div>
-                <div style={{ width: 150 }}>{outcomeDD}</div>
-                <div style={{ width: 175 }}>{sortDD}</div>
-              </div>
-
-              {/* compact filters, small screens */}
-              <div className="jx-tl-filters-compact" style={{ position: "relative" }}>
-                <Button variant={selFilters > 0 ? "primary" : "outline"} size="sm" icon={SlidersHorizontal} onClick={() => setFiltersOpen((o) => !o)}>
-                  Filters{selFilters > 0 ? ` (${selFilters})` : ""}
-                </Button>
-                <AnimatePresence>
-                  {filtersOpen && (
-                    <>
-                      <div onClick={() => setFiltersOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
-                      <motion.div
-                        initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                        style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 41, width: 240, background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)", padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                        {directionDD}
-                        {outcomeDD}
-                        {sortDD}
-                        {selFilters > 0 && (
-                          <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setDirection("all"); setOutcome("all"); }}>Clear filters</button>
-                        )}
-                      </motion.div>
-                    </>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {view === "cards" && (
-                <Button
-                  variant={showCardImages ? "primary" : "outline"}
-                  size="sm"
-                  icon={ImageIcon}
-                  onClick={toggleCardImages}
-                  title={showCardImages ? "Hide screenshots on cards" : "Show screenshots on cards"}
+          <div className="jx-tl-viewbar">
+            {/* with / without images tab (cards view only) */}
+            {view === "cards" ? (
+              <div className="jx-seg jx-seg--inline jx-tl-imgseg" role="group" aria-label="Card images">
+                <button
+                  type="button"
+                  className={`jx-seg__btn ${showCardImages ? "jx-seg__btn--active" : ""}`}
+                  onClick={() => { if (!showCardImages) toggleCardImages(); }}
                 >
-                  <span className="jx-tl-selbl">Images</span>
-                </Button>
-              )}
-              <Button variant={selectMode ? "primary" : "outline"} size="sm" icon={CheckSquare}
-                onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); }}>
-                <span className="jx-tl-selbl">{selectMode ? "Done" : "Select"}</span>
-              </Button>
-              <div className="jx-seg jx-seg--inline">
-                {["cards", "table"].map((v) => (
-                  <button key={v} className={`jx-seg__btn ${view === v ? "jx-seg__btn--active" : ""}`} onClick={() => setView(v)}>
-                    {v === "cards" ? "Cards" : "Table"}
-                  </button>
-                ))}
+                  With images
+                </button>
+                <button
+                  type="button"
+                  className={`jx-seg__btn ${!showCardImages ? "jx-seg__btn--active" : ""}`}
+                  onClick={() => { if (showCardImages) toggleCardImages(); }}
+                >
+                  Without images
+                </button>
               </div>
+            ) : (
+              <span style={{ flex: 1 }} />
+            )}
+
+            {/* cards / table view toggle (icons only) */}
+            <div className="jx-seg jx-seg--inline jx-tl-viewseg" role="group" aria-label="View">
+              <button
+                type="button"
+                className={`jx-seg__btn ${view === "cards" ? "jx-seg__btn--active" : ""}`}
+                onClick={() => setView("cards")}
+                title="Cards view"
+                aria-label="Cards view"
+              >
+                <LayoutGrid size={16} />
+              </button>
+              <button
+                type="button"
+                className={`jx-seg__btn ${view === "table" ? "jx-seg__btn--active" : ""}`}
+                onClick={() => setView("table")}
+                title="Table view"
+                aria-label="Table view"
+              >
+                <List size={16} />
+              </button>
+            </div>
+
+            {/* ⋮ menu — Select + Filters live here */}
+            <div className="jx-tl-kebab" style={{ position: "relative", flexShrink: 0 }}>
+              <button
+                type="button"
+                className={`jx-btn jx-btn--sm ${moreActive ? "jx-btn--primary" : "jx-btn--outline"}`}
+                onClick={() => setFiltersOpen((o) => !o)}
+                aria-label="Filters and select"
+                title="Filters & select"
+                style={{ padding: 8 }}
+              >
+                <MoreVertical size={16} />
+                {selFilters > 0 && (
+                  <span style={{ marginLeft: 2, fontSize: 11, fontWeight: 700 }}>{selFilters}</span>
+                )}
+              </button>
+              <AnimatePresence>
+                {filtersOpen && (
+                  <>
+                    <div onClick={() => setFiltersOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                      className="jx-tl-filters-pop"
+                      style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 41, width: "min(260px, calc(100vw - 32px))", background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)", padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}
+                    >
+                      <button
+                        type="button"
+                        className={`jx-btn jx-btn--sm ${selectMode ? "jx-btn--primary" : "jx-btn--outline"}`}
+                        style={{ justifyContent: "center" }}
+                        onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); setFiltersOpen(false); }}
+                      >
+                        <CheckSquare size={15} /> {selectMode ? "Done selecting" : "Select trades"}
+                      </button>
+                      <div style={{ height: 1, background: "var(--color-border)", margin: "1px 0" }} />
+                      {directionDD}
+                      {outcomeDD}
+                      {sortDD}
+                      {selFilters > 0 && (
+                        <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setDirection("all"); setOutcome("all"); }}>Clear filters</button>
+                      )}
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         );
@@ -1104,12 +1133,12 @@ export default function TradesLogPanel({
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "var(--text-h3)", fontWeight: 700, letterSpacing: "-0.3px" }}>
+                      <span style={{ font: "var(--text-h3)", fontWeight: 700, letterSpacing: "-0.3px" }}>
                         {dateStr}
-                        {rel && <span className="jx-badge jx-badge--brand" style={{ fontSize: 10 }}>{rel}</span>}
                       </span>
                       <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", letterSpacing: "0.4px", textTransform: "uppercase" }}>{weekday}</span>
                     </div>
+                    {rel && <span className="jx-badge jx-badge--brand" style={{ fontSize: 10, alignSelf: "center" }}>{rel}</span>}
                     <span className="jx-badge jx-badge--neutral" style={{ alignSelf: "center" }}>{list.length} {list.length === 1 ? "trade" : "trades"}</span>
                     <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "baseline", gap: 6 }}>
                       <span style={{ font: "var(--text-label)", letterSpacing: "0.6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Net</span>

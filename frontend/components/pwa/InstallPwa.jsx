@@ -120,29 +120,31 @@ export function MobileInstallBanner() {
           display: "flex", alignItems: "center", gap: "var(--space-3)",
           padding: "10px 12px", marginBottom: "var(--space-2)",
           borderRadius: "var(--radius-md)",
-          background: "linear-gradient(100deg, var(--yellow-400), var(--yellow-300))",
-          color: "#1d1d1d", boxShadow: "0 6px 20px rgba(240,185,11,0.28)",
+          background: "var(--color-bg-elevated)",
+          border: "1px solid var(--color-border)",
+          color: "var(--color-text-primary)",
+          boxShadow: "0 6px 20px rgba(0,0,0,0.3)",
         }}
       >
         <span
           style={{
             width: 34, height: 34, borderRadius: 9, flexShrink: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(29,29,29,0.12)",
+            background: "var(--color-bg-muted)", color: "var(--color-text-primary)",
           }}
         >
           <Download size={18} />
         </span>
         <span style={{ flex: 1, minWidth: 0, lineHeight: 1.25 }}>
           <span style={{ display: "block", fontWeight: 700, fontSize: 13 }}>Install JournalX</span>
-          <span style={{ display: "block", fontSize: 11.5, opacity: 0.8 }}>Add to your home screen, fast, full-screen.</span>
+          <span style={{ display: "block", fontSize: 11.5, color: "var(--color-text-muted)" }}>Add to your home screen, fast, full-screen.</span>
         </span>
         <button
           onClick={onInstall}
           style={{
             flexShrink: 0, fontWeight: 700, fontSize: 13, cursor: "pointer",
             padding: "7px 14px", borderRadius: 999, border: "none",
-            background: "#1d1d1d", color: "var(--yellow-300)",
+            background: "var(--color-text-primary)", color: "var(--color-bg-elevated)",
           }}
         >
           Install
@@ -150,7 +152,7 @@ export function MobileInstallBanner() {
         <button
           onClick={dismiss}
           aria-label="Dismiss"
-          style={{ flexShrink: 0, background: "transparent", border: "none", color: "#1d1d1d", cursor: "pointer", padding: 4, opacity: 0.7 }}
+          style={{ flexShrink: 0, background: "transparent", border: "none", color: "var(--color-text-muted)", cursor: "pointer", padding: 4 }}
         >
           <X size={16} />
         </button>

@@ -43,6 +43,7 @@ import VoiceNoteRecorder from "./VoiceNoteRecorder";
 import SplashLoader from "./SplashLoader";
 import UpgradeSheet from "./UpgradeSheet";
 import Toast from "./Toast";
+import Kbd, { MOD } from "./Kbd";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { hasLiveCandles } from "@/utils/livePrice";
@@ -1659,6 +1660,25 @@ export default function LogTradeModal({
 
   const isQuick = mode === "quick";
 
+  /* keyboard: ⌘/Ctrl+Enter saves · Esc closes (Esc ignored while a nested
+     sheet/picker is open so it closes that first) */
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (!saving) save(false);
+      } else if (e.key === "Escape") {
+        // let nested overlays handle their own Escape first
+        if (document.querySelector(".jx-acct-switch")) return;
+        if (!saving) onClose?.();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, saving]);
+
   /* ---------- shared blocks ---------- */
   // just the symbol text input (so Long/Short can sit beside it)
   const symbolInputBlock = (
@@ -3001,6 +3021,7 @@ export default function LogTradeModal({
                     <>
                       <Check size={16} />{" "}
                       {isEdit ? "Update trade" : "Log trade"}
+                      <Kbd combo={[MOD, "↵"]} />
                     </>
                   )}
                 </button>
