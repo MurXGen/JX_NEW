@@ -21220,6 +21220,389 @@
           "a": "The CME Group website lists current tick sizes and values, and your broker or prop firm will confirm contract limits."
         }
       ]
+    },
+    {
+      "slug": "prop-firm-black-friday-challenge-discounts-worth-it",
+      "title": "Prop Firm Black Friday Discounts: Worth It or Just a Cheaper Way to Fail?",
+      "metaTitle": "Prop Firm Black Friday Discounts: Worth It? | JournalX",
+      "metaDescription": "Prop firm Black Friday sales look tempting. Learn how to judge challenge discounts by expected cost, readiness and due diligence before you spend a cent.",
+      "keywords": [
+        "prop firm black friday",
+        "prop firm discount code",
+        "is a prop firm challenge worth it",
+        "prop firm challenge cost",
+        "how to choose a prop firm 2026"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-11-06",
+      "featured": false,
+      "excerpt": "An 80% off banner makes a challenge feel risk free. It is not. Here is how to decide if a prop firm sale is a bargain or an impulse buy.",
+      "helpful": {
+        "up": 41,
+        "down": 1,
+        "saves": 36
+      },
+      "tags": [
+        "prop firms",
+        "black friday",
+        "challenge cost",
+        "due diligence"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Black Friday lands on November 27 this year, and if you have spent any time near prop firm Discords or trading X, you already know what that means: discount codes, bigger banners, and a wave of 'last chance' posts. Many firms in this industry have historically run seasonal promotions around late November, so it is reasonable to expect another round. The question for you is not whether the discount is real. It is whether buying a challenge at 50% off, or even 80% off, changes your odds of ever getting paid."
+        },
+        {
+          "type": "h2",
+          "text": "The discount changes the price, not the pass rate"
+        },
+        {
+          "type": "p",
+          "text": "A challenge fee is the cost of one attempt. A sale lowers that cost, which is genuinely useful if you were already ready to take an attempt. But it does nothing to the rules, the drawdown, the profit target, or your edge. Firms rarely publish verified pass rates, and figures quoted in the industry are usually presented as low single or low double digits, so treat any specific number you see as unverified unless the firm shows audited data. What you can control is how much of the fee you are effectively betting on a plan you have not tested."
+        },
+        {
+          "type": "p",
+          "text": "Here is the useful way to frame it: a discount is worth the percentage off only if it brings forward a purchase you were going to make anyway. If it pulls forward a purchase you would not have made for another two months, you have paid for a lottery ticket with a coupon on it."
+        },
+        {
+          "type": "quote",
+          "text": "A sale is only a saving if you would have bought at full price. Otherwise it is just a smaller loss, taken earlier."
+        },
+        {
+          "type": "h2",
+          "text": "The real cost of a cheap challenge"
+        },
+        {
+          "type": "p",
+          "text": "The fee is only one line. A cheap challenge you fail still costs you the time, the stress, and often a reset fee or a second purchase to try again. Run the math on expected cost per funded account, not cost per attempt. If your honest estimate is that you pass one in four attempts, a 'cheap' fee is multiplied by roughly four before you reach a funded account, plus any activation fee some firms charge after passing."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Scenario",
+            "Fee per attempt",
+            "Attempts to one pass (assumed)",
+            "Expected spend"
+          ],
+          "rows": [
+            [
+              "Full price, tested plan",
+              "$100",
+              "2",
+              "$200"
+            ],
+            [
+              "50% off, untested plan",
+              "$50",
+              "5",
+              "$250"
+            ],
+            [
+              "80% off, untested plan",
+              "$20",
+              "6",
+              "$120 plus 6 weeks of stress"
+            ],
+            [
+              "No purchase, journal first",
+              "$0",
+              "0",
+              "$0 until the data says go"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The numbers above are illustrative, not industry statistics. The point is the structure: expected spend depends on your pass probability far more than on the sticker price. Raise the pass probability and the discount barely matters."
+        },
+        {
+          "type": "h2",
+          "text": "A pre-purchase test you can run this week"
+        },
+        {
+          "type": "p",
+          "text": "Before you add anything to a cart, spend a few days of simulated or small-account trading under the exact rules of the challenge you are considering. Use the same daily loss limit, the same trailing or static drawdown, the same news rules, and the same minimum trading days. Log every trade. If you cannot finish ten to twenty sessions inside those rules without a breach, a discount will not fix that."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Am I ready to buy a challenge?",
+          "prompt": "Tick everything that is true today.",
+          "items": [
+            "I have a written plan with defined entry, stop and target rules",
+            "I have logged at least 50 trades with a positive expectancy",
+            "I traded 10+ sessions under this firm's exact drawdown rules without a breach",
+            "I know the firm's consistency, news and weekend rules",
+            "I can afford to lose the fee without it affecting my life",
+            "I would buy this challenge at full price too"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Not yet. Spend the discount money on practice time instead and build a tested plan first."
+            },
+            {
+              "min": 3,
+              "text": "Close. Close the gaps on the unticked items before the sale ends. Another sale will come."
+            },
+            {
+              "min": 5,
+              "text": "Ready. If the firm passes your due diligence, the discount is a fair bonus."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Due diligence matters more than the coupon"
+        },
+        {
+          "type": "p",
+          "text": "Industry coverage in 2026 has included retroactive rule changes, firm shutdowns, and tightening terms at several operators. A discounted fee at a firm with unclear payout history is not a bargain. Check how long the firm has operated, whether payout proof is verifiable, what the terms say about rule changes, and whether the account is simulated or live. Our posts on red flags and retroactive rule changes cover the checklist in detail. Read the current terms and screenshot them on the day you buy."
+        },
+        {
+          "type": "h2",
+          "text": "If you do buy, protect the purchase"
+        },
+        {
+          "type": "p",
+          "text": "Decide your risk per trade before you start, set a personal daily stop tighter than the firm's, and treat the first week as execution practice rather than a profit chase. Many failed challenges are not edge failures, they are sizing failures in the first few days when people try to 'make the fee back' quickly."
+        },
+        {
+          "type": "usecase",
+          "text": "Log your demo and challenge trades in JournalX with tags for rule-compliance, risk per trade and emotional state. After 20 sessions you can see your breach risk, average daily loss and best session, which is exactly the data you need to decide whether a Black Friday purchase is a smart move or an impulse."
+        },
+        {
+          "type": "why",
+          "text": "JournalX tracks prop-firm drawdown limits next to your real results, so you decide to buy a challenge from your own numbers rather than from a countdown timer."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "What is your Black Friday plan?",
+          "prompt": "Pick the option closest to you.",
+          "options": [
+            {
+              "label": "Buy as soon as codes drop",
+              "response": "Impulse purchases are the most common way sales cost more than they save. Run the readiness checklist first."
+            },
+            {
+              "label": "Wait and compare firms",
+              "response": "Good. Comparing terms and payout history beats chasing the biggest percentage off."
+            },
+            {
+              "label": "Skip it and keep practicing",
+              "response": "A valid choice. A tested plan is worth more than any coupon."
+            },
+            {
+              "label": "Buy more than one challenge",
+              "response": "Multiple attempts multiply risk and fees. Make sure each one has its own plan and a hard budget cap."
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Are Black Friday prop firm discounts worth it?",
+          "a": "Only if you were already ready to buy a challenge. A discount lowers the fee per attempt but does not change the rules or your odds of passing. Judge the purchase by expected cost per funded account, not by the percentage off."
+        },
+        {
+          "q": "Do prop firms run Black Friday sales every year?",
+          "a": "Many have run seasonal promotions around late November in past years, but terms vary by firm and year. Always read the current offer, any conditions attached to the code, and the refund policy."
+        },
+        {
+          "q": "Should I buy several cheap challenges at once?",
+          "a": "Usually not. Multiple attempts multiply fees and emotional load, and if the same flaw causes a breach each time, you simply lose more money faster. Set a budget cap and fix the flaw first."
+        },
+        {
+          "q": "What should I check before buying a discounted challenge?",
+          "a": "Check the firm's operating history, verifiable payout proof, drawdown and consistency rules, news and weekend rules, whether accounts are simulated, and what the terms say about changing rules after purchase."
+        }
+      ]
+    },
+    {
+      "slug": "averaging-down-vs-martingale-why-adding-to-losers-fails",
+      "title": "Averaging Down vs Martingale: Why Adding to a Loser Feels Smart and Fails",
+      "metaTitle": "Averaging Down vs Martingale in Trading | JournalX",
+      "metaDescription": "Averaging down feels smart until it breaches your account. Learn planned scale-ins vs panic adds and how to measure the real damage in your journal data.",
+      "keywords": [
+        "averaging down trading",
+        "martingale trading strategy",
+        "adding to a losing position",
+        "scale in vs average down",
+        "risk management trading"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-11-06",
+      "featured": false,
+      "excerpt": "Adding to a loser feels like fixing a mistake. Learn the difference between a planned scale-in and a panic add, and how to test it with your own data.",
+      "helpful": {
+        "up": 38,
+        "down": 1,
+        "saves": 33
+      },
+      "tags": [
+        "averaging down",
+        "martingale",
+        "position management",
+        "risk"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Every trader has done it. The position goes against you, the setup still looks good, so you buy more at a better price. Sometimes it works, and that is the problem. Averaging down gets reinforced by the occasions it rescues you, while the occasions it destroys you tend to arrive as one large loss. This post separates the sensible version from the dangerous one, and shows how to check which one you are really doing."
+        },
+        {
+          "type": "h2",
+          "text": "What averaging down actually is"
+        },
+        {
+          "type": "p",
+          "text": "Averaging down means adding to a losing position to lower your average entry price. Its more extreme cousin is the martingale, where you increase size after each loss so one win recovers everything. Both feel logical because the maths of the average price is correct: a lower average means a smaller bounce needed to break even. What the maths hides is that you now hold more risk in the exact trade that is already proving you wrong."
+        },
+        {
+          "type": "quote",
+          "text": "Adding to a loser is not a plan. It is a bet that the market owes you a bounce."
+        },
+        {
+          "type": "h2",
+          "text": "Why it feels smart and fails slowly"
+        },
+        {
+          "type": "p",
+          "text": "There are three forces at work. Loss aversion makes realising a loss painful, so adding feels like 'fixing' it. The sunk cost effect makes your original entry the reference point rather than the current price. And the win rate illusion: averaging down can raise your win rate while quietly lowering your expectancy, because many small wins are paid for by rare, oversized losses. Academic work on the disposition effect describes the related tendency to hold losers and sell winners, so this is a documented human pattern rather than a personal flaw."
+        },
+        {
+          "type": "h2",
+          "text": "Planned scale-in versus panic add"
+        },
+        {
+          "type": "p",
+          "text": "The difference is whether the add was decided before the trade, with a total risk cap, or invented while you were under stress. A planned scale-in defines entries up front, and the stop still sits at a level that invalidates the whole idea. A panic add moves the stop, or removes it, and risks more than you originally intended."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Feature",
+            "Planned scale-in",
+            "Panic averaging down"
+          ],
+          "rows": [
+            [
+              "Decided when",
+              "Before entry",
+              "After the loss starts"
+            ],
+            [
+              "Total risk",
+              "Capped, fixed in advance",
+              "Grows with each add"
+            ],
+            [
+              "Stop loss",
+              "Same invalidation level",
+              "Moved or removed"
+            ],
+            [
+              "Add trigger",
+              "Pre-set price or signal",
+              "Discomfort"
+            ],
+            [
+              "Worst case",
+              "Known loss in R",
+              "Unknown, can exceed plan"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "The math of a martingale on a real account"
+        },
+        {
+          "type": "p",
+          "text": "Doubling after each loss needs a long streak of losses to wipe you out, and that streak is rarer than people fear but not as rare as the formula suggests, especially with leverage and a drawdown rule. On a funded account, a trailing or daily drawdown limit makes it worse: you do not need to lose everything, only to hit a fixed percentage once. Even a strategy with a decent edge can breach in a single bad sequence if size grows after losses. Our risk of ruin and Monte Carlo posts cover how to stress test this."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Spot the flaw",
+          "prompt": "You risk 1% per trade. Trade one is down 0.8% and you add the same size at a better price with the stop unchanged. What is the real risk on the idea now?",
+          "options": [
+            "Still 1%, because the stop did not move",
+            "About 1.6% of equity, because the add doubled exposure to the same invalidation",
+            "0.5%, because the average price improved",
+            "Unknown, it depends on the bounce"
+          ],
+          "correct": 1,
+          "explain": "Adding size with the same stop concentrates more risk in the same idea. Your total risk is now well above your 1% plan, so the add broke your own rule."
+        },
+        {
+          "type": "h2",
+          "text": "A rule set that keeps the good part of scaling"
+        },
+        {
+          "type": "p",
+          "text": "If you want to add to positions, write the rules down: add only to winners that have confirmed your thesis, never to a position beyond its stop, cap total risk per idea in R, and log every add as its own tagged entry. Many traders find that adding to winners improves results precisely because it follows the market instead of fighting it. You can still use partial scaling on losers if your data proves it works, but the data has to come from your own journal rather than from memory."
+        },
+        {
+          "type": "usecase",
+          "text": "Tag every add in JournalX as 'scale-in planned' or 'add to loser'. After a month, compare the average R of both tags. Most traders discover that the planned adds earn more and the loser adds cost far more than they remembered."
+        },
+        {
+          "type": "why",
+          "text": "JournalX groups an idea's entries and adds together, so you see the true risk and outcome of the whole idea, not just the flattering last fill."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Before you add to a position",
+          "prompt": "Tick the ones that are true.",
+          "items": [
+            "The add was in my plan before I entered",
+            "My stop level has not moved",
+            "Total risk on this idea stays inside my cap",
+            "The market has confirmed my thesis, not just moved against it",
+            "I would take this entry fresh if I had no position"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "This is probably a panic add. Step away and reassess."
+            },
+            {
+              "min": 3,
+              "text": "Mixed signals. Reduce the size of the add or skip it."
+            },
+            {
+              "min": 5,
+              "text": "This looks like a planned scale-in. Log it and respect your total cap."
+            }
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Is averaging down always bad?",
+          "a": "Not always, but it is risky when it is unplanned. Planned scale-ins with a fixed total risk cap and an unchanged invalidation stop can be valid. Adding to a loser to avoid taking the loss is where most accounts get hurt."
+        },
+        {
+          "q": "What is the difference between averaging down and martingale?",
+          "a": "Averaging down adds to a losing position to lower the entry price. Martingale increases size after each losing trade to recover losses with one win. Both raise exposure when you are wrong, and both can breach drawdown limits quickly."
+        },
+        {
+          "q": "Can I average down on a prop firm account?",
+          "a": "Rules vary by firm, and drawdown limits make it dangerous. Check the firm's terms, and size every add so total risk stays well inside your personal daily limit."
+        },
+        {
+          "q": "How do I know if averaging down is hurting me?",
+          "a": "Tag every add in your journal and compare the average R of planned adds against adds to losers over at least 30 samples. If losers' adds drag your expectancy, stop doing them."
+        }
+      ]
     }
   ]
 }
