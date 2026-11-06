@@ -15,12 +15,14 @@ import {
   Download,
   Gamepad2,
   Image as ImageIcon,
+  ImageOff,
   LayoutGrid,
   List,
   Loader2,
   Minus,
   MoreVertical,
   Pencil,
+  Search,
   Wind,
   Plus,
   Square,
@@ -221,8 +223,8 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
       <button
         ref={triggerRef}
         type="button"
-        className="jx-btn jx-btn--secondary jx-btn--sm"
-        style={{ padding: 6, borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", background: "var(--color-bg-muted)" }}
+        className="jx-btn jx-btn--ghost jx-btn--sm jx-rowmenu-btn"
+        style={{ padding: 6, borderRadius: "var(--radius-md)" }}
         onClick={() => setOpen((o) => !o)}
         aria-label="Trade actions"
         title="Edit, export or delete this trade"
@@ -242,17 +244,19 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
     .map((i) => (typeof i === "string" ? { url: i } : i))
     .filter((i) => i?.url);
   const imgs = images.length;
-  // neutral card; outcome is signalled by a subtle left accent bar + badge.
-  const accent =
-    pnl > 0 ? "var(--color-success)" : pnl < 0 ? "var(--color-danger)" : "var(--color-border-strong)";
+  const outcome = pnl > 0 ? "win" : pnl < 0 ? "loss" : "even";
+  // how long the trade was held, when both times are known
+  const heldMs = t.openTime && t.closeTime ? new Date(t.closeTime) - new Date(t.openTime) : 0;
+  const held = heldMs > 0
+    ? heldMs < 3600000 ? `${Math.max(1, Math.round(heldMs / 60000))}m`
+      : heldMs < 86400000 ? `${Math.floor(heldMs / 3600000)}h${Math.round((heldMs % 3600000) / 60000) ? ` ${Math.round((heldMs % 3600000) / 60000)}m` : ""}`
+      : `${Math.round(heldMs / 86400000)}d`
+    : null;
+  const dot = <span className="jx-trow__dot" aria-hidden="true">·</span>;
   return (
     <div
-      className="jx-trow"
+      className={`jx-trow jx-trow--${outcome}${selected ? " jx-trow--selected" : ""}`}
       onClick={() => (selectMode ? onToggleSelect() : onOpen?.(t))}
-      style={{
-        boxShadow: `inset 3px 0 0 0 ${accent}`,
-        background: selected ? "var(--color-primary-subtle)" : undefined,
-      }}
     >
       <div className="jx-trow__main">
         {selectMode && (
@@ -261,28 +265,27 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
           </span>
         )}
 
-        {/* left: symbol + side, then a tight meta line */}
-        <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            <span style={{ font: "var(--text-body-lg)", fontWeight: 700, letterSpacing: "-0.2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {t.symbol || t.ticker || "—"}
-            </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, flexShrink: 0, font: "var(--text-caption)", fontWeight: 600, color: isLong ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-              {isLong ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-              {isLong ? "Long" : "Short"}
-            </span>
+        {/* direction tile — the quickest way to scan long vs short */}
+        <span className={`jx-trow__tile jx-trow__tile--${isLong ? "long" : "short"}`} aria-hidden="true">
+          {isLong ? <TrendingUp size={17} /> : <TrendingDown size={17} />}
+        </span>
+
+        <div className="jx-trow__body">
+          <div className="jx-trow__titlerow">
+            <span className="jx-trow__sym">{t.symbol || t.ticker || "—"}</span>
+            <span className={`jx-trow__side jx-trow__side--${isLong ? "long" : "short"}`}>{isLong ? "Long" : "Short"}</span>
           </div>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "var(--text-caption)", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
+          <span className="jx-trow__meta" suppressHydrationWarning>
             <Clock size={11} />
             {t.closeTime ? new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Open"}
-            <span style={{ opacity: 0.45 }}>·</span>
-            {t.source === "auto" ? "Auto" : "Manual"}
+            {held && <>{dot}<span title="Time in trade">Held {held}</span></>}
+            {t.strategy && <>{dot}<span className="jx-trow__strat">{t.strategy}</span></>}
             {imgs > 0 && (
               <>
-                <span style={{ opacity: 0.45 }}>·</span>
+                {dot}
                 <span
                   onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 3, cursor: "zoom-in" }}
+                  className="jx-trow__imgs"
                   title="View screenshots"
                 >
                   <ImageIcon size={11} /> {imgs}
@@ -292,21 +295,13 @@ function TradeCard({ t, sym, onOpen, selectMode, selected, onToggleSelect, menu,
           </span>
         </div>
 
-        {/* right: P&L above an aligned outcome badge */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5, flexShrink: 0 }}>
-          <span style={{ font: "var(--text-title)", fontWeight: 700, fontVariantNumeric: "tabular-nums", lineHeight: 1, color: pnl > 0 ? "var(--color-success-strong)" : pnl < 0 ? "var(--color-danger-strong)" : "var(--color-text-secondary)" }}>
-            {money(pnl, sym)}
-          </span>
-          <span
-            className={`jx-badge jx-badge--${pnl > 0 ? "success" : pnl < 0 ? "danger" : "neutral"}`}
-            style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.02em" }}
-          >
-            {pnl > 0 ? "Win" : pnl < 0 ? "Loss" : "Even"}
-          </span>
+        {/* right: P&L with a quiet outcome label under it */}
+        <div className="jx-trow__result">
+          <span className="jx-trow__pnl">{money(pnl, sym)}</span>
+          <span className="jx-trow__outcome">{pnl > 0 ? "Win" : pnl < 0 ? "Loss" : "Breakeven"}</span>
         </div>
 
-        {!selectMode && <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }} onClick={(e) => e.stopPropagation()}>{menu}</span>}
-        {!selectMode && <ChevronRight size={18} strokeWidth={2.5} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />}
+        {!selectMode && <span className="jx-trow__menu" onClick={(e) => e.stopPropagation()}>{menu}</span>}
       </div>
 
       {/* horizontal screenshot strip — tap any thumb to open the zoomable viewer */}
@@ -568,6 +563,7 @@ export default function TradesLogPanel({
   const [direction, setDirection] = useState("all");
   const [outcome, setOutcome] = useState("all");
   const [sort, setSort] = useState("newest");
+  const [search, setSearch] = useState(""); // symbol / strategy search
   const [openTrade, setOpenTrade] = useState(null);
   const [opening, setOpening] = useState(false);
   // show an instant loader on click, the details modal (chart, etc.) mounts
@@ -595,7 +591,6 @@ export default function TradesLogPanel({
       return n;
     });
   const [toast, setToast] = useState(null);
-  const [filtersOpen, setFiltersOpen] = useState(false); // compact filters popover
   /* confirm dialog: { type: 'delete'|'export', trades: [...] } */
   const [confirm, setConfirm] = useState(null);
 
@@ -707,7 +702,18 @@ export default function TradesLogPanel({
   const filtered = useMemo(() => {
     let list = closed;
     if (direction !== "all") list = list.filter((t) => t.direction?.toLowerCase() === direction);
-    if (outcome !== "all") list = list.filter((t) => (outcome === "win" ? t.pnl > 0 : t.pnl < 0));
+    if (outcome !== "all") {
+      list = list.filter((t) => {
+        const p = Number(t.pnl) || 0;
+        return outcome === "win" ? p > 0 : outcome === "loss" ? p < 0 : p === 0;
+      });
+    }
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter((t) =>
+        [t.symbol, t.ticker, t.strategy].some((v) => String(v || "").toLowerCase().includes(q)),
+      );
+    }
     const by = {
       newest: (a, b) => new Date(b.closeTime) - new Date(a.closeTime),
       oldest: (a, b) => new Date(a.closeTime) - new Date(b.closeTime),
@@ -715,7 +721,7 @@ export default function TradesLogPanel({
       "pnl-low": (a, b) => (a.pnl || 0) - (b.pnl || 0),
     };
     return [...list].sort(by[sort]);
-  }, [closed, direction, outcome, sort]);
+  }, [closed, direction, outcome, sort, search]);
 
   const groups = useMemo(() => {
     const g = new Map();
@@ -806,7 +812,8 @@ export default function TradesLogPanel({
   const allSelected = filtered.length > 0 && selected.size >= filtered.length;
   const toggleSelectAll = () =>
     setSelected(allSelected ? new Set() : new Set(filtered.map((t) => t._id)));
-  const selFilters = (direction !== "all" ? 1 : 0) + (outcome !== "all" ? 1 : 0);
+  const selFilters = (direction !== "all" ? 1 : 0) + (outcome !== "all" ? 1 : 0) + (search.trim() ? 1 : 0);
+  const clearFilters = () => { setDirection("all"); setOutcome("all"); setSearch(""); };
 
   const { hidden, toggle, reset, isVisible } = useHiddenSections(
     "jx-tradeslog-sections",
@@ -920,7 +927,7 @@ export default function TradesLogPanel({
         );
         const outcomeDD = (
           <Dropdown value={outcome} onChange={setOutcome} label="Outcome" triggerPrefix="Outcome"
-            options={[{ value: "all", label: "All" }, { value: "win", label: "Win" }, { value: "loss", label: "Loss" }]}
+            options={[{ value: "all", label: "All" }, { value: "win", label: "Wins" }, { value: "loss", label: "Losses" }, { value: "breakeven", label: "Breakeven" }]}
             triggerStyle={{ height: 38 }} />
         );
         const sortDD = (
@@ -928,98 +935,101 @@ export default function TradesLogPanel({
             options={[{ value: "newest", label: "Newest first" }, { value: "oldest", label: "Oldest first" }, { value: "pnl-high", label: "P&L: high to low" }, { value: "pnl-low", label: "P&L: low to high" }]}
             triggerStyle={{ height: 38 }} />
         );
-        const moreActive = filtersOpen || selFilters > 0 || selectMode;
         return (
-          <div className="jx-tl-viewbar">
-            {/* with / without images tab (cards view only) */}
-            {view === "cards" ? (
-              <div className="jx-seg jx-seg--inline jx-tl-imgseg" role="group" aria-label="Card images">
+          <>
+          <div className="jx-tl-toolbar">
+            {/* row 1: search + view controls */}
+            <div className="jx-tl-toolbar__top">
+              <div className="jx-input jx-tl-search" role="search">
+                <span className="jx-input__icon"><Search size={14} /></span>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search"
+                  aria-label="Search by symbol or strategy"
+                />
+                {search && (
+                  <button type="button" aria-label="Clear search" onClick={() => setSearch("")}
+                    style={{ border: "none", background: "transparent", color: "var(--color-text-muted)", cursor: "pointer", display: "flex", padding: 0 }}>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              <div className="jx-tl-toolbar__actions">
+                {/* screenshots on cards: one compact toggle instead of a full-width tab */}
+                {view === "cards" && (
+                  <button
+                    type="button"
+                    className={`jx-btn jx-btn--sm jx-tl-iconbtn ${showCardImages ? "jx-tl-iconbtn--on" : ""}`}
+                    onClick={toggleCardImages}
+                    aria-pressed={showCardImages}
+                    aria-label={showCardImages ? "Hide screenshots on cards" : "Show screenshots on cards"}
+                    title={showCardImages ? "Hide screenshots on cards" : "Show screenshots on cards"}
+                  >
+                    {showCardImages ? <ImageIcon size={15} /> : <ImageOff size={15} />}
+                    <span className="jx-tl-selectlbl">Images</span>
+                  </button>
+                )}
+
+                {/* cards / table view toggle (icons only) */}
+                <div className="jx-seg jx-seg--inline jx-tl-viewseg" role="group" aria-label="View">
+                  <button
+                    type="button"
+                    className={`jx-seg__btn ${view === "cards" ? "jx-seg__btn--active" : ""}`}
+                    onClick={() => setView("cards")}
+                    title="Cards view"
+                    aria-label="Cards view"
+                    aria-pressed={view === "cards"}
+                  >
+                    <LayoutGrid size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className={`jx-seg__btn ${view === "table" ? "jx-seg__btn--active" : ""}`}
+                    onClick={() => setView("table")}
+                    title="Table view"
+                    aria-label="Table view"
+                    aria-pressed={view === "table"}
+                  >
+                    <List size={16} />
+                  </button>
+                </div>
+
+                {/* bulk select */}
                 <button
                   type="button"
-                  className={`jx-seg__btn ${showCardImages ? "jx-seg__btn--active" : ""}`}
-                  onClick={() => { if (!showCardImages) toggleCardImages(); }}
+                  className={`jx-btn jx-btn--sm jx-tl-iconbtn ${selectMode ? "jx-btn--primary" : ""}`}
+                  onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); }}
+                  aria-pressed={selectMode}
+                  aria-label={selectMode ? "Done selecting" : "Select trades"}
+                  title={selectMode ? "Done selecting" : "Select trades to export or delete"}
                 >
-                  With images
-                </button>
-                <button
-                  type="button"
-                  className={`jx-seg__btn ${!showCardImages ? "jx-seg__btn--active" : ""}`}
-                  onClick={() => { if (showCardImages) toggleCardImages(); }}
-                >
-                  Without images
+                  <CheckSquare size={15} /> <span className="jx-tl-selectlbl">{selectMode ? "Done" : "Select"}</span>
                 </button>
               </div>
-            ) : (
-              <span style={{ flex: 1 }} />
+            </div>
+
+            {/* row 2: filters — wraps on desktop, swipes sideways on phones */}
+            <div className="jx-tl-toolbar__filters" role="group" aria-label="Filter and sort trades">
+              <div className="jx-tl-filterbar__dd">{directionDD}</div>
+              <div className="jx-tl-filterbar__dd">{outcomeDD}</div>
+              <div className="jx-tl-filterbar__dd">{sortDD}</div>
+              {selFilters > 0 && (
+                <button type="button" className="jx-btn jx-btn--ghost jx-btn--sm jx-tl-clear" onClick={clearFilters}>
+                  <X size={13} /> Clear
+                </button>
+              )}
+            </div>
+
+            {/* the header already shows the total, so only speak up while filtering */}
+            {selFilters > 0 && (
+              <span className="jx-tl-toolbar__meta" aria-live="polite">
+                Showing {filtered.length} of {closed.length} trades
+              </span>
             )}
-
-            {/* cards / table view toggle (icons only) */}
-            <div className="jx-seg jx-seg--inline jx-tl-viewseg" role="group" aria-label="View">
-              <button
-                type="button"
-                className={`jx-seg__btn ${view === "cards" ? "jx-seg__btn--active" : ""}`}
-                onClick={() => setView("cards")}
-                title="Cards view"
-                aria-label="Cards view"
-              >
-                <LayoutGrid size={16} />
-              </button>
-              <button
-                type="button"
-                className={`jx-seg__btn ${view === "table" ? "jx-seg__btn--active" : ""}`}
-                onClick={() => setView("table")}
-                title="Table view"
-                aria-label="Table view"
-              >
-                <List size={16} />
-              </button>
-            </div>
-
-            {/* ⋮ menu — Select + Filters live here */}
-            <div className="jx-tl-kebab" style={{ position: "relative", flexShrink: 0 }}>
-              <button
-                type="button"
-                className={`jx-btn jx-btn--sm ${moreActive ? "jx-btn--primary" : "jx-btn--outline"}`}
-                onClick={() => setFiltersOpen((o) => !o)}
-                aria-label="Filters and select"
-                title="Filters & select"
-                style={{ padding: 8 }}
-              >
-                <MoreVertical size={16} />
-                {selFilters > 0 && (
-                  <span style={{ marginLeft: 2, fontSize: 11, fontWeight: 700 }}>{selFilters}</span>
-                )}
-              </button>
-              <AnimatePresence>
-                {filtersOpen && (
-                  <>
-                    <div onClick={() => setFiltersOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
-                    <motion.div
-                      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                      className="jx-tl-filters-pop"
-                      style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 41, width: "min(260px, calc(100vw - 32px))", background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)", padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}
-                    >
-                      <button
-                        type="button"
-                        className={`jx-btn jx-btn--sm ${selectMode ? "jx-btn--primary" : "jx-btn--outline"}`}
-                        style={{ justifyContent: "center" }}
-                        onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); setFiltersOpen(false); }}
-                      >
-                        <CheckSquare size={15} /> {selectMode ? "Done selecting" : "Select trades"}
-                      </button>
-                      <div style={{ height: 1, background: "var(--color-border)", margin: "1px 0" }} />
-                      {directionDD}
-                      {outcomeDD}
-                      {sortDD}
-                      {selFilters > 0 && (
-                        <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setDirection("all"); setOutcome("all"); }}>Clear filters</button>
-                      )}
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
+          </>
         );
       })()}
 
@@ -1091,8 +1101,14 @@ export default function TradesLogPanel({
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="jx-card" style={{ textAlign: "center", color: "var(--color-text-muted)" }}>
-              No trades match these filters.
+            <div className="jx-card" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}>
+              <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>No trades match these filters</span>
+              <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
+                Try a different symbol or widen the filters, your full history is still here.
+              </span>
+              {selFilters > 0 && (
+                <Button variant="outline" size="sm" icon={X} onClick={clearFilters}>Clear filters</Button>
+              )}
             </div>
           ) : view === "cards" ? (
             (() => {
@@ -1105,7 +1121,6 @@ export default function TradesLogPanel({
                 if (lockedIdx >= 0 && gi > lockedIdx) return null; // rest fully hidden
                 const locked = lockedIdx >= 0 && gi === lockedIdx;
                 const net = list.reduce((s, t) => s + (Number(t.pnl) || 0), 0);
-                const netColor = net > 0 ? "var(--color-success-strong)" : net < 0 ? "var(--color-danger-strong)" : "var(--color-text-secondary)";
                 const d0 = new Date(list[0]?.closeTime || Date.now());
                 const weekday = d0.toLocaleDateString("en-GB", { weekday: "long" });
                 const dateStr = d0.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
@@ -1131,18 +1146,23 @@ export default function TradesLogPanel({
                   style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", ...(locked ? { filter: "blur(7px)", pointerEvents: "none", userSelect: "none" } : {}) }}
                   aria-hidden={locked || undefined}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      <span style={{ font: "var(--text-h3)", fontWeight: 700, letterSpacing: "-0.3px" }}>
-                        {dateStr}
-                      </span>
-                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", letterSpacing: "0.4px", textTransform: "uppercase" }}>{weekday}</span>
-                    </div>
-                    {rel && <span className="jx-badge jx-badge--brand" style={{ fontSize: 10, alignSelf: "center" }}>{rel}</span>}
-                    <span className="jx-badge jx-badge--neutral" style={{ alignSelf: "center" }}>{list.length} {list.length === 1 ? "trade" : "trades"}</span>
-                    <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "baseline", gap: 6 }}>
-                      <span style={{ font: "var(--text-label)", letterSpacing: "0.6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Net</span>
-                      <span style={{ font: "var(--text-h3)", fontWeight: 700, color: netColor, fontVariantNumeric: "tabular-nums" }}>{money(net, currencySymbol)}</span>
+                  <div className="jx-tday">
+                    <span className="jx-tday__date">
+                      <b>{rel || weekday}</b>
+                      <span className="jx-tday__long">{rel ? `${weekday.slice(0, 3)}, ${dateStr}` : dateStr}</span>
+                      <span className="jx-tday__short">{dateStr.replace(/ \d{4}$/, "")}</span>
+                    </span>
+                    <span className="jx-tday__count">
+                      {list.length} {list.length === 1 ? "trade" : "trades"}
+                      {(() => {
+                        const w = list.filter((x) => Number(x.pnl) > 0).length;
+                        const l = list.filter((x) => Number(x.pnl) < 0).length;
+                        if (!w && !l) return null;
+                        return <> ·{w > 0 && <> <em className="jx-tday__w">{w}W</em></>}{l > 0 && <> <em className="jx-tday__l">{l}L</em></>}</>;
+                      })()}
+                    </span>
+                    <span className={`jx-tday__net jx-tday__net--${net > 0 ? "up" : net < 0 ? "down" : "flat"}`}>
+                      {money(net, currencySymbol)}
                     </span>
                   </div>
                   <div className="jx-trow-list">
@@ -1257,7 +1277,7 @@ export default function TradesLogPanel({
                                 onShareCard={() => shareCard(t)}
                                 onDelete={() => askDelete([t])}
                               />
-                              <ChevronRight size={16} strokeWidth={2.5} style={{ color: "var(--yellow-500)" }} />
+                              <ChevronRight size={16} style={{ color: "var(--color-text-muted)" }} />
                             </span>
                           )}
                         </td>

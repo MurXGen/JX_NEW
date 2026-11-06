@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Check, ChevronDown, Search, X } from "lucide-react";
@@ -39,15 +39,57 @@ export default function Dropdown({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [coords, setCoords] = useState(null); // {top,left,width,openUp}
+  const [active, setActive] = useState(-1); // keyboard-highlighted option index
   const wrapRef = useRef(null);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
+  const listId = useId();
 
   const opts = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   const filtered = query
     ? opts.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
     : opts;
   const current = opts.find((o) => o.value === value);
+
+  const close = (refocus = true) => {
+    setOpen(false);
+    setQuery("");
+    if (refocus) triggerRef.current?.focus();
+  };
+
+  // highlight the selected option when the panel opens
+  useEffect(() => {
+    if (open) setActive(Math.max(0, filtered.findIndex((o) => o.value === value)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, query]);
+
+  // keep the highlighted option in view while arrowing through a long list
+  useEffect(() => {
+    if (!open || active < 0) return;
+    panelRef.current?.querySelector(`[data-idx="${active}"]`)?.scrollIntoView({ block: "nearest" });
+  }, [open, active]);
+
+  /* ↑ ↓ Home End move · Enter picks · Esc / Tab close */
+  const onKeyDown = (e) => {
+    if (!open) {
+      if (["ArrowDown", "ArrowUp", "Enter", " "].includes(e.key)) {
+        e.preventDefault();
+        setOpen(true);
+      }
+      return;
+    }
+    const last = filtered.length - 1;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => (i >= last ? 0 : i + 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => (i <= 0 ? last : i - 1)); }
+    else if (e.key === "Home") { e.preventDefault(); setActive(0); }
+    else if (e.key === "End") { e.preventDefault(); setActive(last); }
+    else if (e.key === "Escape") { e.preventDefault(); close(); }
+    else if (e.key === "Tab") close(false);
+    else if (e.key === "Enter" && active >= 0 && filtered[active]) {
+      e.preventDefault();
+      pick(filtered[active].value);
+    }
+  };
 
   /* position the portal panel against the trigger */
   const place = () => {
@@ -91,14 +133,17 @@ export default function Dropdown({
 
   const pick = (v) => {
     onChange(v);
-    setOpen(false);
-    setQuery("");
+    close();
   };
 
   const panel =
     open && coords ? (
       <motion.div
         ref={panelRef}
+        id={listId}
+        role="listbox"
+        aria-label={label || triggerPrefix || placeholder}
+        onKeyDown={onKeyDown}
         className="jx-dd__panel jx-dd__panel--portal"
         initial={{ opacity: 0, y: coords.openUp ? 6 : -6, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -114,7 +159,8 @@ export default function Dropdown({
           left: coords.left,
           right: "auto",
           width: coords.width, /* match the trigger; options fill this width */
-          minWidth: coords.width,
+          // narrow filter triggers would otherwise truncate "P&L: high to low"
+          minWidth: Math.max(coords.width, 200),
           maxWidth: "min(92vw, 360px)",
           maxHeight: 300,
           overflowY: "auto",
@@ -135,8 +181,11 @@ export default function Dropdown({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && allowCustom && query.trim()) {
+                // with no matching option, Enter uses the typed text; otherwise
+                // it falls through to the list handler and picks the highlight
+                if (e.key === "Enter" && allowCustom && query.trim() && filtered.length === 0) {
                   e.preventDefault();
+                  e.stopPropagation();
                   pick(query.trim().toUpperCase());
                 }
               }}
@@ -144,11 +193,15 @@ export default function Dropdown({
           </div>
         )}
 
-        {filtered.map((o) => (
+        {filtered.map((o, i) => (
           <div
             key={o.value}
-            className={`jx-dd__option ${o.value === value ? "jx-dd__option--selected" : ""}`}
+            data-idx={i}
+            role="option"
+            aria-selected={o.value === value}
+            className={`jx-dd__option ${o.value === value ? "jx-dd__option--selected" : ""} ${i === active ? "jx-dd__option--active" : ""}`}
             style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
+            onMouseEnter={() => setActive(i)}
             onClick={() => pick(o.value)}
           >
             <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.label}</span>
@@ -198,7 +251,11 @@ export default function Dropdown({
         ref={triggerRef}
         type="button"
         className="jx-input"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={open ? listId : undefined}
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={onKeyDown}
         style={{ width: "100%", cursor: "pointer", justifyContent: "flex-start", ...triggerStyle }}
       >
         {leading}

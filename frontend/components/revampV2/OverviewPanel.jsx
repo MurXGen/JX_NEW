@@ -980,7 +980,7 @@ const inWindow = (trades, rangeKey) => {
 
 /* compact human duration from milliseconds */
 const fmtDur = (ms) => {
-  if (!ms || ms <= 0) return ", ";
+  if (!ms || ms <= 0) return "—";
   const m = ms / 60000;
   if (m < 60) return `${Math.round(m)}m`;
   const h = m / 60;
@@ -1130,14 +1130,14 @@ export default function OverviewPanel({
     const band =
       score >= 75 ? { label: "Calm & disciplined", tone: "success", emoji: "🌿" }
       : score >= 55 ? { label: "Balanced", tone: "success", emoji: "🙂" }
-      : score >= 35 ? { label: "Elevated pace", tone: "warn", emoji: "⚠️" }
-      : { label: "Overtrading risk", tone: "danger", emoji: "🔥" };
+      : score >= 35 ? { label: "Picking up pace", tone: "warn", emoji: "⏱️" }
+      : { label: "Time to slow down", tone: "warn", emoji: "🧘" };
 
     const tip =
       score >= 75 ? "Your pace looks healthy, keep waiting for clean setups."
       : score >= 55 ? "Mostly steady. Watch for clusters of quick trades after a loss."
-      : score >= 35 ? "You're trading fast in bursts. Add a short pause between trades."
-      : "Frequent rapid-fire and post-loss trades. Step back, breathe, and trade only A+ setups.";
+      : score >= 35 ? "You're trading in quick bursts. A short pause between trades keeps your edge sharp."
+      : "Lots of quick trades lately, especially after losses. A breather and A+ setups only will protect what you've built.";
 
     return { score, band, tip, avgDay, busiest, maxHour, revengeRate, heavyDays };
   }, [trades, closed]);
@@ -1522,8 +1522,8 @@ export default function OverviewPanel({
       { id: "streak10", icon: "⚡", label: "10-win streak", group: "Streaks", cur: bestWin, target: 10, type: "count", hint: "Win 10 trades in a row" },
       { id: "green5", icon: "🌱", label: "5 green days", group: "Consistency", cur: bestGreenDays, target: 5, type: "count", hint: "5 profitable days in a row" },
       { id: "wr60", icon: "🎖️", label: "60% win rate", group: "Consistency", cur: winRate, target: 60, type: "pct", gate: total >= 20, gateCur: wrGate, gateTarget: 20, hint: "60%+ win rate over 20+ trades" },
-      { id: "profit1k", icon: "💰", label: "₹1k profit", group: "Profit", cur: net, target: 1000, type: "money", hint: "Reach ₹1,000 net P&L" },
-      { id: "profit10k", icon: "💎", label: "₹10k profit", group: "Profit", cur: net, target: 10000, type: "money", hint: "Reach ₹10,000 net P&L" },
+      { id: "profit1k", icon: "💰", label: `${currencySymbol}1k profit`, group: "Profit", cur: net, target: 1000, type: "money", hint: `Reach ${currencySymbol}1,000 net P&L` },
+      { id: "profit10k", icon: "💎", label: `${currencySymbol}10k profit`, group: "Profit", cur: net, target: 10000, type: "money", hint: `Reach ${currencySymbol}10,000 net P&L` },
     ];
     const badges = rawBadges.map((b) => {
       let ratio = b.target > 0 ? Math.max(0, b.cur) / b.target : 0;
@@ -1558,7 +1558,7 @@ export default function OverviewPanel({
       winRate,
       nextBadge,
     };
-  }, [closed]);
+  }, [closed, currencySymbol]);
 
   /* ---- session performance (which trading session is most profitable) ----
      Buckets each closed trade by the UTC hour of its open time into the four
@@ -1663,6 +1663,16 @@ export default function OverviewPanel({
     const changePct = prevNet !== 0 ? ((net - prevNet) / Math.abs(prevNet)) * 100 : net > 0 ? 100 : 0;
     return { bars, maxAbs, profitDays, lossDays, bestIdx, best: bestIdx >= 0 ? bars[bestIdx] : null, net, trades, winRate, todayIdx, changePct, hasPrev: prevNet !== 0 };
   }, [closed]);
+  // The top strip shows the last 30 days. If the trader took a break, fall
+  // back to all-time numbers rather than a discouraging "+$0 · 0% win rate".
+  const stripAll = weekday7.trades === 0 && closed.length > 0;
+  const strip = stripAll
+    ? (() => {
+        const net = closed.reduce((a, t) => a + (Number(t.pnl) || 0), 0);
+        const wins = closed.filter((t) => Number(t.pnl) > 0).length;
+        return { net, trades: closed.length, winRate: (wins / closed.length) * 100 };
+      })()
+    : weekday7;
 
   /* ---- trader edge: the metrics that actually predict long-term results ---- */
   const EDGE = useMemo(() => {
@@ -1687,7 +1697,10 @@ export default function OverviewPanel({
       const dd = peak - run;
       if (dd > maxDD) { maxDD = dd; peakAtMax = peak; }
     });
-    const maxDDPct = peakAtMax > 0 ? (maxDD / peakAtMax) * 100 : 0;
+    // as a share of the account at its peak (starting balance + gains), so a
+    // small dip after a few winners isn't shown as a scary "33% drawdown"
+    const ddBase = (Number(startingBalance) || 0) + peakAtMax;
+    const maxDDPct = ddBase > 0 ? (maxDD / ddBase) * 100 : 0;
     const recovery = maxDD > 0 ? net / maxDD : null; // recovery factor
 
     // day-of-week performance (by close day)
@@ -1709,7 +1722,7 @@ export default function OverviewPanel({
     const dowHasData = tradedDays.length > 0;
 
     return { total, net, winRate: winRate * 100, expectancy, payoff, expectancyR, maxDD, maxDDPct, recovery, dow, dowMax, bestDow, dowHasData };
-  }, [closed]);
+  }, [closed, startingBalance]);
 
   /* cumulative series for its own range tab (+ per-point tooltips) */
   const [cumSeries, cumTips] = useMemo(() => {
@@ -1999,7 +2012,7 @@ export default function OverviewPanel({
       >
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="jx-overview-greeting" style={{ font: "var(--text-h2)", width: "fit-content" }}>
-            {greeting}, {userName?.split(" ")[0] || "trader"}
+            {greeting}{userName?.trim() ? `, ${userName.trim().split(" ")[0]}` : ""}
           </div>
           <div
             style={{
@@ -2050,15 +2063,15 @@ export default function OverviewPanel({
           {/* ── hero row: the money on the left, the live session as a distinct widget on the right ── */}
           <div className="jx-livestrip__hero">
             <div className="jx-livestrip__metric">
-              <span className="jx-livestrip__mlabel">Net P&amp;L · last 30 days</span>
+              <span className="jx-livestrip__mlabel">Net P&amp;L · {stripAll ? "all time" : "last 30 days"}</span>
               <div className="jx-livestrip__valrow">
                 <span
                   className="jx-livestrip__value"
-                  style={{ color: !weekday7.trades ? "var(--color-text-muted)" : weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}
+                  style={{ color: !strip.trades ? "var(--color-text-muted)" : strip.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}
                 >
-                  {weekday7.trades ? k(weekday7.net, currencySymbol) : k(0, currencySymbol)}
+                  {strip.trades ? k(strip.net, currencySymbol) : k(0, currencySymbol)}
                 </span>
-                {weekday7.hasPrev && (
+                {!stripAll && weekday7.hasPrev && (
                   <span
                     className="jx-livestrip__delta"
                     style={{
@@ -2071,14 +2084,14 @@ export default function OverviewPanel({
                 )}
               </div>
               <div className="jx-livestrip__substats">
-                <span>Win rate <b>{weekday7.trades ? `${Math.round(weekday7.winRate)}%` : "0%"}</b></span>
+                <span>Win rate <b>{strip.trades ? `${Math.round(strip.winRate)}%` : "0%"}</b></span>
                 <i />
-                <span>Trades <b>{weekday7.trades}</b></span>
+                <span>Trades <b>{strip.trades}</b></span>
                 <i />
                 <span>
                   Avg / trade{" "}
-                  <b style={{ color: !weekday7.trades ? undefined : weekday7.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                    {weekday7.trades ? k(weekday7.net / weekday7.trades, currencySymbol) : k(0, currencySymbol)}
+                  <b style={{ color: !strip.trades ? undefined : strip.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
+                    {strip.trades ? k(strip.net / strip.trades, currencySymbol) : k(0, currencySymbol)}
                   </b>
                 </span>
               </div>
@@ -2286,7 +2299,7 @@ export default function OverviewPanel({
                     );
                   })()}
 
-                  <span className="jx-journey__note">Blended pace · recent momentum + win/loss expectancy</span>
+                  <span className="jx-journey__note">Estimate if your current pace holds, based on recent results and your average trade. Not a guarantee.</span>
                 </motion.div>
 
                 {candles.length ? (
@@ -2367,13 +2380,13 @@ export default function OverviewPanel({
             const perfCells = [
               { label: "Win rate", value: `${fmt(S.winRate, 0)}%`, bar: <Progress pct={S.winRate} color="var(--color-success)" /> },
               { label: "Profit factor", value: S.profitFactor ? fmt(S.profitFactor, 2) : fmt(0, 2), bar: <Progress pct={S.profitFactor ? Math.min(100, (S.profitFactor / 3) * 100) : 0} color="var(--color-primary)" /> },
-              { label: "Payoff (R:R)", value: payoff ? `1 : ${fmt(payoff, 1)}` : `1 : ${fmt(0, 1)}`, bar: <Progress pct={payoff ? Math.min(100, (payoff / 2) * 100) : 0} color="#7c9cff" /> },
+              { label: "Payoff ratio", value: payoff ? `1 : ${fmt(payoff, 1)}` : "—", bar: <Progress pct={payoff ? Math.min(100, (payoff / 2) * 100) : 0} color="#7c9cff" /> },
               { label: "Avg win vs loss", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{k(S.avgWin || 0, currencySymbol)}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>−{currencySymbol}{fmt(S.avgLoss || 0, 0)}</span></>), bar: wlbar(winShare) },
               { label: "Avg hold · W/L", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{hw != null ? fmtDur(hw) : fmtDur(0)}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>{hl != null ? fmtDur(hl) : fmtDur(0)}</span></>), bar: wlbar(holdWinShare) },
               { label: "Largest win", value: S.winCount ? k(S.largestWin, currencySymbol) : k(0, currencySymbol), color: S.winCount ? "var(--color-success-strong)" : undefined, bar: <Progress pct={S.winCount ? (Math.abs(S.largestWin) / maxMag) * 100 : 0} color="var(--color-success)" /> },
               { label: "Largest loss", value: S.lossCount ? k(S.largestLoss, currencySymbol) : k(0, currencySymbol), color: S.lossCount ? "var(--color-danger-strong)" : undefined, bar: <Progress pct={S.lossCount ? (Math.abs(S.largestLoss) / maxMag) * 100 : 0} color="var(--color-danger)" /> },
-              { label: "Win streak", value: S.streak, sub: `best ${S.bestStreak}`, bar: <Progress pct={S.bestStreak > 0 ? Math.min(100, (S.streak / S.bestStreak) * 100) : (S.streak > 0 ? 100 : 0)} color="var(--color-primary)" /> },
-              { label: "Sharpe", value: S.sharpe != null ? fmt(S.sharpe, 2) : fmt(0, 2), bar: <Progress pct={S.sharpe != null ? Math.min(100, Math.max(0, (S.sharpe / 3) * 100)) : 0} color="#7c9cff" /> },
+              { label: "Win streak", value: S.streak, sub: S.streak ? `best ${S.bestStreak}` : `best ${S.bestStreak} · next win starts one`, bar: <Progress pct={S.bestStreak > 0 ? Math.min(100, (S.streak / S.bestStreak) * 100) : (S.streak > 0 ? 100 : 0)} color="var(--color-primary)" /> },
+              { label: "Sharpe", value: S.sharpe != null && S.total >= 20 ? fmt(S.sharpe, 2) : "—", sub: S.total < 20 ? `after ${20 - S.total} more trades` : undefined, bar: <Progress pct={S.sharpe != null ? Math.min(100, Math.max(0, (S.sharpe / 3) * 100)) : 0} color="#7c9cff" /> },
             ];
             return (
               <div className="jx-livestrip__perf">
@@ -3214,10 +3227,10 @@ export default function OverviewPanel({
         <HideBtn id="edge" />
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
           <span className="jx-card__title">Your trading edge</span>
-          <InfoTip text="Metrics that predict long-term results" />
+          <InfoTip text="Numbers that show whether your approach makes money over many trades, not just recently" />
         </div>
         <div style={{ font: "var(--text-small)", color: "var(--color-text-muted)", marginBottom: "var(--space-4)" }}>
-          Beyond P&amp;L, is your system actually profitable and survivable?
+          What your trades say about your approach over the long run.
         </div>
 
         {EDGE.total === 0 ? (
@@ -3229,10 +3242,10 @@ export default function OverviewPanel({
               {[
                 { label: "Expectancy / trade", value: k(EDGE.expectancy, currencySymbol), sub: "per trade", up: EDGE.expectancy >= 0, tip: "Average $ you make per trade" },
                 { label: "Expectancy (R)", value: EDGE.expectancyR == null ? "—" : `${EDGE.expectancyR >= 0 ? "+" : ""}${fmt(EDGE.expectancyR, 2)}R`, sub: "per unit risked", up: (EDGE.expectancyR || 0) >= 0, tip: "Profit per unit of risk; above 0 is +EV" },
-                { label: "Payoff (R:R)", value: EDGE.payoff == null ? "—" : `${fmt(EDGE.payoff, 2)}×`, sub: "reward vs risk", up: (EDGE.payoff || 0) >= 1, tip: "Average win ÷ average loss" },
-                { label: "Max drawdown", value: k(-EDGE.maxDD, currencySymbol).replace("+", ""), sub: `${fmt(EDGE.maxDDPct, 1)}% of peak`, up: false, tip: "Largest peak-to-valley drop in equity" },
+                { label: "Payoff ratio", value: EDGE.payoff == null ? "—" : `1 : ${fmt(EDGE.payoff, 1)}`, sub: "avg win vs avg loss", up: (EDGE.payoff || 0) >= 1, tip: "Average win ÷ average loss. 1 : 2 means your wins are twice your losses." },
+                { label: "Max drawdown", value: k(-EDGE.maxDD, currencySymbol).replace("+", ""), sub: `${fmt(EDGE.maxDDPct, 1)}% of account at peak`, up: false, tip: "Largest drop from a high point in your account. Smaller is steadier." },
                 { label: "Recovery factor", value: EDGE.recovery == null ? "—" : `${fmt(EDGE.recovery, 2)}×`, sub: "net ÷ drawdown", up: (EDGE.recovery || 0) >= 2, tip: "Net profit ÷ max drawdown; higher is resilient" },
-                { label: "Win rate", value: `${fmt(EDGE.winRate, 1)}%`, sub: "of all trades", up: EDGE.winRate >= 50, tip: "Share of trades that were profitable" },
+                { label: "Win rate", value: `${fmt(EDGE.winRate, 0)}%`, sub: "of all trades", up: EDGE.winRate >= 50, tip: "Share of trades that were profitable" },
               ].map((m) => (
                 <div
                   key={m.label}
@@ -3370,7 +3383,7 @@ export default function OverviewPanel({
                     <CountUp value={ACH.curWin} /><small>/ best {ACH.bestWin}</small>
                   </div>
                   <div style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                    consecutive winning trades
+                    {ACH.curWin ? "consecutive winning trades" : "your next win starts a new streak"}
                   </div>
                 </div>
                 <div className="jx-mom__herostats">
@@ -3859,12 +3872,13 @@ export default function OverviewPanel({
                   Win rate trend <InfoTip text="How your win rate moves over time" />
                 </div>
                 <div style={{ font: "var(--text-h2)" }}>
-                  {wrSeries.length
-                    ? fmt(wrSeries[wrSeries.length - 1], 1)
-                    : fmt(S.winRate, 1)}
+                  {(() => {
+                    const l = inWindow(closed, wrRange);
+                    return fmt(l.length ? (l.filter((t) => t.pnl > 0).length / l.length) * 100 : S.winRate, 0);
+                  })()}
                   %
                 </div>
-                <Badge variant="neutral">{wrSeries.length} periods</Badge>
+                <Badge variant="neutral">over {wrRange === "1W" ? "the last week" : wrRange === "1M" ? "the last month" : wrRange === "3M" ? "3 months" : "the last year"}</Badge>
               </div>
               <MiniSeg
                 items={["1W", "1M", "3M", "1Y"]}
@@ -4009,8 +4023,8 @@ export default function OverviewPanel({
                 gap: 6,
               }}
             >
-              Asset allocation
-              <InfoTip text="Share of traded value by symbol" />
+              Volume by symbol
+              <InfoTip text="Where your trading size goes: share of traded value (price × quantity) by symbol. High-priced instruments naturally take a bigger slice." />
             </div>
             <div
               style={{
@@ -4240,7 +4254,7 @@ export default function OverviewPanel({
                 ? `${fmt(totalVolume / 1e6, 2)}M`
                 : `${fmt(totalVolume / 1000, 0)}k`}
             </div>
-            <Badge variant="neutral">{analyticsRange} window</Badge>
+            <Badge variant="neutral">All time</Badge>
             <div style={{ marginTop: "var(--space-3)" }}>
               {S.vols.length > 0 && S.vols.some((v) => Number(v) !== 0) ? (
                 <BarChart

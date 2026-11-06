@@ -306,8 +306,21 @@ router.post("/order", async (req, res) => {
     }
 
     // Inline Passed/Failed buttons — only when asked for and we have an orderId.
+    // QuickReads checkouts send actionButtons:"qr_verify" (no orderId): the
+    // webhook reads the QR-REF line from the message itself on tap.
     const inlineKeyboard =
-      actionButtons === "verify" && orderId
+      actionButtons === "qr_verify"
+        ? {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: "✅ Passed", callback_data: "qr_pass" },
+                  { text: "❌ Failed", callback_data: "qr_fail" },
+                ],
+              ],
+            },
+          }
+        : actionButtons === "verify" && orderId
         ? {
             reply_markup: {
               inline_keyboard: [

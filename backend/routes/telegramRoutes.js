@@ -8,6 +8,23 @@ const {
 
 const router = express.Router();
 
+// TheBookX QuickReads Google Form (same form the storefront submits to).
+const QR_FORM_URL =
+  process.env.THEBOOKX_QR_FORM_URL ||
+  "https://docs.google.com/forms/d/e/1FAIpQLSdvvTVLhLx9ZsJYGmpoU4S69UL-ch86CjwV_4Ywzy-YYbOYPA/formResponse";
+const QR_FORM_FIELDS = {
+  timestamp: "entry.545632713",
+  name: "entry.830451727",
+  mobile: "entry.1220930407",
+  bookId: "entry.590206605",
+  bookName: "entry.211134755",
+  amount: "entry.944113587",
+  paymentMethod: "entry.101514473",
+  paymentStatus: "entry.1612784704",
+  approvalStatus: "entry.837917910",
+  txnRef: "entry.274318451",
+};
+
 // 🔧 Diagnostics — open in a browser to debug delivery in prod.
 // GET /api/telegram/info  → shows whether the webhook is registered + last error
 // GET /api/telegram/test  → sends a test message to your chat
@@ -192,6 +209,101 @@ router.post("/webhook", async (req, res) => {
               : `⚠️ Couldn't update TheBookX order ${orderId} (${newStatus}) — check logs.`,
           },
         );
+      } else if (data === "qr_pass" || data === "qr_fail") {
+        // ── TheBookX QuickReads (UPI QR) Passed / Failed ─────────────────────
+        // QuickReads orders live in their own Google Form sheet. With the
+        // QuickReads Apps Script configured, a tap updates the order rows in
+        // place; without it, it appends a verified / failed form row per book.
+        // TheBookX's checkout polls that sheet: verified unlocks the book,
+        // failed shows "Payment failed". Book ids + phone come from QR-REF.
+        const passed = data === "qr_pass";
+        const text = message.text || "";
+        const ref = text.match(/QR-REF:\s*(\d{10})\s*·\s*([A-Za-z0-9,\-]+)\s*·\s*(\d+)/);
+        const name = (text.match(/Name:\s*(.+)/) || [])[1]?.trim() || "";
+        let ok = false;
+        let count = 0;
+        if (ref) {
+          const [, mobile, idList, total] = ref;
+          const ids = idList.split(",").filter(Boolean);
+          const each = ids.length ? Math.round(Number(total) / ids.length) : 0;
+          const scriptUrl = process.env.THEBOOKX_QR_APPSCRIPT_URL;
+          try {
+            if (scriptUrl) {
+              // Preferred: the QuickReads Apps Script updates the order rows in
+              // place (docs/quickreads-apps-script.gs in the TheBookX repo).
+              const params = new URLSearchParams({
+                action: "setStatus",
+                secret: process.env.THEBOOKX_QR_APPSCRIPT_SECRET || "",
+                mobile,
+                name,
+                bookIds: ids.join(","),
+                paymentStatus: passed ? "Paid (verified)" : "Payment failed",
+                approvalStatus: passed ? "Approved" : "Rejected",
+                txnRef: passed ? "Telegram: passed" : "Telegram: failed",
+              });
+              const r = await axios.post(scriptUrl, params.toString(), {
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                timeout: 15000,
+              });
+              count = r.data?.ok ? ids.length : 0;
+              if (!r.data?.ok)
+                console.error("🚨 QuickReads Apps Script:", r.data?.error || r.data);
+            } else {
+              // Fallback (no Apps Script configured): append a form row per book.
+              for (const bookId of ids) {
+                const values = {
+                  timestamp: new Date().toLocaleString("en-IN", {
+                    timeZone: "Asia/Kolkata",
+                  }),
+                  name,
+                  mobile,
+                  bookId,
+                  bookName: bookId.startsWith("SUB-") ? bookId : "",
+                  amount: String(each),
+                  paymentMethod: "UPI Payment",
+                  paymentStatus: passed ? "Paid (verified)" : "Payment failed",
+                  approvalStatus: passed ? "Approved" : "Rejected",
+                  txnRef: passed ? "Telegram: passed" : "Telegram: failed",
+                };
+                const params = new URLSearchParams();
+                Object.entries(QR_FORM_FIELDS).forEach(([k, entry]) => {
+                  if (values[k]) params.append(entry, values[k]);
+                });
+                await axios.post(QR_FORM_URL, params.toString(), {
+                  headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                  timeout: 10000,
+                });
+                count++;
+              }
+            }
+            ok = count === ids.length;
+          } catch (e) {
+            console.error("🚨 QuickReads form submit failed:", e.message);
+          }
+        } else {
+          console.warn("⚠️ QuickReads tap without a QR-REF line");
+        }
+
+        // Remove the buttons so the decision can't be flipped by a double-tap.
+        if (ok) {
+          try {
+            await axios.post(
+              `https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`,
+              {
+                chat_id: chatId,
+                message_id: message.message_id,
+                reply_markup: { inline_keyboard: [] },
+              },
+            );
+          } catch {}
+        }
+
+        await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          chat_id: chatId,
+          text: ok
+            ? `${passed ? "✅" : "❌"} QuickReads for ${ref[1]} marked ${passed ? "PASSED, access unlocked" : "FAILED"}.`
+            : `⚠️ Couldn't update the QuickReads order${ref ? ` for ${ref[1]}` : ""} — check logs.`,
+        });
       } else {
         console.warn("⚠️ Unknown callback data:", data);
       }

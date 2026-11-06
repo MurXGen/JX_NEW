@@ -866,6 +866,8 @@ export default function LogTradeModal({
   const [jsonErr, setJsonErr] = useState(""); // parse error message
   const [form, setForm] = useState(EMPTY);
   const [toast, setToast] = useState(null);
+  const [invalid, setInvalid] = useState(null); // required field flagged on save
+  const [planAnswered, setPlanAnswered] = useState(false); // Yes/No picked for "Followed your plan?"
   const [saving, setSaving] = useState(false);
   const reloadingRef = useRef(false); // keep the splash up through the post-save reload
   const [symbols, setSymbols] = useState([]);
@@ -1025,7 +1027,10 @@ export default function LogTradeModal({
 
   const fileRef = useRef(null);
   const baselineRef = useRef(null); // form snapshot at open → "unsaved changes"
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k, v) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    if (k === invalid) setInvalid(null); // typing in the flagged field clears it
+  };
 
   // Warn (native "Leave site?") on tab-close/refresh when there are unsaved edits
   const isDirty =
@@ -1058,6 +1063,18 @@ export default function LogTradeModal({
   const flash = (type, msg, ms = 3000) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), ms);
+  };
+  // Missing required field: explain it, outline it red, and move focus there
+  // so the trader never has to hunt for what's wrong.
+  const needField = (field, msg) => {
+    setInvalid(field);
+    flash("danger", msg);
+    requestAnimationFrame(() => {
+      const el = bodyScrollRef.current?.querySelector(`[data-field="${field}"]`)
+        || document.querySelector(`[data-field="${field}"]`);
+      el?.scrollIntoView({ block: "center", behavior: "smooth" });
+      el?.focus({ preventScroll: true });
+    });
   };
 
   /* -------- Import from JSON (paste) -------------------------------------
@@ -1137,6 +1154,8 @@ export default function LogTradeModal({
   /* load symbols from IndexedDB trades + custom chip lists */
   useEffect(() => {
     if (!open) return;
+    setInvalid(null);
+    setPlanAnswered(!!initialTrade?._id);
     if (initialTrade?._id) {
       const base = tradeToForm(initialTrade);
       setForm(base);
@@ -1326,10 +1345,23 @@ export default function LogTradeModal({
     const n = num(form.netPnl);
     return n != null && n < 0;
   })();
-  const flipPnlSign = () => {
+  // Profit / Loss is chosen explicitly; the amount box takes a plain number.
+  // Until an amount exists the choice is remembered and applied as they type.
+  const [lossSide, setLossSide] = useState(false);
+  const pnlSide = form.netPnl === "" ? (lossSide ? "loss" : "win") : pnlNeg ? "loss" : "win";
+  const setPnlSide = (side) => {
+    setLossSide(side === "loss");
     const n = Number(String(form.netPnl ?? "").trim());
-    if (!Number.isFinite(n) || n === 0) return;
-    set("netPnl", String(-n));
+    if (String(form.netPnl).trim() === "" || !Number.isFinite(n) || n === 0) return;
+    const abs = Math.abs(n);
+    set("netPnl", String(side === "loss" ? -abs : abs));
+  };
+  const setPnlAmount = (v) => {
+    let raw = String(v ?? "").trim().replace(/^\+/, "");
+    let loss = pnlSide === "loss";
+    if (raw.startsWith("-") || raw.startsWith("−")) { loss = true; raw = raw.slice(1); } // typed a minus
+    setLossSide(loss);
+    set("netPnl", raw === "" ? "" : loss ? `-${raw}` : raw);
   };
 
   /* ---------- images ---------- */
@@ -1366,11 +1398,11 @@ export default function LogTradeModal({
   /* ---------- submit ---------- */
   const save = async (addAnother) => {
     /* validation */
-    if (!form.symbol.trim()) return flash("danger", "Pick a symbol first");
+    if (!form.symbol.trim()) return needField("symbol", "Add a symbol, or tap a recent one");
     if (mode === "quick" && form.logMethod === "pnl") {
-      if (form.netPnl === "") return flash("danger", "Enter your net P&L");
+      if (form.netPnl === "") return needField("netPnl", "Add your net P&L to log this trade");
     } else if (!(num(form.entry) && num(form.size))) {
-      return flash("danger", "Entry price and position size are required");
+      return needField(num(form.entry) ? "size" : "entry", "Entry price and position size are required");
     }
     // Prefer the journal the dashboard is currently showing, then the cookie,
     // then the durable localStorage copy.
@@ -1684,6 +1716,9 @@ export default function LogTradeModal({
   const symbolInputBlock = (
     <div className="jx-input">
       <input
+        data-field="symbol"
+        aria-invalid={invalid === "symbol" || undefined}
+        aria-label="Symbol"
         placeholder="Symbol (e.g. BTC)"
         value={form.symbol}
         onChange={(e) => set("symbol", e.target.value.toUpperCase())}
@@ -1728,6 +1763,34 @@ export default function LogTradeModal({
         </div>
       )}
     </>
+  );
+
+  // "Followed your plan?" as an explicit Yes / No. Nothing is pre-selected on a
+  // new trade, so the form never opens by telling the trader "No".
+  const planBlock = (
+    <div className="jx-plan-q">
+      <span className="jx-plan-q__text">
+        <span className="jx-plan-q__title">Followed your plan?</span>
+        <span className="jx-plan-q__hint">Discipline is the #1 predictor of edge</span>
+      </span>
+      <div className="jx-seg jx-seg--inline jx-plan-q__seg" role="group" aria-label="Followed your plan?">
+        {[[true, "Yes"], [false, "No"]].map(([v, label]) => {
+          const on = planAnswered && form.followedPlan === v;
+          return (
+            <button
+              key={label}
+              type="button"
+              data-v={label.toLowerCase()}
+              className={`jx-seg__btn ${on ? "jx-seg__btn--active" : ""}`}
+              aria-pressed={on}
+              onClick={() => { setPlanAnswered(true); set("followedPlan", v); }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 
   const directionBlock = (
@@ -2202,24 +2265,35 @@ export default function LogTradeModal({
                         <div className="jx-ltgroup">
                           <Sect icon={Zap} title="Result" hint="Just the outcome" />
                           <Field label={`Net P&L in ${sym}`}>
+                            {/* explicit outcome switch — no guessing what a "+" button does */}
+                            <div className="jx-seg jx-seg--inline jx-pnl-outcome" role="group" aria-label="Profit or loss">
+                              {[["win", "Profit", TrendingUp], ["loss", "Loss", TrendingDown]].map(([k, label, Icon]) => {
+                                const on = k === "loss" ? pnlSide === "loss" : pnlSide === "win";
+                                return (
+                                  <button
+                                    key={k}
+                                    type="button"
+                                    data-side={k}
+                                    className={`jx-seg__btn ${on ? "jx-seg__btn--active" : ""}`}
+                                    aria-pressed={on}
+                                    onClick={() => setPnlSide(k)}
+                                  >
+                                    <Icon size={14} /> {label}
+                                  </button>
+                                );
+                              })}
+                            </div>
                             <div className="jx-input">
-                              <button
-                                type="button"
-                                onClick={flipPnlSign}
-                                aria-label={pnlNeg ? "Loss — tap to mark as profit" : "Profit — tap to mark as loss"}
-                                title="Toggle profit / loss"
-                                className="jx-pnl-sign"
-                                data-neg={pnlNeg ? "1" : "0"}
-                              >
-                                {pnlNeg ? "−" : "+"}
-                              </button>
                               <span className="jx-input__icon" style={{ fontWeight: 700 }}>{sym}</span>
                               <input
                                 type="number"
                                 step="any"
+                                data-field="netPnl"
+                                aria-invalid={invalid === "netPnl" || undefined}
+                                aria-label={`Net P&L in ${sym}`}
                                 placeholder="e.g. 1290"
-                                value={form.netPnl}
-                                onChange={(e) => set("netPnl", e.target.value)}
+                                value={String(form.netPnl).replace(/^-/, "")}
+                                onChange={(e) => setPnlAmount(e.target.value)}
                               />
                               {quickOutcome && (
                                 <span className={`jx-badge ${quickPnl >= 0 ? "jx-badge--success" : "jx-badge--danger"}`}>
@@ -2229,8 +2303,8 @@ export default function LogTradeModal({
                             </div>
                             <div style={{ marginTop: "var(--space-2)" }}>
                               <QuickFillChips
-                                value={form.netPnl}
-                                onPick={(v) => set("netPnl", v)}
+                                value={String(form.netPnl).replace(/^-/, "")}
+                                onPick={setPnlAmount}
                                 defaults={["100", "250", "500", "1000"]}
                                 storageKey="jx-pnl-chips"
                                 prefix={sym}
@@ -2253,10 +2327,11 @@ export default function LogTradeModal({
                                 <strong style={{ color: quickPnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
                                   {quickOutcome} · {fmtMoney(quickPnl, sym)}
                                 </strong>{" "}
-, detected from your P&L
+· detected from your P&L
                               </span>
                             </div>
                           )}
+                          {planBlock}
                         </div>
                         );
 
@@ -2318,6 +2393,8 @@ export default function LogTradeModal({
                                     <input
                                       type="number"
                                       step="any"
+                                      data-field="entry"
+                                      aria-invalid={invalid === "entry" || undefined}
                                       placeholder={`${sym}61,240`}
                                       value={form.entry}
                                       onChange={(e) => set("entry", e.target.value)}
@@ -2348,6 +2425,8 @@ export default function LogTradeModal({
                                       form.sizeUnit === "usd" ? `${sym}5,000` : "0.5"
                                     }
                                     value={form.size}
+                                    data-field="size"
+                                    aria-invalid={invalid === "size" || undefined}
                                     onChange={(e) => set("size", e.target.value)}
                                   />
                                 </div>
@@ -2746,8 +2825,7 @@ export default function LogTradeModal({
                               placeholder="e.g. Anxious"
                             />
                           </Field>
-                          {/* "Followed your plan?" now lives in the fixed footer
-                              so it's always visible without scrolling. */}
+                          {planBlock}
                           <Field label="Mistakes (be honest)">
                             <div
                               style={{
@@ -2964,30 +3042,6 @@ export default function LogTradeModal({
               className="jx-ltmodal__footer"
               style={{ flexDirection: "column", alignItems: "stretch" }}
             >
-              {/* discipline toggle, always visible in the fixed action bar */}
-              <button
-                type="button"
-                onClick={() => set("followedPlan", !form.followedPlan)}
-                aria-pressed={form.followedPlan}
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)",
-                  width: "100%", padding: "10px 14px", marginBottom: "var(--space-2)",
-                  borderRadius: "var(--radius-md)", cursor: "pointer", textAlign: "left",
-                  background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
-                  color: "var(--color-text-primary)",
-                }}
-              >
-                <span style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
-                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Followed your plan?</span>
-                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>Discipline is the #1 predictor of edge</span>
-                </span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                  <span style={{ font: "var(--text-caption)", fontWeight: 700, color: form.followedPlan ? "var(--color-success-strong)" : "var(--color-text-muted)" }}>
-                    {form.followedPlan ? "Yes" : "No"}
-                  </span>
-                  <span className={`jx-switch ${form.followedPlan ? "jx-switch--on" : ""}`} />
-                </span>
-              </button>
               {/* live trader-count strip pinned right above the action buttons */}
               <TradersTodayBadge variant="strip" className="jx-foot-badge" />
               <div
@@ -3021,11 +3075,15 @@ export default function LogTradeModal({
                     <>
                       <Check size={16} />{" "}
                       {isEdit ? "Update trade" : "Log trade"}
-                      <Kbd combo={[MOD, "↵"]} />
                     </>
                   )}
                 </button>
               </div>
+              {/* keyboard hint in words, only where there is a keyboard */}
+              <span className="jx-foot-hint">
+                Press <Kbd combo={[MOD, "Enter"]} sep="+" muted={false} /> to {isEdit ? "update" : "log"} instantly
+                {" "}· <Kbd combo={["Esc"]} muted={false} /> to close
+              </span>
             </div>
 
             {/* ===== In-modal account switch sheet ===== */}
