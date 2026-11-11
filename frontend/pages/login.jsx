@@ -6,45 +6,19 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { ArrowLeft, Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { ArrowLeft, KeyRound, Lock, LogIn, MailCheck } from "lucide-react";
 
 import { Turnstile } from "@marsidev/react-turnstile";
-import { AuthLayout, Button, OtpInput, Toast, EmailSuggest } from "@/components/revampV2";
+import {
+  AuthShell, StepPane, Notice, useNotice, Field, PasswordInput, EmailInput, OtpCode,
+  Button, Divider, GoogleButton, CaptchaSlot, authStyles as s,
+} from "@/components/authFlow/AuthShell";
 import { saveToIndexedDB } from "@/utils/indexedDB";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-function Spinner() {
-  return (
-    <motion.span
-      animate={{ rotate: 360 }}
-      transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-      style={{ width: 14, height: 14, borderRadius: "50%", display: "inline-block", border: "2px solid color-mix(in srgb, currentColor 30%, transparent)", borderTopColor: "currentColor" }}
-    />
-  );
-}
-
-function GoogleButton() {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      style={{ width: "100%", justifyContent: "center" }}
-      onClick={() => { window.location.href = `${API_BASE}/api/auth/google`; }}
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
-        <path fill="#FBBC05" d="M5.84 14.1A6.6 6.6 0 0 1 5.49 12c0-.73.13-1.44.35-2.1V7.06H2.18A11 11 0 0 0 1 12c0 1.78.43 3.45 1.18 4.94l3.66-2.84z" />
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.16-3.16C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
-      </svg>
-      Continue with Google
-    </Button>
-  );
-}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -61,11 +35,7 @@ export default function LoginPage() {
   const [codeCaptcha, setCodeCaptcha] = useState(""); // captcha for "send login code"
   const [otpCaptcha, setOtpCaptcha] = useState(""); // captcha for verifying the login code
   const [otpCaptchaKey, setOtpCaptchaKey] = useState(0); // bump to refresh the otp captcha
-  const [toast, setToast] = useState(null);
-  const flash = (type, msg, ms = 3500) => {
-    setToast({ type, msg });
-    setTimeout(() => setToast(null), ms);
-  };
+  const { notice, errField, errorFor, flash, clear } = useNotice();
 
   useEffect(() => {
     if (Cookies.get("isVerified") === "yes") router.replace("/dashboard");
@@ -88,7 +58,7 @@ export default function LoginPage() {
 
   const submitLogin = async (e) => {
     e.preventDefault();
-    if (!email.trim() || !password) return flash("danger", "Enter your email and password");
+    if (!email.trim() || !password) return flash("danger", "Enter your email and password", !email.trim() ? "email" : "password");
     if (!captchaToken) return flash("danger", "Please complete the captcha first");
     setBusy(true);
     try {
@@ -122,7 +92,7 @@ export default function LoginPage() {
 
   // request a passwordless login code for an existing account
   const requestLoginCode = async () => {
-    if (!email.trim()) return flash("danger", "Enter your email first");
+    if (!email.trim()) return flash("danger", "Enter your email first", "email");
     if (!codeCaptcha) return flash("danger", "Please complete the captcha first");
     setBusy(true);
     try {
@@ -147,7 +117,7 @@ export default function LoginPage() {
   };
 
   const submitOtp = async () => {
-    if (otp.length !== 6) return flash("danger", "Enter the 6-digit code");
+    if (otp.length !== 6) return flash("danger", "Enter the 6-digit code", "otp");
     setBusy(true);
     try {
       if (otpMode === "login") {
@@ -165,7 +135,7 @@ export default function LoginPage() {
         setTimeout(() => finishLogin(null), 700);
       }
     } catch (err) {
-      flash("danger", err.response?.data?.message || "Invalid code");
+      flash("danger", err.response?.data?.message || "Invalid code", "otp");
       // login captcha tokens are single-use, refresh after a failed attempt
       if (otpMode === "login") { setOtpCaptcha(""); setOtpCaptchaKey((k) => k + 1); }
     } finally {
@@ -194,6 +164,11 @@ export default function LoginPage() {
     }
   };
 
+  const captchaOpts = { size: "flexible", theme: "dark" };
+  const back = (to) => { clear(); to(); };
+  const emailErr = errField === "email" && !email.trim();
+  const pwErr = errField === "password" && !password;
+
   return (
     <>
       <Head>
@@ -206,140 +181,131 @@ export default function LoginPage() {
         <meta property="og:url" content="https://journalx.app/login" />
         <meta name="twitter:title" content="JournalX Login, Sign In to Your Trading Journal" />
       </Head>
-      <AuthLayout
-        title={step === "login" ? "Welcome back" : step === "codeRequest" ? "Log in with a code" : "Check your email"}
+      <AuthShell
+        icon={step === "login" ? LogIn : step === "codeRequest" ? KeyRound : MailCheck}
+        title={step === "login" ? "Log in to JournalX" : step === "codeRequest" ? "Log in with a code" : "Check your email"}
         subtitle={
           step === "login"
-            ? "Log in to your trading journal"
+            ? "Pick up your journal where you left off."
             : step === "codeRequest"
-              ? "We'll email you a one-time login code, no password needed"
-              : `We sent a 6-digit code to ${email}`
+              ? "We'll email you a one-time login code. No password needed."
+              : <>We sent a 6-digit code to <strong>{email}</strong></>
         }
+        switchLink={{ prompt: "New to JournalX?", label: "Create account", href: "/register" }}
       >
-      <Toast toast={toast} />
-      <AnimatePresence mode="wait">
-        {step === "login" ? (
-          <motion.form
-            key="login"
-            initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.18 }}
-            onSubmit={submitLogin}
-            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
-          >
-            <div className="jx-field">
-              <label className="jx-field__label">Email</label>
-              <EmailSuggest value={email} onChange={setEmail} />
-            </div>
+        <AnimatePresence mode="wait" initial={false}>
+          {step === "login" ? (
+            <StepPane id="login" as="form" onSubmit={submitLogin} noValidate>
+              <Notice notice={notice} />
+              <GoogleButton href={`${API_BASE}/api/auth/google`} />
+              <Divider>or continue with email</Divider>
 
-            <div className="jx-field">
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <label className="jx-field__label">Password</label>
-                <a href="/forgot-password" style={{ font: "var(--text-small)", color: "var(--yellow-600)", textDecoration: "none", fontWeight: 600 }}>
-                  Forgot password?
-                </a>
+              <Field id="login-email" label="Email" error={emailErr ? errorFor("email") : null}>
+                <EmailInput id="login-email" value={email} onChange={setEmail} invalid={emailErr} describedBy={emailErr ? "login-email-error" : undefined} />
+              </Field>
+
+              <Field
+                id="login-password"
+                label="Password"
+                labelAside={<a href="/forgot-password" className={`${s.link} ${s.smallLink}`}>Forgot password?</a>}
+                error={pwErr ? errorFor("password") : null}
+              >
+                <PasswordInput
+                  id="login-password"
+                  icon={Lock}
+                  autoComplete="current-password"
+                  placeholder="Your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  show={showPw}
+                  onToggle={() => setShowPw(!showPw)}
+                  invalid={pwErr}
+                  describedBy={pwErr ? "login-password-error" : undefined}
+                />
+              </Field>
+
+              <CaptchaSlot>
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => setCaptchaToken(token)}
+                  onExpire={() => setCaptchaToken("")}
+                  onError={() => setCaptchaToken("")}
+                  options={captchaOpts}
+                />
+              </CaptchaSlot>
+
+              <Button type="submit" busy={busy} busyLabel="Logging in…" disabled={busy || !captchaToken}>
+                Log in
+              </Button>
+
+              <div className={s.center}>
+                <Button variant="text" onClick={() => { clear(); setOtpMode("login"); setOtp(""); setStep("codeRequest"); }}>
+                  Email me a login code instead
+                </Button>
               </div>
-              <div className="jx-input">
-                <span className="jx-input__icon"><Lock size={15} /></span>
-                <input type={showPw ? "text" : "password"} autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button type="button" onClick={() => setShowPw(!showPw)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", display: "flex" }} aria-label="Toggle password">
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
+
+              <p className={s.alt}>
+                New to JournalX? <a href="/register" className={s.link}>Create an account</a>
+              </p>
+            </StepPane>
+          ) : step === "codeRequest" ? (
+            <StepPane id="codeRequest" as="form" onSubmit={(e) => { e.preventDefault(); requestLoginCode(); }} noValidate>
+              <Notice notice={notice} />
+              <Field id="code-email" label="Email" error={emailErr ? errorFor("email") : null}>
+                <EmailInput id="code-email" value={email} onChange={setEmail} onEnter={requestLoginCode} autoFocus invalid={emailErr} describedBy={emailErr ? "code-email-error" : undefined} />
+              </Field>
+
+              <CaptchaSlot>
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => setCodeCaptcha(token)}
+                  onExpire={() => setCodeCaptcha("")}
+                  onError={() => setCodeCaptcha("")}
+                  options={captchaOpts}
+                />
+              </CaptchaSlot>
+
+              <Button type="submit" busy={busy} busyLabel="Sending…" disabled={busy || !email.trim() || !codeCaptcha}>
+                Send login code
+              </Button>
+
+              <div className={s.center}>
+                <Button variant="text" onClick={() => back(() => { setStep("login"); setOtp(""); setCodeCaptcha(""); })}>
+                  <ArrowLeft size={15} aria-hidden="true" /> Back to password login
+                </Button>
               </div>
-            </div>
-
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-              onSuccess={(token) => setCaptchaToken(token)}
-              onExpire={() => setCaptchaToken("")}
-              onError={() => setCaptchaToken("")}
-              options={{ size: "flexible" }}
-            />
-
-            <Button type="submit" variant="primary" disabled={busy || !captchaToken} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
-              {busy ? <><Spinner /> Logging in…</> : "Log in"}
-            </Button>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", color: "var(--color-text-muted)", font: "var(--text-caption)" }}>
-              <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} /> or <span style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
-            </div>
-
-            <GoogleButton />
-
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => { setOtpMode("login"); setOtp(""); setStep("codeRequest"); }}
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              Log in with an email code
-            </Button>
-
-            <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", textAlign: "center" }}>
-              New to JournalX?{" "}
-              <a href="/register" style={{ color: "var(--yellow-600)", fontWeight: 600, textDecoration: "none" }}>Create an account</a>
-            </span>
-          </motion.form>
-        ) : step === "codeRequest" ? (
-          <motion.div
-            key="codeRequest"
-            initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
-            transition={{ duration: 0.18 }}
-            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
-          >
-            <div className="jx-field">
-              <label className="jx-field__label">Email</label>
-              <EmailSuggest value={email} onChange={setEmail} onEnter={requestLoginCode} />
-            </div>
-
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-              onSuccess={(token) => setCodeCaptcha(token)}
-              onExpire={() => setCodeCaptcha("")}
-              onError={() => setCodeCaptcha("")}
-              options={{ size: "flexible" }}
-            />
-
-            <Button variant="primary" disabled={busy || !email.trim() || !codeCaptcha} onClick={requestLoginCode} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
-              {busy ? <><Spinner /> Sending…</> : "Send login code"}
-            </Button>
-
-            <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setStep("login"); setOtp(""); setCodeCaptcha(""); }} style={{ alignSelf: "center" }}>
-              <ArrowLeft size={14} /> Back to password login
-            </button>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="otp"
-            initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
-            transition={{ duration: 0.18 }}
-            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
-          >
-            <OtpInput value={otp} onChange={setOtp} />
-            {otpMode === "login" && (
-              <Turnstile
-                key={otpCaptchaKey}
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                onSuccess={(token) => setOtpCaptcha(token)}
-                onExpire={() => setOtpCaptcha("")}
-                onError={() => setOtpCaptcha("")}
-                options={{ size: "flexible" }}
-              />
-            )}
-            <Button variant="primary" disabled={busy || otp.length !== 6 || (otpMode === "login" && !otpCaptcha)} onClick={submitOtp} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
-              {busy ? <><Spinner /> Verifying…</> : "Verify & log in"}
-            </Button>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setStep(otpMode === "login" ? "codeRequest" : "login"); setOtp(""); }}>
-                <ArrowLeft size={14} /> Back
-              </button>
-              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={resend} disabled={cooldown > 0}>
-                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      </AuthLayout>
+            </StepPane>
+          ) : (
+            <StepPane id="otp" as="form" onSubmit={(e) => { e.preventDefault(); submitOtp(); }} noValidate>
+              <Notice notice={notice} />
+              <OtpCode value={otp} onChange={setOtp} error={errorFor("otp")} label="6-digit code from your email" />
+              {otpMode === "login" && (
+                <CaptchaSlot>
+                  <Turnstile
+                    key={otpCaptchaKey}
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                    onSuccess={(token) => setOtpCaptcha(token)}
+                    onExpire={() => setOtpCaptcha("")}
+                    onError={() => setOtpCaptcha("")}
+                    options={captchaOpts}
+                  />
+                </CaptchaSlot>
+              )}
+              <Button type="submit" busy={busy} busyLabel="Verifying…" disabled={busy || otp.length !== 6 || (otpMode === "login" && !otpCaptcha)}>
+                Verify &amp; log in
+              </Button>
+              <div className={s.navRow}>
+                <Button variant="text" onClick={() => back(() => { setStep(otpMode === "login" ? "codeRequest" : "login"); setOtp(""); })}>
+                  <ArrowLeft size={15} aria-hidden="true" /> Back
+                </Button>
+                <Button variant="text" onClick={resend} disabled={cooldown > 0}>
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+                </Button>
+              </div>
+            </StepPane>
+          )}
+        </AnimatePresence>
+      </AuthShell>
     </>
   );
 }

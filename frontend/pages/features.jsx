@@ -1,20 +1,18 @@
 "use client";
 
-/* /features, dedicated, SEO-rich features page. Grouped feature grid with
-   icons + short descriptions, an explicit "works on desktop + mobile" section,
-   and full structured data (SoftwareApplication + BreadcrumbList + WebPage). */
+/* /features, same design system as the landing redesign: floating nav,
+   compact page hero, live feature bento, grouped feature sections with a
+   sticky jump nav, the "review every trade" panel, reviews and a closing CTA.
+   Structured data: SoftwareApplication + BreadcrumbList. */
 
 import Head from "next/head";
 import { motion } from "framer-motion";
 import {
-  ArrowRight,
   BarChart3,
   BrainCircuit,
   CalendarDays,
   CandlestickChart,
-  Check,
   Clock,
-  Download,
   Gauge,
   LineChart,
   MonitorSmartphone,
@@ -22,23 +20,27 @@ import {
   PieChart,
   Search,
   ShieldCheck,
-  Smartphone,
   Target,
   TrendingUp,
   Upload,
   Zap,
 } from "lucide-react";
-import { LandingNav, LandingFooter, btnPrimary, btnGhost } from "@/components/landingPage/LandingChrome";
+import { MarketingPage, PageHero, CtaBand } from "@/components/landingPage/PageChrome";
+import BentoGrid from "@/components/landing/BentoGrid";
+import HeroFeaturePanel from "@/components/landingPage/HeroFeaturePanel";
 import Testimonials from "@/components/landingPage/Testimonials";
+import pg from "@/components/landingPage/Page.module.css";
 
 const SITE_URL = "https://journalx.app";
-const TITLE = "Features, JournalX trading journal & analytics";
+const TITLE = "Trading Journal Features: Analytics, Psychology & Risk | JournalX";
 const DESC =
-  "Explore every JournalX feature: 10-second trade logging, auto-import, equity-curve and R-multiple analytics, drawdown & consistency tracking for funded/prop accounts, trading-psychology scoring, a P&L calendar, mark-on-chart logging and a fast mobile app. Works on desktop and mobile across forex, futures, stocks, options and crypto.";
+  "Every JournalX trading journal feature: 10-second trade logging, CSV and exchange import, equity curve and R-multiple analytics, drawdown tracking, trading psychology scoring, a P&L calendar and chart trade marking, on desktop and mobile.";
 
-const C = {
-  text: "#fff", muted: "#aeb4bc", dim: "#707a8a", canvas: "#000",
-  surface: "#161a20", border: "rgba(255,255,255,0.1)", yellow: "#fcd535", yellowDeep: "#f0b90b", green: "#2ebd85",
+const GROUP_META = {
+  "Logging & import": { id: "logging", text: "Log in seconds or import your full history, with all the context that turns numbers into lessons." },
+  Analytics: { id: "analytics", text: "Every metric recalculates the moment a trade is logged, so your review always reflects reality." },
+  "Risk & psychology": { id: "risk-psychology", text: "Measure the habits and risk decisions behind your results, then fix them one at a time." },
+  "Markets & platform": { id: "markets-platform", text: "One trading journal for every market and device, fast and private by default." },
 };
 
 const GROUPS = [
@@ -66,7 +68,7 @@ const GROUPS = [
     kicker: "Risk & psychology",
     title: "Protect the account and the mind",
     items: [
-      { icon: ShieldCheck, title: "Drawdown & consistency", body: "Track trailing and daily drawdown and consistency, the rules that keep funded and prop-firm accounts alive." },
+      { icon: ShieldCheck, title: "Drawdown & consistency", body: "Track trailing and daily drawdown and consistency, the rules that keep any account alive, personal or funded." },
       { icon: Target, title: "Planned vs realised R:R", body: "Fixed-risk position sizing and planned-vs-actual risk/reward on every trade." },
       { icon: BrainCircuit, title: "Psychology & discipline scoring", body: "Tag emotion and discipline at entry; see exactly what tilt, FOMO and revenge trading cost you." },
       { icon: Clock, title: "Hold-time & timeframe analysis", body: "Disposition-effect, hold-time and timeframe breakdowns reveal the habits behind your results." },
@@ -115,7 +117,7 @@ export default function FeaturesPage() {
       <Head>
         <title>{TITLE}</title>
         <meta name="description" content={DESC} />
-        <meta name="keywords" content="trading journal features, trade analytics, equity curve, R-multiple, drawdown tracker, prop firm journal, trading psychology, P&L calendar, mark trades on chart, mobile trading journal, journalx features" />
+        <meta name="keywords" content="trading journal features, trade analytics, equity curve, R-multiple, drawdown tracker, trading psychology, P&L calendar, mark trades on chart, mobile trading journal, journalx features" />
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
         <link rel="canonical" href={`${SITE_URL}/features`} />
         <meta property="og:type" content="website" />
@@ -135,101 +137,66 @@ export default function FeaturesPage() {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       </Head>
 
-      <div style={{ background: C.canvas, color: C.text, fontFamily: "Poppins, sans-serif", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
-        <LandingNav />
+      <MarketingPage>
+        <PageHero
+          crumbs={[["Home", "/"], ["Features"]]}
+          kicker="Trading journal features"
+          title={<>Trading journal features that turn trades into <span>a real edge</span></>}
+          lead="From a 10-second log to full risk and psychology analytics, for stocks, options, futures, forex and crypto, on your own account or a funded one. Works on desktop and mobile."
+          primary={{ href: "/register", label: "Start free, no card" }}
+          secondary={{ href: "/pricing", label: "See pricing" }}
+          chips={["Free to start", "Desktop and mobile", "All markets"]}
+        />
 
-        <main style={{ position: "relative", zIndex: 1 }}>
-          {/* hero */}
-          <section style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 20px 24px", textAlign: "center", position: "relative" }}>
-            <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "radial-gradient(680px 360px at 50% -10%, rgba(252,213,53,0.16), transparent 70%)", pointerEvents: "none" }} />
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative", zIndex: 1 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 22 }}>
-                <Zap size={14} aria-hidden="true" /> Everything in one trading journal
-              </span>
-              <h1 style={{ font: "700 clamp(32px,5vw,54px)/1.08 Poppins", margin: "0 0 18px", letterSpacing: "-1.5px" }}>
-                Features that turn trades into a{" "}
-                <span style={{ background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>real edge</span>
-              </h1>
-              <p style={{ font: "400 clamp(16px,2.2vw,19px)/1.6 Poppins", color: C.muted, maxWidth: 640, margin: "0 auto 28px" }}>
-                From a 10-second log to full risk and psychology analytics, built for funded and prop firm traders across forex, futures, stocks, options and crypto. Works on desktop and mobile.
-              </p>
-              <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-                <a href="/register" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnPrimary, padding: "14px 28px", fontSize: 15, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 8px 28px rgba(252,213,53,0.3)" }}>
-                    Start free, no card <ArrowRight size={16} aria-hidden="true" />
-                  </button>
-                </a>
-                <a href="/pricing" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnGhost, padding: "14px 26px", fontSize: 15 }}>See pricing</button>
-                </a>
-              </div>
-              <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginTop: 22, font: "400 13px Poppins", color: C.dim }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> Free to start</span>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><MonitorSmartphone size={14} style={{ color: C.green }} aria-hidden="true" /> Desktop + mobile</span>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> All markets</span>
-              </div>
-            </motion.div>
-          </section>
+        <nav className={pg.jump} aria-label="Feature categories">
+          <ul>
+            {GROUPS.map((g) => (
+              <li key={g.kicker}><a href={`#${GROUP_META[g.kicker].id}`}>{g.kicker}</a></li>
+            ))}
+          </ul>
+        </nav>
 
-          {/* feature groups */}
-          {GROUPS.map((g) => (
-            <section key={g.kicker} style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px" }}>
-              <div style={{ marginBottom: 18 }}>
-                <span style={{ font: "600 13px Poppins", letterSpacing: "1px", textTransform: "uppercase", color: C.yellow }}>{g.kicker}</span>
-                <h2 style={{ font: "700 clamp(22px,3.2vw,30px)/1.2 Poppins", margin: "6px 0 0", letterSpacing: "-0.6px" }}>{g.title}</h2>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16 }}>
-                {g.items.map(({ icon: Icon, title, body }, i) => (
-                  <motion.article
-                    key={title}
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: (i % 4) * 0.06, duration: 0.45 }}
-                    style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 22 }}
-                  >
-                    <span style={{ display: "inline-flex", width: 42, height: 42, borderRadius: 11, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.2)", color: C.yellow, alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-                      <Icon size={19} aria-hidden="true" />
-                    </span>
-                    <h3 style={{ font: "600 17px Poppins", margin: "0 0 7px" }}>{title}</h3>
-                    <p style={{ font: "400 14px/1.6 Poppins", color: C.muted, margin: 0 }}>{body}</p>
-                  </motion.article>
-                ))}
-              </div>
-            </section>
-          ))}
+        <BentoGrid />
 
-          {/* desktop + mobile highlight */}
-          <section style={{ maxWidth: 1000, margin: "0 auto", padding: "20px 20px 8px" }}>
-            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "32px 28px", display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap", justifyContent: "center", textAlign: "center" }}>
-              <span style={{ display: "inline-flex", width: 56, height: 56, borderRadius: 16, background: "rgba(46,189,133,0.12)", color: C.green, alignItems: "center", justifyContent: "center" }}>
-                <Smartphone size={26} aria-hidden="true" />
-              </span>
-              <div style={{ maxWidth: 560 }}>
-                <h2 style={{ font: "700 clamp(22px,3.2vw,28px)/1.2 Poppins", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Works on desktop &amp; mobile</h2>
-                <p style={{ font: "400 16px/1.6 Poppins", color: C.muted, margin: 0 }}>
-                  A fully responsive web app and an installable PWA. Review analytics on a big screen, then quick-log a trade from your phone the moment you close a position, your journal stays in sync.
-                </p>
+        {GROUPS.map((g) => (
+          <section key={g.kicker} id={GROUP_META[g.kicker].id} className={pg.group} aria-labelledby={`${GROUP_META[g.kicker].id}-title`}>
+            <div className={pg.inner}>
+              <div className={pg.groupGrid}>
+                <div className={pg.groupSide}>
+                  <span className={pg.groupKicker}>{g.kicker}</span>
+                  <h2 id={`${GROUP_META[g.kicker].id}-title`} className={pg.groupTitle}>{g.title}</h2>
+                  <p className={pg.groupText}>{GROUP_META[g.kicker].text}</p>
+                </div>
+                <div className={pg.cards}>
+                  {g.items.map(({ icon: Icon, title, body }, i) => (
+                    <motion.article
+                      key={title}
+                      className={pg.card}
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ delay: (i % 2) * 0.06, duration: 0.45 }}
+                    >
+                      <span className={pg.cardIcon} aria-hidden="true"><Icon size={19} strokeWidth={1.8} /></span>
+                      <h3 className={pg.cardTitle}>{title}</h3>
+                      <p className={pg.cardBody}>{body}</p>
+                    </motion.article>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
+        ))}
 
-          <Testimonials schema={false} />
-
-          {/* CTA */}
-          <section style={{ maxWidth: 720, margin: "0 auto", padding: "24px 20px 72px", textAlign: "center" }}>
-            <h2 style={{ font: "700 clamp(24px,3.4vw,32px)/1.2 Poppins", margin: "0 0 14px", letterSpacing: "-0.6px" }}>Start journaling smarter today</h2>
-            <p style={{ font: "400 16px/1.6 Poppins", color: C.muted, margin: "0 auto 26px", maxWidth: 520 }}>Free to start, no credit card, full trade analysis in under 10 seconds.</p>
-            <a href="/register" style={{ textDecoration: "none" }}>
-              <button style={{ ...btnPrimary, padding: "15px 30px", fontSize: 16, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 8px 28px rgba(252,213,53,0.3)" }}>
-                Create your free account <ArrowRight size={17} aria-hidden="true" />
-              </button>
-            </a>
-          </section>
-        </main>
-
-        <LandingFooter />
-      </div>
+        <HeroFeaturePanel />
+        <Testimonials schema={false} />
+        <CtaBand
+          title="Start journaling smarter today"
+          lead="Free to start, no credit card, full trade analysis in under 10 seconds."
+          primary={{ href: "/register", label: "Create your free account" }}
+          secondary={{ href: "/pricing", label: "See pricing" }}
+        />
+      </MarketingPage>
     </>
   );
 }

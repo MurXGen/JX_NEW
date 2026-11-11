@@ -31,9 +31,6 @@ import {
   JournalsModal,
   SupportModal,
   PlanBanner,
-  OnboardingModal,
-  AcquisitionModal,
-  GetStartedModal,
   UpgradePanel,
   OverviewPanel,
   MarketsPanel,
@@ -43,6 +40,7 @@ import {
 } from "@/components/revampV2";
 
 import FullPageLoader from "@/components/ui/FullPageLoader";
+import FirstRunFlow from "@/components/authFlow/FirstRunFlow";
 import { MobileInstallBanner } from "@/components/pwa/InstallPwa";
 import ShortcutsHelp from "@/components/revampV2/ShortcutsHelp";
 
@@ -123,9 +121,15 @@ export default function Dashboard() {
   const [journalEditId, setJournalEditId] = useState(null); // deep-link to a journal's edit form
   const [journalsView, setJournalsView] = useState("list"); // 'list' | 'create'
   const [showSupport, setShowSupport] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showAcq, setShowAcq] = useState(false);
-  const [showGetStarted, setShowGetStarted] = useState(false);
+  // first-run onboarding: "journal" → "trade" → "insights" (null = not shown)
+  const [firstRun, setFirstRunState] = useState(null);
+  const setFirstRun = (s) => {
+    setFirstRunState(s);
+    try {
+      if (s) localStorage.setItem("jx-firstrun", s);
+      else { localStorage.removeItem("jx-firstrun"); localStorage.setItem("jx-onboarded", "1"); }
+    } catch {}
+  };
   const [loggedIn, setLoggedIn] = useState(true); // assume true to avoid flicker; set on mount
 
   useEffect(() => {
@@ -303,11 +307,13 @@ export default function Dashboard() {
     // Google new-user), never on a normal login. The marker is consumed once.
     if (localStorage.getItem("jx-show-onboarding") === "1") {
       try { localStorage.removeItem("jx-show-onboarding"); } catch {}
-      // new-user flow: ask where they came from, then nudge first log/import
-      let acqDone = false;
-      try { acqDone = localStorage.getItem("jx-acq-done") === "1"; } catch {}
-      if (acqDone) setShowGetStarted(true);
-      else setShowAcq(true);
+      // new-user flow: set up journal → log first trade → first analytics
+      setFirstRun("journal");
+    } else {
+      // resume an unfinished first-run (e.g. after a reload mid-setup)
+      let saved = null;
+      try { saved = localStorage.getItem("jx-firstrun"); } catch {}
+      if (saved === "journal" || saved === "trade" || saved === "insights") setFirstRunState(saved);
     }
   }, []);
 
@@ -580,34 +586,23 @@ export default function Dashboard() {
         plan={userData?.subscription?.plan || "free"}
       />
 
-      <OnboardingModal
-        open={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
-        onTrialActivated={async (sub) => {
-          if (!sub) return;
-          setUserData((u) => ({ ...u, subscription: { ...(u?.subscription || {}), ...sub } }));
-          // persist to IndexedDB so Settings + reload-fallback read the trial
-          try {
-            const ud = (await getFromIndexedDB("user-data")) || {};
-            ud.subscription = { ...(ud.subscription || {}), ...sub };
-            await saveToIndexedDB("user-data", ud);
-            window.dispatchEvent(new CustomEvent("jx-sub-changed"));
-          } catch (e) {
-            console.error("trial cache update failed:", e);
-          }
-        }}
-      />
 
-      {/* New-user onboarding: where did you hear about us → log / import / skip */}
-      <AcquisitionModal
-        open={showAcq}
-        onDone={() => { setShowAcq(false); setShowGetStarted(true); }}
-      />
-      <GetStartedModal
-        open={showGetStarted}
-        onLog={() => { setShowGetStarted(false); setShowLogTrade(true); }}
-        onImport={() => { setShowGetStarted(false); navTab("importexport"); }}
-        onSkip={() => { setShowGetStarted(false); setShowOnboarding(true); }}
+      {/* New-user onboarding: set up journal → log first trade → first analytics */}
+      <FirstRunFlow
+        open={!!firstRun && !loading}
+        step={firstRun || "journal"}
+        account={currentAccount}
+        trades={accountTrades}
+        onStepChange={setFirstRun}
+        onTradeLogged={(trade) => trade && setAccountTrades((prev) => [...prev, trade])}
+        onJournalSaved={async () => {
+          const fresh = await fetchAccountsAndTrades();
+          setAccounts(fresh.accounts || []);
+          setAccountSymbols(fresh.accountSymbols || {});
+          setCurrentBalances(fresh.currentBalances || {});
+          setAccountTrades(fresh.trades || []);
+        }}
+        onFinish={() => setFirstRun(null)}
       />
 
       {/* Settings, glassmorphic modal */}

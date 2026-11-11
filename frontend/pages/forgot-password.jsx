@@ -6,23 +6,16 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { ArrowLeft, Check, CheckCircle2, Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { ArrowLeft, Check, KeyRound, Lock, Mail, ShieldCheck } from "lucide-react";
 
-import { AuthLayout, Button, OtpInput, Toast } from "@/components/revampV2";
+import {
+  AuthShell, StepPane, Notice, useNotice, Field, TextInput, PasswordInput, OtpCode, Button,
+  authStyles as s,
+} from "@/components/authFlow/AuthShell";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-function Spinner() {
-  return (
-    <motion.span
-      animate={{ rotate: 360 }}
-      transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-      style={{ width: 14, height: 14, borderRadius: "50%", display: "inline-block", border: "2px solid color-mix(in srgb, currentColor 30%, transparent)", borderTopColor: "currentColor" }}
-    />
-  );
-}
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -34,11 +27,7 @@ export default function ForgotPasswordPage() {
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [toast, setToast] = useState(null);
-  const flash = (type, msg, ms = 3500) => {
-    setToast({ type, msg });
-    setTimeout(() => setToast(null), ms);
-  };
+  const { notice, errField, errorFor, flash, clear } = useNotice();
 
   useEffect(() => {
     if (!cooldown) return;
@@ -48,7 +37,7 @@ export default function ForgotPasswordPage() {
 
   const requestCode = async (e) => {
     e?.preventDefault();
-    if (!email.trim()) return flash("danger", "Enter your account email");
+    if (!email.trim()) return flash("danger", "Enter your account email", "email");
     setBusy(true);
     try {
       await axios.post(`${API_BASE}/api/auth/forgot-password`, { email: email.trim() }, { withCredentials: true });
@@ -63,9 +52,9 @@ export default function ForgotPasswordPage() {
   };
 
   const submitReset = async () => {
-    if (otp.length !== 6) return flash("danger", "Enter the 6-digit code");
-    if (password.length < 8) return flash("danger", "Password must be at least 8 characters");
-    if (password !== confirm) return flash("danger", "Passwords don't match");
+    if (otp.length !== 6) return flash("danger", "Enter the 6-digit code", "otp");
+    if (password.length < 8) return flash("danger", "Password must be at least 8 characters", "password");
+    if (password !== confirm) return flash("danger", "Passwords don't match", "confirm");
     setBusy(true);
     try {
       await axios.post(
@@ -81,116 +70,127 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  const mismatch = confirm && confirm !== password;
+
   return (
-    <AuthLayout
-      title={step === "email" ? "Reset your password" : step === "reset" ? "Set a new password" : "Password updated"}
-      subtitle={
-        step === "email"
-          ? "We'll email you a 6-digit code"
-          : step === "reset"
-            ? `Enter the code we sent to ${email}`
-            : "You're all set, log in with your new password"
-      }
-    >
+    <>
       <Head>
         <title>Reset Password, JournalX Trading Journal | journalx.app</title>
         <meta name="description" content="Reset your JournalX password securely at journalx.app and get back to analysing your trades in seconds." />
         <meta name="robots" content="noindex, follow" />
         <link rel="canonical" href="https://journalx.app/forgot-password" />
       </Head>
-      <Toast toast={toast} />
-      <AnimatePresence mode="wait">
-        {step === "email" && (
-          <motion.form
-            key="email"
-            initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.18 }}
-            onSubmit={requestCode}
-            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
-          >
-            <div className="jx-field">
-              <label className="jx-field__label">Email</label>
-              <div className="jx-input">
-                <span className="jx-input__icon"><Mail size={15} /></span>
-                <input type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <AuthShell
+        icon={step === "email" ? KeyRound : step === "reset" ? Lock : ShieldCheck}
+        title={step === "email" ? "Reset your password" : step === "reset" ? "Set a new password" : "Password updated"}
+        subtitle={
+          step === "email"
+            ? "Enter your account email and we'll send you a 6-digit code."
+            : step === "reset"
+              ? <>Enter the code we sent to <strong>{email}</strong></>
+              : "You're all set. Log in with your new password."
+        }
+        switchLink={{ prompt: "Remembered it?", label: "Log in", href: "/login" }}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          {step === "email" && (
+            <StepPane id="email" as="form" onSubmit={requestCode} noValidate>
+              <Notice notice={notice} />
+              <Field id="fp-email" label="Email" error={errField === "email" && !email.trim() ? errorFor("email") : null}>
+                <TextInput
+                  id="fp-email"
+                  icon={Mail}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  autoFocus
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  invalid={errField === "email" && !email.trim()}
+                  describedBy={errField === "email" && !email.trim() ? "fp-email-error" : undefined}
+                />
+              </Field>
+              <Button type="submit" busy={busy} busyLabel="Sending…" disabled={busy}>
+                Send reset code
+              </Button>
+              <div className={s.center}>
+                <Button variant="text" onClick={() => router.push("/login")}>
+                  <ArrowLeft size={15} aria-hidden="true" /> Back to login
+                </Button>
               </div>
-            </div>
-            <Button type="submit" variant="primary" disabled={busy} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
-              {busy ? <><Spinner /> Sending…</> : "Send reset code"}
-            </Button>
-            <button type="button" className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => router.push("/login")} style={{ alignSelf: "center" }}>
-              <ArrowLeft size={14} /> Back to login
-            </button>
-          </motion.form>
-        )}
+            </StepPane>
+          )}
 
-        {step === "reset" && (
-          <motion.div
-            key="reset"
-            initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
-            transition={{ duration: 0.18 }}
-            style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
-          >
-            <div className="jx-field">
-              <label className="jx-field__label">Verification code</label>
-              <OtpInput value={otp} onChange={setOtp} />
-            </div>
+          {step === "reset" && (
+            <StepPane id="reset" as="form" onSubmit={(e) => { e.preventDefault(); submitReset(); }} noValidate>
+              <Notice notice={notice} />
+              <OtpCode value={otp} onChange={setOtp} error={errorFor("otp")} label="6-digit code from your email" />
 
-            <div className="jx-field">
-              <label className="jx-field__label">New password</label>
-              <div className="jx-input">
-                <span className="jx-input__icon"><Lock size={15} /></span>
-                <input type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="At least 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button type="button" onClick={() => setShowPw(!showPw)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", display: "flex" }} aria-label="Toggle password">
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
+              <Field
+                id="fp-password"
+                label="New password"
+                hint="At least 8 characters"
+                error={errField === "password" && password.length < 8 ? errorFor("password") : null}
+              >
+                <PasswordInput
+                  id="fp-password"
+                  icon={Lock}
+                  autoComplete="new-password"
+                  placeholder="New password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  show={showPw}
+                  onToggle={() => setShowPw(!showPw)}
+                  autoFocus={false}
+                  invalid={errField === "password" && password.length < 8}
+                  describedBy={errField === "password" && password.length < 8 ? "fp-password-error" : "fp-password-hint"}
+                />
+              </Field>
+
+              <Field id="fp-confirm" label="Confirm password" error={mismatch ? "Passwords don't match" : null}>
+                <TextInput
+                  id="fp-confirm"
+                  icon={Lock}
+                  type={showPw ? "text" : "password"}
+                  autoComplete="new-password"
+                  placeholder="Repeat it"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  invalid={!!mismatch}
+                  describedBy={mismatch ? "fp-confirm-error" : undefined}
+                  after={confirm && confirm === password ? (
+                    <span className={s.okMark}><Check size={16} aria-hidden="true" /><span className={s.srOnly}>Passwords match</span></span>
+                  ) : null}
+                />
+              </Field>
+
+              <Button type="submit" busy={busy} busyLabel="Resetting…" disabled={busy}>
+                Reset password
+              </Button>
+
+              <div className={s.navRow}>
+                <Button variant="text" onClick={() => { clear(); setStep("email"); setOtp(""); }}>
+                  <ArrowLeft size={15} aria-hidden="true" /> Back
+                </Button>
+                <Button variant="text" onClick={requestCode} disabled={cooldown > 0}>
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+                </Button>
               </div>
-            </div>
+            </StepPane>
+          )}
 
-            <div className="jx-field">
-              <label className="jx-field__label">Confirm password</label>
-              <div className={`jx-input ${confirm && confirm !== password ? "jx-input--error" : ""}`}>
-                <span className="jx-input__icon"><Lock size={15} /></span>
-                <input type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="Repeat it" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-                {confirm && confirm === password && <Check size={15} style={{ color: "var(--color-success)" }} />}
-              </div>
-            </div>
-
-            <Button variant="primary" disabled={busy} onClick={submitReset} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
-              {busy ? <><Spinner /> Resetting…</> : "Reset password"}
-            </Button>
-
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={() => { setStep("email"); setOtp(""); }}>
-                <ArrowLeft size={14} /> Back
-              </button>
-              <button className="jx-btn jx-btn--ghost jx-btn--sm" onClick={requestCode} disabled={cooldown > 0}>
-                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {step === "done" && (
-          <motion.div
-            key="done"
-            initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-4)", padding: "var(--space-4) 0" }}
-          >
-            <motion.span
-              initial={{ scale: 0 }} animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.1 }}
-              style={{ color: "var(--color-success)", display: "flex" }}
-            >
-              <CheckCircle2 size={56} />
-            </motion.span>
-            <Button variant="primary" onClick={() => router.push("/login")} style={{ width: "100%", justifyContent: "center", minHeight: 44 }}>
-              Log in
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </AuthLayout>
+          {step === "done" && (
+            <StepPane id="done">
+              <Button onClick={() => router.push("/login")} autoFocus>
+                Log in
+              </Button>
+            </StepPane>
+          )}
+        </AnimatePresence>
+      </AuthShell>
+    </>
   );
 }

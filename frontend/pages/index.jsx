@@ -16,7 +16,6 @@ import {
   AnimatePresence,
   motion,
   useReducedMotion,
-  useScroll,
   useTransform,
   useMotionValue,
   useSpring,
@@ -31,20 +30,15 @@ import {
   CalendarDays,
   CandlestickChart,
   Check,
-  Crown,
   Flame,
   LineChart as LineChartIcon,
-  MonitorSmartphone,
   Percent,
   PieChart as PieChartIcon,
   Plus,
   RotateCcw,
-  ShieldCheck,
   Sparkles,
-  Star,
   TrendingUp,
   Trophy,
-  Zap,
 } from "lucide-react";
 import {
   Area,
@@ -61,17 +55,19 @@ import {
   YAxis,
 } from "recharts";
 import FullPageLoader from "@/components/ui/FullPageLoader";
-import { createPortal } from "react-dom";
-import { LandingNav, LandingFooter, btnPrimary, btnGhost } from "@/components/landingPage/LandingChrome";
+import { LandingFooter, btnPrimary, btnGhost } from "@/components/landingPage/LandingChrome";
+import LightHero, { LightHeroHeader } from "@/components/landingPage/LightHero";
+import HeroFeaturePanel from "@/components/landingPage/HeroFeaturePanel";
+import { IntegrationsSection, HowItWorksSection, JourneySection } from "@/components/landingPage/LandingSections";
+import sec from "@/components/landingPage/Sections.module.css";
+import { BlogSection, AboutSection, FaqSection } from "@/components/landingPage/LandingBottom";
+import PricingInteractive from "@/components/landingPage/PricingInteractive";
+import heroStyles from "@/components/landingPage/LightHero.module.css";
 import Testimonials from "@/components/landingPage/Testimonials";
-import { getAllPosts, fmtDate } from "@/utils/blogs";
+import { getAllPosts } from "@/utils/blogs";
 import BentoGrid from "@/components/landing/BentoGrid";
 import Eyebrow from "@/components/landing/Eyebrow";
-import PaddleLoader from "@/components/payments/PaddleLoader";
-import PaymentModal from "@/components/payments/PaymentModal";
-import { usePlanCheckout } from "@/components/payments/usePlanCheckout";
 import {
-  PLANS_FEATURES,
   PLANS_CONFIG,
   buildPlansConfig,
   getUserCurrency,
@@ -79,9 +75,9 @@ import {
 } from "@/utils/plans";
 
 const SITE_URL = "https://journalx.app";
-const TITLE = "JournalX - Trading Journal for Funded & Prop Firm Traders";
+const TITLE = "Trading Journal for Funded & Prop Firm Traders | JournalX";
 const DESC =
-  "Advanced trading journal for funded & prop firm traders. Deep analytics on win rate, risk, drawdown & psychology across forex, futures, stocks & crypto. Start free, no card.";
+  "The trading journal for funded & prop firm traders. Track win rate, R-multiple, drawdown and psychology across forex, futures, stocks & crypto. Start free, no card.";
 
 const C = {
   text: "#fff",
@@ -169,82 +165,6 @@ function AuroraBackdrop() {
   );
 }
 
-/* ===== Floating hero candles (kept from v2, enhanced glow) ===== */
-function Candle({ color, w = 16, wickTop = 18, bodyH = 46, wickBottom = 18 }) {
-  const h = wickTop + bodyH + wickBottom;
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none" aria-hidden="true">
-      <line x1={w / 2} y1="0" x2={w / 2} y2={h} stroke={color} strokeWidth="2" strokeLinecap="round" />
-      <rect x="1" y={wickTop} width={w - 2} height={bodyH} rx="3" fill={color} />
-    </svg>
-  );
-}
-
-const CANDLES = [
-  { left: "5%", top: "10%", color: C.green, w: 16, bodyH: 54, scale: 1.1, delay: 0, dur: 7, amp: 18 },
-  { left: "14%", top: "56%", color: C.red, w: 14, bodyH: 40, scale: 0.9, delay: 1.2, dur: 8, amp: 24 },
-  { left: "28%", top: "24%", color: C.green, w: 12, bodyH: 32, scale: 0.8, delay: 0.6, dur: 9, amp: 14 },
-  { left: "74%", top: "12%", color: C.green, w: 18, bodyH: 60, scale: 1.2, delay: 0.3, dur: 7.5, amp: 20 },
-  { left: "86%", top: "44%", color: C.red, w: 15, bodyH: 44, scale: 1.0, delay: 1.6, dur: 8.5, amp: 26 },
-  { left: "62%", top: "64%", color: C.red, w: 12, bodyH: 30, scale: 0.75, delay: 2.0, dur: 9.5, amp: 16 },
-  { left: "44%", top: "6%", color: C.green, w: 13, bodyH: 36, scale: 0.85, delay: 0.9, dur: 8, amp: 18 },
-];
-
-/* Rotating underlined focus word (x.ai style). Every word truthfully completes
-   "finds your ___", so the claim never changes. Slot width is fixed to the
-   longest word so the centered headline never jiggles (no CLS). */
-const HERO_WORDS = ["edge", "leaks", "patterns", "mistakes"];
-function RotatingWord() {
-  const reduce = useReducedMotion();
-  const [i, setI] = useState(0);
-  const [w, setW] = useState(null);
-  const sizeRef = useRef(null);
-  useEffect(() => {
-    if (reduce) return;
-    const t = setInterval(() => setI((v) => (v + 1) % HERO_WORDS.length), 2600);
-    return () => clearInterval(t);
-  }, [reduce]);
-  const word = reduce ? HERO_WORDS[0] : HERO_WORDS[i];
-  // measure the exact rendered width so there's no trailing ch-overshoot gap
-  useEffect(() => {
-    if (sizeRef.current) setW(sizeRef.current.getBoundingClientRect().width);
-  }, [word]);
-  return (
-    <span style={{ position: "relative", display: "inline-flex", justifyContent: "flex-start", width: w != null ? `${Math.ceil(w)}px` : `${word.length + 0.15}ch`, verticalAlign: "bottom", whiteSpace: "nowrap", transition: "width .4s cubic-bezier(0.22,1,0.36,1)" }}>
-      <span ref={sizeRef} aria-hidden="true" style={{ position: "absolute", visibility: "hidden", whiteSpace: "nowrap", pointerEvents: "none", left: 0 }}>{word}</span>
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.span
-          key={word}
-          initial={reduce ? false : { opacity: 0, filter: "blur(10px)", y: "0.24em" }}
-          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-          exit={reduce ? undefined : { opacity: 0, filter: "blur(10px)", y: "-0.24em" }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          style={{ position: "relative", display: "inline-block", whiteSpace: "nowrap" }}
-        >
-          {word}
-          <span className="hero-uline" aria-hidden="true" />
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  );
-}
-
-/* Animated glowing hero backdrop — soft drifting radial glows on pure black
-   (replaces the floating candles). Freezes under reduced motion. */
-function HeroGlow() {
-  const reduce = useReducedMotion();
-  const glow = (style, anim, dur) => (
-    <motion.div aria-hidden="true" style={{ position: "absolute", borderRadius: "50%", pointerEvents: "none", ...style }} animate={reduce ? {} : anim} transition={{ duration: dur, repeat: Infinity, ease: "easeInOut" }} />
-  );
-  return (
-    <div aria-hidden="true" style={{ position: "absolute", top: 0, bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100vw", overflow: "hidden", zIndex: 0, pointerEvents: "none" }}>
-      {glow({ top: "-14%", left: "50%", x: "-50%", width: "min(820px,90vw)", height: 480, background: "radial-gradient(closest-side, rgba(255,255,255,0.07), transparent 70%)", filter: "blur(30px)" }, { y: [0, 20, 0], opacity: [0.7, 1, 0.7] }, 9)}
-      {glow({ top: "24%", left: "30%", width: 420, height: 360, background: "radial-gradient(closest-side, rgba(252,213,53,0.06), transparent 70%)", filter: "blur(44px)" }, { x: [0, 44, 0], y: [0, -26, 0], opacity: [0.45, 0.8, 0.45] }, 12)}
-      {glow({ top: "18%", right: "28%", width: 380, height: 340, background: "radial-gradient(closest-side, rgba(46,189,133,0.05), transparent 70%)", filter: "blur(46px)" }, { x: [0, -38, 0], y: [0, 28, 0], opacity: [0.4, 0.7, 0.4] }, 14)}
-    </div>
-  );
-}
-
 /* 3D interactive final-CTA card: mouse-tracked parallax tilt, layered depth
    (elements lifted on translateZ), a gradient-lit border, glossy sheen,
    floating shards and an ambient glow. Freezes flat under reduced motion. */
@@ -303,8 +223,8 @@ function CTA3D() {
             <span aria-hidden="true" style={{ display: "inline-flex", width: 56, height: 56, borderRadius: 16, alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg, rgba(252,213,53,0.22), rgba(252,213,53,0.05))", border: "1px solid rgba(252,213,53,0.3)", boxShadow: "0 10px 30px -8px rgba(252,213,53,0.4)", marginBottom: 18 }}>
               <Flame size={26} style={{ color: C.yellow }} />
             </span>
-            <h2 style={{ font: "300 clamp(28px,4vw,44px)/1.1 Poppins", margin: "0 0 12px", letterSpacing: "-0.02em" }}>Your next trade deserves a journal</h2>
-            <p style={{ font: "400 17px/1.6 Poppins", color: C.muted, maxWidth: 480, margin: "0 auto 28px" }}>Start free, log your first trade in under a minute, and see where your edge really is.</p>
+            <h2 style={{ font: "600 clamp(28px,4vw,46px)/1.1 Poppins", margin: "0 0 12px", letterSpacing: "-0.03em" }}>Start your trading journal today</h2>
+            <p style={{ font: "400 17px/1.6 Poppins", color: C.muted, maxWidth: 480, margin: "0 auto 28px" }}>Start free with no card, log your first trade in under a minute, and see where your edge really is.</p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
               <a href="/register" style={{ textDecoration: "none" }}><button style={{ ...btnPrimary, padding: "14px 28px", fontSize: 15, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 12px 34px rgba(252,213,53,0.35)" }}>Start journaling free <ArrowRight size={16} aria-hidden="true" /></button></a>
               <a href="/pricing" style={{ textDecoration: "none" }}><button style={{ ...btnGhost, padding: "14px 28px", fontSize: 15, background: "rgba(255,255,255,0.02)" }}>See pricing</button></a>
@@ -316,45 +236,6 @@ function CTA3D() {
   );
 }
 
-function HeroBackdrop() {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  return (
-    <div ref={ref} style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-      <FloatingCandles progress={scrollYProgress} />
-    </div>
-  );
-}
-
-function FloatingCandles({ progress }) {
-  const reduced = useReducedMotion();
-  const y = useTransform(progress, [0, 1], [0, -90]);
-  const opacity = useTransform(progress, [0, 0.85], [1, 0]);
-  return (
-    <motion.div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", y, opacity, zIndex: 0 }}>
-      {CANDLES.map((c, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0 }}
-          animate={reduced ? { opacity: 0.12 } : { opacity: 0.12, y: [0, -c.amp, 0] }}
-          transition={{
-            opacity: { duration: 1.2, delay: c.delay },
-            y: { duration: c.dur, delay: c.delay, repeat: Infinity, ease: "easeInOut" },
-          }}
-          style={{
-            position: "absolute",
-            left: c.left,
-            top: c.top,
-            transform: `scale(${c.scale})`,
-            filter: `blur(0.4px) drop-shadow(0 0 14px ${c.color}44)`,
-          }}
-        >
-          <Candle color={c.color} w={c.w} bodyH={c.bodyH} />
-        </motion.div>
-      ))}
-    </motion.div>
-  );
-}
 
 /* ===== Signature animation: the live JournalX mock =====
    A glass replica of the app where a journal is created, the trade form
@@ -401,211 +282,6 @@ function MockStat({ label, value, color }) {
         </motion.div>
       </AnimatePresence>
     </div>
-  );
-}
-
-/* ===== Hero before/after "edge" graph, full-width, animated, interactive,
-   with gradient fills/stroke and hoverable goal-reach milestones ===== */
-const BEFORE_PATH = "M70,346 C 180,352 300,360 460,366";
-const AFTER_PATH = "M460,366 C 615,360 705,306 815,240 S 1025,116 1150,70";
-const GOALS = [
-  { x: 460, y: 366, label: "Today", sub: "Start logging trades" },
-  { x: 662, y: 316, label: "First green week", sub: "The habit forms" },
-  { x: 828, y: 236, label: "Consistent edge", sub: "Discipline pays" },
-  { x: 1000, y: 150, label: "Scaled up", sub: "Sizing with data" },
-  { x: 1150, y: 70, label: "Funded payout", sub: "Goal reached" },
-];
-
-function EdgeGraph() {
-  const [hover, setHover] = useState(null);
-  const reduced = useReducedMotion();
-  const draw = {
-    initial: { pathLength: reduced ? 1 : 0, opacity: reduced ? 1 : 0 },
-    whileInView: { pathLength: 1, opacity: 1 },
-  };
-
-  return (
-    <svg
-      viewBox="0 0 1200 470"
-      width="100%"
-      style={{ height: "auto", display: "block" }}
-      role="img"
-      aria-label="The quality of your trading edge before and after using JournalX, flat or declining before, rising steadily through clear milestones after."
-    >
-      <defs>
-        <linearGradient id="jxAfterFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2ebd85" stopOpacity="0.42" />
-          <stop offset="55%" stopColor="#2ebd85" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="#2ebd85" stopOpacity="0" />
-        </linearGradient>
-        <linearGradient id="jxBeforeFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f6465d" stopOpacity="0.24" />
-          <stop offset="100%" stopColor="#f6465d" stopOpacity="0" />
-        </linearGradient>
-        <linearGradient id="jxStroke" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0%" stopColor="#fcd535" />
-          <stop offset="48%" stopColor="#7fe0b0" />
-          <stop offset="100%" stopColor="#2ebd85" />
-        </linearGradient>
-        <radialGradient id="jxPivot" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#fcd535" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#fcd535" stopOpacity="0" />
-        </radialGradient>
-        <filter id="jxGlow" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="7" result="b" />
-          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-        <filter id="jxShadow" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="#000000" floodOpacity="0.5" />
-        </filter>
-      </defs>
-
-      {/* faint dashed gridlines, fading out to the right */}
-      {[150, 240, 330].map((y) => (
-        <line key={y} x1="70" y1={y} x2="1160" y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" strokeDasharray="2 8" />
-      ))}
-
-      {/* area fills */}
-      <motion.path
-        d={`${BEFORE_PATH} L460,404 L70,404 Z`}
-        fill="url(#jxBeforeFill)"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-      />
-      <motion.path
-        d={`${AFTER_PATH} L1150,404 L460,404 Z`}
-        fill="url(#jxAfterFill)"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.9, delay: 0.5 }}
-      />
-
-      {/* baseline */}
-      <line x1="70" y1="404" x2="1160" y2="404" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-
-      {/* before line */}
-      <motion.path
-        d={BEFORE_PATH}
-        fill="none"
-        stroke="#f6465d"
-        strokeWidth="3"
-        strokeLinecap="round"
-        opacity="0.85"
-        {...draw}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, ease: "easeInOut" }}
-      />
-
-      {/* after line — soft glow underlay + crisp gradient stroke */}
-      <motion.path
-        d={AFTER_PATH}
-        fill="none"
-        stroke="#2ebd85"
-        strokeWidth="9"
-        strokeLinecap="round"
-        opacity="0.28"
-        filter="url(#jxGlow)"
-        {...draw}
-        viewport={{ once: true }}
-        transition={{ duration: 1.7, ease: "easeInOut", delay: 0.5 }}
-      />
-      <motion.path
-        d={AFTER_PATH}
-        fill="none"
-        stroke="url(#jxStroke)"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        {...draw}
-        viewport={{ once: true }}
-        transition={{ duration: 1.7, ease: "easeInOut", delay: 0.5 }}
-      />
-
-      {/* travelling light pulse along the after-curve */}
-      {!reduced && (
-        <motion.path
-          d={AFTER_PATH}
-          fill="none"
-          stroke="#ffffff"
-          strokeWidth="3"
-          strokeLinecap="round"
-          pathLength={1}
-          strokeDasharray="0.05 0.95"
-          initial={{ strokeDashoffset: 1, opacity: 0 }}
-          whileInView={{ strokeDashoffset: [1, 0], opacity: [0, 0.9, 0] }}
-          viewport={{ once: true }}
-          transition={{ duration: 2.4, ease: "linear", delay: 2.1, repeat: Infinity, repeatDelay: 1.6 }}
-        />
-      )}
-
-      {/* pivot point: dashed split + glowing yellow node */}
-      <line x1="460" y1="150" x2="460" y2="396" stroke="#f0b90b" strokeWidth="2" strokeDasharray="5 7" opacity="0.6" />
-      <circle cx="460" cy="366" r="22" fill="url(#jxPivot)" />
-
-      {/* labels — Before as a soft pill, After as a raised chip */}
-      <rect x="150" y="372" width="150" height="30" rx="15" fill="rgba(246,70,93,0.12)" stroke="rgba(246,70,93,0.35)" />
-      <text x="225" y="392" textAnchor="middle" fontFamily="Poppins, sans-serif" fontSize="14" fontWeight="600" fill="#f6465d">Before JournalX</text>
-      <g filter="url(#jxShadow)">
-        <rect x="348" y="102" width="224" height="46" rx="14" fill="#0d1117" stroke="rgba(255,255,255,0.16)" />
-      </g>
-      <circle cx="376" cy="125" r="4" fill="#2ebd85" />
-      <text x="470" y="131" textAnchor="middle" fontFamily="Poppins, sans-serif" fontSize="19" fontWeight="700" fill="#ffffff">After JournalX</text>
-
-      {/* "Your edge" annotation with a smooth curved arrow to the peak */}
-      <text x="912" y="52" fontFamily="Poppins, sans-serif" fontSize="19" fontStyle="italic" fontWeight="600" fill="#c7ccd3">Your edge</text>
-      <path d="M1030,56 C 1078,62 1100,84 1092,112" fill="none" stroke="#f0b90b" strokeWidth="2" strokeLinecap="round" />
-      <path d="M1092,112 l-9,-6 l11,-3 Z" fill="#f0b90b" />
-
-      {/* goal-reach milestones (interactive) */}
-      {GOALS.map((g, i) => {
-        const active = hover === i;
-        const isEnd = i === GOALS.length - 1;
-        const dotColor = i === 0 ? "#fcd535" : "#2ebd85";
-        return (
-          <motion.g
-            key={g.label}
-            initial={{ opacity: reduced ? 1 : 0, scale: reduced ? 1 : 0.2 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: reduced ? 0 : 0.6 + i * 0.28, type: "spring", stiffness: 320, damping: 18 }}
-            style={{ cursor: "pointer" }}
-            onMouseEnter={() => setHover(i)}
-            onMouseLeave={() => setHover(null)}
-            onTouchStart={() => setHover(i)}
-          >
-            {/* generous hit area */}
-            <circle cx={g.x} cy={g.y} r="22" fill="transparent" />
-            {/* soft halo behind every node */}
-            <circle cx={g.x} cy={g.y} r={active ? 15 : 11} fill={dotColor} opacity="0.16" style={{ transition: "r .15s ease" }} />
-            {isEnd && (
-              <motion.circle
-                cx={g.x}
-                cy={g.y}
-                r="10"
-                fill="none"
-                stroke="#2ebd85"
-                strokeWidth="2"
-                initial={{ opacity: 0.6, scale: 1 }}
-                animate={reduced ? {} : { opacity: [0.6, 0, 0.6], scale: [1, 2.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-              />
-            )}
-            <circle cx={g.x} cy={g.y} r={active ? 9 : 6.5} fill={dotColor} stroke="#0d1117" strokeWidth="2.5" style={{ transition: "r .15s ease" }} />
-
-            {/* tooltip */}
-            {active && (
-              <g pointerEvents="none" filter="url(#jxShadow)">
-                <rect x={Math.min(Math.max(g.x - 110, 8), 980)} y={g.y - 74} width="220" height="54" rx="13" fill="#0d1117" stroke="rgba(255,255,255,0.18)" />
-                <text x={Math.min(Math.max(g.x - 110, 8), 980) + 16} y={g.y - 48} fontFamily="Poppins, sans-serif" fontSize="16" fontWeight="700" fill="#ffffff">{g.label}</text>
-                <text x={Math.min(Math.max(g.x - 110, 8), 980) + 16} y={g.y - 29} fontFamily="Poppins, sans-serif" fontSize="13" fill="#aeb4bc">{g.sub}</text>
-              </g>
-            )}
-          </motion.g>
-        );
-      })}
-    </svg>
   );
 }
 
@@ -679,9 +355,7 @@ function JournalMock() {
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: C.green, opacity: 0.85 }} />
         </span>
         <span style={{ font: "600 12px Poppins", color: C.muted, display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/JournalX_Favicon.png" alt="JournalX" style={{ height: 16, width: "auto", display: "block", flexShrink: 0 }} />
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>· My Futures Journal</span>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>JournalX · My Futures Journal</span>
         </span>
         {/* journal-created toast */}
         <span style={{ marginLeft: "auto", minHeight: 22, flexShrink: 0 }}>
@@ -814,137 +488,28 @@ function JournalMock() {
   );
 }
 
-/* ===== Feature card illustrations =====
-   Subtle silver line-art, positioned absolutely in each card's top-right
-   corner. Semantic green/red only on the candles. Gentle looping animation,
-   frozen under prefers-reduced-motion. */
-const ART_STROKE = "rgba(255,255,255,0.5)";
-const ART_FAINT = "rgba(255,255,255,0.16)";
-function FeatureArt({ id }) {
-  const s = ART_STROKE, f = ART_FAINT;
-  const common = { fill: "none", stroke: s, strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" };
-  let art = null;
-  if (id === "log") {
-    art = (
-      <g>
-        <rect x="20" y="16" width="80" height="88" rx="12" stroke={f} fill="none" strokeWidth="2" />
-        <line x1="34" y1="40" x2="72" y2="40" {...common} className="fa-row" style={{ animationDelay: "0s" }} />
-        <line x1="34" y1="56" x2="86" y2="56" {...common} className="fa-row" style={{ animationDelay: ".25s" }} />
-        <line x1="34" y1="72" x2="60" y2="72" {...common} className="fa-row" style={{ animationDelay: ".5s" }} />
-        <path d="M78 74 l10 0 l-4 10 l10 0 l-14 16 l4 -14 l-8 0 z" fill={s} stroke="none" className="fa-bolt" />
-      </g>
-    );
-  } else if (id === "analytics") {
-    art = (
-      <g>
-        <line x1="18" y1="102" x2="104" y2="102" stroke={f} strokeWidth="2" />
-        <rect x="26" y="70" width="14" height="32" rx="3" {...common} className="fa-bar" style={{ animationDelay: "0s" }} />
-        <rect x="48" y="54" width="14" height="48" rx="3" {...common} className="fa-bar" style={{ animationDelay: ".15s" }} />
-        <rect x="70" y="60" width="14" height="42" rx="3" {...common} className="fa-bar" style={{ animationDelay: ".3s" }} />
-        <rect x="92" y="34" width="14" height="68" rx="3" {...common} className="fa-bar" style={{ animationDelay: ".45s" }} />
-        <path d="M28 66 L55 50 L77 56 L99 30" {...common} strokeWidth="2.2" className="fa-draw" />
-      </g>
-    );
-  } else if (id === "psychology") {
-    art = (
-      <g>
-        <circle cx="60" cy="60" r="34" stroke={f} strokeWidth="8" fill="none" />
-        <circle cx="60" cy="60" r="34" {...common} strokeWidth="8" strokeDasharray="214" strokeDashoffset="70" transform="rotate(-90 60 60)" className="fa-ring" />
-        <circle cx="60" cy="60" r="5" fill={s} stroke="none" />
-        <line x1="60" y1="60" x2="82" y2="44" {...common} strokeWidth="2.4" className="fa-needle" />
-      </g>
-    );
-  } else if (id === "shield") {
-    art = (
-      <g>
-        <path d="M60 18 L94 30 V58 C94 82 78 96 60 104 C42 96 26 82 26 58 V30 Z" {...common} />
-        <path d="M46 60 l10 10 l20 -24" {...common} strokeWidth="2.6" className="fa-check" />
-        <path d="M60 18 L94 30 V58 C94 82 78 96 60 104 C42 96 26 82 26 58 V30 Z" stroke={f} strokeWidth="2" fill="none" className="fa-pulse" />
-      </g>
-    );
-  } else if (id === "calendar") {
-    const cells = [];
-    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
-      const on = (r * 4 + c) % 3 === 0;
-      cells.push(<rect key={`${r}-${c}`} x={30 + c * 16} y={40 + r * 16} width="11" height="11" rx="2.5" fill={on ? s : "none"} stroke={on ? "none" : f} strokeWidth="1.6" className={on ? "fa-cell" : ""} style={{ animationDelay: `${(r * 4 + c) * 0.08}s` }} />);
-    }
-    art = (
-      <g>
-        <rect x="22" y="22" width="76" height="82" rx="10" stroke={f} strokeWidth="2" fill="none" />
-        <line x1="22" y1="36" x2="98" y2="36" stroke={f} strokeWidth="2" />
-        {cells}
-      </g>
-    );
-  } else if (id === "market") {
-    art = (
-      <g>
-        <path d="M20 78 L38 66 L52 72 L68 50 L84 58 L100 38" {...common} strokeWidth="2.2" className="fa-draw" />
-        <circle cx="100" cy="38" r="4" fill={s} stroke="none" className="fa-blip" />
-        <line x1="20" y1="94" x2="100" y2="94" stroke={f} strokeWidth="2" />
-        <line x1="20" y1="94" x2="100" y2="94" stroke={s} strokeWidth="2" strokeDasharray="18 62" className="fa-tape" />
-      </g>
-    );
-  } else if (id === "candles") {
-    const g = C.green, r = C.red;
-    art = (
-      <g>
-        {/* wick + body candles */}
-        <line x1="30" y1="40" x2="30" y2="88" stroke={g} strokeWidth="2" className="fa-candle" style={{ animationDelay: "0s" }} />
-        <rect x="24" y="52" width="12" height="26" rx="2" fill={g} className="fa-candle" style={{ animationDelay: "0s" }} />
-        <line x1="52" y1="34" x2="52" y2="82" stroke={r} strokeWidth="2" className="fa-candle" style={{ animationDelay: ".2s" }} />
-        <rect x="46" y="44" width="12" height="24" rx="2" fill={r} className="fa-candle" style={{ animationDelay: ".2s" }} />
-        <line x1="74" y1="28" x2="74" y2="74" stroke={g} strokeWidth="2" className="fa-candle" style={{ animationDelay: ".4s" }} />
-        <rect x="68" y="36" width="12" height="30" rx="2" fill={g} className="fa-candle" style={{ animationDelay: ".4s" }} />
-        <line x1="96" y1="22" x2="96" y2="66" stroke={g} strokeWidth="2" className="fa-candle" style={{ animationDelay: ".6s" }} />
-        <rect x="90" y="30" width="12" height="26" rx="2" fill={g} className="fa-candle" style={{ animationDelay: ".6s" }} />
-      </g>
-    );
-  } else if (id === "devices") {
-    art = (
-      <g>
-        {/* monitor */}
-        <rect x="18" y="26" width="66" height="46" rx="6" {...common} />
-        <line x1="40" y1="84" x2="62" y2="84" {...common} />
-        <line x1="51" y1="72" x2="51" y2="84" {...common} />
-        {/* phone overlapping */}
-        <rect x="74" y="56" width="30" height="50" rx="8" {...common} strokeWidth="2.2" fill="#0d0d0d" className="fa-phone" />
-        <line x1="82" y1="98" x2="96" y2="98" {...common} strokeWidth="2.4" />
-        <line x1="80" y1="66" x2="98" y2="66" stroke={f} strokeWidth="2" />
-        <line x1="80" y1="74" x2="92" y2="74" stroke={f} strokeWidth="2" />
-      </g>
-    );
-  }
-  return (
-    <svg className="feat-art" viewBox="0 0 120 120" width="112" height="112" aria-hidden="true">{art}</svg>
-  );
-}
-
 /* ===== Section copy ===== */
-const FEATURES = [
-  { art: "log", title: "Log trades in seconds", body: "Quick log for P&L-only, or full detail with entries, risk, screenshots and emotions. Connect an exchange and trades import automatically." },
-  { art: "analytics", title: "Analytics that find your edge", body: "Equity growth candles, P&L calendars, R-multiples, win rate trends, and per-strategy breakdowns, all computed from your real trades." },
-  { art: "psychology", title: "Master your psychology", body: "Tag emotion and discipline on every trade. See exactly how much tilt and FOMO cost you, and where your real edge comes from." },
-  { art: "shield", title: "Protect your funded account", body: "Fixed-risk position sizing, planned vs realised R:R, profit factor and drawdown tracking, the metrics that keep funded and prop firm accounts alive." },
-  { art: "calendar", title: "See every day at a glance", body: "A colour-coded P&L calendar and activity heatmap make your consistency (or lack of it) impossible to ignore." },
-  { art: "market", title: "Live market context", body: "Ticker tape, heatmaps, economic calendar and news, plus an 'if you'd held' live price check on closed trades." },
-  { art: "candles", title: "Mark trades on a chart", body: "Drop your entry and exit on a live chart, prices fill in automatically and the marked chart shows on the trade details across multiple timeframes." },
-  { art: "devices", title: "Works on desktop & mobile", body: "A fully responsive web app plus an installable PWA, journal on your laptop or log a trade from your phone the moment you close a position." },
+/* Why JournalX comparison: true = yes, false = no, string = partial */
+const COMPARE = [
+  ["Log a trade in about 10 seconds", true, "Minutes per trade", false],
+  ["Win rate, profit factor and R-multiple", true, "Manual formulas", false],
+  ["Equity curve and P&L calendar", true, "Manual charts", "Basic"],
+  ["Trade screenshots and marked chart logs", true, "Links only", false],
+  ["Daily and trailing drawdown tracking", true, "Manual", false],
+  ["Discipline score on every trade", true, false, false],
+  ["Emotion and mistake analytics", true, false, false],
+  ["CSV import and exchange sync", true, "Copy and paste", "Export only"],
+  ["Works on desktop and mobile", true, "Clunky on mobile", "App only"],
+  ["Free to start, no card", true, true, true],
 ];
 
-const WHY = [
-  ["Built for funded & prop firm traders", "Drawdown and consistency tracking most journals ignore"],
-  ["Log a trade in 10 seconds", "Spreadsheets take minutes per trade, so you quit"],
-  ["Discipline scored on every trade", "Generic journals only record numbers after the fact"],
-  ["Emotion & mistake analytics", "Broker statements have none of this"],
-  ["Equity growth candlesticks", "Most tools show a flat P&L line"],
-  ["Auto-import from exchanges", "Manual CSV wrangling everywhere else"],
-  ["Free to start, no card", "Many competitors gate everything behind a paywall"],
-];
-
-const STEPS = [
-  { n: "01", title: "Log or import", body: "Quick log, detailed log, CSV import, or auto-sync from your exchange." },
-  { n: "02", title: "Review the analytics", body: "Your dashboard turns trades into equity growth, R-multiples and behavioural insights." },
-  { n: "03", title: "Fix one leak at a time", body: "Spot your most expensive habit, fix it, and watch your equity curve respond." },
+/* Glossary shown in the analytics section (also helps "what is ..." searches) */
+const METRICS = [
+  ["Win rate", "Share of trades that closed in profit."],
+  ["Profit factor", "Gross profit divided by gross loss. Above 1 means the strategy makes money."],
+  ["R-multiple", "Profit or loss measured in units of the risk you planned to take."],
+  ["Expectancy", "Average amount you can expect to win or lose per trade."],
+  ["Max drawdown", "Largest peak-to-trough drop in your account, the number prop firms enforce."],
 ];
 
 const TESTIMONIALS = [
@@ -1104,18 +669,18 @@ function Section({ children, style, label, id, grid }) {
   );
 }
 
-function SectionHead({ title, sub, kicker }) {
+function SectionHead({ title, sub, kicker, id }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      style={{ textAlign: "center", marginBottom: 44 }}
+      className={sec.head}
     >
-      {kicker && <Eyebrow>{kicker}</Eyebrow>}
-      <h2 style={{ font: "300 clamp(28px,3.8vw,44px)/1.12 Poppins", margin: "0 0 12px", letterSpacing: "-0.02em" }}>{title}</h2>
-      {sub && <p style={{ font: "400 clamp(15px,2vw,17px)/1.6 Poppins", color: C.muted, maxWidth: 620, margin: "0 auto" }}>{sub}</p>}
+      {kicker && <span className={sec.kicker}>{kicker}</span>}
+      <h2 id={id} className={sec.h2}>{title}</h2>
+      {sub && <p className={sec.lead}>{sub}</p>}
     </motion.div>
   );
 }
@@ -1232,6 +797,16 @@ function InteractiveDemo() {
             </AnimatePresence>
           </div>
         </div>
+        <div style={{ ...glassDeep, borderRadius: 14, padding: "12px 14px" }}>
+          <div style={{ font: "400 12px Poppins", color: C.dim, marginBottom: 8 }}>Journal</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {trades.slice(-6).reverse().map((t, i) => (
+              <span key={`${t.sym}-${trades.length - i}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 999, background: "#141416", border: "1px solid #1e1e20", font: "500 12px Poppins", color: "#d6dae0" }}>
+                {t.sym}<b style={{ color: t.pnl >= 0 ? C.green : C.red, fontWeight: 600 }}>{money(t.pnl)}</b>
+              </span>
+            ))}
+          </div>
+        </div>
         <div style={{ font: "400 12px Poppins", color: C.dim, textAlign: "center" }}>
           In JournalX this also tracks R-multiples, emotion and discipline, automatically.
         </div>
@@ -1240,218 +815,12 @@ function InteractiveDemo() {
   );
 }
 
-/* ===== Continuous linear marquee (pauses on hover; respects reduced motion) ===== */
-function Marquee({ children, duration = 32, fade = true }) {
-  return (
-    <div className="lp-marquee" style={{ position: "relative", overflow: "hidden", width: "100%", maskImage: fade ? "linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)" : undefined, WebkitMaskImage: fade ? "linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)" : undefined }}>
-      <div className="lp-marquee__track" style={{ display: "flex", width: "max-content", animationDuration: `${duration}s` }}>
-        <div className="lp-marquee__row">{children}</div>
-        <div className="lp-marquee__row" aria-hidden="true">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-const EXCHANGES = [
-  // Stocks & options brokers
-  "Interactive Brokers", "Thinkorswim", "Charles Schwab", "E*TRADE",
-  "Webull", "Robinhood", "Fidelity", "Tastytrade",
-  // Futures
-  "NinjaTrader", "Tradovate", "AMP Futures",
-  // Forex / CFD
-  "MetaTrader 4", "MetaTrader 5", "OANDA", "cTrader", "IG",
-  // Crypto
-  "Binance", "Bybit", "Coinbase", "Kraken", "OKX",
-  // Works with everything
-  "CSV import",
-];
-
-/* Asset classes JournalX supports, shown as tags above the broker marquee */
-const MARKET_TAGS = ["Stocks", "Options", "Futures", "Forex", "Crypto", "CFDs"];
-
-function ExchangeChip({ name }) {
-  return (
-    <span style={{ ...glass, display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 20px", borderRadius: 12, font: "600 16px Poppins", color: "#d6dae0", whiteSpace: "nowrap" }}>
-      <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.green, flexShrink: 0 }} />
-      {name}
-    </span>
-  );
-}
-
-const BLOG_ACCENT = {
-  Strategy: "#fcd535", Risk: "#2ebd85", Psychology: "#a78bfa",
-  Journaling: "#38bdf8", Markets: "#fb7185", Funded: "#34d399",
-};
-
-function BlogCard({ post }) {
-  const accent = BLOG_ACCENT[post.category] || C.yellow;
-  return (
-    <a href={`/blogs/${post.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
-      <article style={{ ...glass, width: 300, borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column", height: 188 }}>
-        <div style={{ height: 5, background: `linear-gradient(90deg, ${accent}, transparent)` }} aria-hidden="true" />
-        <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-          <span style={{ display: "inline-flex", alignSelf: "flex-start", padding: "3px 10px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: `1px solid ${C.border}`, font: "600 11px Poppins", color: accent }}>
-            {post.category} · {post.minutes} min
-          </span>
-          <h3 style={{ font: "600 16px/1.35 Poppins", color: C.text, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", margin: 0 }}>{post.title}</h3>
-          <p style={{ font: "400 13px/1.5 Poppins", color: C.muted, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", margin: 0 }}>{post.excerpt}</p>
-          <span style={{ marginTop: "auto", font: "400 12px Poppins", color: C.dim }}>{fmtDate(post.date)}</span>
-        </div>
-      </article>
-    </a>
-  );
-}
-
-/* ===== Pricing section (in-page checkout, mirrors the /pricing flow) ===== */
-function PricingSection() {
-  // shared checkout flow (currency + Paddle/crypto + payment modal state)
-  const { plans, currency, isModalOpen, selectedPlan, handlePlanClick, closeModal } =
-    usePlanCheckout({ loginRedirect: "/pricing" });
-
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  const CARDS = [
-    { key: "free", title: "Free", price: plans.free.price, period: "forever", features: PLANS_FEATURES.free, cta: "Start free", href: "/register", note: "No card required" },
-    { key: "monthly", title: "Pro Monthly", price: plans.monthly.price, period: "/ month", features: PLANS_FEATURES.pro, cta: "Get monthly", note: "Billed monthly · cancel anytime" },
-    { key: "yearly", title: "Pro Yearly", price: plans.yearly.price, period: "/ year", features: PLANS_FEATURES.pro, cta: "Get yearly", popular: true, badge: "Save 28%", note: "7-day free trial · no card" },
-    { key: "lifetime", title: "Lifetime", price: plans.lifetime.price, period: "once", features: PLANS_FEATURES.lifetime, cta: "Get lifetime", badge: "Best value", note: "One-time payment · yours forever" },
-  ];
-
-  return (
-    <Section id="pricing" label="Pricing plans" style={{ scrollMarginTop: 80 }}>
-      <SectionHead
-        kicker="Pricing"
-        title={<>Simple pricing that pays for <span style={{ color: C.silverBright }}>itself</span></>}
-        sub="Start free and upgrade when you're ready. Every plan pays for itself the first time it saves you from one bad habit."
-      />
-
-      {/* compact trust badge, above the cards */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.45 }}
-        style={{ display: "flex", justifyContent: "center", margin: "-6px 0 26px" }}
-      >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 15px", borderRadius: 999, background: "rgba(46,189,133,0.10)", border: "1px solid rgba(46,189,133,0.35)", font: "600 13px Poppins", color: C.green, whiteSpace: "nowrap" }}>
-          <Sparkles size={14} aria-hidden="true" /> 7 days free trial, no card required
-        </span>
-      </motion.div>
-
-      <div className="lp-pricing-grid" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(248px, 1fr))", gap: 18, alignItems: "stretch", paddingTop: 16 }}>
-        {CARDS.map((c, i) => {
-          const btnStyle = {
-            width: "100%", boxSizing: "border-box", marginTop: "auto", justifyContent: "center", display: "inline-flex", alignItems: "center", gap: 8,
-            borderRadius: 12, padding: "13px", cursor: "pointer", font: "600 14px Poppins",
-            background: c.popular ? `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})` : "rgba(255,255,255,0.08)",
-            border: c.popular ? "none" : `1px solid ${C.border}`,
-            color: c.popular ? "#1e2329" : "#fff",
-          };
-          return (
-            <motion.div
-              key={c.key}
-              initial={{ opacity: 0, y: 22 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: i * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              style={{
-                position: "relative", display: "flex", flexDirection: "column",
-                background: c.popular
-                  ? "linear-gradient(160deg, rgba(252,213,53,0.1), #0d0d0d 60%)"
-                  : "#0d0d0d",
-                border: `1px solid ${c.popular ? "rgba(252,213,53,0.42)" : "#1c1c1c"}`,
-                borderRadius: 20, padding: 26,
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
-              }}
-            >
-              {c.popular && (
-                <span style={{ position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)", background: C.yellow, color: "#1e2329", font: "700 11px Poppins", padding: "4px 12px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
-                  <Crown size={12} /> MOST POPULAR
-                </span>
-              )}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
-                <span style={{ font: "600 17px Poppins" }}>{c.title}</span>
-                {c.badge && !c.popular && (
-                  <span style={{ background: "rgba(46,189,133,0.15)", color: C.green, font: "600 11px Poppins", padding: "3px 9px", borderRadius: 999, whiteSpace: "nowrap" }}>{c.badge}</span>
-                )}
-              </div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, margin: "10px 0 4px" }}>
-                <span style={{ font: "700 34px Poppins", letterSpacing: "-1px" }}>{c.price}</span>
-                <span style={{ font: "400 14px Poppins", color: C.dim }}>{c.period}</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 11, margin: "20px 0 24px", flex: 1 }}>
-                {c.features.map((f) => (
-                  <span key={f.text} style={{ display: "flex", alignItems: "flex-start", gap: 9, font: "400 14px/1.4 Poppins", color: C.muted }}>
-                    <Check size={16} style={{ color: C.green, flexShrink: 0, marginTop: 2 }} aria-hidden="true" /> {f.text}
-                  </span>
-                ))}
-              </div>
-              {c.key === "free" ? (
-                <a href="/register" style={{ ...btnStyle, textDecoration: "none" }} aria-label={`${c.cta}, ${c.title} plan`}>
-                  <Zap size={15} aria-hidden="true" /> {c.cta}
-                </a>
-              ) : (
-                <button onClick={() => handlePlanClick(c.key)} style={btnStyle} aria-label={`${c.cta}, ${c.title} plan`}>
-                  <Zap size={15} aria-hidden="true" /> {c.cta}
-                </button>
-              )}
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* trust badges + start-free CTA, clearly below the cards */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 5,
-          marginTop: 48,
-          paddingTop: 30,
-          borderTop: `1px solid ${C.border}`,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 22,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap", font: "400 13px Poppins", color: C.dim }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}><ShieldCheck size={15} style={{ color: C.green }} aria-hidden="true" /> 256-bit encrypted</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={15} style={{ color: C.green }} aria-hidden="true" /> Cancel anytime</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={15} style={{ color: C.green }} aria-hidden="true" /> Cards, PayPal & crypto</span>
-        </div>
-        <a href="/register" style={{ textDecoration: "none" }} aria-label="Start free, create your JournalX account">
-          <button style={{ ...btnPrimary, padding: "15px 34px", fontSize: 15, background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})`, boxShadow: "0 8px 28px rgba(252,213,53,0.3)" }}>
-            Start free <ArrowRight size={16} aria-hidden="true" />
-          </button>
-        </a>
-      </div>
-
-      {/* in-page checkout (same flow as /pricing) */}
-      <PaddleLoader />
-      {mounted && isModalOpen && selectedPlan &&
-        createPortal(
-          <PaymentModal
-            isOpen={isModalOpen}
-            onClose={closeModal}
-            plans={plans}
-            currency={currency}
-            initialPlan={selectedPlan}
-            loginRedirect="/pricing"
-          />,
-          document.body,
-        )}
-    </Section>
-  );
-}
 
 /* ===================================================================== */
 
 export default function Home({ posts = [] }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [faq, setFaq] = useState(0);
 
   useEffect(() => {
     if (Cookies.get("isVerified") === "yes") router.push("/dashboard");
@@ -1561,214 +930,130 @@ export default function Home({ posts = [] }) {
 
       {loading && <FullPageLoader />}
 
-      <div style={{ background: "#000", color: C.text, fontFamily: "Poppins, sans-serif", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
+      <div style={{ background: "#000", color: C.text, fontFamily: "Poppins, sans-serif", minHeight: "100vh", position: "relative", overflow: "clip" }}>
         <AuroraBackdrop />
-        <LandingNav />
+        <LightHeroHeader />
 
         <main style={{ position: "relative", zIndex: 1 }}>
-          {/* ===== Hero (two-column: copy + before/after edge graph) ===== */}
-          <Section label="Hero" style={{ paddingTop: 96, paddingBottom: 72, position: "relative", background: "transparent" }}>
-            {/* full-bleed pure-black backdrop so the hero has no navy seams on the sides */}
-            <div aria-hidden="true" style={{ position: "absolute", top: 0, bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100vw", background: "#000", zIndex: 0, pointerEvents: "none" }} />
-            {/* masked glassmorphic grid with an animated glowing shine sweep */}
-            <div className="hero-grid" aria-hidden="true">
-              <span className="hero-grid__shine" />
-            </div>
-            <HeroGlow />
-            {/* centered intro copy (SEO unchanged) */}
-            <motion.div className="lp-hero-copy" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: "min(1080px, 94vw)", marginInline: "auto" }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#0d0d0d", border: "1px solid #222", color: "#9b9b9b", borderRadius: 999, padding: "6px 14px", fontFamily: "Poppins, sans-serif", fontWeight: 500, fontSize: 13, marginBottom: 28 }}>
-                <Sparkles size={13} aria-hidden="true" style={{ color: C.yellow }} /> Full trade analysis in under 10 seconds
-              </span>
-              <h1 style={{ fontFamily: "Poppins, sans-serif", fontWeight: 300, fontSize: "clamp(34px, 5vw, 66px)", lineHeight: 1.08, letterSpacing: "-0.02em", margin: "0 auto 22px", maxWidth: 820, color: "#fff", textWrap: "balance" }}>
-                The trading <span className="hero-shine">journal</span><br />that finds your <RotatingWord />
-              </h1>
-              <p style={{ fontFamily: "Poppins, sans-serif", fontWeight: 400, fontSize: "clamp(15px,1.5vw,17px)", lineHeight: 1.55, color: C.muted, maxWidth: 540, margin: "0 auto 30px" }}>
-                Win rate, R-multiple, drawdown and trading psychology — across forex, futures and crypto. Built for funded and prop-firm traders.
-              </p>
-              <div className="lp-hero-actions" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-                <a href="/register" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnPrimary, width: "100%", justifyContent: "center", fontFamily: "Poppins, sans-serif", fontWeight: 600, padding: "13px 26px", fontSize: 15, background: C.yellow, color: "#1e2329", border: "1px solid " + C.yellow, boxShadow: "none" }}>
-                    Start journaling free <ArrowRight size={16} aria-hidden="true" />
-                  </button>
-                </a>
-                <a href="/dashboard" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnGhost, width: "100%", justifyContent: "center", fontFamily: "Poppins, sans-serif", fontWeight: 500, padding: "13px 26px", fontSize: 15, color: "#fff", background: "transparent", border: "1px solid rgba(255,255,255,0.22)" }}>
-                    Try demo
-                  </button>
-                </a>
-              </div>
-              <div className="lp-hero-trust" style={{ display: "flex", gap: 22, justifyContent: "center", flexWrap: "wrap", marginTop: 26, font: "400 13px Poppins", color: C.dim }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> Free to start</span>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> No card required</span>
-                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Check size={14} style={{ color: C.green }} aria-hidden="true" /> All markets</span>
-              </div>
-            </motion.div>
+          {/* ===== Hero (light, crystal visuals) + feature panel ===== */}
+          <LightHero />
 
-            {/* signature animation, the live journal mock (how journaling is done) */}
-            <motion.div
-              initial={{ opacity: 0, y: 28, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              style={{ position: "relative", zIndex: 1, marginTop: 64, maxWidth: 860, marginInline: "auto" }}
-            >
-              <div aria-hidden="true" style={{ position: "absolute", inset: "-40px -60px", background: "radial-gradient(60% 70% at 50% 50%, rgba(255,255,255,0.05), transparent 70%)", pointerEvents: "none", filter: "blur(8px)" }} />
-              <JournalMock />
-            </motion.div>
-          </Section>
+          {/* ===== Live journal demo: a trade gets logged, analytics update ===== */}
+          <section className={`${heroStyles.lx} ${heroStyles.demoSection}`} aria-labelledby="demo-live-title">
+            <div className={heroStyles.wrap}>
+              <span className={heroStyles.demoKicker}>See it in action</span>
+              <h2 id="demo-live-title" className={heroStyles.demoTitle}>Log a trade, watch your analytics update</h2>
+              <p className={heroStyles.demoText}>
+                Each trade you add instantly updates your win rate, net P&amp;L, R-multiples and equity curve. No formulas, no spreadsheets.
+              </p>
+              <div className={heroStyles.demoStage}>
+                <JournalMock />
+              </div>
+            </div>
+          </section>
+
+          <HeroFeaturePanel />
+          <JourneySection />
 
           {/* x.ai-style bento grid: live demos of how logging pays off */}
           <BentoGrid />
 
-          {/* ===== Social proof: stats + exchanges ===== */}
-          <Section label="Social proof" style={{ paddingTop: 8, paddingBottom: 8 }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
-              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, maxWidth: 760, margin: "0 auto 52px" }}
-            >
-              {[["250k+", "Trades logged"], ["4.8", "Avg. rating", true], ["40+", "Markets"], ["10s", "To log a trade"]].map(([v, l, star]) => (
-                <div key={l} style={{ ...glass, borderRadius: 16, padding: "18px 16px", textAlign: "center" }}>
-                  <div style={{ font: "700 26px Poppins", letterSpacing: "-1px", ...silverText, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    {v}{star && <Star size={20} strokeWidth={0} fill="#d7dbe1" aria-hidden="true" style={{ marginTop: -2 }} />}
-                  </div>
-                  <div style={{ font: "400 13px Poppins", color: C.muted }}>{l}</div>
-                </div>
-              ))}
-            </motion.div>
-            <p style={{ textAlign: "center", font: "600 13px Poppins", letterSpacing: 0.6, textTransform: "uppercase", color: C.dim, margin: "0 0 14px" }}>
-              Import your trade logs from any exchange or broker
-            </p>
-            {/* Asset-class tags, JournalX isn't crypto-only */}
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, margin: "0 auto 24px", maxWidth: 560 }}>
-              {MARKET_TAGS.map((m) => (
-                <span key={m} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 13px", borderRadius: 999, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.14)", font: "600 12.5px Poppins", color: C.silver }}>
-                  {m}
-                </span>
-              ))}
-            </div>
-            <Marquee duration={34}>
-              {EXCHANGES.map((name) => (
-                <span key={name} style={{ marginRight: 16 }}><ExchangeChip name={name} /></span>
-              ))}
-            </Marquee>
-            <p style={{ textAlign: "center", font: "400 13px Poppins", color: C.dim, margin: "20px 0 0" }}>
-              Auto-sync supported exchanges, connect your broker, or upload a CSV from any platform, your history imports in minutes.
-            </p>
-          </Section>
-
-          {/* ===== How it works ===== */}
-          <Section label="How it works" grid>
-            <SectionHead kicker="How it works" title="From first log to lasting edge" sub="Three steps, repeated, compound into consistency." />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
-              {STEPS.map((s, i) => (
-                <motion.article
-                  key={s.n}
-                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.5 }}
-                  style={{ ...glass, borderRadius: 18, padding: 28, position: "relative", overflow: "hidden" }}
-                >
-                  <div aria-hidden="true" style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,255,255,0.055), transparent 70%)" }} />
-                  <div style={{ font: "700 30px Poppins", ...silverText, marginBottom: 10 }}>{s.n}</div>
-                  <h3 style={{ font: "600 18px Poppins", margin: "0 0 8px" }}>{s.title}</h3>
-                  <p style={{ font: "400 14px/1.6 Poppins", color: C.muted, margin: 0 }}>{s.body}</p>
-                </motion.article>
-              ))}
-            </div>
-          </Section>
-
-          {/* ===== Features ===== */}
-          <Section id="features" label="Features" grid style={{ paddingTop: 24, scrollMarginTop: 80 }}>
-            <SectionHead
-              kicker="Features"
-              title="Everything you need to trade like a pro"
-              sub="One journal that scales from a 10-second log to full risk and psychology analytics."
-            />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 18 }}>
-              {FEATURES.map(({ art, title, body }, i) => (
-                <motion.article
-                  key={title}
-                  initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: (i % 3) * 0.08, duration: 0.5 }}
-                  whileHover={{ y: -4 }}
-                  className="lp-feat"
-                  style={{ ...glass, borderRadius: 18, padding: 26, position: "relative", overflow: "hidden" }}
-                >
-                  <span className="lp-feat__art" aria-hidden="true"><FeatureArt id={art} /></span>
-                  <h3 style={{ font: "600 18px Poppins", margin: "0 0 8px", position: "relative" }}>{title}</h3>
-                  <p style={{ font: "400 14px/1.6 Poppins", color: C.muted, margin: 0, position: "relative", paddingRight: 84 }}>{body}</p>
-                </motion.article>
-              ))}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, flexWrap: "wrap", marginTop: 26 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "500 14px Poppins", color: C.muted }}>
-                <MonitorSmartphone size={16} style={{ color: C.green }} aria-hidden="true" /> Works on desktop + mobile · installable PWA · all markets
-              </span>
-              <a href="/features" style={{ textDecoration: "none" }}>
-                <button style={{ ...btnGhost, padding: "12px 20px" }}>Explore all features <ArrowRight size={15} aria-hidden="true" /></button>
-              </a>
-            </div>
-          </Section>
+          {/* ===== Brokers & exchanges · How it works · More tools ===== */}
+          <IntegrationsSection />
+          <HowItWorksSection />
 
           {/* ===== Analytics showcase (recharts) ===== */}
-          <Section id="analytics" label="Analytics showcase" style={{ scrollMarginTop: 80 }}>
-            <SectionHead
-              kicker="Analytics"
-              title={<>See your trading the way the <span style={{ color: C.silverBright }}>numbers</span> see it</>}
-              sub="Every trade you log feeds live dashboards like these, win/loss breakdowns, equity growth and monthly P&L, computed automatically."
-            />
-            <div className="lp-charts-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.3fr)", gap: 18 }}>
-              <ChartCard icon={PieChartIcon} title="Win / loss breakdown" caption="Outcome split across your last 90 days, wins, losses and break-even trades." height={230}>
-                <WinLossPie />
-              </ChartCard>
-              <ChartCard icon={TrendingUp} title="Equity curve" caption="Cumulative P&L week by week. Drawdowns become visible, and fixable." height={230} delay={0.1}>
-                <EquityArea />
-              </ChartCard>
-            </div>
-            <div style={{ marginTop: 18 }}>
-              <ChartCard icon={BarChart3} title="Monthly P&L" caption="Green months and red months at a glance, so consistency is impossible to fake." height={210} delay={0.15}>
-                <MonthlyBars />
-              </ChartCard>
-            </div>
-            <p style={{ textAlign: "center", font: "400 13px Poppins", color: C.dim, margin: "22px 0 0" }}>
-              Plus R-multiple distributions, P&L calendars, emotion analytics and per-strategy breakdowns, all included.
-            </p>
-          </Section>
-
-          {/* ===== Why JournalX ===== */}
-          <Section id="why" label="Why JournalX" style={{ scrollMarginTop: 80 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }} className="lp-why-grid">
-              <motion.div initial={{ opacity: 0, x: -18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.55 }}>
-                <h2 style={{ font: "300 clamp(26px,4vw,38px)/1.12 Poppins", margin: "0 0 16px", letterSpacing: "-1px" }}>
-                  Why traders switch to <span style={{ color: C.silverBright }}>JournalX</span>
-                </h2>
-                <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, marginBottom: 24 }}>
-                  Spreadsheets are slow and blind. Broker statements are raw. JournalX is the only journal built to turn discipline and risk into metrics you can actually improve.
+          <section id="analytics" className={sec.sec} aria-labelledby="analytics-title" style={{ scrollMarginTop: 80 }}>
+            <div className={sec.inner}>
+              <div className={sec.head}>
+                <span className={sec.kicker}>Trading analytics</span>
+                <h2 id="analytics-title" className={sec.h2}>Trading analytics that show <span>what is working</span>, and what is not</h2>
+                <p className={sec.lead}>
+                  Every trade you log feeds live dashboards: equity curve, win/loss breakdown, monthly P&amp;L and the core
+                  performance metrics every trader should track, computed automatically from your trading journal.
                 </p>
-                <a href="/register" style={{ textDecoration: "none" }}>
-                  <button style={{ ...btnPrimary, padding: "13px 24px", background: `linear-gradient(90deg, ${C.yellow}, ${C.yellowDeep})` }}>Try it free <ArrowRight size={15} aria-hidden="true" /></button>
-                </a>
+              </div>
+
+              <div className={sec.anGrid}>
+                <div className={sec.anEquity}>
+                  <ChartCard icon={TrendingUp} title="Equity curve" caption="Cumulative P&L week by week. Drawdowns become visible, and fixable." height={250}>
+                    <EquityArea />
+                  </ChartCard>
+                </div>
+                <div className={sec.anPie}>
+                  <ChartCard icon={PieChartIcon} title="Win / loss breakdown" caption="Outcome split across the last 90 days." height={190} delay={0.08}>
+                    <WinLossPie />
+                  </ChartCard>
+                  <ul className={sec.legend} aria-label="Win loss split">
+                    {PIE_DATA.map((d) => <li key={d.name}><i style={{ background: d.color }} />{d.name}<b>{d.value}%</b></li>)}
+                  </ul>
+                </div>
+                <div className={sec.anBars}>
+                  <ChartCard icon={BarChart3} title="Monthly P&L" caption="Green and red months at a glance, so consistency is impossible to fake." height={210} delay={0.12}>
+                    <MonthlyBars />
+                  </ChartCard>
+                </div>
+                <motion.div className={sec.glossary} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.5, delay: 0.15 }}>
+                  <h3 className={sec.glossTitle}>Trading metrics JournalX tracks for you</h3>
+                  <dl className={sec.gloss}>
+                    {METRICS.map(([term, def]) => (
+                      <div key={term}><dt>{term}</dt><dd>{def}</dd></div>
+                    ))}
+                  </dl>
+                </motion.div>
+              </div>
+              <p className={sec.note}>Charts show sample data. Your dashboard is built from your own trades, including R-multiple distribution, P&amp;L calendar, emotion analytics and per-strategy breakdowns.</p>
+            </div>
+          </section>
+
+          {/* ===== Why JournalX: comparison ===== */}
+          <section id="why" className={sec.sec} aria-labelledby="why-title" style={{ scrollMarginTop: 80 }}>
+            <div className={sec.inner}>
+              <div className={sec.head}>
+                <span className={sec.kicker}>Why JournalX</span>
+                <h2 id="why-title" className={sec.h2}>A trading journal vs a <span>spreadsheet</span> or broker statement</h2>
+                <p className={sec.lead}>
+                  Spreadsheets are slow and break. Broker statements only show raw fills. JournalX turns discipline, risk
+                  and psychology into metrics you can actually improve.
+                </p>
+              </div>
+              <motion.div className={sec.cmpWrap} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.5 }}>
+                <table className={sec.cmp}>
+                  <caption className={sec.srOnly}>Comparison of JournalX, a spreadsheet and a broker statement for trade journaling</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">What you get</th>
+                      <th scope="col" className={sec.cmpUs}>JournalX</th>
+                      <th scope="col">Spreadsheet</th>
+                      <th scope="col">Broker statement</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {COMPARE.map(([feat, us, sheet, broker]) => (
+                      <tr key={feat}>
+                        <th scope="row">{feat}</th>
+                        {[us, sheet, broker].map((v, k) => (
+                          <td key={k} className={k === 0 ? sec.cmpUs : undefined}>
+                            {v === true ? <Check size={17} className={sec.yes} aria-label="Yes" /> : v === false ? <span className={sec.no} aria-label="No">—</span> : <span className={sec.partial}><span className={sec.partialText}>{v}</span><span className={sec.partialIcon} aria-hidden="true">~</span></span>}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </motion.div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {WHY.map(([feat, vs], i) => (
-                  <motion.div
-                    key={feat}
-                    initial={{ opacity: 0, x: 18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06, duration: 0.45 }}
-                    style={{ ...glass, borderRadius: 14, padding: "14px 16px", display: "flex", gap: 12, alignItems: "flex-start" }}
-                  >
-                    <span style={{ marginTop: 2, color: C.green, flexShrink: 0 }} aria-hidden="true"><Check size={18} /></span>
-                    <span>
-                      <div style={{ font: "600 15px Poppins" }}>{feat}</div>
-                      <div style={{ font: "400 13px Poppins", color: C.dim }}>{vs}</div>
-                    </span>
-                  </motion.div>
-                ))}
+              <p className={sec.cmpLegend}>~ means partial: possible, but manual or limited.</p>
+              <div className={sec.ctaRow}>
+                <a href="/register" className={sec.goldBtn}>Switch to JournalX free <ArrowRight size={15} aria-hidden="true" /></a>
               </div>
             </div>
-          </Section>
+          </section>
 
           {/* ===== Interactive demo ===== */}
           <Section id="demo" label="Interactive demo" style={{ paddingTop: 24, scrollMarginTop: 80 }}>
             <SectionHead
               kicker="Try it"
-              title="Try it right now, no signup"
+              title="Try the trading journal demo, no signup"
               sub="Log a trade below and watch a live glimpse of your analytics update in real time. This is exactly how fast journaling feels in JournalX."
             />
             <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
@@ -1781,85 +1066,15 @@ export default function Home({ posts = [] }) {
           <Testimonials schema={false} />
 
           {/* ===== Pricing ===== */}
-          <PricingSection />
+          <PricingInteractive />
 
-          {/* ===== From the blog ===== */}
-          {posts.length > 0 && (
-            <Section label="From the blog" style={{ paddingBottom: 24 }}>
-              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 28 }}>
-                <div>
-                  <h2 style={{ font: "300 clamp(26px,4vw,38px)/1.1 Poppins", margin: "0 0 8px", letterSpacing: "-1px" }}>Fresh trading lessons every week</h2>
-                  <p style={{ font: "400 16px/1.6 Poppins", color: C.muted, margin: 0, maxWidth: 520 }}>Strategy, risk and psychology guides to turn each lesson into a measurable edge.</p>
-                </div>
-                <a href="/blogs" style={{ textDecoration: "none" }}><button style={{ ...btnGhost, padding: "12px 20px" }}>Visit the blog <ArrowRight size={15} aria-hidden="true" /></button></a>
-              </div>
-              <Marquee duration={42}>
-                {posts.map((p) => (
-                  <span key={p.slug} style={{ marginRight: 18 }}><BlogCard post={p} /></span>
-                ))}
-              </Marquee>
-            </Section>
-          )}
-
-          {/* ===== SEO long-form ===== */}
-          <Section label="About the trading journal">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }} className="lp-why-grid">
-              <article>
-                <h2 style={{ font: "300 clamp(24px,4vw,34px)/1.15 Poppins", margin: "0 0 16px", letterSpacing: "-1px" }}>
-                  The trading journal built for funded and prop firm traders
-                </h2>
-                <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: "0 0 14px" }}>
-                  Funded and prop firm traders don&apos;t just need profit, they need to stay inside the rules. JournalX is the trading journal built to protect a funded account: track your trailing and daily drawdown, watch your consistency, and get deep, data-driven insight into the overtrading, revenge trading and tilt that end most evaluations. Whether you&apos;re passing an FTMO, Topstep or Apex challenge or scaling a funded account, your discipline becomes a number you can actually manage.
-                </p>
-                <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: 0 }}>
-                  It still works for every market you trade. Log forex, futures, stocks, options or crypto in any currency, import your history from a spreadsheet or auto-sync a supported exchange, and let the analytics engine feed equity-growth candlesticks, R-multiple distributions, a colour-coded P&amp;L calendar and per-strategy breakdowns, analysed in under ten seconds.
-                </p>
-              </article>
-              <article>
-                <h2 style={{ font: "300 clamp(24px,4vw,34px)/1.15 Poppins", margin: "0 0 16px", letterSpacing: "-1px" }}>
-                  Why deeper analytics increase profitability
-                </h2>
-                <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: "0 0 14px" }}>
-                  Profitability isn&apos;t found in one perfect trade, it&apos;s built by removing repeated mistakes. But you can only remove a leak you can measure, and you can only measure trades you actually log. That&apos;s why speed matters: when logging takes ten seconds instead of five minutes, you log every trade, your data stays complete, and your weekly review finally tells the truth.
-                </p>
-                <p style={{ font: "400 16px/1.7 Poppins", color: C.muted, margin: 0 }}>
-                  JournalX scores your discipline at the moment of entry using purpose-built analytics, and surfaces how emotion, risk and drawdown affect your results, turning vague advice like &quot;control your trading psychology&quot; into a number you can watch improve. Every metric is computed from your real trade log, not estimated. Fix one leak at a time and the equity curve responds, that&apos;s the entire compounding loop.
-                </p>
-              </article>
-            </div>
-          </Section>
-
-          {/* ===== FAQ ===== */}
-          <Section label="Frequently asked questions" style={{ maxWidth: 760 }}>
-            <SectionHead kicker="FAQ" title="Frequently asked questions" />
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {FAQS.map(([q, a], i) => (
-                <div key={q} style={{ ...glass, borderRadius: 14, overflow: "hidden" }}>
-                  <button onClick={() => setFaq(faq === i ? -1 : i)} aria-expanded={faq === i} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, background: "none", border: "none", color: C.text, cursor: "pointer", padding: "18px 20px", font: "600 16px Poppins", textAlign: "left" }}>
-                    {q}
-                    <span aria-hidden="true" style={{ color: C.silver, transform: faq === i ? "rotate(45deg)" : "none", transition: "transform .25s ease", flexShrink: 0, fontSize: 20 }}>+</span>
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {faq === i && (
-                      <motion.div
-                        key="content"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                        style={{ overflow: "hidden" }}
-                      >
-                        <div style={{ padding: "0 20px 18px", font: "400 14px/1.6 Poppins", color: C.muted }}>{a}</div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
-            </div>
-          </Section>
+          {/* ===== Blog · About · FAQ ===== */}
+          <BlogSection posts={posts} />
+          <AboutSection />
+          <FaqSection faqs={FAQS} />
 
           {/* ===== Final CTA (3D interactive) ===== */}
-          <Section label="Get started" style={{ paddingBottom: 80 }}>
+          <Section label="Start your trading journal" style={{ paddingBottom: 80 }}>
             <CTA3D />
           </Section>
         </main>

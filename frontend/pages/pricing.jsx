@@ -1,474 +1,100 @@
-// pages/pricing.js
-import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Bitcoin,
-  Check,
-  CreditCard,
-  Crown,
-  Lock,
-  Shield,
-  Sparkles,
-  TrendingUp,
-  X,
-  Zap,
-} from "lucide-react";
+"use client";
+
+/* /pricing, same design system as the landing redesign: floating nav,
+   interactive pricing (billing toggle, plan finder, comparison), trader
+   reviews, pricing FAQ and a closing CTA. Checkout runs through the shared
+   usePlanCheckout flow inside PricingInteractive. */
+
 import Head from "next/head";
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import Cookies from "js-cookie";
-import PaddleLoader from "../components/payments/PaddleLoader";
-import PaymentModal from "@/components/payments/PaymentModal";
-import { LandingNav, LandingFooter } from "@/components/landingPage/LandingChrome";
+import { PLANS_CONFIG, PLANS_FEATURES } from "@/utils/plans";
+import { MarketingPage, CtaBand } from "@/components/landingPage/PageChrome";
+import PricingInteractive from "@/components/landingPage/PricingInteractive";
 import Testimonials from "@/components/landingPage/Testimonials";
+import { FaqSection } from "@/components/landingPage/LandingBottom";
 
-/* small inline spinner for button loading states */
-function BtnSpinner({ color = "currentColor" }) {
-  return (
-    <motion.span
-      animate={{ rotate: 360 }}
-      transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-      style={{
-        width: 16, height: 16, borderRadius: "50%", display: "inline-block", flexShrink: 0,
-        border: `2px solid color-mix(in srgb, ${color} 30%, transparent)`, borderTopColor: color,
-      }}
-    />
-  );
-}
+const SITE_URL = "https://journalx.app";
+const TITLE = "Trading Journal Pricing: Free, Pro & Lifetime Plans | JournalX";
+const DESC =
+  "JournalX trading journal pricing. Start free, then unlock unlimited trades, advanced analytics and full history with Pro monthly, yearly or lifetime. 7-day free trial on paid plans.";
 
-import {
-  PLANS_FEATURES,
-  getUserCurrency,
-  detectCurrencyByIP,
-  buildPlansConfig,
-  PLANS_CONFIG,
-} from "@/utils/plans";
+const list = (arr) => arr.map((f) => f.text).join(", ");
+
+const PRICING_FAQS = [
+  ["Is there a free plan?", `Yes. The free plan is free forever with no card required and includes ${list(PLANS_FEATURES.free)}.`],
+  ["What do I get with Pro?", `Pro includes ${list(PLANS_FEATURES.pro)}. You can pay monthly or yearly; yearly costs less per month.`],
+  ["How does the 7-day free trial work?", "Every paid plan starts with a 7-day free trial, so you can try Pro analytics on your own trades before you pay."],
+  ["Can I cancel anytime?", "Yes. Monthly and yearly plans can be cancelled at any time and you keep access until the end of the period you paid for."],
+  ["What is included in Lifetime?", `Lifetime is a one-time payment and includes ${list(PLANS_FEATURES.lifetime)}.`],
+  ["Which payment methods do you accept?", "Cards and PayPal through our secure checkout, plus crypto. UPI is available for payments in India."],
+  ["Why are prices shown in my currency?", "JournalX shows prices in INR for visitors in India and in USD everywhere else, based on your location."],
+  ["Do you offer refunds?", "Refunds follow the JournalX refund policy, which you can read on the refund policy page linked in the footer."],
+];
 
 export default function Pricing() {
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-  const [hoveredPlan, setHoveredPlan] = useState(null);
-  const [payLoading, setPayLoading] = useState(null); // which payment option is loading
-  // Start with USD so SSR and first client render match; detect after mount.
-  const [currency, setCurrency] = useState("USD");
-  const router = useRouter();
-
-  useEffect(() => {
-    setIsClient(true);
-    // instant best-guess, then refine by IP-based location
-    setCurrency(getUserCurrency());
-    let active = true;
-    detectCurrencyByIP().then((c) => {
-      if (active) setCurrency(c);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const plans = buildPlansConfig(currency);
-
-  const openPaddleCheckout = async (priceId) => {
-    if (!priceId) {
-      alert("This plan isn't available for card payment right now. Please try crypto, or contact support.");
-      return;
-    }
-    if (!window?.Paddle?.Checkout) {
-      alert("Payment system is still loading. Please wait a moment and try again.");
-      return;
-    }
-
-    // The Paddle webhook activates the subscription via custom_data.userId.
-    // The userId cookie is httpOnly (not readable here), so fetch it from the
-    // authenticated user-info endpoint instead. We also grab the email to
-    // prefill the checkout (and as a server-side fallback to match the user).
-    let userId;
-    let email;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`, {
-        credentials: "include",
-      });
-      const json = await res.json();
-      userId = json?.userData?.userId || json?.userData?._id || json?.userId;
-      email = json?.userData?.email || json?.email;
-    } catch (e) {
-      console.error("Could not resolve user for checkout:", e);
-    }
-
-    if (!userId) {
-      router.push("/login?redirect=/pricing");
-      return;
-    }
-
-    // valid email only → Paddle ignores ALL prefill if any field is invalid
-    const customer = email && /\S+@\S+\.\S+/.test(email) ? { email } : undefined;
-    let theme = "light";
-    try { theme = localStorage.getItem("theme") === "dark" ? "dark" : "light"; } catch {}
-
-    try {
-      window.Paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-        // attaches userId to transaction.completed → handlePaddleWebhook
-        customData: { userId },
-        // prefill buyer email (so it's not retyped) + carry it for matching
-        ...(customer ? { customer } : {}),
-        settings: { displayMode: "overlay", theme, allowLogout: false },
-
-        successCallback: () => {
-          console.log("⚡ Payment successCallback triggered");
-          startSubscriptionPolling();
-        },
-
-        closeCallback: () => {
-          console.log(
-            "🔄 Checkout closed, starting subscription verification...",
-          );
-          startSubscriptionPolling();
-        },
-      });
-    } catch (error) {
-      console.error("Error opening Paddle checkout:", error);
-      alert("Failed to open checkout. Please try again.");
-    }
-  };
-
-  const startSubscriptionPolling = () => {
-    let attempts = 0;
-    const maxAttempts = 12; // try for 60 seconds
-
-    const interval = setInterval(async () => {
-      attempts++;
-
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user-info`,
-          {
-            credentials: "include",
-          },
-        );
-
-        const json = await res.json();
-        // user-info returns { userData: { subscription: { status } } }
-        const status =
-          json?.userData?.subscription?.status ??
-          json?.subscription?.status ??
-          json?.subscriptionStatus;
-
-        console.log("🔍 Checking subscription:", status);
-
-        if (status === "active") {
-          clearInterval(interval);
-          router.push("/dashboard");
-        }
-      } catch (err) {
-        console.error("Polling error:", err);
-      }
-
-      if (attempts >= maxAttempts) {
-        console.warn("⛔ Stopping polling, max attempts reached.");
-        clearInterval(interval);
-      }
-    }, 5000); // every 5 seconds
-  };
-
-  const handlePlanClick = (planKey) => {
-    // Not logged in → send them to login first (return to pricing after).
-    if (Cookies.get("isVerified") !== "yes") {
-      router.push("/login?redirect=/pricing");
-      return;
-    }
-    setSelectedPlan(planKey);
-    setIsModalOpen(true);
-  };
-
-  const handlePaymentOptionClick = async (option) => {
-    if (!selectedPlan || payLoading) return;
-
-    const planConfig = plans[selectedPlan];
-
-    if (option === "crypto") {
-      // loader stays on the crypto button until the navigation happens
-      setPayLoading("crypto");
-      router.push({
-        pathname: "/cryptobillingpage",
-        query: {
-          planName: planConfig.planName,
-          period: planConfig.period,
-          amount: planConfig.amount,
-        },
-      });
-      return;
-    }
-
-    if (option === "cards_paypal") {
-      // show the loader immediately and keep it visible (modal stays open)
-      // until Paddle's overlay has been opened, then close.
-      setPayLoading("cards_paypal");
-      try {
-        await openPaddleCheckout(planConfig.paddlePriceId);
-      } finally {
-        setPayLoading(null);
-        setIsModalOpen(false);
-      }
-    }
-  };
-
-  const C = { text: "#fff", muted: "#aeb4bc", dim: "#707a8a", surface: "#161a20", border: "rgba(255,255,255,0.08)", yellow: "#fcd535", green: "#2ebd85" };
-  const SITE_URL = "https://journalx.app";
-
-  const CARDS = [
-    { key: "free", title: "Free", price: plans.free.price, period: "forever", features: PLANS_FEATURES.free, cta: "Start free", current: true },
-    { key: "monthly", title: "Pro Monthly", price: plans.monthly.price, period: "/ month", features: PLANS_FEATURES.pro, cta: "Get monthly" },
-    { key: "yearly", title: "Pro Yearly", price: plans.yearly.price, period: "/ year", features: PLANS_FEATURES.pro, cta: "Get yearly", popular: true, badge: "Save 28%" },
-    { key: "lifetime", title: "Lifetime", price: plans.lifetime.price, period: "once", features: PLANS_FEATURES.lifetime, cta: "Get lifetime", badge: "Best value" },
-  ];
-
-  const pricingLd = {
+  const offersLd = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: "JournalX Pro",
-    description: "JournalX trading journal, advanced analytics, unlimited trades, risk and psychology tracking.",
+    name: "JournalX Pro trading journal",
+    description: "JournalX trading journal with advanced analytics, unlimited trades, risk and psychology tracking.",
     brand: { "@type": "Brand", name: "JournalX" },
-    offers: CARDS.filter((c) => c.key !== "free").map((c) => ({
+    offers: ["monthly", "yearly", "lifetime"].map((k) => ({
       "@type": "Offer",
-      name: c.title,
-      price: PLANS_CONFIG[c.key].amount,
-      priceCurrency: PLANS_CONFIG[c.key].currency,
+      name: PLANS_CONFIG[k].title,
+      price: PLANS_CONFIG[k].amount,
+      priceCurrency: PLANS_CONFIG[k].currency,
       url: `${SITE_URL}/pricing`,
       availability: "https://schema.org/InStock",
     })),
+  };
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: PRICING_FAQS.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Pricing", item: `${SITE_URL}/pricing` },
+    ],
   };
 
   return (
     <>
       <Head>
-        <title>Pricing, JournalX | Start Free, Upgrade Anytime</title>
-        <meta name="description" content="Simple, affordable pricing for the JournalX trading journal. Start free, then unlock unlimited trades and advanced analytics with Pro monthly, yearly, or lifetime plans." />
-        <meta name="keywords" content="journalx pricing, trading journal price, trading journal subscription, trade tracker cost, best value trading journal" />
+        <title>{TITLE}</title>
+        <meta name="description" content={DESC} />
+        <meta name="keywords" content="trading journal pricing, journalx pricing, trading journal price, free trading journal, trading journal subscription, lifetime trading journal" />
         <link rel="canonical" href={`${SITE_URL}/pricing`} />
-        <meta name="robots" content="index, follow" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="JournalX Pricing, Start Free, Upgrade Anytime" />
-        <meta property="og:description" content="Simple, affordable pricing for the JournalX trading journal. Start free; unlock advanced analytics with Pro." />
+        <meta property="og:site_name" content="JournalX" />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESC} />
         <meta property="og:url" content={`${SITE_URL}/pricing`} />
         <meta property="og:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingLd) }} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-                { "@type": "ListItem", position: 2, name: "Pricing", item: `${SITE_URL}/pricing` },
-              ],
-            }),
-          }}
-        />
+        <meta name="twitter:title" content={TITLE} />
+        <meta name="twitter:description" content={DESC} />
+        <meta name="twitter:image" content={`${SITE_URL}/assets/JournalX_Banner.png`} />
+        <meta name="theme-color" content="#000000" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(offersLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       </Head>
 
-      <PaddleLoader />
-      <LandingNav />
-
-      <div style={{ background: "#000", color: C.text, fontFamily: "Poppins, sans-serif", minHeight: "100vh" }}>
-        {/* Hero */}
-        <section style={{ maxWidth: 1160, margin: "0 auto", padding: "72px 20px 32px", textAlign: "center", position: "relative" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(600px 320px at 50% -10%, rgba(252,213,53,0.16), transparent 70%)", pointerEvents: "none" }} />
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ position: "relative" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(252,213,53,0.12)", border: "1px solid rgba(252,213,53,0.3)", color: C.yellow, borderRadius: 999, padding: "6px 14px", font: "600 13px Poppins", marginBottom: 20 }}>
-              <Sparkles size={14} /> Trusted by traders worldwide
-            </span>
-            <h1 style={{ font: "700 clamp(32px,5vw,52px)/1.1 Poppins", margin: "0 auto 14px", maxWidth: 640, letterSpacing: "-1.5px" }}>
-              Invest in your <span style={{ color: C.yellow }}>edge</span>
-            </h1>
-            <p style={{ font: "400 clamp(16px,2vw,18px)/1.6 Poppins", color: C.muted, maxWidth: 520, margin: "0 auto" }}>
-              Start free and upgrade when you're ready. Every plan pays for itself the first time it saves you from one bad habit.
-            </p>
-          </motion.div>
-        </section>
-
-        {/* Plans */}
-        <section style={{ maxWidth: 1160, margin: "0 auto", padding: "0 20px 40px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 18, alignItems: "stretch" }}>
-            {CARDS.map((c, i) => (
-              <motion.div
-                key={c.key}
-                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}
-                style={{
-                  position: "relative", display: "flex", flexDirection: "column",
-                  background: c.popular ? "linear-gradient(160deg, rgba(252,213,53,0.1), rgba(22,26,32,1))" : C.surface,
-                  border: `1px solid ${c.popular ? "rgba(252,213,53,0.4)" : C.border}`,
-                  borderRadius: 20, padding: 26,
-                }}
-              >
-                {c.popular && (
-                  <span style={{ position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)", background: C.yellow, color: "#1e2329", font: "700 11px Poppins", padding: "4px 12px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 5 }}>
-                    <Crown size={12} /> MOST POPULAR
-                  </span>
-                )}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ font: "600 17px Poppins" }}>{c.title}</span>
-                  {c.badge && !c.popular && (
-                    <span style={{ background: "rgba(46,189,133,0.15)", color: C.green, font: "600 11px Poppins", padding: "3px 9px", borderRadius: 999 }}>{c.badge}</span>
-                  )}
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, margin: "10px 0 4px" }}>
-                  <span style={{ font: "700 34px Poppins", letterSpacing: "-1px" }}>{c.price}</span>
-                  <span style={{ font: "400 14px Poppins", color: C.dim }}>{c.period}</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 11, margin: "20px 0 24px", flex: 1 }}>
-                  {c.features.map((f) => (
-                    <span key={f.text} style={{ display: "flex", alignItems: "center", gap: 9, font: "400 14px Poppins", color: C.muted }}>
-                      <Check size={16} style={{ color: C.green, flexShrink: 0 }} /> {f.text}
-                    </span>
-                  ))}
-                </div>
-                <button
-                  onClick={c.current ? undefined : () => handlePlanClick(c.key)}
-                  disabled={c.current}
-                  style={{
-                    width: "100%", justifyContent: "center", display: "inline-flex", alignItems: "center", gap: 8,
-                    borderRadius: 12, padding: "13px", cursor: c.current ? "default" : "pointer",
-                    font: "600 14px Poppins", border: "none",
-                    background: c.current ? "rgba(255,255,255,0.08)" : c.popular ? C.yellow : "rgba(255,255,255,0.1)",
-                    color: c.current ? C.dim : c.popular ? "#1e2329" : "#fff",
-                  }}
-                >
-                  {c.current ? <><Check size={15} /> Current plan</> : <><Zap size={15} /> {c.cta}</>}
-                </button>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* trust row */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap", marginTop: 36, font: "400 13px Poppins", color: C.dim }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Shield size={15} style={{ color: C.green }} /> 256-bit encrypted</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Lock size={15} style={{ color: C.green }} /> Cancel anytime</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}><CreditCard size={15} style={{ color: C.green }} /> UPI, cards, PayPal & crypto</span>
-          </div>
-        </section>
-
-        <Testimonials schema />
-
-        <LandingFooter />
-      </div>
-
-      {/* Payment Modal */}
-      {isClient &&
-        isModalOpen &&
-        selectedPlan &&
-        createPortal(
-          <PaymentModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            plans={plans}
-            currency={currency}
-            initialPlan={selectedPlan}
-            loginRedirect="/pricing"
-          />,
-          document.body,
-        )}
+      <MarketingPage>
+        <PricingInteractive asPage />
+        <Testimonials schema={false} />
+        <FaqSection faqs={PRICING_FAQS} title={<>Pricing <span>questions</span>, answered</>} />
+        <CtaBand
+          title="Start your trading journal free"
+          lead="No card required. Upgrade to Pro whenever you are ready, with a 7-day free trial."
+          primary={{ href: "/register", label: "Start journaling free" }}
+          secondary={{ href: "/features", label: "See all features" }}
+        />
+      </MarketingPage>
     </>
   );
 }
-
-function PricingCard({
-  plan,
-  title,
-  price,
-  period,
-  features,
-  buttonText,
-  isCurrent = false,
-  highlight = false,
-  popular = false,
-  savings,
-  valueBadge,
-  onClick,
-  onHover,
-  isHovered,
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5 }}
-      whileHover={{ y: -10, transition: { duration: 0.2 } }}
-      onMouseEnter={() => onHover(plan)}
-      onMouseLeave={() => onHover(null)}
-      className={`pricing-card ${highlight ? "highlight" : ""} ${isHovered ? "hovered" : ""}`}
-    >
-      <div className="card-header">
-        <div className="flexRow flexRow_stretch">
-          <span className="card-title">{title}</span>
-          {popular && (
-            <div className="popular-badge">
-              <Crown size={14} />
-              <span>MOST POPULAR</span>
-            </div>
-          )}
-
-          {valueBadge && (
-            <div className="value-badge">
-              <TrendingUp size={14} />
-              <span>{valueBadge}</span>
-            </div>
-          )}
-
-          {savings && (
-            <div className="savings-badge">
-              <span>Save {savings}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="card-price flexRow flexRow_stretch">
-          <span className="price">{price}</span>
-          <span className="period">{period}</span>
-        </div>
-      </div>
-
-      <span className="feature-list">
-        {features.map((feature, index) => (
-          <motion.span
-            key={index}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="feature-item"
-          >
-            <Check size={16} className="feature-icon" />
-            <span className="feature-text">{feature.text}</span>
-          </motion.span>
-        ))}
-      </span>
-
-      <motion.button
-        className={`pricing-button ${isCurrent ? "current" : ""}`}
-        onClick={isCurrent ? null : onClick}
-        whileHover={{ scale: isCurrent ? 1 : 1.05 }}
-        whileTap={{ scale: isCurrent ? 1 : 0.95 }}
-        disabled={isCurrent}
-      >
-        {isCurrent ? (
-          <>
-            <Check size={16} />
-            <span>Current Plan</span>
-          </>
-        ) : (
-          <>
-            <Zap size={16} />
-            <span>{buttonText}</span>
-          </>
-        )}
-      </motion.button>
-    </motion.div>
-  );
-}
-
-/* PaymentModal now lives in components/payments/PaymentModal.jsx (shared). */

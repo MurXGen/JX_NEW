@@ -16,6 +16,7 @@
     "apexcharts": "^4.7.0",
     "axios": "^1.11.0",
     "canvas-confetti": "^1.9.3",
+    "cobe": "^0.6.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
