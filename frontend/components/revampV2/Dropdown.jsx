@@ -98,10 +98,16 @@ export default function Dropdown({
     const r = el.getBoundingClientRect();
     const spaceBelow = window.innerHeight - r.bottom;
     const openUp = spaceBelow < 280 && r.top > spaceBelow;
+    // keep the whole panel inside the viewport (8px gutter), even when the
+    // trigger is near the right edge or partly scrolled out of a filter row
+    const vw = window.innerWidth;
+    const panelW = Math.min(vw - 16, 360, Math.max(r.width, opts.some((x) => x.hint) ? 256 : 200));
+    const left = Math.max(8, Math.min(r.left, vw - panelW - 8));
     setCoords({
       top: openUp ? r.top : r.bottom,
-      left: r.left,
+      left,
       width: r.width,
+      panelW,
       openUp,
     });
   };
@@ -158,10 +164,8 @@ export default function Dropdown({
           bottom: coords.openUp ? window.innerHeight - coords.top + 6 : "auto",
           left: coords.left,
           right: "auto",
-          width: coords.width, /* match the trigger; options fill this width */
-          // narrow filter triggers would otherwise truncate "P&L: high to low"
-          minWidth: Math.max(coords.width, 200),
-          maxWidth: "min(92vw, 360px)",
+          width: coords.panelW, /* trigger width or wider, clamped to the screen */
+          maxWidth: "calc(100vw - 16px)",
           maxHeight: 300,
           overflowY: "auto",
           overflowX: "hidden",
@@ -204,8 +208,13 @@ export default function Dropdown({
             onMouseEnter={() => setActive(i)}
             onClick={() => pick(o.value)}
           >
-            <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.label}</span>
-            {o.value === value && <Check size={14} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />}
+            {/* optional icon + one-line hint: { value, label, icon, hint } */}
+            {o.icon && <span className="jx-dd__ico" aria-hidden="true"><o.icon size={14} /></span>}
+            <span className="jx-dd__txt" style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {o.label}
+              {o.hint && <small className="jx-dd__hint">{o.hint}</small>}
+            </span>
+            {o.value === value && <Check size={14} className="jx-dd__check" style={{ flexShrink: 0 }} />}
             {onRemove && (
               <span
                 role="button"
@@ -272,7 +281,7 @@ export default function Dropdown({
           }}
         >
           {triggerPrefix && (current || value)
-            ? `${triggerPrefix}: ${current?.label ?? value}`
+            ? <><span className="jx-dd__prefix">{triggerPrefix}</span> {current?.label ?? value}</>
             : current?.label || value || placeholder}
         </span>
         <ChevronDown

@@ -7,11 +7,17 @@ import Cookies from "js-cookie";
 import Papa from "papaparse";
 import {
   AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Check,
   CheckCircle2,
   Download,
   FileDown,
+  FileSpreadsheet,
+  ListChecks,
   Upload,
   X,
+  Zap,
 } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
@@ -88,6 +94,19 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState("");
   const [freeRemaining, setFreeRemaining] = useState(Infinity); // free monthly slots left
+  // guided flow: 1 template → 2 upload → 3 review
+  const [step, setStep] = useState(1);
+  const [kind, setKind] = useState("quick");
+  const [dragOver, setDragOver] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches,
+  );
+  useEffect(() => {
+    if (!open) return;
+    setIsMobile(window.matchMedia("(max-width: 640px)").matches);
+  }, [open]);
+  // a clean parse jumps straight to the review step
+  useEffect(() => { if (rows.length > 0) setStep(3); }, [rows.length]);
   useEffect(() => {
     if (!open) return;
     (async () => {
@@ -107,6 +126,7 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
     setErrors([]);
     setFileName(null);
     setComputedCount(0);
+    setStep(1);
   };
 
   const handleFile = (file) => {
@@ -211,44 +231,65 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="jx-modal-overlay jx-modal-overlay--blur jx-modal-overlay--sheet"
-          style={{ alignItems: "flex-end", justifyContent: "center", padding: 0 }}
+          className={`jx-modal-overlay jx-modal-overlay--blur ${isMobile ? "jx-modal-overlay--sheet" : ""}`}
+          style={isMobile ? { alignItems: "flex-end", justifyContent: "center", padding: 0 } : undefined}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onMouseDown={(e) => e.target === e.currentTarget && !saving && onClose?.()}
         >
           <Toast toast={toast} />
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 34 }}
-            className="jx-ltmodal jx-ltmodal--sheet"
+            initial={isMobile ? { y: "100%", opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.97, y: 10 }}
+            transition={{ type: "spring", stiffness: 320, damping: 32 }}
+            className={`jx-ltmodal jx-td jx-imp ${isMobile ? "jx-ltmodal--sheet" : ""}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="imp-title"
             style={{ position: "relative" }}
           >
-            {/* grab handle */}
-            <div className="jx-lt-grab" aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px" }}>
-              <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
-            </div>
+            {isMobile && (
+              <div className="jx-lt-grab" aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px" }}>
+                <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
+              </div>
+            )}
 
-            {/* header */}
-            <div className="jx-ltmodal__header" style={{ flexDirection: "column", alignItems: "stretch", gap: "var(--space-2)" }}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-2)" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ font: "var(--text-h2)" }}>Import trades</span>
-                  <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                    Download a template, fill in your trades, and upload it here.
-                  </span>
+            {/* header + stepper */}
+            <div className="jx-ltmodal__header jx-imp__head">
+              <div className="jx-imp__titlerow">
+                <div>
+                  <h2 id="imp-title" className="jx-imp__title">Import trades</h2>
+                  <p className="jx-imp__sub">Bring your history in from a spreadsheet in three steps.</p>
                 </div>
-                <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }} disabled={saving}>
+                <button className="jx-btn jx-btn--secondary jx-btn--sm jx-td__close" onClick={onClose} aria-label="Close" style={{ padding: 8 }} disabled={saving}>
                   <X size={16} />
                 </button>
               </div>
+              <ol className="jx-imp__steps" aria-label="Import steps">
+                {["Get the template", "Upload your file", "Review & import"].map((label, i) => {
+                  const n = i + 1;
+                  const state = step > n ? "done" : step === n ? "current" : "todo";
+                  const reachable = n < step || (n === 2 && step === 1);
+                  return (
+                    <li key={label} className="jx-imp__step" data-state={state}>
+                      <button
+                        type="button"
+                        onClick={() => reachable && !saving && setStep(n)}
+                        disabled={!reachable || saving}
+                        aria-current={state === "current" ? "step" : undefined}
+                      >
+                        <span className="jx-imp__dot" aria-hidden="true">{state === "done" ? <Check size={12} strokeWidth={3} /> : n}</span>
+                        <span className="jx-imp__steplbl">{label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
             </div>
 
-            <div className="jx-ltmodal__body">
-              <div className="jx-ltmodal__form">
-                {/* Free-plan import allowance warning */}
+            <div className="jx-ltmodal__body jx-imp__body">
+              <div className="jx-ltmodal__form jx-imp__form">
                 {freeRemaining !== Infinity && (
                   <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
                     <AlertTriangle size={16} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 1 }} />
@@ -258,95 +299,196 @@ export default function ImportTradesModal({ open, onClose, onImported }) {
                   </div>
                 )}
 
-                {/* Templates section */}
-                <div className="jx-ltgroup">
-                  <Sect icon={FileDown} title="Download a template" />
-                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 500 }}>Only P&amp;L log</span>
-                      <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => downloadTemplate(QUICK_TEMPLATE.key)}>
-                        <Download size={14} /> Download
-                      </button>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 500 }}>Detailed log</span>
-                      <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => downloadTemplate(DETAILED_TEMPLATE.key)}>
-                        <Download size={14} /> Download
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                {/* ---------- step 1: pick + download a template ---------- */}
+                {step === 1 && (() => {
+                  const t = kind === "quick" ? QUICK_TEMPLATE : DETAILED_TEMPLATE;
+                  // required per the import parser: symbol + direction, plus pnl
+                  // (Only P&L) or an entry price (Detailed has no pnl column)
+                  const required = new Set(["symbol", "direction", kind === "quick" ? "pnl" : "entry"]);
+                  const cols = t.columns.slice(0, isMobile ? 3 : 5);
+                  const more = t.columns.length - cols.length;
+                  return (
+                    <>
+                      <div className="jx-imp__lead">
+                        <b>Which template fits how you journal?</b>
+                        <span>Only the columns marked * are required. Leave the rest empty if you don&apos;t track them.</span>
+                      </div>
+                      <div className="jx-imp__kinds" role="radiogroup" aria-label="Template">
+                        {[
+                          { k: "quick", icon: Zap, title: "Only P&L", desc: "Symbol, side and result. Fastest way to bring history in.", n: QUICK_TEMPLATE.columns.length },
+                          { k: "detailed", icon: ListChecks, title: "Detailed", desc: "Entry/exit, size, risk, strategy and psychology.", n: DETAILED_TEMPLATE.columns.length },
+                        ].map((o) => (
+                          <button key={o.k} type="button" role="radio" aria-checked={kind === o.k} className="jx-imp__kind" onClick={() => setKind(o.k)}>
+                            <span className="jx-imp__kindico" aria-hidden="true"><o.icon size={16} /></span>
+                            <span className="jx-imp__kindtxt">
+                              <b>{o.title}</b>
+                              <span>{o.desc}</span>
+                              <small>{o.n} columns</small>
+                            </span>
+                            <span className="jx-imp__radio" aria-hidden="true" />
+                          </button>
+                        ))}
+                      </div>
 
-                {/* Upload section */}
-                <div className="jx-ltgroup">
-                  <Sect icon={Upload} title="Upload your filled file" />
-                  <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ""; }} />
-                  <div
-                    className="jx-dropzone"
-                    style={{ cursor: "pointer", background: "var(--color-bg-elevated)" }}
-                    onClick={() => fileRef.current?.click()}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => { e.preventDefault(); handleFile(e.dataTransfer.files?.[0]); }}
-                  >
-                    <span className="jx-sect__icon" style={{ borderRadius: "50%", width: 40, height: 40, display: "flex" }}>
-                      <Upload size={17} />
-                    </span>
-                    <strong style={{ color: "var(--color-text-primary)" }}>
-                      {fileName || "Drop your CSV here"}
-                    </strong>
-                    <span style={{ font: "var(--text-caption)" }}>Click or drag &amp; drop · CSV</span>
-                  </div>
-
-                  {/* validation errors */}
-                  {errors.length > 0 && (
-                    <div className="jx-banner" style={{ alignItems: "flex-start", background: "var(--color-danger-subtle)", marginTop: "var(--space-1)" }}>
-                      <AlertTriangle size={15} style={{ color: "var(--color-danger)", flexShrink: 0, marginTop: 1 }} />
-                      <span style={{ font: "var(--text-caption)" }}>
-                        <strong style={{ color: "var(--color-danger-strong)" }}>Fix these and re-upload</strong>
-                        <ul style={{ margin: "6px 0 0", paddingLeft: 16, color: "var(--color-text-secondary)" }}>
-                          {errors.slice(0, 6).map((e, i) => (<li key={i}>{e}</li>))}
-                          {errors.length > 6 && <li>…and {errors.length - 6} more</li>}
+                      <div className="jx-imp__preview">
+                        <div className="jx-imp__previewhead">
+                          <span><FileSpreadsheet size={14} aria-hidden="true" /> {t.fileName}</span>
+                          <small>Sample rows · replace them with your trades</small>
+                        </div>
+                        <div className="jx-imp__tablewrap">
+                          <table className="jx-imp__table">
+                            <thead>
+                              <tr>
+                                {cols.map((c) => (
+                                  <th key={c}>{c}{required.has(c) && <em className="jx-req" aria-label="required">*</em>}</th>
+                                ))}
+                                {more > 0 && <th className="jx-imp__more">+{more} more</th>}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {t.rows.map((r, i) => (
+                                <tr key={i}>
+                                  {cols.map((c) => <td key={c}>{r[t.columns.indexOf(c)]}</td>)}
+                                  {more > 0 && <td className="jx-imp__more">…</td>}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <ul className="jx-imp__tips">
+                          <li><b>direction</b> is long or short (buy/sell also works)</li>
+                          {kind === "quick"
+                            ? <li><b>pnl</b> is your net result; negative for a loss</li>
+                            : <li><b>entry</b> is required; add <b>exit</b> and <b>size</b> and we work out the P&amp;L</li>}
+                          <li>Dates like <b>2026-06-01 14:30</b></li>
                         </ul>
-                      </span>
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    </>
+                  );
+                })()}
 
-                {/* Ready-to-import preview */}
-                {rows.length > 0 && (
-                  <div className="jx-ltgroup">
-                    <Sect icon={CheckCircle2} title={`Ready · ${rows.length} trades`} />
-                    <div className="jx-banner jx-banner--success">
-                      <CheckCircle2 size={16} style={{ color: "var(--color-success)" }} />
-                      <span>All looks good, <strong style={{ color: "var(--color-success-strong)" }}>{rows.length} trades</strong> ready to import.</span>
+                {/* ---------- step 2: upload ---------- */}
+                {step === 2 && (
+                  <>
+                    <div className="jx-imp__lead">
+                      <b>Upload your filled template</b>
+                      <span>We check every row before anything is saved, so nothing is imported until you confirm.</span>
                     </div>
-                    <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
-                      {rows.slice(0, 6).map((r, i) => (
-                        <Badge key={i} variant={r.pnl >= 0 ? "success" : "danger"}>
-                          {r.symbol} {r.pnl >= 0 ? "+" : ""}{r.pnl}
-                        </Badge>
-                      ))}
-                      {rows.length > 6 && <Badge variant="neutral">+{rows.length - 6} more</Badge>}
-                    </div>
-                    {computedCount > 0 && (
-                      <div style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", display: "flex", gap: 6 }}>
-                        <AlertTriangle size={13} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 1 }} />
-                        <span>{computedCount} trade{computedCount === 1 ? "" : "s"} had no P&amp;L column, we computed it from entry/exit/size (with futures point values). For exact numbers, include your platform&apos;s realized P&amp;L column and re-upload.</span>
+                    <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ""; }} />
+                    <button
+                      type="button"
+                      className={`jx-imp__drop${dragOver ? " jx-imp__drop--over" : ""}${errors.length ? " jx-imp__drop--err" : ""}`}
+                      onClick={() => fileRef.current?.click()}
+                      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files?.[0]); }}
+                    >
+                      <span className="jx-imp__dropico" aria-hidden="true"><Upload size={20} /></span>
+                      <b>{fileName || "Drop your CSV here"}</b>
+                      <span>{fileName ? "Choose a different file" : "or click to browse · .csv only"}</span>
+                    </button>
+
+                    {errors.length > 0 && (
+                      <div className="jx-imp__err" role="alert">
+                        <AlertTriangle size={15} aria-hidden="true" />
+                        <div>
+                          <b>Fix these and upload again</b>
+                          <ul>
+                            {errors.slice(0, 6).map((e, i) => (<li key={i}>{e}</li>))}
+                            {errors.length > 6 && <li>…and {errors.length - 6} more</li>}
+                          </ul>
+                        </div>
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
+
+                {/* ---------- step 3: review ---------- */}
+                {step === 3 && rows.length > 0 && (() => {
+                  const net = rows.reduce((a, r) => a + (Number(r.pnl) || 0), 0);
+                  const wins = rows.filter((r) => Number(r.pnl) > 0).length;
+                  const losses = rows.filter((r) => Number(r.pnl) < 0).length;
+                  const fmtN = (v) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+                  const when = (r) => {
+                    const d = r.closeTime || r.openTime;
+                    const dt = d ? new Date(d) : null;
+                    return dt && !Number.isNaN(dt.getTime()) ? dt.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
+                  };
+                  return (
+                    <>
+                      <div className="jx-imp__ok">
+                        <CheckCircle2 size={18} aria-hidden="true" />
+                        <div>
+                          <b>{rows.length} trade{rows.length === 1 ? "" : "s"} ready from {fileName}</b>
+                          <span>Every row passed the checks. Review the preview, then import.</span>
+                        </div>
+                      </div>
+                      <div className="jx-imp__sum">
+                        <div><span>Trades</span><b>{rows.length}</b></div>
+                        <div><span>Net P&amp;L</span><b className={net > 0 ? "is-pos" : net < 0 ? "is-neg" : undefined}>{fmtN(net)}</b></div>
+                        <div><span>Wins · losses</span><b>{wins} · {losses}</b></div>
+                      </div>
+                      <div className="jx-imp__preview">
+                        <div className="jx-imp__tablewrap">
+                          <table className="jx-imp__table">
+                            <thead><tr><th>Symbol</th><th>Side</th><th>Date</th><th style={{ textAlign: "right" }}>P&amp;L</th></tr></thead>
+                            <tbody>
+                              {rows.slice(0, 8).map((r, i) => (
+                                <tr key={i}>
+                                  <td><b>{r.symbol}</b></td>
+                                  <td style={{ textTransform: "capitalize" }}>{r.direction}</td>
+                                  <td>{when(r)}</td>
+                                  <td style={{ textAlign: "right" }} className={Number(r.pnl) > 0 ? "is-pos" : Number(r.pnl) < 0 ? "is-neg" : undefined}>{fmtN(Number(r.pnl) || 0)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {rows.length > 8 && <small className="jx-imp__morerows">+{rows.length - 8} more rows will be imported</small>}
+                      </div>
+                      {computedCount > 0 && (
+                        <p className="jx-imp__note">
+                          {computedCount} trade{computedCount === 1 ? "" : "s"} had no P&amp;L, so we worked it out from entry, exit and size (with futures point values). Add your platform&apos;s realised P&amp;L column for exact numbers.
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
             {/* footer */}
-            <div className="jx-ltmodal__footer" style={{ justifyContent: "flex-end" }}>
-              <button className="jx-btn jx-btn--ghost" onClick={() => { reset(); onClose?.(); }} disabled={saving}>
-                Cancel
-              </button>
-              <button className="jx-btn jx-btn--primary" onClick={doImport} disabled={saving || rows.length === 0} style={{ minWidth: 150 }}>
-                {saving ? <><Spinner /> Importing…</> : <><Upload size={15} /> Import {rows.length > 0 ? `${rows.length} trades` : ""}</>}
-              </button>
+            <div className="jx-ltmodal__footer jx-imp__foot">
+              {step > 1 ? (
+                <button className="jx-btn jx-btn--ghost" onClick={() => setStep(step === 3 ? 2 : 1)} disabled={saving}>
+                  <ArrowLeft size={15} aria-hidden="true" /> Back
+                </button>
+              ) : (
+                <button className="jx-btn jx-btn--ghost" onClick={() => setStep(2)}>
+                  I already have a file
+                </button>
+              )}
+              <span style={{ flex: 1 }} />
+              {step === 1 && (
+                <>
+                  <button className="jx-btn jx-btn--outline" onClick={() => downloadTemplate(kind)}>
+                    <Download size={15} aria-hidden="true" /> Download template
+                  </button>
+                  <button className="jx-btn jx-btn--primary" onClick={() => setStep(2)}>
+                    Next <ArrowRight size={15} aria-hidden="true" />
+                  </button>
+                </>
+              )}
+              {step === 2 && (
+                <button className="jx-btn jx-btn--primary" onClick={() => fileRef.current?.click()}>
+                  <Upload size={15} aria-hidden="true" /> Choose file
+                </button>
+              )}
+              {step === 3 && (
+                <button className="jx-btn jx-btn--primary" onClick={doImport} disabled={saving || rows.length === 0} style={{ minWidth: 150 }}>
+                  {saving ? <><Spinner /> Importing…</> : <><Upload size={15} aria-hidden="true" /> Import {rows.length} trade{rows.length === 1 ? "" : "s"}</>}
+                </button>
+              )}
             </div>
           </motion.div>
         </motion.div>

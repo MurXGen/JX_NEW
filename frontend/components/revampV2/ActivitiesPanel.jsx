@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
+import ov from "@/components/app/Overview.module.css";
+import lf from "@/components/app/Learn.module.css";
 import { getAllPosts, fmtDate } from "@/utils/blogs";
 
 const muted = { color: "var(--color-text-muted)" };
@@ -28,153 +30,169 @@ const writeBest = (k, v) => {
   try { localStorage.setItem(k, String(v)); } catch {}
 };
 
-/* ================= Reflex game (30s round) ================= */
-function ReflexGame() {
-  const DURATION = 30;
-  const [phase, setPhase] = useState("idle"); // idle | playing | done
-  const [timeLeft, setTimeLeft] = useState(DURATION);
-  const [hits, setHits] = useState(0);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [best, setBest] = useState(0);
-  const appearedRef = useRef(0);
-  // reaction stats kept in refs so a tap always records (state timing bugs
-  // were dropping the average), derived below on every render.
-  const sumRef = useRef(0);
-  const countRef = useRef(0);
-  const fastRef = useRef(Infinity);
-
-  useEffect(() => setBest(readBest("jx-lf-reflex-best")), []);
-
-  // countdown
-  useEffect(() => {
-    if (phase !== "playing") return;
-    if (timeLeft <= 0) {
-      setPhase("done");
-      if (hits > best) { writeBest("jx-lf-reflex-best", hits); setBest(hits); }
-      return;
-    }
-    const t = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [phase, timeLeft, hits, best]);
-
-  const place = () => {
-    setPos({ x: 8 + Math.random() * 84, y: 14 + Math.random() * 72 });
-    appearedRef.current = performance.now();
-  };
-  const start = () => {
-    sumRef.current = 0; countRef.current = 0; fastRef.current = Infinity;
-    setHits(0); setTimeLeft(DURATION); setPhase("playing"); place();
-  };
-  const hit = (e) => {
-    e.stopPropagation();
-    if (phase !== "playing") return;
-    const dt = performance.now() - appearedRef.current;
-    if (Number.isFinite(dt) && dt > 0) {
-      sumRef.current += dt;
-      countRef.current += 1;
-      if (dt < fastRef.current) fastRef.current = dt;
-    }
-    setHits(countRef.current);
-    place();
-    try { navigator.vibrate?.(8); } catch {}
-  };
-
-  const avg = countRef.current ? sumRef.current / countRef.current : 0;
-  const fastest = Number.isFinite(fastRef.current) ? fastRef.current : 0;
-  const mm = String(Math.floor(timeLeft / 60)).padStart(1, "0");
-  const ss = String(timeLeft % 60).padStart(2, "0");
-
-  // interpret the average reaction time into a plain-language rating
-  const rating =
-    avg <= 0 ? { label: "—", color: "var(--color-text-muted)" }
-    : avg < 300 ? { label: "⚡ Lightning reflexes", color: "var(--color-success-strong)" }
-    : avg < 450 ? { label: "Sharp", color: "var(--color-success)" }
-    : avg < 600 ? { label: "Steady", color: "var(--yellow-500)" }
-    : { label: "Warming up", color: "var(--color-danger)" };
-
+/* ================= shared game frame ================= */
+function GameCard({ icon: Icon, title, sub, best, bestLabel, children }) {
   return (
-    <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-        <span style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Crosshair size={20} />
-        </span>
+    <div className={lf.game}>
+      <div className={lf.gameHead}>
+        <span className={lf.gameIco} aria-hidden="true"><Icon size={19} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Reflex trainer</div>
-          <div style={{ font: "var(--text-caption)", ...muted }}>Tap each target the instant it appears · 30s</div>
+          <h3 className={lf.gameTitle}>{title}</h3>
+          <p className={lf.gameSub}>{sub}</p>
         </div>
-        <Badge variant="brand"><Trophy size={11} /> Best {best}</Badge>
+        <span className={lf.best} title={bestLabel}><Trophy size={12} aria-hidden="true" /> Best {best}</span>
       </div>
-
-      {/* live stats, only while playing */}
-      {phase === "playing" && (
-        <div style={{ display: "flex", gap: "var(--space-4)" }}>
-          <Stat label="Time left" value={`${mm}:${ss}`} />
-          <Stat label="Hits" value={hits} />
-          <Stat label="Avg reaction" value={avg ? `${Math.round(avg)}ms` : "—"} />
-        </div>
-      )}
-
-      {/* play area */}
-      <div
-        style={{
-          position: "relative", height: 300, borderRadius: "var(--radius-md)",
-          background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
-          overflow: "hidden", cursor: phase === "playing" ? "crosshair" : "default",
-        }}
-      >
-        {phase === "playing" && (
-          <button
-            onClick={hit}
-            aria-label="target"
-            style={{
-              position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`,
-              transform: "translate(-50%, -50%)", width: 46, height: 46, borderRadius: "50%",
-              border: "none", cursor: "pointer",
-              background: "radial-gradient(circle at 35% 30%, var(--yellow-300), var(--yellow-500))",
-              boxShadow: "0 4px 14px rgba(240,185,11,0.5)",
-            }}
-          />
-        )}
-
-        {phase === "idle" && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, textAlign: "center", padding: 20 }}>
-            <div style={{ font: "var(--text-body-md)", fontWeight: 700 }}>How fast can you react?</div>
-            <p style={{ font: "var(--text-caption)", ...muted, maxWidth: 300, margin: 0, lineHeight: 1.5 }}>
-              Tap each dot the instant it appears. Score as many as you can in 30s.
-            </p>
-            <Button variant="primary" icon={Play} onClick={start}>Start</Button>
-          </div>
-        )}
-
-        {phase === "done" && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center", padding: 20 }}>
-            <div style={{ font: "var(--text-h3)", fontWeight: 700 }}>
-              {hits} hits{hits >= best && hits > 0 ? " · 🏆 New best!" : ""}
-            </div>
-            <div style={{ display: "flex", gap: "var(--space-6)", justifyContent: "center" }}>
-              {[
-                { label: "Avg reaction", value: avg ? `${Math.round(avg)}ms` : "—" },
-                { label: "Fastest", value: fastest ? `${Math.round(fastest)}ms` : "—" },
-              ].map((s) => (
-                <div key={s.label} style={{ textAlign: "center" }}>
-                  <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", whiteSpace: "nowrap", ...muted }}>{s.label}</div>
-                  <div style={{ font: "var(--text-h3)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{s.value}</div>
-                </div>
-              ))}
-            </div>
-            <span style={{ font: "var(--text-body-md)", fontWeight: 700, color: rating.color }}>{rating.label}</span>
-            <span style={{ font: "var(--text-caption)", ...muted, maxWidth: 320, lineHeight: 1.5 }}>
-              Faster, steadier reactions mean cleaner fills, less hesitation on entries and a quicker hand on your stop.
-            </span>
-            <Button variant="primary" icon={RotateCcw} onClick={start}>Play again</Button>
-          </div>
-        )}
-      </div>
+      {children}
     </div>
   );
 }
 
-/* ================= Mental math, endless streak ================= */
+/* 3-2-1 before a run, so the first target / question is fair */
+function useCountdown(onDone) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (!n) return undefined;
+    const t = setTimeout(() => { if (n === 1) { setN(0); onDone(); } else setN(n - 1); }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [n]);
+  return [n, () => setN(3)];
+}
+
+function Countdown({ n }) {
+  return (
+    <div className={lf.overlay}>
+      <span key={n} className={lf.count} aria-live="assertive">{n}</span>
+      <small>Get ready</small>
+    </div>
+  );
+}
+
+/* ================= Reflex game (30s round) ================= */
+const REFLEX_SECS = 30;
+const TARGET_LIFE = 1100; // ms a target stays before it counts as a miss
+
+function ReflexGame() {
+  const [phase, setPhase] = useState("idle"); // idle | countdown | playing | done
+  const [timeLeft, setTimeLeft] = useState(REFLEX_SECS);
+  const [hits, setHits] = useState(0);
+  const [misses, setMisses] = useState(0);
+  const [pos, setPos] = useState({ x: 50, y: 50, id: 0 });
+  const [best, setBest] = useState(0);
+  const [newBest, setNewBest] = useState(false);
+  const appearedRef = useRef(0);
+  const sumRef = useRef(0);
+  const fastRef = useRef(Infinity);
+  const expireRef = useRef(null);
+
+  useEffect(() => setBest(readBest("jx-lf-reflex-best")), []);
+
+  const place = () => {
+    clearTimeout(expireRef.current);
+    setPos((p) => ({ x: 10 + Math.random() * 80, y: 18 + Math.random() * 68, id: p.id + 1 }));
+    appearedRef.current = performance.now();
+    // a target you don't hit in time is a miss, then the next one appears
+    expireRef.current = setTimeout(() => { setMisses((m) => m + 1); place(); }, TARGET_LIFE);
+  };
+  const begin = () => {
+    sumRef.current = 0; fastRef.current = Infinity;
+    setHits(0); setMisses(0); setNewBest(false); setTimeLeft(REFLEX_SECS); setPhase("playing"); place();
+  };
+  const [count, startCountdown] = useCountdown(begin);
+  const start = () => { setPhase("countdown"); startCountdown(); };
+
+  // countdown clock
+  useEffect(() => {
+    if (phase !== "playing") return undefined;
+    if (timeLeft <= 0) {
+      clearTimeout(expireRef.current);
+      setPhase("done");
+      if (hits > best) { writeBest("jx-lf-reflex-best", hits); setBest(hits); setNewBest(true); }
+      return undefined;
+    }
+    const t = setTimeout(() => setTimeLeft((x) => x - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, timeLeft, hits, best]);
+  useEffect(() => () => clearTimeout(expireRef.current), []);
+
+  const hit = (e) => {
+    e.stopPropagation();
+    if (phase !== "playing") return;
+    const dt = performance.now() - appearedRef.current;
+    if (dt > 0) { sumRef.current += dt; if (dt < fastRef.current) fastRef.current = dt; }
+    setHits((h) => h + 1);
+    place();
+    try { navigator.vibrate?.(8); } catch {}
+  };
+  // tapping empty space is a miss too
+  const missTap = () => { if (phase === "playing") setMisses((m) => m + 1); };
+
+  const avg = hits ? sumRef.current / hits : 0;
+  const fastest = Number.isFinite(fastRef.current) ? fastRef.current : 0;
+  const acc = hits + misses ? Math.round((hits / (hits + misses)) * 100) : 0;
+  const rating =
+    !hits ? "No hits this round"
+    : avg < 350 ? "Lightning reflexes"
+    : avg < 500 ? "Sharp and steady"
+    : avg < 700 ? "Solid, keep practising"
+    : "Warming up";
+
+  return (
+    <GameCard icon={Crosshair} title="Reflex trainer" sub={`Hit each target before it vanishes · ${REFLEX_SECS} seconds`} best={best} bestLabel="Most hits in one round">
+      <div className={lf.stage} data-playing={phase === "playing" || undefined} onClick={missTap}>
+        {phase === "playing" && (
+          <>
+            <div className={lf.hud}>
+              <span><b>{hits}</b> hits</span>
+              <span><b>{acc}%</b> accuracy</span>
+              <span><b>{timeLeft}s</b> left</span>
+            </div>
+            <div className={lf.timebar} aria-hidden="true"><i style={{ width: `${(timeLeft / REFLEX_SECS) * 100}%` }} /></div>
+            <button
+              key={pos.id}
+              type="button"
+              onClick={hit}
+              aria-label="Target, tap it"
+              className={lf.target}
+              style={{ left: `${pos.x}%`, top: `${pos.y}%`, "--life": `${TARGET_LIFE}ms` }}
+            />
+          </>
+        )}
+
+        {phase === "countdown" && count > 0 && <Countdown n={count} />}
+
+        {phase === "idle" && (
+          <div className={lf.intro}>
+            <b>How fast can you react?</b>
+            <ul>
+              <li>A target appears somewhere in the box</li>
+              <li>Hit it before it shrinks away (about 1 second)</li>
+              <li>Missed targets and stray taps lower your accuracy</li>
+            </ul>
+            <button type="button" className={`${ov.btn} ${ov.gold}`} onClick={(e) => { e.stopPropagation(); start(); }}><Play size={15} aria-hidden="true" /> Start round</button>
+          </div>
+        )}
+
+        {phase === "done" && (
+          <div className={lf.result} onClick={(e) => e.stopPropagation()}>
+            {newBest && <span className={lf.newBest}><Trophy size={13} aria-hidden="true" /> New best</span>}
+            <b className={lf.resultBig}>{hits} <small>hits</small></b>
+            <span className={lf.rating}>{rating}</span>
+            <div className={lf.resultStats}>
+              <div><span>Avg reaction</span><b>{avg ? `${Math.round(avg)} ms` : "—"}</b></div>
+              <div><span>Fastest</span><b>{fastest ? `${Math.round(fastest)} ms` : "—"}</b></div>
+              <div><span>Accuracy</span><b>{acc}%</b></div>
+            </div>
+            <p className={lf.why}>Faster, cleaner reactions mean less hesitation on entries and a quicker hand on your stop.</p>
+            <button type="button" className={`${ov.btn} ${ov.gold}`} onClick={start}><RotateCcw size={15} aria-hidden="true" /> Play again</button>
+          </div>
+        )}
+      </div>
+    </GameCard>
+  );
+}
+
+/* ================= Mental math streak ================= */
 const OPS = [
   { id: "add", sym: "+", label: "Addition" },
   { id: "subtract", sym: "−", label: "Subtraction" },
@@ -184,8 +202,7 @@ const OPS = [
 ];
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-/* difficulty scales with `level` (rises every few correct answers) so the run
-   gets harder the longer you survive, the reason a high score feels earned. */
+/* difficulty scales with `level` (rises every 5 correct answers) */
 function genQuestion(op, level = 0) {
   const realOp = op === "mixed" ? ["add", "subtract", "multiply", "divide"][rnd(0, 3)] : op;
   const L = Math.min(level, 8);
@@ -194,232 +211,238 @@ function genQuestion(op, level = 0) {
   if (realOp === "multiply") { const hi = 9 + L * 2; const a = rnd(2, hi), b = rnd(2, hi); return { a, b, sym: "×", answer: a * b }; }
   const hi = 9 + L * 2; const b = rnd(2, hi), q = rnd(2, hi); return { a: b * q, b, sym: "÷", answer: q };
 }
+// seconds per question: generous at first, tighter as the level rises
+const qSeconds = (level) => Math.max(5, 10 - level);
 
 function CalcGame() {
-  const [op, setOp] = useState("mixed"); // selected operation (persists between runs)
-  const [phase, setPhase] = useState("idle"); // idle | playing | done
+  const [op, setOp] = useState("mixed");
+  const [phase, setPhase] = useState("idle"); // idle | countdown | playing | done
   const [score, setScore] = useState(0);
   const [q, setQ] = useState(null);
   const [val, setVal] = useState("");
-  const [wrong, setWrong] = useState(false);
   const [best, setBest] = useState(0);
-  const [runNewBest, setRunNewBest] = useState(false);
-  const [missedAnswer, setMissedAnswer] = useState(null);
+  const [newBest, setNewBest] = useState(false);
+  const [end, setEnd] = useState(null); // { reason, answer, given }
+  const [tLeft, setTLeft] = useState(10);
+  const [shake, setShake] = useState(false);
   const inputRef = useRef(null);
+  const level = Math.floor(score / 5);
+  const opLabel = OPS.find((o) => o.id === op)?.label;
 
   useEffect(() => { setBest(readBest(`jx-lf-calc-best-${op}`)); }, [op]);
 
-  const start = () => {
-    setScore(0); setVal(""); setWrong(false);
-    setRunNewBest(false); setMissedAnswer(null);
-    setQ(genQuestion(op, 0)); setPhase("playing");
-    setTimeout(() => inputRef.current?.focus(), 50);
+  const finish = (reason, given) => {
+    const isBest = score > best;
+    if (isBest) { writeBest(`jx-lf-calc-best-${op}`, score); setBest(score); }
+    setNewBest(isBest);
+    setEnd({ reason, answer: q?.answer, given, question: q });
+    setShake(true);
+    try { navigator.vibrate?.([10, 30, 10]); } catch {}
+    setTimeout(() => { setShake(false); setPhase("done"); }, 320);
   };
+
+  const begin = () => {
+    setScore(0); setVal(""); setNewBest(false); setEnd(null);
+    setQ(genQuestion(op, 0)); setTLeft(qSeconds(0)); setPhase("playing");
+    setTimeout(() => inputRef.current?.focus(), 30);
+  };
+  const [count, startCountdown] = useCountdown(begin);
+  const start = () => { setPhase("countdown"); startCountdown(); };
+
+  // per-question timer (tenths of a second for a smooth bar)
+  useEffect(() => {
+    if (phase !== "playing" || shake) return undefined;
+    if (tLeft <= 0) { finish("time"); return undefined; }
+    const t = setTimeout(() => setTLeft((x) => Math.round((x - 0.1) * 10) / 10), 100);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, tLeft, shake]);
 
   const submit = (e) => {
     e?.preventDefault();
-    if (phase !== "playing" || !q || val === "") return;
+    if (phase !== "playing" || !q || val === "" || shake) return;
     if (Number(val) === q.answer) {
       const next = score + 1;
       setScore(next);
       setVal("");
       setQ(genQuestion(op, Math.floor(next / 5)));
+      setTLeft(qSeconds(Math.floor(next / 5)));
       try { navigator.vibrate?.(8); } catch {}
     } else {
-      // Chrome-dino rule: one wrong answer ends the run.
-      const isBest = score > best && score > 0;
-      if (isBest) { writeBest(`jx-lf-calc-best-${op}`, score); setBest(score); }
-      setRunNewBest(isBest);
-      setMissedAnswer(q.answer);
-      setWrong(true);
-      try { navigator.vibrate?.([10, 30, 10]); } catch {}
-      setTimeout(() => { setWrong(false); setPhase("done"); }, 260);
+      finish("wrong", val);
     }
   };
 
-  const aheadOfBest = phase === "playing" && score > best;
-  const stage = {
-    position: "relative", minHeight: 300, borderRadius: "var(--radius-md)",
-    background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
-    overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
-  };
-  const center = { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center", maxWidth: 360, width: "100%" };
-
   return (
-    <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-        <span style={{ width: 40, height: 40, borderRadius: 10, background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Brain size={20} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Mental math streak</div>
-          <div style={{ font: "var(--text-caption)", ...muted }}>Endless, one wrong answer ends the run · beat your best</div>
-        </div>
-        <Badge variant="brand"><Trophy size={11} /> Best {best}</Badge>
-      </div>
-
-      {/* live stats, only while playing (mirrors the reflex game) */}
-      {phase === "playing" && (
-        <div style={{ display: "flex", gap: "var(--space-4)" }}>
-          <Stat label="Score" value={score} />
-          <Stat label="Best" value={best} />
-          <Stat label="Level" value={Math.floor(score / 5) + 1} />
-        </div>
-      )}
-
-      <div style={stage}>
+    <GameCard icon={Brain} title="Mental math streak" sub="Answer before the timer runs out · one mistake ends the run" best={best} bestLabel={`Best streak in ${opLabel}`}>
+      <div className={lf.stage} data-shake={shake || undefined}>
         {phase === "idle" && (
-          <div style={center}>
-            <div style={{ font: "var(--text-body-md)", fontWeight: 700 }}>Beat your high score</div>
-            <p style={{ font: "var(--text-caption)", ...muted, margin: 0, lineHeight: 1.5 }}>
-              Pick an operation. One wrong answer ends the run.
-            </p>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
+          <div className={lf.intro}>
+            <b>Pick what to practise</b>
+            <div className={lf.ops} role="radiogroup" aria-label="Operation">
               {OPS.map((o) => (
-                <button
-                  key={o.id}
-                  type="button"
-                  onClick={() => setOp(o.id)}
-                  className={`jx-chip ${op === o.id ? "jx-chip--selected" : ""}`}
-                >
-                  {o.label}
+                <button key={o.id} type="button" role="radio" aria-checked={op === o.id} onClick={() => setOp(o.id)}>
+                  <span aria-hidden="true">{o.sym}</span>{o.label}
                 </button>
               ))}
             </div>
-            <Button variant="primary" icon={Play} onClick={start}>Start</Button>
+            <small className={lf.introNote}>Best in {opLabel}: <b>{best}</b> · questions get harder every 5 answers</small>
+            <button type="button" className={`${ov.btn} ${ov.gold}`} onClick={start}><Play size={15} aria-hidden="true" /> Start run</button>
           </div>
         )}
+
+        {phase === "countdown" && count > 0 && <Countdown n={count} />}
 
         {phase === "playing" && q && (
-          <div style={center}>
-            {aheadOfBest && (
-              <span style={{ font: "var(--text-caption)", fontWeight: 700, color: "var(--color-success-strong)" }}>
-                🏆 New best, keep it alive!
-              </span>
-            )}
-            <div style={{ font: "700 clamp(28px,7vw,44px) Poppins", letterSpacing: "-1px", color: wrong ? "var(--color-danger)" : "var(--color-text-primary)" }}>
-              {q.a} {q.sym} {q.b}
+          <>
+            <div className={lf.hud}>
+              <span><b>{score}</b> streak</span>
+              <span>Level <b>{level + 1}</b></span>
+              <span className={score > best && best > 0 ? lf.hudGood : undefined}>{score > best && best > 0 ? "New best pace" : <>Best <b>{best}</b></>}</span>
             </div>
-            <form onSubmit={submit} style={{ display: "flex", gap: "var(--space-2)", width: "min(320px, 100%)" }}>
-              <div className="jx-input" style={{ flex: 1, borderColor: wrong ? "var(--color-danger)" : undefined }}>
+            <div className={lf.timebar} data-low={tLeft <= 3 || undefined} aria-hidden="true"><i style={{ width: `${(tLeft / qSeconds(level)) * 100}%` }} /></div>
+            <form onSubmit={submit} className={lf.mathPlay}>
+              <div className={lf.question} aria-live="polite">{q.a} <em>{q.sym}</em> {q.b} <em>=</em> ?</div>
+              <div className={lf.answerRow}>
                 <input
                   ref={inputRef}
-                  type="number"
+                  type="text"
                   inputMode="numeric"
+                  pattern="-?[0-9]*"
+                  autoComplete="off"
+                  aria-label="Your answer"
                   placeholder="Answer"
                   value={val}
-                  onChange={(e) => setVal(e.target.value)}
-                  autoFocus
+                  onChange={(e) => setVal(e.target.value.replace(/[^0-9-]/g, ""))}
+                  className={lf.answerInput}
                 />
+                <button type="submit" className={`${ov.btn} ${ov.gold}`} disabled={val === ""}>Enter</button>
               </div>
-              <Button variant="primary" type="submit">Go</Button>
+              <small className={lf.introNote}>Press Enter to submit · {Math.ceil(tLeft)}s</small>
             </form>
-            <span style={{ font: "var(--text-caption)", ...muted }}>One wrong answer ends the run.</span>
-          </div>
+          </>
         )}
 
-        {phase === "done" && (
-          <div style={center}>
-            <div style={{ font: "var(--text-h3)", fontWeight: 700 }}>
-              {score} in a row{runNewBest ? " · 🏆 New best!" : ""}
+        {phase === "done" && end && (
+          <div className={lf.result}>
+            {newBest && <span className={lf.newBest}><Trophy size={13} aria-hidden="true" /> New best</span>}
+            <b className={lf.resultBig}>{score} <small>in a row</small></b>
+            <span className={lf.rating}>
+              {end.reason === "time" ? "Out of time" : "Wrong answer"} on {end.question?.a} {end.question?.sym} {end.question?.b}
+            </span>
+            <div className={lf.resultStats}>
+              {end.reason === "wrong" && <div><span>You answered</span><b className={lf.bad}>{end.given}</b></div>}
+              <div><span>Correct answer</span><b>{end.answer}</b></div>
+              <div><span>Best in {opLabel}</span><b>{best}</b></div>
             </div>
-            {missedAnswer != null && (
-              <span style={{ font: "var(--text-caption)", color: "var(--color-danger)" }}>
-                Missed it, the answer was {missedAnswer}
-              </span>
-            )}
-            <span style={{ font: "var(--text-caption)", ...muted }}>{OPS.find((o) => o.id === op)?.label} · best {best}</span>
-            <div style={{ display: "flex", gap: "var(--space-2)" }}>
-              <Button variant="primary" icon={RotateCcw} onClick={start}>Play again</Button>
-              <Button variant="secondary" onClick={() => setPhase("idle")}>Change mode</Button>
+            <div className={lf.resultBtns}>
+              <button type="button" className={`${ov.btn} ${ov.gold}`} onClick={start}><RotateCcw size={15} aria-hidden="true" /> Play again</button>
+              <button type="button" className={`${ov.btn} ${ov.ghost}`} onClick={() => setPhase("idle")}>Change operation</button>
             </div>
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function Stat({ label, value }) {
-  return (
-    <div style={{ flex: 1 }}>
-      <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", ...muted }}>{label}</div>
-      <div style={{ font: "var(--text-h3)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{value}</div>
-    </div>
+    </GameCard>
   );
 }
 
 /* ================= Articles (recent first, reveal all on scroll) ============ */
-const ACCENT = { Strategy: "#fcd535", Risk: "#2ebd85", Psychology: "#a78bfa", Journaling: "#38bdf8", Markets: "#fb7185" };
-
 function Articles() {
   const posts = useMemo(
     () => getAllPosts().slice().sort((a, b) => new Date(b.date) - new Date(a.date)),
     [],
   );
-  const [visible, setVisible] = useState(6);
+  const cats = useMemo(() => ["All", ...[...new Set(posts.map((p) => p.category).filter(Boolean))]], [posts]);
+  const [cat, setCat] = useState("All");
+  const list = cat === "All" ? posts : posts.filter((p) => p.category === cat);
+  const PAGE = 10; // articles shown up front, then lazy-loaded in batches of 10
+  const [visible, setVisible] = useState(PAGE);
+  useEffect(() => setVisible(PAGE), [cat]);
   const sentinelRef = useRef(null);
 
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) setVisible((v) => Math.min(posts.length, v + 6)); },
+      (entries) => { if (entries[0].isIntersecting) setVisible((v) => Math.min(list.length, v + PAGE)); },
       { rootMargin: "200px" },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [posts.length]);
+  }, [list.length]);
 
+  const [feat, ...rest] = list;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <BookOpen size={18} style={{ color: "var(--color-text-muted)" }} />
-        <span className="jx-card__title">Latest articles</span>
-        <a href="/blogs" target="_blank" rel="noopener" style={{ marginLeft: "auto", textDecoration: "none" }}>
-          <Button variant="ghost" size="sm" icon={ArrowRight}>All articles</Button>
+    <section className={lf.section} aria-labelledby="lf-read">
+      <div className={lf.sectionHead}>
+        <div>
+          <h2 id="lf-read" className={lf.sectionTitle}><BookOpen size={16} aria-hidden="true" /> Read up on your edge</h2>
+          <p className={lf.sectionSub}>Short, practical articles on risk, psychology and strategy</p>
+        </div>
+        <a href="/blogs" target="_blank" rel="noopener" className={`${ov.btn} ${ov.ghost}`}>
+          All articles <ArrowRight size={14} aria-hidden="true" />
         </a>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "var(--space-3)" }}>
-        {posts.slice(0, visible).map((p) => {
-          const accent = ACCENT[p.category] || "var(--yellow-500)";
-          return (
-            <a key={p.slug} href={`/blogs/${p.slug}`} target="_blank" rel="noopener"
-               className="jx-card" style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", gap: 8, overflow: "hidden" }}>
-              <span style={{ display: "inline-flex", alignSelf: "flex-start", padding: "3px 10px", borderRadius: 999, background: "var(--color-bg-muted)", border: "1px solid var(--color-border)", font: "var(--text-caption)", fontWeight: 600, color: accent }}>
-                {p.category} · {p.minutes} min
-              </span>
-              <span style={{ font: "var(--text-body-md)", fontWeight: 600, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.title}</span>
-              <span style={{ font: "var(--text-caption)", ...muted, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.excerpt}</span>
-              <span style={{ marginTop: "auto", font: "var(--text-caption)", color: "var(--color-text-disabled)" }}>{fmtDate(p.date)}</span>
-            </a>
-          );
-        })}
+      <div className={lf.cats} role="group" aria-label="Filter articles by topic">
+        {cats.map((c) => (
+          <button key={c} type="button" aria-pressed={cat === c} onClick={() => setCat(c)}>
+            {c}{c !== "All" && <small>{posts.filter((p) => p.category === c).length}</small>}
+          </button>
+        ))}
       </div>
 
-      {visible < posts.length && (
-        <div ref={sentinelRef} style={{ height: 1 }} />
+      {feat && (
+        <a href={`/blogs/${feat.slug}`} target="_blank" rel="noopener" className={lf.feature}>
+          <span className={lf.featKicker}>Latest · {feat.category} · {feat.minutes} min read</span>
+          <span className={lf.featTitle}>{feat.title}</span>
+          <span className={lf.featEx}>{feat.excerpt}</span>
+          <span className={lf.featCta}>Read article <ArrowRight size={14} aria-hidden="true" /></span>
+        </a>
       )}
-    </div>
+
+      <div className={lf.grid}>
+        {rest.slice(0, visible - 1).map((p) => (
+          <a key={p.slug} href={`/blogs/${p.slug}`} target="_blank" rel="noopener" className={lf.post}>
+            <span className={lf.tag}>{p.category} · {p.minutes} min</span>
+            <span className={lf.postTitle}>{p.title}</span>
+            <span className={lf.postEx}>{p.excerpt}</span>
+            <span className={lf.postDate}>{fmtDate(p.date)}</span>
+          </a>
+        ))}
+      </div>
+
+      {visible < list.length && (
+        <div ref={sentinelRef} className={lf.more} aria-live="polite">Loading more articles…</div>
+      )}
+      {visible >= list.length && list.length > PAGE && <p className={lf.more}>You&apos;ve reached the end · {list.length} articles</p>}
+    </section>
   );
 }
 
 /* ================= Panel ================= */
 export default function ActivitiesPanel() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)", width: "100%" }}>
-      <div>
-        <div style={{ font: "var(--text-h2)" }}>Learn &amp; Focus</div>
-        <div style={{ font: "var(--text-body)", ...muted }}>
-          Sharpen reaction speed and mental math between trades, then read up on your edge.
+    <div className={`${ov.root} ${lf.root}`}>
+      <header className={ov.head}>
+        <div>
+          <h1 className={ov.title}>Learn &amp; Focus</h1>
+          <p className={ov.sub}>Reset between trades with a quick focus game, then read up on your edge.</p>
         </div>
-      </div>
+      </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "var(--space-4)" }}>
-        <ReflexGame />
-        <CalcGame />
-      </div>
+      <section className={lf.section} aria-labelledby="lf-games">
+        <div className={lf.sectionHead}>
+          <div>
+            <h2 id="lf-games" className={lf.sectionTitle}><Timer size={16} aria-hidden="true" /> Focus games</h2>
+            <p className={lf.sectionSub}>Two-minute resets after a loss or before a session. Best scores are saved on this device.</p>
+          </div>
+        </div>
+        <div className={`${lf.games} ${lf.legacy}`}>
+          <ReflexGame />
+          <CalcGame />
+        </div>
+      </section>
 
       <Articles />
     </div>

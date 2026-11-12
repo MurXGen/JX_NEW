@@ -1,0 +1,157 @@
+/* Markets tab, built on the Overview tokens (.root in Overview.module.css). */
+.root { gap: 18px; }
+
+.clock {
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: var(--surface); font-size: 12.5px; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.clock b { color: var(--ink); font-weight: 600; }
+.clockSep { width: 1px; height: 12px; background: var(--line-2); }
+
+.card {
+  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  padding: 18px; border-radius: 16px;
+  background: var(--card-bg); border: 1px solid var(--card-line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.cardHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.cardTitle { margin: 0; display: inline-flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+.cardTitle svg { color: var(--muted); }
+.cardSub { margin: 3px 0 0; font-size: 12.5px; color: var(--faint); }
+.foot { margin: 0; font-size: 12px; color: var(--faint); }
+.pos { color: var(--green) !important; }
+.neg { color: var(--red) !important; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 500; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line);
+}
+.pill svg { color: #fcd535; }
+
+.tape { border-radius: 14px; overflow: hidden; border: 1px solid var(--card-line); background: var(--card-bg); }
+
+/* ---- sessions timeline ---- */
+.timeline { display: flex; flex-direction: column; gap: 8px; }
+.hours { position: relative; height: 14px; margin-left: 168px; margin-right: 150px; }
+.hours span { position: absolute; transform: translateX(-50%); font-size: 10.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.hours span:first-child { transform: none; }
+.hours span:last-child { transform: translateX(-100%); }
+.sessRow { display: grid; grid-template-columns: 160px minmax(0, 1fr) 142px; align-items: center; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+.sessName { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.sessName b { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.sessStatus { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); white-space: nowrap; }
+.sessStatus i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); flex: none; }
+.sessRow[data-open] .sessStatus { color: var(--ink-2); }
+.sessRow[data-open] .sessStatus i { background: var(--green); box-shadow: 0 0 0 3px rgba(46, 189, 133, 0.18); }
+.track { position: relative; height: 22px; border-radius: 7px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5); }
+.band { position: absolute; top: 3px; bottom: 3px; border-radius: 5px; background: rgba(255, 255, 255, 0.12); }
+.sessRow[data-open] .band {
+  background: linear-gradient(180deg, #ffe680 0%, #fcd535 45%, #e0a800 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 10px rgba(252, 213, 53, 0.25);
+}
+.now { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; border-radius: 2px; background: #f5f6f8; box-shadow: 0 0 6px rgba(245, 246, 248, 0.6); }
+.sessYou { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+.sessYou b { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.sessYou small { font-size: 11.5px; color: var(--faint); }
+
+/* ---- your markets ---- */
+.symGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.sym { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 14px 14px 6px; border-radius: 12px; background: var(--surface-2); border: 1px solid rgba(255, 255, 255, 0.06); }
+.symHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.symHead b { font-size: 14.5px; font-weight: 600; color: var(--ink); }
+.symHead span { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.symMeta { font-size: 11.5px; color: var(--faint); }
+.quote { margin: 4px -8px 0; }
+.noQuote { margin: 8px 0 10px; font-size: 11.5px; color: var(--faint); }
+
+/* ---- embeds ---- */
+.embed { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); }
+.embed[hidden] { display: none; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+/* ---- "If you traded today" (older component) in the new tokens ---- */
+:global([data-theme="dark"]) .legacy {
+  --color-bg-surface: #131316;
+  --color-bg-muted: #1b1b1f;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text-primary: #f5f6f8;
+  --color-text-secondary: #c7ccd4;
+  --color-text-muted: #9aa1ad;
+  --color-primary-subtle: rgba(255, 255, 255, 0.08);
+  --yellow-500: #e9ebee;
+}
+.legacy:empty { display: none; }
+:global([data-theme="dark"]) .legacy :global(.jx-card) {
+  background: var(--card-bg); border: 1px solid var(--card-line); border-radius: 16px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+:global([data-theme="dark"]) .legacy :global(.jx-card .jx-card--flat) { background: #1b1b1f; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; }
+.legacy :global(.jx-card__title) { font-size: 15px; font-weight: 600; }
+
+@media (max-width: 1100px) {
+  .symGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .card { padding: 14px; }
+  .hours { display: none; }
+  .sessRow { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name you" "track track"; row-gap: 8px; }
+  .sessName { grid-area: name; }
+  .sessYou { grid-area: you; }
+  .track { grid-area: track; }
+  .symGrid { grid-template-columns: 1fr; }
+  .clock { display: none; }
+}
+.embed > :global(.tradingview-widget-container) { height: 100% !important; }
+@media (max-width: 640px) {
+  .embed { max-height: 520px; }
+}
+
+/* ---- sessions: clearer reading aids ---- */
+.nowLine { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 11px; background: var(--surface-2); border: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.nowLine b { color: var(--ink); font-weight: 600; }
+.nowDot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(46, 189, 133, 0.2); }
+.colHeads { display: grid; grid-template-columns: 160px minmax(0, 1fr) 142px; gap: 8px; font-size: 11.5px; color: var(--faint); }
+.colHeads span:last-child { text-align: right; }
+.sessHours { font-size: 11px; color: var(--faint); }
+.overlap { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0 4px, transparent 4px 8px); border-left: 1px dashed rgba(255, 255, 255, 0.12); border-right: 1px dashed rgba(255, 255, 255, 0.12); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; flex: none; }
+.lgOpen { width: 18px; height: 8px; border-radius: 4px; background: linear-gradient(180deg, #ffe680, #fcd535 45%, #e0a800); }
+.lgClosed { width: 18px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.14); }
+.lgNow { width: 2px; height: 12px; border-radius: 2px; background: #f5f6f8; }
+.lgOverlap { width: 18px; height: 10px; border-radius: 3px; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0 3px, transparent 3px 6px); border: 1px dashed rgba(255, 255, 255, 0.2); }
+@media (max-width: 640px) {
+  .colHeads { display: none; }
+  .legend { font-size: 11.5px; }
+}
+
+/* ---- session timeline: hover / focus tooltips + highlight ---- */
+.band, .overlap, .now { cursor: help; outline: none; transition: filter 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease; }
+.band:hover, .band:focus-visible { filter: brightness(1.25); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 12px rgba(255, 255, 255, 0.12); z-index: 3; }
+.sessRow[data-open] .band:hover, .sessRow[data-open] .band:focus-visible { filter: brightness(1.08); box-shadow: 0 0 0 1px rgba(255, 240, 180, 0.8), 0 0 16px rgba(252, 213, 53, 0.45); }
+.overlap:hover, .overlap:focus-visible { background-color: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.35); z-index: 3; }
+.overlap { z-index: 1; }
+.band { z-index: 2; }
+/* the current-time line gets a wider invisible hit area */
+.now { width: 14px; margin-left: -7px; background: transparent; box-shadow: none; z-index: 4; }
+.now::before { content: ""; position: absolute; top: 0; bottom: 0; left: 6px; width: 2px; border-radius: 2px; background: #f5f6f8; box-shadow: 0 0 6px rgba(245, 246, 248, 0.6); transition: box-shadow 0.15s ease; }
+.now:hover::before, .now:focus-visible::before { box-shadow: 0 0 0 2px rgba(245, 246, 248, 0.25), 0 0 12px rgba(245, 246, 248, 0.9); }
+
+/* tooltip bubble (shared by bars, line, overlap and legend items) */
+.legend [data-tip] { position: relative; }
+.timeline [data-tip]:hover::after, .timeline [data-tip]:focus-visible::after,
+.legend [data-tip]:hover::after, .legend [data-tip]:focus-visible::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: 260px; padding: 8px 10px; border-radius: 9px;
+  background: #1e1e23; border: 1px solid rgba(255, 255, 255, 0.14); color: #f5f6f8;
+  font: 500 12px/1.45 "Poppins", sans-serif; white-space: normal; text-align: left;
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.9); pointer-events: none; z-index: 20;
+}
+.legend [data-tip] { cursor: help; padding: 3px 6px; margin: -3px -6px; border-radius: 7px; outline: none; transition: background-color 0.15s ease; }
+.legend [data-tip]:hover, .legend [data-tip]:focus-visible { background: rgba(255, 255, 255, 0.06); color: var(--ink); }
+.legend [data-tip]:hover::after, .legend [data-tip]:focus-visible::after { left: 0; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .band, .overlap, .now, .now::before, .legend [data-tip] { transition: none; }
+}

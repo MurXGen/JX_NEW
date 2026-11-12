@@ -149,17 +149,13 @@ function Spinner() {
 }
 
 function Avatar({ url, name, size = 40 }) {
-  const initials = (name || "U").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  // photo when set, otherwise a glossy tile with a person icon (never initials)
   return url ? (
     /* eslint-disable-next-line @next/next/no-img-element */
-    <img src={url} alt={name || "avatar"} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--color-border)" }} />
+    <img className="jx-avatar" src={url} alt={name || "avatar"} style={{ width: size, height: size, objectFit: "cover" }} />
   ) : (
-    <span style={{
-      width: size, height: size, borderRadius: "50%", background: "var(--color-primary)",
-      color: "var(--color-primary-foreground)", display: "flex", alignItems: "center",
-      justifyContent: "center", fontWeight: 700, fontSize: size / 3,
-    }}>
-      {initials}
+    <span className="jx-avatar jx-avatar--empty" role="img" aria-label={name ? `${name}, no photo` : "No photo"} style={{ width: size, height: size }}>
+      <User size={Math.round(size * 0.42)} aria-hidden="true" />
     </span>
   );
 }
@@ -732,17 +728,16 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
         <div className="jx-card__title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-2)" }}>
           <span>Profile</span>
           <button
-            className="jx-btn jx-btn--outline jx-btn--sm"
+            className="jx-btn jx-btn--outline jx-btn--sm jx-logout"
             onClick={logout}
-            style={{ color: "var(--color-danger)", borderColor: "var(--color-danger)" }}
           >
             <LogOut size={15} /> Log out
           </button>
         </div>
 
         {/* identity header, user details at a glance */}
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", padding: "var(--space-2) 0 var(--space-4)" }}>
-          <Avatar url={avatarUrl} name={name} size={54} />
+        <div className="jx-prof-hero">
+          <Avatar url={avatarUrl} name={name} size={56} />
           <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
             <span style={{ font: "var(--text-h3)", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {name || "Your name"}
@@ -763,13 +758,13 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
         </Row>
 
         <Row title="Display name" sub="Shown on your shared reports">
-          <div className="jx-input" style={{ height: 38, width: 220 }}>
+          <div className="jx-input" style={{ height: 38, width: 280, maxWidth: "100%" }}>
             <input value={name} placeholder="Your name" onChange={(e) => setName(e.target.value)} />
           </div>
         </Row>
 
         <Row title="Email" sub="Login email can't be changed">
-          <div className="jx-input jx-input--disabled" style={{ height: 38, width: 240 }}>
+          <div className="jx-input jx-input--disabled" style={{ height: 38, width: 280, maxWidth: "100%" }}>
             <input value={user?.email || ""} disabled readOnly />
           </div>
         </Row>
@@ -971,6 +966,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
             : <>Live exchange sync is a <strong>Pro</strong> feature. Upgrade to auto-import from Binance &amp; Bybit. You can still bring trades in via CSV from <strong>Import / Export</strong>.</>}
         </div>
 
+        <div className="jx-int__group">Crypto exchanges · live</div>
         {/* Live: Binance & Bybit */}
         {["binance", "bybit"].map((id) => {
           const st = exchStatus.exchanges?.[id] || {};
@@ -991,9 +987,18 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
           );
         })}
 
+        {/* Forex & prop-firm platforms, in development */}
+        <div className="jx-int__group">Forex &amp; prop-firm platforms</div>
+        {PLATFORMS.filter((p) => p.kind === "prop").map((p) => (
+          <Row key={p.id} title={p.name} sub={`${p.note} · in development`}>
+            <Badge variant="neutral">In development</Badge>
+          </Row>
+        ))}
+
         {/* Coming soon: everything else */}
-        {PLATFORMS.filter((p) => !["binance", "bybit"].includes(p.id)).map((p) => (
-          <Row key={p.id} title={p.name} sub="Coming soon">
+        <div className="jx-int__group">More exchanges &amp; brokers</div>
+        {PLATFORMS.filter((p) => !["binance", "bybit"].includes(p.id) && p.kind !== "prop").map((p) => (
+          <Row key={p.id} title={p.name} sub="Coming soon · use CSV import for now">
             <Badge variant="neutral">Coming soon</Badge>
           </Row>
         ))}

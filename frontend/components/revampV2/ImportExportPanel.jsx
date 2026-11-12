@@ -9,7 +9,13 @@ import {
   FileText,
   LineChart,
   Upload,
+  FileSpreadsheet,
+  FileDown,
+  Trash2,
+  PencilLine,
 } from "lucide-react";
+import ov from "@/components/app/Overview.module.css";
+import dt from "@/components/app/Data.module.css";
 import Button from "./Button";
 import Toast from "./Toast";
 import ImportTradesModal from "./ImportTradesModal";
@@ -242,128 +248,146 @@ export default function ImportExportPanel({ trades = [], onImported }) {
     }
   };
 
+  const symbols = useMemo(() => new Set(filtered.map((t) => t.symbol || t.ticker)).size, [filtered]);
+  const contents = [
+    selected.includes("logs") && `${filtered.length} trade row${filtered.length === 1 ? "" : "s"}`,
+    selected.includes("analytics") && "9 summary metrics",
+    selected.includes("bysymbol") && `${symbols} symbol${symbols === 1 ? "" : "s"}`,
+  ].filter(Boolean);
+  const clearRecent = () => { setRecent([]); try { localStorage.removeItem(RECENT_KEY); } catch {} };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+    <div className={`${ov.root} ${dt.root}`}>
       <Toast toast={toast} />
 
-      <div>
-        <div style={{ font: "var(--text-h2)" }}>Import &amp; Export</div>
-        <div style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
-          Download your trade logs and analytics, or bring in trades from a CSV.
+      <header className={ov.head}>
+        <div>
+          <h1 className={ov.title}>Import &amp; Export</h1>
+          <p className={ov.sub}>Download your trades and analytics, or bring trades in from a spreadsheet.</p>
         </div>
-      </div>
+      </header>
 
-      <div
-        style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.6fr) minmax(260px, 1fr)", gap: "var(--space-4)", alignItems: "start" }}
-        className="jx-ie-grid"
-      >
+      <div className={dt.split}>
         {/* ===== Export ===== */}
-        <div className="jx-card">
-          <div className="jx-card__title">Export data</div>
-          <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-4)" }}>
-            Pick what to include, choose a format, then download.
+        <section className={dt.card} aria-labelledby="ie-exp">
+          <div className={dt.cardHead}>
+            <span className={dt.ico} aria-hidden="true"><Download size={17} /></span>
+            <div>
+              <h2 id="ie-exp" className={dt.cardTitle}>Export data</h2>
+              <p className={dt.cardSub}>Choose what to include, the period and a format.</p>
+            </div>
           </div>
 
-          <span className="jx-sidebar__section" style={{ padding: 0 }}>What to export</span>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "var(--space-3)", margin: "var(--space-2) 0 var(--space-4)" }}>
-            {WHAT.map(({ id, icon: Icon, title, sub }) => {
-              const sel = selected.includes(id);
-              return (
-                <button key={id} type="button" className={`jx-exportopt ${sel ? "jx-exportopt--selected" : ""}`} onClick={() => toggle(id)}>
-                  <span style={{
-                    position: "absolute", top: 10, right: 10, width: 18, height: 18, borderRadius: 5,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    background: sel ? "var(--color-primary)" : "var(--color-bg-muted)",
-                    border: sel ? "none" : "1px solid var(--color-border-strong)",
-                    color: "var(--color-primary-foreground)",
-                  }}>
-                    {sel && <Check size={12} />}
-                  </span>
-                  <span className="jx-sect__icon"><Icon size={15} /></span>
-                  <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{title}</span>
-                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{sub}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="jx-form-row" style={{ marginBottom: "var(--space-4)" }}>
-            <div className="jx-field" style={{ flex: 1 }}>
-              <span className="jx-sidebar__section" style={{ padding: 0 }}>Date range</span>
-              <div className="jx-input">
-                <span className="jx-input__icon"><Calendar size={15} /></span>
-                <select value={range} onChange={(e) => setRange(e.target.value)}>
-                  {RANGES.map((r) => (<option key={r.label}>{r.label}</option>))}
-                </select>
+          <div className={dt.step}>
+            <span className={dt.stepNum}>1</span>
+            <div className={dt.stepBody}>
+              <span className={dt.label}>What to include</span>
+              <div className={dt.opts}>
+                {WHAT.map(({ id, icon: Icon, title, sub }) => {
+                  const sel = selected.includes(id);
+                  return (
+                    <button key={id} type="button" role="checkbox" aria-checked={sel} className={dt.opt} onClick={() => toggle(id)}>
+                      <span className={dt.box} aria-hidden="true">{sel && <Check size={12} strokeWidth={3} />}</span>
+                      <span className={dt.optIco} aria-hidden="true"><Icon size={15} /></span>
+                      <b>{title}</b>
+                      <small>{sub}</small>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            <div className="jx-field" style={{ flex: 1 }}>
-              <span className="jx-sidebar__section" style={{ padding: 0 }}>Format</span>
-              <div className="jx-seg">
-                {["CSV", "PDF"].map((f) => (
-                  <button key={f} className={`jx-seg__btn ${format === f ? "jx-seg__btn--active" : ""}`} onClick={() => setFormat(f)}>
-                    {f}
+          </div>
+
+          <div className={dt.step}>
+            <span className={dt.stepNum}>2</span>
+            <div className={dt.stepBody}>
+              <span className={dt.label} id="ie-range"><Calendar size={13} aria-hidden="true" /> Date range</span>
+              <div className={dt.chips} role="radiogroup" aria-labelledby="ie-range">
+                {RANGES.map((r) => (
+                  <button key={r.label} type="button" role="radio" aria-checked={range === r.label} onClick={() => setRange(r.label)}>{r.label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className={dt.step}>
+            <span className={dt.stepNum}>3</span>
+            <div className={dt.stepBody}>
+              <span className={dt.label}>Format</span>
+              <div className={dt.formats} role="radiogroup" aria-label="Format">
+                {[
+                  { f: "CSV", icon: FileSpreadsheet, d: "Opens in Excel or Google Sheets" },
+                  { f: "PDF", icon: FileText, d: "A formatted report to share or print" },
+                ].map(({ f, icon: Icon, d }) => (
+                  <button key={f} type="button" role="radio" aria-checked={format === f} className={dt.format} onClick={() => setFormat(f)}>
+                    <Icon size={16} aria-hidden="true" />
+                    <span><b>{f}</b><small>{d}</small></span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap", borderTop: "1px solid var(--color-border)", paddingTop: "var(--space-4)" }}>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{filtered.length} trades</span>
-              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                {selected.length} section{selected.length === 1 ? "" : "s"} · {format}
-              </span>
+          <div className={dt.summary}>
+            <div>
+              <b>{filtered.length ? `${filtered.length} trades · ${range}` : `No trades in ${range.toLowerCase()}`}</b>
+              <small>{contents.length ? `Your ${format} will contain ${contents.join(", ")}` : "Pick at least one section"}</small>
             </div>
-            <Button variant="primary" icon={Download} onClick={doDownload}>
-              Download {format}
-            </Button>
+            <button type="button" className={`${ov.btn} ${ov.gold}`} onClick={doDownload} disabled={!selected.length || !filtered.length}>
+              <Download size={15} aria-hidden="true" /> Download {format}
+            </button>
           </div>
-        </div>
+        </section>
 
-        {/* ===== Right column ===== */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-          <div className="jx-card">
-            <div className="jx-card__title" style={{ marginBottom: "var(--space-3)" }}>Import trades</div>
-
-            <div
-              className="jx-dropzone"
-              style={{ borderColor: "var(--color-primary)", background: "var(--color-primary-subtle)", cursor: "pointer" }}
-              onClick={() => setShowImport(true)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => { e.preventDefault(); setShowImport(true); }}
-            >
-              <span className="jx-sect__icon" style={{ borderRadius: "50%", width: 36, height: 36 }}>
-                <Upload size={16} />
-              </span>
-              <strong style={{ color: "var(--color-text-primary)" }}>Import from a template</strong>
-              <span style={{ font: "var(--text-caption)" }}>Get a template &amp; upload your CSV</span>
+        {/* ===== Import + recent ===== */}
+        <aside className={dt.side}>
+          <section
+            className={dt.card}
+            aria-labelledby="ie-imp"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); setShowImport(true); }}
+          >
+            <div className={dt.cardHead}>
+              <span className={dt.ico} aria-hidden="true"><Upload size={17} /></span>
+              <div>
+                <h2 id="ie-imp" className={dt.cardTitle}>Import trades</h2>
+                <p className={dt.cardSub}>Bring your history in from a spreadsheet.</p>
+              </div>
             </div>
-          </div>
+            <ol className={dt.howto}>
+              <li><FileDown size={14} aria-hidden="true" /><span><b>Get the template</b> Only P&amp;L or detailed</span></li>
+              <li><PencilLine size={14} aria-hidden="true" /><span><b>Fill in your trades</b> One row per trade</span></li>
+              <li><Upload size={14} aria-hidden="true" /><span><b>Upload &amp; review</b> Nothing saves until you confirm</span></li>
+            </ol>
+            <button type="button" className={`${ov.btn} ${ov.gold}`} onClick={() => setShowImport(true)} style={{ width: "100%" }}>
+              <Upload size={15} aria-hidden="true" /> Import trades
+            </button>
+          </section>
 
-          <div className="jx-card">
-            <div className="jx-card__title">Recent exports</div>
-            <div style={{ marginTop: "var(--space-2)" }}>
-              {recent.length === 0 && (
-                <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                  Your downloads will show up here.
-                </span>
-              )}
-              {recent.map((f, i) => (
-                <div key={`${f.name}-${i}`} className="jx-setrow" style={{ padding: "var(--space-3) 0" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                    <span className="jx-sect__icon"><FileText size={14} /></span>
-                    <span style={{ display: "flex", flexDirection: "column" }}>
-                      <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{f.name}</span>
-                      <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{f.meta}</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
+          <section className={dt.card} aria-labelledby="ie-rec">
+            <div className={dt.previewHead}>
+              <h2 id="ie-rec" className={dt.cardTitle}>Recent exports</h2>
+              {recent.length > 0 && <button type="button" className={dt.textBtn} onClick={clearRecent}><Trash2 size={13} aria-hidden="true" /> Clear</button>}
             </div>
-          </div>
-        </div>
+            {recent.length === 0 ? (
+              <p className={dt.hint}>Files you download appear here so you can keep track.</p>
+            ) : (
+              <ul className={dt.files}>
+                {recent.map((f, i) => {
+                  const pdf = /\.pdf$/i.test(f.name);
+                  const Icon = pdf ? FileText : FileSpreadsheet;
+                  return (
+                    <li key={`${f.name}-${i}`}>
+                      <span className={dt.optIco} aria-hidden="true"><Icon size={14} /></span>
+                      <span className={dt.fileTxt}><b>{f.name}</b><small>{f.meta}</small></span>
+                      <span className={dt.fileTag}>{pdf ? "PDF" : "CSV"}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+        </aside>
       </div>
 
       <ImportTradesModal
@@ -371,14 +395,6 @@ export default function ImportExportPanel({ trades = [], onImported }) {
         onClose={() => setShowImport(false)}
         onImported={(newTrades) => { onImported?.(newTrades); flash("success", `${newTrades?.length || 0} trades imported`); }}
       />
-
-      <style jsx>{`
-        @media (max-width: 900px) {
-          .jx-ie-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

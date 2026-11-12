@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import Cookies from "js-cookie";
@@ -36,6 +36,12 @@ const fmt = (v, sym = "$") => `${sym}${compactNumber(Math.abs(v))}`;
 
 const ACCENTS = ["#fcd535", "#2ebd85", "#3b82f6", "#8b5cf6", "#f6465d"];
 const TYPES = ["Spot", "Futures", "Paper"];
+const TYPE_INFO = {
+  Spot: "Buy and sell the asset itself",
+  Futures: "Leverage, contracts and perps",
+  Paper: "Practice with no real money",
+};
+const BALANCE_PRESETS = [1000, 5000, 10000, 25000, 100000]; // one-tap starting balances
 
 export default function JournalsModal({
   open,
@@ -157,6 +163,8 @@ export default function JournalsModal({
 
   const save = async () => {
     if (!name.trim()) return setError("Give your journal a name");
+    // starting balance drives capital growth, drawdown % and returns
+    if (balance === "" || !(Number(balance) > 0)) return setError("Add a starting balance above 0");
 
     /* edit path, update name/currency/balance, then refresh */
     if (editingId) {
@@ -215,14 +223,18 @@ export default function JournalsModal({
     }
   };
 
-  /* keyboard: ⌘/Ctrl+Enter saves (in the create/edit view) · Esc closes */
+  /* keyboard: ⌘/Ctrl+Enter saves (in the create/edit view) · Esc closes.
+     The listener calls the latest save through a ref, so it always sees the
+     current name / balance instead of the values from when it was bound. */
+  const saveRef = useRef(save);
+  saveRef.current = save;
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => {
       if (confirmDel) return; // the delete dialog handles its own keys
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && view === "create") {
         e.preventDefault();
-        if (!saving) save();
+        if (!saving) saveRef.current();
       } else if (e.key === "Escape") {
         if (!saving) onClose?.();
       }
@@ -257,7 +269,7 @@ export default function JournalsModal({
             animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
             exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.96, y: 8 }}
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            className="jx-ltmodal jx-ltmodal--narrow jx-ltmodal--flat"
+            className="jx-ltmodal jx-ltmodal--narrow jx-ltmodal--flat jx-jm"
             onClick={(e) => e.stopPropagation()}
             style={{
               width: isMobile ? "100%" : "min(520px, 96vw)",
@@ -316,13 +328,7 @@ export default function JournalsModal({
                           onClick={() => !active && switchTo(acc)}
                         >
                           <div className="jx-jcard__top">
-                            <span
-                              className="jx-jcard__icon"
-                              style={{
-                                background: `color-mix(in srgb, ${accColor} 18%, transparent)`,
-                                color: accColor,
-                              }}
-                            >
+                            <span className="jx-jcard__icon" data-accent={accColor}>
                               <Wallet size={18} />
                             </span>
                             <span className="jx-jcard__title">
@@ -423,10 +429,10 @@ export default function JournalsModal({
                     )}
 
                     <div className="jx-field">
-                      <span className="jx-sidebar__section" style={{ padding: 0 }}>Journal name</span>
+                      <label className="jx-jm__label" htmlFor="jm-name">Journal name<em className="jx-req" aria-hidden="true">*</em><span className="jx-sr">(required)</span></label>
                       <div className="jx-input">
                         <span className="jx-input__icon"><Type size={15} /></span>
-                        <input placeholder="e.g. Swing trades" value={name} onChange={(e) => setName(e.target.value)} />
+                        <input id="jm-name" autoFocus placeholder="e.g. FTMO 100k challenge" value={name} aria-invalid={(!!error && !name.trim()) || undefined} onChange={(e) => { setName(e.target.value); if (error) setError(null); }} />
                       </div>
                       <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
                         Name it after a strategy, account, or prop firm.
@@ -435,18 +441,18 @@ export default function JournalsModal({
 
                     <div className="jx-form-row">
                       <div className="jx-field" style={{ flex: 2 }}>
-                        <span className="jx-sidebar__section" style={{ padding: 0 }}>Starting balance</span>
+                        <label className="jx-jm__label" htmlFor="jm-bal">Starting balance<em className="jx-req" aria-hidden="true">*</em><span className="jx-sr">(required)</span></label>
                         <div className="jx-input">
                           <span className="jx-input__icon" style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-text-secondary)" }}>
                             {getCurrencySymbol((currency || "USD").toLowerCase())}
                           </span>
-                          <input type="number" step="any" placeholder="10,000" value={balance} onChange={(e) => setBalance(e.target.value)} />
+                          <input id="jm-bal" type="number" min="0" step="any" inputMode="decimal" placeholder="10,000" value={balance} aria-invalid={(!!error && !(Number(balance) > 0)) || undefined} onChange={(e) => { setBalance(e.target.value); if (error) setError(null); }} />
                         </div>
                       </div>
                       <div className="jx-field" style={{ flex: 1, minWidth: 110 }}>
-                        <span className="jx-sidebar__section" style={{ padding: 0 }}>Currency</span>
+                        <label className="jx-jm__label" htmlFor="jm-cur">Currency<em className="jx-req" aria-hidden="true">*</em><span className="jx-sr">(required)</span></label>
                         <div className="jx-input">
-                          <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                          <select id="jm-cur" value={currency} onChange={(e) => setCurrency(e.target.value)}>
                             {["USD", "USDT", "EUR", "INR"].map((c) => (
                               <option key={c}>{c}</option>
                             ))}
@@ -456,18 +462,53 @@ export default function JournalsModal({
                       </div>
                     </div>
 
+                    <div className="jx-jm__presets" role="group" aria-label="Balance presets">
+                      {BALANCE_PRESETS.map((v) => (
+                        <button key={v} type="button" aria-pressed={Number(balance) === v} onClick={() => { setBalance(String(v)); if (error) setError(null); }}>
+                          {getCurrencySymbol((currency || "USD").toLowerCase())}{v >= 1000 ? `${v / 1000}k` : v}
+                        </button>
+                      ))}
+                    </div>
+
                     {!editingId && (
                       <div className="jx-field">
-                        <span className="jx-sidebar__section" style={{ padding: 0 }}>Account type</span>
-                        <div className="jx-seg">
+                        <span className="jx-jm__label" id="jm-type">Account type<em className="jx-req" aria-hidden="true">*</em><span className="jx-sr">(required)</span></span>
+                        <div className="jx-jm__types" role="radiogroup" aria-labelledby="jm-type">
                           {TYPES.map((t) => (
-                            <button key={t} className={`jx-seg__btn ${type === t ? "jx-seg__btn--active" : ""}`} onClick={() => setType(t)}>
-                              {t}
+                            <button key={t} type="button" role="radio" aria-checked={type === t} className="jx-jm__type" onClick={() => setType(t)}>
+                              <span className="jx-jm__radio" aria-hidden="true" />
+                              <b>{t}</b>
+                              <small>{TYPE_INFO[t]}</small>
                             </button>
                           ))}
                         </div>
                       </div>
                     )}
+
+                    {/* live preview of the journal card */}
+                    <div className="jx-jm__preview" aria-hidden="true">
+                      <span className="jx-jm__previewlbl">Preview</span>
+                      <div className="jx-jcard jx-jcard--preview">
+                        <div className="jx-jcard__top">
+                          <span className="jx-jcard__icon"><Wallet size={18} /></span>
+                          <span className="jx-jcard__title">
+                            <span className="jx-jcard__name">{name.trim() || "Untitled journal"}</span>
+                            <span className="jx-jcard__sub">{editingId ? "Journal" : type} · {(currency || "USD").toUpperCase()}</span>
+                          </span>
+                        </div>
+                        <div className="jx-jcard__divider" />
+                        <div className="jx-jcard__stats">
+                          <span className="jx-jcard__stat">
+                            <span className="jx-jcard__lbl">Starting balance</span>
+                            <span className="jx-jcard__val">{getCurrencySymbol((currency || "USD").toLowerCase())}{(Number(balance) || 0).toLocaleString()}</span>
+                          </span>
+                          <span className="jx-jcard__stat">
+                            <span className="jx-jcard__lbl">P&amp;L · all-time</span>
+                            <span className="jx-jcard__val">{getCurrencySymbol((currency || "USD").toLowerCase())}0</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
                   </div>
 
@@ -491,10 +532,17 @@ export default function JournalsModal({
                           {editingId ? "Saving…" : "Creating…"}
                         </>
                       ) : (
-                        <>{editingId ? "Save changes" : "Create journal"} <Kbd combo={[MOD, "↵"]} /></>
+                        <>{editingId ? "Save changes" : "Create journal"}</>
                       )}
                     </Button>
                   </div>
+                  <p className="jx-jm__keys">
+                    <span><em className="jx-req" aria-hidden="true">*</em> required</span>
+                    <span aria-hidden="true">·</span>
+                    <span>Press <Kbd combo={[MOD, "↵"]} /> to {editingId ? "save" : "create"}</span>
+                    <span aria-hidden="true">·</span>
+                    <span><Kbd combo={["Esc"]} /> to close</span>
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>

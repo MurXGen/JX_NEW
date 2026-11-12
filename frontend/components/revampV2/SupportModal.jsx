@@ -37,11 +37,20 @@ const GOOGLE_FORM = {
 
 import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Clock, LifeBuoy, Loader2, Send, X } from "lucide-react";
+import { Bug, CheckCircle2, Clock, HelpCircle, Lightbulb, LifeBuoy, Loader2, MessageSquare, MoreHorizontal, Send, X } from "lucide-react";
+import Kbd, { MOD } from "./Kbd";
 import Button from "./Button";
 import { responsesSignature, SUPPORT_LS_KEY, SUPPORT_VIEWS_TO_DISMISS } from "./useSupportBadge";
 
 const CATEGORIES = ["Support", "Feedback", "Bug report", "Feature request", "Other"];
+/* each category gets an icon and a prompt that tells people what's useful to include */
+const CAT_INFO = {
+  Support: { icon: HelpCircle, hint: "What are you trying to do, and where are you stuck?" },
+  Feedback: { icon: MessageSquare, hint: "What do you like, and what would make JournalX better for you?" },
+  "Bug report": { icon: Bug, hint: "What happened, what you expected, and the steps to make it happen again." },
+  "Feature request": { icon: Lightbulb, hint: "What would you like to do, and how would it help your trading?" },
+  Other: { icon: MoreHorizontal, hint: "Tell us what's on your mind." },
+};
 
 // the support sheet, published to the web as CSV (read directly in the browser)
 const SHEET_CSV =
@@ -103,6 +112,7 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
   const [loadingTickets, setLoadingTickets] = useState(false);
   // once a user has viewed the modal enough times, hide answered tickets too
   const [hideAnswered, setHideAnswered] = useState(false);
+  const [tab, setTab] = useState("new"); // new | history
 
   const configured = Boolean(GOOGLE_FORM.actionUrl && GOOGLE_FORM.entries.message);
 
@@ -139,6 +149,7 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
     setCategory("Support");
     setMessage("");
     setStatus("idle");
+    setTab("new");
   };
 
   const close = () => {
@@ -185,6 +196,14 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
     }
   };
 
+  // ⌘/Ctrl + Enter sends from anywhere in the form
+  const onKey = (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && tab === "new" && message.trim() && status !== "sending") submit(e);
+  };
+  const visibleTickets = hideAnswered ? tickets.filter((t) => !t.response) : tickets;
+  const answeredCount = visibleTickets.filter((t) => t.response).length;
+  const info = CAT_INFO[category] || CAT_INFO.Other;
+
   return (
     <AnimatePresence>
       {open && (
@@ -196,141 +215,139 @@ export default function SupportModal({ open, onClose, user, plan = "free" }) {
           onClick={close}
         >
           <motion.div
-            className="jx-ltmodal jx-ltmodal--narrow jx-ltmodal--popup"
-            style={{ width: "min(480px, 96vw)" }}
+            className="jx-ltmodal jx-ltmodal--narrow jx-ltmodal--popup jx-sup"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sup-title"
             initial={{ opacity: 0, y: 18, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.98 }}
             transition={{ duration: 0.18 }}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={onKey}
           >
-            <div className="jx-ltmodal__header">
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                <span
-                  style={{
-                    width: 36, height: 36, borderRadius: "var(--radius-md)",
-                    background: "var(--color-primary-subtle)", color: "var(--yellow-500)",
-                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                  }}
-                >
-                  <LifeBuoy size={18} />
-                </span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Support &amp; feedback</span>
-                  <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                    We read every message.
-                  </span>
-                </div>
+            <div className="jx-sup__head">
+              <span className="jx-sup__ico" aria-hidden="true"><LifeBuoy size={18} /></span>
+              <div className="jx-sup__titles">
+                <h2 id="sup-title">Support &amp; feedback</h2>
+                <p>A real person reads every message.</p>
               </div>
-              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={close} aria-label="Close" style={{ padding: 8 }}>
+              <button className="jx-sup__close" onClick={close} aria-label="Close">
                 <X size={16} />
               </button>
             </div>
 
-            {status === "done" ? (
-              <div style={{ padding: "var(--space-8) var(--space-6)", textAlign: "center", display: "flex", flexDirection: "column", gap: "var(--space-3)", alignItems: "center", flex: "1 1 auto", minHeight: 0, overflowY: "auto" }}>
-                <span style={{ font: "var(--text-h2)" }}>🎉</span>
-                <span style={{ font: "var(--text-title)", fontWeight: 600 }}>Thanks for reaching out!</span>
-                <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)", maxWidth: 320 }}>
-                  Your {category.toLowerCase()} has been received. We&apos;ll get back to you at {user?.email || "your email"} if a reply is needed.
-                </span>
-                <Button variant="primary" onClick={close} style={{ marginTop: "var(--space-2)" }}>Done</Button>
+            {status !== "done" && (
+              <div className="jx-sup__tabs" role="tablist" aria-label="Support">
+                <button type="button" role="tab" aria-selected={tab === "new"} onClick={() => setTab("new")}>
+                  <Send size={14} aria-hidden="true" /> New message
+                </button>
+                <button type="button" role="tab" aria-selected={tab === "history"} onClick={() => setTab("history")}>
+                  <Clock size={14} aria-hidden="true" /> My requests
+                  {visibleTickets.length > 0 && <span className="jx-sup__count">{visibleTickets.length}</span>}
+                  {answeredCount > 0 && <span className="jx-sup__dot" aria-label={`${answeredCount} answered`} />}
+                </button>
               </div>
-            ) : (
-              <form onSubmit={submit} style={{ padding: "var(--space-5) var(--space-6) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)", flex: "1 1 auto", minHeight: 0, overflowY: "auto" }}>
-                {/* the user's requests + our team's responses, from the support sheet */}
-                {(() => {
-                  const visibleTickets = hideAnswered ? tickets.filter((t) => !t.response) : tickets;
-                  return (loadingTickets || visibleTickets.length > 0) ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", padding: "var(--space-3)", borderRadius: "var(--radius-md)", background: "var(--color-bg-muted)", border: "1px solid var(--color-border)" }}>
-                    <span style={{ font: "var(--text-small)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                      <Clock size={13} /> Your requests &amp; responses
-                      {loadingTickets && <Loader2 size={12} className="jx-spin" style={{ marginLeft: 4 }} />}
-                    </span>
+            )}
+
+            {status === "done" ? (
+              <div className="jx-sup__done">
+                <span className="jx-sup__doneIco" aria-hidden="true"><CheckCircle2 size={26} /></span>
+                <b>Message sent</b>
+                <p>
+                  Thanks! Your {category.toLowerCase()} is with the team. If it needs a reply we&apos;ll answer here under
+                  {" "}<strong>My requests</strong>{user?.email ? <> and at {user.email}</> : null}.
+                </p>
+                <div className="jx-sup__doneBtns">
+                  <button type="button" className="jx-btn jx-btn--secondary" onClick={() => { setMessage(""); setStatus("idle"); setTab("history"); }}>View my requests</button>
+                  <Button variant="primary" onClick={close}>Done</Button>
+                </div>
+              </div>
+            ) : tab === "history" ? (
+              <div className="jx-sup__body">
+                {loadingTickets && visibleTickets.length === 0 ? (
+                  <div className="jx-sup__empty"><Loader2 size={16} className="jx-spin" aria-hidden="true" /> Loading your requests…</div>
+                ) : visibleTickets.length === 0 ? (
+                  <div className="jx-sup__empty">
+                    <b>No requests yet</b>
+                    <span>Anything you send appears here, with our reply once we&apos;ve answered.</span>
+                    <button type="button" className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => setTab("new")}>Write a message</button>
+                  </div>
+                ) : (
+                  <ul className="jx-sup__list">
                     {visibleTickets.map((tk, i) => {
                       const answered = !!tk.response;
                       return (
-                        <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6, padding: "10px", borderRadius: "var(--radius-sm)", background: "var(--color-bg-surface)", border: "1px solid var(--color-border)" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            {tk.category ? <span className="jx-badge jx-badge--neutral">{tk.category}</span> : null}
-                            <span style={{ marginLeft: "auto", font: "var(--text-caption)", fontWeight: 600, color: answered ? "var(--color-success-strong)" : "var(--yellow-500)" }}>
-                              {answered ? "Answered" : "Pending review"}
-                            </span>
+                        <li key={i} className="jx-sup__ticket" data-answered={answered || undefined}>
+                          <div className="jx-sup__tickHead">
+                            {tk.category ? <span className="jx-sup__cat">{tk.category}</span> : null}
+                            <span className="jx-sup__status">{answered ? "Answered" : "Pending review"}</span>
                           </div>
-                          <span style={{ font: "var(--text-small)", color: "var(--color-text-secondary)" }}>{tk.message}</span>
+                          <p className="jx-sup__msg">{tk.message}</p>
                           {answered && (
-                            <div style={{ borderLeft: "3px solid var(--color-primary)", paddingLeft: 10, background: "var(--color-primary-subtle)", borderRadius: "0 var(--radius-sm) var(--radius-sm) 0", padding: "8px 10px" }}>
-                              <span style={{ display: "block", font: "var(--text-caption)", fontWeight: 600, color: "var(--yellow-500)", marginBottom: 2 }}>JournalX team</span>
-                              <span style={{ font: "var(--text-small)", color: "var(--color-text-primary)" }}>{tk.response}</span>
+                            <div className="jx-sup__reply">
+                              <span>JournalX team</span>
+                              <p>{tk.response}</p>
                             </div>
                           )}
-                          {tk.date ? <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{tk.date}</span> : null}
-                        </div>
+                          {tk.date ? <time className="jx-sup__date">{tk.date}</time> : null}
+                        </li>
                       );
                     })}
+                  </ul>
+                )}
+              </div>
+            ) : (
+              <form onSubmit={submit} className="jx-sup__form">
+                <div className="jx-sup__body">
+                  <div className="jx-sup__field">
+                    <span className="jx-sup__label" id="sup-cat">What&apos;s this about?</span>
+                    <div className="jx-sup__cats" role="radiogroup" aria-labelledby="sup-cat">
+                      {CATEGORIES.map((c) => {
+                        const Icon = CAT_INFO[c]?.icon || MoreHorizontal;
+                        return (
+                          <button type="button" key={c} role="radio" aria-checked={category === c} onClick={() => setCategory(c)}>
+                            <Icon size={14} aria-hidden="true" /> {c}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  ) : null;
-                })()}
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                  <label style={{ font: "var(--text-body-md)", fontWeight: 600 }}>What&apos;s this about?</label>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-                    {CATEGORIES.map((c) => (
-                      <button
-                        type="button"
-                        key={c}
-                        onClick={() => setCategory(c)}
-                        className="jx-btn jx-btn--sm"
-                        style={{
-                          background: category === c ? "var(--color-primary)" : "var(--color-bg-muted)",
-                          color: category === c ? "var(--color-primary-foreground)" : "var(--color-text-secondary)",
-                          border: "1px solid var(--color-border)",
-                        }}
-                      >
-                        {c}
-                      </button>
-                    ))}
+                  <div className="jx-sup__field">
+                    <label className="jx-sup__label" htmlFor="sup-msg">Message<em className="jx-req" aria-hidden="true">*</em></label>
+                    <textarea
+                      id="sup-msg"
+                      className="jx-sup__text"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder={info.hint}
+                      rows={5}
+                      maxLength={2000}
+                      autoFocus
+                    />
+                    <div className="jx-sup__meta">
+                      <span>{info.hint}</span>
+                      <span>{message.length}/2000</span>
+                    </div>
                   </div>
+
+                  {status === "error" && (
+                    <div className="jx-sup__error" role="alert">
+                      Something went wrong. Please try again or email officialjournalx@gmail.com.
+                    </div>
+                  )}
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                  <label style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Message</label>
-                  <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Tell us what's on your mind…"
-                    rows={5}
-                    autoFocus
-                    style={{
-                      width: "100%", resize: "vertical", minHeight: 110,
-                      background: "var(--color-bg-surface)", color: "var(--color-text-primary)",
-                      border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)",
-                      padding: "12px 14px", font: "var(--text-body)", outline: "none",
-                    }}
-                  />
-                </div>
-
-                {user?.email && (
-                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                    Sending as {user.name ? `${user.name} · ` : ""}{user.email}
+                <div className="jx-sup__foot">
+                  <span className="jx-sup__from">
+                    {user?.email ? <>Sending as <b>{user.name || user.email}</b>{user.name ? <> · {user.email}</> : null}</> : "We'll reply by email"}
                   </span>
-                )}
-
-                {status === "error" && (
-                  <div className="jx-toast jx-toast--danger" style={{ font: "var(--text-small)" }}>
-                    Something went wrong. Please try again or email officialjournalx@gmail.com.
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  icon={Send}
-                  disabled={!message.trim() || status === "sending"}
-                  style={{ width: "100%", justifyContent: "center" }}
-                >
-                  {status === "sending" ? "Sending…" : "Send message"}
-                </Button>
+                  <span className="jx-sup__keys"><Kbd combo={[MOD, "↵"]} /> to send</span>
+                  <Button type="submit" variant="primary" icon={status === "sending" ? undefined : Send} disabled={!message.trim() || status === "sending"}>
+                    {status === "sending" ? <><Loader2 size={15} className="jx-spin" aria-hidden="true" /> Sending…</> : "Send"}
+                  </Button>
+                </div>
               </form>
             )}
           </motion.div>

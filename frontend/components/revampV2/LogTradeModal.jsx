@@ -12,6 +12,7 @@ import {
   CandlestickChart,
   Check,
   ChevronDown,
+  RotateCcw,
   Clock,
   Copy,
   ExternalLink,
@@ -134,21 +135,25 @@ function Seg({ items, value, onChange, inline }) {
   );
 }
 
-function Sect({ icon: Icon, title, hint }) {
+function Sect({ icon: Icon, title, hint, required }) {
   return (
     <div className="jx-sect">
       <div className="jx-sect__left">
         <span className="jx-sect__icon">
           <Icon size={15} />
         </span>
-        <span className="jx-sect__title">{title}</span>
+        <span className="jx-sect__title">
+          {title}
+          {required && <em className="jx-req" aria-hidden="true">*</em>}
+          {required && <span className="jx-sr">(required)</span>}
+        </span>
       </div>
       {hint && <span className="jx-sect__hint">{hint}</span>}
     </div>
   );
 }
 
-function Field({ label, children }) {
+function Field({ label, children, required }) {
   return (
     <div className="jx-field">
       <label
@@ -156,6 +161,8 @@ function Field({ label, children }) {
         style={{ font: "var(--text-small)", fontWeight: 500 }}
       >
         {label}
+        {required && <em className="jx-req" aria-hidden="true">*</em>}
+        {required && <span className="jx-sr">(required)</span>}
       </label>
       {children}
     </div>
@@ -1989,7 +1996,7 @@ export default function LogTradeModal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="jx-modal-overlay jx-modal-overlay--blur jx-modal-overlay--sheet"
+          className="jx-modal-overlay jx-modal-overlay--blur jx-modal-overlay--sheet jx-lt2-overlay"
           style={{ alignItems: "flex-end", justifyContent: "center", padding: 0 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -2005,7 +2012,10 @@ export default function LogTradeModal({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 34 }}
-            className="jx-ltmodal jx-ltmodal--sheet"
+            className={`jx-ltmodal jx-ltmodal--sheet jx-lt2 jx-lt2--${mode}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={isEdit ? "Edit trade" : "Log a trade"}
             style={{ position: "relative" }}
           >
             {/* playful save overlay — interactive instead of a bare spinner */}
@@ -2048,6 +2058,7 @@ export default function LogTradeModal({
                     {isQuick
                       ? "Fast, just the result (P&L)."
                       : "Full trade, entry, exit & size."}
+                    <span className="jx-lt2__reqnote"> · <em className="jx-req">*</em> required</span>
                   </span>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
@@ -2146,7 +2157,7 @@ export default function LogTradeModal({
                     const N = {};
                     N.asset = (
                     <div className="jx-ltgroup">
-                      <Sect icon={CandlestickChart} title="Asset & direction" />
+                      <Sect icon={CandlestickChart} title="Asset & direction" required />
                       <div className="jx-asset-row">
                         <div className="jx-asset-row__sym">
                           {symbolInputBlock}
@@ -2264,7 +2275,7 @@ export default function LogTradeModal({
                         N.result = (
                         <div className="jx-ltgroup">
                           <Sect icon={Zap} title="Result" hint="Just the outcome" />
-                          <Field label={`Net P&L in ${sym}`}>
+                          <Field label={`Net P&L in ${sym}`} required>
                             {/* explicit outcome switch — no guessing what a "+" button does */}
                             <div className="jx-seg jx-seg--inline jx-pnl-outcome" role="group" aria-label="Profit or loss">
                               {[["win", "Profit", TrendingUp], ["loss", "Loss", TrendingDown]].map(([k, label, Icon]) => {
@@ -2388,7 +2399,7 @@ export default function LogTradeModal({
                                 duplicate pair. Show them for the normal flow. */}
                             {!useChart && (
                               <>
-                                <Field label="Entry price">
+                                <Field label="Entry price" required>
                                   <div className="jx-input">
                                     <input
                                       type="number"
@@ -2414,7 +2425,7 @@ export default function LogTradeModal({
                                 </Field>
                               </>
                             )}
-                            <Field label="Position size">
+                            <Field label="Position size" required>
                               <div style={{ display: "flex", gap: "var(--space-2)", width: "100%", alignItems: "stretch" }}>
                                 {/* size input, takes the remaining ~80% */}
                                 <div className="jx-input" style={{ flex: 1, minWidth: 0 }}>
@@ -3194,83 +3205,89 @@ export default function LogTradeModal({
     <AnimatePresence>
       {customize && (
         <motion.div
-          className="jx-modal-overlay jx-modal-overlay--blur jx-modal-overlay--sheet"
+          className="jx-modal-overlay jx-modal-overlay--blur jx-modal-overlay--sheet jx-lt2-overlay"
           style={{ zIndex: 5200, alignItems: "flex-end", justifyContent: "center", padding: 0 }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
           onMouseDown={(e) => e.target === e.currentTarget && setCustomize(false)}
         >
           <motion.div
-            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+            initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
             transition={{ type: "spring", stiffness: 320, damping: 34 }}
-            className="jx-ltmodal jx-ltmodal--sheet"
-            style={{ position: "relative", height: "auto", maxHeight: "82vh", borderRadius: "22px 22px 0 0" }}
+            className="jx-cust"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cust-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "10px 0 2px", flexShrink: 0 }}>
-              <span style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)" }} />
-            </div>
-            <div className="jx-ltmodal__header" style={{ alignItems: "center", gap: "var(--space-2)" }}>
-              <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
-                <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Customize sections</span>
-                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                  Drag to reorder your {isQuick ? "quick" : "detailed"} log
-                </span>
+            <div className="jx-cust__grab" aria-hidden="true"><span /></div>
+            <div className="jx-cust__head">
+              <span className="jx-cust__ico" aria-hidden="true"><SlidersHorizontal size={17} /></span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h2 id="cust-title">Customize sections</h2>
+                <p>Order the {isQuick ? "Only P&L" : "Entry & Exit"} form the way you log. Saved automatically.</p>
               </div>
+              <button type="button" className="jx-cust__close" onClick={() => setCustomize(false)} aria-label="Close">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="jx-cust__body">
+              <p className="jx-cust__hint"><GripVertical size={13} aria-hidden="true" /> Drag a row, or use the arrows to move it</p>
+              <Reorder.Group axis="y" values={custOrder} onReorder={handleReorder} as="ol" className="jx-cust__list">
+                {custOrder.map((id, i) => {
+                  const meta = SECTION_META[id] || { label: id, icon: SlidersHorizontal };
+                  const Icon = meta.icon;
+                  const move = (dir) => {
+                    const j = i + dir;
+                    if (j < 0 || j >= custOrder.length) return;
+                    const next = [...custOrder];
+                    [next[i], next[j]] = [next[j], next[i]];
+                    handleReorder(next);
+                    setTimeout(flushOrder, 0);
+                  };
+                  return (
+                    <Reorder.Item
+                      key={id}
+                      value={id}
+                      as="li"
+                      className="jx-cust__row"
+                      onDragStart={() => { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(8); }}
+                      onDragEnd={flushOrder}
+                      whileDrag={{ scale: 1.02, boxShadow: "0 16px 40px -12px rgba(0,0,0,0.9)", zIndex: 3 }}
+                    >
+                      <span className="jx-cust__num" aria-hidden="true">{i + 1}</span>
+                      <span className="jx-cust__rowIco" aria-hidden="true"><Icon size={15} /></span>
+                      <span className="jx-cust__label">{meta.label}</span>
+                      <span className="jx-cust__moves">
+                        <button type="button" onClick={() => move(-1)} disabled={i === 0} aria-label={`Move ${meta.label} up`} onPointerDown={(e) => e.stopPropagation()}>
+                          <ChevronDown size={15} style={{ transform: "rotate(180deg)" }} aria-hidden="true" />
+                        </button>
+                        <button type="button" onClick={() => move(1)} disabled={i === custOrder.length - 1} aria-label={`Move ${meta.label} down`} onPointerDown={(e) => e.stopPropagation()}>
+                          <ChevronDown size={15} aria-hidden="true" />
+                        </button>
+                      </span>
+                      <GripVertical size={17} className="jx-cust__grip" aria-hidden="true" />
+                    </Reorder.Item>
+                  );
+                })}
+              </Reorder.Group>
+            </div>
+
+            <div className="jx-cust__foot">
               <button
                 type="button"
-                className="jx-btn jx-btn--ghost jx-btn--sm"
+                className="jx-btn jx-btn--ghost"
                 onClick={() => {
                   const next = { ...sectionOrder, [mode]: [...DEFAULT_SECTION_ORDER[mode]] };
                   setSectionOrder(next);
                   persistSectionOrder(next);
                 }}
               >
-                Reset
+                <RotateCcw size={14} aria-hidden="true" /> Reset to default
               </button>
-              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => setCustomize(false)} aria-label="Close" style={{ padding: 8 }}>
-                <X size={16} />
-              </button>
-            </div>
-            <div className="jx-ltmodal__body" style={{ padding: "var(--space-2) var(--space-4) var(--space-4)" }}>
-              <Reorder.Group
-                axis="y"
-                values={custOrder}
-                onReorder={handleReorder}
-                as="div"
-                style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", listStyleType: "none", margin: 0, padding: 0 }}
-              >
-                {custOrder.map((id) => {
-                  const meta = SECTION_META[id] || { label: id, icon: SlidersHorizontal };
-                  const Icon = meta.icon;
-                  return (
-                    <Reorder.Item
-                      key={id}
-                      value={id}
-                      as="div"
-                      onDragStart={() => { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(8); }}
-                      onDragEnd={flushOrder}
-                      whileDrag={{ scale: 1.02, boxShadow: "var(--shadow-lg)", zIndex: 3 }}
-                      style={{
-                        display: "flex", alignItems: "center", gap: "var(--space-3)",
-                        padding: "11px 12px", borderRadius: "var(--radius-md)",
-                        background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)",
-                        listStyleType: "none", cursor: "grab", touchAction: "none",
-                      }}
-                    >
-                      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "var(--radius-sm)", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", flexShrink: 0 }}>
-                        <Icon size={15} />
-                      </span>
-                      <span style={{ flex: 1, font: "var(--text-body-md)", fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta.label}</span>
-                      <GripVertical size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
-                    </Reorder.Item>
-                  );
-                })}
-              </Reorder.Group>
-            </div>
-            <div className="jx-ltmodal__footer">
-              <button className="jx-btn jx-btn--primary" onClick={() => setCustomize(false)} style={{ flex: 1, justifyContent: "center" }}>
-                <Check size={16} /> Done
+              <button type="button" className="jx-btn jx-btn--primary" onClick={() => setCustomize(false)}>
+                <Check size={15} aria-hidden="true" /> Done
               </button>
             </div>
           </motion.div>

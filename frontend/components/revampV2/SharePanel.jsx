@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Copy, Link2, Share2 } from "lucide-react";
+import { Check, Copy, ExternalLink, EyeOff, Link2, Lock, RefreshCw, Share2, ShieldCheck } from "lucide-react";
+import ov from "@/components/app/Overview.module.css";
+import dt from "@/components/app/Data.module.css";
 import Badge from "./Badge";
 import Button from "./Button";
 import Toast from "./Toast";
@@ -120,77 +122,152 @@ export default function SharePanel({ trades = [], accountName = "My journal", cu
     }
   };
 
+  // preview numbers + a tiny equity curve of the selected trades
+  const sorted = useMemo(() => [...filtered].sort((a, b) => new Date(a.closeTime) - new Date(b.closeTime)), [filtered]);
+  const best = sorted.length ? Math.max(...sorted.map((t) => Number(t.pnl) || 0)) : 0;
+  const curve = useMemo(() => {
+    let c = 0;
+    const pts = sorted.map((t) => (c += Number(t.pnl) || 0));
+    if (pts.length < 2) return null;
+    const lo = Math.min(0, ...pts), hi = Math.max(0, ...pts), W = 300, H = 70;
+    const y = (v) => H - 4 - ((v - lo) / (hi - lo || 1)) * (H - 8);
+    const d = pts.map((v, i) => `${i ? "L" : "M"} ${(i / (pts.length - 1)) * W} ${y(v)}`).join(" ");
+    return { d, area: `${d} L ${W} ${H} L 0 ${H} Z`, up: pts[pts.length - 1] >= 0, W, H };
+  }, [sorted]);
+  const link = shortUrl || fullUrl;
+  const rangeLabel = RANGES.find((x) => x.id === range)?.label;
+  const nativeShare = async () => {
+    try { await navigator.share?.({ title: `${accountName} · trading performance`, url: link }); } catch {}
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", width: "100%" }}>
+    <div className={`${ov.root} ${dt.root}`}>
       <Toast toast={toast} />
 
-      <div>
-        <div style={{ font: "var(--text-h2)" }}>Share your logs</div>
-        <div style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
-          Create a read-only link to your performance, no login needed to view it.
+      <header className={ov.head}>
+        <div>
+          <h1 className={ov.title}>Share your logs</h1>
+          <p className={ov.sub}>Create a read-only link to your performance. Anyone with the link can view it, no login needed.</p>
         </div>
-      </div>
+      </header>
 
-      <div className="jx-card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-        <div className="jx-field">
-          <span className="jx-sidebar__section" style={{ padding: 0 }}>Time range</span>
-          <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
-            {RANGES.map((r) => (
-              <button
-                key={r.id}
-                className={`jx-chip ${range === r.id ? "jx-chip--selected" : ""}`}
-                onClick={() => { setRange(r.id); setShortUrl(""); setFullUrl(""); }}
-              >
-                {r.label}
-              </button>
-            ))}
+      <div className={dt.split}>
+        {/* ---- build the link ---- */}
+        <section className={dt.card} aria-labelledby="sh-build">
+          <div className={dt.cardHead}>
+            <span className={dt.ico} aria-hidden="true"><Link2 size={17} /></span>
+            <div>
+              <h2 id="sh-build" className={dt.cardTitle}>Build your link</h2>
+              <p className={dt.cardSub}>Pick a period, check the preview, then generate.</p>
+            </div>
           </div>
-        </div>
 
-        {/* preview */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "var(--space-3)" }}>
-          {[
-            ["Journal", accountName],
-            ["Trades", stats.total],
-            ["Win rate", `${stats.winRate}%`],
-            ["Net P&L", money(stats.net, currencySymbol)],
-          ].map(([l, v], i) => (
-            <div key={l} className="jx-card jx-card--flat" style={{ padding: "var(--space-3) var(--space-4)" }}>
-              <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>{l}</span>
-              <div style={{ font: "var(--text-title)", color: i === 3 ? (stats.net >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)") : undefined }}>
-                {v}
+          <div className={dt.step}>
+            <span className={dt.stepNum}>1</span>
+            <div className={dt.stepBody}>
+              <span className={dt.label} id="sh-range">Time range</span>
+              <div className={dt.chips} role="radiogroup" aria-labelledby="sh-range">
+                {RANGES.map((r) => (
+                  <button key={r.id} type="button" role="radio" aria-checked={range === r.id} onClick={() => { setRange(r.id); setShortUrl(""); setFullUrl(""); }}>
+                    {r.label}
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <Button variant="primary" onClick={generate} disabled={busy} style={{ alignSelf: "flex-start", minWidth: 170 }}>
-          {busy ? <><Spinner /> Generating…</> : <><Link2 size={15} /> Generate share link</>}
-        </Button>
+          <div className={dt.step}>
+            <span className={dt.stepNum}>2</span>
+            <div className={dt.stepBody}>
+              <span className={dt.label}>What viewers will see</span>
+              <ul className={dt.checks}>
+                <li><Check size={13} aria-hidden="true" /> {stats.total} closed trades: symbol, side, entry, exit and P&amp;L</li>
+                <li><Check size={13} aria-hidden="true" /> Win rate, net P&amp;L and your equity curve</li>
+                <li className={dt.off}><EyeOff size={13} aria-hidden="true" /> Not shared: your email, notes, screenshots or account</li>
+              </ul>
+            </div>
+          </div>
 
-        {(shortUrl || fullUrl) && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="jx-card jx-card--flat"
-            style={{ padding: "var(--space-3) var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}
-          >
-            <Badge variant="success">Ready</Badge>
-            <span style={{ flex: 1, font: "var(--text-body-md)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 160 }}>
-              {shortUrl || fullUrl}
-            </span>
-            <Button variant={copied ? "success-subtle" : "outline"} size="sm" icon={copied ? Check : Copy} onClick={copy}>
-              {copied ? "Copied" : "Copy"}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => window.open(shortUrl || fullUrl, "_blank")}>
-              Preview
-            </Button>
-          </motion.div>
-        )}
+          <div className={dt.step}>
+            <span className={dt.stepNum}>3</span>
+            <div className={dt.stepBody}>
+              {!link ? (
+                <button type="button" className={`${ov.btn} ${ov.gold}`} onClick={generate} disabled={busy || !filtered.length} style={{ alignSelf: "flex-start" }}>
+                  {busy ? <><Spinner /> Generating…</> : <><Link2 size={15} aria-hidden="true" /> Generate share link</>}
+                </button>
+              ) : (
+                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className={dt.ready}>
+                  <span className={dt.readyTag}><Check size={12} aria-hidden="true" /> Link ready</span>
+                  <div className={dt.linkRow}>
+                    <input readOnly value={link} aria-label="Share link" onFocus={(e) => e.target.select()} />
+                    <button type="button" className={`${ov.btn} ${ov.gold}`} onClick={copy}>
+                      {copied ? <><Check size={14} aria-hidden="true" /> Copied</> : <><Copy size={14} aria-hidden="true" /> Copy</>}
+                    </button>
+                  </div>
+                  <div className={dt.shareRow}>
+                    <button type="button" className={`${ov.btn} ${ov.ghost}`} onClick={() => window.open(link, "_blank", "noopener")}><ExternalLink size={14} aria-hidden="true" /> Open</button>
+                    {typeof navigator !== "undefined" && navigator.share && (
+                      <button type="button" className={`${ov.btn} ${ov.ghost}`} onClick={nativeShare}><Share2 size={14} aria-hidden="true" /> Share</button>
+                    )}
+                    <a className={`${ov.btn} ${ov.ghost}`} href={`https://wa.me/?text=${encodeURIComponent(`My trading performance (${rangeLabel}): ${link}`)}`} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                    <a className={`${ov.btn} ${ov.ghost}`} href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`My trading performance (${rangeLabel})`)}&url=${encodeURIComponent(link)}`} target="_blank" rel="noopener noreferrer">X</a>
+                    <button type="button" className={`${ov.btn} ${ov.ghost}`} onClick={generate} disabled={busy}><RefreshCw size={14} aria-hidden="true" /> New link</button>
+                  </div>
+                </motion.div>
+              )}
+              {!filtered.length && <small className={dt.hint}>No closed trades in this range. Pick a longer one.</small>}
+            </div>
+          </div>
+        </section>
 
-        <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-          The link contains a snapshot of the selected trades, it won&apos;t update as you log more, and viewers can&apos;t access your account.
-        </span>
+        {/* ---- what the viewer sees ---- */}
+        <aside className={dt.side}>
+          <section className={dt.card} aria-labelledby="sh-prev">
+            <div className={dt.previewHead}>
+              <span id="sh-prev" className={dt.label}>Preview</span>
+              <span className={dt.previewPill}>Read-only · {rangeLabel}</span>
+            </div>
+            <div className={dt.preview}>
+              <b className={dt.previewName}>{accountName}</b>
+              <div className={dt.previewStats}>
+                <div><span>Trades</span><b>{stats.total}</b></div>
+                <div><span>Win rate</span><b>{stats.winRate}%</b></div>
+                <div><span>Net P&amp;L</span><b className={stats.net > 0 ? dt.pos : stats.net < 0 ? dt.neg : undefined}>{money(stats.net, currencySymbol)}</b></div>
+                <div><span>Best trade</span><b className={best > 0 ? dt.pos : undefined}>{sorted.length ? money(best, currencySymbol) : "—"}</b></div>
+              </div>
+              {curve ? (
+                <svg viewBox={`0 0 ${curve.W} ${curve.H}`} preserveAspectRatio="none" className={dt.spark} aria-label="Equity curve">
+                  <defs>
+                    <linearGradient id="sh-g" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={curve.up ? "#2ebd85" : "#f6465d"} stopOpacity="0.3" />
+                      <stop offset="100%" stopColor={curve.up ? "#2ebd85" : "#f6465d"} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path d={curve.area} fill="url(#sh-g)" />
+                  <path d={curve.d} fill="none" stroke={curve.up ? "#2ebd85" : "#f6465d"} strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                </svg>
+              ) : <p className={dt.hint}>Not enough trades for a curve yet.</p>}
+              {sorted.length > 0 && (
+                <ul className={dt.recent}>
+                  {sorted.slice(-4).reverse().map((t, i) => (
+                    <li key={t._id || i}>
+                      <span>{t.symbol} <small>{t.direction}</small></span>
+                      <b className={(Number(t.pnl) || 0) >= 0 ? dt.pos : dt.neg}>{money(Number(t.pnl) || 0, currencySymbol)}</b>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          <section className={dt.card}>
+            <ul className={dt.privacy}>
+              <li><Lock size={14} aria-hidden="true" /><span><b>Read-only snapshot.</b> Viewers can&apos;t edit anything or reach your account.</span></li>
+              <li><RefreshCw size={14} aria-hidden="true" /><span><b>Doesn&apos;t update.</b> New trades need a new link.</span></li>
+              <li><ShieldCheck size={14} aria-hidden="true" /><span><b>Only what you pick.</b> Trades outside the range aren&apos;t included.</span></li>
+            </ul>
+          </section>
+        </aside>
       </div>
     </div>
   );

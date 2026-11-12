@@ -32,6 +32,9 @@ export const PLATFORMS = [
   { id: "bitget", name: "Bitget", kind: "crypto", live: true, apiPage: "https://www.bitget.com/account/newapi" },
   { id: "gate", name: "Gate.io", kind: "crypto", live: true, apiPage: "https://www.gate.io/myaccount/api_key_manage" },
   { id: "mexc", name: "MEXC", kind: "crypto", live: true, apiPage: "https://www.mexc.com/user/openapi" },
+  // ---- Forex & prop-firm platforms (in development: OAuth / platform login) ----
+  { id: "ctrader", name: "cTrader", kind: "prop", live: true, auth: "oauth", note: "Sign in with your cTrader ID (Spotware Open API)", apiPage: "https://openapi.ctrader.com/" },
+  { id: "matchtrader", name: "Match-Trader", kind: "prop", live: true, auth: "platform", note: "Sign in with your broker or prop-firm Match-Trader login" },
   // ---- Stock / forex / futures brokers ----
   { id: "mt4", name: "MetaTrader 4", kind: "mt", live: true, statement: true },
   { id: "mt5", name: "MetaTrader 5", kind: "mt", live: true, statement: true },

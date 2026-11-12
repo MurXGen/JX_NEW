@@ -2,14 +2,51 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Clock, Coffee, Crown, EyeOff, Flame, Info, Plus, Shield, Sparkles, Sprout, Trophy, TrendingUp } from "lucide-react";
+import {
+  SlidersHorizontal, Check, Clock, Coffee, Crown, EyeOff, Flame, Info, Plus, Shield, Sparkles, Sprout, Trophy, TrendingUp,
+  AlertTriangle, BookOpen, CalendarCheck, Coins, ShieldCheck, Gem, Landmark, Medal, NotebookPen, Rocket, Target, Zap } from "lucide-react";
+
+/* embedded (new dashboard) uses line icons instead of emoji for milestones */
+const BADGE_ICONS = {
+  first: Target, ten: NotebookPen, fifty: BookOpen, hundred: Landmark, streak5: Flame,
+  streak10: Zap, green5: CalendarCheck, wr60: Medal, profit1k: Coins, profit10k: Gem,
+};
+
+/* embedded risk cards: a quiet verdict pill (healthy vs watch) */
+const Verdict = ({ ok, children }) => (
+  <span className="jx-risk__verdict" data-warn={ok ? undefined : true}>
+    {ok ? <ShieldCheck size={13} aria-hidden="true" /> : <AlertTriangle size={13} aria-hidden="true" />}
+    {children}
+  </span>
+);
+const RiskHead = ({ title, info, children }) => (
+  <div className="jx-risk__head">
+    <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+      {title} <InfoTip text={info} />
+    </span>
+    {children}
+  </div>
+);
+const RiskTile = ({ label, value, sub, tone }) => (
+  <div className="jx-risk__tile">
+    <span className="jx-risk__lbl">{label}</span>
+    <b className={`jx-risk__val${tone ? ` is-${tone}` : ""}`}>{value}</b>
+    {sub && <small>{sub}</small>}
+  </div>
+);
+const RiskBar = ({ pct, tone, label }) => (
+  <div className="jx-risk__barwrap">
+    <div className="jx-risk__bar" data-tone={tone}><i style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} /></div>
+    {label && <small>{label}</small>}
+  </div>
+);
 import Badge from "./Badge";
 import Button from "./Button";
 import CountUp from "./CountUp";
 import Dropdown from "./Dropdown";
 import Tip from "./Tip";
 import SampleDataBanner from "./SampleDataBanner";
-import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
+import CustomizeSections, { useHiddenSections, openCustomize } from "./CustomizeSections";
 import { PnlCalendar, TradesHeatmap } from "./TradesLogPanel";
 import { compactNumber } from "@/utils/formatNumbers";
 import { convertTrade } from "@/utils/fx";
@@ -241,10 +278,10 @@ const k = (v, sym = "$") =>
 
 /* ---------------- SVG chart primitives ---------------- */
 
-const pts = (values, w, h, pad = 6) => {
+const pts = (values, w, h, pad = 6, domain = null) => {
   if (values.length < 2) return [];
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const min = domain ? domain[0] : Math.min(...values);
+  const max = domain ? domain[1] : Math.max(...values);
   const span = max - min || 1;
   return values.map((v, i) => [
     pad + (i / (values.length - 1)) * (w - pad * 2),
@@ -266,7 +303,7 @@ function HoverColumns({ tips }) {
   );
 }
 
-function AreaChart({ values, height = 160, labels, tips }) {
+function AreaChart({ values, height = 160, labels, tips, color = "var(--yellow-400)", fillColor = "var(--yellow-300)" }) {
   const id = useId();
   const w = 600;
   const morphed = useMorph(values);
@@ -286,12 +323,12 @@ function AreaChart({ values, height = 160, labels, tips }) {
             <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="0%"
-                stopColor="var(--yellow-300)"
-                stopOpacity="0.4"
+                stopColor={fillColor}
+                stopOpacity="0.3"
               />
               <stop
                 offset="100%"
-                stopColor="var(--yellow-300)"
+                stopColor={fillColor}
                 stopOpacity="0"
               />
             </linearGradient>
@@ -300,9 +337,10 @@ function AreaChart({ values, height = 160, labels, tips }) {
           <path
             d={line}
             fill="none"
-            stroke="var(--yellow-400)"
-            strokeWidth="2.5"
+            stroke={color}
+            strokeWidth="2"
             strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
           />
         </svg>
         <HoverColumns tips={tips} />
@@ -312,10 +350,10 @@ function AreaChart({ values, height = 160, labels, tips }) {
   );
 }
 
-function LineChart({ values, height = 140, labels, tips }) {
+function LineChart({ values, height = 140, labels, tips, color = "var(--yellow-400)", domain = null, refLine = null }) {
   const w = 600;
   const morphed = useMorph(values);
-  const p = pts(morphed, w, height);
+  const p = pts(morphed, w, height, 6, domain);
   if (p.length < 2) return <Empty height={height} />;
   const line = p.map(([x, y], i) => `${i ? "L" : "M"}${x},${y}`).join(" ");
   const mid = p[Math.floor(p.length / 2)];
@@ -327,14 +365,23 @@ function LineChart({ values, height = 140, labels, tips }) {
           style={{ width: "100%", display: "block" }}
           preserveAspectRatio="none"
         >
+          {refLine != null && domain && (
+            <line
+              x1="0" x2={w}
+              y1={height - 6 - ((refLine - domain[0]) / (domain[1] - domain[0])) * (height - 12)}
+              y2={height - 6 - ((refLine - domain[0]) / (domain[1] - domain[0])) * (height - 12)}
+              stroke="var(--color-border-strong)" strokeDasharray="4 6" vectorEffect="non-scaling-stroke"
+            />
+          )}
           <path
             d={line}
             fill="none"
-            stroke="var(--yellow-400)"
-            strokeWidth="2.5"
+            stroke={color}
+            strokeWidth="2"
             strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
           />
-          <circle cx={mid[0]} cy={mid[1]} r="4" fill="var(--yellow-400)" />
+          {!domain && <circle cx={mid[0]} cy={mid[1]} r="4" fill={color} />}
         </svg>
         <HoverColumns tips={tips} />
       </div>
@@ -955,6 +1002,9 @@ const DONUT_COLORS = [
   "#3b82f6",
   "#8b5cf6",
 ];
+/* embedded (new Overview): neutral silver scale so symbol slices never read
+   as profit (green) or loss (red) */
+const DONUT_SILVER = ["#f1f3f5", "#c7ccd4", "#9aa1ad", "#6f7785", "#4b515b", "#33373f"];
 
 /* range helpers, windows are anchored to the latest trade so sample
    data from any date still renders */
@@ -1000,6 +1050,10 @@ export default function OverviewPanel({
   onLogTrade,
   onImport,
   onSetBalance,
+  embedded = false, // rendered inside the new Overview: no greeting/banner, all charts on by default
+  only = null, // embedded: section ids to render (the new Overview's tabs pick a group)
+  showStrip = true, // embedded: the capital-growth / performance live card
+  showHead = true, // embedded: the "All analytics" header
 }) {
   // Convert NATIVE trades to the chosen display currency here (Overview never
   // edits trades, so converting for display is safe). All downstream code uses
@@ -1748,6 +1802,14 @@ export default function OverviewPanel({
   const wrSeries = useMemo(() => {
     const list = inWindow(closed, wrRange);
     if (list.length < 2) return [];
+    if (embedded) {
+      // rolling win rate over the last 10 trades: smooth and readable
+      const N = 10;
+      return list.map((_, i) => {
+        const win = list.slice(Math.max(0, i - N + 1), i + 1);
+        return (win.filter((t) => t.pnl > 0).length / win.length) * 100;
+      });
+    }
     /* bucket: 1W→day · 1M→3 days · 3M→week · 1Y→month */
     const bucketMs =
       wrRange === "1W"
@@ -1768,7 +1830,7 @@ export default function OverviewPanel({
     return [...buckets.entries()]
       .sort((a, b) => a[0] - b[0])
       .map(([, e]) => (e.w / e.n) * 100);
-  }, [closed, wrRange]);
+  }, [closed, wrRange, embedded]);
 
   /* Short, trader-flavoured greeting that varies through the day (and a bit
      day to day), in the spirit of Claude's brief hellos. */
@@ -1965,14 +2027,17 @@ export default function OverviewPanel({
     },
   ];
 
-  const { hidden, toggle, reset, isVisible, order, reorder, orderIndex } = useHiddenSections(
-    "jx-overview-sections",
-    // Trimmed for focus — keep Core KPIs, Equity, Calendar/day-of-week, and
-    // Trading edge & session up front. The deeper cuts stay one tap away in
-    // Customize (users who already customized keep their own choice).
-    ["capital", "pace", "payoff", "drawdown", "holdtime", "revenge", "timeframe"],
+  const { hidden, toggle, reset, isVisible: isVisibleBase, order, reorder, orderIndex } = useHiddenSections(
+    embedded ? "jx-overview-analytics-v2" : "jx-overview-sections",
+    // Embedded (new Overview): every chart on by default, except the calendar
+    // and weekday chart which the new Overview already shows above.
+    // Standalone: trimmed for focus, deeper cuts one tap away in Customize.
+    embedded
+      ? ["calendar", "dayOfWeek"]
+      : ["capital", "pace", "payoff", "drawdown", "holdtime", "revenge", "timeframe"],
     OVERVIEW_SECTIONS.map((s) => s.id),
   );
+  const isVisible = (id) => isVisibleBase(id) && (!only || only.includes(id));
   // CSS flex `order` for a section card, so Customize can reorder the dashboard.
   // Greeting/live-strip stay pinned above via their own negative order.
   const secOrder = (id) => ({ order: orderIndex(id) });
@@ -1999,7 +2064,28 @@ export default function OverviewPanel({
         gap: "var(--space-5)",
       }}
     >
+      {embedded && (
+        <div className="jx-embed-head" style={{ order: -3, display: showHead ? undefined : "none" }}>
+          <div>
+            <h2 className="jx-embed-head__title">All analytics</h2>
+            <p className="jx-embed-head__sub">Capital growth, candles, timeframes, sessions, risk and more. Hide or reorder any of them.</p>
+          </div>
+          <button type="button" className="jx-embed-head__btn" onClick={openCustomize}>
+            <SlidersHorizontal size={14} aria-hidden="true" /> Customize
+          </button>
+          <CustomizeSections
+            sections={OVERVIEW_SECTIONS}
+            hidden={hidden}
+            onToggle={toggle}
+            onReset={reset}
+            order={order}
+            onReorder={reorder}
+            fab={false}
+          />
+        </div>
+      )}
       {/* ===== Greeting ===== */}
+      {!embedded && (
       <div
         style={{
           order: -2,
@@ -2055,10 +2141,11 @@ export default function OverviewPanel({
           )}
         </div>
       </div>
+      )}
 
       {/* ===== Live session strip — which session is open now + time left.
           Shown even before the first trade (stats fall back to dashes). ===== */}
-      {liveSession && (
+      {liveSession && showStrip && (
         <div className="jx-livestrip" data-best={liveSession.isBest ? "1" : "0"} style={{ order: -2 }}>
           {/* ── hero row: the money on the left, the live session as a distinct widget on the right ── */}
           <div className="jx-livestrip__hero">
@@ -2210,6 +2297,15 @@ export default function OverviewPanel({
                     ) : (
                       <span className="jx-journey__stmt">Log a few trades to see your pace &amp; projection.</span>
                     )}
+                    {embedded && hasData && (
+                      <div className="jx-horizon" role="group" aria-label="Projection horizon">
+                        {[1, 3, 6, 12].map((mo) => (
+                          <button key={mo} type="button" aria-pressed={heroMonths === mo} onClick={() => setMonths(mo)}>
+                            {mo === 12 ? "1Y" : `${mo}M`}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="jx-journey__track">
@@ -2267,8 +2363,9 @@ export default function OverviewPanel({
                     <span>{monthLabel} · {currencySymbol}{fmt(projTarget, 0)}</span>
                   </div>
 
-                  {/* month slider — drag to look 1→12 months ahead at this pace */}
-                  {(() => {
+                  {/* month slider — drag to look 1→12 months ahead at this pace
+                      (embedded uses the horizon chips in the headline instead) */}
+                  {!embedded && (() => {
                     const pct = ((heroMonths - 1) / (MAX_MONTHS - 1)) * 100;
                     const bubbleLeft = Math.max(7, Math.min(93, pct));
                     return (
@@ -2379,14 +2476,14 @@ export default function OverviewPanel({
             // every metric is a uniform grid cell: label · value · bar
             const perfCells = [
               { label: "Win rate", value: `${fmt(S.winRate, 0)}%`, bar: <Progress pct={S.winRate} color="var(--color-success)" /> },
-              { label: "Profit factor", value: S.profitFactor ? fmt(S.profitFactor, 2) : fmt(0, 2), bar: <Progress pct={S.profitFactor ? Math.min(100, (S.profitFactor / 3) * 100) : 0} color="var(--color-primary)" /> },
-              { label: "Payoff ratio", value: payoff ? `1 : ${fmt(payoff, 1)}` : "—", bar: <Progress pct={payoff ? Math.min(100, (payoff / 2) * 100) : 0} color="#7c9cff" /> },
+              { label: "Profit factor", value: S.profitFactor ? fmt(S.profitFactor, 2) : fmt(0, 2), sub: embedded ? (S.profitFactor >= 1.5 ? "Healthy · above 1.5" : S.profitFactor >= 1 ? "Thin · aim for 1.5+" : "Below 1 · losing money") : undefined, bar: embedded ? null : <Progress pct={S.profitFactor ? Math.min(100, (S.profitFactor / 3) * 100) : 0} color="var(--color-primary)" /> },
+              { label: "Payoff ratio", value: payoff ? `1 : ${fmt(payoff, 1)}` : "—", sub: embedded ? "Avg win ÷ avg loss · aim for 1 : 2" : undefined, bar: embedded ? null : <Progress pct={payoff ? Math.min(100, (payoff / 2) * 100) : 0} color="#7c9cff" /> },
               { label: "Avg win vs loss", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{k(S.avgWin || 0, currencySymbol)}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>−{currencySymbol}{fmt(S.avgLoss || 0, 0)}</span></>), bar: wlbar(winShare) },
               { label: "Avg hold · W/L", valueEl: (<><span style={{ color: "var(--color-success-strong)" }}>{hw != null ? fmtDur(hw) : fmtDur(0)}</span> <span style={{ opacity: 0.5 }}>·</span> <span style={{ color: "var(--color-danger-strong)" }}>{hl != null ? fmtDur(hl) : fmtDur(0)}</span></>), bar: wlbar(holdWinShare) },
-              { label: "Largest win", value: S.winCount ? k(S.largestWin, currencySymbol) : k(0, currencySymbol), color: S.winCount ? "var(--color-success-strong)" : undefined, bar: <Progress pct={S.winCount ? (Math.abs(S.largestWin) / maxMag) * 100 : 0} color="var(--color-success)" /> },
-              { label: "Largest loss", value: S.lossCount ? k(S.largestLoss, currencySymbol) : k(0, currencySymbol), color: S.lossCount ? "var(--color-danger-strong)" : undefined, bar: <Progress pct={S.lossCount ? (Math.abs(S.largestLoss) / maxMag) * 100 : 0} color="var(--color-danger)" /> },
-              { label: "Win streak", value: S.streak, sub: S.streak ? `best ${S.bestStreak}` : `best ${S.bestStreak} · next win starts one`, bar: <Progress pct={S.bestStreak > 0 ? Math.min(100, (S.streak / S.bestStreak) * 100) : (S.streak > 0 ? 100 : 0)} color="var(--color-primary)" /> },
-              { label: "Sharpe", value: S.sharpe != null && S.total >= 20 ? fmt(S.sharpe, 2) : "—", sub: S.total < 20 ? `after ${20 - S.total} more trades` : undefined, bar: <Progress pct={S.sharpe != null ? Math.min(100, Math.max(0, (S.sharpe / 3) * 100)) : 0} color="#7c9cff" /> },
+              { label: "Largest win", value: S.winCount ? k(S.largestWin, currencySymbol) : k(0, currencySymbol), color: S.winCount ? "var(--color-success-strong)" : undefined, sub: embedded ? "Best single trade" : undefined, bar: embedded ? null : <Progress pct={S.winCount ? (Math.abs(S.largestWin) / maxMag) * 100 : 0} color="var(--color-success)" /> },
+              { label: "Largest loss", value: S.lossCount ? k(S.largestLoss, currencySymbol) : k(0, currencySymbol), color: S.lossCount ? "var(--color-danger-strong)" : undefined, sub: embedded ? "Worst single trade" : undefined, bar: embedded ? null : <Progress pct={S.lossCount ? (Math.abs(S.largestLoss) / maxMag) * 100 : 0} color="var(--color-danger)" /> },
+              { label: "Win streak", value: S.streak, sub: S.streak ? `best ${S.bestStreak}` : `best ${S.bestStreak} · next win starts one`, bar: embedded ? null : <Progress pct={S.bestStreak > 0 ? Math.min(100, (S.streak / S.bestStreak) * 100) : (S.streak > 0 ? 100 : 0)} color="var(--color-primary)" /> },
+              { label: "Sharpe", value: S.sharpe != null && S.total >= 20 ? fmt(S.sharpe, 2) : "—", sub: S.total < 20 ? `after ${20 - S.total} more trades` : embedded ? "Return per unit of risk" : undefined, bar: embedded ? null : <Progress pct={S.sharpe != null ? Math.min(100, Math.max(0, (S.sharpe / 3) * 100)) : 0} color="#7c9cff" /> },
             ];
             return (
               <div className="jx-livestrip__perf">
@@ -2409,7 +2506,7 @@ export default function OverviewPanel({
                       <span className="jx-perfgrid__lbl">{c.label}</span>
                       <span className="jx-perfgrid__val" style={{ color: c.color || "var(--color-text-primary)" }}>{c.valueEl || c.value}</span>
                       {c.sub && <span className="jx-perfgrid__sub">{c.sub}</span>}
-                      <div className="jx-perfgrid__bar">{c.bar}</div>
+                      {c.bar && <div className="jx-perfgrid__bar">{c.bar}</div>}
                     </div>
                   ))}
                 </div>
@@ -2432,7 +2529,7 @@ export default function OverviewPanel({
       )}
 
       {/* sample-data nudge */}
-      {usingDummy && (
+      {usingDummy && !embedded && (
         <SampleDataBanner onLog={onLogTrade} onImport={onImport} />
       )}
 
@@ -2769,7 +2866,68 @@ export default function OverviewPanel({
           1:1 to the on-screen order ===== */}
       <div className="jx-analytics-grid">
       {/* ===== Capital growth toward doubling (gamified) ===== */}
-      {isVisible("capital") && (
+      {embedded && isVisible("capital") && (() => {
+        const g = capital.growthPct;
+        const TierIcon = g >= 100 ? Gem : g >= 75 ? Medal : g >= 25 ? TrendingUp : g > 0 ? Sprout : Rocket;
+        const fill = Math.min(100, Math.max(0, g));
+        return (
+        <div className="jx-card jx-goal" style={secOrder("capital")}>
+          <div className="jx-goal__head">
+            <div>
+              <span className="jx-card__title">Capital growth</span>
+              <p className="jx-goal__sub">Progress toward doubling your starting balance</p>
+            </div>
+            <span className="jx-goal__tier"><TierIcon size={13} aria-hidden="true" />{capital.tier.label}</span>
+          </div>
+          {capital.base > 0 ? (
+            <>
+              <div className="jx-goal__big">
+                <b className={g < 0 ? "is-neg" : undefined}><CountUp value={g} format={(v) => `${fmt(v, 1)}%`} /></b>
+                <span>
+                  of the way to 2× ·{" "}
+                  <em className={capital.netAll >= 0 ? "is-pos" : "is-neg"}>{capital.netAll < 0 ? "−" : ""}{currencySymbol}{fmt(Math.abs(capital.netAll), 0)}</em>
+                  {" "}of {currencySymbol}{fmt(capital.base, 0)} profit
+                </span>
+              </div>
+              <div
+                className="jx-goal__track"
+                role="progressbar"
+                aria-label="Progress toward doubling your capital"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(fill)}
+              >
+                <div className="jx-goal__fill" style={{ width: `${fill}%` }} />
+              </div>
+              <div className="jx-goal__marks" aria-hidden="true">
+                {capital.milestones.map((m) => (
+                  <span key={m} data-done={g >= m || undefined} style={{ left: `${m}%` }}>
+                    {g >= m && <Check size={10} strokeWidth={3} />}{m === 100 ? "2×" : `${m}%`}
+                  </span>
+                ))}
+              </div>
+              <p className="jx-goal__note">
+                {g >= 100
+                  ? "You've doubled your starting capital. Outstanding discipline."
+                  : capital.nextMs != null
+                    ? `${currencySymbol}${fmt(Math.max(0, capital.amountToNext), 0)} more net profit reaches the ${capital.nextMs}% milestone.`
+                    : "Keep logging trades to track your growth."}
+              </p>
+            </>
+          ) : (
+            <div className="jx-goal__empty">
+              <p>Set your journal&apos;s starting balance to track progress toward doubling it.</p>
+              {onSetBalance && (
+                <button type="button" className="jx-embed-head__btn" onClick={() => onSetBalance()}>
+                  <Plus size={14} aria-hidden="true" /> Set starting balance
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        );
+      })()}
+      {!embedded && isVisible("capital") && (
         <div className="jx-card" style={{ ...secOrder("capital"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap" }}>
             <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -2877,8 +3035,131 @@ export default function OverviewPanel({
         </div>
       )}
 
+      {/* ===== Risk & behaviour cards: embedded (new dashboard) versions ===== */}
+      {embedded && isVisible("pace") && pace && (
+        <div className="jx-card jx-sec jx-risk jx-risk--wide" style={secOrder("pace")}>
+          <HideBtn id="pace" />
+          <RiskHead title="Trading pace" info="How fast and how often you trade. A calm, selective pace usually beats rapid-fire trading.">
+            <Verdict ok={pace.band.tone === "success"}>{pace.band.label}</Verdict>
+          </RiskHead>
+          <div className="jx-risk__score">
+            <b>{pace.score}</b><span>/ 100 composure</span>
+          </div>
+          <RiskBar pct={pace.score} tone="silver" />
+          <div className="jx-risk__tiles jx-risk__tiles--4">
+            <RiskTile label="Trades per day" value={fmt(pace.avgDay, 1)} sub="On days you trade" />
+            <RiskTile label="Busiest day" value={pace.busiest} sub="Trades in one day" />
+            <RiskTile label="Most in 1 hour" value={pace.maxHour} sub="Peak burst" />
+            <RiskTile label="Post-loss rushes" value={`${Math.round(pace.revengeRate * 100)}%`} sub="Re-entries soon after a loss" />
+          </div>
+          <p className="jx-risk__note">{pace.tip}</p>
+        </div>
+      )}
+
+      {embedded && isVisible("payoff") && payoff && (() => {
+        const maxAvg = Math.max(payoff.avgWin, payoff.avgLoss, 1);
+        const ok = payoff.payoffRatio >= 1;
+        return (
+          <div className="jx-card jx-sec jx-risk" style={secOrder("payoff")}>
+            <HideBtn id="payoff" />
+            <RiskHead title="Payoff" info="Average win vs average loss. A high win rate still loses money if your losses are bigger than your wins.">
+              <Verdict ok={ok}>{ok ? "Wins outsize losses" : "Losses outsize wins"}</Verdict>
+            </RiskHead>
+            <div className="jx-risk__score">
+              <b>{payoff.payoffRatio === Infinity ? "∞" : `1 : ${fmt(payoff.payoffRatio, 2)}`}</b>
+              <span>risk to reward · {payoff.wins} W · {payoff.losses} L</span>
+            </div>
+            <div className="jx-risk__rows">
+              <div className="jx-risk__row"><span>Avg win</span><RiskBar pct={(payoff.avgWin / maxAvg) * 100} tone="pos" /><b className="is-pos">{k(payoff.avgWin, currencySymbol)}</b></div>
+              <div className="jx-risk__row"><span>Avg loss</span><RiskBar pct={(payoff.avgLoss / maxAvg) * 100} tone="neg" /><b className="is-neg">{k(-payoff.avgLoss, currencySymbol)}</b></div>
+            </div>
+            <p className="jx-risk__note">
+              {ok ? "Your average win is bigger than your average loss. Keep risk per trade consistent." : "Your average loss is bigger than your average win. Tighten stops or let winners run longer."}
+            </p>
+          </div>
+        );
+      })()}
+
+      {embedded && isVisible("drawdown") && drawdown && (
+        <div className="jx-card jx-sec jx-risk" style={secOrder("drawdown")}>
+          <HideBtn id="drawdown" />
+          <RiskHead title="Drawdown" info="The biggest drop from an equity peak. Large drawdowns usually come from oversizing or revenge trading.">
+            <Verdict ok={drawdown.curDD <= 0}>{drawdown.curDD > 0 ? "In drawdown" : "At equity high"}</Verdict>
+          </RiskHead>
+          <div className="jx-risk__tiles">
+            <RiskTile
+              label="Max drawdown"
+              value={drawdown.hasPct ? `${fmt(drawdown.maxDDpct, 1)}%` : k(-drawdown.maxDD, currencySymbol)}
+              sub={drawdown.hasPct ? `${k(-drawdown.maxDD, currencySymbol)} from peak` : "Peak to trough"}
+              tone={drawdown.maxDD > 0 ? "neg" : undefined}
+            />
+            <RiskTile
+              label="Current drawdown"
+              value={drawdown.curDD > 0 ? (drawdown.hasPct ? `${fmt(drawdown.curDDpct, 1)}%` : k(-drawdown.curDD, currencySymbol)) : "0%"}
+              sub={drawdown.curDD > 0 ? "Below your equity high" : "You're at a new high"}
+              tone={drawdown.curDD > 0 ? "neg" : undefined}
+            />
+          </div>
+          {drawdown.maxDD > 0 && drawdown.curDD > 0 && (
+            <RiskBar pct={(drawdown.curDD / drawdown.maxDD) * 100} tone="neg" label="Current vs your worst drawdown" />
+          )}
+          <p className="jx-risk__note">Keep risk per trade small (1–2%) so a losing streak never pulls your account down too far.</p>
+        </div>
+      )}
+
+      {embedded && isVisible("holdtime") && holdTime && (() => {
+        const maxDur = Math.max(holdTime.winAvg, holdTime.lossAvg, 1);
+        const ok = !holdTime.holdsLosersLonger;
+        return (
+          <div className="jx-card jx-sec jx-risk" style={secOrder("holdtime")}>
+            <HideBtn id="holdtime" />
+            <RiskHead title="Hold time" info="Traders tend to hold losers too long and cut winners too early. Aim to hold winners at least as long as losers.">
+              <Verdict ok={ok}>{ok ? "Cutting losers" : "Holding losers longer"}</Verdict>
+            </RiskHead>
+            <div className="jx-risk__score">
+              <b>{fmt(holdTime.ratio, 1)}×</b>
+              <span>loser hold time vs winners</span>
+            </div>
+            <div className="jx-risk__rows">
+              <div className="jx-risk__row"><span>Winners</span><RiskBar pct={(holdTime.winAvg / maxDur) * 100} tone="silver" /><b>{fmtDur(holdTime.winAvg)}</b></div>
+              <div className="jx-risk__row"><span>Losers</span><RiskBar pct={(holdTime.lossAvg / maxDur) * 100} tone="dim" /><b>{fmtDur(holdTime.lossAvg)}</b></div>
+            </div>
+            <p className="jx-risk__note">
+              {ok ? "You're not clinging to losers. Let winners run." : `You hold losers ${fmt(holdTime.ratio, 1)}× longer than winners. Cut them at your stop.`}
+            </p>
+          </div>
+        );
+      })()}
+
+      {embedded && isVisible("revenge") && revenge && (
+        <div className="jx-card jx-sec jx-risk" style={secOrder("revenge")}>
+          <HideBtn id="revenge" />
+          <RiskHead title="Revenge trading" info="Trades opened within 30 minutes of a loss, often impulsive 'win it back' trades.">
+            <Verdict ok={revenge.revPnl >= 0}>{revenge.revPnl >= 0 ? "Holding up" : "Costing you"}</Verdict>
+          </RiskHead>
+          <div className="jx-risk__tiles">
+            <RiskTile
+              label="From revenge trades"
+              value={k(revenge.revPnl, currencySymbol)}
+              sub={`${revenge.revCount} trades · ${fmt(revenge.revWinRate * 100, 0)}% win`}
+              tone={revenge.revPnl > 0 ? "pos" : revenge.revPnl < 0 ? "neg" : undefined}
+            />
+            <RiskTile
+              label="Avg per revenge trade"
+              value={k(revenge.avgRev, currencySymbol)}
+              sub={`vs ${k(revenge.avgCalm, currencySymbol)} on calm trades`}
+              tone={revenge.avgRev > 0 ? "pos" : revenge.avgRev < 0 ? "neg" : undefined}
+            />
+          </div>
+          <RiskBar pct={revenge.revWinRate * 100} tone="silver" label="Win rate on revenge trades" />
+          <p className="jx-risk__note">
+            {revenge.revPnl < 0 ? `Revenge trades cost you ${k(Math.abs(revenge.revPnl), currencySymbol)}. Pause after a loss.` : "Post-loss trades are holding up. Keep pausing after a red trade."}
+          </p>
+        </div>
+      )}
+
       {/* ===== Trading pace & composure (overtrading vs calm) ===== */}
-      {isVisible("pace") && pace && (() => {
+      {!embedded && isVisible("pace") && pace && (() => {
         const toneColor =
           pace.band.tone === "success" ? "var(--color-success-strong)"
           : pace.band.tone === "warn" ? "var(--yellow-500)"
@@ -2936,7 +3217,7 @@ export default function OverviewPanel({
       })()}
 
       {/* ===== Payoff ===== */}
-      {isVisible("payoff") && payoff && (() => {
+      {!embedded && isVisible("payoff") && payoff && (() => {
             const maxAvg = Math.max(payoff.avgWin, payoff.avgLoss, 1);
             const lossBigger = payoff.avgLoss > payoff.avgWin && payoff.avgWin > 0;
             return (
@@ -2984,7 +3265,7 @@ export default function OverviewPanel({
             );
           })()}
 
-          {isVisible("drawdown") && drawdown && (
+          {!embedded && isVisible("drawdown") && drawdown && (
             <div className="jx-card jx-sec" style={{ ...secOrder("drawdown"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
               <HideBtn id="drawdown" />
               <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -3025,7 +3306,7 @@ export default function OverviewPanel({
           )}
 
       {/* ===== Hold time: disposition effect ===== */}
-      {isVisible("holdtime") && holdTime && (() => {
+      {!embedded && isVisible("holdtime") && holdTime && (() => {
         const maxDur = Math.max(holdTime.winAvg, holdTime.lossAvg, 1);
         return (
           <div className="jx-card jx-sec" style={{ ...secOrder("holdtime"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -3059,7 +3340,7 @@ export default function OverviewPanel({
       })()}
 
       {/* ===== Revenge trading cost ===== */}
-      {isVisible("revenge") && revenge && (
+      {!embedded && isVisible("revenge") && revenge && (
         <div className="jx-card jx-sec" style={{ ...secOrder("revenge"), display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
           <HideBtn id="revenge" />
           <span className="jx-card__title" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -3097,7 +3378,37 @@ export default function OverviewPanel({
       )}
 
       {/* ===== Timeframe analysis (which timeframes they trade most) ===== */}
-      {isVisible("timeframe") && (
+      {embedded && isVisible("timeframe") && (() => {
+        const rows = timeframes.arr.filter((tf) => tf.count > 0);
+        const best = rows.reduce((b, tf) => (tf.pnl > (b?.pnl ?? 0) ? tf : b), null);
+        const maxCount = Math.max(1, ...rows.map((tf) => tf.count));
+        return (
+          <div className="jx-card jx-sec jx-risk" style={secOrder("timeframe")}>
+            <HideBtn id="timeframe" />
+            <RiskHead title="Timeframes" info="How your closed trades spread across chart timeframes, and what each one earns.">
+              {best && <span className="jx-risk__verdict">Best: {best.display} · {k(best.pnl, currencySymbol)}</span>}
+            </RiskHead>
+            {rows.length === 0 ? (
+              <p className="jx-risk__note" style={{ margin: 0 }}>Add a timeframe when you log trades to see which one pays.</p>
+            ) : (
+              <div className="jx-tf">
+                {rows.map((tf) => (
+                  <div key={tf.display} className="jx-tf__row">
+                    <span className="jx-tf__chip">{tf.display}</span>
+                    <div className="jx-risk__bar" data-tone={timeframes.most?.display === tf.display ? "silver" : "dim"}>
+                      <i style={{ width: `${(tf.count / maxCount) * 100}%` }} />
+                    </div>
+                    <span className="jx-tf__count">{tf.count} {tf.count === 1 ? "trade" : "trades"} · {fmt(tf.pct, 0)}%</span>
+                    <b className={tf.pnl > 0 ? "is-pos" : tf.pnl < 0 ? "is-neg" : undefined}>{k(tf.pnl, currencySymbol)}</b>
+                  </div>
+                ))}
+              </div>
+            )}
+            {rows.length > 0 && <p className="jx-risk__note">Bar length shows how often you trade each timeframe; the figure on the right is its net P&amp;L.</p>}
+          </div>
+        );
+      })()}
+      {!embedded && isVisible("timeframe") && (
         <div className="jx-card jx-sec" style={secOrder("timeframe")}>
           <HideBtn id="timeframe" />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap", marginBottom: "var(--space-3)" }}>
@@ -3222,7 +3533,34 @@ export default function OverviewPanel({
       )}
 
       {/* ===== Trader edge ===== */}
-      {isVisible("edge") && (
+      {embedded && isVisible("edge") && (
+        <div className="jx-card jx-sec jx-risk" style={secOrder("edge")}>
+          <HideBtn id="edge" />
+          <RiskHead title="Your trading edge" info="Whether your approach makes money over many trades, not just recently.">
+            {EDGE.total > 0 && <Verdict ok={EDGE.expectancy >= 0}>{EDGE.expectancy >= 0 ? "Positive expectancy" : "Negative expectancy"}</Verdict>}
+          </RiskHead>
+          {EDGE.total === 0 ? (
+            <p className="jx-risk__note" style={{ margin: 0 }}>Log trades to reveal your edge metrics.</p>
+          ) : (
+            <>
+              <div className="jx-risk__tiles jx-risk__tiles--3">
+                <RiskTile label="Expectancy per trade" value={k(EDGE.expectancy, currencySymbol)} sub="Average result of one trade" tone={EDGE.expectancy > 0 ? "pos" : EDGE.expectancy < 0 ? "neg" : undefined} />
+                <RiskTile label="Expectancy in R" value={EDGE.expectancyR == null ? "—" : `${EDGE.expectancyR >= 0 ? "+" : ""}${fmt(EDGE.expectancyR, 2)}R`} sub="Per unit of risk · above 0 is +EV" />
+                <RiskTile label="Payoff ratio" value={EDGE.payoff == null ? "—" : `1 : ${fmt(EDGE.payoff, 1)}`} sub="Avg win ÷ avg loss" />
+                <RiskTile label="Win rate" value={`${fmt(EDGE.winRate, 0)}%`} sub="Share of profitable trades" />
+                <RiskTile label="Max drawdown" value={k(-EDGE.maxDD, currencySymbol)} sub={`${fmt(EDGE.maxDDPct, 1)}% of account at peak`} tone={EDGE.maxDD > 0 ? "neg" : undefined} />
+                <RiskTile label="Recovery factor" value={EDGE.recovery == null ? "—" : `${fmt(EDGE.recovery, 2)}×`} sub="Net profit ÷ max drawdown · aim for 2×+" />
+              </div>
+              <p className="jx-risk__note">
+                {EDGE.expectancy >= 0
+                  ? <>Each trade earns {k(EDGE.expectancy, currencySymbol)} on average{EDGE.bestDow && EDGE.bestDow.pnl > 0 ? <>, and {EDGE.bestDow.label} is your strongest day</> : null}. Size so a repeat of your worst drawdown stays affordable.</>
+                  : <>Your average trade loses {k(Math.abs(EDGE.expectancy), currencySymbol)}. Raise your payoff (cut losers faster, let winners run) before sizing up.</>}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+      {!embedded && isVisible("edge") && (
       <div className="jx-card jx-sec" style={secOrder("edge")}>
         <HideBtn id="edge" />
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "var(--space-2)" }}>
@@ -3359,6 +3697,91 @@ export default function OverviewPanel({
           if (b.type === "pct") return b.gate ? `${fmt(Math.max(0, b.target - b.cur), 0)}% to go` : `${Math.max(0, b.gateTarget - b.gateCur)} more trades`;
           return `${Math.max(0, b.target - b.cur)} to go`;
         };
+        if (embedded) {
+          const streakTiles = [
+            { key: "win", Icon: Flame, label: "Win streak", cur: ACH.curWin, best: ACH.bestWin, unit: ACH.curWin === 1 ? "winning trade in a row" : "winning trades in a row", segs: winSegs },
+            { key: "green", Icon: CalendarCheck, label: "Green-day streak", cur: ACH.curGreenDays, best: ACH.bestGreenDays, unit: ACH.curGreenDays === 1 ? "profitable day in a row" : "profitable days in a row", segs: greenSegs },
+          ];
+          const money = (v) => k(v, currencySymbol); // k() already signs the value
+          const NextIcon = nextBadge ? BADGE_ICONS[nextBadge.id] || Trophy : null;
+          return (
+          <div className="jx-card jx-sec jx-goals" style={secOrder("streaks")}>
+            <div className="jx-goal__head">
+              <div>
+                <span className="jx-card__title">Streaks &amp; achievements</span>
+                <p className="jx-goal__sub">Momentum and milestones from your full history</p>
+              </div>
+              <span className="jx-goal__tier"><Trophy size={13} aria-hidden="true" />{rank} · {ACH.unlocked}/{achTotal}</span>
+            </div>
+
+            <div className="jx-goals__grid">
+              <section className="jx-goals__mom" aria-label="Momentum">
+                {streakTiles.map((t) => (
+                  <div key={t.key} className="jx-goals__tile">
+                    <div className="jx-goals__tilehead">
+                      <span className="jx-goals__ico" aria-hidden="true"><t.Icon size={14} /></span>
+                      <span className="jx-goals__lbl">{t.label}</span>
+                      <span className="jx-goals__best">best {t.best || 0}</span>
+                    </div>
+                    <div className="jx-goals__val"><b><CountUp value={t.cur} /></b><span>{t.unit}</span></div>
+                    <div className="jx-goals__pips" aria-hidden="true">
+                      {t.segs.map((on, i) => <i key={i} data-on={on || undefined} />)}
+                    </div>
+                  </div>
+                ))}
+                <div className="jx-goals__pair">
+                  <div className="jx-goals__tile">
+                    <span className="jx-goals__lbl">Streak P&amp;L</span>
+                    <b className={`jx-goals__money ${ACH.streakPnl > 0 ? "is-pos" : ACH.streakPnl < 0 ? "is-neg" : ""}`}>{money(ACH.streakPnl)}</b>
+                    <small>Since your last loss</small>
+                  </div>
+                  <div className="jx-goals__tile">
+                    <span className="jx-goals__lbl">Biggest win</span>
+                    <b className={`jx-goals__money ${ACH.biggestWin > 0 ? "is-pos" : ""}`}>{money(ACH.biggestWin)}</b>
+                    <small>Best single trade</small>
+                  </div>
+                </div>
+              </section>
+
+              <section className="jx-goals__ach" aria-label="Achievements">
+                {nextBadge && (
+                  <div className="jx-goals__spot">
+                    <span className="jx-goals__ico jx-goals__ico--lg" aria-hidden="true"><NextIcon size={18} /></span>
+                    <div className="jx-goals__spotbody">
+                      <div className="jx-goals__spothead">
+                        <span className="jx-goals__kicker">Closest to unlock</span>
+                        <span className="jx-goals__remain">{badgeRemain(nextBadge)}</span>
+                      </div>
+                      <b>{nextBadge.label}</b>
+                      <div className="jx-goals__bar"><i style={{ width: `${Math.max(4, nextBadge.prog * 100)}%` }} /></div>
+                    </div>
+                  </div>
+                )}
+                <ul className="jx-goals__badges">
+                  {ACH.badges.map((b) => {
+                    const BIcon = BADGE_ICONS[b.id] || Trophy;
+                    return (
+                      <li key={b.id}>
+                        <Tip content={b.got ? `${b.label}: unlocked` : `${b.hint} · ${badgeVal(b)}`} block>
+                          <div className="jx-goals__badge" data-got={b.got || undefined} aria-label={`${b.label}: ${b.got ? "unlocked" : `${Math.round(b.prog * 100)}% complete`}`}>
+                            <span className="jx-goals__ico" aria-hidden="true"><BIcon size={15} /></span>
+                            <span className="jx-goals__blbl">{b.label}</span>
+                            {b.got ? (
+                              <span className="jx-goals__done"><Check size={11} strokeWidth={3} aria-hidden="true" />Done</span>
+                            ) : (
+                              <span className="jx-goals__bar" aria-hidden="true"><i style={{ width: `${Math.max(4, b.prog * 100)}%` }} /></span>
+                            )}
+                          </div>
+                        </Tip>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            </div>
+          </div>
+          );
+        }
         return (
         <div className="jx-card jx-sec" style={secOrder("streaks")}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)", marginBottom: "var(--space-4)", flexWrap: "wrap" }}>
@@ -3796,6 +4219,8 @@ export default function OverviewPanel({
             <div style={{ marginTop: "var(--space-3)" }}>
               <AreaChart
                 values={cumSeries.length > 1 ? cumSeries : [0, 0]}
+                color={embedded ? ((cumSeries[cumSeries.length - 1] || 0) >= 0 ? "var(--color-success)" : "var(--color-danger)") : undefined}
+                fillColor={embedded ? ((cumSeries[cumSeries.length - 1] || 0) >= 0 ? "var(--color-success)" : "var(--color-danger)") : undefined}
                 height={170}
                 labels={["Start", "", "", "", "", "Now"]}
                 tips={cumTips.length > 1 ? cumTips : null}
@@ -3889,10 +4314,13 @@ export default function OverviewPanel({
             <div style={{ marginTop: "var(--space-3)" }}>
               <LineChart
                 values={wrSeries.length > 1 ? wrSeries : [50, S.winRate || 50]}
+                color={embedded ? "#e9ebee" : undefined}
+                domain={embedded ? [0, 100] : null}
+                refLine={embedded ? 50 : null}
                 tips={
                   wrSeries.length > 1
                     ? wrSeries.map((v, i) => ({
-                        title: `Period ${i + 1}`,
+                        title: embedded ? `Trade ${i + 1} · last 10 trades` : `Period ${i + 1}`,
                         rows: [["Win rate", `${fmt(v, 1)}%`]],
                       }))
                     : null
@@ -4036,7 +4464,7 @@ export default function OverviewPanel({
               <Donut
                 segments={S.allocList.map(([sym, v], i) => ({
                   value: v,
-                  color: DONUT_COLORS[i],
+                  color: (embedded ? DONUT_SILVER : DONUT_COLORS)[i],
                   label: sym,
                 }))}
               />
@@ -4076,7 +4504,7 @@ export default function OverviewPanel({
                           width: 8,
                           height: 8,
                           borderRadius: "50%",
-                          background: DONUT_COLORS[i],
+                          background: (embedded ? DONUT_SILVER : DONUT_COLORS)[i],
                         }}
                       />
                       <span style={{ color: "var(--color-text-secondary)" }}>
@@ -4259,7 +4687,7 @@ export default function OverviewPanel({
               {S.vols.length > 0 && S.vols.some((v) => Number(v) !== 0) ? (
                 <BarChart
                   mode="value"
-                  color="#3b82f6"
+                  color={embedded ? "#9aa1ad" : "#3b82f6"}
                   values={S.vols}
                   tips={S.vols.map((v, i) => ({
                     title: S.volLabels[i] || "",

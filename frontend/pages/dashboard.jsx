@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 
 import {
-  Sidebar,
   Button,
   BottomBar,
   AnimatedPanel,
@@ -32,7 +31,6 @@ import {
   SupportModal,
   PlanBanner,
   UpgradePanel,
-  OverviewPanel,
   MarketsPanel,
   SharePanel,
   SettingsPanel,
@@ -41,6 +39,9 @@ import {
 
 import FullPageLoader from "@/components/ui/FullPageLoader";
 import FirstRunFlow from "@/components/authFlow/FirstRunFlow";
+import AppSidebar from "@/components/app/AppSidebar";
+import Overview from "@/components/app/Overview";
+import { buildSampleTrades } from "@/components/app/sampleTrades";
 import { MobileInstallBanner } from "@/components/pwa/InstallPwa";
 import ShortcutsHelp from "@/components/revampV2/ShortcutsHelp";
 
@@ -53,17 +54,9 @@ import { fetchUserInfo } from "@/utils/userInfo";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-/* Dummy trades shown until real data is connected / when journal is empty */
-const DUMMY_TRADES = [
-  { _id: "d1", symbol: "BTC/USDT", direction: "long", pnl: 1250, totalQuantity: 0.5, openTime: "2026-06-01T07:10:00Z", closeTime: "2026-06-01T10:30:00Z", entryPrice: 61240, exitPrice: 63820, rr: 2.4, source: "auto", images: [1, 2, 3] },
-  { _id: "d2", symbol: "ETH/USDT", direction: "short", pnl: -420, totalQuantity: 4, openTime: "2026-06-02T11:40:00Z", closeTime: "2026-06-02T14:00:00Z", entryPrice: 3420, exitPrice: 3530, rr: 1.2, source: "manual", images: [1, 2] },
-  { _id: "d3", symbol: "SOL/USDT", direction: "long", pnl: 610, totalQuantity: 30, closeTime: "2026-06-02T18:45:00Z", entryPrice: 182.4, exitPrice: 202.7, rr: 1.5, source: "manual", images: [1] },
-  { _id: "d4", symbol: "BTC/USDT", direction: "long", pnl: 980, totalQuantity: 0.3, closeTime: "2026-06-03T09:15:00Z", entryPrice: 60400, exitPrice: 63670, rr: 2.0, source: "auto", images: [] },
-  { _id: "d5", symbol: "XAU/USD", direction: "short", pnl: -260, totalQuantity: 2, closeTime: "2026-06-04T11:20:00Z", entryPrice: 2380, exitPrice: 2510, rr: 1.1, source: "manual", images: [1, 2] },
-  { _id: "d6", symbol: "ETH/USDT", direction: "long", pnl: 1740, totalQuantity: 6, openTime: "2026-06-05T12:20:00Z", closeTime: "2026-06-05T16:05:00Z", entryPrice: 3310, exitPrice: 3600, rr: 3.0, source: "auto", images: [1] },
-  { _id: "d7", symbol: "NIFTY", direction: "long", pnl: 330, totalQuantity: 50, closeTime: "2026-06-05T19:40:00Z", entryPrice: 24180, exitPrice: 24186.6, rr: 2.2, source: "manual", images: [] },
-  { _id: "d8", symbol: "BTC/USDT", direction: "short", pnl: -150, totalQuantity: 0.2, closeTime: "2026-06-06T08:55:00Z", entryPrice: 63900, exitPrice: 64650, rr: 1.0, source: "auto", images: [1] },
-];
+/* Sample journal shown until real data is connected / when journal is empty
+   (same seeded data the Overview uses, so every tab tells one story) */
+const DUMMY_TRADES = buildSampleTrades();
 
 const NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutGrid },
@@ -387,23 +380,19 @@ export default function Dashboard() {
 
   /* ---------- overview tab content (Figma "Dashboard / Desktop") ---------- */
   const overview = (
-    <OverviewPanel
+    <Overview
       trades={trades}
       currencySymbol={currencySymbol}
       fxRate={fxRate}
       userName={userData?.name}
       usingDummy={usingDummy}
-      startingBalance={
-        usingDummy
-          ? 10000
-          : currentAccount?.startingBalance?.amount || 0
-      }
+      startingBalance={currentAccount?.startingBalance?.amount || 0}
       onLogTrade={() => setShowLogTrade(true)}
       onImport={() => {
         setActiveTab("trades");
         setImportSignal((s) => s + 1); // opens the import modal in Trades log
       }}
-      onSetBalance={() => { setJournalEditId(currentAccount?._id || null); setShowSwitchModal(true); }}
+      onViewTrades={() => navTab("trades")}
     />
   );
 
@@ -411,6 +400,7 @@ export default function Dashboard() {
     overview,
     trades: (
       <TradesLogPanel
+        v2
         trades={trades}
         currencySymbol={currencySymbol}
         fxRate={fxRate}
@@ -432,7 +422,7 @@ export default function Dashboard() {
       />
     ),
     blogs: <ActivitiesPanel />,
-    markets: <MarketsPanel trades={trades} />,
+    markets: <MarketsPanel trades={trades} currencySymbol={currencySymbol} />,
     tools: <ToolsPanel currencySymbol={currencySymbol} />,
     share: (
       <SharePanel
@@ -467,7 +457,7 @@ export default function Dashboard() {
         router.push("/login?redirect=/dashboard");
       }}
     >
-      <Sidebar
+      <AppSidebar
         items={NAV_ITEMS}
         active={activeTab}
         onChange={navTab}

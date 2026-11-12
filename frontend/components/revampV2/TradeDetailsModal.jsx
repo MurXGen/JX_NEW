@@ -126,7 +126,7 @@ function QualityRing({ pct, size = 96 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 96 96">
       <circle cx="48" cy="48" r={r} fill="none" stroke="var(--color-bg-muted)" strokeWidth="9" />
-      <circle cx="48" cy="48" r={r} fill="none" stroke="var(--color-primary)" strokeWidth="9" strokeLinecap="round"
+      <circle cx="48" cy="48" r={r} fill="none" stroke="var(--jx-td-ring, var(--color-primary))" strokeWidth="9" strokeLinecap="round"
         strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} transform="rotate(-90 48 48)" />
       <text x="48" y="46" textAnchor="middle" style={{ font: "600 18px Poppins", fill: "var(--color-text-primary)" }}>{pct}%</text>
       <text x="48" y="62" textAnchor="middle" style={{ font: "400 9px Poppins", fill: "var(--color-text-muted)" }}>quality</text>
@@ -373,7 +373,7 @@ export default function TradeDetailsModal({
             animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
             exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.97, y: 10 }}
             transition={{ type: "spring", stiffness: 340, damping: 32 }}
-            className={`jx-ltmodal ${isMobile ? "jx-ltmodal--sheet" : "jx-ltmodal--popup"}`}
+            className={`jx-ltmodal jx-td ${isMobile ? "jx-ltmodal--sheet" : "jx-ltmodal--popup"}`}
             style={isMobile ? undefined : { width: "min(980px, 96vw)" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -385,19 +385,18 @@ export default function TradeDetailsModal({
             {/* header — clean identity block, actions live in the footer now */}
             <div className="jx-ltmodal__header jx-td__header" style={{ alignItems: "flex-start", gap: "var(--space-2)", flexWrap: "nowrap" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0, flex: 1 }}>
-                <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Trade details</span>
-                <span style={{ font: "var(--text-h2)" }}>{t.symbol || t.ticker || "—"}</span>
+                <span className="jx-td__eyebrow">Trade details</span>
+                <span className="jx-td__sym">{t.symbol || t.ticker || "—"}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
-                  <Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge>
-                  <Badge variant={pnl >= 0 ? "success" : "danger"}>{pnl >= 0 ? "Win" : "Loss"}</Badge>
-                  <Badge variant="brand">
+                  <Badge variant="neutral">{isLong ? <TrendingUp size={11} /> : <TrendingUp size={11} style={{ transform: "scaleY(-1)" }} />}{isLong ? "Long" : "Short"}</Badge>
+                  <Badge variant="neutral">
                     {t.source === "auto" ? <Download size={11} /> : <User size={11} />}
                     {t.source === "auto" ? "Auto-imported" : isQuickLog ? "Quick log" : "Manual"}
                   </Badge>
                   {session && <Badge variant="neutral"><Clock size={11} /> {session}</Badge>}
                 </div>
               </div>
-              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8, flexShrink: 0 }}>
+              <button className="jx-btn jx-btn--secondary jx-btn--sm jx-td__close" onClick={onClose} aria-label="Close" style={{ padding: 8, flexShrink: 0 }}>
                 <X size={16} />
               </button>
             </div>
@@ -423,42 +422,20 @@ export default function TradeDetailsModal({
                   </div>
                 )}
 
-                {/* highlighted summary — symbol, P&L and open/close time.
-                    Wins get a natural, leafy forest-green wash; losses a warm ember. */}
-                <div
-                  style={{
-                    position: "relative", overflow: "hidden",
-                    borderRadius: "var(--radius-lg)",
-                    padding: "var(--space-4) var(--space-5)",
-                    background: pnl >= 0
-                      ? "radial-gradient(135% 150% at 92% -25%, color-mix(in srgb, var(--color-success) 30%, transparent), transparent 55%), radial-gradient(120% 120% at 0% 120%, color-mix(in srgb, var(--color-success) 14%, transparent), transparent 50%), linear-gradient(140deg, color-mix(in srgb, var(--color-success) 18%, var(--color-bg-surface)) 0%, var(--color-bg-surface) 72%)"
-                      : "radial-gradient(135% 150% at 92% -25%, color-mix(in srgb, var(--color-danger) 26%, transparent), transparent 55%), linear-gradient(140deg, color-mix(in srgb, var(--color-danger) 15%, var(--color-bg-surface)) 0%, var(--color-bg-surface) 72%)",
-                    border: `1px solid ${pnl >= 0 ? "color-mix(in srgb, var(--color-success) 55%, var(--color-border))" : "color-mix(in srgb, var(--color-danger) 50%, var(--color-border))"}`,
-                    boxShadow: pnl >= 0
-                      ? "inset 0 1px 0 color-mix(in srgb, var(--color-success) 22%, transparent)"
-                      : "inset 0 1px 0 color-mix(in srgb, var(--color-danger) 20%, transparent)",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)", flexWrap: "wrap" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
-                      <span style={{ font: "var(--text-h2)" }}>{t.symbol || t.ticker || "—"}</span>
-                      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
-                        <Badge variant={isLong ? "success" : "danger"}>{isLong ? "Long" : "Short"}</Badge>
-                        <Badge variant={pnl >= 0 ? "success" : "danger"}>{pnl >= 0 ? "Win" : "Loss"}</Badge>
-                      </div>
+                {/* result: net P&L first, then the open → close timeline */}
+                <div className={`jx-td-hero jx-td-hero--${pnl > 0 ? "win" : pnl < 0 ? "loss" : "even"}`}>
+                  <div className="jx-td-hero__top">
+                    <div>
+                      <span className="jx-td-hero__lbl">Net P&amp;L</span>
+                      <b className="jx-td-hero__pnl">{kf(pnl, currencySymbol)}</b>
                     </div>
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ font: "var(--text-label)", letterSpacing: ".6px", textTransform: "uppercase", color: "var(--color-text-muted)" }}>Net P&amp;L</div>
-                      <div style={{ font: "var(--text-stat)", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                        {kf(pnl, currencySymbol)}
-                      </div>
-                    </div>
+                    <span className="jx-td-hero__tag">{pnl > 0 ? "Win" : pnl < 0 ? "Loss" : "Breakeven"}</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: "var(--space-3)", font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Clock size={13} /> Opened {dt(t.openTime)}</span>
-                    <span style={{ opacity: 0.5 }}>→</span>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Clock size={13} /> Closed {dt(t.closeTime)}</span>
-                    {duration !== "—" && (<><span style={{ opacity: 0.5 }}>·</span><span>{duration}</span></>)}
+                  <div className="jx-td-hero__time">
+                    <span><Clock size={13} aria-hidden="true" /> Opened {dt(t.openTime)}</span>
+                    <ChevronRight size={13} aria-hidden="true" />
+                    <span>Closed {dt(t.closeTime)}</span>
+                    {duration !== "—" && <span className="jx-td-hero__dur">{duration} held</span>}
                   </div>
                 </div>
 
@@ -686,7 +663,7 @@ export default function TradeDetailsModal({
                       confidence > 0 ? (
                         <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
                           {[1, 2, 3, 4, 5].map((n) => (
-                            <Star key={n} size={14} fill={n <= confidence ? "var(--color-primary)" : "none"} color={n <= confidence ? "var(--yellow-500)" : "var(--color-border-strong)"} />
+                            <Star key={n} size={14} fill={n <= confidence ? "var(--yellow-500)" : "none"} color={n <= confidence ? "var(--yellow-500)" : "var(--color-border-strong)"} />
                           ))}
                           <span style={{ font: "var(--text-caption)", fontWeight: 600, marginLeft: 4 }}>
                             {confidence <= 2 ? "Low" : confidence === 3 ? "Medium" : "High"}
@@ -842,7 +819,7 @@ export default function TradeDetailsModal({
                   </div>
                 </div>
 
-                <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
+                <div className="jx-banner jx-banner--warn jx-td-note" style={{ alignItems: "flex-start" }}>
                   <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
                   <span style={{ font: "var(--text-caption)" }}>
                     {t.rulesFollowed

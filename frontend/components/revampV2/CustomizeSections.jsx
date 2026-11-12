@@ -142,7 +142,13 @@ function SortableRow({ section, vis, onToggle }) {
   );
 }
 
-export default function CustomizeSections({ sections, hidden, onToggle, onReset, order, onReorder, enabled = true }) {
+/* Open the customize sheet from anywhere (e.g. the sidebar):
+   window.dispatchEvent(new Event("jx-customize-open")) */
+export const openCustomize = () => {
+  try { window.dispatchEvent(new Event("jx-customize-open")); } catch {}
+};
+
+export default function CustomizeSections({ sections, hidden, onToggle, onReset, order, onReorder, enabled = true, fab = true }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState(null); // {left, top}
@@ -238,11 +244,19 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset,
 
   useEffect(() => { if (!enabled) setOpen(false); }, [enabled]);
 
-  if (!mounted || !pos || !enabled) return null;
+  // external trigger (sidebar / inline button)
+  useEffect(() => {
+    const onOpen = () => { if (enabled) setOpen(true); };
+    window.addEventListener("jx-customize-open", onOpen);
+    return () => window.removeEventListener("jx-customize-open", onOpen);
+  }, [enabled]);
+
+  if (!mounted || !enabled || (fab && !pos)) return null;
 
   return createPortal(
     <>
-      {/* floating draggable trigger */}
+      {/* floating draggable trigger (legacy; off when opened from the sidebar) */}
+      {fab && (
       <button
         type="button"
         aria-label="Customize sections"
@@ -271,10 +285,11 @@ export default function CustomizeSections({ sections, hidden, onToggle, onReset,
       >
         <SlidersHorizontal size={20} />
       </button>
+      )}
 
       {/* "press & hold" hint shown on a quick touch tap */}
       <AnimatePresence>
-        {hint && (
+        {fab && hint && (
           <motion.div
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}

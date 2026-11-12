@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
-import { ChevronLeft, ChevronRight, Download, Plus, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, ImagePlus, Plus, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
 import ConfirmDialog from "./ConfirmDialog";
 import Kbd from "./Kbd";
 import Toast from "./Toast";
@@ -139,6 +139,28 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
     }
   };
 
+  // drop or paste an image straight into the viewer
+  const [dragOver, setDragOver] = useState(false);
+  const full = images.length >= 4;
+  useEffect(() => {
+    if (!open || !canCrud) return undefined;
+    const onPaste = (e) => {
+      const file = [...(e.clipboardData?.files || [])].find((f) => f.type.startsWith("image/"));
+      if (file && !busy && images.length < 4) { e.preventDefault(); addImage(file); }
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  });
+  const dropProps = canCrud && !full ? {
+    onDragOver: (e) => { e.preventDefault(); setDragOver(true); },
+    onDragLeave: () => setDragOver(false),
+    onDrop: (e) => {
+      e.preventDefault(); setDragOver(false);
+      const file = [...(e.dataTransfer?.files || [])].find((f) => f.type.startsWith("image/"));
+      if (file && !busy) addImage(file);
+    },
+  } : {};
+
   const download = () => {
     if (!current) return;
     const a = document.createElement("a");
@@ -164,7 +186,7 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
             animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
             exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.97, y: 8 }}
             transition={{ type: "spring", stiffness: 340, damping: 32 }}
-            className={`jx-ltmodal ${isMobile ? "jx-ltmodal--sheet" : ""}`}
+            className={`jx-ltmodal jx-td jx-iv ${isMobile ? "jx-ltmodal--sheet" : ""}`}
             style={isMobile ? { position: "relative" } : { width: "min(860px, 96vw)" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -181,19 +203,19 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
                   {trade?.symbol || "Trade"} · screenshots
                 </span>
                 <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  {images.length ? `${index + 1} of ${images.length}` : "No screenshots yet"}
+                  {images.length ? `${index + 1} of ${images.length} · up to 4 per trade` : "No screenshots yet · up to 4 per trade"}
                   {images.length > 1 && !isMobile && (
                     <span className="jx-kbd-hint"><Kbd combo={["←", "→"]} sep="/" /> navigate</span>
                   )}
                 </span>
               </div>
-              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8, flexShrink: 0 }}>
+              <button className="jx-btn jx-btn--secondary jx-btn--sm jx-td__close" onClick={onClose} aria-label="Close" style={{ padding: 8, flexShrink: 0 }}>
                 <X size={16} />
               </button>
             </div>
 
             {/* main preview — swipe left/right on touch, arrows on desktop */}
-            <div style={{ position: "relative", background: "var(--color-bg-canvas)", flex: isMobile ? "1 1 auto" : "none", minHeight: isMobile ? 0 : 340, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-4)", overflow: "hidden" }}>
+            <div className={`jx-iv__stage${dragOver ? " jx-iv__stage--drag" : ""}`} {...dropProps} style={{ position: "relative", background: "var(--color-bg-canvas)", flex: isMobile ? "1 1 auto" : "none", minHeight: isMobile ? 0 : 340, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-4)", overflow: "hidden" }}>
               {current ? (
                 <AnimatePresence mode="wait" custom={dir} initial={false}>
                   <motion.div
@@ -235,9 +257,19 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
                   </motion.div>
                 </AnimatePresence>
               ) : (
-                <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)", textAlign: "center", padding: "var(--space-6) var(--space-4)" }}>
-                  {canCrud ? "Add a chart screenshot to this trade" : "No screenshots on this trade"}
-                </span>
+                canCrud ? (
+                  <button type="button" className="jx-iv__empty" onClick={() => fileRef.current?.click()} disabled={busy}>
+                    <span className="jx-iv__emptyIco" aria-hidden="true"><ImagePlus size={22} /></span>
+                    <b>{busy ? "Uploading…" : "Add a chart screenshot"}</b>
+                    <span>Drop an image here, paste with {typeof navigator !== "undefined" && /Mac/i.test(navigator.platform) ? "⌘" : "Ctrl"}+V, or browse</span>
+                    <span className="jx-iv__emptyBtn"><Plus size={14} aria-hidden="true" /> Choose image</span>
+                    <small>PNG or JPG · marked-up charts help you review faster</small>
+                  </button>
+                ) : (
+                  <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)", textAlign: "center", padding: "var(--space-6) var(--space-4)" }}>
+                    No screenshots on this trade
+                  </span>
+                )
               )}
 
               {images.length > 1 && !isMobile && (
@@ -278,7 +310,7 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
                     onClick={() => goTo(i, i >= index ? 1 : -1)}
                     style={{
                       width: 64, height: 44, flexShrink: 0, objectFit: "cover", borderRadius: "var(--radius-sm)", cursor: "pointer",
-                      outline: i === index ? "2px solid var(--color-primary)" : "1px solid var(--color-border)",
+                      outline: i === index ? "2px solid var(--jx-iv-active, var(--color-primary))" : "1px solid var(--color-border)",
                       opacity: i === index ? 1 : 0.6,
                       transition: "opacity .15s ease",
                     }}
@@ -288,15 +320,13 @@ export default function ImageViewerModal({ open, trade, onClose, onImagesChanged
             )}
 
             {/* bottom action bar */}
-            {(canCrud || current) && (
+            {canCrud && <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { addImage(e.target.files?.[0]); e.target.value = ""; }} />}
+            {current && (
               <div className="jx-ltmodal__footer" style={{ gap: "var(--space-2)", justifyContent: isMobile ? "stretch" : "flex-end", flexWrap: "nowrap" }}>
                 {canCrud && (
-                  <>
-                    <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { addImage(e.target.files?.[0]); e.target.value = ""; }} />
-                    <button className="jx-btn jx-btn--outline" onClick={() => fileRef.current?.click()} disabled={busy || images.length >= 4} style={isMobile ? { flex: 1, justifyContent: "center" } : undefined}>
-                      <Plus size={15} /> Add
-                    </button>
-                  </>
+                  <button className="jx-btn jx-btn--outline" onClick={() => fileRef.current?.click()} disabled={busy || full} title={full ? "Up to 4 screenshots per trade" : undefined} style={isMobile ? { flex: 1, justifyContent: "center" } : undefined}>
+                    <Plus size={15} /> {full ? "4 of 4" : "Add"}
+                  </button>
                 )}
                 {current && (
                   <button className="jx-btn jx-btn--outline" onClick={download} style={isMobile ? { flex: 1, justifyContent: "center" } : undefined}>

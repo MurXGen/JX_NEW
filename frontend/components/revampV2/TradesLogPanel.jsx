@@ -5,6 +5,16 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import {
+  FlaskConical,
+  ArrowUpDown,
+  Layers,
+  CircleCheck,
+  CircleX,
+  CircleMinus,
+  CalendarArrowDown,
+  CalendarArrowUp,
+  ArrowDownWideNarrow,
+  ArrowUpNarrowWide,
   Check,
   CheckSquare,
   ChevronLeft,
@@ -46,6 +56,8 @@ import ImportTradesModal from "./ImportTradesModal";
 import ImageViewerModal from "./ImageViewerModal";
 import LogTradeModal from "./LogTradeModal";
 import SampleDataBanner from "./SampleDataBanner";
+import ov from "@/components/app/Overview.module.css";
+import tl from "@/components/app/TradesLog.module.css";
 import CustomizeSections, { useHiddenSections } from "./CustomizeSections";
 import { generateShareCard } from "./shareCard";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
@@ -88,9 +100,9 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
   const wrapRef = useRef(null);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
-  const WIDTH = 180;
+  const WIDTH = 248;
 
-  const MENU_H = 210;      // approx height of the 5-row menu
+  const MENU_H = 250;      // approx height of the 5-row menu
   const BOTTOM_SAFE = 100; // mobile bottom nav + browser bar + safe area
   const place = () => {
     const el = triggerRef.current;
@@ -115,6 +127,22 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // keyboard: focus the first action, arrows move, Escape closes
+  useEffect(() => {
+    if (!open || isMobile) return undefined;
+    const id = requestAnimationFrame(() => panelRef.current?.querySelector("[role=menuitem]")?.focus());
+    return () => cancelAnimationFrame(id);
+  }, [open, isMobile, coords]);
+  const onMenuKey = (e) => {
+    const items = [...(panelRef.current?.querySelectorAll("[role=menuitem]") || [])];
+    const i = items.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length]?.focus(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); items[(i - 1 + items.length) % items.length]?.focus(); }
+    else if (e.key === "Home") { e.preventDefault(); items[0]?.focus(); }
+    else if (e.key === "End") { e.preventDefault(); items[items.length - 1]?.focus(); }
+    else if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); setOpen(false); triggerRef.current?.focus(); }
+  };
+
   useEffect(() => {
     if (!open) return;
     const onMove = () => place();
@@ -134,30 +162,27 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const item = (Icon, label, fn, danger) => (
+  const item = (Icon, label, fn, danger, hint) => (
     <button
       type="button"
-      className="jx-dd__option"
-      style={danger ? { color: "var(--color-danger)" } : undefined}
+      role="menuitem"
+      className={`jx-rm__item${danger ? " jx-rm__item--danger" : ""}`}
       onClick={(e) => { e.stopPropagation(); setOpen(false); fn(); }}
     >
-      <Icon size={14} /> {label}
+      <span className="jx-rm__ico" aria-hidden="true"><Icon size={15} /></span>
+      <span className="jx-rm__txt"><b>{label}</b>{hint && <small>{hint}</small>}</span>
     </button>
   );
 
   // larger, always-visible rows for the mobile bottom sheet
-  const sheetItem = (Icon, label, fn, danger) => (
+  const sheetItem = (Icon, label, fn, danger, hint) => (
     <button
       type="button"
+      className={`jx-rm__item jx-rm__item--sheet${danger ? " jx-rm__item--danger" : ""}`}
       onClick={(e) => { e.stopPropagation(); setOpen(false); fn(); }}
-      style={{
-        display: "flex", alignItems: "center", gap: 12, width: "100%",
-        padding: "14px 6px", background: "transparent", border: "none",
-        cursor: "pointer", font: "var(--text-body-md)", textAlign: "left",
-        color: danger ? "var(--color-danger)" : "var(--color-text-primary)",
-      }}
     >
-      <Icon size={18} /> {label}
+      <span className="jx-rm__ico" aria-hidden="true"><Icon size={17} /></span>
+      <span className="jx-rm__txt"><b>{label}</b>{hint && <small>{hint}</small>}</span>
     </button>
   );
 
@@ -171,6 +196,9 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 380, damping: 34 }}
+        className="jx-rm jx-rm--sheet"
+        role="menu"
+        aria-label="Trade actions"
         style={{
           position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 4001,
           background: "var(--color-bg-elevated)",
@@ -181,18 +209,21 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
         }}
       >
         <div style={{ width: 40, height: 4, borderRadius: 999, background: "var(--color-border-strong)", margin: "4px auto 8px" }} />
-        {sheetItem(Pencil, "Edit trade", onEdit)}
-        {sheetItem(Download, "Export CSV", onExport)}
-        {sheetItem(ImageIcon, "Download JX card", onShareCard)}
-        <div style={{ borderTop: "1px solid var(--color-border)", margin: "2px 0" }} />
-        {sheetItem(Trash2, "Delete", onDelete, true)}
+        {sheetItem(Pencil, "Edit trade", onEdit, false, "Prices, notes, tags and screenshots")}
+        {sheetItem(Download, "Export CSV", onExport, false, "This trade as a spreadsheet row")}
+        {sheetItem(ImageIcon, "Download share card", onShareCard, false, "An image of the result to post")}
+        <div className="jx-rm__sep" />
+        {sheetItem(Trash2, "Delete trade", onDelete, true, "Removes it from your journal")}
       </motion.div>
     </>
   ) : coords ? (
     // ===== Desktop: compact panel anchored to the trigger
     <motion.div
       ref={panelRef}
-      className="jx-dd__panel jx-row-menu__panel"
+      className="jx-rm"
+      role="menu"
+      aria-label="Trade actions"
+      onKeyDown={onMenuKey}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
       initial={{ opacity: 0, y: coords.openUp ? 6 : -6, scale: 0.98 }}
@@ -210,11 +241,11 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
         zIndex: 4000,
       }}
     >
-      {item(Pencil, "Edit trade", onEdit)}
-      {item(Download, "Export CSV", onExport)}
-      {item(ImageIcon, "Download JX card", onShareCard)}
-      <div style={{ borderTop: "1px solid var(--color-border)", margin: "4px 0" }} />
-      {item(Trash2, "Delete", onDelete, true)}
+      {item(Pencil, "Edit trade", onEdit, false, "Prices, notes, tags and screenshots")}
+      {item(Download, "Export CSV", onExport, false, "This trade as a spreadsheet row")}
+      {item(ImageIcon, "Download share card", onShareCard, false, "An image of the result to post")}
+      <div className="jx-rm__sep" role="separator" />
+      {item(Trash2, "Delete trade", onDelete, true, "Removes it from your journal")}
     </motion.div>
   ) : null;
 
@@ -227,6 +258,8 @@ function RowMenu({ onEdit, onExport, onDelete, onShareCard }) {
         style={{ padding: 6, borderRadius: "var(--radius-md)" }}
         onClick={() => setOpen((o) => !o)}
         aria-label="Trade actions"
+        aria-haspopup="menu"
+        aria-expanded={open}
         title="Edit, export or delete this trade"
       >
         <MoreVertical size={15} />
@@ -546,6 +579,7 @@ export default function TradesLogPanel({
   onTradeUpdated,
   openImportSignal = 0,
   onOpenTab,
+  v2 = false, // new dashboard design system (dark shell)
 }) {
   // Display trades are converted to the chosen display currency; NATIVE trades
   // are kept for editing (so a converted view can never corrupt a saved trade).
@@ -691,8 +725,13 @@ export default function TradesLogPanel({
     const avgWin = wins ? closed.filter((t) => t.pnl > 0).reduce((s, t) => s + t.pnl, 0) / wins : 0;
     const losses = closed.filter((t) => t.pnl < 0);
     const avgLoss = losses.length ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0;
+    const pnls = closed.map((t) => Number(t.pnl) || 0);
     return {
       total,
+      wins,
+      losses: losses.length,
+      best: pnls.length ? Math.max(...pnls) : 0,
+      worst: pnls.length ? Math.min(...pnls) : 0,
       winRate: total ? ((wins / total) * 100).toFixed(1) : "0",
       netPnl,
       avgRR: avgLoss > 0 ? (avgWin / avgLoss).toFixed(1) : "—",
@@ -820,7 +859,10 @@ export default function TradesLogPanel({
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+    <div
+      className={v2 ? `${ov.root} ${tl.root}` : undefined}
+      style={v2 ? undefined : { display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+    >
       <Toast toast={toast} />
 
       {/* ===== overtrading / wellness nudge ===== */}
@@ -875,8 +917,71 @@ export default function TradesLogPanel({
         </motion.div>
       )}
 
+      {v2 && (
+        <>
+          <header className={ov.head}>
+            <div>
+              <h1 className={ov.title}>Trades log</h1>
+              <p className={ov.sub}>
+                {stats.total} {stats.total === 1 ? "closed trade" : "closed trades"}
+                {usingDummy ? " in the sample journal" : ""}. Open any trade to review it.
+              </p>
+            </div>
+            <div className={ov.headActions}>
+              <CustomizeSections sections={TRADESLOG_SECTIONS} hidden={hidden} onToggle={toggle} onReset={reset} fab={false} />
+              {!usingDummy && (
+                <button type="button" className={`${ov.btn} ${ov.ghost}`} onClick={() => setShowImport(true)}>
+                  <Upload size={14} aria-hidden="true" /> Import
+                </button>
+              )}
+              <button type="button" className={`${ov.btn} ${ov.gold} ${tl.headLog}`} onClick={onAddTrade}>
+                <Plus size={15} aria-hidden="true" /> Log trade
+              </button>
+            </div>
+          </header>
+
+          {usingDummy && (
+            <div className={ov.notice} role="note">
+              <span className={ov.noticeIcon} aria-hidden="true"><FlaskConical size={17} /></span>
+              <div className={ov.noticeText}>
+                <b><span className={ov.hideSm}>You&apos;re looking at </span><span className={ov.showSm}>Viewing </span>sample trades</b>
+                <span>Log your first trade or import your history and this list switches to your own trades.</span>
+              </div>
+              <button type="button" className={`${ov.btn} ${ov.ghost}`} onClick={() => setShowImport(true)}>
+                <Upload size={14} aria-hidden="true" /> Import<span className={ov.hideSm}> trades</span>
+              </button>
+            </div>
+          )}
+
+          {stats.total > 0 && (
+            <div className={tl.stats} role="list" aria-label="Trade summary">
+              <div role="listitem" className={tl.stat}>
+                <span>Net P&amp;L</span>
+                <b className={stats.netPnl > 0 ? tl.pos : stats.netPnl < 0 ? tl.neg : undefined}>{money(stats.netPnl, currencySymbol)}</b>
+                <small>All closed trades</small>
+              </div>
+              <div role="listitem" className={tl.stat}>
+                <span>Win rate</span>
+                <b>{Math.round(Number(stats.winRate))}%</b>
+                <small>{stats.wins} wins · {stats.losses} losses</small>
+              </div>
+              <div role="listitem" className={tl.stat}>
+                <span>Avg win : loss</span>
+                <b>{stats.avgRR === "—" ? "—" : `1 : ${stats.avgRR}`}</b>
+                <small>Reward per unit of risk</small>
+              </div>
+              <div role="listitem" className={tl.stat}>
+                <span>Best trade</span>
+                <b className={stats.best > 0 ? tl.pos : undefined}>{money(stats.best, currencySymbol)}</b>
+                <small>Worst {money(stats.worst, currencySymbol)}</small>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       {/* header */}
-      <div className="jx-tl-tophead" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "nowrap", gap: "var(--space-3)" }}>
+      {!v2 && <div className="jx-tl-tophead" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "nowrap", gap: "var(--space-3)" }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ font: "var(--text-h2)" }}>Trades log</div>
           <div style={{ font: "var(--text-body)", color: "var(--color-text-muted)" }}>
@@ -892,6 +997,7 @@ export default function TradesLogPanel({
             hidden={hidden}
             onToggle={toggle}
             onReset={reset}
+            fab={false}
           />
           {!usingDummy && (
             <>
@@ -906,10 +1012,10 @@ export default function TradesLogPanel({
             </>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* sample-data nudge */}
-      {usingDummy && (
+      {!v2 && usingDummy && (
         <SampleDataBanner onLog={onAddTrade} onImport={() => setShowImport(true)} />
       )}
 
@@ -922,17 +1028,31 @@ export default function TradesLogPanel({
       {(() => {
         const directionDD = (
           <Dropdown value={direction} onChange={setDirection} label="Direction" triggerPrefix="Direction"
-            options={[{ value: "all", label: "All" }, { value: "long", label: "Long" }, { value: "short", label: "Short" }]}
+            options={[
+              { value: "all", label: "All", icon: ArrowUpDown, hint: "Long and short trades" },
+              { value: "long", label: "Long", icon: TrendingUp, hint: "Bought expecting a rise" },
+              { value: "short", label: "Short", icon: TrendingDown, hint: "Sold expecting a fall" },
+            ]}
             triggerStyle={{ height: 38 }} />
         );
         const outcomeDD = (
           <Dropdown value={outcome} onChange={setOutcome} label="Outcome" triggerPrefix="Outcome"
-            options={[{ value: "all", label: "All" }, { value: "win", label: "Wins" }, { value: "loss", label: "Losses" }, { value: "breakeven", label: "Breakeven" }]}
+            options={[
+              { value: "all", label: "All", icon: Layers, hint: "Every closed trade" },
+              { value: "win", label: "Wins", icon: CircleCheck, hint: "Closed in profit" },
+              { value: "loss", label: "Losses", icon: CircleX, hint: "Closed at a loss" },
+              { value: "breakeven", label: "Breakeven", icon: CircleMinus, hint: "Closed flat" },
+            ]}
             triggerStyle={{ height: 38 }} />
         );
         const sortDD = (
           <Dropdown value={sort} onChange={setSort} label="Sort by" triggerPrefix="Sort"
-            options={[{ value: "newest", label: "Newest first" }, { value: "oldest", label: "Oldest first" }, { value: "pnl-high", label: "P&L: high to low" }, { value: "pnl-low", label: "P&L: low to high" }]}
+            options={[
+              { value: "newest", label: "Newest first", icon: CalendarArrowDown, hint: "Most recent at the top" },
+              { value: "oldest", label: "Oldest first", icon: CalendarArrowUp, hint: "Start from the beginning" },
+              { value: "pnl-high", label: "P&L: high to low", icon: ArrowDownWideNarrow, hint: "Biggest winners first" },
+              { value: "pnl-low", label: "P&L: low to high", icon: ArrowUpNarrowWide, hint: "Biggest losers first" },
+            ]}
             triggerStyle={{ height: 38 }} />
         );
         return (
@@ -1196,7 +1316,29 @@ export default function TradesLogPanel({
               );
             })()
           ) : (
-            <div className="jx-card jx-table-wrap" style={{ padding: 0, overflowX: "auto" }}>
+            (() => {
+              // only show columns that have data for at least one trade in view
+              const entryOf = (t) => t.avgEntryPrice || t.entryPrice || t.entries?.[0]?.price;
+              const exitOf = (t) => t.avgExitPrice || t.exitPrice || t.exits?.[0]?.price;
+              const heldOf = (t) => {
+                const ms = t.openTime && t.closeTime ? new Date(t.closeTime) - new Date(t.openTime) : 0;
+                if (!(ms > 0)) return null;
+                const m = Math.round(ms / 60000);
+                return m < 60 ? `${m}m` : m < 1440 ? `${Math.floor(m / 60)}h ${m % 60 ? `${m % 60}m` : ""}`.trim() : `${Math.round(m / 1440)}d`;
+              };
+              const show = {
+                entry: filtered.some((t) => entryOf(t)),
+                exit: filtered.some((t) => exitOf(t)),
+                size: filtered.some((t) => Number(t.totalQuantity) > 0),
+                rr: filtered.some((t) => t.rr),
+                strat: filtered.some((t) => t.strategy || t.reason?.[0]),
+                held: filtered.some((t) => heldOf(t)),
+                img: filtered.some((t) => t.images?.length),
+              };
+              const net = filtered.reduce((a2, t) => a2 + (Number(t.pnl) || 0), 0);
+              const wins = filtered.filter((t) => Number(t.pnl) > 0).length;
+              return (
+            <div className="jx-card jx-table-wrap jx-tl-table" style={{ padding: 0, overflowX: "auto" }}>
               <table className="jx-table jx-table--log">
                 <thead>
                   <tr>
@@ -1209,75 +1351,84 @@ export default function TradesLogPanel({
                           title={allSelected ? "Deselect all" : "Select all"}
                           onClick={toggleSelectAll}
                           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSelectAll(); } }}
-                          style={{ display: "inline-flex", cursor: "pointer", color: allSelected ? "var(--yellow-500)" : "var(--color-text-muted)" }}
+                          style={{ display: "inline-flex", cursor: "pointer" }}
                         >
                           {allSelected ? <CheckSquare size={16} /> : selected.size > 0 ? <Minus size={13} /> : <Square size={16} />}
                         </span>
                       </th>
                     )}
-                    <th>Pair</th><th>Side</th>
-                    <th className="jx-col-sm-hide" style={{ textAlign: "right" }}>Entry</th>
-                    <th className="jx-col-sm-hide" style={{ textAlign: "right" }}>Exit</th>
-                    <th className="jx-col-sm-hide" style={{ textAlign: "right" }}>Size</th>
-                    <th style={{ textAlign: "right" }}>P&L</th>
-                    <th className="jx-col-sm-hide" style={{ textAlign: "center" }}>R : R</th>
-                    <th>Date</th><th className="jx-col-sm-hide" style={{ textAlign: "center" }}>Img</th>
-                    <th style={{ textAlign: "center" }}>···</th>
+                    <th>Symbol</th>
+                    <th>Side</th>
+                    {show.strat && <th className="jx-col-sm-hide">Strategy</th>}
+                    {show.entry && <th className="jx-col-sm-hide jx-num">Entry</th>}
+                    {show.exit && <th className="jx-col-sm-hide jx-num">Exit</th>}
+                    {show.size && <th className="jx-col-sm-hide jx-num">Size</th>}
+                    {show.rr && <th className="jx-col-sm-hide jx-num">R : R</th>}
+                    {show.held && <th className="jx-col-sm-hide jx-num">Held</th>}
+                    <th className="jx-num">P&amp;L</th>
+                    <th className="jx-num">Closed</th>
+                    {show.img && <th className="jx-col-sm-hide" style={{ textAlign: "center" }}>Img</th>}
+                    <th aria-label="Actions" />
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((t, i) => {
                     const isLong = t.direction?.toLowerCase() === "long";
                     const pnl = Number(t.pnl) || 0;
-                    const entry = t.avgEntryPrice || t.entryPrice || t.entries?.[0]?.price;
-                    const exit = t.avgExitPrice || t.exitPrice || t.exits?.[0]?.price;
+                    const entry = entryOf(t);
+                    const exit = exitOf(t);
+                    const held = heldOf(t);
+                    const strat = t.strategy || t.reason?.[0];
+                    const d = new Date(t.closeTime);
                     return (
                       <tr
                         key={t._id || i}
                         onClick={() => (selectMode ? toggleSelect(t._id) : handleOpen(t))}
-                        style={{ cursor: "pointer", background: selected.has(t._id) ? "var(--color-primary-subtle)" : undefined }}
+                        data-selected={selected.has(t._id) || undefined}
+                        data-tone={pnl > 0 ? "up" : pnl < 0 ? "down" : undefined}
                       >
                         {selectMode && (
                           <td onClick={(e) => { e.stopPropagation(); toggleSelect(t._id); }}>
-                            <span style={{ color: selected.has(t._id) ? "var(--yellow-500)" : "var(--color-text-muted)", display: "flex" }}>
+                            <span className="jx-tl-check" style={{ display: "flex" }}>
                               {selected.has(t._id) ? <CheckSquare size={16} /> : <Square size={16} />}
                             </span>
                           </td>
                         )}
-                        <td style={{ fontWeight: 700 }}>{t.symbol || t.ticker || "—"}</td>
-                        <td><Badge variant={isLong ? "success" : "danger"} icon={isLong ? TrendingUp : TrendingDown}>{isLong ? "Long" : "Short"}</Badge></td>
-                        <td className="jx-col-sm-hide" style={{ textAlign: "right" }}>{entry ? `${currencySymbol}${fmt(entry)}` : "—"}</td>
-                        <td className="jx-col-sm-hide" style={{ textAlign: "right" }}>{exit ? `${currencySymbol}${fmt(exit)}` : "—"}</td>
-                        <td className="jx-col-sm-hide" style={{ textAlign: "right" }}>{qty(t.totalQuantity)}</td>
-                        <td style={{ textAlign: "right", fontWeight: 700, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)" }}>
-                          {money(pnl, currencySymbol)}
+                        <td className="jx-tl-sym">{t.symbol || t.ticker || "—"}</td>
+                        <td>
+                          <span className="jx-tl-side">
+                            {isLong ? <TrendingUp size={12} aria-hidden="true" /> : <TrendingDown size={12} aria-hidden="true" />}
+                            {isLong ? "Long" : "Short"}
+                          </span>
                         </td>
-                        <td className="jx-col-sm-hide" style={{ textAlign: "center" }}>
-                          {t.rr ? (
-                            <Badge variant="neutral">{String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`}</Badge>
-                          ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
+                        {show.strat && <td className="jx-col-sm-hide jx-tl-muted">{strat || "—"}</td>}
+                        {show.entry && <td className="jx-col-sm-hide jx-num">{entry ? `${currencySymbol}${fmt(entry)}` : "—"}</td>}
+                        {show.exit && <td className="jx-col-sm-hide jx-num">{exit ? `${currencySymbol}${fmt(exit)}` : "—"}</td>}
+                        {show.size && <td className="jx-col-sm-hide jx-num">{qty(t.totalQuantity)}</td>}
+                        {show.rr && <td className="jx-col-sm-hide jx-num">{t.rr ? (String(t.rr).includes(":") ? t.rr : `1 : ${fmt(t.rr, 1)}`) : "—"}</td>}
+                        {show.held && <td className="jx-col-sm-hide jx-num jx-tl-muted">{held || "—"}</td>}
+                        <td className="jx-num jx-tl-pnl">{money(pnl, currencySymbol)}</td>
+                        <td className="jx-num jx-tl-date">
+                          <span>{d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}</span>
+                          <small>{d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</small>
                         </td>
-                        <td style={{ color: "var(--color-text-muted)" }}>
-                          {new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })} ·{" "}
-                          {new Date(t.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </td>
-                        <td className="jx-col-sm-hide" style={{ textAlign: "center" }} onClick={(e) => { e.stopPropagation(); setViewerTrade(t); }}>
-                          {t.images?.length ? (
-                            <span className="jx-badge jx-badge--neutral" style={{ cursor: "zoom-in" }}>
-                              <ImageIcon size={11} /> {t.images.length}
-                            </span>
-                          ) : <span style={{ color: "var(--color-text-muted)" }}>—</span>}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
+                        {show.img && (
+                          <td className="jx-col-sm-hide" style={{ textAlign: "center" }} onClick={(e) => { e.stopPropagation(); if (t.images?.length) setViewerTrade(t); }}>
+                            {t.images?.length ? (
+                              <span className="jx-tl-imgs" title="View screenshots"><ImageIcon size={12} aria-hidden="true" /> {t.images.length}</span>
+                            ) : <span className="jx-tl-muted">—</span>}
+                          </td>
+                        )}
+                        <td className="jx-tl-actions" onClick={(e) => e.stopPropagation()}>
                           {!selectMode && (
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
                               <RowMenu
                                 onEdit={() => openEdit(t)}
                                 onExport={() => askExport([t])}
                                 onShareCard={() => shareCard(t)}
                                 onDelete={() => askDelete([t])}
                               />
-                              <ChevronRight size={16} style={{ color: "var(--color-text-muted)" }} />
+                              <ChevronRight size={16} className="jx-tl-chev" aria-hidden="true" />
                             </span>
                           )}
                         </td>
@@ -1285,8 +1436,22 @@ export default function TradesLogPanel({
                     );
                   })}
                 </tbody>
+                {filtered.length > 0 && (
+                  <tfoot>
+                    <tr>
+                      <td colSpan={99}>
+                        <div className="jx-tl-foot">
+                          <span>{filtered.length} trade{filtered.length === 1 ? "" : "s"} · {Math.round((wins / filtered.length) * 100)}% won</span>
+                          <span>Net <b className={net > 0 ? "jx-pos" : net < 0 ? "jx-neg" : undefined}>{money(net, currencySymbol)}</b></span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
+              );
+            })()
           )}
         </motion.div>
       </AnimatePresence>

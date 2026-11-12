@@ -47,6 +47,7 @@ export default function BottomBar({ active, onChange, onLogTrade, user }) {
       key={id}
       type="button"
       className={`jx-bottombar__item ${isActive ? "jx-bottombar__item--active" : ""}`}
+      aria-current={isActive ? "page" : undefined}
       onClick={() => go(id)}
     >
       <Icon size={20} />
@@ -55,7 +56,7 @@ export default function BottomBar({ active, onChange, onLogTrade, user }) {
   );
 
   return (
-    <nav className="jx-bottombar">
+    <nav className="jx-bottombar" aria-label="Main navigation">
       {item(MAIN[0], active === "overview")}
       {item(MAIN[1], active === "trades")}
 

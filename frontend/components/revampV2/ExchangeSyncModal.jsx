@@ -9,10 +9,9 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import {
-  ArrowLeft, CheckSquare, Crown, Download, ExternalLink, KeyRound,
-  RefreshCw, Square, Trash2, X,
+  ArrowLeft, Check, Crown, Download, ExternalLink, Eye, EyeOff, KeyRound,
+  Lock, ShieldCheck, Trash2, X,
 } from "lucide-react";
-import Badge from "./Badge";
 import Toast from "./Toast";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -73,11 +72,12 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
   const [preview, setPreview] = useState([]);
   const [totalPreview, setTotalPreview] = useState(0);
   const [toast, setToast] = useState(null);
+  const [showSecret, setShowSecret] = useState(false);
   const flash = (type, msg, ms = 4000) => { setToast({ type, msg }); setTimeout(() => setToast(null), ms); };
 
   useEffect(() => {
     if (!open) return;
-    setStep("form"); setApiKey(""); setSecret(""); setPreview([]); setTotalPreview(0);
+    setStep("form"); setApiKey(""); setSecret(""); setShowSecret(false); setPreview([]); setTotalPreview(0);
     setMarkets(status?.markets?.length ? status.markets : [meta.markets[0].id]);
     setWindowDays(WINDOWS.some((w) => w.d === status?.window) ? status.window : 90);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -149,176 +149,220 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
   };
 
   const marketLabel = (id) => meta.markets.find((m) => m.id === id)?.label || id;
+  const keysOk = !!apiKey.trim() && !!secret.trim();
+  const previewNet = preview.reduce((a, t) => a + Number(t.pnl || 0), 0);
+  const previewWins = preview.filter((t) => Number(t.pnl || 0) > 0).length;
+  const lastSync = status?.lastSyncAt
+    ? new Date(status.lastSyncAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+    : null;
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="jx-modal-overlay"
+          className="jx-modal-overlay jx-xs-overlay"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.16 }}
-          style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-3)" }}
           onMouseDown={(e) => e.target === e.currentTarget && !loading && onClose?.()}
         >
           <Toast toast={toast} />
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 16 }}
+            role="dialog" aria-modal="true" aria-labelledby="jx-xs-title"
+            initial={{ opacity: 0, scale: 0.97, y: 14 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 10 }}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="jx-ltmodal jx-ltmodal--popup"
-            style={{ width: "min(560px, 96vw)", maxHeight: "90dvh", display: "flex", flexDirection: "column" }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+            className="jx-xs"
             onClick={(e) => e.stopPropagation()}
           >
             {/* header */}
-            <div className="jx-ltmodal__header" style={{ alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                {step === "preview" && (
-                  <button className="jx-btn jx-btn--secondary jx-btn--sm" style={{ padding: 8, borderRadius: "50%" }} onClick={() => setStep("form")} aria-label="Back">
-                    <ArrowLeft size={15} />
-                  </button>
-                )}
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Connect {meta.name}</span>
-                  <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)" }}>
-                    {step === "preview" ? "Preview · then sync into your journal" : "Read-only API key · Pro feature"}
-                  </span>
-                </div>
+            <header className="jx-xs__head">
+              {step === "preview" && (
+                <button type="button" className="jx-xs__icon" onClick={() => setStep("form")} aria-label="Back to settings" disabled={loading}>
+                  <ArrowLeft size={16} />
+                </button>
+              )}
+              <div className="jx-xs__titles">
+                <span className="jx-xs__eyebrow">
+                  {step === "preview" ? "Step 2 of 2 · Review" : isPro ? "Step 1 of 2 · Connect" : "Exchange sync"}
+                </span>
+                <h2 id="jx-xs-title">{step === "preview" ? `Review your ${meta.name} trades` : `Connect ${meta.name}`}</h2>
               </div>
-              <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={onClose} aria-label="Close" style={{ padding: 8 }} disabled={loading}>
+              <button type="button" className="jx-xs__icon" onClick={onClose} aria-label="Close" disabled={loading}>
                 <X size={16} />
               </button>
-            </div>
+            </header>
 
-            <div style={{ padding: "var(--space-5) var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-4)", overflowY: "auto" }}>
+            <div className="jx-xs__body">
               {!isPro ? (
-                <div className="jx-banner jx-banner--warn" style={{ alignItems: "flex-start" }}>
-                  <Crown size={16} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />
-                  <span>Exchange auto-sync is a <strong>Pro</strong> feature. Upgrade to connect Binance &amp; Bybit and import trades automatically.</span>
+                <div className="jx-xs__pro">
+                  <span className="jx-xs__proIco"><Crown size={18} /></span>
+                  <div>
+                    <b>Exchange sync is a Pro feature</b>
+                    <p>Upgrade to connect Binance and Bybit and have your closed trades imported automatically.</p>
+                  </div>
                 </div>
               ) : step === "form" ? (
                 <>
                   {connected && (
-                    <div className="jx-banner jx-banner--success" style={{ alignItems: "center" }}>
-                      <span style={{ flex: 1 }}>
-                        Connected · key ••••{status.keyHint}
-                        {status.lastSyncAt ? ` · last sync ${new Date(status.lastSyncAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}` : ""}
+                    <div className="jx-xs__status">
+                      <span className="jx-xs__dot" aria-hidden="true" />
+                      <span>
+                        <b>Connected</b> · key ••••{status.keyHint}
+                        {lastSync ? <small>Last sync {lastSync}</small> : null}
                       </span>
                     </div>
                   )}
-                  <a href={meta.apiPage} target="_blank" rel="noopener noreferrer" className="jx-btn jx-btn--secondary" style={{ textDecoration: "none", justifyContent: "center" }}>
-                    <ExternalLink size={15} /> Open {meta.name} API page
-                  </a>
-                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                    Create a <strong>read-only</strong> key (no withdrawal / trade permissions). Keys are encrypted at rest and only used to fetch your trades.
-                  </span>
 
-                  <div className="jx-field">
-                    <span className="jx-sidebar__section" style={{ padding: 0 }}>API key</span>
-                    <div className="jx-input">
-                      <span className="jx-input__icon"><KeyRound size={14} /></span>
-                      <input type="password" autoComplete="off" placeholder={connected ? "Enter a new key to replace" : "Paste your API key"} value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+                  {/* 1 · create key */}
+                  <section className="jx-xs__step" aria-labelledby="jx-xs-s1">
+                    <span className="jx-xs__num" aria-hidden="true">1</span>
+                    <div className="jx-xs__stepBody">
+                      <h3 id="jx-xs-s1">Create a read-only API key</h3>
+                      <ul className="jx-xs__checks">
+                        <li><Check size={13} /> Enable <b>read</b> permission only</li>
+                        <li className="off"><X size={13} /> Leave trading and withdrawals off</li>
+                      </ul>
+                      <a href={meta.apiPage} target="_blank" rel="noopener noreferrer" className="jx-xs__link">
+                        Open {meta.name} API settings <ExternalLink size={13} />
+                        <span className="jx-sr">(opens in a new tab)</span>
+                      </a>
                     </div>
-                  </div>
-                  <div className="jx-field">
-                    <span className="jx-sidebar__section" style={{ padding: 0 }}>API secret</span>
-                    <div className="jx-input">
-                      <span className="jx-input__icon"><KeyRound size={14} /></span>
-                      <input type="password" autoComplete="off" placeholder="Paste your API secret" value={secret} onChange={(e) => setSecret(e.target.value)} />
-                    </div>
-                  </div>
+                  </section>
 
-                  <div className="jx-field">
-                    <span className="jx-sidebar__section" style={{ padding: 0 }}>Markets to sync</span>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-                      {meta.markets.map((m) => {
-                        const on = markets.includes(m.id);
-                        return (
-                          <button key={m.id} type="button" onClick={() => toggleMarket(m.id)}
-                            className="jx-chip" style={{
-                              display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 999, cursor: "pointer",
-                              border: `1px solid ${on ? "var(--color-primary)" : "var(--color-border)"}`,
-                              background: on ? "var(--color-primary-subtle)" : "var(--color-bg-muted)",
-                              color: on ? "var(--color-text-primary)" : "var(--color-text-secondary)", font: "var(--text-body-md)", fontWeight: 500,
-                            }}>
-                            {on ? <CheckSquare size={14} /> : <Square size={14} />} {m.label}
+                  {/* 2 · paste keys */}
+                  <section className="jx-xs__step" aria-labelledby="jx-xs-s2">
+                    <span className={`jx-xs__num ${keysOk ? "is-done" : ""}`} aria-hidden="true">{keysOk ? <Check size={13} /> : 2}</span>
+                    <div className="jx-xs__stepBody">
+                      <h3 id="jx-xs-s2">Paste your key and secret</h3>
+                      <label className="jx-xs__field">
+                        <span className="jx-xs__lbl">API key <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                        <span className="jx-xs__input">
+                          <KeyRound size={14} aria-hidden="true" />
+                          <input type="password" autoComplete="off" spellCheck={false} required
+                            placeholder={connected ? "Enter a new key to replace" : "Paste your API key"}
+                            value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+                        </span>
+                      </label>
+                      <label className="jx-xs__field">
+                        <span className="jx-xs__lbl">API secret <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                        <span className="jx-xs__input">
+                          <Lock size={14} aria-hidden="true" />
+                          <input type={showSecret ? "text" : "password"} autoComplete="off" spellCheck={false} required
+                            placeholder="Paste your API secret"
+                            value={secret} onChange={(e) => setSecret(e.target.value)} />
+                          <button type="button" className="jx-xs__eye" onClick={() => setShowSecret((v) => !v)}
+                            aria-label={showSecret ? "Hide secret" : "Show secret"} aria-pressed={showSecret}>
+                            {showSecret ? <EyeOff size={15} /> : <Eye size={15} />}
                           </button>
-                        );
-                      })}
+                        </span>
+                      </label>
                     </div>
-                  </div>
+                  </section>
 
-                  <div className="jx-field">
-                    <span className="jx-sidebar__section" style={{ padding: 0 }}>History to pull</span>
-                    <div className="jx-seg" style={{ maxWidth: 360 }}>
-                      {WINDOWS.map((w) => (
-                        <button key={w.d} type="button" className={`jx-seg__btn ${windowDays === w.d ? "jx-seg__btn--active" : ""}`} onClick={() => setWindowDays(w.d)}>
-                          {w.label}
-                        </button>
-                      ))}
+                  {/* 3 · what to sync */}
+                  <section className="jx-xs__step" aria-labelledby="jx-xs-s3">
+                    <span className="jx-xs__num" aria-hidden="true">3</span>
+                    <div className="jx-xs__stepBody">
+                      <h3 id="jx-xs-s3">Choose what to sync</h3>
+                      <div className="jx-xs__field">
+                        <span className="jx-xs__lbl" id="jx-xs-mk">Markets <i aria-hidden="true">*</i><span className="jx-sr">(pick at least one)</span></span>
+                        <div className="jx-xs__chips" role="group" aria-labelledby="jx-xs-mk">
+                          {meta.markets.map((m) => {
+                            const on = markets.includes(m.id);
+                            return (
+                              <button key={m.id} type="button" role="checkbox" aria-checked={on} onClick={() => toggleMarket(m.id)}>
+                                <span className="jx-xs__box" aria-hidden="true">{on && <Check size={11} strokeWidth={3} />}</span>
+                                {m.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="jx-xs__field">
+                        <span className="jx-xs__lbl" id="jx-xs-win">History to pull</span>
+                        <div className="jx-xs__seg" role="radiogroup" aria-labelledby="jx-xs-win">
+                          {WINDOWS.map((w) => (
+                            <button key={w.d} type="button" role="radio" aria-checked={windowDays === w.d} onClick={() => setWindowDays(w.d)}>
+                              {w.d} days
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </section>
+
+                  <p className="jx-xs__note">
+                    <ShieldCheck size={14} aria-hidden="true" />
+                    <span>Keys are encrypted at rest and only used to read your closed trades. Nothing is imported until you review it.</span>
+                  </p>
                 </>
               ) : (
                 <>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{totalPreview} closed trade{totalPreview === 1 ? "" : "s"} found</span>
-                    <Badge variant="brand">{markets.map(marketLabel).join(" · ")}</Badge>
+                  <div className="jx-xs__sum">
+                    <div><span>Trades found</span><b>{totalPreview}</b></div>
+                    <div><span>Net P&amp;L</span>
+                      <b className={previewNet >= 0 ? "pos" : "neg"}>{previewNet >= 0 ? "+" : "−"}{fmt(Math.abs(previewNet))}</b></div>
+                    <div><span>Win rate</span><b>{preview.length ? `${Math.round((previewWins / preview.length) * 100)}%` : "–"}</b></div>
                   </div>
-                  <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                    Syncing imports these into your journal. Already-logged trades are skipped automatically — nothing is duplicated.
-                  </span>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", maxHeight: 320, overflowY: "auto" }}>
+                  <p className="jx-xs__meta">
+                    {markets.map(marketLabel).join(" · ")} · last {windowDays} days
+                    {preview.length && preview.length < totalPreview ? ` · stats from the ${preview.length} latest shown` : ""}
+                  </p>
+
+                  <ul className="jx-xs__list" aria-label="Trades to import">
                     {preview.map((t, i) => {
                       const pnl = Number(t.pnl || 0);
                       return (
-                        <div key={t.externalId || i} className="jx-card jx-card--flat" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-2) var(--space-3)" }}>
-                          <span style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-                            <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>
-                              {t.symbol} <Badge variant="neutral">{t.direction === "long" ? "Long" : "Short"}</Badge>
-                            </span>
-                            <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                              {t.entry ? `in ${fmt(t.entry)}` : ""}{t.exit ? ` → out ${fmt(t.exit)}` : ""}
-                              {t.closeTime ? ` · ${new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}` : ""}
-                            </span>
+                        <li key={t.externalId || i} data-tone={pnl >= 0 ? "pos" : "neg"}>
+                          <span className="jx-xs__sym">
+                            <b>{t.symbol}</b>
+                            <em>{t.direction === "long" ? "Long" : "Short"}</em>
                           </span>
-                          <span style={{ fontWeight: 700, color: pnl >= 0 ? "var(--color-success-strong)" : "var(--color-danger-strong)", whiteSpace: "nowrap" }}>
-                            {pnl >= 0 ? "+" : "−"}{fmt(Math.abs(pnl))}
+                          <span className="jx-xs__px">
+                            {t.entry ? fmt(t.entry) : ""}{t.exit ? ` → ${fmt(t.exit)}` : ""}
+                            {t.closeTime ? <small>{new Date(t.closeTime).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}</small> : null}
                           </span>
-                        </div>
+                          <b className={`jx-xs__pnl ${pnl >= 0 ? "pos" : "neg"}`}>{pnl >= 0 ? "+" : "−"}{fmt(Math.abs(pnl))}</b>
+                        </li>
                       );
                     })}
                     {preview.length === 0 && (
-                      <span style={{ font: "var(--text-body)", color: "var(--color-text-muted)", textAlign: "center", padding: "var(--space-6)" }}>
-                        No closed trades in this period.
-                      </span>
+                      <li className="jx-xs__empty">No closed trades in the last {windowDays} days. Try a longer period or another market.</li>
                     )}
-                  </div>
+                  </ul>
+
+                  <p className="jx-xs__note">
+                    <ShieldCheck size={14} aria-hidden="true" />
+                    <span>Trades you already logged are skipped automatically, so nothing is duplicated.</span>
+                  </p>
                 </>
               )}
             </div>
 
             {/* footer */}
-            <div className="jx-ltmodal__footer" style={{ justifyContent: "space-between", gap: "var(--space-2)", flexWrap: "wrap" }}>
+            <footer className="jx-xs__foot">
               {isPro && connected && step === "form" ? (
-                <button className="jx-btn jx-btn--ghost" onClick={disconnect} disabled={loading} style={{ color: "var(--color-danger)" }}>
-                  <Trash2 size={15} /> Disconnect
+                <button type="button" className="jx-xs__danger" onClick={disconnect} disabled={loading}>
+                  <Trash2 size={14} /> Disconnect
                 </button>
               ) : <span />}
-              <div style={{ display: "flex", gap: "var(--space-2)", marginLeft: "auto" }}>
-                <button className="jx-btn jx-btn--ghost" onClick={onClose} disabled={loading}>Cancel</button>
+              <div className="jx-xs__actions">
+                <button type="button" className="jx-xs__ghost" onClick={onClose} disabled={loading}>
+                  {isPro ? "Cancel" : "Close"}
+                </button>
                 {isPro && step === "form" && (
-                  <button className="jx-btn jx-btn--primary" onClick={connect} disabled={loading} style={{ minWidth: 130 }}>
+                  <button type="button" className="jx-xs__gold" onClick={connect} disabled={loading}>
                     {loading ? <><Spinner /> Connecting…</> : "Connect & preview"}
                   </button>
                 )}
                 {isPro && step === "preview" && (
-                  <button className="jx-btn jx-btn--primary" onClick={sync} disabled={loading} style={{ minWidth: 150 }}>
-                    {loading ? <><Spinner /> Syncing…</> : <><Download size={15} /> Sync trades</>}
+                  <button type="button" className="jx-xs__gold" onClick={sync} disabled={loading}>
+                    {loading ? <><Spinner /> Syncing…</> : <><Download size={15} /> {totalPreview ? `Sync ${totalPreview} trade${totalPreview === 1 ? "" : "s"}` : "Sync trades"}</>}
                   </button>
                 )}
               </div>
-            </div>
+            </footer>
           </motion.div>
         </motion.div>
       )}
