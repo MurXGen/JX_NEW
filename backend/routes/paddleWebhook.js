@@ -9,7 +9,7 @@ const { handlePaddleWebhook } = require("../controllers/paddleCon");
 router.get("/health", (req, res) => {
   res.json({
     ok: true,
-    handler: "paddleCon v5 (subscription-aware verify + lifecycle + diagnostics)",
+    handler: "paddleCon v6 (event store + dedupe + ordering guard + reconciler)",
     paddleApiKeySet: !!process.env.PADDLE_API_KEY,
     paddleEnvironment: process.env.PADDLE_ENVIRONMENT || "(unset → sandbox)",
     webhookSecretSet: !!process.env.PADDLE_WEBHOOK_SECRET,
