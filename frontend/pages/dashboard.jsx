@@ -356,6 +356,10 @@ export default function Dashboard() {
      stored as jx-display-currency). We never mutate trades for display, panels
      convert at format time using fxRate, so editing can never be corrupted. */
   const journalCurrency = (currentAccount?.currency || "USD").toUpperCase();
+  // The sample journal is written in USD. Convert from USD while it's showing,
+  // so it reads like a real account in any display currency (not ₹300 wins
+  // shown as $3). Real trades always convert from the journal's own currency.
+  const sourceCurrency = usingDummy ? "USD" : journalCurrency;
   const [displayCurrency, setDisplayCurrency] = useState(journalCurrency);
   const [fxRate, setFxRate] = useState(1);
   const fxTicket = useRef(0);
@@ -381,7 +385,7 @@ export default function Dashboard() {
     const apply = async (override) => {
       const ticket = ++fxTicket.current;
       const disp = (override || journalCurrency).toUpperCase();
-      const rate = await getConversionFactor(journalCurrency, disp);
+      const rate = await getConversionFactor(sourceCurrency, disp);
       if (!alive || ticket !== fxTicket.current) return;
       setDisplayCurrency(disp);
       setFxRate(rate);
@@ -397,7 +401,7 @@ export default function Dashboard() {
     };
     window.addEventListener("jx-currency-changed", onChange);
     return () => { alive = false; window.removeEventListener("jx-currency-changed", onChange); };
-  }, [currentAccount?._id, journalCurrency]);
+  }, [currentAccount?._id, journalCurrency, sourceCurrency]);
 
   // panels get NATIVE trades + the display fxRate; they convert only for display
   const trades = rawTrades;
