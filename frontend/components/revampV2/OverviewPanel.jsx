@@ -2874,47 +2874,96 @@ export default function OverviewPanel({
         <div className="jx-card jx-goal" style={secOrder("capital")}>
           <div className="jx-goal__head">
             <div>
-              <span className="jx-card__title">Capital growth</span>
-              <p className="jx-goal__sub">Progress toward doubling your starting balance</p>
+              <span className="jx-card__title">
+                Capital growth{" "}
+                <InfoTip text={"Goal: double your starting balance\n2× = profit equal to what you started with (a 100% return). Uses net P&L of every closed trade."} />
+              </span>
+              <p className="jx-goal__sub">Your path to doubling the starting balance</p>
             </div>
-            <span className="jx-goal__tier"><TierIcon size={13} aria-hidden="true" />{capital.tier.label}</span>
+            <span className={`jx-goal__tier ${g >= 100 ? "is-done" : ""}`}><TierIcon size={13} aria-hidden="true" />{capital.tier.label}</span>
           </div>
-          {capital.base > 0 ? (
+          {capital.base > 0 ? (() => {
+            const sym = currencySymbol;
+            const money = (v) => `${v < 0 ? "−" : ""}${sym}${fmt(Math.abs(v), Math.abs(v) < 100 ? 2 : 0)}`;
+            const balance = capital.base + capital.netAll;
+            const mult = balance / capital.base;
+            const done = g >= 100;
+            const marks = [0, ...capital.milestones];
+            return (
             <>
               <div className="jx-goal__big">
-                <b className={g < 0 ? "is-neg" : undefined}><CountUp value={g} format={(v) => `${fmt(v, 1)}%`} /></b>
-                <span>
-                  of the way to 2× ·{" "}
-                  <em className={capital.netAll >= 0 ? "is-pos" : "is-neg"}>{capital.netAll < 0 ? "−" : ""}{currencySymbol}{fmt(Math.abs(capital.netAll), 0)}</em>
-                  {" "}of {currencySymbol}{fmt(capital.base, 0)} profit
-                </span>
+                {done ? (
+                  <>
+                    <b className="is-pos"><CountUp value={mult} format={(v) => `${fmt(v, 1)}×`} /></b>
+                    <span>your starting balance · goal reached</span>
+                  </>
+                ) : (
+                  <>
+                    <b className={g < 0 ? "is-neg" : undefined}><CountUp value={Math.max(g, -999)} format={(v) => `${fmt(v, 0)}%`} /></b>
+                    <span>of the way to 2×</span>
+                  </>
+                )}
               </div>
-              <div
-                className="jx-goal__track"
-                role="progressbar"
-                aria-label="Progress toward doubling your capital"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(fill)}
-              >
-                <div className="jx-goal__fill" style={{ width: `${fill}%` }} />
+
+              <dl className="jx-goal__stats">
+                <div><dt>Started with</dt><dd>{money(capital.base)}</dd></div>
+                <div><dt>Balance now</dt><dd>{money(balance)}</dd></div>
+                <div><dt>Net profit</dt><dd className={capital.netAll >= 0 ? "is-pos" : "is-neg"}>{capital.netAll >= 0 ? "+" : ""}{money(capital.netAll)}</dd></div>
+              </dl>
+
+              <div className="jx-goal__bar">
+                <div
+                  className="jx-goal__track"
+                  role="progressbar"
+                  aria-label="Progress toward doubling your capital"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(fill)}
+                  aria-valuetext={done ? "Goal reached" : `${Math.round(fill)}% of the way to 2×`}
+                >
+                  <div className="jx-goal__fill" style={{ width: `${fill}%` }} />
+                  {capital.milestones.slice(0, -1).map((m) => (
+                    <i key={m} className="jx-goal__tick" data-done={g >= m || undefined} style={{ left: `${m}%` }} aria-hidden="true" />
+                  ))}
+                </div>
+                <div className="jx-goal__marks">
+                  {marks.map((m) => {
+                    const target = capital.base * (1 + m / 100);
+                    const need = target - balance;
+                    const reached = g >= m;
+                    const label = m === 0 ? "0" : m === 100 ? "2×" : `${m}%`;
+                    return (
+                      <span key={m} className="jx-goal__mark" data-done={reached || undefined} data-edge={m === 0 ? "start" : m === 100 ? "end" : undefined} style={{ left: `${m}%` }}>
+                        <Tip
+                          content={{
+                            title: m === 0 ? "Start" : m === 100 ? "2× · capital doubled" : `${m}% milestone`,
+                            rows: [
+                              ["Balance", money(target)],
+                              m === 0 ? ["Profit", money(0)] : ["Profit", `+${money(capital.base * (m / 100))}`],
+                              ["Status", m === 0 ? "Where you began" : reached ? "Reached ✓" : `${money(need)} to go`],
+                            ],
+                          }}
+                        >
+                          <button type="button" aria-label={`${m === 0 ? "Start" : label}: balance ${money(target)}, ${m === 0 ? "where you began" : reached ? "reached" : `${money(need)} to go`}`}>
+                            {reached && m > 0 && <Check size={10} strokeWidth={3} aria-hidden="true" />}{label}
+                          </button>
+                        </Tip>
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="jx-goal__marks" aria-hidden="true">
-                {capital.milestones.map((m) => (
-                  <span key={m} data-done={g >= m || undefined} style={{ left: `${m}%` }}>
-                    {g >= m && <Check size={10} strokeWidth={3} />}{m === 100 ? "2×" : `${m}%`}
-                  </span>
-                ))}
-              </div>
+
               <p className="jx-goal__note">
-                {g >= 100
-                  ? "You've doubled your starting capital. Outstanding discipline."
+                {done
+                  ? `Doubled. Your balance is ${fmt(mult, 1)}× where you started.`
                   : capital.nextMs != null
-                    ? `${currencySymbol}${fmt(Math.max(0, capital.amountToNext), 0)} more net profit reaches the ${capital.nextMs}% milestone.`
+                    ? `${money(Math.max(0, capital.amountToNext))} more net profit reaches the ${capital.nextMs === 100 ? "2×" : `${capital.nextMs}%`} mark.`
                     : "Keep logging trades to track your growth."}
               </p>
             </>
-          ) : (
+            );
+          })() : (
             <div className="jx-goal__empty">
               <p>Set your journal&apos;s starting balance to track progress toward doubling it.</p>
               {onSetBalance && (
@@ -4070,6 +4119,7 @@ export default function OverviewPanel({
             return (
               <div className="jx-card jx-eq-card" style={{ display: "flex", flexDirection: "column", height: "100%", containerType: "inline-size" }}>
                 <div
+                  className="jx-eq-head"
                   style={{
                     display: "flex",
                     alignItems: "flex-start",
@@ -4102,7 +4152,7 @@ export default function OverviewPanel({
                         : `from ${currencySymbol}${fmt(startingBalance, 0)} starting balance`}
                     </span>
                   </div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "nowrap", justifyContent: "flex-end", flexShrink: 0 }}>
+                  <div className="jx-eq-ctl" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "nowrap", justifyContent: "flex-end", flexShrink: 0 }}>
                     {/* timeframe: tabs by default, compact dropdown when tight */}
                     <span className="jx-eq-tftabs">
                       <MiniSeg

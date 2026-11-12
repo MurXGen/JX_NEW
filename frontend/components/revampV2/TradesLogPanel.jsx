@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Clock,
   Crown,
+  Lock,
   BookOpen,
   Download,
   Gamepad2,
@@ -924,7 +925,7 @@ export default function TradesLogPanel({
               <h1 className={ov.title}>Trades log</h1>
               <p className={ov.sub}>
                 {stats.total} {stats.total === 1 ? "closed trade" : "closed trades"}
-                {usingDummy ? " in the sample journal" : ""}. Open any trade to review it.
+                {usingDummy ? " in the sample journal" : ""}.<span className={ov.hideSm}> Open any trade to review it.</span>
               </p>
             </div>
             <div className={ov.headActions}>
@@ -956,9 +957,9 @@ export default function TradesLogPanel({
           {stats.total > 0 && (
             <div className={tl.stats} role="list" aria-label="Trade summary">
               <div role="listitem" className={tl.stat}>
-                <span>Net P&amp;L</span>
+                <span>Net P&amp;L · all time</span>
                 <b className={stats.netPnl > 0 ? tl.pos : stats.netPnl < 0 ? tl.neg : undefined}>{money(stats.netPnl, currencySymbol)}</b>
-                <small>All closed trades</small>
+                <small>{stats.total} closed trade{stats.total === 1 ? "" : "s"}</small>
               </div>
               <div role="listitem" className={tl.stat}>
                 <span>Win rate</span>
@@ -1235,6 +1236,10 @@ export default function TradesLogPanel({
               const lockedIdx = historyCutoffMs === -Infinity ? -1 : groups.findIndex(
                 ([, l]) => new Date(l[0]?.closeTime || l[0]?.openTime || Date.now()).getTime() < historyCutoffMs,
               );
+              // what the lock hides: how many trades, and how far back they go
+              const lockedList = lockedIdx >= 0 ? groups.slice(lockedIdx).flatMap(([, l]) => l) : [];
+              const oldestLocked = lockedList.reduce((m, t) => Math.min(m, new Date(t.closeTime || t.openTime || Date.now()).getTime()), Date.now());
+              const oldestStr = new Date(oldestLocked).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
               return (
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
               {groups.map(([label, list], gi) => {
@@ -1248,22 +1253,26 @@ export default function TradesLogPanel({
                 return (
                 <div key={label} className="jx-tgroup" style={{ position: "relative" }}>
                 {locked && (
-                  <div
-                    onClick={() => setShowUpgrade(true)}
-                    style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-3)", textAlign: "center", padding: "var(--space-5)", cursor: "pointer", background: "color-mix(in srgb, var(--color-bg-canvas) 45%, transparent)", borderRadius: "var(--radius-lg)" }}
-                  >
-                    <span style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Crown size={22} />
+                  <div className="jx-lock">
+                    <span className="jx-lock__ico" aria-hidden="true"><Lock size={18} /></span>
+                    <b className="jx-lock__title">
+                      {lockedList.length} older trade{lockedList.length === 1 ? " is" : "s are"} locked
+                    </b>
+                    <span className="jx-lock__sub">
+                      Free shows the last {historyDays} days. Pro unlocks everything back to {oldestStr}.
                     </span>
-                    <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Older history is locked</span>
-                    <span style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)", maxWidth: 300 }}>
-                      Free shows the last {historyDays} days. Upgrade to Pro for your full trade history.
-                    </span>
-                    <span className="jx-btn jx-btn--primary jx-btn--sm"><Crown size={14} /> Upgrade to view</span>
+                    <ul className="jx-lock__perks">
+                      <li><Check size={13} aria-hidden="true" /> Full trade history</li>
+                      <li><Check size={13} aria-hidden="true" /> Unlimited trades</li>
+                      <li><Check size={13} aria-hidden="true" /> Advanced analytics</li>
+                    </ul>
+                    <button type="button" className="jx-lock__cta" onClick={() => setShowUpgrade(true)}>
+                      <Crown size={15} aria-hidden="true" /> Unlock full history
+                    </button>
                   </div>
                 )}
                 <div
-                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", ...(locked ? { filter: "blur(7px)", pointerEvents: "none", userSelect: "none" } : {}) }}
+                  style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", ...(locked ? { filter: "blur(8px)", opacity: 0.55, pointerEvents: "none", userSelect: "none", minHeight: 300, overflow: "hidden" } : {}) }}
                   aria-hidden={locked || undefined}
                 >
                   <div className="jx-tday">

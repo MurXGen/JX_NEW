@@ -79,8 +79,8 @@
 .root :global(.jx-seg) {
   height: 38px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #131316;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
   color: var(--muted);
   font-family: inherit;
   font-size: 13px;
@@ -88,10 +88,10 @@
 .root :global(.jx-seg) { padding: 3px; gap: 2px; }
 .root :global(.jx-seg__btn) { border-radius: 7px; color: var(--muted); background: transparent; box-shadow: none; }
 .root :global(.jx-seg__btn:hover) { color: var(--ink); }
-.root :global(.jx-seg__btn--active) { background: #1f1f24; color: var(--ink); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
-.root :global(.jx-tl-iconbtn:hover) { color: var(--ink); border-color: rgba(255, 255, 255, 0.18); }
+.root :global(.jx-seg__btn--active) { background: var(--surface-2); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.root :global(.jx-tl-iconbtn:hover) { color: var(--ink); border-color: var(--muted); }
 .root :global(.jx-tl-iconbtn--on),
-.root :global(.jx-tl-iconbtn[aria-pressed="true"]) { color: var(--ink); background: #1b1b1f; border-color: rgba(255, 255, 255, 0.16); }
+.root :global(.jx-tl-iconbtn[aria-pressed="true"]) { color: var(--ink); background: var(--surface-2); border-color: var(--line-2); }
 .root :global(.jx-tl-toolbar__meta) { font-size: 12.5px; color: var(--faint); }
 
 /* ---------- day groups ---------- */
@@ -231,3 +231,27 @@
 @media (prefers-reduced-motion: reduce) {
   .root :global(.jx-table--log tbody tr), .root :global(.jx-tl-chev) { transition: none; }
 }
+
+/* ---------- phones: compact summary + a visible "swipe for more" edge ---------- */
+@media (max-width: 640px) {
+  .stats { gap: 8px; }
+  .stat { padding: 12px 13px; border-radius: 13px; gap: 2px; }
+  .stat span { font-size: 12px; }
+  .stat b { font-size: 19px; }
+  .stat small { font-size: 11px; }
+  .root :global(.jx-tl-toolbar__filters) {
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 36px), transparent);
+  }
+}
+
+/* ---------- light mode: neutral inputs + the same soft card shadow as Overview ---------- */
+:global([data-theme="light"]) .root :global(.jx-input) {
+  height: 38px; border-radius: 10px; background: #fff; color: var(--ink);
+  border: 1px solid var(--line-2) !important; box-shadow: none;
+}
+:global([data-theme="light"]) .root :global(.jx-input:hover) { border-color: rgba(0, 0, 0, 0.22) !important; }
+:global([data-theme="light"]) .root :global(.jx-input:focus-within) { border-color: #8a909b !important; box-shadow: 0 0 0 3px rgba(17, 19, 24, 0.06); }
+:global([data-theme="light"]) .stat,
+:global([data-theme="light"]) .root :global(.jx-trow-list),
+:global([data-theme="light"]) .root :global(.jx-tl-table) { box-shadow: var(--card-shadow, 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 14px -6px rgba(16, 24, 40, 0.08)); }

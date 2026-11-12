@@ -19,9 +19,13 @@ import FullPageLoader from "@/components/ui/FullPageLoader";
 import sv from "@/components/app/SharedView.module.css";
 
 const fmt = (v, d = 2) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+// currency symbol the link was shared in (meta.symbol); "$" for older links.
+// Set once per render of the page before any child formats money.
+const ALLOWED_SYMS = ["$", "₹", "€", "£", "¥", "₮"];
+let SYM = "$";
 const money = (v) => {
   const a = Math.abs(v);
-  const s = a >= 1000 ? `$${fmt(a / 1000, 2)}k` : `$${fmt(a)}`;
+  const s = a >= 1000 ? `${SYM}${fmt(a / 1000, 2)}k` : `${SYM}${fmt(a)}`;
   return `${v < 0 ? "−" : v > 0 ? "+" : ""}${s}`;
 };
 const tone = (v) => (v > 0 ? sv.pos : v < 0 ? sv.neg : undefined);
@@ -182,6 +186,7 @@ export default function ViewTrades() {
   const grossW = trades.filter((t) => t.pnl > 0).reduce((a, t) => a + Number(t.pnl), 0);
   const grossL = Math.abs(trades.filter((t) => t.pnl < 0).reduce((a, t) => a + Number(t.pnl), 0));
   const pf = grossL ? grossW / grossL : null;
+  SYM = ALLOWED_SYMS.includes(data?.meta?.symbol) ? data.meta.symbol : "$";
   const shared = data?.meta?.generatedAt && new Date(data.meta.generatedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
   return (

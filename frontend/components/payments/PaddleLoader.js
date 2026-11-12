@@ -6,6 +6,39 @@ import axios from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+/* Confirm a completed checkout on our server. A subscription's first charge is
+   often still settling when checkout.completed fires (the server answers 202
+   "pending"), so keep asking with backoff for ~2 minutes instead of once. The
+   webhook remains the backstop. Result is broadcast as "jx-paddle-verified". */
+const VERIFY_DELAYS = [0, 3000, 5000, 8000, 12000, 15000, 20000, 30000, 30000];
+function verifyWithRetry(txnId) {
+  const announce = (detail) => {
+    try { window.dispatchEvent(new CustomEvent("jx-paddle-verified", { detail })); } catch {}
+  };
+  let i = 0;
+  const attempt = () => {
+    fetch(`${API_BASE}/api/subscription/paddle-verify`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transactionId: txnId }),
+    })
+      .then(async (r) => ({ status: r.status, body: await r.json().catch(() => ({})) }))
+      .then(({ status, body }) => {
+        if (status === 200 && (body.success || body.plan)) return announce({ ok: true, ...body });
+        if (status === 401 || status === 403) return announce({ ok: false, status, ...body }); // not retryable
+        next(); // 202 pending, 5xx: try again
+      })
+      .catch(() => next());
+  };
+  const next = () => {
+    i += 1;
+    if (i >= VERIFY_DELAYS.length) return announce({ ok: false, pending: true });
+    setTimeout(attempt, VERIFY_DELAYS[i]);
+  };
+  attempt();
+}
+
 export default function PaddleLoader() {
   const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
   const isDev = process.env.NODE_ENV === "development";
@@ -67,17 +100,7 @@ export default function PaddleLoader() {
                         const txnId =
                           event?.data?.transaction_id || event?.data?.id;
                         console.log("✅ checkout.completed, verifying txn", txnId);
-                        if (txnId) {
-                          fetch(`${API_BASE}/api/subscription/paddle-verify`, {
-                            method: "POST",
-                            credentials: "include",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ transactionId: txnId }),
-                          })
-                            .then((r) => r.json())
-                            .then((d) => console.log("paddle-verify:", d))
-                            .catch((e) => console.error("paddle-verify failed", e));
-                        }
+                        if (txnId) verifyWithRetry(txnId);
                       }
                     } catch (e) {
                       console.error("eventCallback error", e);

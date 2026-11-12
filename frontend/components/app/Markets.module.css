@@ -155,3 +155,19 @@
 @media (prefers-reduced-motion: reduce) {
   .band, .overlap, .now, .now::before, .legend [data-tip] { transition: none; }
 }
+
+/* ---- light mode: tracks, closed bands, current-time line, overlap and legend ---- */
+:global([data-theme="light"]) .track { background: #eef0f3; box-shadow: inset 0 1px 2px rgba(16, 24, 40, 0.08); }
+:global([data-theme="light"]) .band { background: rgba(17, 19, 24, 0.12); }
+:global([data-theme="light"]) .sessRow[data-open] .band { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 4px rgba(224, 168, 0, 0.35); }
+:global([data-theme="light"]) .now::before { background: #111318; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9); }
+:global([data-theme="light"]) .now:hover::before, :global([data-theme="light"]) .now:focus-visible::before { box-shadow: 0 0 0 3px rgba(17, 19, 24, 0.15); }
+:global([data-theme="light"]) .overlap { background: repeating-linear-gradient(135deg, rgba(17, 19, 24, 0.07) 0 4px, transparent 4px 8px); border-color: rgba(17, 19, 24, 0.2); }
+:global([data-theme="light"]) .lgClosed { background: rgba(17, 19, 24, 0.14); }
+:global([data-theme="light"]) .lgNow { background: #111318; }
+:global([data-theme="light"]) .lgOverlap { background: repeating-linear-gradient(135deg, rgba(17, 19, 24, 0.2) 0 3px, transparent 3px 6px); border-color: rgba(17, 19, 24, 0.3); }
+:global([data-theme="light"]) .legend [data-tip]:hover, :global([data-theme="light"]) .legend [data-tip]:focus-visible { background: rgba(17, 19, 24, 0.05); }
+:global([data-theme="light"]) .sym { border-color: rgba(17, 19, 24, 0.06); }
+
+/* light mode: same soft card shadow as Overview */
+:global([data-theme="light"]) .card { box-shadow: var(--card-shadow, 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 14px -6px rgba(16, 24, 40, 0.08)); }

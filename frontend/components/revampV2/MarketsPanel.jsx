@@ -191,7 +191,7 @@ function SessionsCard({ trades, sym }) {
       <div className={mk.legend}>
         <span tabIndex={0} data-tip="Gold bar: the session is trading right now. Its length shows its hours in your time."><i className={mk.lgOpen} /> Open now</span>
         <span tabIndex={0} data-tip="Grey bar: the session's hours, but it isn't trading at the moment."><i className={mk.lgClosed} /> Closed now</span>
-        <span tabIndex={0} data-tip="White line: where we are in the day right now, in your time."><i className={mk.lgNow} /> Current time</span>
+        <span tabIndex={0} data-tip="Thin line: where we are in the day right now, in your time."><i className={mk.lgNow} /> Current time</span>
         <span tabIndex={0} data-tip="Striped band: London and New York are both open. Volume and volatility are usually highest here."><i className={mk.lgOverlap} /> London + New York overlap, usually the busiest hours</span>
       </div>
       <p className={mk.foot}>Your results count each trade in the session(s) open when you entered it.</p>

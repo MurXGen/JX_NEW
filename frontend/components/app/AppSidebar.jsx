@@ -28,7 +28,7 @@ export default function AppSidebar({
   user,
   onProfile,
   onSupport,
-  showUpgrade,
+  planCard,
   onUpgrade,
 }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -111,11 +111,7 @@ export default function AppSidebar({
           </button>
         )}
         <SidebarInstallButton collapsed={collapsed} />
-        {showUpgrade && (
-          <button type="button" className={`${a.item} ${a.upgrade}`} onClick={onUpgrade} title={collapsed ? "Upgrade plan" : undefined} aria-label={collapsed ? "Upgrade plan" : undefined}>
-            <Crown size={17} aria-hidden="true" />{!collapsed && <span>Upgrade plan</span>}
-          </button>
-        )}
+        {planCard && <PlanCard card={planCard} collapsed={collapsed} onUpgrade={onUpgrade} />}
         {onSupport && (
           <button type="button" className={a.item} onClick={() => { markViewed(); onSupport(); }} title={collapsed ? "Support & feedback" : undefined} aria-label={collapsed ? "Support and feedback" : undefined}>
             <LifeBuoy size={17} aria-hidden="true" />{!collapsed && <span>Support &amp; feedback</span>}
@@ -145,5 +141,59 @@ export default function AppSidebar({
         </div>
       </div>
     </aside>
+  );
+}
+
+/* Glass plan card in the sidebar footer: shows this month's usage on Free
+   (or a lapsing Pro plan) with an upgrade action. Collapsed sidebar shows a
+   ring with the same state. */
+function PlanCard({ card, collapsed, onUpgrade }) {
+  const free = card.kind === "free";
+  const pct = free ? Math.min(100, Math.round((card.used / card.limit) * 100)) : 100;
+  const full = free && card.used >= card.limit;
+  const near = free && !full && pct >= 80;
+  const tone = full || card.kind === "expired" ? "alert" : near || card.kind === "expiring" ? "warn" : "calm";
+  const title = card.kind === "expired" ? "Pro has ended"
+    : card.kind === "expiring" ? `Pro ends in ${card.daysLeft} day${card.daysLeft === 1 ? "" : "s"}`
+    : full ? "Monthly limit reached"
+    : near ? "Almost at your limit"
+    : "Free plan";
+  const sub = card.kind === "expired" ? "Back on Free limits"
+    : card.kind === "expiring" ? "Renew to keep everything"
+    : full ? `New trades unlock ${card.resets}`
+    : `${card.limit - card.used} trades left · resets ${card.resets}`;
+  const cta = card.kind === "free" ? (full ? "Upgrade to keep logging" : "Upgrade to Pro") : "Renew Pro";
+
+  if (collapsed) {
+    return (
+      <button type="button" className={a.planRing} data-tone={tone} onClick={onUpgrade} title={`${title} · ${cta}`} aria-label={`${title}. ${cta}`} style={{ "--pct": `${pct}%` }}>
+        <Crown size={15} aria-hidden="true" />
+      </button>
+    );
+  }
+  return (
+    <div className={a.plan} data-tone={tone}>
+      <div className={a.planHead}>
+        <span className={a.planIco} aria-hidden="true"><Crown size={14} /></span>
+        <b>{title}</b>
+      </div>
+      {free && (
+        <div className={a.planMeter}>
+          <div
+            className={a.planBar}
+            role="progressbar"
+            aria-label="Trades logged this month"
+            aria-valuemin={0}
+            aria-valuemax={card.limit}
+            aria-valuenow={Math.min(card.used, card.limit)}
+          >
+            <i style={{ width: `${pct}%` }} />
+          </div>
+          <span className={a.planCount}><b>{Math.min(card.used, card.limit)}</b> / {card.limit} trades this month</span>
+        </div>
+      )}
+      <small className={a.planSub}>{sub}</small>
+      <button type="button" className={a.planCta} onClick={onUpgrade}>{cta}</button>
+    </div>
   );
 }

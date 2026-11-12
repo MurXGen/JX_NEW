@@ -15,6 +15,7 @@ import {
   LayoutGrid,
   Share2,
   Calculator,
+  ChevronLeft,
 } from "lucide-react";
 
 import {
@@ -48,7 +49,9 @@ import ShortcutsHelp from "@/components/revampV2/ShortcutsHelp";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
-import { getConversionFactor } from "@/utils/fx";
+import { convertTrade, getConversionFactor } from "@/utils/fx";
+import UpgradeModal, { PlanBanner as UpgradeBanner, planState } from "@/components/app/UpgradeModal";
+import { getPlanRules } from "@/utils/planRestrictions";
 import { connectDrive, warmDriveConnection, isDriveConnected, isDriveConfigured } from "@/utils/driveBackup";
 import { fetchUserInfo } from "@/utils/userInfo";
 
@@ -68,6 +71,13 @@ const NAV_ITEMS = [
   { id: "importexport", label: "Import / Export", icon: ArrowUpDown },
 ];
 
+const SETTINGS_SUBPAGES = {
+  tools: "Trading calculators",
+  blogs: "Learn & Focus",
+  share: "Share logs",
+  importexport: "Import & Export",
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
@@ -84,6 +94,17 @@ export default function Dashboard() {
     if (id !== "settings") url.searchParams.delete("settings"); // drop sub-section
     url.searchParams.delete("support");
     window.history.pushState({ jxView: id }, "", url.toString());
+  };
+  // pages reached from the mobile Settings hub, with their header title
+  const fromSettings = useRef(false);
+  const backToSettings = () => {
+    // return the way we came so the phone's Back stack stays clean
+    if (fromSettings.current && typeof window !== "undefined" && window.history.length > 1) {
+      fromSettings.current = false;
+      window.history.back();
+    } else {
+      navTab("settings");
+    }
   };
   const openSupport = () => {
     setShowSupport(true);
@@ -334,15 +355,33 @@ export default function Dashboard() {
   const journalCurrency = (currentAccount?.currency || "USD").toUpperCase();
   const [displayCurrency, setDisplayCurrency] = useState(journalCurrency);
   const [fxRate, setFxRate] = useState(1);
+  const fxTicket = useRef(0);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState(null);
+  // one upgrade window for the whole dashboard; limit prompts hand off here
+  useEffect(() => {
+    window.__jxUpgradeHost = true;
+    const onOpen = (e) => { setUpgradeReason(e?.detail || null); setShowUpgradeModal(true); };
+    window.addEventListener("jx-open-upgrade", onOpen);
+    return () => { window.__jxUpgradeHost = false; window.removeEventListener("jx-open-upgrade", onOpen); };
+  }, []);
+  const openUpgrade = () => { setUpgradeReason(null); setShowUpgradeModal(true); };
 
   useEffect(() => {
     // mirror the active journal currency so the Log/Edit modal logs natively
     try { localStorage.setItem("jx-base-currency", journalCurrency); } catch {}
 
+    // Each apply gets a ticket; only the latest one may commit. Without this a
+    // slow rate fetch (e.g. INR) could land after a fast one (e.g. USDT) and
+    // leave the INR rate under the USDT symbol. Symbol and rate change together.
+    let alive = true;
     const apply = async (override) => {
+      const ticket = ++fxTicket.current;
       const disp = (override || journalCurrency).toUpperCase();
+      const rate = await getConversionFactor(journalCurrency, disp);
+      if (!alive || ticket !== fxTicket.current) return;
       setDisplayCurrency(disp);
-      setFxRate(await getConversionFactor(journalCurrency, disp));
+      setFxRate(rate);
     };
     let saved = null;
     try { saved = localStorage.getItem("jx-display-currency"); } catch {}
@@ -354,13 +393,18 @@ export default function Dashboard() {
       apply(s);
     };
     window.addEventListener("jx-currency-changed", onChange);
-    return () => window.removeEventListener("jx-currency-changed", onChange);
+    return () => { alive = false; window.removeEventListener("jx-currency-changed", onChange); };
   }, [currentAccount?._id, journalCurrency]);
 
   // panels get NATIVE trades + the display fxRate; they convert only for display
   const trades = rawTrades;
   const currencySymbol = getCurrencySymbol(displayCurrency.toLowerCase()); // dashboard display
   const journalSymbol = getCurrencySymbol(journalCurrency.toLowerCase());  // for logging
+  // read-only panels that print money with currencySymbol need converted values too
+  const displayTrades = useMemo(
+    () => (fxRate === 1 ? trades : trades.map((t) => convertTrade(t, fxRate))),
+    [trades, fxRate],
+  );
 
   const isProMonthly =
     userData?.subscription?.plan === "pro" &&
@@ -375,6 +419,24 @@ export default function Dashboard() {
     ? Math.ceil((new Date(_sub.expiresAt).getTime() - Date.now()) / 864e5)
     : null;
   const needsUpgrade = !_isLifetime && _daysLeft != null && _daysLeft <= 5;
+  // banner: plan inactive, or ending within 2 days (free users once they have real trades)
+  const plan = planState(userData?.subscription);
+  const showPlanBanner = plan.show && !(plan.kind === "free" && usingDummy);
+  // sidebar plan card: this month's trade usage against the plan's cap
+  const planCard = (() => {
+    if (plan.kind === "lifetime" || plan.kind === "pro") return null;
+    if (plan.kind === "expiring" || plan.kind === "expired") return { kind: plan.kind, daysLeft: plan.daysLeft };
+    let limit = Infinity;
+    try { limit = getPlanRules(userData).limits.tradeLimitPerMonth; } catch {}
+    if (!Number.isFinite(limit)) return null;
+    const now = new Date();
+    const used = selectedTrades.filter((t) => {
+      const d = new Date(t.openTime || t.createdAt || t.closeTime);
+      return !Number.isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+    const resets = new Date(now.getFullYear(), now.getMonth() + 1, 1).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    return { kind: "free", used, limit, resets };
+  })();
 
   if (loading) return <FullPageLoader />;
 
@@ -393,6 +455,7 @@ export default function Dashboard() {
         setImportSignal((s) => s + 1); // opens the import modal in Trades log
       }}
       onViewTrades={() => navTab("trades")}
+      banner={showPlanBanner ? <UpgradeBanner state={plan} onUpgrade={openUpgrade} /> : null}
     />
   );
 
@@ -422,11 +485,11 @@ export default function Dashboard() {
       />
     ),
     blogs: <ActivitiesPanel />,
-    markets: <MarketsPanel trades={trades} currencySymbol={currencySymbol} />,
+    markets: <MarketsPanel trades={displayTrades} currencySymbol={currencySymbol} />,
     tools: <ToolsPanel currencySymbol={currencySymbol} />,
     share: (
       <SharePanel
-        trades={trades}
+        trades={displayTrades}
         accountName={currentAccount?.name || "My journal"}
         currencySymbol={currencySymbol}
       />
@@ -467,8 +530,8 @@ export default function Dashboard() {
         user={userData}
         onProfile={() => navTab("settings")}
         onSupport={openSupport}
-        showUpgrade={needsUpgrade}
-        onUpgrade={() => navTab("pricingpage")}
+        planCard={planCard}
+        onUpgrade={openUpgrade}
       />
 
       <main className="jx-shell__main">
@@ -523,10 +586,22 @@ export default function Dashboard() {
           {activeTab === "settings" && isMobile ? (
             <SettingsPanel
               user={userData}
-              onNavigate={(id) => navTab(id)}
+              onNavigate={(id) => { fromSettings.current = true; navTab(id); }}
               onSupport={openSupport}
               onSwitchJournal={() => setShowSwitchModal(true)}
             />
+          ) : isMobile && SETTINGS_SUBPAGES[activeTab] ? (
+            /* on phones these pages are opened from Settings, so they get the
+               same "‹ Title" header as Settings' own sub-screens */
+            <div className="jx-subpage">
+              <div className="jx-settings__mhead jx-subpage__head">
+                <button type="button" className="jx-settings__mback" onClick={backToSettings} aria-label="Back to settings">
+                  <ChevronLeft size={20} />
+                </button>
+                <span className="jx-settings__mtitle">{SETTINGS_SUBPAGES[activeTab]}</span>
+              </div>
+              {TAB_CONTENT[activeTab]}
+            </div>
           ) : (
             TAB_CONTENT[activeTab] || overview
           )}
@@ -569,6 +644,15 @@ export default function Dashboard() {
         initialView={journalsView}
       />
 
+      <UpgradeModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        trades={displayTrades}
+        currencySymbol={currencySymbol}
+        displayCurrency={displayCurrency}
+        state={plan}
+        reason={upgradeReason}
+      />
       <SupportModal
         open={showSupport}
         onClose={closeSupport}

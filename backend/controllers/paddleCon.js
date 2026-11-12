@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const Order = require("../models/Orders");
 const { paddle } = require("../utils/paddle");
+const PaddleEvent = require("../models/PaddleEvent");
 
 // 🔐 Verify Paddle (Billing) webhook signature.
 //   Header format:  Paddle-Signature: ts=<unix>;h1=<hmac>[;h1=<hmac>...]
@@ -60,12 +61,13 @@ function classifyByPrice({ priceId, billingCycle, endsAt, isSubscription }) {
   // price, or carries a billing cycle. (Checked before lifetime so a
   // subscription can NEVER be mistaken for lifetime.)
   if (isSubscription || isMonthlyId || isYearlyId || billingCycle?.interval === "month" || billingCycle?.interval === "year") {
-    return { plan: "pro", type: "recurring", expiresAt: endsAt || null };
+    const period = isYearlyId || billingCycle?.interval === "year" ? "yearly" : "monthly";
+    return { plan: "pro", type: "recurring", expiresAt: endsAt || null, period };
   }
   // LIFETIME only for the explicit lifetime price — never "assume" lifetime for
   // an unknown one-time price (that's what wrongly upgraded monthly buyers).
   if (isLifetimeId) {
-    return { plan: "lifetime", type: "lifetime", expiresAt: null };
+    return { plan: "lifetime", type: "lifetime", expiresAt: null, period: "lifetime" };
   }
   // Unknown / unrecognised price → don't change anything; log upstream.
   return { plan: "free", type: "none", expiresAt: null };
@@ -138,6 +140,30 @@ function applyPlanToUser(user, cls, data) {
   return true;
 }
 
+/* Idempotent order record for a Paddle transaction: the webhook, its retries
+   and the browser-side verify can all see the same transaction, so we key on
+   the Paddle transaction id and never create a second order for it. */
+async function recordPaddleOrder(user, cls, txn) {
+  if (txn?.id) {
+    const existing = await Order.findOne({ "meta.id": txn.id });
+    if (existing) return { order: existing, created: false };
+  }
+  const grandTotal = txn?.details?.totals?.grand_total ?? txn?.details?.totals?.total ?? "0";
+  const order = await Order.create({
+    userId: user._id,
+    planId: cls.plan,
+    amount: Number(grandTotal || 0) / 100,
+    currency: txn?.currency_code || "USD",
+    method: "card",
+    period: cls.period || (cls.plan === "lifetime" ? "lifetime" : "monthly"),
+    paymentType: cls.type,
+    status: "paid",
+    meta: txn || {},
+  });
+  user.orders.push({ orderId: order._id, status: "paid" });
+  return { order, created: true };
+}
+
 /* ------------------------------------------------------------------
    Direct verification (no webhook dependency). Called by the frontend
    right after Paddle checkout completes. Authenticated by the user's
@@ -167,6 +193,7 @@ exports.verifyPaddleTransaction = async (req, res) => {
     let txn = null;
     let cls = null;
     let lastStatus = "unknown";
+    let ownerChecked = false;
 
     for (let attempt = 0; attempt < 4 && !cls; attempt++) {
       if (attempt > 0) await sleep(1500);
@@ -184,6 +211,18 @@ exports.verifyPaddleTransaction = async (req, res) => {
       if (txnUserId && String(txnUserId) !== String(userId)) {
         console.warn(`[PADDLE-VERIFY] txn userId ${txnUserId} != caller ${userId} — refusing`);
         return res.status(403).json({ message: "Transaction does not belong to this user" });
+      }
+      // no userId on the transaction: only the buyer (same email) may claim it
+      if (!txnUserId && !ownerChecked) {
+        ownerChecked = true;
+        let buyerEmail = (txn.customer?.email || "").toLowerCase();
+        if (!buyerEmail && txn.customer_id) {
+          try { buyerEmail = ((await paddle.getCustomer(txn.customer_id))?.data?.email || "").toLowerCase(); } catch { /* checked below */ }
+        }
+        if (!buyerEmail || buyerEmail !== String(user.email || "").toLowerCase()) {
+          console.warn(`[PADDLE-VERIFY] txn ${transactionId} has no userId and buyer email doesn't match caller — refusing`);
+          return res.status(403).json({ message: "Transaction does not belong to this user" });
+        }
       }
 
       // Verbose diagnostics — shows EXACTLY what we're classifying against, so
@@ -231,20 +270,9 @@ exports.verifyPaddleTransaction = async (req, res) => {
       return res.status(200).json({ changed: false, plan: "lifetime", reason: "lifetime-sticky" });
     }
 
-    const grandTotal = txn.details?.totals?.grand_total ?? txn.details?.totals?.total ?? "0";
-    const order = await Order.create({
-      userId: user._id,
-      planId: cls.plan,
-      amount: Number(grandTotal || 0) / 100,
-      currency: txn.currency_code || "USD",
-      period: cls.plan === "lifetime" ? "lifetime" : "monthly",
-      paymentType: cls.type,
-      status: "paid",
-      meta: txn,
-    });
-
+    await recordPaddleOrder(user, cls, txn);
     applyPlanToUser(user, cls, txn);
-    user.orders.push({ orderId: order._id, status: "paid" });
+    if (txn.subscription_id) user.paddleSubscriptionId = txn.subscription_id;
     await user.save();
 
     console.log(`✅ [PADDLE-VERIFY] ${user.email} → ${cls.plan}/${cls.type}`);
@@ -255,225 +283,201 @@ exports.verifyPaddleTransaction = async (req, res) => {
   }
 };
 
-exports.handlePaddleWebhook = async (req, res) => {
-  console.log("━━━━━━━━━━ [PADDLE-WH] incoming webhook ━━━━━━━━━━");
+/* ------------------------------------------------------------------
+   Webhook processing. Paddle wants a 200 within 5 seconds and delivers
+   at-least-once, in no guaranteed order. So the HTTP handler only verifies
+   the signature, stores the event (deduped by event_id) and acks; the work
+   happens in processPaddleEvent(), which the reconciler can safely re-run.
+------------------------------------------------------------------- */
+const SUB_EVENTS = [
+  "subscription.created",
+  "subscription.activated",
+  "subscription.updated",
+  "subscription.trialing",
+  "subscription.past_due",
+  "subscription.paused",
+  "subscription.resumed",
+  "subscription.canceled",
+];
+
+// returns { status: processed|ignored|unmatched, userId?, note? }
+async function processPaddleEvent(event) {
+  const data = event.data || {};
+  const occurredAt = event.occurred_at ? new Date(event.occurred_at) : null;
+
+  // ---- subscription lifecycle (authoritative for monthly / yearly) ----
+  if (SUB_EVENTS.includes(event.event_type)) {
+    const sub = data;
+    console.log(`[PADDLE-WH] ${event.event_type} sub=${sub.id} status=${sub.status} custom=${sub.custom_data?.userId || "none"} cust=${sub.customer_id || "none"}`);
+    const subUser = await resolveUserFromData(sub);
+    if (!subUser) return { status: "unmatched", note: "no user for subscription" };
+    if (subUser.subscriptionPlan === "lifetime") return { status: "ignored", userId: subUser._id, note: "lifetime-sticky" };
+
+    // out-of-order guard: never let an older event overwrite a newer state
+    if (occurredAt && subUser.paddleLastSubEventAt && occurredAt <= subUser.paddleLastSubEventAt) {
+      console.log(`[PADDLE-WH] ${event.event_type} older than last applied (${subUser.paddleLastSubEventAt.toISOString()}) — skipping`);
+      return { status: "ignored", userId: subUser._id, note: "stale (out of order)" };
+    }
+
+    const sc = classifySubscription(sub);
+    if (sc.plan === "free") return { status: "ignored", userId: subUser._id, note: `unrecognised price ${sc.priceId}` };
+
+    //   active / trialing / past_due → Pro (past_due = payment-retry grace)
+    //   paused / canceled            → downgrade
+    let nPlan = sc.plan, nType = sc.type, nStatus = "active";
+    const st = (sub.status || "").toLowerCase();
+    if (st === "paused" || st === "canceled") { nPlan = "free"; nType = "none"; nStatus = "expired"; }
+
+    subUser.subscriptionPlan = nPlan;
+    subUser.subscriptionType = nType;
+    subUser.subscriptionStatus = nStatus;
+    subUser.subscriptionSource = "paddle";
+    const startSrc = sub.started_at || sub.first_billed_at || sub.created_at;
+    if (startSrc) subUser.subscriptionStartAt = new Date(startSrc);
+    // a scheduled cancel keeps access until it takes effect
+    const cancelAt = sub.scheduled_change?.action === "cancel" && sub.scheduled_change?.effective_at ? new Date(sub.scheduled_change.effective_at) : null;
+    subUser.subscriptionExpiresAt = cancelAt || sc.expiresAt;
+    subUser.subscriptionCreatedAt = new Date();
+    subUser.nextBillingDate = sub.next_billed_at ? new Date(sub.next_billed_at) : undefined;
+    subUser.paddleCustomerId = sub.customer_id || subUser.paddleCustomerId;
+    subUser.paddleSubscriptionId = sub.id || subUser.paddleSubscriptionId;
+    if (occurredAt) subUser.paddleLastSubEventAt = occurredAt;
+    await subUser.save();
+    console.log(`✅ [PADDLE-WH] ${event.event_type}: ${subUser.email} → ${nPlan}/${nType} status=${nStatus} (paddle=${st})`);
+    return { status: "processed", userId: subUser._id };
+  }
+
+  // ---- payments (one-time lifetime + every subscription charge) ----
+  if (event.event_type !== "transaction.completed") return { status: "ignored", note: "event type not used" };
+
+  console.log("[PADDLE-WH] txn diagnostics:", JSON.stringify({
+    transactionId: data?.id,
+    custom_data: data?.custom_data,
+    customer_id: data?.customer_id,
+    priceId: data?.items?.[0]?.price?.id || data?.details?.line_items?.[0]?.price_id || null,
+    billing_cycle: data?.items?.[0]?.price?.billing_cycle || null,
+    subscription_id: data?.subscription_id || null,
+    origin: data?.origin || null,
+    grand_total: data?.details?.totals?.grand_total,
+  }));
+
+  // a payment-method update has no new purchase in it
+  if (data.origin === "subscription_payment_method_change") return { status: "ignored", note: "payment method change" };
+
+  const user = await resolveUserFromData(data);
+  if (!user) return { status: "unmatched", note: `no user (userId=${data.custom_data?.userId || "none"}, customer=${data.customer_id || "none"})` };
+
+  const cls = classifyTransaction(data);
+  if (cls.plan === "free") return { status: "ignored", userId: user._id, note: `unrecognised price ${cls.priceId}` };
+
+  // lifetime is permanent; still keep the order for records
+  if (user.subscriptionPlan === "lifetime" && cls.plan !== "lifetime") {
+    await recordPaddleOrder(user, cls, data);
+    await user.save();
+    return { status: "ignored", userId: user._id, note: "lifetime-sticky (order recorded)" };
+  }
+
+  await recordPaddleOrder(user, cls, data);
+  user.subscriptionPlan = cls.plan;
+  user.subscriptionType = cls.type;
+  user.subscriptionStatus = "active";
+  user.subscriptionSource = "paddle";
+  user.subscriptionStartAt = new Date(data.created_at || Date.now());
+  // a renewal extends access to the new period end; never shorten it
+  if (cls.expiresAt && (!user.subscriptionExpiresAt || cls.expiresAt > user.subscriptionExpiresAt)) user.subscriptionExpiresAt = cls.expiresAt;
+  if (cls.plan === "lifetime") user.subscriptionExpiresAt = null;
+  user.subscriptionCreatedAt = new Date();
+  user.lastBillingDate = new Date(data.billed_at || data.created_at || Date.now());
+  user.paddleCustomerId = data.customer_id || data.customer?.id || user.paddleCustomerId;
+  if (data.subscription_id) user.paddleSubscriptionId = data.subscription_id;
+  await user.save();
+  console.log(`✅ [PADDLE-WH] ${user.email} → ${cls.plan}/${cls.type} (txn ${data.id})`);
+  return { status: "processed", userId: user._id };
+}
+
+// Run one stored event and record the outcome.
+async function runStoredEvent(doc) {
   try {
-    // 1️⃣ Verify signature
-    const sigOk = verifyPaddleSignature(req);
-    console.log(`[PADDLE-WH] signature valid: ${sigOk} | secret set: ${!!process.env.PADDLE_WEBHOOK_SECRET}`);
-    if (!sigOk) {
+    doc.attempts = (doc.attempts || 0) + 1;
+    const r = await processPaddleEvent(doc.payload);
+    doc.status = r.status;
+    doc.userId = r.userId || doc.userId;
+    doc.note = r.note;
+    doc.lastError = undefined;
+  } catch (err) {
+    doc.status = "error";
+    doc.lastError = String(err?.message || err).slice(0, 500);
+    console.error(`❌ [PADDLE-WH] processing ${doc.eventId} failed:`, err?.message);
+  }
+  await doc.save().catch((e) => console.error("[PADDLE-WH] could not save event state:", e?.message));
+  return doc.status;
+}
+
+exports.handlePaddleWebhook = async (req, res) => {
+  try {
+    if (!verifyPaddleSignature(req)) {
       console.error("❌ [PADDLE-WH] Invalid Paddle signature — rejecting (check PADDLE_WEBHOOK_SECRET matches THIS destination)");
       return res.status(401).send("Invalid signature");
     }
+    let event;
+    try { event = JSON.parse(req.body.toString()); } catch { return res.status(400).send("Bad JSON"); }
+    const eventId = event.event_id || event.notification_id;
+    console.log(`[PADDLE-WH] ${event.event_type} | event_id ${eventId || "n/a"}`);
+    if (!eventId) return res.status(400).send("Missing event_id");
 
-    const event = JSON.parse(req.body.toString());
-    console.log(`[PADDLE-WH] event_type: ${event.event_type} | event_id: ${event.event_id || "n/a"}`);
-
-    const data = event.data;
-
-    // 2️⃣a Subscription lifecycle — this is how monthly/yearly get authorised.
-    //     Paddle confirms a recurring plan via subscription.activated/created/
-    //     updated (the first charge's transaction.completed also fires, handled
-    //     below, but the subscription event is the authoritative signal).
-    const SUB_EVENTS = [
-      "subscription.activated",
-      "subscription.created",
-      "subscription.updated",
-      "subscription.canceled",
-    ];
-    if (SUB_EVENTS.includes(event.event_type)) {
-      const sub = data;
-      console.log(`[PADDLE-WH] ${event.event_type} sub=${sub.id} status=${sub.status} custom=${sub.custom_data?.userId || "none"} cust=${sub.customer_id || "none"}`);
-      const subUser = await resolveUserFromData(sub);
-      if (!subUser) {
-        console.warn(`⚠️ [PADDLE-WH] ${event.event_type}: no matching user — ignoring.`);
-        return res.status(200).json({ received: true, matched: false });
-      }
-      // never downgrade a lifetime user from a recurring event
-      if (subUser.subscriptionPlan === "lifetime") {
-        console.log(`[PADDLE-WH] ${subUser.email} is lifetime — ignoring ${event.event_type}.`);
-        return res.status(200).json({ received: true, changed: false, reason: "lifetime-sticky" });
-      }
-      const sc = classifySubscription(sub);
-      if (sc.plan === "free") {
-        console.warn(`⚠️ [PADDLE-WH] ${event.event_type}: unrecognised price ${sc.priceId} — not changing ${subUser.email}.`);
-        return res.status(200).json({ received: true, changed: false });
-      }
-
-      // Map Paddle's subscription status → our access state, applying downgrades.
-      //   active / trialing / past_due → Pro active (past_due = payment-retry grace)
-      //   paused / canceled            → downgrade to free/expired
-      let nPlan = sc.plan;        // "pro"
-      let nType = sc.type;        // "recurring"
-      let nStatus;
-      const st = (sub.status || "").toLowerCase();
-      if (st === "active" || st === "trialing" || st === "past_due") {
-        nStatus = "active";
-      } else if (st === "paused" || st === "canceled") {
-        nPlan = "free"; nType = "none"; nStatus = "expired";   // ← downgrade
-      } else {
-        nStatus = "active";
-      }
-
-      subUser.subscriptionPlan = nPlan;
-      subUser.subscriptionType = nType;
-      subUser.subscriptionStatus = nStatus;
-      subUser.subscriptionSource = "paddle";
-      const startSrc = sub.started_at || sub.first_billed_at || sub.created_at;
-      if (startSrc) subUser.subscriptionStartAt = new Date(startSrc);
-      subUser.subscriptionExpiresAt = sc.expiresAt;            // period end (kept for history)
-      subUser.subscriptionCreatedAt = new Date();
-      if (sub.next_billed_at) subUser.nextBillingDate = new Date(sub.next_billed_at);
-      subUser.paddleCustomerId = sub.customer_id || subUser.paddleCustomerId;
-      subUser.paddleSubscriptionId = sub.id || subUser.paddleSubscriptionId;
-      await subUser.save();
-      console.log(`✅ [PADDLE-WH] ${event.event_type}: ${subUser.email} → ${nPlan}/${nType} status=${nStatus} expires=${sc.expiresAt || "—"} (paddle status=${st})`);
-      return res.status(200).json({ received: true, changed: true });
+    // store once; a retry of an event we already handled is acked and skipped
+    let doc = await PaddleEvent.findOne({ eventId });
+    if (doc && ["processed", "ignored"].includes(doc.status)) {
+      return res.status(200).json({ received: true, duplicate: true });
     }
-
-    // 2️⃣b One-time / first-charge payments
-    if (event.event_type !== "transaction.completed") {
-      console.log(`[PADDLE-WH] ignoring (${event.event_type})`);
-      return res.status(200).send("Ignored");
-    }
-    console.log("[PADDLE-WH] txn diagnostics:", JSON.stringify({
-      transactionId: data?.id,
-      custom_data: data?.custom_data,
-      customer_id: data?.customer_id,
-      inline_customer_email: data?.customer?.email || null,
-      priceId: data?.items?.[0]?.price?.id || data?.details?.line_items?.[0]?.price_id || null,
-      billing_cycle: data?.items?.[0]?.price?.billing_cycle || null,
-      currency: data?.currency_code,
-      grand_total: data?.details?.totals?.grand_total,
-      paddle_api_key_set: !!process.env.PADDLE_API_KEY,
-      paddle_environment: process.env.PADDLE_ENVIRONMENT || "(unset → sandbox)",
-    }));
-
-    /**
-     * data.custom_data.userId  ← YOU sent this from frontend
-     * data.customer.email
-     * data.items[0].price.id
-     */
-
-    // Resolve the user: prefer the userId we sent in custom_data, then fall
-    // back to matching Paddle's customer email. (Paddle's webhook *simulator*
-    // sends custom_data: null, so this also stops simulations failing.)
-    const userId = data.custom_data?.userId;
-    const customerEmail = (data.customer?.email || "").toLowerCase();
-
-    let user = null;
-    if (userId) {
-      try { user = await User.findById(userId); } catch { /* invalid id */ }
-      console.log(`[PADDLE-WH] lookup by custom_data.userId=${userId} → matched: ${!!user}`);
-    } else {
-      console.log("[PADDLE-WH] no custom_data.userId present (checkout didn't attach it)");
-    }
-    if (!user && customerEmail) {
-      user = await User.findOne({ email: customerEmail });
-      console.log(`[PADDLE-WH] lookup by inline email=${customerEmail} → matched: ${!!user}`);
-    }
-    // Last resort: the transaction payload has no email, only customer_id —
-    // resolve the email via the Paddle API and match. Needs PADDLE_API_KEY +
-    // PADDLE_ENVIRONMENT to match the environment the payment was made in.
-    if (!user && data.customer_id && process.env.PADDLE_API_KEY) {
+    if (!doc) {
       try {
-        console.log(`[PADDLE-WH] resolving email via Paddle API for customer_id=${data.customer_id} ...`);
-        const cust = await paddle.getCustomer(data.customer_id);
-        const apiEmail = (cust?.data?.email || "").toLowerCase();
-        if (apiEmail) {
-          user = await User.findOne({ email: apiEmail });
-          console.log(`🔎 [PADDLE-WH] Paddle API → ${apiEmail} (user matched: ${!!user})`);
-        } else {
-          console.warn("[PADDLE-WH] Paddle API returned no email for that customer_id");
-        }
+        doc = await PaddleEvent.create({
+          eventId,
+          eventType: event.event_type,
+          occurredAt: event.occurred_at ? new Date(event.occurred_at) : undefined,
+          payload: event,
+        });
       } catch (e) {
-        console.error("❌ [PADDLE-WH] Paddle getCustomer failed:", e?.response?.status, JSON.stringify(e?.response?.data) || e.message);
+        // two deliveries racing on the unique index — the other one owns it
+        if (e?.code === 11000) return res.status(200).json({ received: true, duplicate: true });
+        throw e;
       }
-    } else if (!user && data.customer_id && !process.env.PADDLE_API_KEY) {
-      console.warn("[PADDLE-WH] PADDLE_API_KEY not set → cannot resolve email from customer_id");
-    }
-    if (!user) {
-      // Nothing to update (e.g. Paddle simulation or an unknown customer).
-      // Return 200 so Paddle doesn't retry/flag it; just log for visibility.
-      console.warn(
-        `⚠️ Paddle transaction.completed with no matching user (userId=${userId || "none"}, email=${customerEmail || "none"}) — ignoring.`,
-      );
-      return res.status(200).json({ received: true, matched: false });
     }
 
-    // 3️⃣ Determine plan (subscription-aware: a txn with a subscription_id is
-    //     recurring, never lifetime — even if the price/billing_cycle isn't
-    //     expanded in this payload).
-    const cls = classifyTransaction(data);
-    const { plan, type, expiresAt, priceId, billingCycle } = cls;
-
-    console.log(
-      `🧾 Paddle txn — priceId=${priceId} cycle=${billingCycle?.interval || "none"} sub=${data.subscription_id || "none"} → plan=${plan}/${type}`,
-    );
-
-    // Unknown price (couldn't classify) — don't downgrade a user; just ack.
-    if (plan === "free") {
-      console.warn(`⚠️ Paddle txn with unrecognised price ${priceId} — not changing ${user.email}.`);
-      return res.status(200).json({ received: true, matched: true, changed: false });
-    }
-
-    // Lifetime is permanent: never let a later recurring/monthly event (e.g. an
-    // old still-active subscription firing a renewal) downgrade a lifetime user.
-    if (user.subscriptionPlan === "lifetime" && plan !== "lifetime") {
-      console.log(`[PADDLE-WH] ${user.email} is already lifetime — ignoring ${plan}/${type} event (no downgrade).`);
-      // still log the order for records, but don't touch the subscription
-      await Order.create({
-        userId: user._id,
-        planId: plan,
-        amount: Number((data.details?.totals?.grand_total ?? data.details?.totals?.total) || 0) / 100,
-        currency: data.currency_code || "USD",
-        period: plan === "lifetime" ? "lifetime" : "monthly",
-        paymentType: type,
-        status: "paid",
-        meta: data,
-      }).catch(() => {});
-      return res.status(200).json({ received: true, matched: true, changed: false, reason: "lifetime-sticky" });
-    }
-
-    // 4️⃣ Create Order — totals live under data.details.totals (top-level
-    // data.totals does NOT exist on transaction.completed; reading it crashes).
-    const grandTotal = data.details?.totals?.grand_total ?? data.details?.totals?.total ?? "0";
-    console.log(`[PADDLE-WH] creating order for ${user.email}: plan=${plan} type=${type} amount=${Number(grandTotal || 0) / 100} ${data.currency_code}`);
-    const order = await Order.create({
-      userId: user._id,
-      planId: plan,
-      amount: Number(grandTotal || 0) / 100,
-      currency: data.currency_code || "USD",
-      period: plan === "lifetime" ? "lifetime" : "monthly",
-      paymentType: type,
-      status: "paid",
-      meta: data,
-    });
-
-    // 5️⃣ Update User
-    user.subscriptionPlan = plan;
-    user.subscriptionType = type;
-    user.subscriptionStatus = "active";
-    user.subscriptionSource = "paddle"; // so we can tell what upgraded the user
-    user.subscriptionStartAt = new Date(data.created_at);
-    user.subscriptionExpiresAt = expiresAt;
-    user.subscriptionCreatedAt = new Date();
-    user.paddleCustomerId = data.customer_id || data.customer?.id;
-    if (data.subscription_id) user.paddleSubscriptionId = data.subscription_id;
-
-    user.orders.push({
-      orderId: order._id,
-      status: "paid",
-    });
-
-    await user.save();
-
-    console.log(`✅ [PADDLE-WH] User subscription updated: ${user.email} → ${plan}/${type} (status active)`);
-
-    return res.status(200).json({ received: true });
+    // ack within Paddle's 5s window, then do the work
+    res.status(200).json({ received: true });
+    setImmediate(() => { runStoredEvent(doc); });
   } catch (err) {
     console.error("❌ [PADDLE-WH] handler error:", err?.message);
-    console.error(err?.stack || err);
-    res.status(500).send("Webhook error");
+    // not stored → let Paddle retry
+    if (!res.headersSent) res.status(500).send("Webhook error");
   }
 };
+
+/* Reconciler: re-runs events that errored, never finished (server restart
+   between ack and processing), or couldn't be matched yet (the buyer may sign
+   up or fix their email later). Runs every 5 minutes. */
+async function reconcilePaddleEvents() {
+  const now = Date.now();
+  const docs = await PaddleEvent.find({
+    $or: [
+      { status: "received", createdAt: { $lt: new Date(now - 60 * 1000) } },
+      { status: "error", attempts: { $lt: 10 } },
+      { status: "unmatched", attempts: { $lt: 12 }, createdAt: { $gt: new Date(now - 72 * 3600 * 1000) } },
+    ],
+  }).sort({ occurredAt: 1 }).limit(50);
+  for (const d of docs) await runStoredEvent(d);
+  if (docs.length) console.log(`[PADDLE-RECONCILE] re-ran ${docs.length} event(s)`);
+}
+
+exports.startPaddleReconciler = () => {
+  if (!process.env.PADDLE_ENVIRONMENT) {
+    console.warn("⚠️ [PADDLE] PADDLE_ENVIRONMENT is not set → backend talks to the SANDBOX API. Set it to 'production' on the live server or every live verify/getCustomer call will 404.");
+  }
+  const tick = () => reconcilePaddleEvents().catch((e) => console.error("[PADDLE-RECONCILE] failed:", e?.message));
+  setTimeout(tick, 30 * 1000);
+  setInterval(tick, 5 * 60 * 1000);
+};
+
+exports._internals = { processPaddleEvent, classifyTransaction, classifySubscription, verifyPaddleSignature };

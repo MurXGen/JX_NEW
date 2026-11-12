@@ -186,9 +186,9 @@ function TradeSetupChart({ entry, stop, target, exit, dir = "long", sym = "$" })
     return (
       <g>
         <line x1={padL} y1={y} x2={plotR} y2={y} stroke={color} strokeWidth="1" strokeDasharray="5 5" opacity="0.7" />
-        <rect x={plotR + 6} y={y - 11} width={tagW - 4} height="22" rx="6" fill="#16161a" stroke={color} strokeOpacity="0.45" />
+        <rect x={plotR + 6} y={y - 11} width={tagW - 4} height="22" rx="6" className={tl.tagBg} stroke={color} strokeOpacity="0.45" />
         <circle cx={plotR + 16} cy={y} r="3" fill={color} />
-        <text x={plotR + 24} y={y + 4} className={tl.tagTxt} fill="#f5f6f8">{label} <tspan fill="#9aa1ad">{sym}{fmt(price)}</tspan></text>
+        <text x={plotR + 24} y={y + 4} className={`${tl.tagTxt} ${tl.tagInk}`}>{label} <tspan className={tl.tagMuted}>{sym}{fmt(price)}</tspan></text>
       </g>
     );
   };
@@ -221,7 +221,7 @@ function TradeSetupChart({ entry, stop, target, exit, dir = "long", sym = "$" })
               </linearGradient>
             </defs>
             {grid.map((g, i) => (
-              <line key={i} x1={padL} x2={plotR} y1={yOf(g)} y2={yOf(g)} stroke="rgba(255,255,255,0.05)" />
+              <line key={i} x1={padL} x2={plotR} y1={yOf(g)} y2={yOf(g)} className={tl.gridLine} />
             ))}
             {zone(e, s, "#f6465d", riskTxt)}
             {zone(e, tg, "#2ebd85", rewTxt)}
@@ -252,11 +252,11 @@ function TradeSetupChart({ entry, stop, target, exit, dir = "long", sym = "$" })
             <Tag price={s} label="Stop" color="#f6465d" />
             <Tag price={tg} label="Target" color="#2ebd85" />
             {ex > 0 && ex !== tg && <Tag price={ex} label="Exit" color={win ? "#2ebd85" : "#f6465d"} />}
-            <Tag price={e} label="Entry" color="#e9ebee" />
+            <Tag price={e} label="Entry" color="var(--chart-entry, #e9ebee)" />
 
             {/* entry + end markers */}
-            <circle cx={pts[0].x} cy={yOf(e)} r="5" fill="#0c0c0e" stroke="#e9ebee" strokeWidth="2" />
-            {!flat && <circle cx={pts[N].x} cy={yOf(endPrice)} r="5" fill="#0c0c0e" stroke={col} strokeWidth="2" />}
+            <circle cx={pts[0].x} cy={yOf(e)} r="5" className={tl.dotEntry} strokeWidth="2" />
+            {!flat && <circle cx={pts[N].x} cy={yOf(endPrice)} r="5" className={tl.dotFill} stroke={col} strokeWidth="2" />}
           </svg>
         )}
       </div>

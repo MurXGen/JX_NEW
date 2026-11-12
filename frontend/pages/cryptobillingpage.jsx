@@ -1,39 +1,36 @@
 "use client";
 
-/* Crypto checkout, v2 redesign.
-   Logic (order creation, verification polling, timers, localStorage) is
-   unchanged; only the UI/UX and styling were rebuilt on the design tokens
-   so it's polished and theme-aware. */
+/* Crypto checkout (USDT), v3.
+   Three clear steps on one page, like a real crypto checkout:
+     1. Network  – pick the chain you'll send on (fee / speed hints)
+     2. Send     – QR + exact amount + deposit address, each copyable; a short
+                   checklist must be ticked before "I've sent it"
+     3. Verify   – paste the transaction hash (format-checked per network, with
+                   an explorer link). Submitting creates the order (hash attached
+                   for the admin check) and starts the same polling as before.
+   Order creation, verification polling, timeouts and localStorage keys are
+   unchanged from v2. */
 
 import axios from "axios";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  AlertCircle,
-  ArrowLeft,
-  Check,
-  CheckCircle2,
-  Clock,
-  Copy,
-  Loader2,
-  Mail,
-  RefreshCw,
-  Shield,
-  ShieldCheck,
-  Wallet,
-  Zap,
+  AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle2, ClipboardPaste, Clock, Copy,
+  ExternalLink, Loader2, Mail, RefreshCw, ShieldCheck, Wallet,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import { useRouter } from "next/router";
+import { useEffect, useMemo, useState } from "react";
+import c from "@/components/app/Crypto.module.css";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const NETWORKS = [
-  { id: "erc20", name: "Ethereum", tag: "ERC20", symbol: "ETH", color: "#627eea" },
-  { id: "trc20", name: "Tron", tag: "TRC20", symbol: "TRX", color: "#ef0027" },
-  { id: "bep20", name: "BNB Smart Chain", tag: "BEP20", symbol: "BNB", color: "#f0b90b" },
-  { id: "avaxc", name: "Avalanche", tag: "C-Chain", symbol: "AVAX", color: "#e84142" },
-  { id: "sol", name: "Solana", tag: "SOL", symbol: "SOL", color: "#14f195" },
-  { id: "ton", name: "Toncoin", tag: "TON", symbol: "TON", color: "#0098ea" },
+  { id: "trc20", name: "Tron", tag: "TRC20", symbol: "TRX", color: "#ef0027", fee: "Low fee", speed: "~1 min", hint: "Most popular for USDT" },
+  { id: "bep20", name: "BNB Smart Chain", tag: "BEP20", symbol: "BNB", color: "#f0b90b", fee: "Low fee", speed: "~1 min" },
+  { id: "sol", name: "Solana", tag: "SPL", symbol: "SOL", color: "#14f195", fee: "Very low fee", speed: "Seconds" },
+  { id: "ton", name: "Toncoin", tag: "TON", symbol: "TON", color: "#0098ea", fee: "Low fee", speed: "Seconds" },
+  { id: "avaxc", name: "Avalanche", tag: "C-Chain", symbol: "AVAX", color: "#e84142", fee: "Low fee", speed: "Seconds" },
+  { id: "erc20", name: "Ethereum", tag: "ERC20", symbol: "ETH", color: "#627eea", fee: "Higher fee", speed: "~2–5 min" },
 ];
 
 const NETWORK_ADDRESSES = {
@@ -45,174 +42,159 @@ const NETWORK_ADDRESSES = {
   ton: "UQAGm_9b3_y6hjIshL2A-XZ36Cp7RW_tOX3NoVnxdOA94S-Z",
 };
 
-/* Staged verification steps shown while we poll the chain. They advance on an
-   interval so the user sees a real, professional verification pipeline. The
-   last step (network confirmations) holds until the backend actually confirms
-   the deposit, at which point the flow moves to success. */
-const VERIFY_STEPS = [
-  { key: "connect", label: "Connecting to {network}", sub: "Opening a secure node connection" },
-  { key: "scan", label: "Scanning the blockchain", sub: "Searching for a transfer to your deposit address" },
-  { key: "detect", label: "Detecting your transaction", sub: "Matching the amount and sender" },
-  { key: "confirm", label: "Awaiting network confirmations", sub: "Confirming the block on-chain" },
-  { key: "activate", label: "Activating your subscription", sub: "Finalizing your account" },
-];
-const VERIFY_HOLD_AT = 3; // hold on "Awaiting confirmations" until real success
+/* transaction-hash shape per chain, so typos are caught before submitting */
+const TX_RULES = {
+  erc20: { re: /^0x[a-fA-F0-9]{64}$/, example: "0x followed by 64 hex characters" },
+  bep20: { re: /^0x[a-fA-F0-9]{64}$/, example: "0x followed by 64 hex characters" },
+  avaxc: { re: /^0x[a-fA-F0-9]{64}$/, example: "0x followed by 64 hex characters" },
+  trc20: { re: /^[a-fA-F0-9]{64}$/, example: "64 hex characters (no 0x)" },
+  sol: { re: /^[1-9A-HJ-NP-Za-km-z]{80,90}$/, example: "an 87–88 character signature" },
+  ton: { re: /^([a-fA-F0-9]{64}|[A-Za-z0-9+/_-]{43,44}=?)$/, example: "a 64-character hash" },
+};
+const EXPLORERS = {
+  erc20: "https://etherscan.io/tx/",
+  trc20: "https://tronscan.org/#/transaction/",
+  bep20: "https://bscscan.com/tx/",
+  avaxc: "https://snowtrace.io/tx/",
+  sol: "https://solscan.io/tx/",
+  ton: "https://tonviewer.com/transaction/",
+};
+
+const short = (a) => (a && a.length > 18 ? `${a.slice(0, 8)}…${a.slice(-6)}` : a);
 
 export default function CryptoBillingPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const reduce = useReducedMotion();
+
+  const [stage, setStage] = useState("network"); // network | send | verify
   const [selectedNetwork, setSelectedNetwork] = useState("");
-  const [copiedAddress, setCopiedAddress] = useState(false);
-  const [confirmTimer, setConfirmTimer] = useState(60);
-  const [paymentStatus, setPaymentStatus] = useState("selecting");
-  const [processingTime, setProcessingTime] = useState(0);
+  const [copied, setCopied] = useState(""); // "amount" | "address" | ""
+  const [checks, setChecks] = useState({ net: false, amt: false });
+  const [txHash, setTxHash] = useState("");
+  const [noHash, setNoHash] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState("selecting"); // selecting | processing | failed | success
+  const [processingTime, setProcessingTime] = useState(300);
   const [cryptoOrderId, setCryptoOrderId] = useState("");
-  const [showModal, setShowModal] = useState(false);
   const [planData, setPlanData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [verifyStage, setVerifyStage] = useState(0); // staged verification index
 
-  const planName = searchParams.get("planName");
-  const period = searchParams.get("period");
-  const amount = searchParams.get("amount");
-
+  // read the plan from the address bar once the page is in the browser; this
+  // works for direct links and refreshes, not just in-app navigation
   useEffect(() => {
-    if (!planName || !period || !amount) {
+    const p = new URLSearchParams(window.location.search);
+    const pn = p.get("planName"), pd = p.get("period"), am = p.get("amount");
+    if (!pn || !pd || !am) {
       router.push("/pricing");
       return;
     }
-    setPlanData({ planName, period, amount });
-  }, [planName, period, amount, router]);
+    setPlanData({ planName: pn, period: pd, amount: am });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getPlanDisplayName = () => {
     if (!planData) return "";
-    const { planName, period } = planData;
-    if (period === "lifetime" || planName === "Lifetime") return "Lifetime Access";
-    if (period === "monthly") return `${planName} Monthly`;
-    if (period === "yearly") return `${planName} Yearly`;
-    return `${planName} Plan`;
+    const { planName: pn, period: pd } = planData;
+    if (pd === "lifetime" || pn === "Lifetime") return "Lifetime Access";
+    if (pd === "monthly") return `${pn} Monthly`;
+    if (pd === "yearly") return `${pn} Yearly`;
+    return `${pn} Plan`;
   };
 
-  // 60-second confirmation timer
+  const goSuccess = (orderId) => {
+    setPaymentStatus("success");
+    const params = new URLSearchParams({
+      planName: planData?.planName || "",
+      period: planData?.period || "",
+      amount: planData?.amount || "",
+      method: "crypto",
+      orderId,
+      isLifetime: planData?.period === "lifetime" ? "true" : "false",
+    }).toString();
+    router.push(`/subscription-success?${params}`);
+  };
+
+  // 5-minute countdown + verification every 10s (unchanged logic)
   useEffect(() => {
-    if (paymentStatus === "waiting" && confirmTimer > 0) {
-      const timer = setTimeout(() => setConfirmTimer(confirmTimer - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (paymentStatus === "waiting" && confirmTimer === 0) {
-      setPaymentStatus("confirming");
-    }
-  }, [paymentStatus, confirmTimer]);
+    if (paymentStatus !== "processing") return undefined;
+    const startTime = Date.now();
+    const totalTime = 300;
+    localStorage.setItem("cryptoPaymentInitiated", startTime.toString());
 
-  // 5-minute countdown + periodic verification
-  useEffect(() => {
-    if (paymentStatus === "processing") {
-      const startTime = Date.now();
-      const totalTime = 300;
-      localStorage.setItem("cryptoPaymentInitiated", startTime.toString());
+    const interval = setInterval(async () => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      setProcessingTime(Math.max(totalTime - elapsed, 0));
 
-      const interval = setInterval(async () => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const remaining = Math.max(totalTime - elapsed, 0);
-        setProcessingTime(remaining);
-
-        if (elapsed % 10 === 0 && elapsed > 0) {
-          try {
-            const storedOrderId = localStorage.getItem("cryptoOrderId");
-            if (!storedOrderId) return;
-            const res = await axios.post(
-              `${API_BASE}/api/crypto-payments/verify-payment`,
-              { orderId: storedOrderId },
-              { withCredentials: true },
-            );
-            if (res.data.success) {
-              clearInterval(interval);
-              setPaymentStatus("success");
-              const params = new URLSearchParams({
-                planName: planData?.planName || "",
-                period: planData?.period || "",
-                amount: planData?.amount || "",
-                method: "crypto",
-                orderId: storedOrderId,
-                isLifetime: planData?.period === "lifetime" ? "true" : "false",
-              }).toString();
-              router.push(`/subscription-success?${params}`);
-            }
-          } catch (err) {
-            console.error("Verification error:", err);
+      if (elapsed % 10 === 0 && elapsed > 0) {
+        try {
+          const storedOrderId = localStorage.getItem("cryptoOrderId");
+          if (!storedOrderId) return;
+          const res = await axios.post(`${API_BASE}/api/crypto-payments/verify-payment`, { orderId: storedOrderId }, { withCredentials: true });
+          if (res.data.success) {
+            clearInterval(interval);
+            goSuccess(storedOrderId);
           }
+        } catch (err) {
+          console.error("Verification error:", err);
         }
-
-        if (elapsed >= totalTime) {
-          clearInterval(interval);
-          handlePaymentTimeout();
-          setShowModal(false);
-        }
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
+      }
+      if (elapsed >= totalTime) {
+        clearInterval(interval);
+        handlePaymentTimeout();
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentStatus, planData, router]);
 
-  // staged verification animation, advances on an interval while we poll the
-  // chain, then holds on "Awaiting confirmations" until real success arrives.
-  useEffect(() => {
-    if (paymentStatus !== "processing") {
-      setVerifyStage(0);
-      return;
-    }
-    setVerifyStage(0);
-    const iv = setInterval(() => {
-      setVerifyStage((s) => (s >= VERIFY_HOLD_AT ? VERIFY_HOLD_AT : s + 1));
-    }, 2200);
-    return () => clearInterval(iv);
-  }, [paymentStatus]);
-
-  // when payment succeeds, flash all steps complete before the redirect
-  useEffect(() => {
-    if (paymentStatus === "success") setVerifyStage(VERIFY_STEPS.length);
-  }, [paymentStatus]);
-
-  const copyToClipboard = async (text) => {
+  const copy = async (text, what) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedAddress(true);
-      setTimeout(() => setCopiedAddress(false), 2000);
+      setCopied(what);
+      setTimeout(() => setCopied(""), 1800);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
   };
 
+  const pasteHash = async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      if (t) setTxHash(t.trim());
+    } catch {
+      setErrorMessage("Couldn't read the clipboard. Paste the hash into the box instead.");
+    }
+  };
+
   const createCryptoOrder = async () => {
     if (!planData) throw new Error("Plan data not available");
-    const { planName, period, amount } = planData;
+    const { planName: pn, period: pd, amount: am } = planData;
     const now = new Date();
-    let expiry = new Date(now);
-    if (period === "lifetime") expiry.setFullYear(expiry.getFullYear() + 100);
-    else if (period === "yearly") expiry.setFullYear(expiry.getFullYear() + 1);
+    const expiry = new Date(now);
+    if (pd === "lifetime") expiry.setFullYear(expiry.getFullYear() + 100);
+    else if (pd === "yearly") expiry.setFullYear(expiry.getFullYear() + 1);
     else expiry.setMonth(expiry.getMonth() + 1);
 
     const requestData = {
-      planName,
-      period,
-      amount,
+      planName: pn,
+      period: pd,
+      amount: am,
       network: selectedNetwork,
       currency: "USDT",
       startAt: now.toISOString(),
       expiresAt: expiry.toISOString(),
+      ...(txValid ? { txHash: txHash.trim() } : {}),
     };
 
     try {
-      const response = await axios.post(
-        `${API_BASE}/api/crypto-payments/create-order`,
-        requestData,
-        { withCredentials: true, headers: { "Content-Type": "application/json" } },
-      );
+      const response = await axios.post(`${API_BASE}/api/crypto-payments/create-order`, requestData, {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      });
       if (!response.data.success) throw new Error(response.data.message || "Failed to create order");
-
       localStorage.setItem("cryptoOrderId", response.data.orderId);
       localStorage.setItem("cryptoPaymentStart", now.toISOString());
       localStorage.setItem("cryptoPaymentExpiry", expiry.toISOString());
-      localStorage.setItem("isLifetimePlan", period === "lifetime" ? "true" : "false");
+      localStorage.setItem("isLifetimePlan", pd === "lifetime" ? "true" : "false");
       return response.data.orderId;
     } catch (error) {
       let errorMsg = "Failed to create payment order";
@@ -230,54 +212,28 @@ export default function CryptoBillingPage() {
     localStorage.removeItem("isLifetimePlan");
   };
 
-  const handleProceedToPay = () => {
-    if (!selectedNetwork) {
-      setErrorMessage("Please select a network first.");
-      return;
-    }
-    setErrorMessage("");
-    setShowModal(true);
-    setPaymentStatus("waiting");
-    setConfirmTimer(10);
-  };
-
   const handleVerifyPayment = async () => {
     try {
       setPaymentStatus("processing");
+      setProcessingTime(300);
       setErrorMessage("");
       const orderId = await createCryptoOrder();
       if (!orderId) throw new Error("Order ID not received from server");
-
       setCryptoOrderId(orderId);
       localStorage.setItem("cryptoOrderId", orderId);
       localStorage.setItem("cryptoPaymentInitiated", "true");
 
       const interval = setInterval(async () => {
         try {
-          const res = await axios.post(
-            `${API_BASE}/api/crypto-payments/verify-payment`,
-            { orderId },
-            { withCredentials: true },
-          );
+          const res = await axios.post(`${API_BASE}/api/crypto-payments/verify-payment`, { orderId }, { withCredentials: true });
           if (res.data.success) {
             clearInterval(interval);
-            setPaymentStatus("success");
-            setShowModal(false);
-            const params = new URLSearchParams({
-              planName: planData?.planName || "",
-              period: planData?.period || "",
-              amount: planData?.amount || "",
-              method: "crypto",
-              orderId,
-              isLifetime: planData?.period === "lifetime" ? "true" : "false",
-            }).toString();
-            router.push(`/subscription-success?${params}`);
+            goSuccess(orderId);
           }
         } catch (err) {
           console.error("Polling verification error:", err);
         }
       }, 60000);
-
       setTimeout(() => {
         clearInterval(interval);
         handlePaymentTimeout();
@@ -289,551 +245,297 @@ export default function CryptoBillingPage() {
     }
   };
 
-  const selectedNetworkData = NETWORKS.find((n) => n.id === selectedNetwork);
+  const net = NETWORKS.find((n) => n.id === selectedNetwork);
   const address = selectedNetwork ? NETWORK_ADDRESSES[selectedNetwork] : "";
+  const rule = TX_RULES[selectedNetwork];
+  const txTrim = txHash.trim();
+  const txValid = !!(rule && rule.re.test(txTrim));
+  const txBad = txTrim.length > 0 && !txValid;
+  const canSubmit = txValid || (noHash && txTrim.length === 0);
+  const stepIdx = paymentStatus !== "selecting" ? 3 : stage === "verify" ? 3 : stage === "send" ? 2 : 1;
+  const mmss = useMemo(() => `${Math.floor(processingTime / 60)}:${String(processingTime % 60).padStart(2, "0")}`, [processingTime]);
 
-  // shared style atoms
-  const card = {
-    background: "var(--color-bg-surface)",
-    border: "1px solid var(--color-border)",
-    borderRadius: "var(--radius-lg)",
-    padding: "var(--space-6)",
-  };
-  const muted = { color: "var(--color-text-muted)" };
+  const fade = reduce ? {} : { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -6 }, transition: { duration: 0.2 } };
 
   if (!planData) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)", fontFamily: "var(--jx-font)" }}>
-        <Loader2 size={20} className="jx-spin" /> &nbsp;Loading checkout…
-      </div>
+      <div className={c.loading}><Loader2 size={18} className={c.spin} /> Loading checkout…</div>
     );
   }
 
-  const NetworkBadge = ({ n, size = 34 }) => (
-    <span
-      style={{
-        width: size, height: size, borderRadius: "50%", flexShrink: 0,
-        background: `${n.color}22`, color: n.color,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        font: "700 11px var(--jx-font)",
-      }}
-    >
-      {n.symbol}
+  // chain badge: the ticker is sized to always fit inside the circle
+  const Badge = ({ n, size = 36 }) => {
+    const k = n.symbol.length >= 4 ? 0.27 : n.symbol.length === 3 ? 0.31 : 0.38;
+    return (
+      <span className={c.badge} style={{ width: size, height: size, fontSize: Math.max(8, Math.round(size * k)), background: `${n.color}1f`, color: n.color, borderColor: `${n.color}55` }} aria-hidden="true">
+        {n.symbol}
+      </span>
+    );
+  };
+  // USDT token with the network shown as a small chip, like a wallet does
+  const TokenMark = ({ n, size = 34 }) => (
+    <span className={c.token} style={{ width: size, height: size }} aria-hidden="true">
+      <svg viewBox="0 0 32 32" width={size} height={size}>
+        <circle cx="16" cy="16" r="16" fill="#26A17B" />
+        <path fill="#fff" d="M17.9 17.2v0c-.1 0-.7.1-1.9.1-1 0-1.7 0-1.9-.1v0c-3.7-.2-6.5-.8-6.5-1.6s2.8-1.4 6.5-1.6v2.5c.2 0 .9.1 1.9.1 1.2 0 1.8-.1 1.9-.1v-2.5c3.7.2 6.4.8 6.4 1.6s-2.8 1.4-6.4 1.6m0-3.4v-2.3h5.2V8H8.9v3.5h5.2v2.3c-4.2.2-7.4 1-7.4 2s3.2 1.8 7.4 2v7.2h3.8v-7.2c4.2-.2 7.3-1 7.3-2s-3.1-1.8-7.3-2" />
+      </svg>
+      <span className={c.tokenChip} style={{ background: n.color }}>{n.symbol.slice(0, 1)}</span>
     </span>
   );
 
-  const Step = ({ n, label, active, done }) => (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, opacity: active || done ? 1 : 0.5 }}>
-      <span
-        style={{
-          width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          font: "600 12px var(--jx-font)",
-          background: done ? "var(--color-success)" : active ? "var(--color-primary)" : "var(--color-bg-muted)",
-          color: done ? "#fff" : active ? "var(--color-primary-foreground)" : "var(--color-text-muted)",
-        }}
-      >
-        {done ? <Check size={13} /> : n}
-      </span>
-      <span style={{ font: "var(--text-small)", fontWeight: active ? 600 : 400, color: active || done ? "var(--color-text-primary)" : "var(--color-text-muted)" }}>
-        {label}
-      </span>
-    </div>
-  );
-
-  const step = paymentStatus === "selecting" ? (selectedNetwork ? 2 : 1) : 3;
-
   return (
-    <div style={{ minHeight: "100vh", background: "var(--color-bg-canvas)", fontFamily: "var(--jx-font)", color: "var(--color-text-primary)" }}>
-      <div style={{ maxWidth: 920, margin: "0 auto", padding: "28px 16px 96px" }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-6)" }}>
-          <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => router.push("/pricing")} aria-label="Back" style={{ padding: 9 }}>
+    <div className={c.page}>
+      <div className={c.wrap}>
+        {/* header */}
+        <header className={c.head}>
+          <button type="button" className={c.back} onClick={() => (window.history.length > 1 ? router.back() : router.push("/dashboard"))} aria-label="Back">
             <ArrowLeft size={18} />
           </button>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ font: "var(--text-h3)", fontWeight: 600 }}>Complete your payment</span>
-            <span style={{ font: "var(--text-small)", ...muted }}>Pay with USDT, fast, low fees, no card needed.</span>
+          <div>
+            <h1>Pay with USDT</h1>
+            <p>{getPlanDisplayName()} · {planData.amount} USDT</p>
           </div>
-        </div>
+        </header>
 
-        {/* Steps */}
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", flexWrap: "wrap", marginBottom: "var(--space-6)" }}>
-          <Step n={1} label="Choose network" active={step === 1} done={step > 1} />
-          <span style={{ flex: 1, height: 1, minWidth: 16, background: "var(--color-border)" }} />
-          <Step n={2} label="Send USDT" active={step === 2} done={step > 2} />
-          <span style={{ flex: 1, height: 1, minWidth: 16, background: "var(--color-border)" }} />
-          <Step n={3} label="Verify" active={step === 3} done={paymentStatus === "success"} />
-        </div>
+        {/* stepper */}
+        <ol className={c.steps} aria-label="Checkout steps">
+          {["Network", "Send USDT", "Verify"].map((l, i) => {
+            const n = i + 1;
+            const done = n < stepIdx || paymentStatus === "success";
+            const active = n === stepIdx && paymentStatus !== "success";
+            return (
+              <li key={l} data-done={done || undefined} data-active={active || undefined} aria-current={active ? "step" : undefined}>
+                <span>{done ? <Check size={13} /> : n}</span>{l}
+              </li>
+            );
+          })}
+        </ol>
 
-        {errorMessage && paymentStatus !== "processing" && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              display: "flex", alignItems: "center", gap: 8, marginBottom: "var(--space-4)",
-              padding: "12px 16px", borderRadius: "var(--radius-md)",
-              background: "var(--color-danger-subtle)", border: "1px solid var(--color-danger)",
-              color: "var(--color-danger-strong)", font: "var(--text-small)",
-            }}
-          >
-            <AlertCircle size={16} /> {errorMessage}
-          </motion.div>
-        )}
-
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 320px", gap: "var(--space-5)", alignItems: "start" }} className="cb-grid">
-          {/* LEFT, network + deposit */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
-            <div style={card}>
-              <div style={{ font: "var(--text-title)", fontWeight: 600, marginBottom: 4 }}>Select network</div>
-              <div style={{ font: "var(--text-small)", ...muted, marginBottom: "var(--space-4)" }}>
-                Choose the blockchain you&apos;ll send USDT on. Sending on the wrong network can lose your funds.
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "var(--space-3)" }}>
-                {NETWORKS.map((n) => {
-                  const on = selectedNetwork === n.id;
-                  return (
-                    <button
-                      key={n.id}
-                      type="button"
-                      onClick={() => setSelectedNetwork(n.id)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 10, textAlign: "left",
-                        padding: "12px 14px", borderRadius: "var(--radius-md)", cursor: "pointer",
-                        background: on ? "var(--color-primary-subtle)" : "var(--color-bg-surface)",
-                        border: `1.5px solid ${on ? "var(--color-primary)" : "var(--color-border)"}`,
-                        color: "var(--color-text-primary)", transition: "all .15s ease",
-                      }}
-                    >
-                      <NetworkBadge n={n} />
-                      <span style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
-                        <span style={{ font: "var(--text-body-md)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n.name}</span>
-                        <span style={{ font: "var(--text-caption)", ...muted }}>{n.tag}</span>
-                      </span>
-                      {on && <Check size={16} style={{ color: "var(--yellow-500)", flexShrink: 0 }} />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {selectedNetwork && (
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  style={card}
-                >
-                  <div style={{ font: "var(--text-title)", fontWeight: 600, marginBottom: "var(--space-4)" }}>
-                    Send <span style={{ color: "var(--yellow-600)" }}>{planData.amount} USDT</span> to this address
+        <div className={c.grid}>
+          <main className={c.main}>
+            <AnimatePresence mode="wait">
+              {/* ---------- 1. network ---------- */}
+              {paymentStatus === "selecting" && stage === "network" && (
+                <motion.section key="network" className={c.card} {...fade} aria-labelledby="cb-net">
+                  <h2 id="cb-net">Choose a network</h2>
+                  <p className={c.lead}>Use the same network in your wallet or exchange when you withdraw. Sending on a different network loses the funds.</p>
+                  <div className={c.nets} role="radiogroup" aria-labelledby="cb-net">
+                    {NETWORKS.map((n) => (
+                      <button key={n.id} type="button" role="radio" aria-checked={selectedNetwork === n.id} className={c.net} onClick={() => { setSelectedNetwork(n.id); setTxHash(""); }}>
+                        <Badge n={n} size={40} />
+                        <span className={c.netTxt}>
+                          <b>{n.name} <i>{n.tag}</i></b>
+                          <small>{n.fee} · {n.speed}</small>
+                        </span>
+                        {n.hint && <em className={c.netHint}>{n.hint}</em>}
+                        <span className={c.radio} aria-hidden="true" />
+                      </button>
+                    ))}
                   </div>
+                  <div className={c.actions}>
+                    <button type="button" className={c.primary} disabled={!selectedNetwork} onClick={() => setStage("send")}>
+                      Continue <ArrowRight size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                </motion.section>
+              )}
 
-                  <div style={{ display: "flex", gap: "var(--space-5)", alignItems: "center", flexWrap: "wrap" }}>
-                    {/* Currency / network logo */}
-                    {selectedNetworkData && (
-                      <div
-                        style={{
-                          flexShrink: 0, width: 150, height: 150, borderRadius: "var(--radius-lg)",
-                          background: `${selectedNetworkData.color}14`,
-                          border: `1px solid ${selectedNetworkData.color}33`,
-                          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 64, height: 64, borderRadius: "50%",
-                            background: `${selectedNetworkData.color}22`, color: selectedNetworkData.color,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            font: "800 18px var(--jx-font)",
-                          }}
-                        >
-                          {selectedNetworkData.symbol}
-                        </span>
-                        <span style={{ font: "var(--text-body-md)", fontWeight: 600, color: "var(--color-text-primary)" }}>USDT</span>
-                        <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)" }}>
-                          on {selectedNetworkData.tag}
-                        </span>
-                      </div>
-                    )}
+              {/* ---------- 2. send ---------- */}
+              {paymentStatus === "selecting" && stage === "send" && net && (
+                <motion.section key="send" className={c.card} {...fade} aria-labelledby="cb-send">
+                  <div className={c.cardTop}>
+                    <h2 id="cb-send">Send exactly {planData.amount} USDT</h2>
+                    <button type="button" className={c.link} onClick={() => setStage("network")}>Change network</button>
+                  </div>
+                  <div className={c.netPill}><TokenMark n={net} size={30} /><span><b>USDT</b> on {net.name} <i>{net.tag}</i></span></div>
 
-                    <div style={{ flex: 1, minWidth: 220, display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", ...muted }}>
-                        <NetworkBadge n={selectedNetworkData} size={22} />
-                        USDT on {selectedNetworkData?.name} ({selectedNetworkData?.tag})
-                      </div>
-                      <div
-                        style={{
-                          display: "flex", alignItems: "center", gap: 8,
-                          background: "var(--color-bg-muted)", border: "1px solid var(--color-border)",
-                          borderRadius: "var(--radius-md)", padding: "10px 12px",
-                        }}
-                      >
-                        <code style={{ flex: 1, font: "var(--text-caption)", wordBreak: "break-all", color: "var(--color-text-primary)" }}>
-                          {address}
-                        </code>
-                        <button
-                          className="jx-btn jx-btn--secondary jx-btn--sm"
-                          onClick={() => copyToClipboard(address)}
-                          style={{ flexShrink: 0, padding: 8 }}
-                          aria-label="Copy address"
-                        >
-                          {copiedAddress ? <Check size={15} style={{ color: "var(--color-success)" }} /> : <Copy size={15} />}
-                        </button>
-                      </div>
-
-                      <div
-                        style={{
-                          display: "flex", flexDirection: "column", gap: 8,
-                          background: "var(--color-danger-subtle)",
-                          border: "1px solid var(--color-danger)",
-                          borderRadius: "var(--radius-md)", padding: "12px 14px",
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", fontWeight: 700, color: "var(--color-danger-strong)" }}>
-                          <AlertCircle size={15} style={{ flexShrink: 0 }} /> Read before sending, transfers are irreversible
+                  <div className={c.sendGrid}>
+                    <div className={c.qr}>
+                      <QRCodeSVG value={address} size={168} level="M" marginSize={1} bgColor="#ffffff" fgColor="#0b0b0c" title={`Deposit address on ${net.name}`} />
+                      <small>Scan with your wallet</small>
+                    </div>
+                    <div className={c.fields}>
+                      <div className={c.field}>
+                        <span className={c.lbl}>Amount</span>
+                        <div className={c.copyRow}>
+                          <b className={c.amount}>{planData.amount} <small>USDT</small></b>
+                          <button type="button" className={c.copyBtn} onClick={() => copy(String(planData.amount), "amount")} aria-label="Copy amount">
+                            {copied === "amount" ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
+                          </button>
                         </div>
-                        <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 5 }}>
-                          <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                            Send <strong>USDT only</strong> on the <strong>{selectedNetworkData?.name} ({selectedNetworkData?.tag})</strong> network. Any other coin or network will be permanently lost.
-                          </li>
-                          <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                            Send <strong>at least {planData.amount} USDT</strong>, you cover the network fee, so the amount we receive must equal {planData.amount} USDT.
-                          </li>
-                          <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                            <strong>Double-check the full address</strong>, copy it with the button, don&apos;t type it by hand.
-                          </li>
-                          <li style={{ font: "var(--text-caption)", color: "var(--color-text-secondary)" }}>
-                            Sent to the wrong address or network? It cannot be recovered or refunded.
-                          </li>
-                        </ul>
+                        <small className={c.help}>Add the network fee on top, so we receive the full {planData.amount} USDT.</small>
+                      </div>
+                      <div className={c.field}>
+                        <span className={c.lbl}>Deposit address</span>
+                        <div className={`${c.copyRow} ${c.addrRow}`}>
+                          <code className={c.addr}>{address}</code>
+                          <button type="button" className={c.copyBtn} onClick={() => copy(address, "address")} aria-label="Copy address">
+                            {copied === "address" ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
+                          </button>
+                        </div>
+                        <small className={c.help}>Check the first and last 4 characters after pasting: <b>{address.slice(0, 4)}…{address.slice(-4)}</b></small>
                       </div>
                     </div>
                   </div>
 
-                  {paymentStatus === "selecting" && (
-                    <motion.button
-                      className="jx-btn jx-btn--primary"
-                      onClick={handleProceedToPay}
-                      whileTap={{ scale: 0.98 }}
-                      style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-5)" }}
-                    >
-                      <Zap size={17} /> I&apos;ve sent the payment
-                    </motion.button>
+                  <fieldset className={c.checks}>
+                    <legend>Before you send</legend>
+                    <label>
+                      <input className={c.cb} type="checkbox" checked={checks.net} onChange={(e) => setChecks((s) => ({ ...s, net: e.target.checked }))} />
+                      <span>I&apos;m sending <b>USDT</b> on <b>{net.name} ({net.tag})</b>, not another coin or network</span>
+                    </label>
+                    <label>
+                      <input className={c.cb} type="checkbox" checked={checks.amt} onChange={(e) => setChecks((s) => ({ ...s, amt: e.target.checked }))} />
+                      <span>I&apos;m sending at least <b>{planData.amount} USDT</b> after fees</span>
+                    </label>
+                  </fieldset>
+
+                  <div className={c.actions}>
+                    <button type="button" className={c.primary} disabled={!checks.net || !checks.amt} onClick={() => { setErrorMessage(""); setStage("verify"); }}>
+                      I&apos;ve sent the payment <ArrowRight size={16} aria-hidden="true" />
+                    </button>
+                    {(!checks.net || !checks.amt) && <small className={c.gateHint}>Tick both checks above to continue</small>}
+                  </div>
+                </motion.section>
+              )}
+
+              {/* ---------- 3. verify ---------- */}
+              {paymentStatus === "selecting" && stage === "verify" && net && (
+                <motion.section key="verify" className={c.card} {...fade} aria-labelledby="cb-ver">
+                  <div className={c.cardTop}>
+                    <h2 id="cb-ver">Confirm your transfer</h2>
+                    <button type="button" className={c.link} onClick={() => setStage("send")}>Back to address</button>
+                  </div>
+                  <p className={c.lead}>Paste the transaction hash (TxID) from your wallet or exchange&apos;s withdrawal history. It lets us match your payment straight away.</p>
+
+                  <div className={c.field}>
+                    <label className={c.lbl} htmlFor="cb-tx">Transaction hash</label>
+                    <div className={`${c.txBox} ${txValid ? c.ok : ""} ${txBad ? c.bad : ""}`}>
+                      <input
+                        id="cb-tx"
+                        value={txHash}
+                        onChange={(e) => { setTxHash(e.target.value); setNoHash(false); }}
+                        placeholder={net.id === "trc20" ? "e.g. 3f9c…a71b" : net.id === "sol" ? "e.g. 5Gk2…9xQw" : "e.g. 0x3f9c…a71b"}
+                        spellCheck={false}
+                        autoComplete="off"
+                        aria-invalid={txBad || undefined}
+                        aria-describedby="cb-tx-help"
+                      />
+                      {txValid ? <CheckCircle2 size={18} className={c.okIco} aria-hidden="true" /> : (
+                        <button type="button" className={c.pasteBtn} onClick={pasteHash}><ClipboardPaste size={14} aria-hidden="true" /> Paste</button>
+                      )}
+                    </div>
+                    <small id="cb-tx-help" className={`${c.help} ${txBad ? c.badTxt : txValid ? c.okTxt : ""}`}>
+                      {txValid ? (
+                        <>Looks right for {net.tag}. <a href={`${EXPLORERS[net.id]}${txTrim}`} target="_blank" rel="noopener noreferrer">View on explorer <ExternalLink size={12} aria-hidden="true" /><span className={c.sr}>(opens in a new tab)</span></a></>
+                      ) : txBad ? `That doesn't look like a ${net.tag} hash. Expected ${rule.example}.` : `A ${net.tag} hash is ${rule.example}.`}
+                    </small>
+                  </div>
+
+                  <label className={c.skip}>
+                    <input className={c.cb} type="checkbox" checked={noHash} onChange={(e) => { setNoHash(e.target.checked); if (e.target.checked) setTxHash(""); }} />
+                    <span>I don&apos;t have the hash yet. Verify by amount and address (can take longer).</span>
+                  </label>
+
+                  {errorMessage && <p className={c.err} role="alert"><AlertCircle size={15} aria-hidden="true" /> {errorMessage}</p>}
+
+                  <div className={c.actions}>
+                    <button type="button" className={c.primary} disabled={!canSubmit} onClick={handleVerifyPayment}>
+                      <ShieldCheck size={16} aria-hidden="true" /> Verify payment
+                    </button>
+                    {!canSubmit && <small className={c.gateHint}>{txBad ? "Fix the hash above to continue" : "Paste a hash, or tick “I don’t have the hash yet”"}</small>}
+                  </div>
+                </motion.section>
+              )}
+
+              {/* ---------- processing ---------- */}
+              {paymentStatus === "processing" && (
+                <motion.section key="proc" className={c.card} {...fade} aria-live="polite">
+                  <div className={c.procHead}>
+                    <span className={c.scanner}><ShieldCheck size={22} aria-hidden="true" /></span>
+                    <div className={c.procTxt}>
+                      <h2>Checking for your transfer</h2>
+                      <p className={c.lead}>Keep this page open. Most {net?.tag} transfers confirm within a few minutes.</p>
+                    </div>
+                    <span className={c.timer}><Clock size={13} aria-hidden="true" /> {mmss}</span>
+                  </div>
+                  <div className={c.bar}><i style={{ width: `${Math.max(4, Math.min(100, ((300 - processingTime) / 300) * 100))}%` }} /></div>
+                  <ul className={c.status}>
+                    <li data-done={!!cryptoOrderId || undefined} data-active={!cryptoOrderId || undefined}>
+                      <span>{cryptoOrderId ? <Check size={13} /> : <Loader2 size={13} className={c.spin} />}</span>
+                      <div><b>Order created</b>{cryptoOrderId && <small>Ref {short(String(cryptoOrderId))}</small>}</div>
+                    </li>
+                    <li data-done={(cryptoOrderId && txValid) || undefined}>
+                      <span>{txValid ? <Check size={13} /> : <i />}</span>
+                      <div><b>{txValid ? "Transaction hash attached" : "Matching by amount and address"}</b><small>{txValid ? short(txTrim) : `${planData.amount} USDT to ${short(address)}`}</small></div>
+                    </li>
+                    <li data-active={!!cryptoOrderId || undefined}>
+                      <span>{cryptoOrderId ? <Loader2 size={13} className={c.spin} /> : <i />}</span>
+                      <div><b>Waiting for network confirmation</b><small>We check again every 10 seconds</small></div>
+                    </li>
+                    <li>
+                      <span><i /></span>
+                      <div><b>Activate {getPlanDisplayName()}</b><small>Happens automatically once confirmed</small></div>
+                    </li>
+                  </ul>
+                  {txValid && (
+                    <a className={c.explorer} href={`${EXPLORERS[net.id]}${txTrim}`} target="_blank" rel="noopener noreferrer">
+                      Track it on the explorer <ExternalLink size={13} aria-hidden="true" /><span className={c.sr}>(opens in a new tab)</span>
+                    </a>
                   )}
-                </motion.div>
+                </motion.section>
               )}
-            </AnimatePresence>
 
-            {/* Failed / success inline (when modal closed) */}
-            <AnimatePresence>
+              {/* ---------- failed ---------- */}
               {paymentStatus === "failed" && (
-                <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} style={card}>
-                  <div style={{ display: "flex", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
-                    <AlertCircle size={28} style={{ color: "var(--color-danger)", flexShrink: 0 }} />
-                    <div>
-                      <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Payment not detected yet</div>
-                      <div style={{ font: "var(--text-small)", ...muted }}>
-                        {errorMessage || "We couldn't verify your payment in time. If you've already sent it, contact us and we'll activate your plan."}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-                    <button className="jx-btn jx-btn--secondary" onClick={() => { setPaymentStatus("selecting"); setErrorMessage(""); }}>
-                      <RefreshCw size={15} /> Try again
+                <motion.section key="fail" className={`${c.card} ${c.failCard}`} {...fade} role="alert">
+                  <AlertCircle size={28} className={c.failIco} aria-hidden="true" />
+                  <h2>We haven&apos;t seen your payment yet</h2>
+                  <p className={c.lead}>{errorMessage || "Confirmations can be slow on busy networks. If you've sent it, your order is saved and we'll activate your plan as soon as it lands, or contact us with your transaction hash."}</p>
+                  <div className={c.actions}>
+                    <button type="button" className={c.secondary} onClick={() => { setPaymentStatus("selecting"); setStage("verify"); setErrorMessage(""); }}>
+                      <RefreshCw size={15} aria-hidden="true" /> Check again
                     </button>
-                    <button className="jx-btn jx-btn--outline" onClick={() => router.push("/contact")}>
-                      <Mail size={15} /> Contact support
-                    </button>
+                    <a className={c.secondary} href={`mailto:support@journalx.app?subject=${encodeURIComponent("Crypto payment check")}&body=${encodeURIComponent(`Order: ${cryptoOrderId || "n/a"}\nNetwork: ${net?.tag || ""}\nTx hash: ${txTrim || "n/a"}\n`)}`}>
+                      <Mail size={15} aria-hidden="true" /> Email support
+                    </a>
                   </div>
-                </motion.div>
+                </motion.section>
+              )}
+
+              {/* ---------- success (redirect follows) ---------- */}
+              {paymentStatus === "success" && (
+                <motion.section key="ok" className={`${c.card} ${c.okCard}`} {...fade} role="status">
+                  <CheckCircle2 size={40} className={c.okBig} aria-hidden="true" />
+                  <h2>Payment confirmed</h2>
+                  <p className={c.lead}>Your {getPlanDisplayName()} is active. Taking you to your dashboard…</p>
+                </motion.section>
               )}
             </AnimatePresence>
-          </div>
+          </main>
 
-          {/* RIGHT, order summary */}
-          <div style={{ ...card, position: "sticky", top: 20 }}>
-            <div style={{ font: "var(--text-caption)", textTransform: "uppercase", letterSpacing: 0.5, ...muted, marginBottom: "var(--space-3)" }}>
-              Order summary
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
-              <span style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Wallet size={20} />
-              </span>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{getPlanDisplayName()}</span>
-                <span style={{ font: "var(--text-caption)", ...muted }}>
-                  {planData.period === "lifetime" ? "One-time payment · never expires" : `Billed ${planData.period}`}
-                </span>
+          {/* summary */}
+          <aside className={c.summary} aria-label="Order summary">
+            <span className={c.sumLbl}>Order summary</span>
+            <div className={c.sumPlan}>
+              <span className={c.sumIco}><Wallet size={18} aria-hidden="true" /></span>
+              <div>
+                <b>{getPlanDisplayName()}</b>
+                <small>{planData.period === "lifetime" ? "One-time payment · never expires" : `Billed ${planData.period}`}</small>
               </div>
             </div>
-
-            <div style={{ height: 1, background: "var(--color-border)", margin: "var(--space-4) 0" }} />
-
-            <div style={{ display: "flex", justifyContent: "space-between", font: "var(--text-small)", marginBottom: 8 }}>
-              <span style={muted}>Subtotal</span>
-              <span>{planData.amount} USDT</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", font: "var(--text-small)", marginBottom: "var(--space-4)" }}>
-              <span style={muted}>Network fee</span>
-              <span style={muted}>Paid by you</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <span style={{ font: "var(--text-body-md)", fontWeight: 600 }}>Total</span>
-              <span style={{ font: "var(--text-h3)", fontWeight: 700, color: "var(--color-success-strong)" }}>{planData.amount} USDT</span>
-            </div>
-
-            {planData.period === "lifetime" && (
-              <div style={{ display: "flex", gap: 8, marginTop: "var(--space-4)", padding: "10px 12px", background: "var(--color-success-subtle)", borderRadius: "var(--radius-md)" }}>
-                <Check size={15} style={{ color: "var(--color-success-strong)", flexShrink: 0, marginTop: 2 }} />
-                <span style={{ font: "var(--text-caption)", color: "var(--color-success-strong)" }}>
-                  Includes all current and future features, forever.
-                </span>
-              </div>
-            )}
-
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "var(--space-5)", font: "var(--text-caption)", ...muted }}>
-              <ShieldCheck size={15} style={{ color: "var(--color-success)" }} /> Secured & verified on-chain
-            </div>
-          </div>
+            <dl className={c.sumRows}>
+              <div><dt>Network</dt><dd>{net ? `${net.name} (${net.tag})` : "Not chosen"}</dd></div>
+              <div><dt>Network fee</dt><dd>Paid by you</dd></div>
+              <div className={c.sumTotal}><dt>Total</dt><dd>{planData.amount} USDT</dd></div>
+            </dl>
+            <ul className={c.sumNotes}>
+              <li><ShieldCheck size={14} aria-hidden="true" /> Verified on-chain against your order</li>
+              <li><Check size={14} aria-hidden="true" /> Plan activates automatically</li>
+            </ul>
+          </aside>
         </div>
       </div>
-
-      {/* ===== Modal ===== */}
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            className="jx-modal-overlay jx-modal-overlay--blur"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget && (paymentStatus === "waiting" || paymentStatus === "confirming")) {
-                setShowModal(false);
-                setPaymentStatus("selecting");
-                setErrorMessage("");
-              }
-            }}
-          >
-            <motion.div
-              className="jx-ltmodal jx-ltmodal--narrow"
-              style={{ width: "min(480px, 96vw)", padding: "var(--space-6)" }}
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            >
-              {paymentStatus === "waiting" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                    <span style={{ width: 56, height: 56, borderRadius: "50%", border: "3px solid var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", font: "700 16px var(--jx-font)", flexShrink: 0 }}>
-                      {confirmTimer}s
-                    </span>
-                    <div>
-                      <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Confirm your transfer</div>
-                      <div style={{ font: "var(--text-small)", ...muted }}>Make sure you&apos;ve sent {planData.amount} USDT to the address.</div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--color-bg-muted)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", padding: "10px 12px" }}>
-                    <code style={{ flex: 1, font: "var(--text-caption)", wordBreak: "break-all" }}>{address}</code>
-                    <button className="jx-btn jx-btn--secondary jx-btn--sm" onClick={() => copyToClipboard(address)} style={{ padding: 8 }}>
-                      {copiedAddress ? <Check size={15} style={{ color: "var(--color-success)" }} /> : <Copy size={15} />}
-                    </button>
-                  </div>
-                  <button
-                    className="jx-btn jx-btn--secondary"
-                    style={{ width: "100%", justifyContent: "center" }}
-                    onClick={() => { setShowModal(false); setPaymentStatus("selecting"); setErrorMessage(""); }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-
-              {paymentStatus === "confirming" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", textAlign: "center", alignItems: "center" }}>
-                  <span style={{ width: 60, height: 60, borderRadius: "50%", background: "var(--color-primary-subtle)", color: "var(--yellow-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <ShieldCheck size={28} />
-                  </span>
-                  <div>
-                    <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Ready to verify</div>
-                    <div style={{ font: "var(--text-small)", ...muted, maxWidth: 320 }}>
-                      We&apos;ll check the blockchain and confirm your deposit. This can take a few minutes.
-                    </div>
-                  </div>
-                  <button className="jx-btn jx-btn--primary" style={{ width: "100%", justifyContent: "center" }} onClick={handleVerifyPayment}>
-                    <Shield size={17} /> Verify payment
-                  </button>
-                  <button
-                    className="jx-btn jx-btn--ghost jx-btn--sm"
-                    onClick={() => { setShowModal(false); setPaymentStatus("selecting"); setErrorMessage(""); }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-
-              {paymentStatus === "processing" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
-                  {/* header: animated scanner + live timer */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-                    <span className="cb-scanner">
-                      <ShieldCheck size={22} />
-                    </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ font: "var(--text-title)", fontWeight: 600 }}>Verifying your payment</div>
-                      <div style={{ font: "var(--text-small)", ...muted }}>
-                        Securely confirming your USDT transfer on {selectedNetworkData?.name || "the blockchain"}.
-                      </div>
-                    </div>
-                    <span
-                      style={{
-                        flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6,
-                        padding: "4px 10px", borderRadius: 999, background: "var(--color-bg-muted)",
-                        font: "var(--text-caption)", fontWeight: 600, fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      <Clock size={13} style={{ ...muted }} />
-                      {Math.floor(processingTime / 60)}:{(processingTime % 60).toString().padStart(2, "0")}
-                    </span>
-                  </div>
-
-                  {/* overall progress bar (elapsed / 5 min) */}
-                  <div style={{ height: 5, background: "var(--color-bg-muted)", borderRadius: 999, overflow: "hidden" }}>
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${Math.max(4, Math.min(100, ((300 - processingTime) / 300) * 100))}%`,
-                        background: "linear-gradient(90deg, var(--color-primary), var(--color-success))",
-                        transition: "width 1s linear",
-                      }}
-                    />
-                  </div>
-
-                  {/* staged verification checklist */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    {VERIFY_STEPS.map((st, i) => {
-                      const done = i < verifyStage;
-                      const active = i === verifyStage;
-                      const label = st.label.replace("{network}", selectedNetworkData?.name || "the network");
-                      return (
-                        <div
-                          key={st.key}
-                          style={{
-                            display: "flex", alignItems: "center", gap: 12, padding: "9px 4px",
-                            opacity: done || active ? 1 : 0.45, transition: "opacity .3s ease",
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              background: done ? "var(--color-success)" : active ? "var(--color-primary-subtle)" : "var(--color-bg-muted)",
-                            }}
-                          >
-                            {done ? (
-                              <Check size={14} style={{ color: "#fff" }} />
-                            ) : active ? (
-                              <Loader2 size={14} className="jx-spin" style={{ color: "var(--yellow-500)" }} />
-                            ) : (
-                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-text-muted)" }} />
-                            )}
-                          </span>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ font: "var(--text-body-md)", fontWeight: active ? 600 : 500, color: done || active ? "var(--color-text-primary)" : "var(--color-text-muted)" }}>
-                              {label}
-                            </div>
-                            {active && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                style={{ font: "var(--text-caption)", ...muted, overflow: "hidden" }}
-                              >
-                                {st.sub}
-                                <span className="cb-dots"><span>.</span><span>.</span><span>.</span></span>
-                              </motion.div>
-                            )}
-                          </div>
-                          {done && (
-                            <span style={{ flexShrink: 0, font: "var(--text-caption)", color: "var(--color-success-strong)", fontWeight: 600 }}>
-                              Done
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div style={{ height: 1, background: "var(--color-border)" }} />
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, font: "var(--text-caption)", ...muted }}>
-                    <Shield size={14} style={{ color: "var(--color-success)" }} /> Verification is automatic, please keep this page open. It can take a few minutes.
-                  </div>
-                  {errorMessage && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--color-danger-subtle)", borderRadius: "var(--radius-md)", font: "var(--text-caption)", color: "var(--color-danger-strong)" }}>
-                      <AlertCircle size={14} /> {errorMessage}
-                    </div>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* success inline (in case redirect is delayed) */}
-      <AnimatePresence>
-        {paymentStatus === "success" && (
-          <motion.div
-            className="jx-modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <motion.div className="jx-ltmodal jx-ltmodal--narrow" style={{ width: "min(420px, 96vw)", padding: "var(--space-8)", textAlign: "center" }} initial={{ scale: 0.95 }} animate={{ scale: 1 }}>
-              <CheckCircle2 size={48} style={{ color: "var(--color-success)", margin: "0 auto" }} />
-              <div style={{ font: "var(--text-h3)", fontWeight: 700, marginTop: "var(--space-3)" }}>Payment confirmed!</div>
-              <div style={{ font: "var(--text-body)", ...muted, marginTop: 6 }}>
-                Your {getPlanDisplayName()} subscription is now active.
-              </div>
-              <button className="jx-btn jx-btn--primary" style={{ marginTop: "var(--space-5)", width: "100%", justifyContent: "center" }} onClick={() => router.push("/accounts")}>
-                Go to dashboard
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <style jsx global>{`
-        .jx-spin { animation: jx-spin 0.9s linear infinite; }
-        @keyframes jx-spin { to { transform: rotate(360deg); } }
-
-        /* pulsing radar scanner used in the verification modal */
-        .cb-scanner {
-          position: relative;
-          width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-          background: var(--color-primary-subtle); color: var(--yellow-500);
-        }
-        .cb-scanner::before, .cb-scanner::after {
-          content: ""; position: absolute; inset: 0; border-radius: 50%;
-          border: 2px solid var(--color-primary); opacity: 0;
-          animation: cb-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-        .cb-scanner::after { animation-delay: 0.9s; }
-        @keyframes cb-ping {
-          0% { transform: scale(1); opacity: 0.6; }
-          100% { transform: scale(1.85); opacity: 0; }
-        }
-
-        /* animated "..." after the active step's subtitle */
-        .cb-dots span { animation: cb-blink 1.4s infinite both; }
-        .cb-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .cb-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes cb-blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
-
-        @media (max-width: 760px) {
-          .cb-grid { grid-template-columns: 1fr !important; }
-          .cb-grid > div:last-child { position: static !important; }
-        }
-      `}</style>
     </div>
   );
 }

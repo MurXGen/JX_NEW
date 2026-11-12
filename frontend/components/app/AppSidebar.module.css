@@ -229,3 +229,57 @@
   .profile, .profileGear { transition: none; }
   .profile:hover .profileGear { transform: none; }
 }
+
+/* ---- plan card (glass): usage on Free, or a lapsing Pro plan ---- */
+.plan {
+  --tone: #fcd535; --tone-soft: rgba(252, 213, 53, 0.14);
+  position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px; margin: 2px 0 4px; border-radius: 14px; overflow: hidden;
+  background:
+    radial-gradient(140% 90% at 100% 0%, var(--tone-soft), rgba(0, 0, 0, 0) 60%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px -14px rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+}
+.plan::before { content: ""; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, var(--tone), transparent); opacity: 0.55; }
+.plan[data-tone="warn"] { --tone: #f0b90b; --tone-soft: rgba(240, 185, 11, 0.18); }
+.plan[data-tone="alert"] { --tone: #f6465d; --tone-soft: rgba(246, 70, 93, 0.16); border-color: rgba(246, 70, 93, 0.28); }
+.planHead { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.planHead b { font-size: 13px; font-weight: 600; color: var(--ink, #f5f6f8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.planIco { flex: none; width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; color: #fcd535; background: rgba(252, 213, 53, 0.12); border: 1px solid rgba(252, 213, 53, 0.25); }
+.plan[data-tone="alert"] .planIco { color: #f6465d; background: rgba(246, 70, 93, 0.12); border-color: rgba(246, 70, 93, 0.3); }
+.planMeter { display: flex; flex-direction: column; gap: 5px; }
+.planBar { height: 6px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5); }
+.planBar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(180deg, #ffe680, #fcd535 50%, #e0a800); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+.plan[data-tone="alert"] .planBar i { background: linear-gradient(180deg, #ff8a98, #f6465d); }
+.planCount { font-size: 11.5px; color: var(--muted, #9aa1ad); font-variant-numeric: tabular-nums; }
+.planCount b { color: var(--ink, #f5f6f8); font-weight: 600; }
+.planSub { font-size: 11.5px; line-height: 1.4; color: var(--muted, #9aa1ad); }
+.planCta {
+  width: 100%; min-height: 34px; border-radius: 10px; cursor: pointer; border: 0;
+  background: #fcd535; color: #0b0b0c; font: 600 12.5px "Poppins", sans-serif; box-shadow: 0 6px 18px -8px rgba(252, 213, 53, 0.6);
+}
+.planCta:hover { background: #ffde55; }
+.planCta:focus-visible, .planRing:focus-visible { outline: 2px solid #9aa1ad; outline-offset: 2px; }
+
+/* collapsed sidebar: progress ring around a crown */
+.planRing {
+  --c: #fcd535;
+  width: 40px; height: 40px; margin: 2px auto; border-radius: 50%; display: grid; place-items: center; cursor: pointer; border: 0; color: var(--c);
+  background:
+    radial-gradient(closest-side, #141417 78%, transparent 80% 100%),
+    conic-gradient(var(--c) var(--pct), rgba(255, 255, 255, 0.1) 0);
+}
+.planRing[data-tone="alert"] { --c: #f6465d; }
+
+:global([data-theme="light"]) .plan {
+  background: radial-gradient(140% 90% at 100% 0%, var(--tone-soft), rgba(255, 255, 255, 0) 60%), linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+  border-color: rgba(17, 19, 24, 0.08); box-shadow: inset 0 1px 0 #fff, 0 6px 18px -10px rgba(16, 24, 40, 0.25);
+}
+:global([data-theme="light"]) .planHead b, :global([data-theme="light"]) .planCount b { color: #111318; }
+:global([data-theme="light"]) .planIco { color: #9a7400; background: #fffbea; border-color: rgba(224, 168, 0, 0.35); }
+:global([data-theme="light"]) .planBar { background: rgba(17, 19, 24, 0.08); box-shadow: inset 0 1px 2px rgba(16, 24, 40, 0.1); }
+:global([data-theme="light"]) .planCount, :global([data-theme="light"]) .planSub { color: #5f6672; }
+:global([data-theme="light"]) .planRing { background: radial-gradient(closest-side, #ffffff 78%, transparent 80% 100%), conic-gradient(var(--c) var(--pct), rgba(17, 19, 24, 0.1) 0); }
+:global([data-theme="light"]) .planRing:not([data-tone="alert"]) { --c: #e0a800; }
+@media (prefers-reduced-motion: reduce) { .planBar i { transition: none; } }

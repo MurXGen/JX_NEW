@@ -207,6 +207,7 @@ export default function PlanLimitsCard() {
 
       {!isTop && (
         <div
+          className="jx-plan-up"
           style={{
             marginTop: "var(--space-4)",
             background: "var(--color-primary-subtle)",
@@ -233,7 +234,7 @@ export default function PlanLimitsCard() {
       )}
 
       {/* billing support — payment failed / debited but plan not reflecting */}
-      <div
+      <div className="jx-plan-help"
         style={{
           marginTop: "var(--space-4)",
           paddingTop: "var(--space-4)",

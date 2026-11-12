@@ -64,12 +64,13 @@ function Delta({ now, prev, invert = false, fmt }) {
   );
 }
 
-function Kpis({ s, prev, money, hasPrev }) {
+function Kpis({ s, prev, money, hasPrev, range }) {
+  const period = range === "ALL" ? "all time" : `last ${String(range).replace("D", "")} days`;
   const pf = Number.isFinite(s.profitFactor) ? s.profitFactor.toFixed(2) : "∞";
   return (
     <section className={o.kpis} aria-label="Key numbers">
       <div className={o.kpi}>
-        <div className={o.kpiLabel}>Net P&amp;L</div>
+        <div className={o.kpiLabel}>Net P&amp;L <span className={o.kpiPeriod}>· {period}</span></div>
         <div className={`${o.kpiValue} ${tone(s.net)}`}>{money.full(s.net, true)}</div>
         <div className={o.kpiFoot}>
           {hasPrev ? <><Delta now={s.net} prev={prev.net} fmt={(x) => money.short(x)} /> vs previous period</> : `${s.count} trades`}
@@ -651,6 +652,7 @@ export default function Overview({
   onLogTrade,
   onImport,
   onViewTrades,
+  banner = null,
 }) {
   const [range, setRange] = useState("30D");
   const [tab, setTabState] = useState("performance"); // default; the user's last pick is restored below
@@ -659,6 +661,15 @@ export default function Overview({
   }, []);
   const setTab = (v) => { setTabState(v); try { localStorage.setItem("jx-overview-tab", v); } catch {} };
   const tabRefs = useRef({});
+  // keep the selected tab fully visible in the sideways-scrolling row (phones)
+  useEffect(() => {
+    const el = tabRefs.current[tab];
+    const row = el?.parentElement;
+    if (!el || !row || row.scrollWidth <= row.clientWidth) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const left = row.scrollLeft + (el.getBoundingClientRect().left - row.getBoundingClientRect().left) - (row.clientWidth - el.offsetWidth) / 2;
+    row.scrollTo({ left: Math.max(0, left), behavior: reduce ? "auto" : "smooth" });
+  }, [tab]);
   const onTabKey = (e) => {
     const i = TABS.findIndex((x) => x.id === tab);
     let n = null;
@@ -677,9 +688,10 @@ export default function Overview({
   const sample = useMemo(() => (usingDummy ? buildSampleTrades() : null), [usingDummy]);
   const all = useMemo(() => {
     const src = sample || tradesProp;
-    return fxRate === 1 || sample ? src : src.map((t) => convertTrade(t, fxRate));
+    // sample data converts too, so Overview and Trades log always agree
+    return fxRate === 1 ? src : src.map((t) => convertTrade(t, fxRate));
   }, [sample, tradesProp, fxRate]);
-  const startBal = usingDummy ? 25000 : (Number(startingBalance) || 0) * fxRate;
+  const startBal = (usingDummy ? 25000 : Number(startingBalance) || 0) * fxRate;
 
   const sorted = useMemo(() => [...all].filter((t) => !Number.isNaN(tradeTime(t))).sort((a, b) => tradeTime(a) - tradeTime(b)), [all]);
   const { current, previous } = useMemo(() => sliceRange(sorted, range), [sorted, range]);
@@ -725,6 +737,8 @@ export default function Overview({
         </div>
       </header>
 
+      {banner}
+
       {usingDummy && (
         <div className={o.notice} role="note">
           <span className={o.noticeIcon} aria-hidden="true"><FlaskConical size={17} /></span>
@@ -761,7 +775,7 @@ export default function Overview({
       <div id="ov-panel" role="tabpanel" aria-labelledby={`ov-tab-${tab}`} className={o.panel}>
         {tab === "summary" && (
           <>
-            <Kpis s={s} prev={prev} money={money} hasPrev={previous.length > 0} />
+            <Kpis s={s} prev={prev} money={money} hasPrev={previous.length > 0} range={range} />
             {current.length ? (
               <>
                 <EquityCard eq={eq} startBalance={before} money={money} />
@@ -806,7 +820,7 @@ export default function Overview({
             only={LEGACY[tab]?.only || []}
             showStrip={!!LEGACY[tab]?.strip}
             trades={sample || tradesProp}
-            fxRate={sample ? 1 : fxRate}
+            fxRate={fxRate}
             currencySymbol={currencySymbol}
             userName={userName}
             usingDummy={usingDummy}

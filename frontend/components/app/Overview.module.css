@@ -886,3 +886,72 @@
 @media (max-width: 768px) {
   .head .headActions { width: auto !important; flex: 0 0 auto !important; margin-left: auto; }
 }
+
+/* period named next to Net P&L so it never reads as the all-time total */
+.kpiPeriod { font-weight: 400; color: var(--faint); }
+
+/* phones: the tab row scrolls sideways, fade its right edge so that's obvious */
+@media (max-width: 640px) {
+  .tabs {
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 32px), transparent);
+            mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 32px), transparent);
+    padding-right: 28px;
+  }
+}
+
+/* the legacy panel brings its own corner glow (wider than a phone); the page
+   already has one, so drop it when embedded */
+.legacy :global(.jx-overview-premium::before) { display: none; }
+
+/* ---- Capital growth v2: stats, ticked bar, 0 → 2× markers with tooltips ---- */
+.legacy :global(.jx-goal__tier.is-done) { color: #2ebd85; border-color: rgba(46, 189, 133, 0.3); background: rgba(46, 189, 133, 0.08); }
+.legacy :global(.jx-goal__tier.is-done svg) { color: #2ebd85; }
+.legacy :global(.jx-goal__big b) { font-size: 34px; }
+.legacy :global(.jx-goal__stats) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 2px 0 0; }
+.legacy :global(.jx-goal__stats > div) { min-width: 0; padding: 10px 12px; border-radius: 11px; background: var(--surface-2); border: 1px solid rgba(255, 255, 255, 0.05); }
+.legacy :global(.jx-goal__stats dt) { font-size: 11.5px; color: var(--muted); }
+.legacy :global(.jx-goal__stats dd) { margin: 2px 0 0; font-size: 15px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.legacy :global(.jx-goal__bar) { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 0 10px; }
+.legacy :global(.jx-goal__track) { height: 10px; margin-top: 0; overflow: visible; }
+.legacy :global(.jx-goal__fill) { border-radius: 999px; }
+.legacy :global(.jx-goal__tick) {
+  position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.legacy :global(.jx-goal__tick[data-done]) { background: rgba(11, 11, 12, 0.55); }
+.legacy :global(.jx-goal__marks) { position: relative; height: 26px; }
+.legacy :global(.jx-goal__mark) { position: absolute; top: 0; transform: translateX(-50%); }
+.legacy :global(.jx-goal__mark[data-edge="start"]) { transform: translateX(-30%); }
+.legacy :global(.jx-goal__mark[data-edge="end"]) { transform: translateX(-70%); }
+.legacy :global(.jx-goal__marks span:last-child) { transform: translateX(-70%); }
+.legacy :global(.jx-goal__mark button) {
+  display: inline-flex; align-items: center; gap: 3px; min-height: 24px; padding: 2px 6px; border-radius: 7px; cursor: help;
+  border: 1px solid transparent; background: transparent; color: var(--faint); font: 500 11.5px "Poppins", sans-serif; white-space: nowrap;
+}
+.legacy :global(.jx-goal__mark[data-done] button) { color: var(--ink-2); }
+.legacy :global(.jx-goal__mark button:hover), .legacy :global(.jx-goal__mark button:focus-visible) { color: var(--ink); border-color: var(--line-2); background: rgba(255, 255, 255, 0.04); outline: none; }
+.legacy :global(.jx-goal__note) { color: var(--muted); }
+@media (max-width: 640px) {
+  .legacy :global(.jx-goal__big b) { font-size: 28px; }
+  .legacy :global(.jx-goal__stats) { gap: 6px; }
+  .legacy :global(.jx-goal__stats > div) { padding: 9px 10px; }
+  .legacy :global(.jx-goal__stats dd) { font-size: 13.5px; }
+  .legacy :global(.jx-goal__bar) { padding: 0 6px; }
+  .legacy :global(.jx-goal__mark button) { padding: 2px 4px; font-size: 11px; }
+}
+.legacy :global(.jx-goal__mark > span), .legacy :global(.jx-goal__mark button span) { position: static !important; transform: none !important; }
+
+/* ---- light mode: titles use the ink token, and every card gets the same soft shadow ---- */
+.cardTitle { color: var(--ink); }
+:global([data-theme="light"]) .root {
+  --card-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 14px -6px rgba(16, 24, 40, 0.08);
+}
+:global([data-theme="light"]) .card,
+:global([data-theme="light"]) .kpis,
+:global([data-theme="light"]) .legacy :global(.jx-card),
+:global([data-theme="light"]) .root :global(.jx-card) {
+  box-shadow: var(--card-shadow) !important;
+}
+
+/* the Performance hero brought its own heavy shadow; match the other cards */
+:global([data-theme="light"]) .legacy :global(.jx-livestrip) { box-shadow: var(--card-shadow) !important; }

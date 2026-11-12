@@ -191,12 +191,15 @@ app.use((req, res) => {
 
 const { initTelegramWebhook } = require("./utils/telegramSetup");
 const { startOnboardingScheduler } = require("./jobs/onboardingReminders");
+const { startPaddleReconciler } = require("./controllers/paddleCon");
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🌐 Server running on http://localhost:${PORT}`);
   // Register the Telegram webhook so Mark-as-Paid/Failed buttons reach us.
   initTelegramWebhook();
+  // Re-run Paddle webhooks that failed, were cut off, or couldn't be matched yet.
+  startPaddleReconciler();
   // Start the onboarding-email drip (welcome + day 1 / 3 / 7 nudges).
   startOnboardingScheduler();
 });

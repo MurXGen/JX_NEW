@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown, Wallet, Calculator } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown, Wallet, Calculator, Camera, Lock } from "lucide-react";
 
 /* Settings sections, rendered as a left nav, one section at a time */
 const SETTINGS_TABS = [
@@ -25,6 +25,7 @@ import ExchangeSyncModal from "./ExchangeSyncModal";
 import PlanLimitsCard from "./PlanLimitsCard";
 import { useTheme } from "./Sidebar";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
+import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { backupToDrive, restoreFromDrive, isDriveConfigured } from "@/utils/driveBackup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -56,6 +57,23 @@ function Switch({ on, onChange, disabled }) {
       disabled={disabled}
       style={disabled ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
     />
+  );
+}
+
+/* one tappable row in the mobile Settings hub: icon tile, label (+ sub),
+   current value on the right, chevron */
+function MRow({ icon: Icon, label, sub, value, hint, gold, onClick, disabled }) {
+  return (
+    <button type="button" className="jx-ms__row" onClick={onClick} disabled={disabled}>
+      <span className={`jx-ms__ico ${gold ? "is-gold" : ""}`} aria-hidden="true"><Icon size={17} /></span>
+      <span className="jx-ms__txt">
+        <b>{label}</b>
+        {sub && <small>{sub}</small>}
+      </span>
+      {value && <span className="jx-ms__val">{value}</span>}
+      {hint && <span className="jx-ms__hint">{hint}</span>}
+      <ChevronRight size={16} className="jx-ms__chev" aria-hidden="true" />
+    </button>
   );
 }
 
@@ -94,41 +112,48 @@ function ReferAFriend({ userId }) {
   ];
 
   return (
-    <div className="jx-card">
-      <div className="jx-card__title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <Gift size={18} style={{ color: "var(--yellow-500)" }} /> Refer a friend
-      </div>
-      <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-3)" }}>
-        Invite traders to JournalX, they start free, no card required.
-      </div>
-
-      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}>
-        <div className="jx-input" style={{ flex: 1, minWidth: 220, height: 42 }}>
-          <input value={link} readOnly onFocus={(e) => e.target.select()} aria-label="Your referral link" />
+    <div className="jx-card jx-sub">
+      <div className="jx-sub__hero">
+        <span className="jx-sub__heroIco is-gold" aria-hidden="true"><Gift size={20} /></span>
+        <div>
+          <h3>Invite a trader to JournalX</h3>
+          <p>They start free with no card. Share your personal link below.</p>
         </div>
-        <Button variant="secondary" onClick={copy} icon={copied ? Check : Copy}>
-          {copied ? "Copied" : "Copy link"}
-        </Button>
-        {canNativeShare && (
-          <Button variant="primary" onClick={nativeShare} icon={Share2}>
-            Share
-          </Button>
-        )}
       </div>
 
-      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", marginTop: "var(--space-3)" }}>
-        {shareLinks.map((s) => (
-          <a
-            key={s.label}
-            href={s.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="jx-btn jx-btn--secondary jx-btn--sm"
-            style={{ textDecoration: "none" }}
-          >
-            <s.icon size={15} /> {s.label}
-          </a>
-        ))}
+      <ol className="jx-sub__steps">
+        <li><b>1</b><span>Share your link</span></li>
+        <li><b>2</b><span>They sign up free</span></li>
+        <li><b>3</b><span>They start journaling</span></li>
+      </ol>
+
+      <div className="jx-sub__field">
+        <span className="jx-sub__lbl" id="jx-ref-lbl">Your referral link</span>
+        <div className="jx-sub__link">
+          <input value={link} readOnly onFocus={(e) => e.target.select()} aria-labelledby="jx-ref-lbl" />
+          <button type="button" className={`jx-sub__copy ${copied ? "is-done" : ""}`} onClick={copy}>
+            {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
+      </div>
+
+      {canNativeShare && (
+        <button type="button" className="jx-btn jx-btn--primary jx-sub__wide" onClick={nativeShare}>
+          <Share2 size={15} aria-hidden="true" /> Share invite
+        </button>
+      )}
+
+      <div className="jx-sub__field">
+        <span className="jx-sub__lbl">Or send it on</span>
+        <div className="jx-sub__shares">
+          {shareLinks.map((x) => (
+            <a key={x.label} href={x.href} target="_blank" rel="noopener noreferrer">
+              <x.icon size={16} aria-hidden="true" /> {x.label}
+              <span className="jx-sr">(opens in a new tab)</span>
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -644,68 +669,88 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
       </aside>
       )}
 
-      {/* mobile: profile + subscription summary, then a tappable section list */}
-      {isMobile && !mobileSection && (
-        <div className="jx-settings__mlist">
-          <div className="jx-settings__mtitle" style={{ padding: "2px 0 4px" }}>Settings</div>
+      {/* mobile: grouped hub, each row shows its current value */}
+      {isMobile && !mobileSection && (() => {
+        const connectedN = Object.values(exchStatus.exchanges || {}).filter((x) => x?.connected).length;
+        const more = Object.fromEntries(MORE_LINKS.map((m) => [m.id, m]));
+        const go = (id) => onNavigate?.(id);
+        return (
+        <div className="jx-ms">
+          <h1 className="jx-ms__title">Settings</h1>
 
-          <div className="jx-settings__profilecard" onClick={() => openMobileSection("profile")}>
-            <Avatar url={avatarUrl} name={name} size={56} />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="jx-settings__mname">{name || "Your name"}</div>
-              <div className="jx-settings__memail">{user?.email || ""}</div>
-            </div>
-            <ChevronRight size={18} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
-          </div>
-
-          <TopControls journalName={activeJournalName} onSwitchJournal={onSwitchJournal} theme={theme} toggleTheme={toggleTheme} />
-
-          <button type="button" className="jx-settings__plancard" onClick={() => openMobileSection("billing")}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              {isTop && <Crown size={16} style={{ color: "var(--yellow-500)" }} />}
-              <span className="jx-settings__mname" style={{ font: "var(--text-body-md)", fontWeight: 600 }}>{planName} plan</span>
+          <button type="button" className="jx-ms__profile" onClick={() => openMobileSection("profile")}>
+            <Avatar url={avatarUrl} name={name} size={52} />
+            <span className="jx-ms__who">
+              <b>{name || "Your name"}</b>
+              <small>{user?.email || ""}</small>
+              <span className={`jx-ms__plan ${isTop ? "is-top" : ""}`}>
+                {isTop && <Crown size={11} aria-hidden="true" />} {planName}{subActive ? " · Active" : ""}
+              </span>
             </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <Badge variant={subActive ? "success" : "neutral"}>{subActive ? "Active" : "Free"}</Badge>
-              <ChevronRight size={16} style={{ color: "var(--color-text-muted)" }} />
-            </span>
+            <ChevronRight size={18} className="jx-ms__chev" aria-hidden="true" />
           </button>
 
-          <div className="jx-settings__group">
-            {mobileRows.map((t) => (
-              <button key={t.id} type="button" className="jx-settings__mrow" onClick={() => openMobileSection(t.id)}>
-                <t.icon size={18} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
-                <span style={{ flex: 1 }}>{t.label}</span>
-                <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
-              </button>
-            ))}
-          </div>
-
-          {(onNavigate || onSupport) && (
-            <div className="jx-settings__group">
-              {onNavigate && MORE_LINKS.map((m) => (
-                <button key={m.id} type="button" className="jx-settings__mrow" onClick={() => onNavigate(m.id)}>
-                  <m.icon size={18} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
-                  <span style={{ flex: 1 }}>{m.label}</span>
-                  <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
-                </button>
-              ))}
-              {onSupport && (
-                <button type="button" className="jx-settings__mrow" onClick={() => onSupport()}>
-                  <LifeBuoy size={18} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
-                  <span style={{ flex: 1 }}>Support &amp; feedback</span>
-                  <ChevronRight size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
-                </button>
-              )}
+          <section className="jx-ms__sec" aria-labelledby="jx-ms-journal">
+            <h2 id="jx-ms-journal">Journal</h2>
+            <div className="jx-ms__group">
+              <MRow icon={Wallet} label={activeJournalName || "Default journal"} sub="Active journal" onClick={onSwitchJournal} hint="Switch" disabled={!onSwitchJournal} />
+              <MRow icon={SlidersHorizontal} label="Trading preferences" value={baseCurrency} sub="Display currency, default journal, target" onClick={() => openMobileSection("preferences")} />
+              {onNavigate && <MRow icon={ArrowUpDown} label={more.importexport.label} sub="CSV in, CSV or JSON out" onClick={() => go("importexport")} />}
+              {onNavigate && <MRow icon={Share2} label={more.share.label} sub="A read-only link to your results" onClick={() => go("share")} />}
             </div>
+          </section>
+
+          <section className="jx-ms__sec" aria-labelledby="jx-ms-account">
+            <h2 id="jx-ms-account">Account</h2>
+            <div className="jx-ms__group">
+              <MRow icon={CreditCard} label="Plan & billing" value={`${planName}${subActive ? "" : " plan"}`} gold={isTop} onClick={() => openMobileSection("billing")} />
+              <MRow icon={Plug} label="Integrations" value={connectedN ? `${connectedN} connected` : exchStatus.pro ? "Not connected" : "Pro"} onClick={() => openMobileSection("integrations")} />
+              {driveReady && <MRow icon={CloudUpload} label="Backup & restore" value={lastBackup ? "Backed up" : "Never"} onClick={() => openMobileSection("backup")} />}
+              <MRow icon={Bell} label="Notifications" value="Soon" onClick={() => openMobileSection("notifications")} />
+            </div>
+          </section>
+
+          <section className="jx-ms__sec" aria-labelledby="jx-ms-look">
+            <h2 id="jx-ms-look">Appearance</h2>
+            <div className="jx-ms__group">
+              <div className="jx-ms__row is-static">
+                <span className="jx-ms__ico" aria-hidden="true"><Palette size={17} /></span>
+                <span className="jx-ms__txt"><b id="jx-ms-theme">Theme</b></span>
+                <div className="jx-ms__seg" role="radiogroup" aria-labelledby="jx-ms-theme">
+                  {["light", "dark"].map((t) => (
+                    <button key={t} type="button" role="radio" aria-checked={theme === t} onClick={() => theme !== t && toggleTheme()}>
+                      {t === "light" ? "Light" : "Dark"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {onNavigate && (
+            <section className="jx-ms__sec" aria-labelledby="jx-ms-tools">
+              <h2 id="jx-ms-tools">Tools &amp; learning</h2>
+              <div className="jx-ms__group">
+                <MRow icon={Calculator} label={more.tools.label} sub="Position size, R-multiple, P&L" onClick={() => go("tools")} />
+                <MRow icon={BookOpen} label={more.blogs.label} sub="Articles and focus games" onClick={() => go("blogs")} />
+              </div>
+            </section>
           )}
 
-          <button type="button" className="jx-settings__mrow jx-settings__mrow--danger" onClick={logout}>
-            <LogOut size={18} style={{ flexShrink: 0 }} />
-            <span style={{ flex: 1 }}>Log out</span>
+          <section className="jx-ms__sec" aria-labelledby="jx-ms-help">
+            <h2 id="jx-ms-help">Help</h2>
+            <div className="jx-ms__group">
+              {onSupport && <MRow icon={LifeBuoy} label="Support & feedback" onClick={() => onSupport()} />}
+              <MRow icon={Gift} label="Refer a friend" onClick={() => openMobileSection("refer")} />
+            </div>
+          </section>
+
+          <button type="button" className="jx-ms__logout" onClick={logout}>
+            <LogOut size={17} aria-hidden="true" /> Log out
           </button>
         </div>
-      )}
+        );
+      })()}
 
       {/* desktop content, or mobile drilled-in section (full screen) */}
       {(!isMobile || mobileSection) && (
@@ -724,164 +769,176 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
       )}
       {/* ===== Profile ===== */}
       {active === "profile" && (
-      <div className="jx-card">
-        <div className="jx-card__title" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-2)" }}>
-          <span>Profile</span>
-          <button
-            className="jx-btn jx-btn--outline jx-btn--sm jx-logout"
-            onClick={logout}
-          >
-            <LogOut size={15} /> Log out
+      <div className="jx-card jx-pf">
+        {/* identity: the avatar is the photo control, no separate photo row */}
+        <div className="jx-pf__hero">
+          <button type="button" className="jx-pf__avatar" onClick={() => setShowAvatar(true)} aria-label="Change profile photo">
+            <Avatar url={avatarUrl} name={name} size={72} />
+            <span className="jx-pf__cam" aria-hidden="true"><Camera size={13} /></span>
           </button>
-        </div>
-
-        {/* identity header, user details at a glance */}
-        <div className="jx-prof-hero">
-          <Avatar url={avatarUrl} name={name} size={56} />
-          <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-            <span style={{ font: "var(--text-h3)", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {name || "Your name"}
-            </span>
-            <span style={{ font: "var(--text-small)", color: "var(--color-text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {user?.email || ""}
+          <div className="jx-pf__who">
+            <b>{name || "Your name"}</b>
+            <small>{user?.email || ""}</small>
+            <span className={`jx-pf__plan ${isTop ? "is-top" : ""}`}>
+              {isTop && <Crown size={11} aria-hidden="true" />} {planName} plan{subActive ? " · Active" : ""}
             </span>
           </div>
+          {!isMobile && (
+            <button type="button" className="jx-btn jx-btn--outline jx-btn--sm jx-logout" onClick={logout}>
+              <LogOut size={15} /> Log out
+            </button>
+          )}
         </div>
+        <button type="button" className="jx-pf__photo" onClick={() => setShowAvatar(true)}>
+          <Upload size={14} aria-hidden="true" /> {avatarUrl ? "Change photo" : "Add a photo"}
+          <small>PNG or JPG, up to 2MB</small>
+        </button>
 
-        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>How you appear across JournalX.</div>
+        <form
+          className="jx-pf__form"
+          onSubmit={(e) => { e.preventDefault(); if (profileDirty && !savingProfile) saveProfile(); }}
+        >
+          <label className="jx-pf__field">
+            <span className="jx-pf__lbl">Display name <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+            <span className="jx-pf__input">
+              <User size={15} aria-hidden="true" />
+              <input value={name} placeholder="Your name" maxLength={60} required onChange={(e) => setName(e.target.value)} />
+            </span>
+            <span className="jx-pf__help">Shown on your shared reports</span>
+          </label>
 
-        <Row title="Profile photo" sub="PNG or JPG, up to 2MB">
-          <Avatar url={avatarUrl} name={name} />
-          <Button variant="secondary" size="sm" icon={Upload} onClick={() => setShowAvatar(true)}>
-            Upload
-          </Button>
-        </Row>
+          <label className="jx-pf__field">
+            <span className="jx-pf__lbl">Email</span>
+            <span className="jx-pf__input is-locked">
+              <Mail size={15} aria-hidden="true" />
+              <input value={user?.email || ""} disabled readOnly />
+              <Lock size={14} aria-hidden="true" />
+            </span>
+            <span className="jx-pf__help">Your login email can't be changed</span>
+          </label>
 
-        <Row title="Display name" sub="Shown on your shared reports">
-          <div className="jx-input" style={{ height: 38, width: 280, maxWidth: "100%" }}>
-            <input value={name} placeholder="Your name" onChange={(e) => setName(e.target.value)} />
+          <div className={`jx-pf__save ${profileDirty ? "is-dirty" : ""}`}>
+            <span className="jx-pf__state" aria-live="polite">{profileDirty ? "Unsaved changes" : "All changes saved"}</span>
+            {profileDirty && (
+              <button type="button" className="jx-btn jx-btn--ghost" onClick={() => setName(initialName || "")} disabled={savingProfile}>
+                Discard
+              </button>
+            )}
+            <button type="submit" className="jx-btn jx-btn--primary" disabled={savingProfile || !profileDirty} style={{ minWidth: 130 }}>
+              {savingProfile ? <><Spinner /> Saving…</> : "Save changes"}
+            </button>
           </div>
-        </Row>
-
-        <Row title="Email" sub="Login email can't be changed">
-          <div className="jx-input jx-input--disabled" style={{ height: 38, width: 280, maxWidth: "100%" }}>
-            <input value={user?.email || ""} disabled readOnly />
-          </div>
-        </Row>
-
-        <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "var(--space-3)" }}>
-          <button
-            className="jx-btn jx-btn--primary"
-            onClick={saveProfile}
-            disabled={savingProfile || !profileDirty}
-            style={{ minWidth: 130 }}
-          >
-            {savingProfile ? <><Spinner /> Saving…</> : "Save changes"}
-          </button>
-        </div>
+        </form>
       </div>
-
       )}
 
       {/* ===== Refer a friend ===== */}
       {active === "refer" && <ReferAFriend userId={user?._id || user?.id} />}
 
       {/* ===== Plan & billing ===== */}
-      {active === "billing" && <PlanLimitsCard />}
+      {active === "billing" && <div className="jx-sub-wrap"><PlanLimitsCard /></div>}
 
       {/* ===== Trading preferences ===== */}
       {active === "preferences" && (
-      <div className="jx-card">
-        <div className="jx-card__title">Trading preferences</div>
-        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Defaults applied to new trades and journals.</div>
-
-        <Row title="Default journal" sub="Where new trades are logged">
-          <div style={{ width: 220 }}>
-            <Dropdown
-              value={defaultJournal}
-              onChange={pickDefaultJournal}
-              label="Your journals"
-              placeholder="Pick a journal"
-              options={accounts.map((a) => ({ value: a._id, label: a.name }))}
-              triggerStyle={{ height: 38 }}
-            />
+      <div className="jx-card jx-sub jx-prefs">
+        <div className="jx-card__title jx-sub__dup">Trading preferences</div>
+        <div className="jx-sub__hero">
+          <span className="jx-sub__heroIco" aria-hidden="true"><SlidersHorizontal size={20} /></span>
+          <div>
+            <h3>Your trading defaults</h3>
+            <p>Where new trades go, which currency you see, and the goal you're working towards.</p>
           </div>
-        </Row>
+        </div>
 
-        <Row title="Display currency" sub="Converts dashboard & trades-log values for viewing. Each journal still stores its own currency.">
-          <div style={{ width: 130 }}>
-            <Dropdown
-              value={baseCurrency}
-              onChange={(v) => setBaseCurrency(v)}
-              options={CURRENCIES}
-              triggerStyle={{ height: 38 }}
-            />
-          </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              /* Display-only override (no DB). Dashboard converts journal→display
-                 at view time; journal balances stay in their own currency. */
-              localStorage.setItem("jx-display-currency", baseCurrency);
-              window.dispatchEvent(new CustomEvent("jx-currency-changed", { detail: baseCurrency }));
-              flash("success", `Dashboard now displays in ${baseCurrency}`);
-            }}
-          >
-            Apply
-          </Button>
-        </Row>
+        <div className="jx-pf__field">
+          <span className="jx-pf__lbl" id="jx-pref-journal">Default journal</span>
+          <Dropdown
+            value={defaultJournal}
+            onChange={pickDefaultJournal}
+            label="Your journals"
+            placeholder="Pick a journal"
+            options={accounts.map((a) => ({ value: a._id, label: a.name, hint: a.currency }))}
+            triggerStyle={{ height: 46 }}
+          />
+          <span className="jx-pf__help">New trades are logged here</span>
+        </div>
 
-        <Row title="Monthly target" sub="Your P&L goal, tracked on the dashboard goal card">
-          <div className="jx-input" style={{ height: 38, width: 140 }}>
-            <input
-              type="number"
-              placeholder="e.g. 15000"
-              value={monthlyTarget}
-              onChange={(e) => setMonthlyTarget(e.target.value)}
-            />
+        <div className="jx-pf__field">
+          <span className="jx-pf__lbl" id="jx-dispcur">Display currency</span>
+          <div className="jx-curchips" role="radiogroup" aria-labelledby="jx-dispcur">
+            {CURRENCIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                role="radio"
+                aria-checked={baseCurrency === c}
+                onClick={() => {
+                  /* Display-only override (no DB). Dashboard converts journal→display
+                     at view time; journal balances stay in their own currency. */
+                  setBaseCurrency(c);
+                  localStorage.setItem("jx-display-currency", c);
+                  window.dispatchEvent(new CustomEvent("jx-currency-changed", { detail: c }));
+                  flash("success", `Values now shown in ${c}`);
+                }}
+              >
+                <b>{getCurrencySymbol(c)}</b> {c}
+              </button>
+            ))}
           </div>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              /* localStorage only, no DB */
-              const v = Number(monthlyTarget);
-              if (!v || v <= 0) return flash("danger", "Enter a positive target");
-              try {
-                localStorage.setItem("jx-monthly-target", String(v));
-                window.dispatchEvent(new CustomEvent("jx-target-changed", { detail: v }));
-                flash("success", `Monthly target set to ${v.toLocaleString()}, see the goal card`);
-              } catch (e) {
-                console.error(e);
-                flash("danger", "Could not save locally");
-              }
-            }}
-          >
-            Apply
-          </Button>
-        </Row>
+          <span className="jx-pf__help">Applies instantly to the dashboard, Trades log, Markets and Share. Each journal still stores its own currency.</span>
+        </div>
 
-        <Row title="Default risk per trade" sub="Used to suggest position size" disabled>
-          <div className="jx-input jx-input--disabled" style={{ height: 38, width: 110 }}>
-            <input value="1.0%" disabled readOnly />
+        <form
+          className="jx-pf__field"
+          onSubmit={(e) => {
+            e.preventDefault();
+            /* localStorage only, no DB */
+            const v = Number(monthlyTarget);
+            if (!v || v <= 0) return flash("danger", "Enter a positive target");
+            try {
+              localStorage.setItem("jx-monthly-target", String(v));
+              window.dispatchEvent(new CustomEvent("jx-target-changed", { detail: v }));
+              flash("success", `Monthly target set to ${v.toLocaleString()}, see the goal card`);
+            } catch (err) {
+              console.error(err);
+              flash("danger", "Could not save locally");
+            }
+          }}
+        >
+          <label className="jx-pf__lbl" htmlFor="jx-pref-target">Monthly P&amp;L target</label>
+          <div className="jx-pref__inline">
+            <span className="jx-pf__input">
+              <span className="jx-pref__sym" aria-hidden="true">{getCurrencySymbol(baseCurrency)}</span>
+              <input
+                id="jx-pref-target"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                placeholder="e.g. 15000"
+                value={monthlyTarget}
+                onChange={(e) => setMonthlyTarget(e.target.value)}
+              />
+            </span>
+            <button type="submit" className="jx-btn jx-btn--secondary">Set</button>
           </div>
-        </Row>
+          <span className="jx-pf__help">Tracked on the dashboard goal card</span>
+        </form>
 
-        <Row title="Position sizing model" sub="How size is calculated" disabled>
-          <div className="jx-input jx-input--disabled" style={{ height: 38, width: 180 }}>
-            <input value="Fixed fractional" disabled readOnly />
-          </div>
-        </Row>
+        <div className="jx-pf__field">
+          <span className="jx-pf__lbl">Coming soon</span>
+          <ul className="jx-pref__soon">
+            <li><span><b>Default risk per trade</b><small>Suggests a position size · 1.0%</small></span><em>Soon</em></li>
+            <li><span><b>Position sizing model</b><small>How size is calculated · Fixed fractional</small></span><em>Soon</em></li>
+          </ul>
+        </div>
       </div>
 
       )}
 
       {/* ===== Backup & restore (Google Drive) ===== */}
       {active === "backup" && driveReady && (
-      <div className="jx-card">
-        <div className="jx-card__title">Backup &amp; restore</div>
+      <div className="jx-card jx-sub jx-int">
+        <div className="jx-card__title jx-sub__dup">Backup &amp; restore</div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
           Save a private copy of your journal to your Google Drive, and restore it on any device.
         </div>
@@ -934,11 +991,14 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
 
       {/* ===== Notifications (disabled) ===== */}
       {active === "notifications" && (
-      <div className="jx-card" style={{ position: "relative" }}>
-        <div className="jx-card__title">
+      <div className="jx-card jx-sub jx-int" style={{ position: "relative" }}>
+        <div className="jx-card__title jx-sub__dup">
           Notifications <Badge variant="neutral">Coming soon</Badge>
         </div>
-        <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>Choose what you want to hear about.</div>
+        <div className="jx-sub__soon">
+          <Bell size={16} aria-hidden="true" />
+          <span><b>Coming soon.</b> Pick what you want to hear about; these switch on when alerts launch.</span>
+        </div>
         {[
           ["Session reminders", "A nudge to log trades when each market session opens"],
           ["Trade fill alerts", "Notify when an order fills"],
@@ -955,7 +1015,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
 
       {/* ===== Connected exchanges (read-only API key) ===== */}
       {active === "integrations" && (
-      <div className="jx-card">
+      <div className="jx-card jx-sub jx-int">
         <div className="jx-card__title" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
           Connected exchanges &amp; brokers
           {!exchStatus.pro && <Badge variant="brand"><Crown size={11} /> Pro</Badge>}
@@ -990,15 +1050,15 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
         {/* Forex & prop-firm platforms, in development */}
         <div className="jx-int__group">Forex &amp; prop-firm platforms</div>
         {PLATFORMS.filter((p) => p.kind === "prop").map((p) => (
-          <Row key={p.id} title={p.name} sub={`${p.note} · in development`}>
+          <Row key={p.id} title={p.name} sub={p.note}>
             <Badge variant="neutral">In development</Badge>
           </Row>
         ))}
 
         {/* Coming soon: everything else */}
-        <div className="jx-int__group">More exchanges &amp; brokers</div>
+        <div className="jx-int__group">More exchanges &amp; brokers · use CSV import for now</div>
         {PLATFORMS.filter((p) => !["binance", "bybit"].includes(p.id) && p.kind !== "prop").map((p) => (
-          <Row key={p.id} title={p.name} sub="Coming soon · use CSV import for now">
+          <Row key={p.id} title={p.name}>
             <Badge variant="neutral">Coming soon</Badge>
           </Row>
         ))}

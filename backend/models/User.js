@@ -127,6 +127,8 @@ const userSchema = new mongoose.Schema(
 
     paddleCustomerId: { type: String },
     paddleSubscriptionId: { type: String },
+    // occurred_at of the last subscription webhook applied (out-of-order guard)
+    paddleLastSubEventAt: { type: Date },
 
     // where the active subscription was purchased (web Paddle, app Play, crypto)
     subscriptionSource: {

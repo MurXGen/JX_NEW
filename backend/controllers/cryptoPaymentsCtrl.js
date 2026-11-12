@@ -25,8 +25,18 @@ const calculateExpiry = (period) => {
 
 exports.createCryptoOrder = async (req, res) => {
   try {
-    const { planName, period, amount, network, currency, startAt, expiresAt } =
+    const { planName, period, amount, network, currency, startAt, expiresAt, txHash } =
       req.body;
+    // optional transaction hash the buyer pasted; kept for the admin check
+    const cleanTx = typeof txHash === "string" ? txHash.trim().slice(0, 140) : "";
+    const EXPLORERS = {
+      erc20: "https://etherscan.io/tx/",
+      trc20: "https://tronscan.org/#/transaction/",
+      bep20: "https://bscscan.com/tx/",
+      avaxc: "https://snowtrace.io/tx/",
+      sol: "https://solscan.io/tx/",
+      ton: "https://tonviewer.com/transaction/",
+    };
 
     if (!planName || !period || !amount || !network)
       return res.status(400).json({ message: "Missing required fields" });
@@ -124,6 +134,7 @@ exports.createCryptoOrder = async (req, res) => {
         originalPlanName: planName,
         isLifetime:
           period === "lifetime" || subscriptionPlanType === "lifetime",
+        ...(cleanTx ? { txHash: cleanTx } : {}),
       },
     });
 
@@ -146,7 +157,7 @@ exports.createCryptoOrder = async (req, res) => {
       email: user.email || "N/A",
       type: "payment",
       status: "🔎 Verification requested (user clicked Verify Payment)",
-      details: `Plan: ${plan.name}\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}\nDeposit: ${NETWORK_ADDRESSES[network]}\nOrder ID: ${cryptoOrder._id}`,
+      details: `Plan: ${plan.name}\nPeriod: ${period}\nAmount: ${amount} ${currency || "USDT"}\nNetwork: ${network.toUpperCase()}\nDeposit: ${NETWORK_ADDRESSES[network]}\nOrder ID: ${cryptoOrder._id}${cleanTx ? `\nTx: ${cleanTx}\nExplorer: ${(EXPLORERS[network] || "") + cleanTx}` : "\nTx: not provided"}`,
       orderId: cryptoOrder._id,
     });
 

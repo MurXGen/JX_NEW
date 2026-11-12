@@ -89,6 +89,7 @@ export default function SharePanel({ trades = [], accountName = "My journal", cu
           totalTrades: shareData.length,
           timeRange: RANGES.find((x) => x.id === range)?.label,
           account: accountName,
+          symbol: currencySymbol,
           generatedAt: new Date().toISOString(),
           version: "2.0",
         },
