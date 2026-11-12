@@ -1,0 +1,77 @@
+/* Switch to Free row + confirmation modal. Gold stays on the safe primary
+   action ("Keep Pro"); the destructive action is red-outlined. */
+.row {
+  margin-top: var(--space-4, 16px); padding-top: var(--space-4, 16px); border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-family: "Poppins", sans-serif;
+}
+.txt { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 2px; }
+.txt b { font-size: 14px; font-weight: 600; color: var(--color-text, #f5f6f8); }
+.txt small { font-size: 12.5px; line-height: 1.5; color: var(--color-text-muted, #9aa1ad); }
+.ok { color: #2ebd85 !important; }
+.err { color: #f6465d !important; font-size: 12.5px; margin: 0; }
+.ico { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: #f0b90b; background: rgba(240, 185, 11, 0.1); border: 1px solid rgba(240, 185, 11, 0.28); }
+.scheduled { padding: 14px; border-radius: 12px; border: 1px solid rgba(240, 185, 11, 0.28); background: rgba(240, 185, 11, 0.05); }
+
+.switch, .keep {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 14px; border-radius: 10px; cursor: pointer;
+  font: 500 13px "Poppins", sans-serif; background: transparent;
+}
+.switch { color: #f6465d; border: 1px solid rgba(246, 70, 93, 0.4); }
+.switch:hover { background: rgba(246, 70, 93, 0.08); }
+.keep { color: #0b0b0c; background: #fcd535; border: 0; font-weight: 600; }
+.keep:hover { background: #ffde55; }
+.switch:focus-visible, .keep:focus-visible, .keepBig:focus-visible, .confirm:focus-visible, .close:focus-visible { outline: 2px solid #9aa1ad; outline-offset: 2px; }
+
+/* ---- confirmation modal ---- */
+.overlay { position: fixed; inset: 0; z-index: 5300; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(6px); animation: fade 0.15s ease both; }
+.modal {
+  position: relative; box-sizing: border-box; width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 26px 24px 22px; border-radius: 20px;
+  background: radial-gradient(420px 160px at 100% 0%, rgba(246, 70, 93, 0.08), rgba(246, 70, 93, 0) 70%), #141417;
+  border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
+  font-family: "Poppins", sans-serif; color: #f5f6f8; animation: rise 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1); background: transparent; color: #9aa1ad; cursor: pointer; }
+.close:hover { color: #f5f6f8; background: rgba(255, 255, 255, 0.05); }
+.warnIco { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; color: #f6465d; background: rgba(246, 70, 93, 0.1); border: 1px solid rgba(246, 70, 93, 0.3); margin-bottom: 14px; }
+.modal h2 { margin: 0 0 8px; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+.modal > p { margin: 0 0 16px; font-size: 13.5px; line-height: 1.6; color: #b5bac4; }
+.modal > p b { color: #f5f6f8; font-weight: 600; }
+.lose { padding: 14px 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); }
+.lose > span { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9aa1ad; }
+.lose ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.lose li { position: relative; padding-left: 18px; font-size: 13px; line-height: 1.45; color: #dfe2e7; }
+.lose li::before { content: ""; position: absolute; left: 2px; top: 7px; width: 7px; height: 7px; border-radius: 50%; background: #f6465d; opacity: 0.8; }
+.lose small { display: block; margin-top: 10px; font-size: 12px; line-height: 1.5; color: #9aa1ad; }
+.modal > .err { margin-top: 12px; }
+.actions { display: flex; gap: 10px; margin-top: 18px; }
+.keepBig, .confirm { flex: 1; min-height: 44px; border-radius: 12px; cursor: pointer; font: 600 14px "Poppins", sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.keepBig { border: 0; background: #fcd535; color: #0b0b0c; }
+.keepBig:hover { background: #ffde55; }
+.confirm { background: transparent; color: #f6465d; border: 1px solid rgba(246, 70, 93, 0.45); }
+.confirm:hover { background: rgba(246, 70, 93, 0.08); }
+.keepBig:disabled, .confirm:disabled, .keep:disabled, .close:disabled { opacity: 0.6; cursor: default; }
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(12px) scale(0.98); } }
+
+@media (max-width: 480px) {
+  .overlay { place-items: end center; padding: 0; }
+  .modal { width: 100%; border-radius: 20px 20px 0 0; padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
+  .actions { flex-direction: column-reverse; }
+  .switch { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .overlay, .modal, .spin { animation: none; } }
+
+/* light mode */
+:global([data-theme="light"]) .txt b { color: #111318; }
+:global([data-theme="light"]) .modal { background: radial-gradient(420px 160px at 100% 0%, rgba(246, 70, 93, 0.07), rgba(246, 70, 93, 0) 70%), #fff; border-color: rgba(17, 19, 24, 0.08); color: #111318; box-shadow: 0 24px 60px -24px rgba(16, 24, 40, 0.35); }
+:global([data-theme="light"]) .modal > p { color: #4b525e; }
+:global([data-theme="light"]) .modal > p b { color: #111318; }
+:global([data-theme="light"]) .lose { background: #fafbfc; border-color: rgba(17, 19, 24, 0.08); }
+:global([data-theme="light"]) .lose li { color: #30353e; }
+:global([data-theme="light"]) .lose small, :global([data-theme="light"]) .lose > span { color: #5f6672; }
+:global([data-theme="light"]) .close { border-color: rgba(17, 19, 24, 0.12); color: #5f6672; }
+:global([data-theme="light"]) .switch, :global([data-theme="light"]) .confirm { color: #d6304a; border-color: rgba(214, 48, 74, 0.4); }
+:global([data-theme="light"]) .ok { color: #12895c !important; }
+:global([data-theme="light"]) .ico { color: #9a7400; background: #fffbea; }

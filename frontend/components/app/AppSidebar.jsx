@@ -30,6 +30,7 @@ export default function AppSidebar({
   onSupport,
   planCard,
   onUpgrade,
+  onManagePlan,
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -111,7 +112,7 @@ export default function AppSidebar({
           </button>
         )}
         <SidebarInstallButton collapsed={collapsed} />
-        {planCard && <PlanCard card={planCard} collapsed={collapsed} onUpgrade={onUpgrade} />}
+        {planCard && <PlanCard card={planCard} collapsed={collapsed} onUpgrade={onUpgrade} onManage={onManagePlan || onUpgrade} />}
         {onSupport && (
           <button type="button" className={a.item} onClick={() => { markViewed(); onSupport(); }} title={collapsed ? "Support & feedback" : undefined} aria-label={collapsed ? "Support and feedback" : undefined}>
             <LifeBuoy size={17} aria-hidden="true" />{!collapsed && <span>Support &amp; feedback</span>}
@@ -147,7 +148,31 @@ export default function AppSidebar({
 /* Glass plan card in the sidebar footer: shows this month's usage on Free
    (or a lapsing Pro plan) with an upgrade action. Collapsed sidebar shows a
    ring with the same state. */
-function PlanCard({ card, collapsed, onUpgrade }) {
+function PlanCard({ card, collapsed, onUpgrade, onManage }) {
+  // paid and active: a calm "you're on Pro" card, no upsell
+  if (card.kind === "active") {
+    const life = card.plan === "lifetime";
+    const title = life ? "Lifetime" : "Pro";
+    const sub = life ? "Everything unlocked, for good" : card.until ? `Paid through ${card.until}` : "Everything unlocked";
+    if (collapsed) {
+      return (
+        <button type="button" className={a.planRing} data-tone="active" onClick={onManage} title={`${title} plan active · Manage plan`} aria-label={`${title} plan active. Manage plan`} style={{ "--pct": "100%" }}>
+          <Crown size={15} aria-hidden="true" />
+        </button>
+      );
+    }
+    return (
+      <div className={a.plan} data-tone="active">
+        <div className={a.planHead}>
+          <span className={a.planIco} aria-hidden="true"><Crown size={14} /></span>
+          <b>{title}</b>
+          <span className={a.planLive}><i aria-hidden="true" /> Active</span>
+        </div>
+        <small className={a.planSub}>{sub}</small>
+        <button type="button" className={a.planGhost} onClick={onManage}>Manage plan</button>
+      </div>
+    );
+  }
   const free = card.kind === "free";
   const pct = free ? Math.min(100, Math.round((card.used / card.limit) * 100)) : 100;
   const full = free && card.used >= card.limit;

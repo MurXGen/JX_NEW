@@ -99,6 +99,7 @@ async function getUserData(user) {
       paddleCustomerId: user.paddleCustomerId,
       lastBillingDate: user.lastBillingDate,
       nextBillingDate: user.nextBillingDate,
+      cancelAt: user.subscriptionCancelAt || null,
     },
 
     accounts,

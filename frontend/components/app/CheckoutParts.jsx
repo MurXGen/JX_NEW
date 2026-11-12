@@ -4,8 +4,9 @@
    MethodPicker (UPI/cards, PayPal, crypto + promo), CheckoutStep (Paddle's
    secure form + order summary) and SuccessStep. Driven by useCheckout(). */
 
-import { useState } from "react";
-import { ArrowLeft, Bitcoin, Check, CheckCircle2, CreditCard, ShieldCheck, Tag, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { celebrate } from "./celebrate";
+import { ArrowLeft, ArrowRight, BarChart3, Bitcoin, Check, CheckCircle2, Clock, CreditCard, Crown, History, Infinity as InfinityIcon, Loader2, Receipt, RefreshCw, ShieldCheck, Sparkles, Tag, X } from "lucide-react";
 import { paymentMethods } from "@/components/payments/useCheckout";
 import s from "./Upgrade.module.css";
 
@@ -118,12 +119,85 @@ export function CheckoutStep({ co, planName, price, per, features = [] }) {
   );
 }
 
-export function SuccessStep() {
+/* ---------- success: celebration, what's unlocked, receipt ---------- */
+const UNLOCKED = [
+  { icon: InfinityIcon, title: "Unlimited trades", desc: "Log every trade and chart, no monthly cap" },
+  { icon: History, title: "Full history", desc: "Every past trade and stat, nothing locked" },
+  { icon: BarChart3, title: "Advanced analytics", desc: "Risk, edge and behaviour insights" },
+  { icon: RefreshCw, title: "Auto-sync & 3 journals", desc: "Connect exchanges, split your accounts" },
+];
+
+const money = (n, cur) => {
+  if (n == null || !Number.isFinite(Number(n))) return "—";
+  try { return new Intl.NumberFormat(cur === "INR" ? "en-IN" : "en-US", { style: "currency", currency: cur || "USD" }).format(Number(n)); }
+  catch { return `${cur || ""} ${Number(n).toFixed(2)}`; }
+};
+
+export function SuccessStep({ co }) {
+  const { phase = "activating", receipt: r, countdown, goDashboard } = co || {};
+  const lifetime = r?.planKey === "lifetime" || /lifetime/i.test(r?.planName || "");
+  const period = lifetime ? "Lifetime" : r?.interval === "year" ? "Yearly" : "Monthly";
+
+  useEffect(() => { celebrate(); }, []);
+
   return (
-    <div className={s.success} role="status">
-      <span className={s.successIco}><CheckCircle2 size={36} aria-hidden="true" /></span>
-      <h2>Payment successful</h2>
-      <p>Activating your Pro access now. You&apos;ll be back in your dashboard in a moment.</p>
+    <div className={s.win}>
+      <div className={s.winHero}>
+        <span className={s.winMark} aria-hidden="true"><b>J</b><i>X</i></span>
+        <h2 id="jx-up-title">{lifetime ? "Lifetime unlocked" : "Welcome to JournalX Pro"}</h2>
+        <p>Payment confirmed. Your receipt is on its way to your inbox.</p>
+        <span className={s.winStatus} data-phase={phase} role="status" aria-live="polite">
+          {phase === "active" ? (
+            <><i className={s.winDot} aria-hidden="true" /> {lifetime ? "Lifetime" : "Pro"} is active</>
+          ) : phase === "slow" ? (
+            <><Clock size={14} aria-hidden="true" /> Activation is taking a little longer</>
+          ) : (
+            <><Loader2 size={14} className={s.spin} aria-hidden="true" /> Activating your access…</>
+          )}
+        </span>
+      </div>
+
+      <div className={s.winGrid}>
+        <section className={s.winCard} aria-labelledby="jx-win-unl">
+          <h3 id="jx-win-unl"><Sparkles size={14} aria-hidden="true" /> Now unlocked</h3>
+          <ul className={s.winList}>
+            {UNLOCKED.map(({ icon: Ico, title, desc }) => (
+              <li key={title}>
+                <span className={s.winIco} aria-hidden="true"><Ico size={16} /></span>
+                <span><b>{title}</b><small>{desc}</small></span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className={s.winCard} aria-labelledby="jx-win-sum">
+          <h3 id="jx-win-sum"><Receipt size={14} aria-hidden="true" /> Order summary</h3>
+          <dl className={s.winRows}>
+            <div><dt>Plan</dt><dd>{lifetime ? "Lifetime" : `Pro · ${period}`}</dd></div>
+            {r?.subtotal != null && <div><dt>Subtotal</dt><dd>{money(r.subtotal, r.currency)}</dd></div>}
+            {r?.discount > 0 && (
+              <div className={s.winSave}>
+                <dt>Discount{r.code && <span className={s.winCode}><Tag size={11} aria-hidden="true" /> {r.code}</span>}</dt>
+                <dd>−{money(r.discount, r.currency)}</dd>
+              </div>
+            )}
+            {r?.tax > 0 && <div><dt>Tax</dt><dd>{money(r.tax, r.currency)}</dd></div>}
+            <div className={s.winTotal}><dt>Total paid</dt><dd>{r?.total != null ? money(r.total, r.currency) : "On your receipt"}</dd></div>
+          </dl>
+          <p className={s.winBill}>
+            {lifetime ? "One-time payment. Pro is yours for good." : `Renews ${period.toLowerCase()} · cancel anytime in Settings → Plan & billing.`}
+          </p>
+        </section>
+      </div>
+
+      <div className={s.winFoot}>
+        <button type="button" className={s.winCta} onClick={goDashboard}>
+          {phase === "active" ? `Go to dashboard · ${countdown}s` : "Go to dashboard"} <ArrowRight size={16} aria-hidden="true" />
+        </button>
+        {phase === "slow" && (
+          <small className={s.winNote}>Your payment went through. If the dashboard still shows Free, wait a minute and refresh. You won&apos;t be charged again.</small>
+        )}
+      </div>
     </div>
   );
 }

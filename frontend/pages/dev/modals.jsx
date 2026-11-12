@@ -9,6 +9,7 @@ import { MarketsPanel, SharePanel, ImportExportPanel, ActivitiesPanel, ImportTra
 import ExchangeSyncModal from "@/components/revampV2/ExchangeSyncModal";
 import SettingsPanel from "@/components/revampV2/SettingsPanel";
 import UpgradeSheet from "@/components/revampV2/UpgradeSheet";
+import DowngradePlan from "@/components/revampV2/DowngradePlan";
 import Overview from "@/components/app/Overview";
 import AppSidebar from "@/components/app/AppSidebar";
 import UpgradeModal, { PlanBanner, planState } from "@/components/app/UpgradeModal";
@@ -30,6 +31,16 @@ export default function ModalsDemo() {
     if (query.open) setWhich(String(query.open));
   }, [query.open, theme]);
 
+  if (which === "downgrade") {
+    const exp = new Date(Date.now() + 23 * 864e5).toISOString();
+    return (
+      <div style={{ maxWidth: 640, margin: "40px auto", padding: 16, display: "flex", flexDirection: "column", gap: 24 }}>
+        <DowngradePlan sub={{ plan: "pro", status: "active", type: "recurring", source: "paddle", expiresAt: exp }} />
+        <DowngradePlan sub={{ plan: "pro", status: "active", type: "recurring", source: "paddle", expiresAt: exp, cancelAt: exp }} />
+        <DowngradePlan sub={{ plan: "pro", status: "active", type: "one-time", source: "crypto", expiresAt: exp }} />
+      </div>
+    );
+  }
   if (which === "loader") return <FullPageLoader />;
   if (which === "trades") {
     return (
@@ -136,6 +147,7 @@ export default function ModalsDemo() {
         <button type="button" style={btn} onClick={() => setWhich("importexport")}>Import/Export</button>
         <button type="button" style={btn} onClick={() => setWhich("sheet")}>Upgrade sheet</button>
         <button type="button" style={btn} onClick={() => setWhich("sidebar")}>Sidebar</button>
+        <button type="button" style={btn} onClick={() => setWhich("downgrade")}>Downgrade</button>
       </div>
       <LogTradeModal
         open={which === "log"}

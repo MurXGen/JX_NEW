@@ -50,7 +50,8 @@ import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
 import { convertTrade, getConversionFactor } from "@/utils/fx";
-import UpgradeModal, { PlanBanner as UpgradeBanner, planState } from "@/components/app/UpgradeModal";
+import UpgradeModal, { PlanBanner as UpgradeBanner, UpgradedToast, planState } from "@/components/app/UpgradeModal";
+import { celebrate, takeJustUpgraded } from "@/components/app/celebrate";
 import { getPlanRules } from "@/utils/planRestrictions";
 import { connectDrive, warmDriveConnection, isDriveConnected, isDriveConfigured } from "@/utils/driveBackup";
 import { fetchUserInfo } from "@/utils/userInfo";
@@ -82,6 +83,8 @@ export default function Dashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  // set when the success screen sends the user here after paying
+  const [justUpgraded, setJustUpgraded] = useState(null);
   /* keep the active section (and Support) in the URL so deep-links, refreshes
      and the browser/phone Back button work — mirrors the ?settings=<id>
      behaviour inside Settings. */
@@ -424,7 +427,11 @@ export default function Dashboard() {
   const showPlanBanner = plan.show && !(plan.kind === "free" && usingDummy);
   // sidebar plan card: this month's trade usage against the plan's cap
   const planCard = (() => {
-    if (plan.kind === "lifetime" || plan.kind === "pro") return null;
+    if (plan.kind === "lifetime") return { kind: "active", plan: "lifetime" };
+    if (plan.kind === "pro") {
+      const d = _sub.expiresAt ? new Date(_sub.expiresAt) : null;
+      return { kind: "active", plan: "pro", until: d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : null };
+    }
     if (plan.kind === "expiring" || plan.kind === "expired") return { kind: plan.kind, daysLeft: plan.daysLeft };
     let limit = Infinity;
     try { limit = getPlanRules(userData).limits.tradeLimitPerMonth; } catch {}
@@ -437,6 +444,26 @@ export default function Dashboard() {
     const resets = new Date(now.getFullYear(), now.getMonth() + 1, 1).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
     return { kind: "free", used, limit, resets };
   })();
+
+  // celebrate once, after the dashboard has rendered
+  useEffect(() => {
+    if (loading) return;
+    const v = takeJustUpgraded();
+    if (!v) return;
+    setJustUpgraded(v);
+    const t = setTimeout(() => celebrate(), 350);
+    return () => clearTimeout(t);
+  }, [loading]);
+
+  // open Settings → Plan & billing (sidebar "Manage plan")
+  const openBilling = () => {
+    navTab("settings");
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("settings", "billing");
+      window.history.replaceState(window.history.state, "", url.toString());
+    } catch {}
+  };
 
   if (loading) return <FullPageLoader />;
 
@@ -532,6 +559,7 @@ export default function Dashboard() {
         onSupport={openSupport}
         planCard={planCard}
         onUpgrade={openUpgrade}
+        onManagePlan={openBilling}
       />
 
       <main className="jx-shell__main">
@@ -644,6 +672,7 @@ export default function Dashboard() {
         initialView={journalsView}
       />
 
+      {justUpgraded && <UpgradedToast plan={justUpgraded.plan} onClose={() => setJustUpgraded(null)} />}
       <UpgradeModal
         open={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}

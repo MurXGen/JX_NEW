@@ -129,6 +129,8 @@ const userSchema = new mongoose.Schema(
     paddleSubscriptionId: { type: String },
     // occurred_at of the last subscription webhook applied (out-of-order guard)
     paddleLastSubEventAt: { type: Date },
+    // set when the user switched to Free: paid access ends on this date
+    subscriptionCancelAt: { type: Date },
 
     // where the active subscription was purchased (web Paddle, app Play, crypto)
     subscriptionSource: {

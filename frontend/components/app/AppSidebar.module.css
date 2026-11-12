@@ -283,3 +283,19 @@
 :global([data-theme="light"]) .planRing { background: radial-gradient(closest-side, #ffffff 78%, transparent 80% 100%), conic-gradient(var(--c) var(--pct), rgba(17, 19, 24, 0.1) 0); }
 :global([data-theme="light"]) .planRing:not([data-tone="alert"]) { --c: #e0a800; }
 @media (prefers-reduced-motion: reduce) { .planBar i { transition: none; } }
+
+/* active paid plan */
+.plan[data-tone="active"] { --tone: #2ebd85; --tone-soft: rgba(46, 189, 133, 0.14); }
+.planLive { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; color: #2ebd85; background: rgba(46, 189, 133, 0.1); border: 1px solid rgba(46, 189, 133, 0.28); }
+.planLive i { width: 6px; height: 6px; border-radius: 50%; background: #2ebd85; box-shadow: 0 0 0 3px rgba(46, 189, 133, 0.2); }
+.planGhost {
+  width: 100%; min-height: 32px; border-radius: 10px; cursor: pointer; background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12); color: var(--ink, #f5f6f8); font: 500 12.5px "Poppins", sans-serif;
+}
+.planGhost:hover { background: rgba(255, 255, 255, 0.08); }
+.planGhost:focus-visible { outline: 2px solid #9aa1ad; outline-offset: 2px; }
+.planRing[data-tone="active"] { --c: #2ebd85; }
+:global([data-theme="light"]) .planLive { color: #12895c; background: #eafaf2; border-color: rgba(18, 137, 92, 0.25); }
+:global([data-theme="light"]) .planGhost { background: #fff; border-color: rgba(17, 19, 24, 0.12); color: #111318; }
+:global([data-theme="light"]) .planGhost:hover { background: #f4f5f7; }
+:global([data-theme="light"]) .planRing[data-tone="active"] { --c: #12895c; }

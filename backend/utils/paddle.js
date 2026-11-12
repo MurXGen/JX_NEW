@@ -73,6 +73,25 @@ class PaddleService {
     return response.data; // { data: { id, email, ... } }
   }
 
+  // Get a discount (to show the coupon code a buyer used on their receipt)
+  async getDiscount(discountId) {
+    const response = await this.client.get(`/discounts/${discountId}`);
+    return response.data; // { data: { id, code, description, type, amount, ... } }
+  }
+
+  // Cancel a subscription. effective_from "next_billing_period" keeps access
+  // until the end of what they've paid for; "immediately" ends it now.
+  async cancelSubscription(subscriptionId, effectiveFrom = "next_billing_period") {
+    const response = await this.client.post(`/subscriptions/${subscriptionId}/cancel`, { effective_from: effectiveFrom });
+    return response.data;
+  }
+
+  // Remove a scheduled change (e.g. undo a scheduled cancel)
+  async clearScheduledChange(subscriptionId) {
+    const response = await this.client.patch(`/subscriptions/${subscriptionId}`, { scheduled_change: null });
+    return response.data;
+  }
+
   // Get transaction details
   async getTransaction(transactionId) {
     try {

@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Check, Clock, Crown, Lock, RotateCcw, ShieldCheck, Sparkles, TrendingUp, X } from "lucide-react";
+import { ArrowRight, Check, Clock, Crown, Lock, RotateCcw, ShieldCheck, Sparkles, TrendingUp, X , CheckCircle2 } from "lucide-react";
 import PaddleLoader from "@/components/payments/PaddleLoader";
 import useCheckout from "@/components/payments/useCheckout";
 import { MethodPicker, CheckoutStep, SuccessStep, ctaText } from "./CheckoutParts";
@@ -63,6 +63,26 @@ export function PlanBanner({ state, onUpgrade }) {
         <X size={15} />
       </button>
     </div>
+  );
+}
+
+/* Shown once on the dashboard right after an upgrade (with confetti). */
+export function UpgradedToast({ plan = "pro", onClose }) {
+  useEffect(() => {
+    const t = setTimeout(() => onClose?.(), 9000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+  const life = plan === "lifetime";
+  return createPortal(
+    <div className={s.toast} role="status" aria-live="polite">
+      <span className={s.toastMark} aria-hidden="true"><b>J</b><i>X</i></span>
+      <div className={s.toastTxt}>
+        <b>{life ? "Lifetime is active" : "You're on Pro now"}</b>
+        <span>Unlimited trades, full history and advanced analytics are unlocked.</span>
+      </div>
+      <button type="button" className={s.bannerX} onClick={onClose} aria-label="Dismiss"><X size={15} /></button>
+    </div>,
+    document.body,
   );
 }
 
@@ -165,17 +185,21 @@ export default function UpgradeModal({ open, onClose, trades = [], currencySymbo
               transition={{ type: "spring", stiffness: 340, damping: 32 }}
             >
               <header className={s.head}>
+                {co.view === "success" ? (
+                <span className={`${s.eyebrow} ${s.eyebrowOk}`}><CheckCircle2 size={13} aria-hidden="true" /> Payment confirmed</span>
+                ) : (
                 <span className={s.eyebrow}>
                   {reason ? <Lock size={13} aria-hidden="true" /> : state?.kind === "expiring" || state?.kind === "expired" ? <Clock size={13} aria-hidden="true" /> : <Sparkles size={13} aria-hidden="true" />}
                   {reason?.title || state?.title || "Upgrade to Pro"}
                 </span>
+                )}
                 <button type="button" className={s.close} onClick={onClose} aria-label="Close"><X size={18} /></button>
               </header>
 
               {co.view === "checkout" ? (
                 <div className={s.body1}><CheckoutStep co={co} planName={chosen.name} price={chosen.price} per={chosen.per} features={PRO_FEATURES} /></div>
               ) : co.view === "success" ? (
-                <div className={s.body1}><SuccessStep /></div>
+                <div className={s.body1}><SuccessStep co={co} /></div>
               ) : (<>
               <div className={s.body}>
                 {/* phones: short and to the point */}

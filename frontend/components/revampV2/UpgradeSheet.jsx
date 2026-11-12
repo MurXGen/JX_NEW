@@ -9,7 +9,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Check, Crown, Lock, Mail, RotateCcw, ShieldCheck, X } from "lucide-react";
+import { Check, Crown, Lock, Mail, RotateCcw, ShieldCheck, X , CheckCircle2 } from "lucide-react";
 import PaddleLoader from "@/components/payments/PaddleLoader";
 import useCheckout from "@/components/payments/useCheckout";
 import { MethodPicker, CheckoutStep, SuccessStep, ctaText } from "@/components/app/CheckoutParts";
@@ -103,10 +103,10 @@ export default function UpgradeSheet({
               transition={{ type: "spring", stiffness: 380, damping: 34 }}
             >
               <div className={s.sheetHead}>
-                <span className={s.sheetIco} aria-hidden="true"><Lock size={18} /></span>
+                <span className={`${s.sheetIco} ${co.view === "success" ? s.sheetIcoOk : ""}`} aria-hidden="true">{co.view === "success" ? <CheckCircle2 size={18} /> : <Lock size={18} />}</span>
                 <div className={s.sheetTitles}>
-                  <h2 id="jx-us-title">{title}</h2>
-                  <p>{reason}</p>
+                  <h2 id="jx-us-title">{co.view === "success" ? "Payment confirmed" : title}</h2>
+                  <p>{co.view === "success" ? "Thank you for upgrading" : reason}</p>
                 </div>
                 <button type="button" className={s.close} onClick={onClose} aria-label="Close"><X size={17} /></button>
               </div>
@@ -114,7 +114,7 @@ export default function UpgradeSheet({
               {co.view === "checkout" ? (
                 <div className={s.sheetBody}><CheckoutStep co={co} planName={chosen.name} price={chosen.price} per={chosen.per} features={BENEFITS} /></div>
               ) : co.view === "success" ? (
-                <div className={s.sheetBody}><SuccessStep /></div>
+                <div className={s.sheetBody}><SuccessStep co={co} /></div>
               ) : (<>
               <div className={s.sheetBody}>
                 <ul className={s.feats}>

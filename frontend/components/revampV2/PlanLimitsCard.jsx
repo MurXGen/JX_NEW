@@ -9,6 +9,7 @@ import Cookies from "js-cookie";
 import { ArrowRight, Crown, Infinity as InfinityIcon, Mail } from "lucide-react";
 import Badge from "./Badge";
 import Button from "./Button";
+import DowngradePlan from "./DowngradePlan";
 import { getPlanRules } from "@/utils/planRestrictions";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 
@@ -179,7 +180,7 @@ export default function PlanLimitsCard() {
           )}
           {startStr && <SubItem label="Started">{startStr}</SubItem>}
           {!isLifetime && expiresStr && (
-            <SubItem label={isActive ? "Renews / expires" : "Expired"}>
+            <SubItem label={!isActive ? "Expired" : sub?.cancelAt ? "Switches to Free" : "Renews / expires"}>
               {expiresStr}
               {daysLeft != null && daysLeft >= 0 && (
                 <span style={{ font: "var(--text-caption)", color: "var(--color-text-muted)", display: "block" }}>
@@ -232,6 +233,9 @@ export default function PlanLimitsCard() {
           </a>
         </div>
       )}
+
+      {/* paid, renewing or dated plan → option to go back to Free */}
+      {isTop && !isLifetime && <DowngradePlan sub={sub} />}
 
       {/* billing support — payment failed / debited but plan not reflecting */}
       <div className="jx-plan-help"

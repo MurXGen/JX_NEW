@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Order = require("../models/Orders");
 const { paddle } = require("../utils/paddle");
 const PaddleEvent = require("../models/PaddleEvent");
+const { sendPaymentSuccessEmail } = require("../mail/paymentEmails");
 
 // 🔐 Verify Paddle (Billing) webhook signature.
 //   Header format:  Paddle-Signature: ts=<unix>;h1=<hmac>[;h1=<hmac>...]
@@ -161,7 +162,28 @@ async function recordPaddleOrder(user, cls, txn) {
     meta: txn || {},
   });
   user.orders.push({ orderId: order._id, status: "paid" });
+  // confirmation email with the receipt — once per transaction, never blocks
+  emailReceipt(user, cls, txn);
   return { order, created: true };
+}
+
+async function discountCodeFor(txn) {
+  if (txn?.discount?.code) return txn.discount.code;
+  if (!txn?.discount_id || !process.env.PADDLE_API_KEY) return null;
+  try {
+    const d = await paddle.getDiscount(txn.discount_id);
+    return d?.data?.code || null;
+  } catch (e) {
+    console.error("[PADDLE] getDiscount failed:", e?.response?.status, e?.message);
+    return null;
+  }
+}
+function emailReceipt(user, cls, txn) {
+  const who = { email: user.email, name: user.name };
+  setImmediate(async () => {
+    const discountCode = await discountCodeFor(txn);
+    await sendPaymentSuccessEmail(who, cls, txn, { discountCode });
+  });
 }
 
 /* ------------------------------------------------------------------
@@ -337,6 +359,8 @@ async function processPaddleEvent(event) {
     // a scheduled cancel keeps access until it takes effect
     const cancelAt = sub.scheduled_change?.action === "cancel" && sub.scheduled_change?.effective_at ? new Date(sub.scheduled_change.effective_at) : null;
     subUser.subscriptionExpiresAt = cancelAt || sc.expiresAt;
+    // mirrors Settings → Switch to Free (and its undo, which clears the change)
+    subUser.subscriptionCancelAt = nStatus === "active" ? cancelAt || undefined : undefined;
     subUser.subscriptionCreatedAt = new Date();
     subUser.nextBillingDate = sub.next_billed_at ? new Date(sub.next_billed_at) : undefined;
     subUser.paddleCustomerId = sub.customer_id || subUser.paddleCustomerId;
@@ -478,6 +502,98 @@ exports.startPaddleReconciler = () => {
   const tick = () => reconcilePaddleEvents().catch((e) => console.error("[PADDLE-RECONCILE] failed:", e?.message));
   setTimeout(tick, 30 * 1000);
   setInterval(tick, 5 * 60 * 1000);
+};
+
+/* ------------------------------------------------------------------
+   Switch to Free (Settings → Plan & billing).
+   POST /api/subscription/downgrade        { confirm: true }
+   POST /api/subscription/downgrade/undo
+   Paddle subscriptions are cancelled at the END of the paid period
+   (effective_from: next_billing_period), so the user keeps Pro until the
+   date they've paid for and is never charged again. Webhooks then confirm
+   the scheduled change and, on the date, the final cancel.
+   Trials and other non-renewing plans switch immediately. Lifetime and
+   Google Play plans can't be switched from here.
+------------------------------------------------------------------- */
+exports.downgradeToFree = async (req, res) => {
+  try {
+    const userId = req.cookies?.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    if (req.body?.confirm !== true) return res.status(400).json({ message: "Confirmation required" });
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const plan = (user.subscriptionPlan || "free").toLowerCase();
+    if (plan === "free" || user.subscriptionStatus !== "active") return res.status(400).json({ message: "You're already on the Free plan." });
+    if (plan === "lifetime") return res.status(400).json({ code: "lifetime", message: "Lifetime is a one-time purchase and has nothing to cancel. Contact support if you need help." });
+    if (user.subscriptionSource === "play") return res.status(400).json({ code: "play", message: "This plan was bought in the Android app. Cancel it from Google Play → Subscriptions." });
+
+    // Paddle recurring → cancel at period end
+    if (user.subscriptionSource === "paddle" && user.paddleSubscriptionId) {
+      if (!process.env.PADDLE_API_KEY) return res.status(500).json({ message: "Billing isn't configured. Please contact support." });
+      let sub;
+      try {
+        sub = (await paddle.cancelSubscription(user.paddleSubscriptionId, "next_billing_period"))?.data;
+      } catch (e) {
+        const detail = e?.response?.data?.error?.detail || e?.message;
+        console.error("[DOWNGRADE] Paddle cancel failed:", e?.response?.status, detail);
+        // never report a switch that didn't happen
+        const status = e?.response?.status;
+        return res.status(status && status < 500 ? 409 : 502).json({
+          message: status && status < 500
+            ? "Billing couldn't schedule the switch for this subscription. Please contact support and we'll sort it out."
+            : "We couldn't reach our billing provider. Please try again in a minute.",
+        });
+      }
+      const eff = sub?.scheduled_change?.effective_at || sub?.current_billing_period?.ends_at || user.subscriptionExpiresAt;
+      const at = eff ? new Date(eff) : null;
+      user.subscriptionCancelAt = at || undefined;
+      if (at) user.subscriptionExpiresAt = at;
+      user.nextBillingDate = undefined;
+      await user.save();
+      console.log(`[DOWNGRADE] ${user.email} → Free on ${at ? at.toISOString() : "period end"} (paddle ${user.paddleSubscriptionId})`);
+      return res.json({ ok: true, mode: "scheduled", effectiveAt: at });
+    }
+
+    // trial / crypto / manual: nothing renews, switch now
+    user.subscriptionPlan = "free";
+    user.subscriptionType = "none";
+    user.subscriptionStatus = "expired";
+    user.subscriptionExpiresAt = new Date();
+    user.subscriptionCancelAt = undefined;
+    await user.save();
+    console.log(`[DOWNGRADE] ${user.email} → Free now (source ${user.subscriptionSource || "none"})`);
+    return res.json({ ok: true, mode: "immediate" });
+  } catch (err) {
+    console.error("[DOWNGRADE] error:", err);
+    return res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+};
+
+exports.undoDowngrade = async (req, res) => {
+  try {
+    const userId = req.cookies?.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user.subscriptionCancelAt || !user.paddleSubscriptionId) return res.status(400).json({ message: "There's no scheduled switch to undo." });
+    let sub;
+    try {
+      sub = (await paddle.clearScheduledChange(user.paddleSubscriptionId))?.data;
+    } catch (e) {
+      console.error("[DOWNGRADE-UNDO] Paddle failed:", e?.response?.status, e?.response?.data?.error?.detail || e?.message);
+      return res.status(502).json({ message: "We couldn't reach our billing provider. Please try again in a minute." });
+    }
+    user.subscriptionCancelAt = undefined;
+    const ends = sub?.current_billing_period?.ends_at;
+    if (ends) user.subscriptionExpiresAt = new Date(ends);
+    if (sub?.next_billed_at) user.nextBillingDate = new Date(sub.next_billed_at);
+    await user.save();
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[DOWNGRADE-UNDO] error:", err);
+    return res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
 };
 
 exports._internals = { processPaddleEvent, classifyTransaction, classifySubscription, verifyPaddleSignature };
