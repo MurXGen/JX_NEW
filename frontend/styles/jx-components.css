@@ -6442,3 +6442,12 @@ body::before {
 [data-theme="light"] .jx-lock__sub, [data-theme="light"] .jx-lock__perks li { color: #33373f; }
 [data-theme="light"] .jx-lock__perks svg { color: #12965f; }
 [data-theme="light"] .jx-lock__cta:focus-visible { outline-color: #111318; }
+
+/* ---- trading rules: partial badge + rule list in trade details ---- */
+.jx-badge--warning { background: rgba(240, 168, 58, 0.12); color: #f0a83a; border-color: rgba(240, 168, 58, 0.3); }
+[data-theme="light"] .jx-badge--warning { background: #fff5e6; color: #9a5b00; border-color: rgba(178, 107, 0, 0.3); }
+.jx-td-rules { list-style: none; margin: 0; padding: var(--space-3) 0 0; border-top: 1px solid var(--color-border); display: flex; flex-direction: column; gap: 6px; }
+.jx-td-rules li { display: flex; align-items: flex-start; gap: 9px; font: var(--text-small); color: var(--color-text-secondary); }
+.jx-td-rules li > span[aria-hidden] { flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 5px; display: grid; place-items: center; color: var(--color-danger); background: var(--color-danger-subtle, rgba(246, 70, 93, 0.12)); }
+.jx-td-rules li[data-on] { color: var(--color-text-primary); }
+.jx-td-rules li[data-on] > span[aria-hidden] { color: var(--color-success); background: var(--color-success-subtle, rgba(46, 189, 133, 0.12)); }

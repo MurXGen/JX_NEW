@@ -459,15 +459,16 @@ export default function Dashboard() {
     return () => clearTimeout(t);
   }, [loading]);
 
-  // open Settings → Plan & billing (sidebar "Manage plan")
-  const openBilling = () => {
+  // open a Settings section directly (sidebar "Manage plan", "Set up rules")
+  const openSettingsSection = (id) => {
     navTab("settings");
     try {
       const url = new URL(window.location.href);
-      url.searchParams.set("settings", "billing");
+      url.searchParams.set("settings", id);
       window.history.replaceState(window.history.state, "", url.toString());
     } catch {}
   };
+  const openBilling = () => openSettingsSection("billing");
 
   if (loading) return <FullPageLoader />;
 
@@ -481,6 +482,7 @@ export default function Dashboard() {
       usingDummy={usingDummy}
       startingBalance={currentAccount?.startingBalance?.amount || 0}
       onLogTrade={() => setShowLogTrade(true)}
+      onOpenRules={() => openSettingsSection("rules")}
       onImport={() => {
         setActiveTab("trades");
         setImportSignal((s) => s + 1); // opens the import modal in Trades log

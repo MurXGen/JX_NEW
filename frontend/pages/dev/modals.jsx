@@ -10,6 +10,7 @@ import ExchangeSyncModal from "@/components/revampV2/ExchangeSyncModal";
 import SettingsPanel from "@/components/revampV2/SettingsPanel";
 import UpgradeSheet from "@/components/revampV2/UpgradeSheet";
 import DowngradePlan from "@/components/revampV2/DowngradePlan";
+import TradingRules, { RulesChecklist } from "@/components/revampV2/TradingRules";
 import Overview from "@/components/app/Overview";
 import AppSidebar from "@/components/app/AppSidebar";
 import UpgradeModal, { PlanBanner, planState } from "@/components/app/UpgradeModal";
@@ -31,6 +32,7 @@ export default function ModalsDemo() {
     if (query.open) setWhich(String(query.open));
   }, [query.open, theme]);
 
+  if (which === "rules") return <RulesDemo />;
   if (which === "downgrade") {
     const exp = new Date(Date.now() + 23 * 864e5).toISOString();
     return (
@@ -148,6 +150,7 @@ export default function ModalsDemo() {
         <button type="button" style={btn} onClick={() => setWhich("sheet")}>Upgrade sheet</button>
         <button type="button" style={btn} onClick={() => setWhich("sidebar")}>Sidebar</button>
         <button type="button" style={btn} onClick={() => setWhich("downgrade")}>Downgrade</button>
+        <button type="button" style={btn} onClick={() => setWhich("rules")}>Rules</button>
       </div>
       <LogTradeModal
         open={which === "log"}
@@ -169,6 +172,24 @@ export default function ModalsDemo() {
         ]}
         currentAccountId="demo-journal"
       />
+    </div>
+  );
+}
+
+function RulesDemo() {
+  const rules = [
+    { id: "a1b2", text: "Waited for my setup to confirm" },
+    { id: "c3d4", text: "Risked 1% or less of my account" },
+    { id: "e5f6", text: "Set my stop-loss before entering" },
+  ];
+  const [checks, setChecks] = useState(null);
+  return (
+    <div style={{ maxWidth: 1100, margin: "24px auto", padding: 16, display: "flex", flexDirection: "column", gap: 24 }}>
+      <TradingRules onToast={(t, m) => console.log(t, m)} />
+      <div style={{ maxWidth: 520 }}>
+        <RulesChecklist rules={rules} value={checks} onChange={setChecks} onManage={() => {}} />
+      </div>
+      <Overview trades={buildSampleTrades()} usingDummy currencySymbol="$" onOpenRules={() => alert("open rules")} />
     </div>
   );
 }

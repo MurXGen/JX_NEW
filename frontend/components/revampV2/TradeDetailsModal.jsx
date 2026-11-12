@@ -30,6 +30,7 @@ import TradeChartMarker from "./TradeChartMarker";
 import { getLivePrice, hasLiveCandles } from "@/utils/livePrice";
 import { getFromIndexedDB } from "@/utils/indexedDB";
 import { lockedChartTradeIds } from "@/utils/planRestrictions";
+import { ruleStatusOf } from "@/utils/tradeRules";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -173,6 +174,8 @@ export default function TradeDetailsModal({
   }, [open]);
 
   const t = localTrade || trade || {};
+  const ruleStatus = ruleStatusOf(t);
+  const ruleChecks = Array.isArray(t.ruleChecks) ? t.ruleChecks : [];
   const isLong = t.direction?.toLowerCase() === "long";
   const pnl = Number(t.pnl) || 0;
   const entry = Number(t.avgEntryPrice ?? t.entryPrice ?? t.entries?.[0]?.price) || 0;
@@ -672,12 +675,28 @@ export default function TradeDetailsModal({
                       ) : null,
                     )}
                     {field(
-                      "Followed the plan?",
-                      <Badge variant={t.rulesFollowed ? "success" : "danger"}>
-                        {t.rulesFollowed ? <><Check size={11} /> Yes</> : "No"}
-                      </Badge>,
+                      ruleChecks.length ? "Followed your rules?" : "Followed the plan?",
+                      ruleStatus ? (
+                        <Badge variant={ruleStatus === "yes" ? "success" : ruleStatus === "partial" ? "warning" : "danger"}>
+                          {ruleStatus === "yes" ? <><Check size={11} /> {ruleChecks.length ? "All followed" : "Yes"}</> : ruleStatus === "partial" ? "Partly" : "No"}
+                          {ruleChecks.length > 0 && ` · ${ruleChecks.filter((c) => c.checked).length}/${ruleChecks.length}`}
+                        </Badge>
+                      ) : <span style={{ color: "var(--color-text-muted)" }}>Not tracked</span>,
                     )}
                   </div>
+
+                  {/* which personal rules were ticked on this trade */}
+                  {ruleChecks.length > 0 && (
+                    <ul className="jx-td-rules" aria-label="Rules on this trade">
+                      {ruleChecks.map((c) => (
+                        <li key={c.ruleId || c.text} data-on={c.checked || undefined}>
+                          <span aria-hidden="true">{c.checked ? <Check size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}</span>
+                          {c.text}
+                          <span className="jx-sr">{c.checked ? " (followed)" : " (not followed)"}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
                   {/* mistakes span full width when present */}
                   {t.mistakes?.length > 0 && (
@@ -822,9 +841,11 @@ export default function TradeDetailsModal({
                 <div className="jx-banner jx-banner--warn jx-td-note" style={{ alignItems: "flex-start" }}>
                   <Flame size={15} style={{ color: "var(--yellow-500)", flexShrink: 0, marginTop: 2 }} />
                   <span style={{ font: "var(--text-caption)" }}>
-                    {t.rulesFollowed
+                    {ruleStatus === "yes"
                       ? "Disciplined execution, trades like this compound your edge."
-                      : "Tag what pulled you off-plan; patterns beat willpower."}
+                      : ruleStatus === "partial"
+                        ? "Almost on-plan. The rule you skipped is the one to watch next time."
+                        : "Tag what pulled you off-plan; patterns beat willpower."}
                   </span>
                 </div>
               </div>

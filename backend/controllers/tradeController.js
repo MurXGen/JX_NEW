@@ -1,3 +1,4 @@
+const { ruleFieldsFromBody, statusFromCsv } = require("../utils/tradeRules");
 const Account = require("../models/Account");
 const Trade = require("../models/Trade");
 const User = require("../models/User");
@@ -89,8 +90,7 @@ exports.addTrade = async (req, res) => {
       sls: JSON.parse(body.sls || "[]"),
       tps: JSON.parse(body.tps || "[]"),
       reason: body.reason ? JSON.parse(body.reason) : [],
-      rulesFollowed:
-        body.rulesFollowed === "true" || body.rulesFollowed === true,
+      ...ruleFieldsFromBody(body),
       learnings: body.learnings || "",
 
       // ✅ Numbers
@@ -243,6 +243,8 @@ exports.addTrade = async (req, res) => {
           tps: 1,
           reason: 1,
           rulesFollowed: 1,
+          rulesStatus: 1,
+          ruleChecks: 1,
           learnings: 1,
           accountId: 1,
           accountName: "$accountDetails.name",
@@ -333,8 +335,7 @@ exports.updateTrade = async (req, res) => {
       reason: parseJSON(body.reason),
       mistakes: parseJSON(body.mistakes), // v2 — arrives as JSON string
       confidence: Number(body.confidence || 0),
-      rulesFollowed:
-        body.rulesFollowed === "true" || body.rulesFollowed === true,
+      ...ruleFieldsFromBody(body),
       learnings: body.learnings || "",
 
       // ✅ Numbers
@@ -497,6 +498,8 @@ exports.updateTrade = async (req, res) => {
           tps: 1,
           reason: 1,
           rulesFollowed: 1,
+          rulesStatus: 1,
+          ruleChecks: 1,
           learnings: 1,
           accountId: 1,
           accountName: "$accountDetails.name",
@@ -892,7 +895,9 @@ exports.addTradesBulk = async (req, res) => {
       const openTime = t.openTime ? new Date(t.openTime) : closeTime || new Date();
 
       // followedPlan accepts yes/true/1
-      const rulesFollowed = ["yes", "true", "1", "y"].includes(String(t.followedPlan ?? "").trim().toLowerCase());
+      // followedPlan: yes / partial / no (also true/1/y, false/0/n)
+      const rulesStatus = statusFromCsv(t.followedPlan);
+      const rulesFollowed = rulesStatus === "yes";
       // mistakes: separated by ; or |
       const mistakes = String(t.mistakes || "")
         .split(/[;|]/)
@@ -920,6 +925,7 @@ exports.addTradesBulk = async (req, res) => {
         timeframe: String(t.timeframe || ""),
         confidence: Number(t.confidence) || 0,
         rulesFollowed,
+        rulesStatus,
         mistakes,
         feeType: feeType || "",
         openFeeValue: feeInput,

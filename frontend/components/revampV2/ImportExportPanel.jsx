@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ruleStatusOf } from "@/utils/tradeRules";
 import {
   ArrowRightLeft,
   Calendar,
@@ -71,6 +72,14 @@ const bySymbol = (list) => {
   return [...m.entries()].sort((a, b) => b[1].pnl - a[1].pnl);
 };
 
+// "Yes 4/4" | "Partial 2/4" | "No 0/4" (or plain Yes/No without a checklist)
+const rulesCell = (t) => {
+  const st = ruleStatusOf(t);
+  if (!st) return "";
+  const word = { yes: "Yes", partial: "Partial", no: "No" }[st];
+  const c = Array.isArray(t.ruleChecks) ? t.ruleChecks : [];
+  return c.length ? `${word} ${c.filter((x) => x.checked).length}/${c.length}` : word;
+};
 const logRows = (list) =>
   list.map((t) => [
     t.symbol || t.ticker || "",
@@ -81,6 +90,7 @@ const logRows = (list) =>
     Number(t.pnl || 0).toFixed(2),
     t.strategy || (t.reason || [])[0] || "",
     t.closeTime ? new Date(t.closeTime).toLocaleDateString("en-GB") : "",
+    rulesCell(t),
     String(t.learnings || t.notes || "").replace(/\n/g, " "),
   ]);
 
@@ -120,7 +130,7 @@ export default function ImportExportPanel({ trades = [], onImported }) {
     const parts = [];
     if (selected.includes("logs")) {
       parts.push("TRADE LOGS");
-      parts.push("symbol,direction,entry,exit,size,pnl,strategy,date,notes");
+      parts.push("symbol,direction,entry,exit,size,pnl,strategy,date,followedPlan,notes");
       logRows(filtered).forEach((r) => parts.push(r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")));
       parts.push("");
     }
@@ -211,12 +221,12 @@ export default function ImportExportPanel({ trades = [], onImported }) {
       doc.text("Trade logs", 14, y);
       autoTable(doc, {
         startY: y + 3,
-        head: [["Symbol", "Side", "Entry", "Exit", "Size", "P&L", "Strategy", "Date", "Notes"]],
+        head: [["Symbol", "Side", "Entry", "Exit", "Size", "P&L", "Strategy", "Date", "Rules", "Notes"]],
         body: logRows(filtered),
         theme: "striped",
         headStyles: { fillColor: yellow, textColor: [30, 35, 41], fontStyle: "bold" },
         styles: { fontSize: 7.5, cellPadding: 1.5 },
-        columnStyles: { 8: { cellWidth: 45 } },
+        columnStyles: { 9: { cellWidth: 45 } },
         margin: { left: 14, right: 14 },
       });
     }

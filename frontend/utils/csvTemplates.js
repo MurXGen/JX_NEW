@@ -20,7 +20,7 @@ export const DETAILED_TEMPLATE = {
   key: "detailed",
   label: "Detailed log",
   fileName: "journalx_detailed_log_template.csv",
-  hint: "Full detail, entry/exit, size, leverage, fees, risk, strategy & psychology.",
+  hint: "Full detail, entry/exit, size, leverage, fees, risk, strategy & psychology. followedPlan: yes, partial or no.",
   columns: [
     "symbol", "direction", "entry", "exit", "size", "sizeUnit", "leverage",
     "fee", "feeType", "stopLoss", "takeProfit", "openTime", "closeTime",
@@ -28,7 +28,7 @@ export const DETAILED_TEMPLATE = {
   ],
   rows: [
     ["BTC/USDT", "long", "61240", "63740", "0.5", "asset", "1", "12.40", "currency", "60000", "65000", "2026-06-01 10:00", "2026-06-01 14:30", "Breakout", "Trending", "1H", "4", "yes", "None", "Clean breakout retest"],
-    ["EUR/USD", "short", "1.0920", "1.0875", "5000", "usd", "1", "0.1", "percent", "1.0960", "1.0840", "2026-06-02 08:00", "2026-06-02 11:20", "Reversal", "Ranging", "15m", "3", "no", "Moved stop;Chased entry", "Should have waited for confirmation"],
+    ["EUR/USD", "short", "1.0920", "1.0875", "5000", "usd", "1", "0.1", "percent", "1.0960", "1.0840", "2026-06-02 08:00", "2026-06-02 11:20", "Reversal", "Ranging", "15m", "3", "partial", "Moved stop;Chased entry", "Should have waited for confirmation"],
     ["AAPL", "long", "188.20", "193.40", "50", "asset", "1", "1.00", "currency", "185.00", "196.00", "2026-06-03 13:35", "2026-06-04 15:10", "Pullback", "Trending", "1D", "5", "yes", "None", "Held through the dip, textbook"],
   ],
 };

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { convertTrade } from "@/utils/fx";
 import OverviewPanel from "@/components/revampV2/OverviewPanel";
+import { ruleBreakdown, ruleStatusOf } from "@/utils/tradeRules";
 import {
   RANGES, sliceRange, summary, equity, bySymbol, bySide, byWeekday, bySession, daily, insights, tradeTime,
 } from "./analytics";
@@ -353,6 +354,83 @@ function SplitCard({ title, sub, rows, money, id }) {
   );
 }
 
+/* ---------------- rule discipline (Risk & behaviour) ---------------- */
+const RULE_TONES = [
+  { key: "yes", label: "Followed", hint: "every rule", color: "var(--green)" },
+  { key: "partial", label: "Partial", hint: "some rules", color: "var(--amber)" },
+  { key: "no", label: "Broken", hint: "no rules", color: "var(--red)" },
+];
+function RulesCard({ trades, money, onSetup }) {
+  const groups = RULE_TONES.map((g) => {
+    const list = trades.filter((t) => ruleStatusOf(t) === g.key);
+    const net = list.reduce((a, t) => a + (Number(t.pnl) || 0), 0);
+    return { ...g, n: list.length, net, avg: list.length ? net / list.length : 0 };
+  });
+  const tracked = groups.reduce((a, g) => a + g.n, 0);
+  const rules = ruleBreakdown(trades).filter((r) => r.total >= 1).slice(0, 4);
+  const pct = tracked ? Math.round((groups[0].n / tracked) * 100) : 0;
+
+  return (
+    <section className={o.card} aria-labelledby="rules-title">
+      <div className={o.cardHead}>
+        <div>
+          <h2 id="rules-title" className={o.cardTitle}>Rule discipline</h2>
+          <p className={o.cardSub}>How often you trade by your own rules, and what it pays</p>
+        </div>
+        {tracked > 0 && (
+          <div className={o.ruleScore}>
+            <b>{pct}%</b>
+            <small>fully followed</small>
+          </div>
+        )}
+      </div>
+
+      {tracked === 0 ? (
+        <div className={o.ruleEmpty}>
+          <p>Set up your trading rules, then tick them on every trade. You&apos;ll see which ones you break and what they cost you.</p>
+          {onSetup && <button type="button" className={o.ruleCta} onClick={onSetup}>Set up trading rules</button>}
+        </div>
+      ) : (
+        <>
+          <div className={o.ruleStack} role="img" aria-label={groups.map((g) => `${g.label} ${g.n} trades`).join(", ")}>
+            {groups.map((g) => g.n > 0 && <span key={g.key} style={{ width: `${(g.n / tracked) * 100}%`, background: g.color }} />)}
+          </div>
+          <div className={o.ruleTiles}>
+            {groups.map((g) => (
+              <div key={g.key} className={o.ruleTile}>
+                <span className={o.ruleLbl}><i style={{ background: g.color }} aria-hidden="true" />{g.label}<small>{g.hint}</small></span>
+                <b>{g.n} <small>{g.n === 1 ? "trade" : "trades"} · {Math.round((g.n / tracked) * 100)}%</small></b>
+                <span className={`${o.ruleAvg} ${g.n ? tone(g.avg) : ""}`}>{g.n ? `${money.short(g.avg, true)} avg` : "—"}</span>
+              </div>
+            ))}
+          </div>
+
+          {rules.length > 0 && (
+            <div className={o.ruleList}>
+              <h3>Rules you break most</h3>
+              <ul>
+                {rules.map((r) => (
+                  <li key={r.key}>
+                    <div className={o.ruleRow}>
+                      <span className={o.ruleText}>{r.text}</span>
+                      <span className={o.ruleRate}>{Math.round(r.breakRate * 100)}% skipped</span>
+                    </div>
+                    <span className={o.ruleTrack} aria-hidden="true"><i style={{ width: `${r.breakRate * 100}%` }} /></span>
+                    <small className={o.ruleMeta}>
+                      Skipped on {r.broken} of {r.total} trades
+                      {r.avgBroken != null && r.avgKept != null && <> · avg <b className={tone(r.avgBroken)}>{money.short(r.avgBroken, true)}</b> when skipped vs <b className={tone(r.avgKept)}>{money.short(r.avgKept, true)}</b> when kept</>}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 /* ---------------- calendar ---------------- */
 function CalendarCard({ trades, money }) {
   const days = useMemo(() => daily(trades), [trades]);
@@ -651,6 +729,7 @@ export default function Overview({
   startingBalance = 0,
   onLogTrade,
   onImport,
+  onOpenRules,
   onViewTrades,
   banner = null,
 }) {
@@ -808,6 +887,8 @@ export default function Overview({
             </div>
           </>
         )}
+
+        {tab === "risk" && <RulesCard trades={sorted} money={money} onSetup={onOpenRules} />}
 
         {/* the original deeper analytics (capital growth with candles, timeframes,
             payoff, drawdown, hold time, revenge cost, streaks, donuts, columns…),

@@ -1,3 +1,4 @@
+import { ruleBreakdown, ruleStatusOf } from "@/utils/tradeRules";
 /* Pure analytics for the Overview. Every function takes plain trade objects
    ({ pnl, symbol, direction, closeTime|openTime, strategy, rulesFollowed,
    emotion, mistakes }) and returns numbers the UI can render. No React. */
@@ -230,10 +231,11 @@ export function insights(trades, fmt) {
   }
 
   // 5. following the plan (only if the journal tracks it)
-  const tracked = trades.filter((t) => typeof t.rulesFollowed === "boolean" || t.rulesFollowed === "true" || t.rulesFollowed === "false");
+  // yes = every rule followed; partial and no both count as off-plan
+  const tracked = trades.filter((t) => ruleStatusOf(t) !== "");
   if (tracked.length >= 4) {
-    const yes = tracked.filter((t) => t.rulesFollowed === true || t.rulesFollowed === "true");
-    const no = tracked.filter((t) => !(t.rulesFollowed === true || t.rulesFollowed === "true"));
+    const yes = tracked.filter((t) => ruleStatusOf(t) === "yes");
+    const no = tracked.filter((t) => ruleStatusOf(t) !== "yes");
     if (yes.length >= 2 && no.length >= 2) {
       const ay = sum(yes.map(pnlOf)) / yes.length;
       const an = sum(no.map(pnlOf)) / no.length;
@@ -245,6 +247,20 @@ export function insights(trades, fmt) {
           impact: (ay - an) * no.length,
         });
       }
+    }
+  }
+
+  // 5b. the personal rule that costs the most when broken
+  const rulesBd = ruleBreakdown(trades).filter((r) => r.broken >= 2 && r.kept >= 2 && r.avgKept != null && r.avgBroken != null);
+  if (rulesBd.length) {
+    const worst = rulesBd.map((r) => ({ ...r, gap: r.avgKept - r.avgBroken })).sort((a, b) => b.gap * b.broken - a.gap * a.broken)[0];
+    if (worst.gap > 0) {
+      out.push({
+        id: "rule-broken", kind: "fix",
+        title: `Breaking “${worst.text}” costs you`,
+        detail: `You skipped it on ${worst.broken} of ${worst.total} trades. Those averaged ${fmt(worst.avgBroken, true)} vs ${fmt(worst.avgKept, true)} when you kept it.`,
+        impact: worst.gap * worst.broken,
+      });
     }
   }
 

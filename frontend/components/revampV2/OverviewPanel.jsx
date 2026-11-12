@@ -50,6 +50,7 @@ import CustomizeSections, { useHiddenSections, openCustomize } from "./Customize
 import { PnlCalendar, TradesHeatmap } from "./TradesLogPanel";
 import { compactNumber } from "@/utils/formatNumbers";
 import { convertTrade } from "@/utils/fx";
+import { ruleStatusOf } from "@/utils/tradeRules";
 import { jxEase } from "./easing";
 
 /* sections the user can show/hide on the overview dashboard */
@@ -1454,8 +1455,9 @@ export default function OverviewPanel({
       .sort((a, b) => b[1].pnl - a[1].pnl)
       .slice(0, 5);
 
-    const planned = win.filter((t) => t.rulesFollowed === true);
-    const unplanned = win.filter((t) => t.rulesFollowed === false);
+    // followed = every rule; partial and broken both count against discipline
+    const planned = win.filter((t) => ruleStatusOf(t) === "yes");
+    const unplanned = win.filter((t) => ruleStatusOf(t) === "partial" || ruleStatusOf(t) === "no");
     const wr = (list) =>
       list.length
         ? (list.filter((t) => t.pnl > 0).length / list.length) * 100
@@ -2832,7 +2834,7 @@ export default function OverviewPanel({
             gap: "var(--space-2)",
           }}
         >
-          <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>Discipline <InfoTip text="Share of trades where you followed your plan" /></span>
+          <span style={{ ...LABEL, display: "inline-flex", alignItems: "center", gap: 4 }}>Discipline <InfoTip text="Share of trades where you followed every rule. Partly followed counts as not followed." /></span>
           <span style={{ font: "var(--text-stat)", letterSpacing: "-1px" }}>
             {S.discipline.plannedN + S.discipline.unplannedN > 0
               ? `${fmt((S.discipline.plannedN / (S.discipline.plannedN + S.discipline.unplannedN)) * 100, 0)}%`
@@ -2854,7 +2856,7 @@ export default function OverviewPanel({
               color: "var(--color-text-muted)",
             }}
           >
-            trades where you followed your plan
+            trades where you followed every rule
             {S.discipline.avgConfidence != null &&
               ` · avg confidence ${fmt(S.discipline.avgConfidence, 1)}★`}
           </span>

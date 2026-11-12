@@ -149,6 +149,11 @@ const tradeSchema = new mongoose.Schema(
 
     // Analysis & rules
     rulesFollowed: { type: Boolean, default: false },
+    // personal rule checklist answered when logging (snapshot of rule text so
+    // analytics stay right if the rule is later edited or removed)
+    ruleChecks: [{ _id: false, ruleId: String, text: String, checked: Boolean }],
+    // "yes" all followed | "partial" some | "no" none | "" not tracked
+    rulesStatus: { type: String, enum: ["yes", "partial", "no", ""], default: "" },
     reason: [{ type: String }], // array of strings
     learnings: { type: String, default: "" },
 

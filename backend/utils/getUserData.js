@@ -87,6 +87,7 @@ async function getUserData(user) {
     email: user.email,
     // custom log-trade section order (JSON string, drag-to-reorder feature)
     logSectionOrder: user.logSectionOrder || "",
+    tradingRules: Array.isArray(user.tradingRules) ? user.tradingRules.map((r) => ({ id: r.id, text: r.text })) : [],
 
     subscription: {
       plan: user.subscriptionPlan,

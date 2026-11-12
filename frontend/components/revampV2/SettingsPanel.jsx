@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown, Wallet, Calculator, Camera, Lock } from "lucide-react";
+import { CloudUpload, CloudDownload, HardDriveDownload, LogOut, Upload, X, Gift, Copy, Check, Share2, Mail, Send, MessageCircle, Twitter, ExternalLink, User, CreditCard, SlidersHorizontal, Bell, Palette, Plug, ShieldAlert, ChevronRight, ChevronLeft, BookOpen, ArrowUpDown, LifeBuoy, Crown, Wallet, Calculator, Camera, Lock, ListChecks } from "lucide-react";
 
 /* Settings sections, rendered as a left nav, one section at a time */
 const SETTINGS_TABS = [
   { id: "profile", label: "Profile", icon: User },
   { id: "billing", label: "Plan & billing", icon: CreditCard },
   { id: "preferences", label: "Trading preferences", icon: SlidersHorizontal },
+  { id: "rules", label: "Trading rules", icon: ListChecks },
   { id: "integrations", label: "Integrations", icon: Plug },
   { id: "backup", label: "Backup & restore", icon: CloudUpload },
   { id: "notifications", label: "Notifications", icon: Bell },
@@ -23,6 +24,7 @@ import Toast from "./Toast";
 import ExchangeConnectModal, { PLATFORMS } from "./ExchangeConnectModal";
 import ExchangeSyncModal from "./ExchangeSyncModal";
 import PlanLimitsCard from "./PlanLimitsCard";
+import TradingRules, { useTradingRules } from "./TradingRules";
 import { useTheme } from "./Sidebar";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
 import { getCurrencySymbol } from "@/utils/currencySymbol";
@@ -412,7 +414,11 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
     if (typeof window === "undefined") return undefined;
     // initialise from the URL (supports deep-links / refreshes on a section)
     const initial = new URLSearchParams(window.location.search).get("settings");
-    if (initial) setMobileSection(initial);
+    if (initial) {
+      setMobileSection(initial);
+      // desktop opens the same section (e.g. "Manage plan", "Set up trading rules")
+      if (SETTINGS_TABS.some((t) => t.id === initial)) setTab(initial);
+    }
     const onPop = () => {
       const s = new URLSearchParams(window.location.search).get("settings");
       setMobileSection(s || null);
@@ -424,6 +430,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
   /* subscription (for the mobile header status) */
   const [sub, setSub] = useState(null);
   const [toast, setToast] = useState(null);
+  const tradingRules = useTradingRules();
   const flash = (type, msg, ms = 3000) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), ms);
@@ -695,6 +702,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
             <div className="jx-ms__group">
               <MRow icon={Wallet} label={activeJournalName || "Default journal"} sub="Active journal" onClick={onSwitchJournal} hint="Switch" disabled={!onSwitchJournal} />
               <MRow icon={SlidersHorizontal} label="Trading preferences" value={baseCurrency} sub="Display currency, default journal, target" onClick={() => openMobileSection("preferences")} />
+              <MRow icon={ListChecks} label="Trading rules" value={tradingRules ? (tradingRules.length ? `${tradingRules.length} rule${tradingRules.length === 1 ? "" : "s"}` : "Not set") : ""} sub="Your checklist for every trade" onClick={() => openMobileSection("rules")} />
               {onNavigate && <MRow icon={ArrowUpDown} label={more.importexport.label} sub="CSV in, CSV or JSON out" onClick={() => go("importexport")} />}
               {onNavigate && <MRow icon={Share2} label={more.share.label} sub="A read-only link to your results" onClick={() => go("share")} />}
             </div>
@@ -837,6 +845,9 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
 
       {/* ===== Plan & billing ===== */}
       {active === "billing" && <div className="jx-sub-wrap"><PlanLimitsCard /></div>}
+
+      {/* ===== Trading rules ===== */}
+      {active === "rules" && <TradingRules onToast={flash} />}
 
       {/* ===== Trading preferences ===== */}
       {active === "preferences" && (

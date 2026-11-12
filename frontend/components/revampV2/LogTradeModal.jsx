@@ -43,6 +43,8 @@ import TradersTodayBadge from "./TradersTodayBadge";
 import VoiceNoteRecorder from "./VoiceNoteRecorder";
 import SplashLoader from "./SplashLoader";
 import UpgradeSheet from "./UpgradeSheet";
+import { RulesChecklist, useTradingRules } from "./TradingRules";
+import { ruleStatusOf } from "@/utils/tradeRules";
 import Toast from "./Toast";
 import Kbd, { MOD } from "./Kbd";
 import { getFromIndexedDB, saveToIndexedDB } from "@/utils/indexedDB";
@@ -875,6 +877,9 @@ export default function LogTradeModal({
   const [toast, setToast] = useState(null);
   const [invalid, setInvalid] = useState(null); // required field flagged on save
   const [planAnswered, setPlanAnswered] = useState(false); // Yes/No picked for "Followed your plan?"
+  // personal rules checklist (Settings → Trading rules). null = not ticked yet
+  const tradingRules = useTradingRules() || [];
+  const [ruleChecks, setRuleChecks] = useState(null);
   const [saving, setSaving] = useState(false);
   const reloadingRef = useRef(false); // keep the splash up through the post-save reload
   const [symbols, setSymbols] = useState([]);
@@ -1163,6 +1168,11 @@ export default function LogTradeModal({
     if (!open) return;
     setInvalid(null);
     setPlanAnswered(!!initialTrade?._id);
+    setRuleChecks(
+      initialTrade?._id && Array.isArray(initialTrade.ruleChecks) && initialTrade.ruleChecks.length
+        ? initialTrade.ruleChecks.map((c) => ({ ruleId: c.ruleId, text: c.text, checked: !!c.checked }))
+        : null,
+    );
     if (initialTrade?._id) {
       const base = tradeToForm(initialTrade);
       setForm(base);
@@ -1565,7 +1575,8 @@ export default function LogTradeModal({
       "learnings",
       voiceT ? `${form.notes ? form.notes + "\n\n" : ""}🎙 Voice note: ${voiceT}` : form.notes,
     );
-    fd.append("rulesFollowed", form.followedPlan);
+    if (useRules) fd.append("ruleChecks", JSON.stringify(rulesPayload()));
+    else fd.append("rulesFollowed", planAnswered ? form.followedPlan : "");
     fd.append("strategy", form.strategy || "");
     fd.append("marketCondition", form.market || "");
     fd.append("timeframe", timeframeValue);
@@ -1772,9 +1783,21 @@ export default function LogTradeModal({
     </>
   );
 
-  // "Followed your plan?" as an explicit Yes / No. Nothing is pre-selected on a
-  // new trade, so the form never opens by telling the trader "No".
-  const planBlock = (
+  // With personal rules set up, the trader ticks each rule they followed
+  // (all = followed, some = partial, none = broken). An older trade logged as
+  // "followed" opens with every rule ticked.
+  const legacyFollowed = !!initialTrade?._id && !initialTrade?.ruleChecks?.length && ruleStatusOf(initialTrade) === "yes";
+  const useRules = tradingRules.length > 0 || (Array.isArray(ruleChecks) && ruleChecks.length > 0);
+  const rulesPayload = () =>
+    Array.isArray(ruleChecks) && ruleChecks.length
+      ? ruleChecks
+      : tradingRules.map((x) => ({ ruleId: x.id, text: x.text, checked: legacyFollowed }));
+
+  // Otherwise "Followed your plan?" as an explicit Yes / No. Nothing is
+  // pre-selected on a new trade, so the form never opens by telling the trader "No".
+  const planBlock = useRules ? (
+    <RulesChecklist rules={tradingRules} value={ruleChecks} onChange={setRuleChecks} defaultChecked={legacyFollowed} />
+  ) : (
     <div className="jx-plan-q">
       <span className="jx-plan-q__text">
         <span className="jx-plan-q__title">Followed your plan?</span>

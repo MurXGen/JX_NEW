@@ -129,6 +129,24 @@ router.get("/user-info", createLimiter(10), userFetchGoogleAuth);
 
 router.put("/update-subscription", updateSubscription);
 
+// 📌 Trading rules: the user's personal checklist, ticked on every trade.
+//   PUT /api/auth/trading-rules  { rules: [{ id, text }] }  (max 15, 140 chars)
+router.put("/trading-rules", async (req, res) => {
+  try {
+    const userId = req.cookies.userId;
+    if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
+    const { cleanRules } = require("../utils/tradeRules");
+    const rules = cleanRules(req.body?.rules);
+    if (!rules) return res.status(400).json({ success: false, message: "rules must be a list" });
+    const user = await User.findByIdAndUpdate(userId, { $set: { tradingRules: rules } }, { new: true }).select("tradingRules");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    return res.json({ success: true, tradingRules: user.tradingRules.map((r) => ({ id: r.id, text: r.text })) });
+  } catch (err) {
+    console.error("[trading-rules] save failed:", err);
+    return res.status(500).json({ success: false, message: "Couldn't save your rules. Please try again." });
+  }
+});
+
 // 📌 v2: Update profile — name, base currency, avatar (email is immutable)
 router.put(
   "/update-profile",

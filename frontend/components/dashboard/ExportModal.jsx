@@ -1,6 +1,7 @@
 "use client";
 
 import GoogleBannerAd from "@/components/ads/GoogleBannerAd";
+import { ruleStatusOf } from "@/utils/tradeRules";
 import Dropdown from "@/components/ui/Dropdown";
 import UpgradeButton from "@/components/ui/UpgradeButton";
 import { fetchAccountsAndTrades } from "@/utils/fetchAccountAndTrades";
@@ -153,7 +154,7 @@ const ExportPage = () => {
           ? dayjs(trade.closeTime).format("YYYY-MM-DD HH:mm:ss")
           : "",
         trade.duration || 0,
-        trade.rulesFollowed ? "Yes" : "No",
+        ({ yes: "Yes", partial: "Partial", no: "No" })[ruleStatusOf(trade)] || "",
         Array.isArray(trade.reason) ? trade.reason.join("; ") : "",
         trade.learnings || "",
         trade.rr || "",

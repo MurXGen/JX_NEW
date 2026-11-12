@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema(
     // user's custom order of the log-trade sections (comma-separated ids),
     // persisted so we don't re-fetch layout prefs on every load
     logSectionOrder: { type: String, default: "" },
+    // personal trading rules (Settings → Trading rules); ticked per trade
+    tradingRules: [{ _id: false, id: String, text: String }],
 
     // TradingView webhook integration — per-user secret token
     tvWebhookToken: { type: String, index: true },

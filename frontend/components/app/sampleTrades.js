@@ -21,6 +21,21 @@ function rng(seed) {
   };
 }
 
+// the sample trader's checklist (shown in the sample analytics)
+const SAMPLE_RULES = [
+  { id: "s_setup", text: "Waited for my setup to confirm" },
+  { id: "s_risk", text: "Risked 1% or less of my account" },
+  { id: "s_stop", text: "Set my stop-loss before entering" },
+  { id: "s_target", text: "Took profit at my planned target" },
+];
+// deterministic per trade (doesn't touch the RNG, so P&L stays the same)
+function sampleChecks(id, followed) {
+  let on;
+  if (followed) on = id % 5 === 0 ? [true, true, false, true] : [true, true, true, true]; // sometimes skips the stop
+  else on = id % 2 ? [false, false, false, false] : id % 4 ? [true, false, false, true] : [true, true, false, false];
+  return SAMPLE_RULES.map((x, i) => ({ ruleId: x.id, text: x.text, checked: on[i] }));
+}
+
 export function buildSampleTrades(now = Date.now()) {
   const r = rng(42);
   const out = [];
@@ -55,7 +70,12 @@ export function buildSampleTrades(now = Date.now()) {
         closeTime: close.toISOString(),
         strategy: STRATEGIES[Math.floor(r() * STRATEGIES.length)],
         timeframe: TIMEFRAMES[(id * 5) % TIMEFRAMES.length],
-        rulesFollowed: followed,
+        ...(() => {
+          const ruleChecks = sampleChecks(id, followed);
+          const n = ruleChecks.filter((c) => c.checked).length;
+          const rulesStatus = n === ruleChecks.length ? "yes" : n ? "partial" : "no";
+          return { ruleChecks, rulesStatus, rulesFollowed: rulesStatus === "yes" };
+        })(),
         tradeStatus: "closed",
         source: r() > 0.6 ? "auto" : "manual",
         images: [],
