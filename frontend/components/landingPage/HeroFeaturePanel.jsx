@@ -62,7 +62,7 @@ export default function HeroFeaturePanel() {
           <div
             className={s.phoneArea}
             role="img"
-            aria-label="JournalX on a phone with analytics cards popping out: net P&L +$4,338.50, win rate 80%, and an insight that early exits cost $612 this month. Sample data."
+            aria-label="JournalX on a phone with analytics cards popping out: net P&L +$4,338.50, win rate 80%, and an insight that early exits are the biggest leak at $612 this month. Sample data."
           >
             <div className={s.phone} aria-hidden="true">
               <div className={s.phoneNotch} />
@@ -90,11 +90,17 @@ export default function HeroFeaturePanel() {
               viewport={{ once: true, amount: 0.4 }}
               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className={s.pnlLabel}>Net P&amp;L, this month</div>
+              <span className={s.popLabel}>Net P&amp;L · Nov</span>
               <div className={s.popValue}>+$4,338.50</div>
-              <svg viewBox="0 0 200 60" width="100%" height="34" preserveAspectRatio="none" style={{ display: "block", marginTop: 6 }}>
-                <path d={`${SPARK} L200,60 L0,60 Z`} fill="url(#hfp-area)" />
-                <path d={SPARK} fill="none" stroke="#fcd535" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+              <svg viewBox="0 0 200 60" width="100%" height="30" preserveAspectRatio="none" style={{ display: "block", marginTop: 8 }}>
+                <defs>
+                  <linearGradient id="hfp-area-m" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2ebd85" stopOpacity="0.18" />
+                    <stop offset="100%" stopColor="#2ebd85" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d={`${SPARK} L200,60 L0,60 Z`} fill="url(#hfp-area-m)" />
+                <path d={SPARK} fill="none" stroke="#2ebd85" strokeWidth="1.6" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
               </svg>
             </motion.div>
 
@@ -107,11 +113,11 @@ export default function HeroFeaturePanel() {
               viewport={{ once: true, amount: 0.4 }}
               transition={{ duration: 0.55, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
             >
-              <svg viewBox="0 0 44 44" width="44" height="44">
-                <circle cx="22" cy="22" r="18" fill="none" stroke="#1f2125" strokeWidth="5" />
-                <circle cx="22" cy="22" r="18" fill="none" stroke="#2ebd85" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${0.8 * 113} 113`} transform="rotate(-90 22 22)" />
+              <svg viewBox="0 0 44 44" width="36" height="36">
+                <circle cx="22" cy="22" r="18" fill="none" stroke="#1c1c1f" strokeWidth="4" />
+                <circle cx="22" cy="22" r="18" fill="none" stroke="#2ebd85" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${0.8 * 113} 113`} transform="rotate(-90 22 22)" />
               </svg>
-              <div><b>80%</b><span>Win rate</span></div>
+              <div><span className={s.popLabel}>Win rate</span><b>80%</b></div>
             </motion.div>
 
             {/* pop-out: highlighted impact */}
@@ -123,16 +129,16 @@ export default function HeroFeaturePanel() {
               viewport={{ once: true, amount: 0.4 }}
               transition={{ duration: 0.6, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className={s.impactTag}>Biggest impact</span>
+              <span className={s.impactTag}>Biggest leak</span>
               <div className={s.impactRow}>
                 <div>
                   <b>Early exits</b>
-                  <span>cost you this month</span>
+                  <span>9 trades closed before target</span>
                 </div>
-                <strong>-$612</strong>
+                <strong>−$612</strong>
               </div>
               <div className={s.impactBar}><i style={{ width: "68%" }} /></div>
-              <span className={s.impactFoot}>Fix this one habit to keep ~14% more profit · sample</span>
+              <span className={s.impactFoot}><span>~14% of gross profit</span><span>Sample data</span></span>
             </motion.div>
           </div>
 

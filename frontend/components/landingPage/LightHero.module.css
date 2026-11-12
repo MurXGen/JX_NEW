@@ -624,30 +624,26 @@
   position: absolute;
   z-index: 3;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(160deg, #1b1e24 0%, #111317 75%);
-  box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.95), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+  border: 1px solid #222225;
+  background: linear-gradient(180deg, #111113 0%, #0a0a0b 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 24px 48px -20px rgba(0, 0, 0, 0.95);
   box-sizing: border-box;
 }
-.popPnl { left: 0; top: 64px; width: 182px; padding: 12px 14px 10px; background: radial-gradient(70% 90% at 100% 0%, rgba(252, 213, 53, 0.22), rgba(252, 213, 53, 0) 60%), linear-gradient(160deg, #1e2329 0%, #121418 70%); }
-.popValue { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; color: #fff; margin-top: 2px; }
+.popLabel { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+.popPnl { left: 0; top: 64px; width: 178px; padding: 12px 14px; }
+.popValue { font-size: 21px; font-weight: 600; letter-spacing: -0.03em; color: var(--green); margin-top: 6px; font-variant-numeric: tabular-nums; }
 .popWin { right: 0; top: 170px; display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 10px; }
-.popWin b { display: block; font-size: 18px; font-weight: 600; color: #fff; line-height: 1.1; }
-.popWin span { font-size: 11px; color: var(--muted); }
-.popImpact {
-  left: 0; right: 0; margin: 0 auto; bottom: 0; width: min(300px, 100%); padding: 14px 16px 12px;
-  border-color: rgba(252, 213, 53, 0.45);
-  background: radial-gradient(90% 120% at 0% 0%, rgba(246, 70, 93, 0.16), rgba(246, 70, 93, 0) 60%), linear-gradient(160deg, #1d1a14 0%, #121317 70%);
-  box-shadow: 0 0 0 4px rgba(252, 213, 53, 0.08), 0 30px 60px -20px rgba(0, 0, 0, 0.95), 0 0 50px -16px rgba(252, 213, 53, 0.45);
-}
-.impactTag { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #181a20; background: var(--gold); padding: 3px 8px; border-radius: 999px; }
-.impactRow { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; }
+.popWin b { display: block; font-size: 18px; font-weight: 600; color: #fff; line-height: 1.1; margin-top: 3px; }
+.popImpact { left: 0; right: 0; margin: 0 auto; bottom: 0; width: min(300px, 100%); padding: 14px 16px; }
+.impactTag { display: inline-flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+.impactTag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+.impactRow { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin: 10px 0 12px; }
 .impactRow b { display: block; font-size: 15px; font-weight: 600; color: #fff; }
-.impactRow span { font-size: 11.5px; color: var(--muted); }
-.impactRow strong { font-size: 24px; font-weight: 700; color: var(--red); letter-spacing: -0.03em; }
-.impactBar { height: 6px; border-radius: 999px; background: #1f2125; overflow: hidden; }
-.impactBar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f6465d, #fcd535); }
-.impactFoot { display: block; margin-top: 8px; font-size: 10.5px; color: var(--faint); }
+.impactRow span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--muted); }
+.impactRow strong { font-size: 21px; font-weight: 600; color: var(--red); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.impactBar { height: 4px; border-radius: 999px; background: #1c1c1f; overflow: hidden; }
+.impactBar i { display: block; height: 100%; border-radius: 999px; background: var(--red); opacity: 0.85; }
+.impactFoot { display: flex; justify-content: space-between; margin-top: 10px; font-size: 10.5px; color: var(--faint); }
 
 @media (max-width: 640px) {
   .phoneArea { display: block; position: relative; z-index: 2; padding: 16px 0 96px; }
