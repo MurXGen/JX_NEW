@@ -22400,6 +22400,387 @@
           "a": "Start with the smallest position size your market allows, keep risk per trade low, and compare live metrics to demo after a set number of trades before scaling up."
         }
       ]
+    },
+    {
+      "slug": "prop-firm-prohibited-trading-strategies",
+      "title": "Prop Firm Prohibited Trading Strategies: The Banned Tactics That Get Payouts Denied (and How to Stay Clean)",
+      "metaTitle": "Prop Firm Prohibited Trading Strategies Explained | JournalX",
+      "metaDescription": "Hedging, tick scalping, latency arbitrage, all-in gambling: learn which strategies prop firms commonly ban, why payouts get denied, and how to audit trades.",
+      "keywords": [
+        "prop firm prohibited trading strategies",
+        "prop firm banned strategies",
+        "prop firm hedging rules",
+        "prop firm tick scalping rule",
+        "prop firm gambling rule",
+        "why prop firm payout denied"
+      ],
+      "category": "Funded",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-11-13",
+      "featured": false,
+      "excerpt": "Most denied payouts aren't about drawdown — they're about a strategy the firm's terms quietly prohibit. Here's what's commonly banned, why, and how to prove your trading is clean before you request a withdrawal.",
+      "helpful": {
+        "up": 42,
+        "down": 1,
+        "saves": 40
+      },
+      "tags": [
+        "Prop Firms",
+        "Payouts",
+        "Rules",
+        "Funded"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "You passed the challenge, traded the funded account inside every drawdown limit, and requested your first payout. Then the email arrives: the payout is denied for 'prohibited trading activity'. It's one of the most frustrating experiences in funded trading, and it's more common than most traders expect, because the rule you broke usually isn't on the dashboard. It's buried in the terms of service."
+        },
+        {
+          "type": "p",
+          "text": "Drawdown limits are enforced automatically and you see them breach in real time. Strategy restrictions are different: they're typically reviewed after the fact, often at the moment you ask for money. That's why it pays to understand them before you place a single funded trade, and to keep a record that shows your trading is a genuine, repeatable approach rather than something that exploits the firm's setup."
+        },
+        {
+          "type": "h2",
+          "text": "Why prop firms ban certain strategies"
+        },
+        {
+          "type": "p",
+          "text": "Most retail prop firms run evaluations and many funded accounts in simulated environments, and they model their business around traders who take real market risk. Strategies that profit from quirks of the simulation (stale prices, instant fills, delayed feeds) or that turn the account into a coin flip don't fit that model. A firm can't replicate those trades in a live market, and they can't tell a skilled trader from a lucky one. So the terms ban them, and the review team looks for their fingerprints when a payout request comes in."
+        },
+        {
+          "type": "p",
+          "text": "The exact list differs from firm to firm and changes over time, so treat everything below as the common pattern reported across firm help centres and trader communities, not as any single firm's rulebook. Your firm's current terms are the only document that counts."
+        },
+        {
+          "type": "h2",
+          "text": "The strategies firms most commonly restrict"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Strategy",
+            "What it looks like",
+            "Why it's usually banned",
+            "Typical status"
+          ],
+          "rows": [
+            [
+              "Latency / tick arbitrage",
+              "Exploiting delayed or stale price feeds between sources",
+              "Profits come from the platform, not the market",
+              "Almost always banned"
+            ],
+            [
+              "Tick scalping / HFT",
+              "Many trades held for seconds to capture tiny moves",
+              "Unrealistic fills in sim; not replicable live",
+              "Often banned or minimum hold time"
+            ],
+            [
+              "Opposite-account hedging",
+              "Long on one account, short on another (same or different firm)",
+              "Guarantees one passes regardless of skill",
+              "Almost always banned"
+            ],
+            [
+              "All-in 'gambling' trades",
+              "Risking most of the drawdown on one or two positions",
+              "Outcome is a coin flip, not an edge",
+              "Often flagged via max-risk or consistency rules"
+            ],
+            [
+              "News straddles / gap exploits",
+              "Pending orders both sides of a release to catch slippage-free spikes",
+              "Fills in sim far better than reality",
+              "Restricted at many firms"
+            ],
+            [
+              "Copy trading others' signals",
+              "Mirroring a third party or shared accounts",
+              "Account must reflect your own trading",
+              "Restricted; own-account copiers often allowed"
+            ],
+            [
+              "Third-party EAs / bots",
+              "Off-the-shelf expert advisors",
+              "Same trades across thousands of accounts",
+              "Varies widely — check terms"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice the theme: almost every ban targets trades whose profit depends on the environment rather than your decisions, or trades so concentrated that one outcome decides everything. If your edge is a normal discretionary or systematic approach with sensible position sizing, most of these rules will never touch you. The danger is drifting into one of them without noticing, especially under pressure to hit a target."
+        },
+        {
+          "type": "h2",
+          "text": "The grey zones that catch honest traders"
+        },
+        {
+          "type": "p",
+          "text": "Few traders set out to arbitrage a price feed. The payouts that surprise people usually come from grey areas. A scalper whose average hold time is under a minute may trip a minimum-duration rule they never read. A trader who doubles size on the last day to close out the profit target can look like a gambler on a risk-per-trade review. Someone running two accounts at different firms with the same copier might be fine at one firm and in breach at the other. And a trader who stacks five correlated positions at once may exceed a max-exposure rule even though each trade on its own was small."
+        },
+        {
+          "type": "quote",
+          "text": "The firm doesn't review your intent. It reviews your trade log. Make sure your log tells the right story."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Which trade is most likely to be flagged?",
+          "prompt": "Four traders all hit a 10% profit target. Which pattern is most likely to trigger a prohibited-activity review?",
+          "options": [
+            "30 trades over 3 weeks, 0.5% risk each, one setup type",
+            "2 trades on the final day, each risking roughly 4% of the account",
+            "15 swing trades held 1–4 days with consistent size",
+            "40 intraday trades, average hold 25 minutes, stops on every trade"
+          ],
+          "correct": 1,
+          "explain": "Two oversized trades that deliver the entire target look like a coin flip rather than an edge. Many firms flag this through max-risk-per-trade, lot-size or consistency rules even when no single drawdown limit was breached."
+        },
+        {
+          "type": "h2",
+          "text": "A pre-payout self-audit"
+        },
+        {
+          "type": "p",
+          "text": "Before you request a withdrawal, review your funded period the way a compliance analyst would. Start with hold times: what's your shortest and average duration, and does your firm have a minimum? Then risk per trade: what was the largest single-trade risk as a percentage of the account, and is there a cap? Next, concentration: what share of total profit came from your best day or best trade, since many firms run a consistency check. Then exposure: did you ever hold several correlated positions that together exceeded a lot or margin limit? Finally, news: did any trade open or close inside a restricted news window?"
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Is your funded account payout-ready?",
+          "prompt": "Tick each statement that's true for your current funded period.",
+          "items": [
+            "I've read my firm's current prohibited-strategies page in the last 30 days",
+            "No trade was held for less than my firm's minimum duration (if any)",
+            "No single trade risked more than my firm's max-risk cap",
+            "My best day is within the firm's consistency threshold",
+            "I didn't hedge this account against another account",
+            "No trades opened or closed inside a restricted news window",
+            "Every EA or copier I used is permitted in writing"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "High risk — review your trade log and the terms before requesting a payout."
+            },
+            {
+              "min": 4,
+              "text": "Mostly clean, but close the gaps before you submit."
+            },
+            {
+              "min": 7,
+              "text": "Payout-ready. Keep your records in case support asks questions."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "How to stay clean going forward"
+        },
+        {
+          "type": "p",
+          "text": "Write the restrictions into your trading plan, not just your memory. Turn each relevant rule into a measurable limit: a maximum risk per trade below the firm's cap, a minimum hold time above theirs, and a daily rule that stops you trading during listed news windows. Re-read the terms whenever the firm announces changes, because rule updates and enforcement shifts have been a recurring theme in prop firm news this year. If something is ambiguous, ask support in writing and keep the reply; a written answer is far more useful than a forum thread if a dispute ever arises."
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX logs hold time, risk per trade and position size automatically for every trade, so a pre-payout audit takes minutes instead of an evening of spreadsheet work. Filter by account to see your best-day share of profit, your shortest holds and your largest single-trade risk side by side, then export the evidence if your firm ever questions a payout."
+        },
+        {
+          "type": "why",
+          "text": "Generic journals track P&L. JournalX is built for funded traders: it surfaces the exact metrics firms review — consistency, max risk, hold duration, correlated exposure — so you catch a rule problem before the firm does, not after."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Is hedging allowed at prop firms?",
+          "a": "Hedging within a single account is allowed at some firms and banned at others. Hedging opposite positions across two accounts, whether at the same firm or different firms, is almost universally prohibited. Check your firm's current terms."
+        },
+        {
+          "q": "Can a prop firm deny a payout after I passed the challenge?",
+          "a": "Yes. Firms commonly review trading activity at payout time, and a breach of a strategy restriction can lead to a denied payout or account closure even if no drawdown limit was hit. That's why a pre-payout self-audit is worth doing."
+        },
+        {
+          "q": "Is scalping banned at prop firms?",
+          "a": "Normal scalping usually isn't. What's often restricted is tick scalping or high-frequency trading with very short holds, sometimes enforced through a minimum trade duration. Read your firm's specific wording."
+        },
+        {
+          "q": "How do I prove my trading isn't prohibited?",
+          "a": "Keep a detailed journal with entries, exits, hold times, risk per trade and your reasoning. A consistent, documented process is the strongest evidence that your results come from a real strategy."
+        }
+      ]
+    },
+    {
+      "slug": "confirmation-bias-in-trading",
+      "title": "Confirmation Bias in Trading: Why You Only See the Evidence That Agrees With You (and How to Break It)",
+      "metaTitle": "Confirmation Bias in Trading: How to Spot and Beat It | JournalX",
+      "metaDescription": "Confirmation bias makes traders hold bad positions and ignore warnings. See how it shows up on your charts, a pre-trade kill-switch routine, and journal fixes.",
+      "keywords": [
+        "confirmation bias in trading",
+        "confirmation bias trading examples",
+        "cognitive biases in trading",
+        "how to avoid confirmation bias trading",
+        "trading bias",
+        "trading psychology biases"
+      ],
+      "category": "Psychology",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-11-13",
+      "featured": false,
+      "excerpt": "Once you've picked a side, your brain quietly starts collecting reasons you're right. In fast, headline-driven markets that habit is expensive. Here's how to catch it before it costs you.",
+      "helpful": {
+        "up": 36,
+        "down": 2,
+        "saves": 34
+      },
+      "tags": [
+        "Psychology",
+        "Biases",
+        "Discipline",
+        "Mindset"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "You're long a stock after a strong earnings report. The next morning it gaps down. Within a minute you've found three reasons it's fine: the broader market is weak, a well-known account on social media says it's a buying opportunity, and the daily trend is still up. You never once looked for a reason the trade might be wrong. That's confirmation bias, and it's one of the quietest ways traders lose money."
+        },
+        {
+          "type": "p",
+          "text": "Psychologists describe confirmation bias as the tendency to search for, interpret and remember information in a way that supports what we already believe. It's one of the most widely studied biases in decision research, and it isn't a sign of a weak trader. It's how human attention works by default. The goal isn't to eliminate it; it's to build a process that catches it."
+        },
+        {
+          "type": "h2",
+          "text": "How confirmation bias shows up on your charts"
+        },
+        {
+          "type": "p",
+          "text": "It rarely feels like bias from the inside. It feels like analysis. Common forms include drawing trendlines until one fits your direction, switching to a higher or lower timeframe when your current one disagrees, reading only the analysts and posts that share your view, treating a bounce in a losing trade as proof and a further drop as noise, and redefining your stop as a 'mental stop' once price gets close."
+        },
+        {
+          "type": "p",
+          "text": "It's especially dangerous during headline-heavy periods. When markets swing sharply on sector-wide narratives, like the recent rounds of tech-led selling and rebounds around inflation data, there's an endless supply of commentary for both sides. Whatever you already believe, you'll find someone confident who agrees with you."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Biased thought",
+            "What it leads to",
+            "Process fix"
+          ],
+          "rows": [
+            [
+              "'The higher timeframe still supports me'",
+              "Holding through a broken setup",
+              "Define the decision timeframe before entry and don't change it mid-trade"
+            ],
+            [
+              "'Everyone I follow is bullish too'",
+              "False sense of certainty",
+              "Write the bear case before you enter"
+            ],
+            [
+              "'That drop is just noise'",
+              "Moving or removing the stop",
+              "Hard stop placed with the order, never adjusted wider"
+            ],
+            [
+              "'My last three losses were bad luck'",
+              "Ignoring a failing setup",
+              "Review results by setup tag every week"
+            ],
+            [
+              "'This news confirms my thesis'",
+              "Adding to a position on emotion",
+              "Only add per a pre-written scaling rule"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "The disconfirmation habit: argue against yourself first"
+        },
+        {
+          "type": "p",
+          "text": "The most effective counter is to deliberately look for the evidence that would prove you wrong, before you enter. Researchers sometimes call this a 'consider the opposite' strategy, and it maps neatly onto trading. Before each trade, write one sentence describing what the market would need to do to invalidate the idea. That becomes your stop logic. Then write one sentence on the strongest argument for the other side. If you can't think of one, you haven't looked hard enough, and that's a warning sign in itself."
+        },
+        {
+          "type": "quote",
+          "text": "If you can't state what would make you wrong, you don't have a trade idea. You have a hope."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "What's your confirmation-bias trap?",
+          "prompt": "When a trade goes against you, what do you most often do first?",
+          "options": [
+            {
+              "label": "Switch timeframes to find a better picture",
+              "response": "Very common. Lock your decision timeframe in your plan before entry, and journal every time you catch yourself flipping charts mid-trade."
+            },
+            {
+              "label": "Look for news or posts that support my view",
+              "response": "Social and news feeds are built to give you more of what you engage with. Try a rule: no feed checks while a position is open."
+            },
+            {
+              "label": "Widen or remove my stop",
+              "response": "This is where the bias becomes expensive. Place hard stops with the order and log any adjustment so you can measure its real cost."
+            },
+            {
+              "label": "Exit and review calmly",
+              "response": "That's the goal. Keep logging these exits so you have data showing the discipline is working."
+            }
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "A pre-trade kill-switch routine"
+        },
+        {
+          "type": "p",
+          "text": "Build three short questions into every entry. First: what is my invalidation, and is my stop placed there now? Second: what's the best argument for the other side, in one line? Third: if I had no position, would I enter this trade right now at this price? Repeat that third question while the trade is open. If the honest answer becomes no, you're holding because of commitment, not evidence."
+        },
+        {
+          "type": "p",
+          "text": "The routine should take under a minute. Its value is that it forces a moment of disconfirming thought at the exact point where the bias is strongest, right after you've committed to an idea."
+        },
+        {
+          "type": "h2",
+          "text": "Using your journal as an unbiased witness"
+        },
+        {
+          "type": "p",
+          "text": "Your memory is biased in the same direction as your analysis: you remember the calls you got right and quietly forget the ones you rationalised. A journal doesn't. Tag each trade with whether you wrote an invalidation and a counter-argument before entry, and whether you changed your stop or timeframe during the trade. After 30 to 50 trades, compare results across those tags. Many traders find their 'adjusted' trades carry noticeably worse average R than the ones they left alone. That's hard, personal evidence, and it's far more convincing than any article."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX you can add custom tags like 'stop moved', 'timeframe switched' or 'counter-case written' to every trade, then filter your stats by tag. In a few clicks you'll see exactly how much confirmation bias is costing you in R and win rate, not as a theory but in your own numbers."
+        },
+        {
+          "type": "why",
+          "text": "JournalX pairs every trade with your pre-trade notes and screenshots, so your review compares what you planned with what you actually did. That side-by-side view is what exposes confirmation bias, because it removes the chance to rewrite the story after the fact."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is confirmation bias in trading?",
+          "a": "It's the tendency to seek out and favour information that supports a trade you've already taken or planned, while dismissing evidence against it. It often leads to holding losers too long and ignoring broken setups."
+        },
+        {
+          "q": "How can I avoid confirmation bias when trading?",
+          "a": "Define your invalidation and place a hard stop before entry, write the strongest counter-argument to your trade, keep your decision timeframe fixed, and review tagged trades in a journal to measure the cost of any mid-trade changes."
+        },
+        {
+          "q": "Is confirmation bias the same as overconfidence?",
+          "a": "They're related but different. Overconfidence is overestimating your skill or accuracy; confirmation bias is filtering evidence to fit a belief. Confirmation bias often feeds overconfidence by hiding the trades that went wrong."
+        },
+        {
+          "q": "Can a trading journal really reduce bias?",
+          "a": "Yes, because it records what you planned before the outcome was known. Comparing planned versus actual behaviour across many trades shows patterns your memory would otherwise smooth over."
+        }
+      ]
     }
   ]
 }
