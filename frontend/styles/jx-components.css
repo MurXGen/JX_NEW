@@ -6451,3 +6451,29 @@ body::before {
 .jx-td-rules li > span[aria-hidden] { flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 5px; display: grid; place-items: center; color: var(--color-danger); background: var(--color-danger-subtle, rgba(246, 70, 93, 0.12)); }
 .jx-td-rules li[data-on] { color: var(--color-text-primary); }
 .jx-td-rules li[data-on] > span[aria-hidden] { color: var(--color-success); background: var(--color-success-subtle, rgba(46, 189, 133, 0.12)); }
+
+/* ---- faded dot grid behind the page header (top-right, like a soft
+   texture under the glow). Sits in the scroll area so it scrolls away with
+   the header; paints under all content via isolation + z-index -1. ---- */
+.jx-shell__main { position: relative; isolation: isolate; }
+.jx-shell__main::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: -1;
+  width: min(820px, 78%);
+  height: 380px;
+  pointer-events: none;
+  --jx-dot: rgba(255, 255, 255, 0.24);
+  background-image: radial-gradient(circle, var(--jx-dot) 1px, transparent 1.6px);
+  background-size: 18px 18px;
+  background-position: right 2px top 2px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 100% at 100% 0%, #000 0%, rgba(0, 0, 0, 0.7) 30%, rgba(0, 0, 0, 0.25) 60%, transparent 80%);
+  mask-image: radial-gradient(ellipse 90% 100% at 100% 0%, #000 0%, rgba(0, 0, 0, 0.7) 30%, rgba(0, 0, 0, 0.25) 60%, transparent 80%);
+  border-top-right-radius: inherit;
+}
+[data-theme="light"] .jx-shell__main::before { --jx-dot: rgba(17, 19, 24, 0.16); }
+@media (max-width: 768px) {
+  .jx-shell__main::before { width: 100%; height: 300px; background-size: 16px 16px; }
+}
