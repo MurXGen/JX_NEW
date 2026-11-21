@@ -1,6 +1,6 @@
 "use strict";
 
-/* Exchange integrations (Binance, Bybit) — Pro-only.
+/* Exchange integrations (Binance, Bybit, Tradovate) — Pro-only.
    connect  → verify keys, store encrypted, return a preview (no insert)
    sync     → fetch since last sync, dedupe by externalId, insert
    disconnect → wipe stored keys/state (full reset)
@@ -12,6 +12,7 @@ const Account = require("../models/Account");
 const { encrypt, decrypt, keyHint } = require("../utils/vault");
 const { fetchBinanceTrades, verifyBinance } = require("../services/exchanges/binance");
 const { fetchBybitTrades, verifyBybit } = require("../services/exchanges/bybit");
+const { fetchTradovateTrades, verifyTradovate } = require("../services/exchanges/tradovate");
 
 const EXCHANGES = {
   binance: {
@@ -24,7 +25,30 @@ const EXCHANGES = {
     verify: verifyBybit,
     fetch: fetchBybitTrades,
   },
+  // Tradovate: apiKey = API key ID (cid), secret = API secret (sec), plus the
+  // Tradovate login. "markets" = environment (live | demo), single choice.
+  tradovate: {
+    markets: ["live", "demo"],
+    single: true,
+    extraFields: ["username", "password"],
+    verify: verifyTradovate,
+    fetch: fetchTradovateTrades,
+  },
 };
+
+/* Encrypted JSON blobs for per-exchange extras (logins) and adapter state
+   (e.g. a cached Tradovate session token). */
+const encJson = (o) => encrypt(JSON.stringify(o || {}));
+const decJson = (s) => {
+  try { return JSON.parse(decrypt(s) || "{}"); } catch { return {}; }
+};
+function persistState(conn, state) {
+  if (!state?.changed) return false;
+  const { changed, ...rest } = state;
+  conn.stateEnc = encJson(rest);
+  state.changed = false;
+  return true;
+}
 
 const ALLOWED_WINDOWS = [7, 90, 120];
 const RATE_MAX = 5;                 // connect attempts…
@@ -117,15 +141,23 @@ exports.connectExchange = async (req, res) => {
     const secret = String(req.body.secret || req.body.secretKey || "").trim();
     let markets = Array.isArray(req.body.markets) ? req.body.markets : [];
     markets = markets.filter((m) => cfg.markets.includes(m));
-    if (!markets.length) markets = [cfg.markets[1] || cfg.markets[0]];
+    if (!markets.length) markets = [cfg.single ? cfg.markets[0] : cfg.markets[1] || cfg.markets[0]];
+    if (cfg.single) markets = [markets[0]];
     const windowDays = ALLOWED_WINDOWS.includes(Number(req.body.window)) ? Number(req.body.window) : 90;
 
     if (!apiKey || !secret)
       return res.status(400).json({ message: "API key and secret are required" });
 
+    const extra = {};
+    for (const f of cfg.extraFields || []) {
+      extra[f] = String(req.body[f] || "").trim();
+      if (!extra[f]) return res.status(400).json({ message: `${f[0].toUpperCase()}${f.slice(1)} is required` });
+    }
+    const state = {};
+
     // verify credentials
     try {
-      await cfg.verify({ apiKey, secret, markets });
+      await cfg.verify({ apiKey, secret, markets, extra, state });
     } catch (e) {
       await user.save(); // persist the rate-limit increment
       return res.status(400).json({ code: "AUTH", message: e.message || "Invalid API credentials" });
@@ -143,7 +175,11 @@ exports.connectExchange = async (req, res) => {
       connectedAt: new Date(),
       lastSyncAt: null,
       autoSync: true,
+      ...(cfg.extraFields ? { extraEnc: encJson(extra) } : {}),
+      accountId: (await resolveAccountId(req, userId)) || null,
     };
+    persistState(user.integrations[id], state);
+    user.markModified("integrations");
     // successful connect resets the rate window
     user.integrationRate = { count: 0, windowStart: new Date() };
     await user.save();
@@ -152,7 +188,11 @@ exports.connectExchange = async (req, res) => {
     const sinceMs = Date.now() - windowDays * 864e5;
     let preview = [];
     try {
-      preview = await cfg.fetch({ apiKey, secret, markets, sinceMs });
+      preview = await cfg.fetch({ apiKey, secret, markets, sinceMs, extra, state });
+      if (persistState(user.integrations[id], state)) {
+        user.markModified("integrations");
+        await user.save();
+      }
     } catch (e) {
       if (e.code === "AUTH")
         return res.status(400).json({ code: "AUTH", message: e.message });
@@ -175,12 +215,79 @@ exports.connectExchange = async (req, res) => {
   }
 };
 
+/* Core sync for one user + exchange. Used by the HTTP route and the background
+   job. Returns { imported, skipped, total, lastSyncAt }; throws errors with
+   .code = "NOT_CONNECTED" | "AUTH" | "NO_JOURNAL" for the caller to map. */
+async function runSync(user, id, { accountId: preferAccountId } = {}) {
+  const cfg = EXCHANGES[id];
+  const conn = user.integrations?.[id];
+  const fail = (code, message) => Object.assign(new Error(message), { code });
+  if (!cfg) throw fail("UNSUPPORTED", "Unsupported exchange");
+  if (!conn?.connected) throw fail("NOT_CONNECTED", "Exchange not connected");
+
+  const apiKey = decrypt(conn.apiKeyEnc);
+  const secret = decrypt(conn.apiSecretEnc);
+  if (!apiKey || !secret) throw fail("NOT_CONNECTED", "Stored keys unreadable, reconnect");
+  const extra = cfg.extraFields ? decJson(conn.extraEnc) : {};
+  if (cfg.extraFields && cfg.extraFields.some((f) => !extra[f]))
+    throw fail("NOT_CONNECTED", "Stored login unreadable, reconnect");
+  const state = decJson(conn.stateEnc);
+
+  const userId = user._id;
+  let accountId = preferAccountId || conn.accountId;
+  if (!accountId) {
+    const acct = await Account.findOne({ userId }).sort({ updatedAt: -1 });
+    accountId = acct?._id || null;
+  }
+  if (!accountId) throw fail("NO_JOURNAL", "No journal found to import into");
+
+  // sync from a little before the last sync (overlap is fine — dedup handles it)
+  const winMs = (conn.window || 90) * 864e5;
+  const lastMs = conn.lastSyncAt ? new Date(conn.lastSyncAt).getTime() - 6 * 36e5 : 0;
+  const sinceMs = Math.max(Date.now() - winMs, lastMs || Date.now() - winMs);
+
+  let fetched;
+  try {
+    fetched = await cfg.fetch({ apiKey, secret, markets: conn.markets, sinceMs, extra, state });
+  } finally {
+    // keep a renewed/new session token even if the fetch itself failed
+    if (persistState(conn, state)) user.markModified("integrations");
+  }
+
+  let imported = 0;
+  let skipped = 0;
+  for (const t of fetched) {
+    if (!t.externalId) { skipped++; continue; }
+    const doc = toTradeDoc(t, userId, accountId, id);
+    try {
+      const r = await Trade.updateOne(
+        { userId, accountId, externalId: t.externalId },
+        { $setOnInsert: doc },
+        { upsert: true },
+      );
+      if (r.upsertedCount) imported++;
+      else skipped++;
+    } catch (e) {
+      // duplicate key (race) → treat as skipped
+      if (e.code === 11000) skipped++;
+      else throw e;
+    }
+  }
+
+  conn.lastSyncAt = new Date();
+  user.markModified("integrations");
+  await user.save();
+  return { imported, skipped, total: fetched.length, lastSyncAt: conn.lastSyncAt };
+}
+exports.runSync = runSync;
+exports.EXCHANGES = EXCHANGES;
+exports.isPro = isPro;
+
 /* ---- POST /exchange/:id/sync ---- */
 exports.syncExchange = async (req, res) => {
   try {
     const id = String(req.params.id || "").toLowerCase();
-    const cfg = EXCHANGES[id];
-    if (!cfg) return res.status(400).json({ message: "Unsupported exchange" });
+    if (!EXCHANGES[id]) return res.status(400).json({ message: "Unsupported exchange" });
 
     const userId = req.cookies?.userId;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
@@ -189,58 +296,18 @@ exports.syncExchange = async (req, res) => {
     if (!isPro(user))
       return res.status(403).json({ code: "PRO_REQUIRED", message: "Exchange integrations are a Pro feature" });
 
-    const conn = user.integrations?.[id];
-    if (!conn?.connected)
-      return res.status(400).json({ code: "NOT_CONNECTED", message: "Exchange not connected" });
-
-    const apiKey = decrypt(conn.apiKeyEnc);
-    const secret = decrypt(conn.apiSecretEnc);
-    if (!apiKey || !secret)
-      return res.status(400).json({ code: "NOT_CONNECTED", message: "Stored keys unreadable, reconnect" });
-
-    const accountId = await resolveAccountId(req, userId);
-    if (!accountId) return res.status(400).json({ message: "No journal found to import into" });
-
-    // sync from a little before the last sync (overlap is fine — dedup handles it)
-    const winMs = (conn.window || 90) * 864e5;
-    const lastMs = conn.lastSyncAt ? new Date(conn.lastSyncAt).getTime() - 6 * 36e5 : 0;
-    const sinceMs = Math.max(Date.now() - winMs, lastMs || Date.now() - winMs);
-
-    let fetched = [];
+    // the journal open in the browser wins; otherwise the one saved at connect
+    const accountId = req.cookies?.accountId || null;
     try {
-      fetched = await cfg.fetch({ apiKey, secret, markets: conn.markets, sinceMs });
+      const out = await runSync(user, id, { accountId });
+      res.json({ success: true, ...out });
     } catch (e) {
-      if (e.code === "AUTH")
-        return res.status(400).json({ code: "AUTH", message: e.message || "Credentials rejected, reconnect" });
+      if (e.code === "NOT_CONNECTED" || e.code === "AUTH")
+        return res.status(400).json({ code: e.code, message: e.message || "Credentials rejected, reconnect" });
+      if (e.code === "NO_JOURNAL") return res.status(400).json({ message: e.message });
+      if (e.code === "RATE") return res.status(429).json({ code: "RATE_LIMIT", message: e.message });
       throw e;
     }
-
-    let imported = 0;
-    let skipped = 0;
-    for (const t of fetched) {
-      if (!t.externalId) { skipped++; continue; }
-      const doc = toTradeDoc(t, userId, accountId, id);
-      try {
-        await Trade.updateOne(
-          { userId, accountId, externalId: t.externalId },
-          { $setOnInsert: doc },
-          { upsert: true },
-        ).then((r) => {
-          if (r.upsertedCount) imported++;
-          else skipped++;
-        });
-      } catch (e) {
-        // duplicate key (race) → treat as skipped
-        if (e.code === 11000) skipped++;
-        else throw e;
-      }
-    }
-
-    conn.lastSyncAt = new Date();
-    user.markModified("integrations");
-    await user.save();
-
-    res.json({ success: true, imported, skipped, total: fetched.length, lastSyncAt: conn.lastSyncAt });
   } catch (err) {
     console.error("syncExchange error:", err);
     res.status(500).json({ message: "Sync failed" });
@@ -261,6 +328,7 @@ exports.disconnectExchange = async (req, res) => {
     user.integrations[id] = {
       connected: false, apiKeyEnc: "", apiSecretEnc: "", keyHint: "",
       markets: [], window: 90, connectedAt: null, lastSyncAt: null, autoSync: true,
+      extraEnc: "", stateEnc: "", accountId: null,
     };
     user.markModified("integrations");
     await user.save();

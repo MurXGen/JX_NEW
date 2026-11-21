@@ -193,6 +193,7 @@ app.use((req, res) => {
 
 const { initTelegramWebhook } = require("./utils/telegramSetup");
 const { startOnboardingScheduler } = require("./jobs/onboardingReminders");
+const { startExchangeAutoSync } = require("./jobs/exchangeAutoSync");
 const { startPaddleReconciler } = require("./controllers/paddleCon");
 
 const PORT = process.env.PORT || 5000;
@@ -204,4 +205,6 @@ app.listen(PORT, () => {
   startPaddleReconciler();
   // Start the onboarding-email drip (welcome + day 1 / 3 / 7 nudges).
   startOnboardingScheduler();
+  // Collect Tradovate trades hourly (its API only exposes the current session).
+  startExchangeAutoSync();
 });

@@ -458,7 +458,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
   const [lastSync, setLastSync] = useState(null);
   /* live exchange sync (Binance / Bybit) */
   const [exchStatus, setExchStatus] = useState({ pro: false, exchanges: {} });
-  const [syncModal, setSyncModal] = useState(null); // 'binance' | 'bybit' | null
+  const [syncModal, setSyncModal] = useState(null); // 'binance' | 'bybit' | 'tradovate' | null
   const loadExchangeStatus = async () => {
     try {
       const res = await axios.get(`${API_BASE}/api/integrations/exchange/status`, { withCredentials: true });
@@ -1033,30 +1033,37 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
         </div>
         <div className="jx-setrow__sub" style={{ marginBottom: "var(--space-2)" }}>
           {exchStatus.pro
-            ? <>Connect Binance or Bybit with a <strong>read-only</strong> API key to auto-import your trades. Others are coming soon — for now use CSV from <strong>Import / Export</strong>.</>
-            : <>Live exchange sync is a <strong>Pro</strong> feature. Upgrade to auto-import from Binance &amp; Bybit. You can still bring trades in via CSV from <strong>Import / Export</strong>.</>}
+            ? <>Connect Binance, Bybit or Tradovate with a <strong>read-only</strong> API key to auto-import your trades. Others are coming soon — for now use CSV from <strong>Import / Export</strong>.</>
+            : <>Live exchange &amp; broker sync is a <strong>Pro</strong> feature. Switch to Pro to auto-import from Binance, Bybit &amp; Tradovate. You can still bring trades in via CSV from <strong>Import / Export</strong>.</>}
         </div>
 
-        <div className="jx-int__group">Crypto exchanges · live</div>
-        {/* Live: Binance & Bybit */}
-        {["binance", "bybit"].map((id) => {
+        {[
+          { group: "Crypto exchanges · live", ids: ["binance", "bybit"] },
+          { group: "Futures brokers · live", ids: ["tradovate"] },
+        ].map(({ group, ids }) => (
+        <div key={group}>
+        <div className="jx-int__group">{group}</div>
+        {ids.map((id) => {
           const st = exchStatus.exchanges?.[id] || {};
-          const name = id === "binance" ? "Binance" : "Bybit";
+          const name = { binance: "Binance", bybit: "Bybit", tradovate: "Tradovate" }[id];
           return (
             <Row
               key={id}
               title={name}
               sub={st.connected
                 ? `Connected · ••••${st.keyHint || ""}${st.lastSyncAt ? ` · synced ${new Date(st.lastSyncAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}` : ""}`
-                : "Read-only API key · auto-sync"}
+                : id === "tradovate" ? "Login + API key · syncs hourly" : "Read-only API key · auto-sync"}
             >
               {st.connected && <Badge variant="success">Connected</Badge>}
+              {!exchStatus.pro && <Badge variant="brand"><Crown size={11} /> Pro</Badge>}
               <Button variant={st.connected ? "outline" : "primary"} size="sm" onClick={() => setSyncModal(id)}>
-                {st.connected ? "Manage" : "Connect"}
+                {st.connected ? "Manage" : exchStatus.pro ? "Connect" : "Upgrade"}
               </Button>
             </Row>
           );
         })}
+        </div>
+        ))}
 
         {/* Forex & prop-firm platforms, in development */}
         <div className="jx-int__group">Forex &amp; prop-firm platforms</div>
@@ -1068,7 +1075,7 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
 
         {/* Coming soon: everything else */}
         <div className="jx-int__group">More exchanges &amp; brokers · use CSV import for now</div>
-        {PLATFORMS.filter((p) => !["binance", "bybit"].includes(p.id) && p.kind !== "prop").map((p) => (
+        {PLATFORMS.filter((p) => !["binance", "bybit", "tradovate"].includes(p.id) && p.kind !== "prop").map((p) => (
           <Row key={p.id} title={p.name}>
             <Badge variant="neutral">Coming soon</Badge>
           </Row>

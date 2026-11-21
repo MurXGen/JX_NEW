@@ -34,6 +34,8 @@ const userSchema = new mongoose.Schema(
         connectedAt: { type: Date },
         lastSyncAt: { type: Date },
         autoSync: { type: Boolean, default: true },
+        stateEnc: { type: String, default: "" },
+        accountId: { type: mongoose.Schema.Types.ObjectId, default: null },
         _id: false,
       },
       bybit: {
@@ -46,6 +48,26 @@ const userSchema = new mongoose.Schema(
         connectedAt: { type: Date },
         lastSyncAt: { type: Date },
         autoSync: { type: Boolean, default: true },
+        stateEnc: { type: String, default: "" },
+        accountId: { type: mongoose.Schema.Types.ObjectId, default: null },
+        _id: false,
+      },
+      // Tradovate (futures). apiKeyEnc = API key ID (cid), apiSecretEnc = API
+      // secret (sec), extraEnc = encrypted {username, password} (Tradovate needs
+      // the login too), stateEnc = encrypted cached session token + deviceId.
+      tradovate: {
+        connected: { type: Boolean, default: false },
+        apiKeyEnc: { type: String, default: "" },
+        apiSecretEnc: { type: String, default: "" },
+        extraEnc: { type: String, default: "" },
+        stateEnc: { type: String, default: "" },
+        keyHint: { type: String, default: "" },
+        markets: { type: [String], default: [] }, // live | demo
+        window: { type: Number, default: 90 },
+        connectedAt: { type: Date },
+        lastSyncAt: { type: Date },
+        autoSync: { type: Boolean, default: true },
+        accountId: { type: mongoose.Schema.Types.ObjectId, default: null },
         _id: false,
       },
     },

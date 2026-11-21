@@ -1,6 +1,6 @@
 "use client";
 
-/* Connect + sync a live exchange (Binance / Bybit) — Pro only.
+/* Connect + sync a live exchange or broker (Binance / Bybit / Tradovate) — Pro only.
    Flow: enter read-only key/secret → pick markets + period → Connect (verify +
    store encrypted + preview) → review preview → Sync (dedup import).
    Also manages an already-connected exchange (sync now / disconnect). */
@@ -10,7 +10,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import {
   ArrowLeft, Check, Crown, Download, ExternalLink, Eye, EyeOff, KeyRound,
-  Lock, ShieldCheck, Trash2, X,
+  Lock, ShieldCheck, Trash2, User, X,
 } from "lucide-react";
 import Toast from "./Toast";
 
@@ -33,6 +33,22 @@ const META = {
       { id: "linear", label: "USDT-M (Linear)" },
       { id: "inverse", label: "COIN-M (Inverse)" },
       { id: "spot", label: "Spot" },
+    ],
+  },
+  /* Tradovate needs the account login AND an API key (key ID + secret), and its
+     API only shares the current trading day — JournalX collects trades hourly. */
+  tradovate: {
+    name: "Tradovate",
+    apiPage: "https://trader.tradovate.com/",
+    login: true,      // username + password fields
+    single: true,     // one environment at a time
+    noWindow: true,   // no look-back choice (API = current session only)
+    keyLabel: "API key ID",
+    secretLabel: "API secret",
+    marketsLabel: "Account type",
+    markets: [
+      { id: "live", label: "Live account" },
+      { id: "demo", label: "Demo / simulation" },
     ],
   },
 };
@@ -66,6 +82,8 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
   const [step, setStep] = useState("form"); // form | preview
   const [apiKey, setApiKey] = useState("");
   const [secret, setSecret] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [markets, setMarkets] = useState([meta.markets[0].id]);
   const [windowDays, setWindowDays] = useState(90);
   const [loading, setLoading] = useState(false);
@@ -77,14 +95,29 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
 
   useEffect(() => {
     if (!open) return;
-    setStep("form"); setApiKey(""); setSecret(""); setShowSecret(false); setPreview([]); setTotalPreview(0);
+    setStep("form"); setApiKey(""); setSecret(""); setUsername(""); setPassword(""); setShowSecret(false); setPreview([]); setTotalPreview(0);
     setMarkets(status?.markets?.length ? status.markets : [meta.markets[0].id]);
     setWindowDays(WINDOWS.some((w) => w.d === status?.window) ? status.window : 90);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, exchange]);
 
   const toggleMarket = (id) =>
-    setMarkets((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
+    meta.single
+      ? setMarkets([id])
+      : setMarkets((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
+
+  /* Upgrade: use the dashboard's single upgrade window when it's listening,
+     otherwise go to the pricing page. */
+  const openUpgrade = () => {
+    if (typeof window !== "undefined" && window.__jxUpgradeHost) {
+      window.dispatchEvent(new CustomEvent("jx-open-upgrade", {
+        detail: { title: "Unlock exchange & broker sync", sub: `Connect ${meta.name} and import your trades automatically with Pro.` },
+      }));
+      onClose?.();
+    } else {
+      window.location.href = "/pricing";
+    }
+  };
 
   const apiErr = (err, fallback) => {
     const d = err?.response?.data;
@@ -95,13 +128,17 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
   };
 
   const connect = async () => {
-    if (!apiKey.trim() || !secret.trim()) return flash("danger", "Enter both API key and secret");
+    if (meta.login && (!username.trim() || !password)) return flash("danger", `Enter your ${meta.name} username and password`);
+    if (!apiKey.trim() || !secret.trim()) return flash("danger", `Enter both ${(meta.keyLabel || "API key").toLowerCase()} and ${(meta.secretLabel || "secret").toLowerCase()}`);
     if (!markets.length) return flash("danger", "Pick at least one market");
     setLoading(true);
     try {
       const res = await axios.post(
         `${API_BASE}/api/integrations/exchange/${exchange}/connect`,
-        { apiKey: apiKey.trim(), secret: secret.trim(), markets, window: windowDays },
+        {
+          apiKey: apiKey.trim(), secret: secret.trim(), markets, window: windowDays,
+          ...(meta.login ? { username: username.trim(), password } : {}),
+        },
         { withCredentials: true },
       );
       setPreview(res.data?.preview || []);
@@ -109,7 +146,9 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
       setStep("preview");
       onChanged?.();
       if (!(res.data?.preview || []).length)
-        flash("info", `Connected — no closed trades found in the last ${windowDays} days`);
+        flash("info", meta.noWindow
+          ? `Connected — no closed trades in today's session yet. New trades sync automatically every hour.`
+          : `Connected — no closed trades found in the last ${windowDays} days`);
     } catch (err) {
       flash("danger", apiErr(err, "Could not connect, check your keys"));
     } finally {
@@ -149,7 +188,7 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
   };
 
   const marketLabel = (id) => meta.markets.find((m) => m.id === id)?.label || id;
-  const keysOk = !!apiKey.trim() && !!secret.trim();
+  const keysOk = !!apiKey.trim() && !!secret.trim() && (!meta.login || (!!username.trim() && !!password));
   const previewNet = preview.reduce((a, t) => a + Number(t.pnl || 0), 0);
   const previewWins = preview.filter((t) => Number(t.pnl || 0) > 0).length;
   const lastSync = status?.lastSyncAt
@@ -198,8 +237,11 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                 <div className="jx-xs__pro">
                   <span className="jx-xs__proIco"><Crown size={18} /></span>
                   <div>
-                    <b>Exchange sync is a Pro feature</b>
-                    <p>Upgrade to connect Binance and Bybit and have your closed trades imported automatically.</p>
+                    <b>Exchange &amp; broker sync is a Pro feature</b>
+                    <p>Switch to Pro to connect {meta.name} (and Binance, Bybit, Tradovate) and have your closed trades imported automatically.</p>
+                    <button type="button" className="jx-xs__gold" style={{ marginTop: 10 }} onClick={openUpgrade}>
+                      <Crown size={14} /> Upgrade to Pro
+                    </button>
                   </div>
                 </div>
               ) : step === "form" ? (
@@ -218,13 +260,26 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                   <section className="jx-xs__step" aria-labelledby="jx-xs-s1">
                     <span className="jx-xs__num" aria-hidden="true">1</span>
                     <div className="jx-xs__stepBody">
-                      <h3 id="jx-xs-s1">Create a read-only API key</h3>
-                      <ul className="jx-xs__checks">
-                        <li><Check size={13} /> Enable <b>read</b> permission only</li>
-                        <li className="off"><X size={13} /> Leave trading and withdrawals off</li>
-                      </ul>
+                      {meta.login ? (
+                        <>
+                          <h3 id="jx-xs-s1">Generate a Tradovate API key</h3>
+                          <ul className="jx-xs__checks">
+                            <li><Check size={13} /> In Tradovate open <b>Application Settings → API Access</b> and click <b>Generate API Key</b></li>
+                            <li><Check size={13} /> Give it <b>read-only</b> permissions, then copy the <b>key ID</b> and <b>secret</b> (the secret is shown once)</li>
+                            <li className="off"><X size={13} /> Needs Tradovate&apos;s API Access add-on on a live account; most prop-firm accounts can&apos;t create keys</li>
+                          </ul>
+                        </>
+                      ) : (
+                        <>
+                          <h3 id="jx-xs-s1">Create a read-only API key</h3>
+                          <ul className="jx-xs__checks">
+                            <li><Check size={13} /> Enable <b>read</b> permission only</li>
+                            <li className="off"><X size={13} /> Leave trading and withdrawals off</li>
+                          </ul>
+                        </>
+                      )}
                       <a href={meta.apiPage} target="_blank" rel="noopener noreferrer" className="jx-xs__link">
-                        Open {meta.name} API settings <ExternalLink size={13} />
+                        Open {meta.name} {meta.login ? "" : "API settings "}<ExternalLink size={13} />
                         <span className="jx-sr">(opens in a new tab)</span>
                       </a>
                     </div>
@@ -234,18 +289,40 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                   <section className="jx-xs__step" aria-labelledby="jx-xs-s2">
                     <span className={`jx-xs__num ${keysOk ? "is-done" : ""}`} aria-hidden="true">{keysOk ? <Check size={13} /> : 2}</span>
                     <div className="jx-xs__stepBody">
-                      <h3 id="jx-xs-s2">Paste your key and secret</h3>
+                      <h3 id="jx-xs-s2">{meta.login ? "Enter your login and API key" : "Paste your key and secret"}</h3>
+                      {meta.login && (
+                        <>
+                          <label className="jx-xs__field">
+                            <span className="jx-xs__lbl">{meta.name} username <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                            <span className="jx-xs__input">
+                              <User size={14} aria-hidden="true" />
+                              <input type="text" autoComplete="off" spellCheck={false} required
+                                placeholder={`Your ${meta.name} username`}
+                                value={username} onChange={(e) => setUsername(e.target.value)} />
+                            </span>
+                          </label>
+                          <label className="jx-xs__field">
+                            <span className="jx-xs__lbl">{meta.name} password <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                            <span className="jx-xs__input">
+                              <Lock size={14} aria-hidden="true" />
+                              <input type="password" autoComplete="new-password" spellCheck={false} required
+                                placeholder={`Your ${meta.name} password`}
+                                value={password} onChange={(e) => setPassword(e.target.value)} />
+                            </span>
+                          </label>
+                        </>
+                      )}
                       <label className="jx-xs__field">
-                        <span className="jx-xs__lbl">API key <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                        <span className="jx-xs__lbl">{meta.keyLabel || "API key"} <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
                         <span className="jx-xs__input">
                           <KeyRound size={14} aria-hidden="true" />
                           <input type="password" autoComplete="off" spellCheck={false} required
-                            placeholder={connected ? "Enter a new key to replace" : "Paste your API key"}
+                            placeholder={connected ? "Enter a new key to replace" : `Paste your ${meta.keyLabel || "API key"}`}
                             value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
                         </span>
                       </label>
                       <label className="jx-xs__field">
-                        <span className="jx-xs__lbl">API secret <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                        <span className="jx-xs__lbl">{meta.secretLabel || "API secret"} <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
                         <span className="jx-xs__input">
                           <Lock size={14} aria-hidden="true" />
                           <input type={showSecret ? "text" : "password"} autoComplete="off" spellCheck={false} required
@@ -266,12 +343,12 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                     <div className="jx-xs__stepBody">
                       <h3 id="jx-xs-s3">Choose what to sync</h3>
                       <div className="jx-xs__field">
-                        <span className="jx-xs__lbl" id="jx-xs-mk">Markets <i aria-hidden="true">*</i><span className="jx-sr">(pick at least one)</span></span>
+                        <span className="jx-xs__lbl" id="jx-xs-mk">{meta.marketsLabel || "Markets"} <i aria-hidden="true">*</i><span className="jx-sr">{meta.single ? "(pick one)" : "(pick at least one)"}</span></span>
                         <div className="jx-xs__chips" role="group" aria-labelledby="jx-xs-mk">
                           {meta.markets.map((m) => {
                             const on = markets.includes(m.id);
                             return (
-                              <button key={m.id} type="button" role="checkbox" aria-checked={on} onClick={() => toggleMarket(m.id)}>
+                              <button key={m.id} type="button" role={meta.single ? "radio" : "checkbox"} aria-checked={on} onClick={() => toggleMarket(m.id)}>
                                 <span className="jx-xs__box" aria-hidden="true">{on && <Check size={11} strokeWidth={3} />}</span>
                                 {m.label}
                               </button>
@@ -279,6 +356,11 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                           })}
                         </div>
                       </div>
+                      {meta.noWindow ? (
+                        <p className="jx-xs__meta" style={{ margin: 0 }}>
+                          Tradovate&apos;s API only shares the <b>current trading day</b>, so JournalX checks for new closed trades every hour and imports them for you. For older history, use CSV import from <b>Import / Export</b>.
+                        </p>
+                      ) : (
                       <div className="jx-xs__field">
                         <span className="jx-xs__lbl" id="jx-xs-win">History to pull</span>
                         <div className="jx-xs__seg" role="radiogroup" aria-labelledby="jx-xs-win">
@@ -289,12 +371,17 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                           ))}
                         </div>
                       </div>
+                      )}
                     </div>
                   </section>
 
                   <p className="jx-xs__note">
                     <ShieldCheck size={14} aria-hidden="true" />
-                    <span>Keys are encrypted at rest and only used to read your closed trades. Nothing is imported until you review it.</span>
+                    <span>
+                      {meta.login
+                        ? "Your login and keys are encrypted at rest and only used to read your closed trades. JournalX keeps one Tradovate session open for syncing. Nothing is imported until you review it."
+                        : "Keys are encrypted at rest and only used to read your closed trades. Nothing is imported until you review it."}
+                    </span>
                   </p>
                 </>
               ) : (
@@ -306,7 +393,7 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                     <div><span>Win rate</span><b>{preview.length ? `${Math.round((previewWins / preview.length) * 100)}%` : "–"}</b></div>
                   </div>
                   <p className="jx-xs__meta">
-                    {markets.map(marketLabel).join(" · ")} · last {windowDays} days
+                    {markets.map(marketLabel).join(" · ")} · {meta.noWindow ? "today's session" : `last ${windowDays} days`}
                     {preview.length && preview.length < totalPreview ? ` · stats from the ${preview.length} latest shown` : ""}
                   </p>
 
@@ -328,7 +415,11 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                       );
                     })}
                     {preview.length === 0 && (
-                      <li className="jx-xs__empty">No closed trades in the last {windowDays} days. Try a longer period or another market.</li>
+                      <li className="jx-xs__empty">
+                        {meta.noWindow
+                          ? "No closed trades in today's session yet. New trades are picked up automatically every hour."
+                          : `No closed trades in the last ${windowDays} days. Try a longer period or another market.`}
+                      </li>
                     )}
                   </ul>
 
