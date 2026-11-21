@@ -23567,6 +23567,451 @@
           "a": "Yes, but be careful: spot forex has no centralised volume, so platforms use tick volume, and 24-hour crypto markets need a clear session reset or an anchored VWAP to be meaningful."
         }
       ]
+    },
+    {
+      "slug": "how-to-trade-a-stock-market-correction",
+      "title": "How to Trade a Stock Market Correction: A Playbook for When the Leaders Break",
+      "metaTitle": "How to Trade a Stock Market Correction (10% Drop Playbook) | JournalX",
+      "metaDescription": "The S&P 500 just slid into correction territory. Here's a practical playbook to cut size, avoid bear-market-rally traps and journal your way through it.",
+      "keywords": [
+        "how to trade a stock market correction",
+        "stock market correction strategy",
+        "trading during a correction",
+        "what to do in a market correction",
+        "bear market rally trading"
+      ],
+      "category": "Markets",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 9,
+      "date": "2026-11-21",
+      "featured": false,
+      "excerpt": "When the market's favourite trade unwinds, the setups that paid all year start to bleed. Here's how to shrink your risk, read the tape honestly and come out of a correction with your account and your confidence intact.",
+      "helpful": {
+        "up": 44,
+        "down": 1,
+        "saves": 41
+      },
+      "tags": [
+        "Corrections",
+        "Volatility",
+        "Risk",
+        "Market Regime"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "This week the AI trade that carried markets for most of 2026 finally cracked. According to widely reported market coverage, the S&P 500 slipped roughly 10% below its October record by Friday, November 20 — the textbook definition of a correction — with chip names leading the decline and the VIX climbing to around 30, its highest reading in months. If your watchlist is full of the same high-flyers that made you money in summer, you probably felt it."
+        },
+        {
+          "type": "p",
+          "text": "Corrections are not rare and they are not the end of the world. But they are a regime change, and the single most expensive mistake traders make is to keep trading a new market with last month's rules. This guide is about adjusting fast, protecting capital and using the drawdown as data rather than as a reason to panic."
+        },
+        {
+          "type": "h2",
+          "text": "What a correction actually is (and isn't)"
+        },
+        {
+          "type": "p",
+          "text": "A correction is conventionally a 10%–20% decline from a recent high; a bear market starts at 20%. Market historians who track the S&P 500 back to the 1940s generally count dozens of corrections, and by most counts the majority of them did not turn into full bear markets. That's useful context, not a forecast. Nobody — not you, not the TV strategist — knows in real time which kind this one is."
+        },
+        {
+          "type": "p",
+          "text": "What you can know is how the market is behaving right now: wider daily ranges, faster reversals, gaps that ignore your levels, and correlations that jump towards one as everything sells together. Those are the conditions you need to trade, regardless of the headline label."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Signal",
+            "Normal uptrend",
+            "Correction regime"
+          ],
+          "rows": [
+            [
+              "Daily range (ATR)",
+              "Steady, predictable",
+              "Often 1.5–2x the recent average"
+            ],
+            [
+              "Breakouts",
+              "Follow through",
+              "Frequently fail and reverse"
+            ],
+            [
+              "Overnight gaps",
+              "Small",
+              "Large, news-driven, both directions"
+            ],
+            [
+              "Correlation",
+              "Sectors rotate",
+              "Everything sells together"
+            ],
+            [
+              "Best-performing tactic",
+              "Buy pullbacks to support",
+              "Smaller size, quicker profits, patience"
+            ]
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Step 1: Cut size before you cut anything else"
+        },
+        {
+          "type": "p",
+          "text": "If the average range on your instruments has nearly doubled, keeping the same share count means you are silently taking twice the risk per trade. The fix is mechanical: size off volatility, not habit. If you normally risk 1% of the account with a stop one ATR away, keep the 1% but let the wider ATR shrink your position. Many experienced traders also cut their risk-per-trade in half during the first week of a regime shift, until they have fresh evidence the new environment suits their setups."
+        },
+        {
+          "type": "quote",
+          "text": "In a correction, your job is not to catch the bottom. Your job is to still be here, with most of your capital, when the good setups come back."
+        },
+        {
+          "type": "h2",
+          "text": "Step 2: Respect the crowded-trade unwind"
+        },
+        {
+          "type": "p",
+          "text": "Corrections led by a single theme — this time AI and semiconductors — tend to be violent because so many funds and retail traders own the same names. When leaders break, they rarely break once. Forced selling, margin calls and de-risking create waves of supply, and every bounce meets holders who are just relieved to get out near breakeven."
+        },
+        {
+          "type": "p",
+          "text": "Practically, that means bounces in the former leaders are suspect until they prove otherwise: reclaiming a key moving average, holding a higher low, and seeing volume dry up on down days. Until then, 'it's down 25%, it must be cheap' is a story, not a setup."
+        },
+        {
+          "type": "h2",
+          "text": "Step 3: Learn to spot the bear-market rally"
+        },
+        {
+          "type": "p",
+          "text": "Some of the sharpest up-days in history have happened inside declining markets. Short-covering rallies of 3%–5% in a couple of sessions are common in corrections, and they trap two groups: shorts who get squeezed, and dip-buyers who go all-in on the first green day. Neither group had a plan."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Rally or reversal?",
+          "prompt": "The index bounces 4% in two days after a 10% drop. Volume on the bounce is lighter than on the selloff, and the former leaders are still below their 50-day average. What's the most reasonable read?",
+          "options": [
+            "The correction is over — go max long",
+            "It's a relief rally until proven otherwise — trade it small or wait",
+            "Short everything immediately",
+            "Volume doesn't matter, only price does"
+          ],
+          "correct": 1,
+          "explain": "Light-volume bounces with leaders still below key averages are classic relief rallies. You can trade them, but with reduced size and quick profit-taking — a durable bottom usually needs better breadth and the leaders reclaiming structure."
+        },
+        {
+          "type": "h2",
+          "text": "Step 4: Change your playbook, not your discipline"
+        },
+        {
+          "type": "p",
+          "text": "You don't need a brand-new strategy. You need tighter filters on the one you already have. A few adjustments that hold up across most styles:"
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Correction-mode checklist",
+          "prompt": "Tick each rule you'll apply until volatility normalises:",
+          "items": [
+            "I've recalculated position size using current ATR, not last month's",
+            "I've lowered my max daily loss for this period",
+            "I take partial profits faster than usual",
+            "I avoid holding full size through major data releases or weekends",
+            "I only buy former leaders after they reclaim structure",
+            "I trade fewer, higher-quality setups",
+            "I log the market regime on every trade"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "You're trading a new market with old rules. Pick two items and apply them tomorrow."
+            },
+            {
+              "min": 3,
+              "text": "Solid start. The remaining items are where most correction losses come from."
+            },
+            {
+              "min": 6,
+              "text": "You're treating the correction as a regime, not a headline. That's how accounts survive."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Notice what's not on the list: predicting the bottom, adding to losers, or abandoning your stops because 'everything always comes back'. Some things do come back. Your capital might not, if you blow through risk limits waiting."
+        },
+        {
+          "type": "h2",
+          "text": "Step 5: Journal the regime — it's your best edge next time"
+        },
+        {
+          "type": "p",
+          "text": "Most traders review corrections from memory, and memory is kind: you remember the one great short, not the five breakouts you bought that failed. Tagging every trade with the market regime (trend, chop, correction) turns this week into a dataset. Next time volatility spikes you'll know, with numbers, which of your setups still work and which should go on the bench."
+        },
+        {
+          "type": "usecase",
+          "text": "In JournalX, tag trades with a regime label like 'correction-nov-2026', then filter your analytics by that tag. You'll see your win rate, average R and profit factor for this specific environment side by side with your normal results — so your rules for the next selloff come from evidence, not gut feel."
+        },
+        {
+          "type": "why",
+          "text": "Most journals stop at P&L. JournalX lets you slice performance by tags, setups and emotions together, so you can spot patterns like 'my breakout trades lose money when the VIX is above 25' — the kind of insight that changes how you trade the next correction, not just how you feel about this one."
+        },
+        {
+          "type": "activity",
+          "kind": "poll",
+          "title": "How are you handling this selloff?",
+          "prompt": "Be honest — what's your current approach?",
+          "options": [
+            {
+              "label": "Cut size and trading less",
+              "response": "That's what most experienced traders do first. Keep it until volatility cools."
+            },
+            {
+              "label": "Actively shorting the breakdown",
+              "response": "Can work well — just watch for violent short-covering rallies and size accordingly."
+            },
+            {
+              "label": "Buying the dip in leaders",
+              "response": "Make sure you have a defined stop and a structural reason, not just 'it's down a lot'."
+            },
+            {
+              "label": "Sitting fully in cash",
+              "response": "Totally valid. Use the time to review your journal and prepare a watchlist for when conditions improve."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Corrections feel personal, but they're one of the most normal things markets do. Shrink your risk, raise your standards, write everything down, and you'll come out the other side with a clearer edge than you went in with."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is a stock market correction?",
+          "a": "A correction is generally defined as a decline of 10% to 20% from a recent high in a major index. A drop of 20% or more is usually called a bear market."
+        },
+        {
+          "q": "Should I stop trading during a market correction?",
+          "a": "Not necessarily, but most traders benefit from reducing position size, trading fewer setups and lowering their daily loss limit until volatility settles. Sitting in cash is also a legitimate decision."
+        },
+        {
+          "q": "How do I tell a bear market rally from a real bottom?",
+          "a": "Relief rallies often come on lighter volume, with former leaders still below key moving averages. Durable bottoms tend to show improving breadth, leaders reclaiming structure and higher lows that hold. No signal is certain, so size accordingly."
+        },
+        {
+          "q": "How can a trading journal help in a correction?",
+          "a": "Tagging trades by market regime lets you measure which setups work in high-volatility environments, so your rules for the next correction are based on your own data instead of memory."
+        }
+      ]
+    },
+    {
+      "slug": "trailing-stop-loss-strategy-how-to-trail-stops",
+      "title": "Trailing Stop Loss Strategy: How to Trail Stops Without Choking Your Winners",
+      "metaTitle": "Trailing Stop Loss Strategy: ATR, Structure & Chandelier Methods | JournalX",
+      "metaDescription": "Learn when to start trailing, which trailing stop method fits your style (ATR, structure, chandelier, MA) and how to test it with your own journal data.",
+      "keywords": [
+        "trailing stop loss strategy",
+        "how to use a trailing stop",
+        "ATR trailing stop",
+        "chandelier exit",
+        "best trailing stop method"
+      ],
+      "category": "Risk",
+      "cover": "/assets/JournalX_Banner.png",
+      "minutes": 8,
+      "date": "2026-11-21",
+      "featured": false,
+      "excerpt": "A trailing stop can lock in profits or quietly strangle every trend you catch. Here's how to pick a method, when to start trailing, and how to prove it works with your own trades.",
+      "helpful": {
+        "up": 39,
+        "down": 2,
+        "saves": 36
+      },
+      "tags": [
+        "Stops",
+        "Exits",
+        "Trade Management",
+        "ATR"
+      ],
+      "body": [
+        {
+          "type": "p",
+          "text": "Ask ten traders about trailing stops and you'll hear two stories. One says a trailing stop saved them from giving back a huge winner. The other says it kicked them out of a trade at the exact low before the move doubled. Both are true, and that's the point: a trailing stop is not good or bad. It's a tool whose results depend almost entirely on how far you trail, when you start, and what kind of market you're in."
+        },
+        {
+          "type": "p",
+          "text": "This guide walks through the main trailing methods, the trade-offs behind each, and a simple way to test which one actually fits your trading — using your own data instead of someone else's backtest."
+        },
+        {
+          "type": "h2",
+          "text": "What a trailing stop is really doing"
+        },
+        {
+          "type": "p",
+          "text": "A trailing stop moves in your favour as price moves in your favour, and never moves back. Its job is to convert open profit into locked profit while still giving the trade room to run. Every trailing method is a compromise between those two goals: trail too tight and you get stopped by normal noise; trail too loose and you give back a big chunk of the move before you're out."
+        },
+        {
+          "type": "quote",
+          "text": "The right trailing distance is the one that sits just outside the market's normal noise — close enough to protect profit, far enough that ordinary wiggles don't take you out."
+        },
+        {
+          "type": "h2",
+          "text": "The four trailing methods most traders use"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Method",
+            "How it trails",
+            "Best for",
+            "Main weakness"
+          ],
+          "rows": [
+            [
+              "Fixed distance / percent",
+              "Stays X points or X% behind price",
+              "Simplicity, beginners",
+              "Ignores volatility — too tight in fast markets, too loose in slow ones"
+            ],
+            [
+              "ATR-based",
+              "Stays a multiple of ATR (often 2–3x) behind price",
+              "Adapting to changing volatility",
+              "Needs a sensible ATR period and multiple for your timeframe"
+            ],
+            [
+              "Chandelier exit",
+              "Hangs a multiple of ATR below the highest high since entry",
+              "Trend following, swing trades",
+              "Gives back a fair amount at the end of a trend"
+            ],
+            [
+              "Structure / swing points",
+              "Moves below each new higher low (or above lower high)",
+              "Price action and SMC-style traders",
+              "Discretionary; can lag in steep trends"
+            ],
+            [
+              "Moving average",
+              "Exits on a close beyond a chosen MA (e.g. 20 EMA)",
+              "Riding strong momentum",
+              "Whipsaws badly in sideways markets"
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The chandelier exit, popularised by Chuck LeBeau, is essentially an ATR trail anchored to the highest high, which makes it popular for swing traders who want a rule-based exit. Structure-based trails appeal to discretionary traders because the stop sits where the trade idea is actually invalidated, not at an arbitrary number."
+        },
+        {
+          "type": "h2",
+          "text": "When to start trailing (the part most people get wrong)"
+        },
+        {
+          "type": "p",
+          "text": "The most common mistake isn't the method — it's trailing too early. If you start tightening the moment a trade goes 0.3R in your favour, you're effectively shrinking your stop on a trade that hasn't proven anything yet. When traders review their journals, trades closed by an early trail often show a lower average R than trades left alone until they reached a defined milestone."
+        },
+        {
+          "type": "p",
+          "text": "A cleaner approach is to keep the original stop until a trigger, then switch on the trail. Common triggers include price reaching 1R or 1.5R, a break of the prior swing high, or a partial profit being taken. This gives the trade room to breathe in its first, noisiest phase."
+        },
+        {
+          "type": "activity",
+          "kind": "quiz",
+          "title": "Trail check",
+          "prompt": "You enter long with a 1R stop. Price moves 0.4R in your favour and you immediately trail the stop to 0.2R below price. What's the most likely long-term effect?",
+          "options": [
+            "Higher average R per trade",
+            "More small wins and scratches, fewer big winners",
+            "No effect on results",
+            "Lower win rate but bigger winners"
+          ],
+          "correct": 1,
+          "explain": "Trailing that early converts many potential runners into small wins or scratches. Win rate may look better, but the big winners that drive expectancy get cut off — usually lowering average R."
+        },
+        {
+          "type": "h2",
+          "text": "Match the trail to the market regime"
+        },
+        {
+          "type": "p",
+          "text": "Trailing stops shine in trending markets and suffer in choppy ones. In a range, a tight trail will get hit on every swing; you'd often do better with a fixed target. In a strong trend, a fixed target leaves money on the table and a trail lets you capture the tail. That's why many traders run a hybrid: take partial profit at a fixed target, then trail the remainder."
+        },
+        {
+          "type": "p",
+          "text": "Volatility matters too. When ranges expand — as they do during selloffs and news-driven weeks — fixed-distance trails get hit far more often. ATR-based and chandelier methods automatically widen with volatility, which is the main reason they're popular with traders who hold through changing conditions."
+        },
+        {
+          "type": "h2",
+          "text": "Test your trail with your own trades"
+        },
+        {
+          "type": "p",
+          "text": "Generic backtests can't tell you what works for your entries. Your journal can. Pull your last 50–100 trades in one setup and compare actual exits with what each trailing method would have done. The key numbers are average R, the share of trades that reached 2R or more, and how much open profit you gave back on average (your MFE versus your exit)."
+        },
+        {
+          "type": "activity",
+          "kind": "checklist",
+          "title": "Trailing stop audit",
+          "prompt": "Check the boxes that are true for your current exits:",
+          "items": [
+            "My trailing rule is written down, not decided in the moment",
+            "I only start trailing after a defined trigger (e.g. 1R)",
+            "My trail distance accounts for current volatility",
+            "I use different exits for trending vs ranging conditions",
+            "I log MFE so I know how much profit I give back",
+            "I've compared my trail against at least one alternative using real trades"
+          ],
+          "bands": [
+            {
+              "min": 0,
+              "text": "Your exits are mostly improvised — that's normal, and it's the biggest hidden leak for many traders. Start by writing one rule."
+            },
+            {
+              "min": 3,
+              "text": "You've got structure. Testing against an alternative is the next step to real confidence."
+            },
+            {
+              "min": 5,
+              "text": "That's a professional exit process. Keep reviewing it quarterly as conditions change."
+            }
+          ]
+        },
+        {
+          "type": "usecase",
+          "text": "JournalX records each trade's entry, stop, exit and R-multiple, and lets you tag the exit type (trail, target, manual, stopped). Filter by exit tag to see which method produces the best average R and how often your trails cut trades that later ran — then adjust your rule with real numbers."
+        },
+        {
+          "type": "why",
+          "text": "Instead of just showing P&L, JournalX ties your exits to your setups and emotions. If your manual 'tightening' exits underperform your rule-based trails, you'll see it in black and white — often the most useful discovery a trader makes about their exits."
+        },
+        {
+          "type": "h2",
+          "text": "A simple starting rule"
+        },
+        {
+          "type": "p",
+          "text": "If you've never used a systematic trail, a reasonable starting template is: keep your initial stop until price reaches 1R, take a partial there if that suits your style, then trail the rest with a 2.5–3x ATR stop (or below the most recent swing low on your trading timeframe). Run it for at least 30 trades before judging it, log every exit, and compare. The goal isn't the perfect trail; it's a consistent one you can measure and improve."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "What is the best trailing stop loss strategy?",
+          "a": "There's no single best method. ATR-based and chandelier trails adapt to volatility and suit trend and swing traders, while structure-based trails suit price-action traders. The best one is the method that improves your average R when tested on your own trades."
+        },
+        {
+          "q": "When should I start trailing my stop?",
+          "a": "Many traders wait until a defined milestone such as 1R profit, a break of the prior swing, or after taking a partial. Trailing immediately after entry tends to cut potential runners short."
+        },
+        {
+          "q": "How far should a trailing stop be?",
+          "a": "Far enough to sit outside normal market noise. A common starting point is 2 to 3 times the Average True Range on your trading timeframe, adjusted after testing."
+        },
+        {
+          "q": "Do trailing stops work in ranging markets?",
+          "a": "Usually not well. In choppy conditions trails get hit frequently, so fixed targets or a partial-plus-trail hybrid often work better."
+        }
+      ]
     }
   ]
 }
