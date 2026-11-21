@@ -384,11 +384,12 @@ export default function SettingsPanel({ user, onNavigate, onSupport, onSwitchJou
   useEffect(() => {
     if (typeof document === "undefined") return;
     // modal mode scrolls the dialog body; page mode scrolls the dashboard main
-    const target =
-      document.querySelector(".jx-settings-modal__body") ||
-      document.querySelector(".jx-shell__main");
+    // (on desktop the modal's content pane scrolls, not the body)
+    const modal = document.querySelectorAll(".jx-settings-modal__body, .jx-settings-modal .jx-settings__content");
+    const target = modal.length ? null : document.querySelector(".jx-shell__main");
+    modal.forEach((el) => el.scrollTo({ top: 0, behavior: "auto" }));
     if (target) target.scrollTo({ top: 0, behavior: "auto" });
-    else window.scrollTo({ top: 0, behavior: "auto" });
+    else if (!modal.length) window.scrollTo({ top: 0, behavior: "auto" });
   }, [mobileSection]);
 
   /* ---- URL param sync for mobile drill-in ----

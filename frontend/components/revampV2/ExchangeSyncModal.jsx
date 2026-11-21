@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import {
-  ArrowLeft, Check, Crown, Download, ExternalLink, Eye, EyeOff, KeyRound,
+  AlertTriangle, ArrowLeft, Check, Crown, Download, ExternalLink, Eye, EyeOff, Info, KeyRound,
   Lock, ShieldCheck, Trash2, User, X,
 } from "lucide-react";
 import Toast from "./Toast";
@@ -260,28 +260,32 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                   <section className="jx-xs__step" aria-labelledby="jx-xs-s1">
                     <span className="jx-xs__num" aria-hidden="true">1</span>
                     <div className="jx-xs__stepBody">
-                      {meta.login ? (
-                        <>
-                          <h3 id="jx-xs-s1">Generate a Tradovate API key</h3>
-                          <ul className="jx-xs__checks">
-                            <li><Check size={13} /> In Tradovate open <b>Application Settings → API Access</b> and click <b>Generate API Key</b></li>
-                            <li><Check size={13} /> Give it <b>read-only</b> permissions, then copy the <b>key ID</b> and <b>secret</b> (the secret is shown once)</li>
-                            <li className="off"><X size={13} /> Needs Tradovate&apos;s API Access add-on on a live account; most prop-firm accounts can&apos;t create keys</li>
-                          </ul>
-                        </>
-                      ) : (
-                        <>
-                          <h3 id="jx-xs-s1">Create a read-only API key</h3>
-                          <ul className="jx-xs__checks">
-                            <li><Check size={13} /> Enable <b>read</b> permission only</li>
-                            <li className="off"><X size={13} /> Leave trading and withdrawals off</li>
-                          </ul>
-                        </>
+                      <div className="jx-xs__stepHead">
+                        <h3 id="jx-xs-s1">{meta.login ? `Create a ${meta.name} API key` : "Create a read-only API key"}</h3>
+                        <a href={meta.apiPage} target="_blank" rel="noopener noreferrer" className="jx-xs__link">
+                          Open {meta.name} <ExternalLink size={13} />
+                          <span className="jx-sr">(opens in a new tab)</span>
+                        </a>
+                      </div>
+                      <ol className="jx-xs__how">
+                        {meta.login ? (
+                          <>
+                            <li>Go to <b>Application Settings → API Access</b> and click <b>Generate API Key</b>.</li>
+                            <li>Set it to <b>read-only</b>, then copy the <b>key ID</b> and <b>secret</b>. The secret is shown only once.</li>
+                          </>
+                        ) : (
+                          <>
+                            <li>Turn on <b>read</b> permission only.</li>
+                            <li>Leave <b>trading</b> and <b>withdrawals</b> off.</li>
+                          </>
+                        )}
+                      </ol>
+                      {meta.login && (
+                        <p className="jx-xs__warn">
+                          <AlertTriangle size={14} aria-hidden="true" />
+                          <span>Needs the API Access add-on on a live account. Most prop-firm accounts can&apos;t create keys.</span>
+                        </p>
                       )}
-                      <a href={meta.apiPage} target="_blank" rel="noopener noreferrer" className="jx-xs__link">
-                        Open {meta.name} {meta.login ? "" : "API settings "}<ExternalLink size={13} />
-                        <span className="jx-sr">(opens in a new tab)</span>
-                      </a>
                     </div>
                   </section>
 
@@ -291,49 +295,51 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                     <div className="jx-xs__stepBody">
                       <h3 id="jx-xs-s2">{meta.login ? "Enter your login and API key" : "Paste your key and secret"}</h3>
                       {meta.login && (
-                        <>
+                        <div className="jx-xs__grid">
                           <label className="jx-xs__field">
-                            <span className="jx-xs__lbl">{meta.name} username <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                            <span className="jx-xs__lbl">Username <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
                             <span className="jx-xs__input">
                               <User size={14} aria-hidden="true" />
                               <input type="text" autoComplete="off" spellCheck={false} required
-                                placeholder={`Your ${meta.name} username`}
+                                placeholder={`${meta.name} username`}
                                 value={username} onChange={(e) => setUsername(e.target.value)} />
                             </span>
                           </label>
                           <label className="jx-xs__field">
-                            <span className="jx-xs__lbl">{meta.name} password <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                            <span className="jx-xs__lbl">Password <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
                             <span className="jx-xs__input">
                               <Lock size={14} aria-hidden="true" />
                               <input type="password" autoComplete="new-password" spellCheck={false} required
-                                placeholder={`Your ${meta.name} password`}
+                                placeholder={`${meta.name} password`}
                                 value={password} onChange={(e) => setPassword(e.target.value)} />
                             </span>
                           </label>
-                        </>
+                        </div>
                       )}
-                      <label className="jx-xs__field">
-                        <span className="jx-xs__lbl">{meta.keyLabel || "API key"} <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
-                        <span className="jx-xs__input">
-                          <KeyRound size={14} aria-hidden="true" />
-                          <input type="password" autoComplete="off" spellCheck={false} required
-                            placeholder={connected ? "Enter a new key to replace" : `Paste your ${meta.keyLabel || "API key"}`}
-                            value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
-                        </span>
-                      </label>
-                      <label className="jx-xs__field">
-                        <span className="jx-xs__lbl">{meta.secretLabel || "API secret"} <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
-                        <span className="jx-xs__input">
-                          <Lock size={14} aria-hidden="true" />
-                          <input type={showSecret ? "text" : "password"} autoComplete="off" spellCheck={false} required
-                            placeholder="Paste your API secret"
-                            value={secret} onChange={(e) => setSecret(e.target.value)} />
-                          <button type="button" className="jx-xs__eye" onClick={() => setShowSecret((v) => !v)}
-                            aria-label={showSecret ? "Hide secret" : "Show secret"} aria-pressed={showSecret}>
-                            {showSecret ? <EyeOff size={15} /> : <Eye size={15} />}
-                          </button>
-                        </span>
-                      </label>
+                      <div className="jx-xs__grid">
+                        <label className="jx-xs__field">
+                          <span className="jx-xs__lbl">{meta.keyLabel || "API key"} <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                          <span className="jx-xs__input">
+                            <KeyRound size={14} aria-hidden="true" />
+                            <input type="password" autoComplete="off" spellCheck={false} required
+                              placeholder={connected ? "New key to replace" : "Paste key ID"}
+                              value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+                          </span>
+                        </label>
+                        <label className="jx-xs__field">
+                          <span className="jx-xs__lbl">{meta.secretLabel || "API secret"} <i aria-hidden="true">*</i><span className="jx-sr">(required)</span></span>
+                          <span className="jx-xs__input">
+                            <Lock size={14} aria-hidden="true" />
+                            <input type={showSecret ? "text" : "password"} autoComplete="off" spellCheck={false} required
+                              placeholder="Paste secret"
+                              value={secret} onChange={(e) => setSecret(e.target.value)} />
+                            <button type="button" className="jx-xs__eye" onClick={() => setShowSecret((v) => !v)}
+                              aria-label={showSecret ? "Hide secret" : "Show secret"} aria-pressed={showSecret}>
+                              {showSecret ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </section>
 
@@ -342,23 +348,37 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                     <span className="jx-xs__num" aria-hidden="true">3</span>
                     <div className="jx-xs__stepBody">
                       <h3 id="jx-xs-s3">Choose what to sync</h3>
-                      <div className="jx-xs__field">
-                        <span className="jx-xs__lbl" id="jx-xs-mk">{meta.marketsLabel || "Markets"} <i aria-hidden="true">*</i><span className="jx-sr">{meta.single ? "(pick one)" : "(pick at least one)"}</span></span>
-                        <div className="jx-xs__chips" role="group" aria-labelledby="jx-xs-mk">
-                          {meta.markets.map((m) => {
-                            const on = markets.includes(m.id);
-                            return (
-                              <button key={m.id} type="button" role={meta.single ? "radio" : "checkbox"} aria-checked={on} onClick={() => toggleMarket(m.id)}>
-                                <span className="jx-xs__box" aria-hidden="true">{on && <Check size={11} strokeWidth={3} />}</span>
+                      {meta.single ? (
+                        <div className="jx-xs__field">
+                          <span className="jx-xs__lbl" id="jx-xs-mk">{meta.marketsLabel || "Markets"}</span>
+                          <div className="jx-xs__seg jx-xs__seg--2" role="radiogroup" aria-labelledby="jx-xs-mk">
+                            {meta.markets.map((m) => (
+                              <button key={m.id} type="button" role="radio" aria-checked={markets.includes(m.id)} onClick={() => toggleMarket(m.id)}>
                                 {m.label}
                               </button>
-                            );
-                          })}
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="jx-xs__field">
+                          <span className="jx-xs__lbl" id="jx-xs-mk">{meta.marketsLabel || "Markets"} <i aria-hidden="true">*</i><span className="jx-sr">(pick at least one)</span></span>
+                          <div className="jx-xs__chips" role="group" aria-labelledby="jx-xs-mk">
+                            {meta.markets.map((m) => {
+                              const on = markets.includes(m.id);
+                              return (
+                                <button key={m.id} type="button" role="checkbox" aria-checked={on} onClick={() => toggleMarket(m.id)}>
+                                  <span className="jx-xs__box" aria-hidden="true">{on && <Check size={11} strokeWidth={3} />}</span>
+                                  {m.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                       {meta.noWindow ? (
-                        <p className="jx-xs__meta" style={{ margin: 0 }}>
-                          Tradovate&apos;s API only shares the <b>current trading day</b>, so JournalX checks for new closed trades every hour and imports them for you. For older history, use CSV import from <b>Import / Export</b>.
+                        <p className="jx-xs__hint">
+                          <Info size={14} aria-hidden="true" />
+                          <span>{meta.name} only shares today&apos;s trades, so JournalX checks every hour and imports new closed trades. For older history, use CSV in <b>Import / Export</b>.</span>
                         </p>
                       ) : (
                       <div className="jx-xs__field">
@@ -379,8 +399,8 @@ export default function ExchangeSyncModal({ open, exchange, status, isPro, onClo
                     <ShieldCheck size={14} aria-hidden="true" />
                     <span>
                       {meta.login
-                        ? "Your login and keys are encrypted at rest and only used to read your closed trades. JournalX keeps one Tradovate session open for syncing. Nothing is imported until you review it."
-                        : "Keys are encrypted at rest and only used to read your closed trades. Nothing is imported until you review it."}
+                        ? `Encrypted and only used to read closed trades. JournalX keeps one ${meta.name} session open to sync. Nothing is imported until you review it.`
+                        : "Encrypted and only used to read closed trades. Nothing is imported until you review it."}
                     </span>
                   </p>
                 </>

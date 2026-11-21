@@ -10,12 +10,9 @@
    Live-send switch: PAYMENT_EMAILS_LIVE=true|false; otherwise sends only on
    the hosted (Railway) server, so local runs never email real customers. */
 const { resend } = require("./resendClient");
+const { APP_URL, FONT, C, esc, p, divider, label, layout, plainText } = require("./layout");
 
-const isLocal = (u) => !u || /localhost|127\.0\.0\.1|0\.0\.0\.0/i.test(u);
-const APP_URL = [process.env.APP_PUBLIC_URL, process.env.CLIENT_URL].find((u) => u && !isLocal(u))?.replace(/\/+$/, "") || "https://journalx.app";
 const FROM = `JournalX <${process.env.EMAIL_FROM}>`;
-const C = { gold: "#f0b90b", goldSoft: "#fcd535", ink: "#12161c", body: "#3b424d", muted: "#707a8a", bg: "#f2f3f5", card: "#ffffff", border: "#e6e8eb", green: "#12895c", greenBg: "#eafaf2" };
-const FONT = "'Poppins',Arial,sans-serif";
 
 function isLive() {
   const flag = String(process.env.PAYMENT_EMAILS_LIVE || "").toLowerCase();
@@ -24,7 +21,6 @@ function isLive() {
   return !!(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID || process.env.RAILWAY_SERVICE_ID);
 }
 
-const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // Paddle API totals are strings in the currency's smallest unit.
 const ZERO_DECIMAL = new Set(["JPY", "KRW", "VND", "CLP", "ISK", "HUF", "TWD", "UGX", "XAF", "XOF"]);
@@ -35,7 +31,7 @@ function fromMinor(v, cur) {
   return ZERO_DECIMAL.has(cur) ? n : n / 100;
 }
 function money(n, cur) {
-  if (n == null) return "—";
+  if (n == null) return "-";
   try { return new Intl.NumberFormat("en-US", { style: "currency", currency: cur || "USD" }).format(n); }
   catch { return `${cur} ${n.toFixed(2)}`; }
 }
@@ -76,13 +72,11 @@ function receiptFrom(txn, cls, discountCode) {
 }
 
 function row(label, value, { tone, strong } = {}) {
-  const color = tone === "save" ? C.green : C.ink;
-  const size = strong ? "16px" : "14px";
-  const weight = strong ? "700" : "500";
-  const top = strong ? `border-top:1px solid ${C.border};padding-top:12px;` : "";
+  const top = strong ? `border-top:1px solid ${C.line};` : "";
+  const pad = strong ? "12px 0 0" : "6px 0";
   return `<tr>
-    <td style="padding:6px 0;${top}font-family:${FONT};font-size:${strong ? "14px" : "13.5px"};color:${strong ? C.ink : C.muted};font-weight:${strong ? "600" : "400"};">${label}</td>
-    <td align="right" style="padding:6px 0;${top}font-family:${FONT};font-size:${size};font-weight:${weight};color:${color};white-space:nowrap;">${value}</td>
+    <td style="padding:${pad};${top}font-family:${FONT};font-size:14px;color:${strong ? C.ink : C.muted};font-weight:${strong ? 600 : 400};">${label}</td>
+    <td align="right" style="padding:${pad};${top}font-family:${FONT};font-size:${strong ? "16px" : "14px"};font-weight:${strong ? 700 : 500};color:${tone === "save" ? C.green : C.ink};white-space:nowrap;">${value}</td>
   </tr>`;
 }
 
@@ -92,22 +86,22 @@ function buildPaymentEmail(user, r) {
   const billing = `${APP_URL}/dashboard?view=settings&settings=billing`;
 
   const subject = r.renewal
-    ? `Payment received: your JournalX Pro plan has renewed`
+    ? "Payment received: your JournalX Pro plan has renewed"
     : r.lifetime
-      ? `You're on JournalX Lifetime 🎉 Payment confirmed`
-      : `Welcome to JournalX Pro 🎉 Payment confirmed`;
-  const heading = r.renewal ? `Thanks, ${name}. Your plan has renewed` : r.lifetime ? `Lifetime unlocked, ${name}!` : `Welcome to Pro, ${name}!`;
+      ? "Payment confirmed: welcome to JournalX Lifetime"
+      : "Payment confirmed: welcome to JournalX Pro";
+  const heading = r.renewal ? `Thanks, ${name}. Your plan has renewed` : r.lifetime ? `Lifetime unlocked, ${name}` : `Welcome to Pro, ${name}`;
   const intro = r.renewal
     ? "We've received your payment and your Pro access continues without a break."
     : "Your payment went through and everything in JournalX is now unlocked. Here's your receipt.";
 
-  const codeChip = r.code
-    ? ` <span style="display:inline-block;margin-left:6px;padding:1px 7px;border:1px dashed ${C.green};border-radius:6px;background:${C.greenBg};color:${C.green};font-size:11px;font-weight:700;letter-spacing:.04em;">${esc(r.code)}</span>`
+  const codeTag = r.code
+    ? ` <span style="display:inline-block;margin-left:6px;padding:1px 7px;border:1px solid ${C.line};border-radius:6px;color:${C.ink};font-size:11px;font-weight:600;letter-spacing:.04em;">${esc(r.code)}</span>`
     : "";
   const rows = [
     row("Plan", esc(r.planLabel)),
     r.subtotal != null ? row("Subtotal", money(r.subtotal, r.currency)) : "",
-    r.discount > 0 ? row(`Discount${codeChip}`, `&minus;${money(r.discount, r.currency)}`, { tone: "save" }) : "",
+    r.discount > 0 ? row(`Discount${codeTag}`, `&minus;${money(r.discount, r.currency)}`, { tone: "save" }) : "",
     r.tax > 0 ? row("Tax", money(r.tax, r.currency)) : "",
     row("Total paid", money(r.total, r.currency), { strong: true }),
   ].join("");
@@ -115,70 +109,42 @@ function buildPaymentEmail(user, r) {
   const meta = [
     r.paidAt && `Paid on ${esc(r.paidAt)}`,
     r.invoice ? `Invoice ${esc(r.invoice)}` : r.txnId && `Ref ${esc(r.txnId)}`,
-  ].filter(Boolean).join(" &nbsp;·&nbsp; ");
+  ].filter(Boolean).join(" &nbsp;&middot;&nbsp; ");
   const billingLine = r.lifetime
     ? "One-time payment. Pro is yours for good, with no renewals."
-    : `Renews every ${r.period}${r.nextAt ? ` · next charge on <strong style="color:${C.ink};">${esc(r.nextAt)}</strong>` : ""}. Cancel anytime from <a href="${billing}" style="color:${C.body};">Settings → Plan &amp; billing</a>.`;
-
-  const savedNote = r.discount > 0
-    ? `<tr><td style="padding:0 0 18px;"><div style="padding:10px 14px;border-radius:10px;background:${C.greenBg};font-family:${FONT};font-size:13px;color:${C.green};font-weight:600;">You saved ${money(r.discount, r.currency)}${r.code ? ` with ${esc(r.code)}` : ""} 🎉</div></td></tr>`
-    : "";
+    : `Renews every ${r.period}${r.nextAt ? `, next charge on <strong style="color:${C.ink};">${esc(r.nextAt)}</strong>` : ""}. Cancel anytime in <a href="${billing}" style="color:${C.body};">Settings &rarr; Plan &amp; billing</a>.`;
 
   const unlocked = r.renewal ? "" : `
-    <tr><td style="padding:22px 0 8px;font-family:${FONT};font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${C.muted};font-weight:600;">Now unlocked</td></tr>
-    <tr><td>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        ${UNLOCKED.map(([t, d]) => `<tr>
-          <td width="30" valign="top" style="padding:7px 0;"><div style="width:22px;height:22px;border-radius:7px;background:#fff7d6;color:#9a7400;font-family:Arial,sans-serif;font-size:13px;font-weight:700;line-height:22px;text-align:center;">&#10003;</div></td>
-          <td style="padding:7px 0;font-family:${FONT};"><div style="font-size:14px;font-weight:600;color:${C.ink};">${t}</div><div style="font-size:12.5px;color:${C.muted};line-height:1.5;">${d}</div></td>
-        </tr>`).join("")}
-      </table>
-    </td></tr>`;
+    ${divider(22)}
+    ${label("Now unlocked")}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${UNLOCKED.map(([t, d]) => `<tr><td style="padding:7px 0;border-bottom:1px solid ${C.line};font-family:${FONT};">
+        <div style="font-size:14px;font-weight:600;color:${C.ink};">${t}</div>
+        <div style="font-size:13px;color:${C.muted};line-height:1.5;">${d}</div>
+      </td></tr>`).join("")}
+    </table>
+    <div style="height:14px;line-height:14px;font-size:0;">&nbsp;</div>`;
 
-  const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="color-scheme" content="light"/><title>JournalX receipt</title></head>
-<body style="margin:0;padding:0;background:${C.bg};">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(intro)} Total paid ${money(r.total, r.currency)}.</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.bg};padding:28px 12px;">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
-        <tr><td style="padding:6px 4px 18px;font-family:${FONT};font-size:22px;font-weight:700;color:${C.ink};">Journal<span style="color:${C.gold};">X</span></td></tr>
-        <tr><td style="background:${C.card};border:1px solid ${C.border};border-radius:16px;overflow:hidden;">
-          <!-- gold header band -->
-          <div style="height:4px;background:linear-gradient(90deg,${C.goldSoft},${C.gold});background-color:${C.gold};"></div>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:28px 28px 30px;">
-            <tr><td style="padding-bottom:14px;">
-              <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${C.greenBg};color:${C.green};font-family:${FONT};font-size:12px;font-weight:600;">&#10003; Payment confirmed</span>
-            </td></tr>
-            <tr><td style="font-family:${FONT};font-size:22px;line-height:1.3;font-weight:700;color:${C.ink};padding-bottom:10px;">${heading}</td></tr>
-            <tr><td style="font-family:${FONT};font-size:15px;line-height:1.65;color:${C.body};padding-bottom:20px;">${intro}</td></tr>
-            ${savedNote}
-            <tr><td style="border:1px solid ${C.border};border-radius:12px;padding:14px 16px;background:#fafbfc;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
-              ${meta ? `<div style="padding-top:10px;font-family:${FONT};font-size:12px;color:${C.muted};">${meta}</div>` : ""}
-            </td></tr>
-            <tr><td style="padding-top:12px;font-family:${FONT};font-size:12.5px;line-height:1.6;color:${C.muted};">${billingLine}</td></tr>
-            ${unlocked}
-            <tr><td style="padding-top:22px;">
-              <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:12px;background:${C.gold};">
-                <a href="${dash}" target="_blank" style="display:inline-block;padding:13px 26px;font-family:${FONT};font-size:15px;font-weight:600;color:#1e2329;text-decoration:none;border-radius:12px;">Open your dashboard &nbsp;&rarr;</a>
-              </td></tr></table>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="padding:18px 6px 0;font-family:${FONT};font-size:12px;line-height:1.6;color:${C.muted};">
-          Payments are processed by Paddle, our payment partner, who also emails the official tax invoice. Questions about this charge? Just reply to this email.<br/>
-          <a href="${APP_URL}" target="_blank" style="color:${C.muted};text-decoration:underline;">journalx.app</a><br/>
-          <span style="color:#9aa1ab;">— The JournalX Team</span>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
+  const body = `
+    ${p(intro)}
+    ${r.discount > 0 ? p(`You saved <strong style="color:${C.green};">${money(r.discount, r.currency)}</strong>${r.code ? ` with ${esc(r.code)}` : ""}.`, { size: 14 }) : ""}
+    ${label("Receipt")}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${C.line};padding-top:6px;">${rows}</table>
+    ${meta ? `<div style="padding-top:10px;font-family:${FONT};font-size:12px;color:${C.faint};">${meta}</div>` : ""}
+    ${p(billingLine, { muted: true, size: 13, top: 12, bottom: 0 })}
+    ${unlocked || '<div style="height:18px;line-height:18px;font-size:0;">&nbsp;</div>'}`;
 
-  const text = [
-    heading.replace(/&amp;/g, "&"),
+  const html = layout({
+    title: "JournalX receipt",
+    preheader: `${intro} Total paid ${money(r.total, r.currency)}.`,
+    heading,
+    body,
+    cta: { text: "Open your dashboard", url: dash },
+    footer: "Payments are processed by Paddle, who also emails the official tax invoice. Questions about this charge? Reply to this email.",
+  });
+
+  const text = plainText([
+    heading,
     intro,
     `Plan: ${r.planLabel}`,
     r.subtotal != null ? `Subtotal: ${money(r.subtotal, r.currency)}` : null,
@@ -188,8 +154,7 @@ function buildPaymentEmail(user, r) {
     r.lifetime ? "One-time payment." : `Renews every ${r.period}${r.nextAt ? `, next charge on ${r.nextAt}` : ""}. Cancel anytime in Settings > Plan & billing.`,
     `Open your dashboard: ${dash}`,
     "Payments are processed by Paddle, who also emails the official tax invoice.",
-    "— The JournalX Team",
-  ].filter(Boolean).join("\n\n");
+  ]);
 
   return { subject, html, text };
 }

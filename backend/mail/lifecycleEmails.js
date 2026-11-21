@@ -11,6 +11,8 @@
 */
 const crypto = require("crypto");
 const { resend } = require("./resendClient");
+const L = require("./layout");
+const { layout, plainText, esc } = L;
 
 /* Pick a PUBLIC url for email links. CLIENT_URL is often http://localhost:3000
    for local CORS, which must never end up in a real email — so we ignore any
@@ -46,7 +48,6 @@ function isLiveEnv() {
     process.env.RAILWAY_SERVICE_ID
   );
 }
-const BRAND = { gold: "#f0b90b", goldSoft: "#fcd535", ink: "#12161c", muted: "#707a8a", bg: "#f2f3f5", card: "#ffffff", border: "#e6e8eb" };
 
 /* ---- unsubscribe token (HMAC of userId, no DB lookup needed to verify) ---- */
 function unsubToken(userId) {
@@ -69,53 +70,23 @@ function unsubscribeUrl(userId) {
   return `${API_URL}/api/auth/email/unsubscribe?u=${userId}&t=${unsubToken(userId)}`;
 }
 
-/* ---- shared HTML shell: header wordmark, body, gold CTA, footer ---- */
-function shell({ heading, intro, bodyHtml = "", ctaText, ctaUrl, footnote, unsubUrl }) {
-  return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="color-scheme" content="light"/>
-<title>JournalX</title></head>
-<body style="margin:0;padding:0;background:${BRAND.bg};">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${intro || heading}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.bg};padding:28px 12px;">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
-        <!-- brand -->
-        <tr><td style="padding:6px 4px 18px;font-family:'Poppins',Arial,sans-serif;font-size:22px;font-weight:700;color:${BRAND.ink};">
-          Journal<span style="color:${BRAND.gold};">X</span>
-        </td></tr>
-        <!-- card -->
-        <tr><td style="background:${BRAND.card};border:1px solid ${BRAND.border};border-radius:16px;padding:30px 28px;">
-          <h1 style="margin:0 0 12px;font-family:'Poppins',Arial,sans-serif;font-size:22px;line-height:1.3;color:${BRAND.ink};">${heading}</h1>
-          ${intro ? `<p style="margin:0 0 16px;font-family:'Poppins',Arial,sans-serif;font-size:15px;line-height:1.65;color:#3b424d;">${intro}</p>` : ""}
-          ${bodyHtml}
-          ${ctaText && ctaUrl ? `
-          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 6px;">
-            <tr><td style="border-radius:12px;background:${BRAND.gold};">
-              <a href="${ctaUrl}" target="_blank"
-                 style="display:inline-block;padding:13px 26px;font-family:'Poppins',Arial,sans-serif;font-size:15px;font-weight:600;color:#1e2329;text-decoration:none;border-radius:12px;">
-                ${ctaText} &nbsp;&rarr;
-              </a>
-            </td></tr>
-          </table>` : ""}
-          ${footnote ? `<p style="margin:18px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:13px;line-height:1.6;color:${BRAND.muted};">${footnote}</p>` : ""}
-        </td></tr>
-        <!-- footer -->
-        <tr><td style="padding:18px 6px 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;line-height:1.6;color:${BRAND.muted};">
-          You're receiving this because you created a JournalX account.<br/>
-          ${unsubUrl ? `<a href="${unsubUrl}" target="_blank" style="color:${BRAND.muted};text-decoration:underline;">Unsubscribe from onboarding emails</a> &nbsp;·&nbsp; ` : ""}
-          <a href="${APP_URL}" target="_blank" style="color:${BRAND.muted};text-decoration:underline;">journalx.app</a><br/>
-          <span style="color:#9aa1ab;">— The JournalX Team</span>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
+/* ---- shared layout (see ./layout.js) ---- */
+function shell({ heading, intro, bodyText, ctaText, ctaUrl, footnote, unsubUrl }) {
+  return layout({
+    preheader: intro || heading,
+    heading: esc(heading),
+    body: [intro && L.p(intro), bodyText && L.p(bodyText)].filter(Boolean).join(""),
+    cta: ctaText && ctaUrl ? { text: ctaText, url: ctaUrl } : null,
+    footer: [
+      footnote ? `${footnote}<br/>` : "",
+      "You're receiving this because you created a JournalX account.",
+      unsubUrl ? ` <a href="${unsubUrl}" target="_blank" style="color:#6b7280;text-decoration:underline;">Unsubscribe from onboarding emails</a>` : "",
+    ].join(""),
+  });
 }
 
-const plain = (lines, ctaUrl, unsubUrl) =>
-  `${lines.join("\n\n")}${ctaUrl ? `\n\n${ctaUrl}` : ""}\n\n— The JournalX Team${unsubUrl ? `\n\nUnsubscribe: ${unsubUrl}` : ""}`;
+const plain = (m, unsubUrl) =>
+  plainText([m.heading, m.intro, m.bodyText, m.ctaUrl && `${m.ctaText}: ${m.ctaUrl}`, m.footnote, unsubUrl && `Unsubscribe: ${unsubUrl}`]);
 
 /* ---- the four messages ---- */
 function buildEmail(stage, user) {
@@ -125,38 +96,38 @@ function buildEmail(stage, user) {
 
   const M = {
     welcome: {
-      subject: "Welcome to JournalX 🎉 Let's log your first trade",
-      heading: `Welcome aboard, ${name}!`,
-      intro: "Your account is ready. JournalX turns every trade you log into clear, automatic analytics — win rate, R-multiple, equity curve and the psychology behind your decisions.",
-      bodyHtml: `<p style="margin:0;font-family:'Poppins',Arial,sans-serif;font-size:15px;line-height:1.65;color:#3b424d;">It takes about <strong>10 seconds</strong> to log a trade. Do one now and your first insights appear instantly.</p>`,
+      subject: "Welcome to JournalX. Log your first trade",
+      heading: `Welcome to JournalX, ${name}`,
+      intro: "Your account is ready. Every trade you log turns into clear analytics: win rate, R-multiple, equity curve and the habits behind your decisions.",
+      bodyText: "Logging a trade takes about 10 seconds. Add one now and your first insights appear straight away.",
       ctaText: "Open your dashboard",
       ctaUrl: dash,
-      footnote: "New here? You can quick-log a trade, import a CSV, or auto-sync a supported exchange.",
+      footnote: "You can log a trade by hand, import a CSV, or sync a supported exchange.",
     },
     day1: {
-      subject: "Your JournalX is ready — log your first trade in 10 seconds",
+      subject: "Log your first trade in 10 seconds",
       heading: "One trade is all it takes",
-      intro: `Hi ${name}, you joined yesterday but haven't logged a trade yet. The moment you do, JournalX starts building your win-rate, R-multiple and equity-curve analytics automatically.`,
-      bodyHtml: `<p style="margin:0;font-family:'Poppins',Arial,sans-serif;font-size:15px;line-height:1.65;color:#3b424d;">No spreadsheet, no setup — just log what you traded and we handle the math.</p>`,
+      intro: `Hi ${name}, you joined yesterday but haven't logged a trade yet. As soon as you do, JournalX starts building your win rate, R-multiple and equity curve.`,
+      bodyText: "No spreadsheet and no setup. Log what you traded and JournalX does the math.",
       ctaText: "Log your first trade",
       ctaUrl: dash,
     },
     day3: {
-      subject: "A quick tip to get the most out of JournalX",
+      subject: "A quick tip to get more from JournalX",
       heading: "Turn discipline into data",
-      intro: `Hi ${name}, the traders who improve fastest are the ones who journal consistently. Even logging a few trades reveals patterns you can't see in the moment — your best setups, your worst habits, and when to size up or step back.`,
-      bodyHtml: `<p style="margin:0;font-family:'Poppins',Arial,sans-serif;font-size:15px;line-height:1.65;color:#3b424d;">Open the dashboard to see the analytics waiting for your data — win/loss breakdowns, P&amp;L calendar and more.</p>`,
+      intro: `Hi ${name}, traders who improve fastest are the ones who journal consistently. Even a few trades show patterns you can't see in the moment: your best setups, your costly habits, and when to size up or step back.`,
+      bodyText: "Your dashboard already has win and loss breakdowns, a P&amp;L calendar and more, waiting for your trades.",
       ctaText: "Explore your dashboard",
       ctaUrl: dash,
     },
     day7: {
-      subject: "Still thinking it over? Here's what JournalX can do",
-      heading: "Your edge is hiding in your trades",
-      intro: `Hi ${name}, this is the last nudge from us for now. JournalX exists to make your edge measurable — so you stop guessing and start improving with every trade you log.`,
-      bodyHtml: `<p style="margin:0;font-family:'Poppins',Arial,sans-serif;font-size:15px;line-height:1.65;color:#3b424d;">Whenever you're ready, your dashboard is one click away. Reply to this email if you have any questions — a real person reads it.</p>`,
+      subject: "Here's what JournalX can do for you",
+      heading: "Your edge is in your trades",
+      intro: `Hi ${name}, this is our last reminder for now. JournalX makes your edge measurable, so you stop guessing and improve with every trade you log.`,
+      bodyText: "Whenever you're ready, your dashboard is one click away. Reply to this email with any question and a real person will answer.",
       ctaText: "Start journaling",
       ctaUrl: dash,
-      footnote: "We won't keep nudging you after this. You can always unsubscribe below.",
+      footnote: "We won't send more reminders after this one.",
     },
   };
 
@@ -164,11 +135,7 @@ function buildEmail(stage, user) {
   if (!m) throw new Error(`Unknown lifecycle stage: ${stage}`);
 
   const html = shell({ ...m, unsubUrl });
-  const text = plain(
-    [m.heading, m.intro, m.bodyHtml.replace(/<[^>]+>/g, "")],
-    m.ctaUrl,
-    unsubUrl,
-  );
+  const text = plain({ ...m, bodyText: m.bodyText.replace(/&amp;/g, "&") }, unsubUrl);
   return { subject: m.subject, html, text };
 }
 
@@ -189,4 +156,4 @@ async function sendLifecycleEmail(stage, user) {
   }
 }
 
-module.exports = { sendLifecycleEmail, verifyUnsubToken, unsubToken, unsubscribeUrl, isLiveEnv };
+module.exports = { buildEmail, sendLifecycleEmail, verifyUnsubToken, unsubToken, unsubscribeUrl, isLiveEnv };

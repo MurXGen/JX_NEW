@@ -27,10 +27,10 @@ export default function SettingsModal({ open, user, onClose, onNavigate, onSuppo
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
           >
             <button
-              className="jx-btn jx-btn--secondary jx-btn--sm"
+              type="button"
+              className="jx-btn jx-btn--secondary jx-btn--sm jx-settings-modal__close"
               onClick={onClose}
               aria-label="Close settings"
-              style={{ position: "absolute", top: 14, right: 14, padding: 8, zIndex: 2 }}
             >
               <X size={16} />
             </button>

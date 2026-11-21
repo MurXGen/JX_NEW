@@ -8,9 +8,9 @@
 
 /* old component tokens -> new greys (dark only; light keeps its look) */
 :global([data-theme="dark"]) .root {
-  --color-bg-surface: #131316;
-  --color-bg-muted: #1b1b1f;
-  --color-bg-elevated: #1e1e22;
+  --color-bg-surface: #1b1c21;
+  --color-bg-muted: #26272d;
+  --color-bg-elevated: #292a30;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-strong: rgba(255, 255, 255, 0.14);
   --color-text-primary: #f5f6f8;
@@ -65,7 +65,7 @@
   height: 38px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #131316;
+  background: #1b1c21;
   color: var(--ink);
 }
 :global([data-theme="dark"]) .root :global(.jx-input:hover) { border-color: rgba(255, 255, 255, 0.18); }
@@ -112,7 +112,7 @@
 
 /* ---------- trade rows ---------- */
 :global([data-theme="dark"]) .root :global(.jx-trow-list) {
-  background: linear-gradient(180deg, #16161a 0%, #111114 100%);
+  background: linear-gradient(180deg, #202126 0%, #191a1f 100%);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 14px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -129,7 +129,7 @@
   color: #c7ccd4 !important;
   background:
     radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 55%),
-    linear-gradient(160deg, #26272b 0%, #151517 70%) !important;
+    linear-gradient(160deg, #26272b 0%, #1e1f24 70%) !important;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -154,7 +154,7 @@
 
 /* ---------- table view, bulk bar, cards ---------- */
 :global([data-theme="dark"]) .root :global(.jx-card) {
-  background: linear-gradient(180deg, #16161a 0%, #111114 100%);
+  background: linear-gradient(180deg, #202126 0%, #191a1f 100%);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 14px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -170,11 +170,11 @@
 :global([data-theme="dark"]) .root :global(.jx-table td) { border-color: rgba(255, 255, 255, 0.06); }
 :global([data-theme="dark"]) .root :global(.jx-table tbody tr:hover) { background: rgba(255, 255, 255, 0.03); }
 :global([data-theme="dark"]) .root :global(.jx-selbar) {
-  background: #16161a;
+  background: #202126;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
 }
-:global([data-theme="dark"]) .root :global(.jx-skel-row) { background: #16161a; border-radius: 12px; }
+:global([data-theme="dark"]) .root :global(.jx-skel-row) { background: #202126; border-radius: 12px; }
 
 @media (max-width: 480px) {
   .root :global(.jx-trow__main) { padding: 12px; }
@@ -194,7 +194,7 @@
   position: sticky; top: 0; z-index: 2;
   padding: 11px 14px; text-align: left; white-space: nowrap;
   font: 500 11.5px "Poppins", sans-serif; letter-spacing: 0; text-transform: none; color: var(--faint);
-  background: #141417; border-bottom: 1px solid var(--line);
+  background: #1d1e23; border-bottom: 1px solid var(--line);
 }
 .root :global(.jx-table--log td) { padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); white-space: nowrap; color: var(--ink-2); vertical-align: middle; }
 .root :global(.jx-table--log tbody tr) { cursor: pointer; transition: background-color 0.12s ease; }
@@ -218,7 +218,7 @@
 .root :global(tbody tr:hover .jx-tl-chev) { color: var(--ink); transform: translateX(2px); }
 .root :global(.jx-tl-check) { color: var(--muted); }
 .root :global(tr[data-selected] .jx-tl-check) { color: var(--ink); }
-.root :global(.jx-table--log tfoot td) { position: sticky; bottom: 0; padding: 0; background: #141417; border-top: 1px solid var(--line); border-bottom: 0; }
+.root :global(.jx-table--log tfoot td) { position: sticky; bottom: 0; padding: 0; background: #1d1e23; border-top: 1px solid var(--line); border-bottom: 0; }
 .root :global(.jx-tl-foot) { display: flex; justify-content: space-between; gap: 12px; padding: 11px 14px; font-size: 12.5px; color: var(--muted); }
 .root :global(.jx-tl-foot b) { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
 .root :global(.jx-pos) { color: var(--green) !important; }

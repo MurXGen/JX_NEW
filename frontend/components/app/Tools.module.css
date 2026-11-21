@@ -23,7 +23,7 @@
 .navItem:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 1px; }
 .navIco {
   flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--ink-2);
-  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 55%), linear-gradient(160deg, #26272b 0%, #151517 70%);
+  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 55%), linear-gradient(160deg, #26272b 0%, #1e1f24 70%);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .navItem[aria-current="page"] .navIco { color: #181a20; background: linear-gradient(180deg, #ffe27a 0%, #fcd535 50%, #e8b100 100%); border-color: transparent; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); }
@@ -40,7 +40,7 @@
 .panelHead { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 .panelIco {
   flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #e9ebee;
-  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%), linear-gradient(160deg, #2a2b2f 0%, #141416 60%, #0b0b0c 100%);
+  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%), linear-gradient(160deg, #2a2b2f 0%, #1d1e23 60%, #131418 100%);
   border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 .panelTitle { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
@@ -57,7 +57,7 @@
 .opt { font-size: 11px; font-weight: 400; color: var(--faint); }
 .input {
   display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px;
-  border-radius: 11px; border: 1px solid rgba(255, 255, 255, 0.1); background: #0f0f12;
+  border-radius: 11px; border: 1px solid rgba(255, 255, 255, 0.1); background: #17181d;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .input:hover { border-color: rgba(255, 255, 255, 0.18); }
@@ -75,7 +75,7 @@
 .answer {
   display: flex; flex-direction: column; gap: 4px; padding: 18px;
   border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1);
-  background: radial-gradient(90% 140% at 100% 0%, rgba(214, 220, 230, 0.1), rgba(214, 220, 230, 0) 65%), linear-gradient(180deg, #1b1b20 0%, #141417 100%);
+  background: radial-gradient(90% 140% at 100% 0%, rgba(214, 220, 230, 0.1), rgba(214, 220, 230, 0) 65%), linear-gradient(180deg, #26272d 0%, #1d1e23 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .answer span { font-size: 12.5px; color: var(--muted); }
@@ -125,8 +125,8 @@
 
 /* older chart card inside, in the new tokens */
 :global([data-theme="dark"]) .legacy {
-  --color-bg-surface: #131316;
-  --color-bg-muted: #1b1b1f;
+  --color-bg-surface: #1b1c21;
+  --color-bg-muted: #26272d;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-text-primary: #f5f6f8;
   --color-text-secondary: #c7ccd4;
@@ -135,9 +135,9 @@
 }
 .legacy { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 :global([data-theme="dark"]) .legacy :global(.jx-card) {
-  margin-top: 0 !important; background: #121215; border: 1px solid var(--line); border-radius: 14px; box-shadow: none;
+  margin-top: 0 !important; background: #1a1b20; border: 1px solid var(--line); border-radius: 14px; box-shadow: none;
 }
-:global([data-theme="dark"]) .legacy :global(.jx-seg) { background: #0f0f12; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 3px; }
+:global([data-theme="dark"]) .legacy :global(.jx-seg) { background: #17181d; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 3px; }
 :global([data-theme="dark"]) .legacy :global(.jx-seg__btn) { border-radius: 7px; color: var(--muted); background: transparent; box-shadow: none; display: inline-flex; align-items: center; gap: 5px; }
 :global([data-theme="dark"]) .legacy :global(.jx-seg__btn--active) { background: #222227; color: var(--ink); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
 
@@ -188,12 +188,12 @@
 .legendNote { margin-left: auto; font-size: 11.5px; color: var(--faint); }
 
 /* chart SVG colours as classes so they follow the theme */
-.tagBg { fill: #16161a; }
+.tagBg { fill: #202126; }
 .tagInk { fill: #f5f6f8; }
 .tagMuted { fill: #9aa1ad; }
 .gridLine { stroke: rgba(255, 255, 255, 0.05); }
-.dotEntry { fill: #0c0c0e; stroke: #e9ebee; }
-.dotFill { fill: #0c0c0e; }
+.dotEntry { fill: #15161a; stroke: #e9ebee; }
+.dotFill { fill: #15161a; }
 
 /* ================= light mode ================= */
 :global([data-theme="light"]) .root { --chart-entry: #33373f; }

@@ -8,6 +8,7 @@ import FullPageLoader from "@/components/ui/FullPageLoader";
 import { MarketsPanel, SharePanel, ImportExportPanel, ActivitiesPanel, ImportTradesModal, JournalsModal, LogTradeModal, SupportModal, ToolsPanel, TradesLogPanel } from "@/components/revampV2";
 import ExchangeSyncModal from "@/components/revampV2/ExchangeSyncModal";
 import SettingsPanel from "@/components/revampV2/SettingsPanel";
+import SettingsModal from "@/components/revampV2/SettingsModal";
 import UpgradeSheet from "@/components/revampV2/UpgradeSheet";
 import DowngradePlan from "@/components/revampV2/DowngradePlan";
 import TradingRules, { RulesChecklist } from "@/components/revampV2/TradingRules";
@@ -25,7 +26,7 @@ export default function ModalsDemo() {
   const { query } = useRouter();
   // ?theme=light previews every view in light mode
   const theme = query.theme === "light" ? "light" : "dark";
-  const pageBg = theme === "light" ? "#f4f5f7" : "#000";
+  const pageBg = theme === "light" ? "#f4f5f7" : "#101115";
   const [which, setWhich] = useState(null);
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -106,6 +107,13 @@ export default function ModalsDemo() {
       </div>
     );
   }
+  if (which === "settings-modal") {
+    return (
+      <div data-theme={theme} style={{ minHeight: "100vh", background: pageBg }}>
+        <SettingsModal open user={{ name: "Demo Trader", email: "demo@example.com" }} onClose={() => setWhich(null)} onNavigate={() => {}} onSupport={() => {}} onSwitchJournal={() => {}} />
+      </div>
+    );
+  }
   if (which === "settings") {
     return (
       <div data-theme={theme} style={{ minHeight: "100vh", background: pageBg, padding: 16 }}>
@@ -159,7 +167,7 @@ export default function ModalsDemo() {
         currentAccountId="demo-journal"
         currencySymbol="$"
       />
-      <ExchangeSyncModal open={which === "exchange"} exchange="binance" isPro status={{ connected: true, keyHint: "a1F9", lastSyncAt: Date.now() - 36e5, markets: ["usdm"], window: 90 }} onClose={() => setWhich(null)} />
+      <ExchangeSyncModal open={which === "exchange"} exchange={String(query.exchange || "binance")} isPro status={{ connected: true, keyHint: "a1F9", lastSyncAt: Date.now() - 36e5, markets: ["usdm"], window: 90 }} onClose={() => setWhich(null)} />
       <UpgradeSheet open={which === "sheet"} onClose={() => setWhich(null)} title="Unlock your full history" reason="Free shows the last 30 days of trades. Upgrade to Pro to see everything." />
       <ImportTradesModal open={which === "import"} onClose={() => setWhich(null)} />
       <SupportModal open={which === "support"} onClose={() => setWhich(null)} user={{ name: "Demo Trader", email: "demo@example.com" }} />

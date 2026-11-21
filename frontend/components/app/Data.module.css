@@ -11,7 +11,7 @@
 .cardHead { display: flex; align-items: flex-start; gap: 12px; }
 .ico {
   flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; color: #e9ebee;
-  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%), linear-gradient(160deg, #2a2b2f 0%, #141416 60%, #0b0b0c 100%);
+  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%), linear-gradient(160deg, #2a2b2f 0%, #1d1e23 60%, #131418 100%);
   border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 .cardTitle { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
@@ -49,7 +49,7 @@
 .linkRow { display: flex; gap: 8px; }
 .linkRow input {
   flex: 1; min-width: 0; height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #0f0f12; color: var(--ink); font: 500 13px "Poppins", sans-serif; outline: none;
+  background: #17181d; color: var(--ink); font: 500 13px "Poppins", sans-serif; outline: none;
 }
 .linkRow input:focus { border-color: #9aa1ad; }
 .shareRow { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -58,7 +58,7 @@
 /* preview of the shared page */
 .previewHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .previewPill { font-size: 11.5px; color: var(--muted); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-2); }
-.preview { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 13px; background: #0f0f12; border: 1px solid var(--line); }
+.preview { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 13px; background: #17181d; border: 1px solid var(--line); }
 .previewName { font-size: 15px; font-weight: 600; color: var(--ink); }
 .previewStats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .previewStats > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid rgba(255, 255, 255, 0.05); }
@@ -82,7 +82,7 @@
   transition: border-color 0.15s ease;
 }
 .opt:hover { border-color: var(--line-2); }
-.opt[aria-checked="true"] { border-color: rgba(255, 255, 255, 0.28); background: #1d1d22; }
+.opt[aria-checked="true"] { border-color: rgba(255, 255, 255, 0.28); background: #28292f; }
 .opt b { font-size: 13.5px; font-weight: 600; }
 .opt small { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
 .box {
@@ -92,7 +92,7 @@
 .opt[aria-checked="true"] .box { background: #f5f6f8; border-color: #f5f6f8; }
 .optIco {
   flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: #e9ebee;
-  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 55%), linear-gradient(160deg, #26272b 0%, #151517 70%);
+  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 55%), linear-gradient(160deg, #26272b 0%, #1e1f24 70%);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .formats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -103,12 +103,12 @@
 .format span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .format b { font-size: 13.5px; font-weight: 600; color: var(--ink); }
 .format small { font-size: 11.5px; color: var(--faint); }
-.format[aria-checked="true"] { border-color: rgba(255, 255, 255, 0.28); background: #1d1d22; color: var(--ink); }
+.format[aria-checked="true"] { border-color: rgba(255, 255, 255, 0.28); background: #28292f; color: var(--ink); }
 .opt:focus-visible, .format:focus-visible, .chips button:focus-visible { outline: 2px solid var(--ink-2); outline-offset: 2px; }
 
 .summary {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  padding: 14px 16px; border-radius: 13px; background: #0f0f12; border: 1px solid var(--line);
+  padding: 14px 16px; border-radius: 13px; background: #17181d; border: 1px solid var(--line);
 }
 .summary > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .summary b { font-size: 14px; font-weight: 600; color: var(--ink); }

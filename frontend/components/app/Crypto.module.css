@@ -1,15 +1,15 @@
 /* Crypto checkout (USDT). Dark by default, light via [data-theme="light"]. */
 .page {
-  --ink: #f5f6f8; --ink2: #c7ccd4; --muted: #9aa1ad; --faint: #6f7785;
-  --line: rgba(255, 255, 255, 0.08); --line2: rgba(255, 255, 255, 0.14);
-  --card: linear-gradient(180deg, #16161a 0%, #111114 100%); --surface: #1b1b1f; --field: #0f0f12;
+  --ink: #f5f6f8; --ink2: #c7ccd4; --muted: #a8afba; --faint: #868d99;
+  --line: rgba(255, 255, 255, 0.09); --line2: rgba(255, 255, 255, 0.14);
+  --card: linear-gradient(180deg, #202126 0%, #191a1f 100%); --surface: #26272d; --field: #17181d;
   --gold: #fcd535; --green: #2ebd85; --red: #f6465d;
   min-height: 100vh; color: var(--ink); font-family: "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
-  background: radial-gradient(620px 380px at 100% 0%, rgba(214, 220, 230, 0.1), rgba(214, 220, 230, 0) 70%), #000;
+  background: radial-gradient(620px 380px at 100% 0%, rgba(214, 220, 230, 0.1), rgba(214, 220, 230, 0) 70%), #101115;
 }
 :global([data-theme="light"]) .page {
-  --ink: #111318; --ink2: #33373f; --muted: #5f6672; --faint: #8a909b;
-  --line: rgba(17, 19, 24, 0.08); --line2: rgba(17, 19, 24, 0.14);
+  --ink: #111318; --ink2: #33373f; --muted: #5f6672; --faint: #6f7682;
+  --line: rgba(17, 19, 24, 0.1); --line2: rgba(17, 19, 24, 0.14);
   --card: #ffffff; --surface: #f3f4f6; --field: #ffffff; --green: #12965f; --red: #d63249;
   background: radial-gradient(620px 380px at 100% 0%, rgba(252, 213, 53, 0.08), rgba(252, 213, 53, 0) 70%), #f4f5f7;
 }
@@ -187,7 +187,7 @@
 .token svg { display: block; border-radius: 50%; }
 .tokenChip {
   position: absolute; right: -3px; bottom: -3px; width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center;
-  font: 800 8.5px "Poppins", sans-serif; color: #fff; box-shadow: 0 0 0 2px #141417;
+  font: 800 8.5px "Poppins", sans-serif; color: #fff; box-shadow: 0 0 0 2px #1d1e23;
 }
 :global([data-theme="light"]) .tokenChip { box-shadow: 0 0 0 2px #fff; }
 .netPill { padding: 5px 14px 5px 5px; gap: 10px; font-size: 13px; }
@@ -213,7 +213,7 @@
   -webkit-appearance: none; appearance: none; flex: none; width: 20px !important; height: 20px !important; margin: 0 !important; border-radius: 6px; cursor: pointer;
   border: 1.5px solid var(--line2); background: var(--field); display: grid; place-items: center; transition: background-color 0.15s ease, border-color 0.15s ease;
 }
-.cb::after { content: ""; width: 10px; height: 6px; border-left: 2px solid #0b0b0c; border-bottom: 2px solid #0b0b0c; transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+.cb::after { content: ""; width: 10px; height: 6px; border-left: 2px solid #131418; border-bottom: 2px solid #131418; transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
 .cb:checked { background: var(--gold); border-color: var(--gold); }
 .cb:checked::after { opacity: 1; }
 .cb:hover { border-color: var(--muted); }
