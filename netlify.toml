@@ -1,0 +1,23 @@
+# Netlify hosting for journalx.app (Next.js 16, pages router) — moved from Vercel.
+# The site lives in frontend/; the API (api.journalx.app) is a separate Express
+# server on Railway and is NOT deployed here.
+# The Next.js runtime (OpenNext) is pinned in [[plugins]] below.
+# Environment variables (NEXT_PUBLIC_*) are set in Netlify → Site configuration →
+# Environment variables — never in this file. NEXT_PUBLIC_* values are baked in at
+# build time, so redeploy after changing them.
+
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # package.json "engines" asks for Node 22.x
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# The repo root has no package.json, so Netlify's framework detection doesn't
+# recognise Next.js and serves .next as plain files (every page 404s).
+# Pin the Next.js runtime explicitly.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

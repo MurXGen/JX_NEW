@@ -6,6 +6,15 @@ const nextConfig = {
   reactStrictMode: true,
 
   // ------------------------------
+  // Netlify: keep the server function small (250 MB limit).
+  // Nothing on the server reads public/ at runtime — it is served as static
+  // files from the CDN — so don't trace it into the function bundle.
+  // ------------------------------
+  outputFileTracingExcludes: {
+    "*": ["public/**"],
+  },
+
+  // ------------------------------
   // 301/308 redirects: old /blog route renamed to /blogs
   // Preserves SEO equity and keeps old inbound links working.
   // ------------------------------
